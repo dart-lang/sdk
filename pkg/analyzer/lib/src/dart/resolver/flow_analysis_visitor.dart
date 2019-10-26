@@ -92,10 +92,10 @@ class FlowAnalysisHelper {
     return null;
   }
 
-  void assignmentExpression_afterRight(
-      AssignmentExpression node, VariableElement localElement) {
+  void assignmentExpression_afterRight(AssignmentExpression node,
+      VariableElement localElement, DartType writtenType) {
     if (localElement != null) {
-      flow.write(localElement);
+      flow.write(localElement, writtenType);
     }
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {

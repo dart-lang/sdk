@@ -143,3 +143,43 @@ void assign_var_declared_in_loop() {
     b = false;
   }
 }
+
+void forEach_noDemotion(Object? x, List<int> y) {
+  if (x is int) {
+    /*int*/ x;
+    for (x in y) {
+      /*int*/ x;
+    }
+    /*int*/ x;
+  }
+}
+
+void forEach_partialDemotion(Object? x, List<num> y) {
+  if (x is num) {
+    if (/*num*/ x is int) {
+      /*int*/ x;
+      for (x in y) {
+        /*num*/ x;
+      }
+      /*num*/ x;
+    }
+  }
+}
+
+void collection_forEach_noDemotion(Object? x, List<int> y) {
+  if (x is int) {
+    /*int*/ x;
+    [for (x in y) /*int*/ x ];
+    /*int*/ x;
+  }
+}
+
+void collection_forEach_partialDemotion(Object? x, List<num> y) {
+  if (x is num) {
+    if (/*num*/ x is int) {
+      /*int*/ x;
+      [for (x in y) /*num*/ x ];
+      /*num*/ x;
+    }
+  }
+}

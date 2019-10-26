@@ -9,10 +9,42 @@ assignmentDepromotes(Object x) {
   }
 }
 
+assignmentDepromotes_partial(Object x) {
+  if (x is num) {
+    if (/*num*/ x is int) {
+      x = 42.0;
+      /*num*/ x;
+    }
+  }
+}
+
+assignmentPreservesPromotion(Object x) {
+  if (x is num) {
+    x = 42;
+    /*num*/ x;
+  }
+}
+
 compoundAssignmentDepromotes(Object x) {
   if (x is int) {
     /*int*/ x += 0.5;
     x;
+  }
+}
+
+compoundAssignmentDepromotes_partial(Object x) {
+  if (x is num) {
+    if (/*num*/ x is int) {
+      /*int*/ x += 0.5;
+      /*num*/ x;
+    }
+  }
+}
+
+compoundAssignmentPreservesPromotion(Object x) {
+  if (x is num) {
+    /*num*/ x += 0.5;
+    /*num*/ x;
   }
 }
 
@@ -48,6 +80,34 @@ postDecrementDepromotes(Object x) {
   if (x is C) {
     /*C*/ x--;
     x;
+  }
+}
+
+preIncrementPreservesPromotion(Object x) {
+  if (x is int) {
+    ++ /*int*/ x;
+    /*int*/ x;
+  }
+}
+
+postIncrementPreservesPromotion(Object x) {
+  if (x is int) {
+    /*int*/ x++;
+    /*int*/ x;
+  }
+}
+
+preDecrementPreservesPromotion(Object x) {
+  if (x is int) {
+    -- /*int*/ x;
+    /*int*/ x;
+  }
+}
+
+postDecrementPreservesPromotion(Object x) {
+  if (x is int) {
+    /*int*/ x--;
+    /*int*/ x;
   }
 }
 

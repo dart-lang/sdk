@@ -4,7 +4,7 @@
 
 void conditional_both(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : ((x is int) || (throw 2));
-  /*num*/ x;
+  x;
 }
 
 void conditional_else(bool b, Object x) {

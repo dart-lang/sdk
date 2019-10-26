@@ -41,6 +41,7 @@ main(List<String> args) async {
         'initialization.dart',
         'inside_closure.dart',
         'not_promoted.dart',
+        'null_aware_assignment.dart',
         'null_check.dart',
         'potentially_mutated.dart',
         'switch.dart',

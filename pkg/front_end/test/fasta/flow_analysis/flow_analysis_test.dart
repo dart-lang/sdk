@@ -53,8 +53,8 @@ main() {
         h.promote(x, 'int');
         h.promote(z, 'int');
         flow.assert_begin();
-        flow.write(x);
-        flow.write(z);
+        flow.write(x, _Type('int?'));
+        flow.write(z, _Type('int?'));
         var expr = h.and(h.notNull(x), h.notNull(y))();
         flow.assert_afterCondition(expr);
         flow.assert_end();
@@ -259,7 +259,7 @@ main() {
           expect(flow.promotedType(x).type, 'int');
         });
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         h.if_(h.notNull(x), () {
           expect(flow.promotedType(x), isNull);
@@ -299,7 +299,7 @@ main() {
         // the loop, x has been write-captured.
         expect(flow.promotedType(x), isNull);
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.doStatement_conditionBegin();
         flow.doStatement_end(_Expression());
@@ -363,7 +363,7 @@ main() {
         flow.for_conditionBegin(forStatement);
         expect(flow.promotedType(x), isNull);
         flow.for_bodyBegin(_Statement(), _Expression());
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         flow.for_updaterBegin();
         flow.for_end();
       });
@@ -384,7 +384,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x), isNull);
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.for_bodyBegin(_Statement(), _Expression());
         flow.for_updaterBegin();
@@ -524,9 +524,9 @@ main() {
         h.declare(x, initialized: true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
-        flow.forEach_bodyBegin(forStatement, null);
+        flow.forEach_bodyBegin(forStatement, null, _Type('int?'));
         expect(flow.promotedType(x), isNull);
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         flow.forEach_end();
       });
     });
@@ -542,11 +542,11 @@ main() {
         h.declare(x, initialized: true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
-        flow.forEach_bodyBegin(forStatement, null);
+        flow.forEach_bodyBegin(forStatement, null, _Type('int?'));
         h.promote(x, 'int');
         expect(flow.promotedType(x), isNull);
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.forEach_end();
       });
@@ -561,7 +561,7 @@ main() {
       h.run((flow) {
         h.declare(x, initialized: false);
         expect(flow.isAssigned(x), false);
-        flow.forEach_bodyBegin(forStatement, x);
+        flow.forEach_bodyBegin(forStatement, x, _Type('int?'));
         expect(flow.isAssigned(x), true);
         flow.forEach_end();
         expect(flow.isAssigned(x), false);
@@ -575,7 +575,7 @@ main() {
       h.assignedVariables((vars) => vars.nest(stmt, () {}));
       h.run((flow) {
         h.declare(x, initialized: true);
-        flow.forEach_bodyBegin(stmt, null);
+        flow.forEach_bodyBegin(stmt, null, _Type('int?'));
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.forEach_end();
@@ -602,7 +602,7 @@ main() {
         // x is unpromoted within the local function
         expect(flow.promotedType(x), isNull);
         expect(flow.promotedType(y).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         h.promote(x, 'int');
         flow.functionExpression_end();
         // x is unpromoted after the local function too
@@ -648,7 +648,7 @@ main() {
         // x is unpromoted inside this local function too.
         expect(flow.promotedType(x), isNull);
         expect(flow.promotedType(y).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         flow.functionExpression_end();
         // And since the second local function captured x, it remains
         // unpromoted.
@@ -687,7 +687,7 @@ main() {
         // write hasn't occurred yet.
         expect(flow.promotedType(x).type, 'int');
         expect(flow.promotedType(y).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         // x is unpromoted now.
         expect(flow.promotedType(x), isNull);
         expect(flow.promotedType(y).type, 'int');
@@ -796,7 +796,7 @@ main() {
           expect(flow.promotedType(x).type, 'int');
         });
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         h.if_(h.isType(h.variableRead(x), 'int'), () {
           expect(flow.promotedType(x), isNull);
@@ -952,7 +952,7 @@ main() {
         var lhs = _Expression();
         flow.nullAwareAccess_rightBegin(lhs);
         expect(flow.promotedType(x).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         expect(flow.promotedType(x), isNull);
         flow.nullAwareAccess_end();
         expect(flow.promotedType(x), isNull);
@@ -993,11 +993,11 @@ main() {
         flow.switchStatement_expressionEnd(_Statement());
         flow.switchStatement_beginCase(false, switchStatement);
         expect(flow.promotedType(x).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_beginCase(false, switchStatement);
         expect(flow.promotedType(x).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_end(false);
       });
@@ -1015,7 +1015,7 @@ main() {
         flow.switchStatement_expressionEnd(_Statement());
         flow.switchStatement_beginCase(false, switchStatement);
         expect(flow.promotedType(x).type, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_end(false);
       });
@@ -1036,7 +1036,7 @@ main() {
         flow.switchStatement_beginCase(false, switchStatement);
         expect(flow.promotedType(x).type, 'int');
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_end(false);
@@ -1055,7 +1055,7 @@ main() {
         flow.switchStatement_expressionEnd(_Statement());
         flow.switchStatement_beginCase(true, switchStatement);
         expect(flow.promotedType(x), isNull);
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_end(false);
       });
@@ -1076,7 +1076,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x), isNull);
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         expect(flow.promotedType(x), isNull);
         flow.switchStatement_end(false);
@@ -1101,7 +1101,7 @@ main() {
         flow.switchStatement_expressionEnd(stmt);
         flow.switchStatement_beginCase(false, switchStatement);
         h.promote(x, 'int');
-        flow.write(y);
+        flow.write(y, _Type('int?'));
         flow.handleBreak(stmt);
         flow.switchStatement_end(false);
         expect(flow.promotedType(x), isNull);
@@ -1134,12 +1134,12 @@ main() {
         flow.switchStatement_beginCase(false, switchStatement);
         h.promote(w, 'int');
         h.promote(y, 'int');
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         flow.handleBreak(stmt);
         flow.switchStatement_beginCase(false, switchStatement);
         h.promote(w, 'int');
         h.promote(x, 'int');
-        flow.write(y);
+        flow.write(y, _Type('int?'));
         flow.handleBreak(stmt);
         flow.switchStatement_end(true);
         expect(flow.promotedType(w).type, 'int');
@@ -1200,7 +1200,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryCatchStatement_bodyBegin();
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryCatchStatement_bodyEnd(body);
@@ -1227,7 +1227,7 @@ main() {
         expect(flow.promotedType(x).type, 'int');
         flow.tryCatchStatement_bodyBegin();
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.handleExit();
         flow.tryCatchStatement_bodyEnd(body);
@@ -1378,7 +1378,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryFinallyStatement_bodyBegin();
-        flow.write(x);
+        flow.write(x, _Type('int?'));
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryFinallyStatement_finallyBegin(body);
@@ -1405,7 +1405,7 @@ main() {
         h.declare(x, initialized: true);
         flow.tryFinallyStatement_bodyBegin();
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.handleExit();
         flow.tryFinallyStatement_finallyBegin(body);
@@ -1465,8 +1465,8 @@ main() {
         expect(flow.promotedType(x).type, 'int');
         flow.tryFinallyStatement_finallyBegin(body);
         expect(flow.promotedType(x), isNull);
-        flow.write(x);
-        flow.write(y);
+        flow.write(x, _Type('int?'));
+        flow.write(y, _Type('int?'));
         h.promote(y, 'int');
         expect(flow.promotedType(y).type, 'int');
         flow.tryFinallyStatement_end(finallyBlock);
@@ -1511,7 +1511,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x), isNull);
         h.function(functionNode, () {
-          flow.write(x);
+          flow.write(x, _Type('int?'));
         });
         flow.whileStatement_bodyBegin(_Statement(), _Expression());
         flow.whileStatement_end();
@@ -1702,8 +1702,9 @@ main() {
         var s2 = s1.promote(h, intQVar, _Type('int'));
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
-          expect(s2.variableInfo,
-              {intQVar: VariableModel<_Type>(_Type('int'), false, false)});
+          expect(s2.variableInfo, {
+            intQVar: VariableModel<_Type>([_Type('int')], false, false)
+          });
         });
       });
 
@@ -1738,8 +1739,10 @@ main() {
         var s2 = s1.promote(h, objectQVar, _Type('int'));
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
-          expect(s2.variableInfo,
-              {objectQVar: VariableModel<_Type>(_Type('int'), false, false)});
+          expect(s2.variableInfo, {
+            objectQVar: VariableModel<_Type>(
+                [_Type('int?'), _Type('int')], false, false)
+          });
         });
       });
     });
@@ -1747,25 +1750,134 @@ main() {
     group('write', () {
       var objectQVar = _Var('x', _Type('Object?'));
       test('unchanged', () {
-        var s1 = FlowModel<_Var, _Type>(true).write(objectQVar);
-        var s2 = s1.write(objectQVar);
+        var h = _Harness();
+        var s1 =
+            FlowModel<_Var, _Type>(true).write(objectQVar, _Type('Object?'), h);
+        var s2 = s1.write(objectQVar, _Type('Object?'), h);
+        expect(s2, same(s1));
+      });
+
+      test('marks as assigned', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true);
+        var s2 = s1.write(objectQVar, _Type('int?'), h);
+        expect(s2.reachable, true);
+        expect(s2.infoFor(objectQVar), VariableModel<_Type>(null, true, false));
+      });
+
+      test('un-promotes fully', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .write(objectQVar, _Type('Object?'), h)
+            .promote(h, objectQVar, _Type('int'));
+        expect(s1.variableInfo, contains(objectQVar));
+        var s2 = s1.write(objectQVar, _Type('int?'), h);
+        expect(s2.reachable, true);
+        expect(s2.variableInfo,
+            {objectQVar: VariableModel<_Type>(null, true, false)});
+      });
+
+      test('un-promotes partially, when no exact match', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .write(objectQVar, _Type('Object?'), h)
+            .promote(h, objectQVar, _Type('num?'))
+            .promote(h, objectQVar, _Type('int'));
+        _Type.allowComparisons(() {
+          expect(s1.variableInfo, {
+            objectQVar:
+                VariableModel([_Type('num?'), _Type('int')], true, false)
+          });
+        });
+        var s2 = s1.write(objectQVar, _Type('num'), h);
+        expect(s2.reachable, true);
+        _Type.allowComparisons(() {
+          expect(s2.variableInfo, {
+            objectQVar: VariableModel([_Type('num?')], true, false)
+          });
+        });
+      });
+
+      test('un-promotes partially, when exact match', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .write(objectQVar, _Type('Object?'), h)
+            .promote(h, objectQVar, _Type('num?'))
+            .promote(h, objectQVar, _Type('num'))
+            .promote(h, objectQVar, _Type('int'));
+        _Type.allowComparisons(() {
+          expect(s1.variableInfo, {
+            objectQVar: VariableModel(
+                [_Type('num?'), _Type('num'), _Type('int')], true, false)
+          });
+        });
+        var s2 = s1.write(objectQVar, _Type('num'), h);
+        expect(s2.reachable, true);
+        _Type.allowComparisons(() {
+          expect(s2.variableInfo, {
+            objectQVar:
+                VariableModel([_Type('num?'), _Type('num')], true, false)
+          });
+        });
+      });
+
+      test('leaves promoted, when exact match', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .write(objectQVar, _Type('Object?'), h)
+            .promote(h, objectQVar, _Type('num?'))
+            .promote(h, objectQVar, _Type('num'));
+        _Type.allowComparisons(() {
+          expect(s1.variableInfo, {
+            objectQVar:
+                VariableModel([_Type('num?'), _Type('num')], true, false)
+          });
+        });
+        var s2 = s1.write(objectQVar, _Type('num'), h);
+        expect(s2.reachable, true);
+        expect(s2.variableInfo, same(s1.variableInfo));
+      });
+
+      test('leaves promoted, when writing a subtype', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true)
+            .write(objectQVar, _Type('Object?'), h)
+            .promote(h, objectQVar, _Type('num?'))
+            .promote(h, objectQVar, _Type('num'));
+        _Type.allowComparisons(() {
+          expect(s1.variableInfo, {
+            objectQVar:
+                VariableModel([_Type('num?'), _Type('num')], true, false)
+          });
+        });
+        var s2 = s1.write(objectQVar, _Type('int'), h);
+        expect(s2.reachable, true);
+        expect(s2.variableInfo, same(s1.variableInfo));
+      });
+    });
+
+    group('initialize', () {
+      var objectQVar = _Var('x', _Type('Object?'));
+      test('unchanged', () {
+        var s1 = FlowModel<_Var, _Type>(true).initialize(objectQVar);
+        var s2 = s1.initialize(objectQVar);
         expect(s2, same(s1));
       });
 
       test('marks as assigned', () {
         var s1 = FlowModel<_Var, _Type>(true);
-        var s2 = s1.write(objectQVar);
+        var s2 = s1.initialize(objectQVar);
         expect(s2.reachable, true);
         expect(s2.infoFor(objectQVar), VariableModel<_Type>(null, true, false));
       });
 
-      test('un-promotes', () {
+      test('un-promotes fully', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .write(objectQVar)
+            .initialize(objectQVar)
             .promote(h, objectQVar, _Type('int'));
         expect(s1.variableInfo, contains(objectQVar));
-        var s2 = s1.write(objectQVar);
+        var s2 = s1.initialize(objectQVar);
         expect(s2.reachable, true);
         expect(s2.variableInfo,
             {objectQVar: VariableModel<_Type>(null, true, false)});
@@ -1787,7 +1899,7 @@ main() {
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
           expect(
-              s2.infoFor(intQVar), VariableModel(_Type('int'), false, false));
+              s2.infoFor(intQVar), VariableModel([_Type('int')], false, false));
         });
       });
 
@@ -1806,8 +1918,10 @@ main() {
         var s2 = s1.markNonNullable(h, objectQVar);
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
-          expect(s2.variableInfo,
-              {objectQVar: VariableModel<_Type>(_Type('int'), false, false)});
+          expect(s2.variableInfo, {
+            objectQVar: VariableModel<_Type>(
+                [_Type('int?'), _Type('int')], false, false)
+          });
         });
       });
     });
@@ -1830,7 +1944,7 @@ main() {
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
           expect(s2.variableInfo, {
-            objectQVar: VariableModel<_Type>(_Type('int'), false, false),
+            objectQVar: VariableModel<_Type>([_Type('int')], false, false),
             intQVar: VariableModel<_Type>(null, false, false)
           });
         });
@@ -1845,7 +1959,7 @@ main() {
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
           expect(s2.variableInfo, {
-            objectQVar: VariableModel<_Type>(_Type('int'), false, false),
+            objectQVar: VariableModel<_Type>([_Type('int')], false, false),
             intQVar: VariableModel<_Type>(null, false, true)
           });
         });
@@ -1870,8 +1984,8 @@ main() {
         var c = _Var('c', _Type('int'));
         var d = _Var('d', _Type('int'));
         var s0 = FlowModel<_Var, _Type>(true);
-        var s1 = s0.write(a).write(b);
-        var s2 = s0.write(a).write(c);
+        var s1 = s0.write(a, _Type('int'), h).write(b, _Type('int'), h);
+        var s2 = s0.write(a, _Type('int'), h).write(c, _Type('int'), h);
         var result = s1.restrict(h, s2, Set());
         expect(result.infoFor(a).assigned, true);
         expect(result.infoFor(b).assigned, true);
@@ -1898,44 +2012,172 @@ main() {
 
       test('promotion', () {
         void _check(String thisType, String otherType, bool unsafe,
-            String expectedType) {
+            List<String> expectedChain) {
           var h = _Harness();
           var x = _Var('x', _Type('Object?'));
-          var s0 = FlowModel<_Var, _Type>(true).write(x);
+          var s0 = FlowModel<_Var, _Type>(true).write(x, _Type('Object?'), h);
           var s1 = thisType == null ? s0 : s0.promote(h, x, _Type(thisType));
           var s2 = otherType == null ? s0 : s0.promote(h, x, _Type(otherType));
           var result = s1.restrict(h, s2, unsafe ? [x].toSet() : Set());
-          if (expectedType == null) {
+          if (expectedChain == null) {
             expect(result.variableInfo, contains(x));
-            expect(result.infoFor(x).promotedType, isNull);
+            expect(result.infoFor(x).promotionChain, isNull);
           } else {
-            expect(result.infoFor(x).promotedType.type, expectedType);
+            expect(result.infoFor(x).promotionChain.map((t) => t.type).toList(),
+                expectedChain);
           }
         }
 
         _check(null, null, false, null);
         _check(null, null, true, null);
-        _check('int', null, false, 'int');
-        _check('int', null, true, 'int');
-        _check(null, 'int', false, 'int');
+        _check('int', null, false, ['int']);
+        _check('int', null, true, ['int']);
+        _check(null, 'int', false, ['int']);
         _check(null, 'int', true, null);
-        _check('int?', 'int', false, 'int');
-        _check('int', 'int?', false, 'int');
-        _check('int', 'String', false, 'int');
-        _check('int?', 'int', true, 'int?');
-        _check('int', 'int?', true, 'int');
-        _check('int', 'String', true, 'int');
+        _check('int?', 'int', false, ['int']);
+        _check('int', 'int?', false, ['int?', 'int']);
+        _check('int', 'String', false, ['String']);
+        _check('int?', 'int', true, ['int?']);
+        _check('int', 'int?', true, ['int']);
+        _check('int', 'String', true, ['int']);
+      });
+
+      test('promotion chains', () {
+        // Verify that the given promotion chain matches the expected list of
+        // strings.
+        void _checkChain(List<_Type> chain, List<String> expected) {
+          var strings = (chain ?? <_Type>[]).map((t) => t.type).toList();
+          expect(strings, expected);
+        }
+
+        // Test the following scenario:
+        // - Prior to the try/finally block, the sequence of promotions in
+        //   [before] is done.
+        // - During the try block, the sequence of promotions in [inTry] is
+        //   done.
+        // - During the finally block, the sequence of promotions in
+        //   [inFinally] is done.
+        // - After calling `restrict` to refine the state from the finally
+        //   block, the expected promotion chain is [expectedResult].
+        void _check(List<String> before, List<String> inTry,
+            List<String> inFinally, List<String> expectedResult) {
+          var h = _Harness();
+          var x = _Var('x', _Type('Object?'));
+          var initialModel =
+              FlowModel<_Var, _Type>(true).write(x, _Type('Object?'), h);
+          for (var t in before) {
+            initialModel = initialModel.promote(h, x, _Type(t));
+          }
+          _checkChain(initialModel.infoFor(x).promotionChain, before);
+          var tryModel = initialModel;
+          for (var t in inTry) {
+            tryModel = tryModel.promote(h, x, _Type(t));
+          }
+          var expectedTryChain = before.toList()..addAll(inTry);
+          _checkChain(tryModel.infoFor(x).promotionChain, expectedTryChain);
+          var finallyModel = initialModel;
+          for (var t in inFinally) {
+            finallyModel = finallyModel.promote(h, x, _Type(t));
+          }
+          var expectedFinallyChain = before.toList()..addAll(inFinally);
+          _checkChain(
+              finallyModel.infoFor(x).promotionChain, expectedFinallyChain);
+          var result = finallyModel.restrict(h, tryModel, {});
+          _checkChain(result.infoFor(x).promotionChain, expectedResult);
+          // And verify that the inputs are unchanged.
+          _checkChain(initialModel.infoFor(x).promotionChain, before);
+          _checkChain(tryModel.infoFor(x).promotionChain, expectedTryChain);
+          _checkChain(
+              finallyModel.infoFor(x).promotionChain, expectedFinallyChain);
+        }
+
+        _check(['Object'], ['Iterable', 'List'], ['num', 'int'],
+            ['Object', 'Iterable', 'List']);
+        _check([], ['Iterable', 'List'], ['num', 'int'], ['Iterable', 'List']);
+        _check(['Object'], ['Iterable', 'List'], [],
+            ['Object', 'Iterable', 'List']);
+        _check([], ['Iterable', 'List'], [], ['Iterable', 'List']);
+        _check(['Object'], [], ['num', 'int'], ['Object', 'num', 'int']);
+        _check([], [], ['num', 'int'], ['num', 'int']);
+        _check(['Object'], [], [], ['Object']);
+        _check([], [], [], []);
+        _check(
+            [], ['Object', 'Iterable'], ['num', 'int'], ['Object', 'Iterable']);
+        _check([], ['Object'], ['num', 'int'], ['Object', 'num', 'int']);
+        _check([], ['num', 'int'], ['Object', 'Iterable'], ['num', 'int']);
+        _check([], ['num', 'int'], ['Object'], ['num', 'int']);
+        _check([], ['Object', 'int'], ['num'], ['Object', 'int']);
+        _check([], ['Object', 'num'], ['int'], ['Object', 'num', 'int']);
+        _check([], ['num'], ['Object', 'int'], ['num', 'int']);
+        _check([], ['int'], ['Object', 'num'], ['int']);
       });
 
       test('variable present in one state but not the other', () {
         var h = _Harness();
         var x = _Var('x', _Type('Object?'));
         var s0 = FlowModel<_Var, _Type>(true);
-        var s1 = s0.write(x);
+        var s1 = s0.write(x, _Type('Object?'), h);
         expect(s0.restrict(h, s1, {}), same(s1));
         expect(s0.restrict(h, s1, {x}), same(s1));
         expect(s1.restrict(h, s0, {}), same(s1));
         expect(s1.restrict(h, s0, {x}), same(s1));
+      });
+    });
+  });
+
+  group('joinPromotionChains', () {
+    var doubleType = _Type('double');
+    var intType = _Type('int');
+    var numType = _Type('num');
+    var objectType = _Type('Object');
+    var neverType = _Type('Never');
+
+    test('should handle nulls', () {
+      var h = _Harness();
+      expect(VariableModel.joinPromotionChains(null, null, h), null);
+      expect(VariableModel.joinPromotionChains(null, [intType], h), null);
+      expect(VariableModel.joinPromotionChains([intType], null, h), null);
+    });
+
+    test('should return null if there are no common types', () {
+      var h = _Harness();
+      expect(
+          VariableModel.joinPromotionChains([intType], [doubleType], h), null);
+    });
+
+    test('should return common prefix if there are common types', () {
+      var h = _Harness();
+      _Type.allowComparisons(() {
+        expect(
+            VariableModel.joinPromotionChains(
+                [objectType, intType], [objectType, doubleType], h),
+            [objectType]);
+        expect(
+            VariableModel.joinPromotionChains([objectType, numType, intType],
+                [objectType, numType, doubleType], h),
+            [objectType, numType]);
+      });
+    });
+
+    test('should return an input if it is a prefix of the other', () {
+      var h = _Harness();
+      var prefix = [objectType, numType];
+      var largerChain = [objectType, numType, intType];
+      expect(VariableModel.joinPromotionChains(prefix, largerChain, h),
+          same(prefix));
+      expect(VariableModel.joinPromotionChains(largerChain, prefix, h),
+          same(prefix));
+      expect(
+          VariableModel.joinPromotionChains(prefix, prefix, h), same(prefix));
+    });
+
+    test('should not keep common types after the first difference', () {
+      var h = _Harness();
+      _Type.allowComparisons(() {
+        expect(
+            VariableModel.joinPromotionChains([objectType, intType, neverType],
+                [objectType, doubleType, neverType], h),
+            [objectType]);
       });
     });
   });
@@ -1950,14 +2192,20 @@ main() {
     var stringType = _Type('String');
     const emptyMap = <Null, VariableModel<Null>>{};
 
-    VariableModel<_Type> model(_Type type) =>
-        VariableModel<_Type>(type, true, false);
+    VariableModel<_Type> model(List<_Type> promotionChain) =>
+        VariableModel<_Type>(promotionChain, true, false);
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
         var h = _Harness();
-        var p1 = {x: model(intType), y: model(null)};
-        var p2 = {x: model(null), y: model(intType)};
+        var p1 = {
+          x: model([intType]),
+          y: model(null)
+        };
+        var p2 = {
+          x: model(null),
+          y: model([intType])
+        };
         expect(FlowModel.joinVariableInfo(h, p1, p2),
             {x: model(null), y: model(null)});
       });
@@ -1965,13 +2213,19 @@ main() {
     group('should re-use an input if possible', () {
       test('identical inputs', () {
         var h = _Harness();
-        var p = {x: model(intType), y: model(stringType)};
+        var p = {
+          x: model([intType]),
+          y: model([stringType])
+        };
         expect(FlowModel.joinVariableInfo(h, p, p), same(p));
       });
 
       test('one input empty', () {
         var h = _Harness();
-        var p1 = {x: model(intType), y: model(stringType)};
+        var p1 = {
+          x: model([intType]),
+          y: model([stringType])
+        };
         var p2 = <_Var, VariableModel<_Type>>{};
         expect(FlowModel.joinVariableInfo(h, p1, p2), same(emptyMap));
         expect(FlowModel.joinVariableInfo(h, p2, p1), same(emptyMap));
@@ -1979,32 +2233,45 @@ main() {
 
       test('promoted with unpromoted', () {
         var h = _Harness();
-        var p1 = {x: model(intType)};
+        var p1 = {
+          x: model([intType])
+        };
         var p2 = {x: model(null)};
         expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
         expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
       });
 
-      test('related types', () {
+      test('related type chains', () {
         var h = _Harness();
-        var p1 = {x: model(intType)};
-        var p2 = {x: model(intQType)};
+        var p1 = {
+          x: model([intQType, intType])
+        };
+        var p2 = {
+          x: model([intQType])
+        };
         expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
         expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
       });
 
-      test('unrelated types', () {
+      test('unrelated type chains', () {
         var h = _Harness();
-        var p1 = {x: model(intType)};
-        var p2 = {x: model(stringType)};
+        var p1 = {
+          x: model([intType])
+        };
+        var p2 = {
+          x: model([stringType])
+        };
         expect(FlowModel.joinVariableInfo(h, p1, p2), {x: model(null)});
         expect(FlowModel.joinVariableInfo(h, p2, p1), {x: model(null)});
       });
 
       test('sub-map', () {
         var h = _Harness();
-        var xModel = model(intType);
-        var p1 = {x: xModel, y: model(stringType)};
+        var xModel = model([intType]);
+        var p1 = {
+          x: xModel,
+          y: model([stringType])
+        };
         var p2 = {x: xModel};
         expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
         expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
@@ -2012,65 +2279,79 @@ main() {
 
       test('sub-map with matched subtype', () {
         var h = _Harness();
-        var p1 = {x: model(intType), y: model(stringType)};
-        var p2 = {x: model(intQType)};
+        var p1 = {
+          x: model([intQType, intType]),
+          y: model([stringType])
+        };
+        var p2 = {
+          x: model([intQType])
+        };
         expect(FlowModel.joinVariableInfo(h, p1, p2), same(p2));
         expect(FlowModel.joinVariableInfo(h, p2, p1), same(p2));
       });
 
       test('sub-map with mismatched subtype', () {
         var h = _Harness();
-        var p1 = {x: model(intQType), y: model(stringType)};
-        var p2 = {x: model(intType)};
+        var p1 = {
+          x: model([intQType]),
+          y: model([stringType])
+        };
+        var p2 = {
+          x: model([intQType, intType])
+        };
         var join12 = FlowModel.joinVariableInfo(h, p1, p2);
-        _Type.allowComparisons(() => expect(join12, {x: model(intQType)}));
+        _Type.allowComparisons(() => expect(join12, {
+              x: model([intQType])
+            }));
         var join21 = FlowModel.joinVariableInfo(h, p2, p1);
-        _Type.allowComparisons(() => expect(join21, {x: model(intQType)}));
+        _Type.allowComparisons(() => expect(join21, {
+              x: model([intQType])
+            }));
       });
 
       test('assigned', () {
         var h = _Harness();
         var p1 = {
-          x: model(intQType).write(),
-          y: model(intQType).write(),
-          z: model(intQType),
-          w: model(intQType)
+          x: model([intQType]).write(_Type('int?'), h),
+          y: model([intQType]).write(_Type('int?'), h),
+          z: model([intQType]),
+          w: model([intQType])
         };
         var p2 = {
-          x: model(intQType).write(),
-          y: model(intQType),
-          z: model(intQType).write(),
-          w: model(intQType)
+          x: model([intQType]).write(_Type('int?'), h),
+          y: model([intQType]),
+          z: model([intQType]).write(_Type('int?'), h),
+          w: model([intQType])
         };
         var joined = FlowModel.joinVariableInfo(h, p1, p2);
         _Type.allowComparisons(() => expect(joined, {
-              x: model(intQType).write(),
-              y: model(intQType).write(),
-              z: model(intQType).write(),
-              w: model(intQType)
+              x: model([intQType]).write(_Type('int?'), h),
+              y: model([intQType]).write(_Type('int?'), h),
+              z: model([intQType]).write(_Type('int?'), h),
+              w: model([intQType])
             }));
       });
 
       test('write captured', () {
         var h = _Harness();
         var p1 = {
-          x: model(intQType).writeCapture(),
-          y: model(intQType).writeCapture(),
-          z: model(intQType),
-          w: model(intQType)
+          x: model([intQType]).writeCapture(),
+          y: model([intQType]).writeCapture(),
+          z: model([intQType]),
+          w: model([intQType])
         };
         var p2 = {
-          x: model(intQType).writeCapture(),
-          y: model(intQType),
-          z: model(intQType).writeCapture(),
-          w: model(intQType)
+          x: model([intQType]).writeCapture(),
+          y: model([intQType]),
+          z: model([intQType]).writeCapture(),
+          w: model([intQType])
         };
         var joined = FlowModel.joinVariableInfo(h, p1, p2);
         _Type.allowComparisons(() => expect(joined, {
-              x: model(intQType).writeCapture(),
-              y: model(intQType).writeCapture(),
-              z: model(intQType).writeCapture(),
-              w: model(intQType)
+              x: model([intQType]).writeCapture(),
+              y: model([intQType]).writeCapture(),
+              z: model([intQType]).writeCapture(),
+              w: model([intQType])
             }));
       });
     });
@@ -2245,12 +2526,33 @@ class _Harness implements TypeOperations<_Var, _Type> {
   bool isSubtypeOf(_Type leftType, _Type rightType) {
     const Map<String, bool> _subtypes = const {
       'int <: int?': true,
+      'int <: Iterable': false,
+      'int <: List': false,
+      'int <: num': true,
+      'int <: num?': true,
       'int <: Object': true,
       'int <: Object?': true,
       'int <: String': false,
       'int? <: int': false,
       'int? <: Object?': true,
+      'num <: int': false,
+      'num <: Iterable': false,
+      'num <: List': false,
+      'num <: num?': true,
+      'num <: Object': true,
+      'num <: Object?': true,
+      'num? <: Object?': true,
+      'Iterable <: int': false,
+      'Iterable <: num': false,
+      'Iterable <: Object': true,
+      'Iterable <: Object?': true,
+      'List <: int': false,
+      'List <: Iterable': true,
+      'List <: Object': true,
       'Object <: int': false,
+      'Object <: List': false,
+      'Object <: num': false,
+      'Object <: Object?': true,
       'String <: int': false,
       'String <: int?': false,
       'String <: Object?': true,

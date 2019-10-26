@@ -742,7 +742,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
     if (operand is SimpleIdentifier) {
       var element = operand.staticElement;
       if (element is PromotableElement) {
-        _flowAnalysis.write(element);
+        _flowAnalysis.write(element, combinedType);
       }
     }
     return combinedType;

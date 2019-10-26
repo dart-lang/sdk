@@ -990,13 +990,26 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (operatorType == TokenType.PLUS_PLUS ||
         operatorType == TokenType.MINUS_MINUS) {
       var operand = node.operand;
+      var targetType = _checkExpressionNotNull(operand);
+      var callee = node.staticElement;
+      DecoratedType writeType;
+      if (callee == null) {
+        // Dynamic dispatch.  The return type is `dynamic`.
+        // TODO(paulberry): would it be better to assume a return type of `Never`
+        // so that we don't unnecessarily propagate nullabilities everywhere?
+        writeType = _dynamicType;
+      } else {
+        var calleeType =
+            getOrComputeElementType(callee, targetType: targetType);
+        writeType = _fixNumericTypes(calleeType.returnType, node.staticType);
+      }
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _flowAnalysis.write(element);
+          _flowAnalysis.write(element, writeType);
         }
       }
-      return _checkExpressionNotNull(operand);
+      return targetType;
     }
     _unimplemented(
         node, 'Postfix expression with operator ${node.operator.lexeme}');
@@ -1023,26 +1036,33 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _nonNullableBoolType;
     } else {
       var callee = node.staticElement;
+      var isIncrementOrDecrement = operatorType == TokenType.PLUS_PLUS ||
+          operatorType == TokenType.MINUS_MINUS;
+      DecoratedType staticType;
       if (callee == null) {
         // Dynamic dispatch.  The return type is `dynamic`.
         // TODO(paulberry): would it be better to assume a return type of `Never`
         // so that we don't unnecessarily propagate nullabilities everywhere?
-        return _dynamicType;
+        staticType = _dynamicType;
+      } else {
+        var calleeType =
+            getOrComputeElementType(callee, targetType: targetType);
+        if (isIncrementOrDecrement) {
+          staticType = _fixNumericTypes(calleeType.returnType, node.staticType);
+        } else {
+          staticType = _handleInvocationArguments(
+              node, [], null, null, calleeType, null);
+        }
       }
-      var calleeType = getOrComputeElementType(callee, targetType: targetType);
-      if (operatorType == TokenType.PLUS_PLUS ||
-          operatorType == TokenType.MINUS_MINUS) {
+      if (isIncrementOrDecrement) {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _flowAnalysis.write(element);
+            _flowAnalysis.write(element, staticType);
           }
         }
-        return _fixNumericTypes(calleeType.returnType, node.staticType);
-      } else {
-        return _handleInvocationArguments(
-            node, [], null, null, calleeType, null);
       }
+      return staticType;
     }
   }
 
@@ -1646,6 +1666,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             hard: questionAssignNode == null &&
                 _postDominatedLocals.isReferenceInScope(expression));
       }
+      if (destinationLocalVariable != null) {
+        _flowAnalysis.write(destinationLocalVariable, sourceType);
+      }
       if (questionAssignNode != null) {
         _flowAnalysis.ifNullExpression_end();
         // a ??= b is only nullable if both a and b are nullable.
@@ -1661,9 +1684,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (destinationExpression != null) {
       _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
-    }
-    if (destinationLocalVariable != null) {
-      _flowAnalysis.write(destinationLocalVariable);
     }
     return sourceType;
   }
@@ -1832,12 +1852,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             'Unexpected ForEachParts subtype: ${parts.runtimeType}');
       }
       var iterableType = _checkExpressionNotNull(parts.iterable);
+      DecoratedType elementType;
       if (lhsElement != null) {
         DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
         var iterableTypeType = iterableType.type;
         if (_typeSystem.isSubtypeOf(
             iterableTypeType, typeProvider.iterableDynamicType)) {
-          var elementType = _decoratedClassHierarchy
+          elementType = _decoratedClassHierarchy
               .asInstanceOf(
                   iterableType, typeProvider.iterableDynamicType.element)
               .typeArguments[0];
@@ -1846,7 +1867,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       _flowAnalysis.forEach_bodyBegin(
-          node, lhsElement is PromotableElement ? lhsElement : null);
+          node,
+          lhsElement is PromotableElement ? lhsElement : null,
+          elementType ?? _dynamicType);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new

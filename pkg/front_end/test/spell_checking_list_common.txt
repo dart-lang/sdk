@@ -305,6 +305,7 @@ break
 breaking
 breakpoint
 breaks
+briefly
 brittle
 broken
 browser
@@ -383,6 +384,7 @@ causing
 certain
 chain
 chained
+chains
 chance
 chances
 change
@@ -592,6 +594,7 @@ contrast
 contravariance
 contravariant
 contravariantly
+contributes
 control
 controller
 convenience
@@ -1499,6 +1502,7 @@ itemize
 items
 iterable
 iterate
+iterates
 iteration
 iterator
 its
@@ -2428,6 +2432,7 @@ scanner
 scanner's
 scanners
 scanning
+scenario
 schema
 scheme
 schemes
@@ -2553,6 +2558,7 @@ slows
 small
 smaller
 smallest
+smarter
 snapshot
 snapshots
 snippet
@@ -2647,6 +2653,7 @@ structural
 structure
 stuff
 style
+subchain
 subclass
 subclassed
 subclasses

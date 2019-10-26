@@ -26,7 +26,18 @@ class DecoratedTypeOperations
 
   @override
   bool isSubtypeOf(DecoratedType leftType, DecoratedType rightType) {
-    return _typeSystem.isSubtypeOf(leftType.type, rightType.type);
+    if (!_typeSystem.isSubtypeOf(leftType.type, rightType.type)) {
+      // Pre-migrated types don't meet the subtype requirement.  Not a subtype.
+      return false;
+    } else if (rightType.node == _graph.never &&
+        leftType.node != _graph.never) {
+      // The "never" node will never be nullable, so not a subtype.
+      return false;
+    } else {
+      // We don't know whether a subtype relation will hold once the graph is
+      // solved.  Assume it will.
+      return true;
+    }
   }
 
   @override

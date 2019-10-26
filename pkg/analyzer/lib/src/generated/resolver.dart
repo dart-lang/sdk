@@ -3019,10 +3019,14 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     right?.accept(this);
-    _flowAnalysis?.assignmentExpression_afterRight(node, leftLocalVariable);
-
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    _flowAnalysis?.assignmentExpression_afterRight(
+        node,
+        leftLocalVariable,
+        operator == TokenType.QUESTION_QUESTION_EQ
+            ? node.rightHandSide.staticType
+            : node.staticType);
   }
 
   @override
@@ -3526,7 +3530,8 @@ class ResolverVisitor extends ScopedVisitor {
           node,
           identifierElement is VariableElement
               ? identifierElement
-              : loopVariable.declaredElement);
+              : loopVariable.declaredElement,
+          elementType ?? typeProvider.dynamicType);
       node.body?.accept(this);
       _flowAnalysis?.flow?.forEach_end();
 
@@ -3615,7 +3620,8 @@ class ResolverVisitor extends ScopedVisitor {
           node,
           identifierElement is VariableElement
               ? identifierElement
-              : loopVariable?.declaredElement);
+              : loopVariable?.declaredElement,
+          elementType ?? typeProvider.dynamicType);
 
       Statement body = node.body;
       if (body != null) {
@@ -3971,15 +3977,6 @@ class ResolverVisitor extends ScopedVisitor {
     var operator = node.operator.type;
     if (operator == TokenType.BANG) {
       _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
-    } else if (operator == TokenType.PLUS_PLUS ||
-        operator == TokenType.MINUS_MINUS) {
-      var operand = node.operand;
-      if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element);
-        }
-      }
     }
   }
 
@@ -4001,15 +3998,6 @@ class ResolverVisitor extends ScopedVisitor {
     var operator = node.operator.type;
     if (operator == TokenType.BANG) {
       _flowAnalysis?.flow?.logicalNot_end(node, node.operand);
-    } else if (operator == TokenType.PLUS_PLUS ||
-        operator == TokenType.MINUS_MINUS) {
-      var operand = node.operand;
-      if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element);
-        }
-      }
     }
   }
 

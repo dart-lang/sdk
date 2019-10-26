@@ -15,14 +15,14 @@ conditional_isNotType(bool b, Object v) {
   if (b ? (v is! int) : (v is! num)) {
     v;
   } else {
-    /*num*/ v;
+    v;
   }
   v;
 }
 
 conditional_isType(bool b, Object v) {
   if (b ? (v is int) : (v is num)) {
-    /*num*/ v;
+    v;
   } else {
     v;
   }
