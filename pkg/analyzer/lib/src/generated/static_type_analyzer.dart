@@ -133,6 +133,31 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
 
   /**
+   * Given an iterable expression from a foreach loop, attempt to infer
+   * a type for the elements being iterated over.  Inference is based
+   * on the type of the iterator or stream over which the foreach loop
+   * is defined.
+   */
+  DartType computeForEachElementType(Expression iterable, bool isAsync) {
+    DartType iterableType = iterable.staticType;
+    if (iterableType == null) return null;
+    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+
+    ClassElement iteratedElement =
+        isAsync ? _typeProvider.streamElement : _typeProvider.iterableElement;
+
+    InterfaceType iteratedType = iterableType is InterfaceTypeImpl
+        ? iterableType.asInstanceOf(iteratedElement)
+        : null;
+
+    if (iteratedType != null) {
+      return iteratedType.typeArguments.single;
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Given a constructor name [node] and a type [type], record an inferred type
    * for the constructor if in strong mode. This is used to fill in any
    * inferred type parameters found by the resolver.
@@ -543,12 +568,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _analyzeLeastUpperBound(node, node.thenExpression, node.elseExpression);
-  }
-
-  @override
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    super.visitDeclaredIdentifier(node);
-    _inferForEachLoopVariableType(node);
   }
 
   /**
@@ -1637,52 +1656,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           elementType: null, keyType: null, valueType: null);
     } else {
       throw StateError('Unknown element type ${element.runtimeType}');
-    }
-  }
-
-  /**
-   * Given a declared identifier from a foreach loop, attempt to infer
-   * a type for it if one is not already present.  Inference is based
-   * on the type of the iterator or stream over which the foreach loop
-   * is defined.
-   */
-  void _inferForEachLoopVariableType(DeclaredIdentifier loopVariable) {
-    if (loopVariable != null && loopVariable.type == null) {
-      AstNode parent = loopVariable.parent;
-      Token awaitKeyword;
-      Expression iterable;
-      if (parent is ForEachPartsWithDeclaration) {
-        AstNode parentParent = parent.parent;
-        if (parentParent is ForStatementImpl) {
-          awaitKeyword = parentParent.awaitKeyword;
-        } else if (parentParent is ForElement) {
-          awaitKeyword = parentParent.awaitKeyword;
-        } else {
-          return;
-        }
-        iterable = parent.iterable;
-      } else {
-        return;
-      }
-      if (iterable != null) {
-        LocalVariableElementImpl element = loopVariable.declaredElement;
-
-        DartType iterableType = iterable.staticType;
-        iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-
-        ClassElement iteratedElement = (awaitKeyword == null)
-            ? _typeProvider.iterableElement
-            : _typeProvider.streamElement;
-
-        InterfaceType iteratedType = iterableType is InterfaceTypeImpl
-            ? iterableType.asInstanceOf(iteratedElement)
-            : null;
-
-        if (element != null && iteratedType != null) {
-          DartType elementType = iteratedType.typeArguments.single;
-          element.type = elementType;
-        }
-      }
     }
   }
 
