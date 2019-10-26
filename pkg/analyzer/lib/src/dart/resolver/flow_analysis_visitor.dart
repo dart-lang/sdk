@@ -503,7 +503,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
       iterable.accept(this);
 
-      assignedVariables.beginNode();
       if (forLoopParts is ForEachPartsWithIdentifier) {
         var element = forLoopParts.identifier.staticElement;
         if (element is VariableElement) {
@@ -516,6 +515,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else {
         throw new StateError('Unrecognized for loop parts');
       }
+      assignedVariables.beginNode();
       body.accept(this);
       assignedVariables.endNode(node);
     } else {

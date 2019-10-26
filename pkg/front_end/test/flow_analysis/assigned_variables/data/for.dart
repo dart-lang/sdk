@@ -18,17 +18,14 @@ cStyleWithDeclaration(int a, int b, int c, int d) {
 
 /*member: forEach:declared={a, b, c}, assigned={a, b, c}*/
 forEach(int a, int b, int c) {
-  // TODO(paulberry): we shouldn't consider "a" to be assigned within
-  // the loop, since this will trigger unnecessary demotion once
-  // non-demoting assignments are implemented.
-  /*assigned={a, c}*/ for (a in [b = 0]) {
+  /*assigned={c}*/ for (a in [b = 0]) {
     c = 0;
   }
 }
 
-/*member: forEachWithDeclaration:declared={a, b}, assigned={a, b, c}*/
+/*member: forEachWithDeclaration:declared={a, b, c}, assigned={a, b, c}*/
 forEachWithDeclaration(int a, int b) {
-  /*declared={c}, assigned={b}*/ for (var c in [a = 0]) {
+  /*assigned={b}*/ for (var c in [a = 0]) {
     b = 0;
   }
 }
