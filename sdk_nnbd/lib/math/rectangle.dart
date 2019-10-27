@@ -120,9 +120,8 @@ abstract class _RectangleBase<T extends num> {
 class Rectangle<T extends num> extends _RectangleBase<T> {
   final T left;
   final T top;
-  // Type `num` because constructor cannot cast to `T`.
-  final num _width;
-  final num _height;
+  final T width;
+  final T height;
 
   /// Create a rectangle spanned by `(left, top)` and
   /// `(left+width, top+height)`.
@@ -137,12 +136,8 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// If `width` and `height` are zero, the "rectangle" comprises only the
   /// single point `(left, top)`.
   const Rectangle(this.left, this.top, T width, T height)
-      : _width = (width < 0) ? -width * 0 : width, // Inline _clampToZero<num>.
-        _height = (height < 0) ? -height * 0 : height;
-
-  T get width => _width as T;
-
-  T get height => _height as T;
+      : width = (width < 0) ? (-width * 0) as dynamic : width, // Inline _clampToZero<num>.
+        height = (height < 0) ? (-height * 0) as dynamic : height;
 
   /// Create a rectangle spanned by the points [a] and [b];
   ///
