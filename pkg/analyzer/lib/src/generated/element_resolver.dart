@@ -656,8 +656,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
-        operatorType == TokenType.PLUS_PLUS ||
-        operatorType == TokenType.MINUS_MINUS) {
+        operatorType.isIncrementOperator) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
       DartType staticType = _getStaticType(operand, read: true);

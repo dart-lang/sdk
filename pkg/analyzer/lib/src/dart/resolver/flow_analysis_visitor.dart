@@ -403,8 +403,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
-    var operator = node.operator.type;
-    if (operator == TokenType.PLUS_PLUS || operator == TokenType.MINUS_MINUS) {
+    if (node.operator.type.isIncrementOperator) {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
@@ -418,8 +417,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
-    var operator = node.operator.type;
-    if (operator == TokenType.PLUS_PLUS || operator == TokenType.MINUS_MINUS) {
+    if (node.operator.type.isIncrementOperator) {
       var operand = node.operand;
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;

@@ -981,8 +981,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
-      if (operator == TokenType.MINUS_MINUS ||
-          operator == TokenType.PLUS_PLUS) {
+      if (operator.isIncrementOperator) {
         Expression operand = node.operand;
         var operandReadType = _getStaticType(operand, read: true);
         if (operandReadType.isDartCoreInt) {

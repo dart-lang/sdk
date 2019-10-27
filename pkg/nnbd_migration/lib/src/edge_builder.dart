@@ -986,9 +986,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPostfixExpression(PostfixExpression node) {
-    var operatorType = node.operator.type;
-    if (operatorType == TokenType.PLUS_PLUS ||
-        operatorType == TokenType.MINUS_MINUS) {
+    if (node.operator.type.isIncrementOperator) {
       var operand = node.operand;
       var targetType = _checkExpressionNotNull(operand);
       var callee = node.staticElement;
@@ -1036,8 +1034,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _nonNullableBoolType;
     } else {
       var callee = node.staticElement;
-      var isIncrementOrDecrement = operatorType == TokenType.PLUS_PLUS ||
-          operatorType == TokenType.MINUS_MINUS;
+      var isIncrementOrDecrement = operatorType.isIncrementOperator;
       DecoratedType staticType;
       if (callee == null) {
         // Dynamic dispatch.  The return type is `dynamic`.
