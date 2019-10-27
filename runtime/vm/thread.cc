@@ -951,7 +951,7 @@ int32_t Thread::AllocateFfiCallbackId() {
   const int32_t id = array.Length() - 1;
 
   // Allocate a native callback trampoline if necessary.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
     auto* const tramps = isolate()->native_callback_trampolines();
     ASSERT(tramps->next_callback_id() == id);

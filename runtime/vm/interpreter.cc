@@ -356,10 +356,6 @@ void LookupCache::Insert(intptr_t receiver_cid,
 
 Interpreter::Interpreter()
     : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
-#if defined(TARGET_ARCH_DBC)
-  FATAL("Interpreter is not supported when targeting DBC\n");
-#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -603,10 +599,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   {
     InterpreterSetjmpBuffer buffer(this);
     if (!setjmp(buffer.buffer_)) {
-#if defined(TARGET_ARCH_DBC)
-      USE(entrypoint);
-      UNIMPLEMENTED();
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
       // We need to beware that bouncing between the interpreter and the
       // simulator may exhaust the C stack before exhausting either the
       // interpreter or simulator stacks.

@@ -117,7 +117,6 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::BindStaticCalls() {
-#if !defined(TARGET_ARCH_DBC)
   if (FLAG_precompiled_mode) {
     return;
   }
@@ -173,7 +172,6 @@ void ProgramVisitor::BindStaticCalls() {
 
   BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void ProgramVisitor::ShareMegamorphicBuckets() {

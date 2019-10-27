@@ -270,10 +270,6 @@ ARCH_FAMILY = {
     'simarm': 'ia32',
     'simarmv6': 'ia32',
     'simarm64': 'ia32',
-    'simdbc': 'ia32',
-    'simdbc64': 'ia32',
-    'armsimdbc': 'arm',
-    'armsimdbc64': 'arm',
     'simarm_x64': 'ia32',
 }
 

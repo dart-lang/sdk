@@ -878,8 +878,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(
         /* precompiler = */ NULL, thread, thread->zone(), function);

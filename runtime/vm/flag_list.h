@@ -5,13 +5,6 @@
 #ifndef RUNTIME_VM_FLAG_LIST_H_
 #define RUNTIME_VM_FLAG_LIST_H_
 
-// Don't use USING_DBC outside of this file.
-#if defined(TARGET_ARCH_DBC)
-#define USING_DBC true
-#else
-#define USING_DBC false
-#endif
-
 // Don't use USING_PRODUCT outside of this file.
 #if defined(PRODUCT)
 #define USING_PRODUCT true
@@ -104,7 +97,7 @@ constexpr bool kDartUseBytecode = false;
     "Consider thread pool isolates for idle tasks after this long.")           \
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
-  P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
+  P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -194,8 +187,7 @@ constexpr bool kDartUseBytecode = false;
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
-  P(use_field_guards, bool, !USING_DBC,                                        \
-    "Use field guards and track field types")                                  \
+  P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \
   R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \

@@ -100,8 +100,7 @@ DEFINE_FLAG(bool,
 
 Precompiler* Precompiler::singleton_ = nullptr;
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
@@ -2055,7 +2054,7 @@ void Precompiler::BindStaticCalls() {
 
 void Precompiler::DedupUnlinkedCalls() {
   ASSERT(!I->compilation_allowed());
-#if !defined(TARGET_ARCH_DBC)
+
   class UnlinkedCallDeduper {
    public:
     explicit UnlinkedCallDeduper(Zone* zone)
@@ -2139,7 +2138,6 @@ void Precompiler::DedupUnlinkedCalls() {
       visitor.Visit(current);
     }
   }
-#endif
 }
 
 void Precompiler::Obfuscate() {
@@ -2962,8 +2960,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
   return result;
 }
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-        // !defined(TARGET_ARCH_IA32)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
 

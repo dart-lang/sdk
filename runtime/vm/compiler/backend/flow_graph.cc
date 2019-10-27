@@ -1216,28 +1216,6 @@ void FlowGraph::RenameRecursive(
   // Attach environment to the block entry.
   AttachEnvironment(block_entry, env);
 
-#if defined(TARGET_ARCH_DBC)
-  // On DBC the exception/stacktrace variables are in special registers when
-  // entering the catch block.  The only usage of those special registers is
-  // within the catch block.  A possible lazy-deopt at the beginning of the
-  // catch does not need to move those around, since the registers will be
-  // up-to-date when arriving in the unoptimized code and unoptimized code will
-  // take care of moving them to appropriate slots.
-  if (CatchBlockEntryInstr* catch_entry = block_entry->AsCatchBlockEntry()) {
-    Environment* deopt_env = catch_entry->env();
-    const LocalVariable* raw_exception_var = catch_entry->raw_exception_var();
-    const LocalVariable* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
-    if (raw_exception_var != nullptr) {
-      Value* value = deopt_env->ValueAt(EnvIndex(raw_exception_var));
-      value->BindToEnvironment(constant_null());
-    }
-    if (raw_stacktrace_var != nullptr) {
-      Value* value = deopt_env->ValueAt(EnvIndex(raw_stacktrace_var));
-      value->BindToEnvironment(constant_null());
-    }
-  }
-#endif  // defined(TARGET_ARCH_DBC)
-
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();

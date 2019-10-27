@@ -13,7 +13,7 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // In JIT mode, when write-protection is enabled without dual-mapping, we cannot
 // rely on Instructions generated in the Isolate's heap to be executable while
 // native code is running in a safepoint. This means that native code cannot
@@ -69,7 +69,7 @@ class NativeCallbackTrampolines : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallbackTrampolines);
 };
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

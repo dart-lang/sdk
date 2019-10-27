@@ -6090,8 +6090,6 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
 DART_EXPORT Dart_Handle Dart_Precompile() {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("AOT compilation is not supported on DBC.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6116,8 +6114,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("AOT compilation is not supported on DBC.");
 #elif defined(TARGET_OS_WINDOWS)
   return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
@@ -6154,8 +6150,6 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("AOT compilation is not supported on DBC.");
 #elif defined(TARGET_OS_WINDOWS)
   return Api::NewError("Assembly generation is not implemented for Windows.");
 #elif !defined(DART_PRECOMPILER)
@@ -6184,8 +6178,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                bool strip) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("AOT compilation is not supported on DBC.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6245,8 +6237,6 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_instructions_size) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
-#elif defined(TARGET_ARCH_DBC)
-  return Api::NewError("AOT compilation is not supported on DBC.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");

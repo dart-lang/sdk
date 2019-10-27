@@ -1926,9 +1926,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
-    // Also, simdbc doesn't support arguments descriptor SpecialDbcRegister as
-    // a source location for deopt info, so CheckStack should be generated
-    // after the code which uses arguments descriptor.
     asm.emitCheckStack(0);
 
     if (locals.hasFunctionTypeArgsVar && isClosure) {

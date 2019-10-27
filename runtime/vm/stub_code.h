@@ -59,7 +59,7 @@ class StubCode : public AllStatic {
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   static RawCode* GetBuildMethodExtractorStub(
       compiler::ObjectPoolBuilder* pool);
 #endif

@@ -15194,17 +15194,12 @@ void Code::DisableDartCode() const {
 }
 
 void Code::DisableStubCode() const {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
-#else
-  // DBC does not use allocation stubs.
-  UNIMPLEMENTED();
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void Code::SetActiveInstructions(const Instructions& instructions) const {

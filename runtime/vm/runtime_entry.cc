@@ -792,7 +792,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   const TypeCheckMode mode = static_cast<TypeCheckMode>(
       Smi::CheckedHandle(zone, arguments.ArgAt(6)).Value());
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_IA32)
   ASSERT(mode == kTypeCheckFromInline);
 #endif
 
@@ -820,7 +820,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Note that instantiated dst_type may be malbounded.
     }
     if (dst_name.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
       // Can only come here from type testing stub.
       ASSERT(mode != kTypeCheckFromInline);
 
@@ -848,8 +848,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   }
 
   bool should_update_cache = true;
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
   if (mode == kTypeCheckFromLazySpecializeStub) {
     if (FLAG_trace_type_checks) {
       OS::PrintErr("  Specializing type testing stub for %s\n",
@@ -886,7 +885,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   if (should_update_cache) {
     if (cache.IsNull()) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
       ASSERT(mode == kTypeCheckFromSlowStub);
       // We lazily create [SubtypeTestCache] for those call sites which actually
       // need one and will patch the pool entry.
@@ -1024,7 +1023,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   UNREACHABLE();
   return;
 }
-#elif !defined(TARGET_ARCH_DBC)
+#else
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
@@ -1041,13 +1040,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ThrowIfError(error);
   arguments.SetReturn(orig_stub);
 }
-#else
-// Gets called from the simulator when the breakpoint is reached.
-DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
-  ThrowIfError(error);
-}
-#endif  // !defined(TARGET_ARCH_DBC)
+#endif
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 #if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
@@ -1130,7 +1123,7 @@ RawFunction* InlineCacheMissHelper(const Class& receiver_class,
 
 static void TrySwitchInstanceCall(const ICData& ic_data,
                                   const Function& target_function) {
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Monomorphic/megamorphic calls only check the receiver CID.
   if (ic_data.NumArgsTested() != 1) return;
 
@@ -1221,7 +1214,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     return;  // Success.
   }
 
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Perform the subtype and return constant function based on the result.
@@ -1417,7 +1410,6 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   arguments.SetReturn(target);
 }
 
-#if !defined(TARGET_ARCH_DBC)
 static bool IsSingleTarget(Isolate* isolate,
                            Zone* zone,
                            intptr_t lower_cid,
@@ -1440,17 +1432,12 @@ static bool IsSingleTarget(Isolate* isolate,
   }
   return true;
 }
-#endif
 
 // Handle a miss of a single target cache.
 //   Arg1: Receiver.
 //   Arg0: Stub out.
 //   Returns: the ICData used to continue with a polymorphic call.
 DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
-#if defined(TARGET_ARCH_DBC)
-  // DBC does not use switchable calls.
-  UNREACHABLE();
-#else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
@@ -1531,7 +1518,6 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
   // IC call stub.
   arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
-#endif
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1604,10 +1590,6 @@ const bool kInstructionsCanBeDeduped = false;
 //   Arg0: Stub out.
 //   Returns: the ICData used to continue with a polymorphic call.
 DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
-#if defined(TARGET_ARCH_DBC)
-  // DBC does not use switchable calls.
-  UNREACHABLE();
-#else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const UnlinkedCall& unlinked =
       UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1709,10 +1691,9 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
   // stub.
   arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
-#endif  // !DBC
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static RawICData* FindICDataForInstanceCall(Zone* zone,
                                             const Code& code,
                                             uword pc) {
@@ -1730,17 +1711,14 @@ static RawICData* FindICDataForInstanceCall(Zone* zone,
   ASSERT(deopt_id != -1);
   return Function::Handle(zone, code.function()).FindICData(deopt_id);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Handle a miss of a megamorphic cache.
 //   Arg1: Receiver.
 //   Arg0: continuation Code (out parameter).
 //   Returns: the ICData used to continue with a polymorphic call.
 DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
-#if defined(TARGET_ARCH_DBC)
-  // DBC does not use switchable calls.
-  UNREACHABLE();
-#elif defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
@@ -1896,7 +1874,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
   }
   arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
-#endif  // !defined(TARGET_ARCH_DBC)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Handle a miss of a megamorphic cache.
@@ -1905,10 +1883,6 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 //   Arg2: Arguments descriptor array.
 //   Returns: target function to call.
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
-#if defined(TARGET_ARCH_DBC)
-  // DBC does not use megamorphic calls right now.
-  UNREACHABLE();
-#else
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
   const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1995,7 +1969,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     cache.Insert(class_id, target_function);
   }
   arguments.SetReturn(target_function);
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 // Handles interpreted interface call cache miss.
@@ -2448,7 +2421,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  // TODO(regis): Warning: IsCalleeFrameOf is overridden in stack_frame_dbc.h.
   if (interpreter_stack_overflow || !thread->os_thread()->HasStackHeadroom() ||
       IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     if (FLAG_verbose_stack_overflow) {
@@ -2787,30 +2759,6 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     function.SwitchToUnoptimizedCode();
   }
 
-#if defined(TARGET_ARCH_DBC)
-  const Instructions& instrs =
-      Instructions::Handle(zone, optimized_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
-    CodePatcher::InsertDeoptimizationCallAt(frame->pc());
-    if (FLAG_trace_patching) {
-      const String& name = String::Handle(function.name());
-      OS::PrintErr("InsertDeoptimizationCallAt: 0x%" Px " for %s\n",
-                   frame->pc(), name.ToCString());
-    }
-    const ExceptionHandlers& handlers =
-        ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
-    ExceptionHandlerInfo info;
-    for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
-      handlers.GetHandlerInfo(i, &info);
-      const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
-      CodePatcher::InsertDeoptimizationCallAt(patch_pc);
-      if (FLAG_trace_patching) {
-        OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
-      }
-    }
-  }
-#else  // !DBC
   if (frame->IsMarkedForLazyDeopt()) {
     // Deopt already scheduled.
     if (FLAG_trace_deoptimization) {
@@ -2835,7 +2783,6 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
                 frame->fp(), deopt_pc);
     }
   }
-#endif  // !DBC
 
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);
@@ -2861,13 +2808,8 @@ void DeoptimizeFunctionsOnStack() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#if !defined(TARGET_ARCH_DBC)
 static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
 static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
-#else
-static const intptr_t kNumberOfSavedCpuRegisters = 0;
-static const intptr_t kNumberOfSavedFpuRegisters = 0;
-#endif
 
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
@@ -2936,7 +2878,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
               (is_lazy_deopt != 0u) ? "lazy-deopt" : "");
   }
 
-#if !defined(TARGET_ARCH_DBC)
   if (is_lazy_deopt != 0u) {
     uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
     if (FLAG_trace_deoptimization) {
@@ -2956,7 +2897,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                 caller_frame->pc());
     }
   }
-#endif  // !DBC
 
   // Copy the saved registers from the stack.
   fpu_register_t* fpu_registers;
@@ -3183,8 +3123,7 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 
 uword RuntimeEntry::InterpretCallEntry() {
   uword entry = reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(entry,
                                                Simulator::kLeafRuntimeCall, 5);
 #endif

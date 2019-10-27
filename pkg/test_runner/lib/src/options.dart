@@ -142,8 +142,7 @@ Allowed values are:
 all
 ia32, x64
 arm, armv6, arm64,
-simarm, simarmv6, simarm64,
-simdbc, simdbc64, arm_x64''',
+simarm, simarmv6, simarm64, arm_x64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),
         defaultsTo: Architecture.x64.name,
@@ -687,7 +686,7 @@ compiler.''',
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64,simdbc64";
+        architectures = "ia32,x64,simarm,simarm64";
       }
 
       for (var architectureName in architectures.split(",")) {

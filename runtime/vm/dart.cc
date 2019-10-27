@@ -186,17 +186,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 #endif
 
-#if defined(TARGET_ARCH_DBC)
-  // DBC instructions are never executable.
-  FLAG_write_protect_code = false;
-#endif
-
-  if (FLAG_enable_interpreter) {
-#if defined(TARGET_ARCH_DBC)
-    return strdup("--enable-interpreter is not supported with DBC");
-#endif  // defined(TARGET_ARCH_DBC)
-  }
-
   FrameLayout::Init();
 
   set_thread_exit_callback(thread_exit);
@@ -776,7 +765,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(
         Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
@@ -896,14 +885,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(" x64-sysv");
 #endif
 
-#elif defined(TARGET_ARCH_DBC)
-#if defined(ARCH_IS_32_BIT)
-    buffer.AddString(" dbc32");
-#elif defined(ARCH_IS_64_BIT)
-    buffer.AddString(" dbc64");
-#else
-#error What word size?
-#endif
 #else
 #error What architecture?
 #endif

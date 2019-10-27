@@ -27,8 +27,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(TARGET_ARCH_DBC)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 static void RelocateCodeObjects(
     bool is_vm,
@@ -59,8 +58,7 @@ class RawCodeKeyValueTrait {
 
 typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
-        // !defined(TARGET_ARCH_DBC)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)             \
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -1723,7 +1721,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
           case ObjectPool::EntryType::kTaggedObject: {
-#if !defined(TARGET_ARCH_DBC)
             if ((entry.raw_obj_ == StubCode::CallNoScopeNative().raw()) ||
                 (entry.raw_obj_ == StubCode::CallAutoScopeNative().raw())) {
               // Natives can run while precompiling, becoming linked and
@@ -1732,7 +1729,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
               s->WriteElementRef(StubCode::CallBootstrapNative().raw(), j);
               break;
             }
-#endif
             s->WriteElementRef(entry.raw_obj_, j);
             break;
           }
@@ -1815,14 +1811,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
             break;
           }
-#if defined(TARGET_ARCH_DBC)
-          case ObjectPool::EntryType::kNativeFunctionWrapper: {
-            // Read nothing. Initialize with the lazy link entry.
-            uword new_entry = NativeEntry::BootstrapNativeCallWrapperEntry();
-            entry.raw_value_ = static_cast<intptr_t>(new_entry);
-            break;
-          }
-#endif
           default:
             UNREACHABLE();
         }
@@ -4733,8 +4721,7 @@ void Serializer::Serialize() {
   }
 
   intptr_t code_order_length = 0;
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(TARGET_ARCH_DBC)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
   if (kind_ == Snapshot::kFullAOT) {
     auto code_objects =
         static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
@@ -4769,8 +4756,7 @@ void Serializer::Serialize() {
       (*code_objects)[i] = code_order[i];
     }
   }
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32) &&          \
-        // !defined(TARGET_ARCH_DBC)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
   intptr_t num_clusters = 0;
   for (intptr_t cid = 1; cid < num_cids_; cid++) {

@@ -676,8 +676,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
 
   switch (kind) {
-// On simdbc and the bytecode interpreter we fall back to natives.
-#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
     case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
@@ -719,7 +717,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
-#endif  // !defined(TARGET_ARCH_DBC)
     // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
     // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
     // bytecode interpreter in runtime/vm/interpreter.cc. Alternatively, these
@@ -780,8 +777,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   switch (kind) {
-// On simdbc we fall back to natives.
-#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
@@ -841,7 +836,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
-#endif  // !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kObjectEquals:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -2638,14 +2632,12 @@ Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
   return Fragment(extend);
 }
 
-#if !defined(TARGET_ARCH_DBC)
 Fragment FlowGraphBuilder::NativeReturn(Representation result) {
   auto* instr = new (Z)
       NativeReturnInstr(TokenPosition::kNoSource, Pop(), result,
                         compiler::ffi::ResultLocation(result), DeoptId::kNone);
   return Fragment(instr);
 }
-#endif
 
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   LocalVariable* address = MakeTemporary();
@@ -2764,13 +2756,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += CheckStackOverflowInPrologue(function.token_pos());
 
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
-#if !defined(TARGET_ARCH_DBC)
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
   const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr;
-#else
-  const auto& arg_reps = *compiler::ffi::ArgumentHostRepresentations(signature);
-  const auto* arg_host_locs = compiler::ffi::HostArgumentLocations(arg_reps);
-#endif
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
 
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
@@ -2796,13 +2783,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += FfiCall(signature, arg_reps, arg_locs, arg_host_locs);
 
   ffi_type = signature.result_type();
-#if !defined(TARGET_ARCH_DBC)
   const Representation from_rep =
       compiler::ffi::ResultRepresentation(signature);
-#else
-  const Representation from_rep =
-      compiler::ffi::ResultHostRepresentation(signature);
-#endif  // !defined(TARGET_ARCH_DBC)
   body += FfiConvertArgumentToDart(ffi_type, from_rep);
   body += Return(TokenPosition::kNoSource);
 
@@ -2811,7 +2793,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
-#if !defined(TARGET_ARCH_DBC)
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
@@ -2893,9 +2874,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   PrologueInfo prologue_info(-1, -1);
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
-#else
-  UNREACHABLE();
-#endif
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

@@ -180,9 +180,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&bytecode_));
-#if !defined(TARGET_ARCH_DBC)
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
-#endif
 }
 
 ActivationFrame::ActivationFrame(uword pc,
@@ -1750,13 +1748,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-#if !defined(TARGET_ARCH_DBC)
-      saved_value_(Code::null())
-#else
-      saved_value_(SimulatorBytecode::kTrap),
-      saved_value_fastsmi_(SimulatorBytecode::kTrap)
-#endif
-{
+      saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
@@ -1775,13 +1767,7 @@ CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(RawPcDescriptors::kAnyKind),
-#if !defined(TARGET_ARCH_DBC)
-      saved_value_(Code::null())
-#else
-      saved_value_(SimulatorBytecode::kTrap),
-      saved_value_fastsmi_(SimulatorBytecode::kTrap)
-#endif
-{
+      saved_value_(Code::null()) {
   ASSERT(!bytecode.IsNull());
   ASSERT(FLAG_enable_interpreter);
   ASSERT(token_pos_.IsReal());

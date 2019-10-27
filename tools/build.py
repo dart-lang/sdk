@@ -18,7 +18,7 @@ SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 AVAILABLE_ARCHS = [
     'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarm64',
-    'arm64', 'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64', 'simarm_x64'
+    'arm64', 'simarm_x64'
 ]
 
 usage = """\
@@ -86,7 +86,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
     if options.arch == 'all':
-        options.arch = 'ia32,x64,simarm,simarm64,simdbc64'
+        options.arch = 'ia32,x64,simarm,simarm64'
     if options.mode == 'all':
         options.mode = 'debug,release,product'
     if options.os == 'all':
@@ -116,8 +116,7 @@ def ProcessOptions(options, args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'simdbc',
-                    'simdbc64'
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."

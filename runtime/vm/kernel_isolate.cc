@@ -85,7 +85,7 @@ class RunKernelTask : public ThreadPool::Task {
     Isolate::FlagsInitialize(&api_flags);
     api_flags.enable_asserts = false;
     api_flags.unsafe_trust_strong_mode_types = false;
-#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
 #endif
 #if !defined(DART_PRECOMPILER)
@@ -650,14 +650,8 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject bytecode;
     bytecode.type = Dart_CObject_kBool;
-    // Interpreter is not supported with DBC.
-#if !defined(TARGET_ARCH_DBC)
     bytecode.value.as_bool =
         FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
-#else
-    bytecode.value.as_bool =
-        FLAG_use_bytecode_compiler && !FLAG_enable_interpreter;
-#endif
 
     Dart_CObject package_config_uri;
     if (package_config != NULL) {

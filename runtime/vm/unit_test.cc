@@ -696,7 +696,7 @@ void AssemblerTest::Assemble() {
       String::ZoneHandle(Symbols::New(Thread::Current(), name_));
 
   // We make a dummy script so that exception objects can be composed for
-  // assembler instructions that do runtime calls, in particular on DBC.
+  // assembler instructions that do runtime calls.
   const char* kDummyScript = "assembler_test_dummy_function() {}";
   const Script& script = Script::Handle(
       Script::New(function_name, String::Handle(String::New(kDummyScript)),

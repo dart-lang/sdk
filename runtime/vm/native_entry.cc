@@ -121,8 +121,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
 #endif
@@ -158,8 +157,7 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::AutoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
 #endif
@@ -226,8 +224,7 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
 
 uword NativeEntry::LinkNativeCallEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
@@ -275,7 +272,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                               &is_bootstrap_native, &is_auto_scope);
     ASSERT(target_function != NULL);
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
     NativeFunction current_function = NULL;
     if (caller_frame->is_interpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -309,18 +306,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #endif
 
     NativeFunction patch_target_function = target_function;
-#if defined(TARGET_ARCH_DBC)
-    NativeFunctionWrapper trampoline;
-    if (is_bootstrap_native) {
-      trampoline = &BootstrapNativeCallWrapper;
-    } else if (is_auto_scope) {
-      trampoline = &AutoScopeNativeCallWrapper;
-    } else {
-      trampoline = &NoScopeNativeCallWrapper;
-    }
-    CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
-                                   patch_target_function, trampoline);
-#else
     if (caller_frame->is_interpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
@@ -355,7 +340,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                      patch_target_function, trampoline);
     }
-#endif  // defined TARGET_ARCH_DBC
 
     if (FLAG_trace_natives) {
       THR_Print("    -> %p (%s)\n", target_function,

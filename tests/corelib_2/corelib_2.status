@@ -34,10 +34,7 @@ regexp/pcre_test: Slow # Issue 21593
 int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
-[ ($arch == simdbc || $arch == simdbc64) && ($hot_reload || $hot_reload_rollback) ]
-uri_parse_test: SkipSlow
-
-[ $arch == simarm || $arch == simarm64 || $arch == simdbc64 ]
+[ $arch == simarm || $arch == simarm64 ]
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
 

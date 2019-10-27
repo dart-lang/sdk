@@ -3465,7 +3465,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses();
  *  permissions; the data piece may be loaded as read-only.
  *
  *   - Requires the VM to have not been started with --precompilation.
- *   - Not supported when targeting IA32 or DBC.
+ *   - Not supported when targeting IA32.
  *   - The VM writing the snapshot and the VM reading the snapshot must be the
  *     same version, must be built in the same DEBUG/RELEASE/PRODUCT mode, must
  *     be targeting the same architecture, and must both be in checked mode or

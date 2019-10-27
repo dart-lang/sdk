@@ -167,9 +167,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
         deopt_id_(deopt_id),
         reason_(reason),
         flags_(flags),
-#if defined(TARGET_ARCH_DBC)
-        lazy_deopt_with_result_(false),
-#endif
         deopt_env_(deopt_env) {
     ASSERT(deopt_env != NULL);
   }
@@ -190,18 +187,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   uint32_t flags() const { return flags_; }
   const Environment* deopt_env() const { return deopt_env_; }
 
-#if defined(TARGET_ARCH_DBC)
-  // On DBC calls return results on the stack but not all calls have a result.
-  // This needs to be taken into account when constructing lazy deoptimization
-  // environment.
-  // For calls with results we add a deopt instruction that would copy top
-  // of the stack from optimized frame to unoptimized frame effectively
-  // preserving the result of the call.
-  // For calls with no results we don't emit such instruction - because there
-  // is no result pushed by the return sequence.
-  void mark_lazy_deopt_with_result() { lazy_deopt_with_result_ = true; }
-#endif
-
  private:
   void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
 
@@ -212,9 +197,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   const intptr_t deopt_id_;
   const ICData::DeoptReasonId reason_;
   const uint32_t flags_;
-#if defined(TARGET_ARCH_DBC)
-  bool lazy_deopt_with_result_;
-#endif
   Environment* deopt_env_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
@@ -522,9 +504,6 @@ class FlowGraphCompiler : public ValueObject {
       const Register scratch_reg,
       compiler::Label* done);
 
-// DBC emits calls very differently from all other architectures due to its
-// interpreted nature.
-#if !defined(TARGET_ARCH_DBC)
   void GenerateRuntimeCall(TokenPosition token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
@@ -683,7 +662,7 @@ class FlowGraphCompiler : public ValueObject {
   bool NeedsEdgeCounter(BlockEntryInstr* block);
 
   void EmitEdgeCounter(intptr_t edge_id);
-#endif  // !defined(TARGET_ARCH_DBC)
+
   void RecordCatchEntryMoves(Environment* env = NULL,
                              intptr_t try_index = kInvalidTryIndex);
 
@@ -753,15 +732,6 @@ class FlowGraphCompiler : public ValueObject {
   compiler::Label* AddDeoptStub(intptr_t deopt_id,
                                 ICData::DeoptReasonId reason,
                                 uint32_t flags = 0);
-
-#if defined(TARGET_ARCH_DBC)
-  void EmitDeopt(intptr_t deopt_id,
-                 ICData::DeoptReasonId reason,
-                 uint32_t flags = 0);
-
-  // If the cid does not fit in 16 bits, then this will cause a bailout.
-  uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
-#endif  // defined(TARGET_ARCH_DBC)
 
   CompilerDeoptInfo* AddDeoptIndexAtCall(intptr_t deopt_id);
   CompilerDeoptInfo* AddSlowPathDeoptInfo(intptr_t deopt_id, Environment* env);
@@ -853,19 +823,6 @@ class FlowGraphCompiler : public ValueObject {
                               Function* fn_return,
                               bool* class_is_abstract_return = NULL);
 
-#if defined(TARGET_ARCH_DBC)
-  enum CallResult {
-    kHasResult,
-    kNoResult,
-  };
-  void RecordAfterCallHelper(TokenPosition token_pos,
-                             intptr_t deopt_id,
-                             intptr_t argument_count,
-                             CallResult result,
-                             LocationSummary* locs);
-  void RecordAfterCall(Instruction* instr, CallResult result);
-#endif
-
   // Returns new class-id bias.
   //
   // TODO(kustermann): We should move this code out of the [FlowGraphCompiler]!
@@ -940,9 +897,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitTestAndCallLoadCid(Register class_id_reg);
 
-// DBC handles type tests differently from all other architectures due
-// to its interpreted nature.
-#if !defined(TARGET_ARCH_DBC)
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,
                      const GrowableArray<intptr_t>& class_ids,
@@ -1008,8 +962,6 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
                                         intptr_t type_arguments_field_offset);
 
-#endif  // !defined(TARGET_ARCH_DBC)
-
   void GenerateGetterIntrinsic(intptr_t offset);
   void GenerateSetterIntrinsic(intptr_t offset);
 
@@ -1041,10 +993,7 @@ class FlowGraphCompiler : public ValueObject {
     return compressed_stackmaps_builder_;
   }
 
-// TODO(vegorov) re-enable frame state tracking on DBC. It is
-// currently disabled because it relies on LocationSummaries and
-// we don't use them during unoptimized compilation on DBC.
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
   void FrameStateUpdateWith(Instruction* instr);
   void FrameStatePush(Definition* defn);
   void FrameStatePop(intptr_t count);

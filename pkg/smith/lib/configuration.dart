@@ -567,8 +567,6 @@ class Architecture extends NamedEnum {
   static const simarm = Architecture._('simarm');
   static const simarmv6 = Architecture._('simarmv6');
   static const simarm64 = Architecture._('simarm64');
-  static const simdbc = Architecture._('simdbc');
-  static const simdbc64 = Architecture._('simdbc64');
 
   static final List<String> names = _all.keys.toList();
 
@@ -582,8 +580,6 @@ class Architecture extends NamedEnum {
     simarm,
     simarmv6,
     simarm64,
-    simdbc,
-    simdbc64
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {

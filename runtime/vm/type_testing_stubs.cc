@@ -138,7 +138,7 @@ TypeTestingStubGenerator::TypeTestingStubGenerator()
 
 RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
@@ -168,11 +168,11 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     }
   }
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
   return TypeTestingStubGenerator::DefaultCodeForType(type, false);
 }
 
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
@@ -546,7 +546,7 @@ void RegisterTypeArgumentsUse(const Function& function,
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#else  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#else  // !defined(TARGET_ARCH_IA32)
 
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
@@ -556,7 +556,7 @@ void RegisterTypeArgumentsUse(const Function& function,
   UNREACHABLE();
 }
 
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
 
 #undef __
 

@@ -208,7 +208,6 @@ uword SymbolsPredefinedAddress() {
 }
 #endif
 
-#if !defined(TARGET_ARCH_DBC)
 const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
@@ -220,7 +219,6 @@ const Code& StubCodeSubtype2TestCache() {
 const Code& StubCodeSubtype6TestCache() {
   return dart::StubCode::Subtype6TestCache();
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 #define DEFINE_ALIAS(name)                                                     \
   const RuntimeEntry& k##name##RuntimeEntry(dart::k##name##RuntimeEntry);
@@ -508,12 +506,10 @@ word Instructions::HeaderSize() {
   return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
 }
 
-#if !defined(TARGET_ARCH_DBC)
 word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
   return fpu_regs ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
                   : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 uword Thread::safepoint_state_unacquired() {
   return dart::Thread::safepoint_state_unacquired();

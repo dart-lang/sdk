@@ -199,7 +199,6 @@
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
       "out/DebugSIMARM_X64/",
-      "out/DebugSIMDBC64/",
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM_X64/",
       "out/DebugAndroidARM64/",
@@ -208,7 +207,6 @@
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
       "out/ReleaseSIMARM_X64/",
-      "out/ReleaseSIMDBC64/",
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
       "out/ReleaseAndroidARM64/",
@@ -218,21 +216,18 @@
       "out/ProductSIMARM/",
       "out/ProductSIMARM64/",
       "out/ProductSIMARM_X64/",
-      "out/ProductSIMDBC64/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64/",
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugSIMARM/",
       "xcodebuild/DebugSIMARM64/",
       "xcodebuild/DebugSIMARM_X64/",
-      "xcodebuild/DebugSIMDBC64/",
       "xcodebuild/DebugX64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseSIMARM_X64/",
-      "xcodebuild/ReleaseSIMDBC64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
       "samples-dev/",
@@ -471,17 +466,13 @@
       "options": {
         "enable-asserts": true
     }},
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64|simdbc64)": { },
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64)": { },
     "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": ["--optimization-counter-threshold=5", "--random-seed=__RANDOM__"]
     }},
     "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
-      "options": {
-        "hot-reload": true
-    }},
-    "dartk-reload-mac-(debug|product|release)-simdbc64": {
       "options": {
         "hot-reload": true
     }},
@@ -1181,15 +1172,11 @@
     {
       "builders": [
         "vm-kernel-linux-product-x64",
-        "vm-kernel-linux-release-simdbc64",
         "vm-kernel-linux-release-x64",
         "vm-kernel-linux-debug-ia32",
-        "vm-kernel-linux-debug-simdbc64",
         "vm-kernel-linux-debug-x64",
         "vm-kernel-mac-product-x64",
-        "vm-kernel-mac-release-simdbc64",
         "vm-kernel-mac-release-x64",
-        "vm-kernel-mac-debug-simdbc64",
         "vm-kernel-mac-debug-x64"
       ],
       "meta": {
@@ -1591,9 +1578,7 @@
     {
       "builders": [
         "vm-kernel-reload-linux-debug-x64",
-        "vm-kernel-reload-linux-release-x64",
-        "vm-kernel-reload-mac-debug-simdbc64",
-        "vm-kernel-reload-mac-release-simdbc64"
+        "vm-kernel-reload-linux-release-x64"
       ],
       "meta": {
         "description": "This is the configuration for the kernel hot reload builders."
@@ -2483,11 +2468,6 @@
             "runtime",
             "gen_snapshot",
             "dart_precompiled_runtime"]
-        },
-        {
-          "name": "build linux-x64 simdbc for benchmarking",
-          "script": "tools/build.py",
-          "arguments": ["--mode=release", "--arch=simdbc64", "runtime"]
         },
         {
           "name": "archive linux-x64 for benchmarking",

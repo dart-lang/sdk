@@ -46,7 +46,6 @@ void _printStackTrace() {
   }
 }
 
-#if !defined(TARGET_ARCH_DBC)
 // Like _printDartStackTrace, but works when stopped in generated code.
 // Must be called with the current fp, sp, and pc.
 DART_EXPORT
@@ -80,7 +79,6 @@ void _printInterpreterStackTrace(RawObject** fp,
   thread->set_execution_state(Thread::kThreadInGenerated);
   thread->set_top_exit_frame_info(0);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 class PrintObjectPointersVisitor : public ObjectPointerVisitor {
  public:

@@ -76,8 +76,7 @@ class CompressedStackMapsIterator : public ValueObject {
   // returns false.
   bool Find(uint32_t pc_offset) {
     // We should never have an entry with a PC offset of 0 inside an
-    // non-empty CSM, so fail. (On DBC, a pc_offset of 0 can be provided
-    // to Find() if there's no stack map information for a given Code object.)
+    // non-empty CSM, so fail.
     if (pc_offset == 0) return false;
     do {
       if (current_pc_offset_ >= pc_offset) break;

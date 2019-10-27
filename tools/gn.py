@@ -95,13 +95,10 @@ def ToCommandLine(gn_args):
 
 def HostCpuForArch(arch):
     if arch in [
-            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simdbc', 'armsimdbc',
-            'simarm_x64'
+            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64'
     ]:
         return 'x86'
-    if arch in [
-            'x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64', 'arm_x64'
-    ]:
+    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
         return 'x64'
 
 
@@ -111,16 +108,8 @@ def TargetCpuForArch(arch, target_os):
         return 'x86'
     if arch in ['x64', 'simarm64', 'simarm_x64']:
         return 'x64'
-    if arch == 'simdbc':
-        return 'arm' if target_os == 'android' else 'x86'
-    if arch in ['simdbc64']:
-        return 'arm64' if target_os == 'android' else 'x64'
     if arch == 'arm_x64':
         return 'arm'
-    if arch == 'armsimdbc':
-        return 'arm'
-    if arch == 'armsimdbc64':
-        return 'arm64'
     return arch
 
 
@@ -136,8 +125,6 @@ def DartTargetCpuForArch(arch):
         return 'armv6'
     if arch in ['arm64', 'simarm64']:
         return 'arm64'
-    if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
-        return 'dbc'
     return arch
 
 
@@ -311,7 +298,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,simdbc64'
+        args.arch = 'ia32,x64,simarm,simarm64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
@@ -326,8 +313,7 @@ def ProcessOptions(args):
     for arch in args.arch:
         archs = [
             'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
-            'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
-            'armsimdbc64', 'simarm_x64'
+            'simarm64', 'arm64', 'simarm_x64'
         ]
         if not arch in archs:
             print("Unknown arch %s" % arch)
@@ -346,8 +332,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'simdbc',
-                    'simdbc64'
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
@@ -386,7 +371,7 @@ def parse_args(args):
         type=str,
         help='Target architectures (comma-separated).',
         metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
-        'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
+        'simarm64,arm64,simarm_x64]',
         default='x64')
     common_group.add_argument(
         '--mode',

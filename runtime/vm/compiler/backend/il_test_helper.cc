@@ -131,8 +131,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                   \
-    defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   const bool use_far_branches = false;
 #else
   const bool use_far_branches = true;

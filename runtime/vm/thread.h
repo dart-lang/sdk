@@ -95,9 +95,6 @@ class Thread;
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_LIST(V)
-#else
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, write_barrier_code_, StubCode::WriteBarrier().raw(), NULL)       \
   V(RawCode*, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),  \
@@ -133,8 +130,6 @@ class Thread;
   V(RawCode*, call_native_through_safepoint_stub_,                             \
     StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
-#endif
-
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
@@ -152,9 +147,6 @@ class Thread;
   ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
          Thread::bool_false_offset());
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
-#else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, write_barrier_entry_point_, StubCode::WriteBarrier().EntryPoint(),  \
     0)                                                                         \
@@ -178,7 +170,6 @@ class Thread;
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
-#endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
@@ -295,11 +286,6 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, saved_shadow_call_stack_);
   }
 
-#if defined(TARGET_ARCH_DBC)
-  // Access to the current stack limit for DBC interpreter.
-  uword stack_limit() const { return stack_limit_; }
-#endif
-
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
@@ -318,13 +304,11 @@ class Thread : public ThreadState {
     return ++stack_overflow_count_;
   }
 
-#if !defined(TARGET_ARCH_DBC)
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
                ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
                : stack_overflow_shared_without_fpu_regs_entry_point_offset();
   }
-#endif
 
   static intptr_t safepoint_state_offset() {
     return OFFSET_OF(Thread, safepoint_state_);

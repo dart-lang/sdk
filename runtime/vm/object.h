@@ -2729,14 +2729,10 @@ class Function : public Object {
     if (IsFfiTrampoline()) {
       return true;
     }
-    // On DBC we use native calls instead of IR for the view factories (see
-    // kernel_to_il.cc)
-#if !defined(TARGET_ARCH_DBC)
     if (IsTypedDataViewFactory() || IsFfiLoad() || IsFfiStore() ||
         IsFfiFromAddress() || IsFfiGetAddress()) {
       return true;
     }
-#endif
     return false;
   }
 
@@ -4792,11 +4788,6 @@ class Instructions : public Object {
   static const intptr_t kPolymorphicEntryOffsetJIT = 48;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
   static const intptr_t kPolymorphicEntryOffsetAOT = 28;
-#elif defined(TARGET_ARCH_DBC)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 0;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #else
 #error Missing entry offsets for current architecture
 #endif

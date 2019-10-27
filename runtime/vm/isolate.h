@@ -455,7 +455,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
 
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines* native_callback_trampolines() {
     return &native_callback_trampolines_;
   }
@@ -1083,7 +1083,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Heap* heap_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;
 #endif
 

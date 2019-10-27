@@ -564,7 +564,7 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
-#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_ARCH_DBC)
+#if !defined(HOST_OS_WINDOWS)
 DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
                                            std::condition_variable* var,
                                            std::mutex* mut) {

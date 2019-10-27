@@ -2213,14 +2213,12 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   // True if callee can skip argument type checks.
   bool is_unchecked_call = inferred_type.IsSkipCheck();
-#ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr &&
       call_site_attributes.receiver_type->HasTypeClass() &&
       !Class::Handle(call_site_attributes.receiver_type->type_class())
            .IsGeneric()) {
     is_unchecked_call = true;
   }
-#endif
 
   Fragment instructions(MakeTemp());
   LocalVariable* variable = MakeTemporary();
@@ -5154,9 +5152,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
@@ -5209,7 +5204,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
                                   native_sig, target, exceptional_return));
   code += Constant(result);
   return code;
-#endif
 }
 
 }  // namespace kernel

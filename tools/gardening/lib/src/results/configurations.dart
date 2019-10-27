@@ -19,8 +19,6 @@ class Architecture {
   static const simarm = const Architecture._('simarm');
   static const simarmv6 = const Architecture._('simarmv6');
   static const simarm64 = const Architecture._('simarm64');
-  static const simdbc = const Architecture._('simdbc');
-  static const simdbc64 = const Architecture._('simdbc64');
 
   static final List<String> names = _all.keys.toList();
 
@@ -33,8 +31,6 @@ class Architecture {
     simarm,
     simarmv6,
     simarm64,
-    simdbc,
-    simdbc64
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {

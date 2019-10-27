@@ -22,10 +22,7 @@ class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
-#if defined(TARGET_ARCH_DBC)
-// C-stack is always aligned on DBC because we don't have any native code.
-#define CHECK_STACK_ALIGNMENT
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword current_sp = Simulator::Current()->get_register(SPREG);              \

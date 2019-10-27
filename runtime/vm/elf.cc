@@ -574,7 +574,6 @@ void Elf::WriteHeader() {
 #elif defined(TARGET_ARCH_ARM64)
   WriteHalf(elf::EM_AARCH64);
 #else
-  // E.g., DBC.
   FATAL("Unknown ELF architecture");
 #endif
 

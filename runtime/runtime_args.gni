@@ -28,7 +28,7 @@ declare_args() {
   dart_runtime_mode = "develop"
 
   # Explicitly set the target architecture to use a simulator.
-  # Available options are: arm, arm64, x64, ia32, and dbc.
+  # Available options are: arm, arm64, x64, ia32.
   dart_target_arch = target_cpu
 
   # The optimization level to use for debug builds. Defaults to 0 for builds with

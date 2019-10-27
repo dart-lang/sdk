@@ -601,7 +601,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-#ifndef TARGET_ARCH_DBC
     if (FlowGraphCompiler::SupportsUnboxedInt64()) {
       if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
         left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
@@ -609,7 +608,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
       }
     }
-#endif
   }
 
   if (replacement != nullptr && !replacement->ComputeCanDeoptimize()) {

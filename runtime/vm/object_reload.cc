@@ -93,7 +93,6 @@ void CallSiteResetter::ResetCaches(const Code& code) {
 #endif
 }
 
-#if !defined(TARGET_ARCH_DBC)
 static void FindICData(const Array& ic_data_array,
                        intptr_t deopt_id,
                        ICData* ic_data) {
@@ -116,10 +115,8 @@ static void FindICData(const Array& ic_data_array,
   }
   FATAL1("Missing deopt id %" Pd "\n", deopt_id);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
-#if !defined(TARGET_ARCH_DBC)
   if (code.is_optimized()) {
     return;  // No switchable calls in optimized code.
   }
@@ -177,7 +174,6 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
       }
     }
   }
-#endif
 }
 
 void CallSiteResetter::RebindStaticTargets(const Bytecode& bytecode) {

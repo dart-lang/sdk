@@ -534,7 +534,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 
-// Should match constant in runtime/vm/stack_frame_dbc.h.
+// Should match constant in runtime/vm/stack_frame_kbc.h.
 const int kParamEndSlotFromFp = 4;
 
 enum SpecialIndex {

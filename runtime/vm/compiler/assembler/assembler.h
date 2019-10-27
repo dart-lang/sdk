@@ -380,8 +380,6 @@ class AssemblerBase : public StackResource {
 #include "vm/compiler/assembler/assembler_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/compiler/assembler/assembler_arm64.h"
-#elif defined(TARGET_ARCH_DBC)
-#include "vm/compiler/assembler/assembler_dbc.h"
 #else
 #error Unknown architecture.
 #endif

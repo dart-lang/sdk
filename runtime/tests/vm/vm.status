@@ -82,7 +82,7 @@ dart/disassemble_determinism_test: Slow # Times out on slower bots.
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch != simarm && $arch != simarm64 && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 dart/data_uri_import_test/base64: Crash
 dart/data_uri_import_test/nocharset: Crash
 dart/data_uri_import_test/nomime: Crash
@@ -122,7 +122,7 @@ dart/spawn_shutdown_test: SkipSlow
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# Enabling of dartk for sim{arm,arm64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ $mode == debug && ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
@@ -169,13 +169,8 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 [ $checked && ($compiler == dartk || $compiler == dartkb) ]
 dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+[ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
 dart/appjit*: SkipSlow # DFE too slow
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/snapshot_version_test: RuntimeError # Please triage.
 
@@ -186,17 +181,16 @@ dart/kernel_determinism_test: SkipSlow
 [ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host).
 
-[ $arch == arm || $arch == ia32 || $arch == simarm || $arch == simdbc || $arch == simdbc64 ]
+[ $arch == arm || $arch == ia32 || $arch == simarm ]
 cc/GenKernelKernelCombined: SkipByDesign # No interpreter support.
 cc/GenKernelKernelLoadKernel: SkipByDesign # No interpreter support.
 cc/GenKernelKernelMaxRSS: SkipByDesign # No interpreter support.
 cc/GenKernelKernelReadAllBytecode: SkipByDesign # No interpreter support.
 
-# Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarm64 || $arch == simarmv6 || $arch == simdbc || $arch == simdbc64 ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarmv6 ]
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign
@@ -224,20 +218,8 @@ cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
 
-[ $arch == simdbc || $arch == simdbc64 ]
-cc/GuardFieldConstructor2Test: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldConstructorTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldFinalListTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldFinalVariableLengthListTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/GuardFieldSimpleTest: Skip # TODO(vegorov) Field guards are disabled for SIMDBC
-cc/RegExp_ExternalOneByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_ExternalTwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_OneByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegExp_TwoByteString: Skip # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp is switched on by default because they attempt to call regexp functions directly instead of going through JSSyntaxRegExp_ExecuteMatch.
-cc/RegenerateAllocStubs: SkipByDesign # This test is meaningless for DBC as allocation stubs are not used.
-
-[ $arch == simdbc || $arch == simdbc64 || $compiler == dartkb ]
-dart/generic_field_invocation_test: SkipByDesign # DBC and KBC interpreters do not support --no_lazy_dispatchers
+[ $compiler == dartkb ]
+dart/generic_field_invocation_test: SkipByDesign # KBC interpreters do not support --no_lazy_dispatchers
 
 [ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed || $builder_tag == optimization_counter_threshold || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensible to when functions are optimized, so they are disabled on hotreload, optcounter and bytecode interpreter bots.
@@ -267,7 +249,7 @@ dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT onl
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 

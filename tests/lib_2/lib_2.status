@@ -70,7 +70,7 @@ isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be 
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri

@@ -301,10 +301,7 @@ class Api : AllStatic {
 
   static bool IsFfiEnabled() {
     // dart:ffi is not implemented for the following configurations
-#if defined(TARGET_ARCH_DBC) && !defined(ARCH_IS_64_BIT)
-    // TODO(36809): Support SimDBC32.
-    return false;
-#elif defined(TARGET_ARCH_ARM) &&                                              \
+#if defined(TARGET_ARCH_ARM) &&                                                \
     !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
     // TODO(36309): Support hardfp calling convention.
     return false;

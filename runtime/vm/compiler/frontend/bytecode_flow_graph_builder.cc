@@ -1935,9 +1935,6 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
 //             static tearoff
 // <type args> => [NativeSignatureType]
 void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
   const TypeArguments& type_args =
       TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
   ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
@@ -1959,7 +1956,6 @@ void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
                                   native_sig, target, exceptional_return));
   code_ += B->Constant(result);
   code_ += B->DropTempsPreserveTop(3);
-#endif
 }
 
 void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {

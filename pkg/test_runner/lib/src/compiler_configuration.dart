@@ -85,8 +85,7 @@ abstract class CompilerConfiguration {
 
       case Compiler.dartk:
       case Compiler.dartkb:
-        if (configuration.architecture == Architecture.simdbc64 ||
-            configuration.architecture == Architecture.simarm ||
+        if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);

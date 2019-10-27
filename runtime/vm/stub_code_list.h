@@ -9,7 +9,6 @@ namespace dart {
 
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
-#if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
@@ -79,30 +78,6 @@ namespace dart {
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
   V(CallNativeThroughSafepoint)
-
-#else
-#define VM_STUB_CODE_LIST(V)                                                   \
-  V(LazyCompile)                                                               \
-  V(OptimizeFunction)                                                          \
-  V(CallClosureNoSuchMethod)                                                   \
-  V(RunExceptionHandler)                                                       \
-  V(DeoptForRewind)                                                            \
-  V(FixCallersTarget)                                                          \
-  V(Deoptimize)                                                                \
-  V(DeoptimizeLazyFromReturn)                                                  \
-  V(DeoptimizeLazyFromThrow)                                                   \
-  V(DefaultTypeTest)                                                           \
-  V(TopTypeTypeTest)                                                           \
-  V(TypeRefTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(SlowTypeTest)                                                              \
-  V(LazySpecializeTypeTest)                                                    \
-  V(FrameAwaitingMaterialization)                                              \
-  V(AsynchronousGapMarker)                                                     \
-  V(InvokeDartCodeFromBytecode)                                                \
-  V(InterpretCall)
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace dart
 

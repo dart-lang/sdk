@@ -1164,7 +1164,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       shared_class_table_(new SharedClassTable()),
       class_table_(shared_class_table_.get()),
       store_buffer_(new StoreBuffer()),
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
 #if !defined(PRODUCT)
@@ -2294,11 +2294,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(TARGET_ARCH_DBC)
-  if (simulator() != nullptr) {
-    simulator()->VisitObjectPointers(visitor);
-  }
-#endif  // defined(TARGET_ARCH_DBC)
 
   VisitStackPointers(visitor, validate_frames);
 }

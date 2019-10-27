@@ -198,7 +198,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   }
 #endif
 
-#if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
+#if !defined(PRODUCT)
 #define EMIT_BREAKPOINT() compiler->assembler()->Breakpoint()
 #else
 #define EMIT_BREAKPOINT()
@@ -229,16 +229,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     default:
       break;
   }
-
-// On DBC all graph intrinsics are handled in the same way as non-graph
-// intrinsics.
-#if defined(TARGET_ARCH_DBC)
-  switch (function.recognized_kind()) {
-    GRAPH_INTRINSICS_LIST(EMIT_CASE)
-    default:
-      break;
-  }
-#endif
 
 #undef EMIT_BREAKPOINT
 

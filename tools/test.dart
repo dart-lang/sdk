@@ -99,13 +99,9 @@ String archOfBuilder(String builder) {
       (component) => [
             "arm",
             "arm64",
-            "armsimdbc",
-            "armsimdbc64",
             "ia32",
             "simarm",
             "simarm64",
-            "simdbc",
-            "simdbc64",
             "x64",
           ].contains(component),
       orElse: () => null);

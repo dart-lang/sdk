@@ -529,21 +529,11 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_INSTRUCTION_BACKEND()
 
-#if defined(TARGET_ARCH_DBC)
-#define DECLARE_COMPARISON_METHODS                                             \
-  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
-      const;                                                                   \
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
-                                       BranchLabels labels);                   \
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,   \
-                                                BranchLabels labels);
-#else
 #define DECLARE_COMPARISON_METHODS                                             \
   virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
       const;                                                                   \
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
                                        BranchLabels labels);
-#endif
 
 #define DECLARE_COMPARISON_INSTRUCTION(type)                                   \
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
@@ -1077,18 +1067,11 @@ class Instruction : public ZoneAllocated {
   // instead.
   Location::Kind RegisterKindForResult() const {
     const Representation rep = representation();
-#if !defined(TARGET_ARCH_DBC)
     if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
         (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
         (rep == kUnboxedFloat64x2)) {
       return Location::kFpuRegister;
     }
-#else
-    // DBC supports only unboxed doubles and does not have distinguished FPU
-    // registers.
-    ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
-           (rep != kUnboxedFloat64x2));
-#endif
     return Location::kRegister;
   }
 
@@ -2967,15 +2950,6 @@ class ComparisonInstr : public Definition {
   // opposite condition).  May also branch directly to the labels.
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
-
-#if defined(TARGET_ARCH_DBC)
-  // On the DBC platform EmitNativeCode needs to know ahead of time what
-  // 'Condition' will be returned by EmitComparisonCode. This call must return
-  // the same result as EmitComparisonCode, but should not emit any
-  // instructions.
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) = 0;
-#endif
 
   // Emits code that generates 'true' or 'false', depending on the comparison.
   // This implementation will call EmitComparisonCode.  If EmitComparisonCode
@@ -6054,10 +6028,6 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     SetInputAt(0, value);
   }
 
-#if defined(TARGET_ARCH_DBC)
-  void EmitAllocateBox(FlowGraphCompiler* compiler);
-#endif
-
  private:
   intptr_t ValueOffset() const {
     return Boxing::ValueOffset(from_representation());
@@ -6797,14 +6767,6 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
 
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
-
-#if defined(TARGET_ARCH_DBC)
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) {
-    UNREACHABLE();
-    return INVALID_CONDITION;
-  }
-#endif
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
@@ -8644,17 +8606,6 @@ class Environment : public ZoneAllocated {
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
-
-#if defined(TARGET_ARCH_DBC)
-  // Return/ReturnTOS instruction drops incoming arguments so
-  // we have to drop outgoing arguments from the innermost environment.
-  // On all other architectures caller drops outgoing arguments itself
-  // hence the difference.
-  // Note: this method can only be used at the code generation stage because
-  // it mutates environment in unsafe way (e.g. does not update def-use
-  // chains).
-  void DropArguments(intptr_t argc);
-#endif
 
  private:
   friend class ShallowIterator;

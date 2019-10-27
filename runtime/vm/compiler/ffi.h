@@ -60,8 +60,6 @@ Location ResultLocation(Representation result_rep);
 RawFunction* TrampolineFunction(const Function& dart_signature,
                                 const Function& c_signature);
 
-#if !defined(TARGET_ARCH_DBC)
-
 RawFunction* NativeCallbackFunction(const Function& c_signature,
                                     const Function& dart_target,
                                     const Instance& exceptional_return);
@@ -73,63 +71,12 @@ ZoneGrowableArray<Representation>* ArgumentRepresentations(
 // Unboxed representation of the result of a C signature function.
 Representation ResultRepresentation(const Function& signature);
 
-#endif  // !defined(TARGET_ARCH_DBC)
-
-#if defined(USING_SIMULATOR)
-
-// Unboxed host representations of the arguments to a C signature function.
-ZoneGrowableArray<Representation>* ArgumentHostRepresentations(
-    const Function& signature);
-
-// Unboxed host representation of the result of a C signature function.
-Representation ResultHostRepresentation(const Function& signature);
-
-#endif  // defined(USING_SIMULATOR)
-
 // Location for the arguments of a C signature function.
 ZoneGrowableArray<Location>* ArgumentLocations(
     const ZoneGrowableArray<Representation>& arg_reps);
 
 // Number of stack slots used in 'locations'.
 intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations);
-
-#if defined(TARGET_ARCH_DBC)
-
-// The first argument to a ffi trampoline is the function address, the arguments
-// to the call follow the function address.
-const intptr_t kFunctionAddressRegister = 0;
-const intptr_t kFirstArgumentRegister = 1;
-
-// Location in host for the arguments of a C signature function.
-ZoneGrowableArray<HostLocation>* HostArgumentLocations(
-    const ZoneGrowableArray<Representation>& arg_reps);
-
-// A signature descriptor consists of the signature length, argument locations,
-// and result representation.
-class FfiSignatureDescriptor : public ValueObject {
- public:
-  explicit FfiSignatureDescriptor(const TypedData& typed_data)
-      : typed_data_(typed_data) {}
-
-  static RawTypedData* New(
-      const ZoneGrowableArray<HostLocation>& arg_host_locations,
-      const Representation result_representation);
-
-  intptr_t length() const;
-  intptr_t num_stack_slots() const;
-  HostLocation LocationAt(intptr_t index) const;
-  Representation ResultRepresentation() const;
-
- private:
-  const TypedData& typed_data_;
-
-  static const intptr_t kOffsetNumArguments = 0;
-  static const intptr_t kOffsetNumStackSlots = 1;
-  static const intptr_t kOffsetResultRepresentation = 2;
-  static const intptr_t kOffsetArgumentLocations = 3;
-};
-
-#else  // defined(TARGET_ARCH_DBC)
 
 // This classes translates the ABI location of arguments into the locations they
 // will inhabit after entry-frame setup in the invocation of a native callback.
@@ -155,7 +102,6 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
-#endif  // defined(TARGET_ARCH_DBC)
 
 }  // namespace ffi
 

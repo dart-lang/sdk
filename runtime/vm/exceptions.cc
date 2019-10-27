@@ -346,13 +346,9 @@ class ExceptionHandlerFinder : public StackResource {
  private:
   template <typename T>
   static T* SlotAt(uword fp, int stack_slot) {
-#if defined(TARGET_ARCH_DBC)
-    return reinterpret_cast<T*>(fp + stack_slot * kWordSize);
-#else
     const intptr_t frame_slot =
         runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
     return reinterpret_cast<T*>(fp + frame_slot * kWordSize);
-#endif
   }
 
   static RawObject** TaggedSlotAt(uword fp, int stack_slot) {
@@ -479,7 +475,6 @@ static void FindErrorHandler(uword* handler_pc,
 static uword RemapExceptionPCForDeopt(Thread* thread,
                                       uword program_counter,
                                       uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -500,12 +495,10 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
       }
     }
   }
-#endif  // !DBC
   return program_counter;
 }
 
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -548,7 +541,6 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     ValidateFrames();
 #endif
   }
-#endif  // !DBC
 }
 
 static void JumpToExceptionHandler(Thread* thread,

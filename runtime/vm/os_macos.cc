@@ -139,8 +139,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return 16;  // iOS simulator
 #elif TARGET_ARCH_X64
   return 16;  // iOS simulator
-#elif TARGET_ARCH_DBC
-  return 16;  // Should be at least as much as any host architecture.
 #else
 #error Unimplemented
 #endif

@@ -32,7 +32,7 @@ namespace dart {
 //   PP - object pool for the currently execution function
 //
 // Frame info stored below FP additionally contains pointers to the currently
-// executing function and code (see stack_frame_dbc.h for more information).
+// executing function and code.
 //
 // In the unoptimized code most of bytecodes take operands implicitly from
 // stack and store results again on the stack. Constant operands are usually

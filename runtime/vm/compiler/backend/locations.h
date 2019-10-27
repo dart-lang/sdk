@@ -94,14 +94,6 @@ class TemplateLocation : public ValueObject {
   static const uword kLocationTagMask = 0x3;
 
  public:
-#if defined(TARGET_ARCH_DBC)
-  enum SpecialDbcRegister{
-      kArgsDescriptorReg,
-      kExceptionReg,
-      kStackTraceReg,
-  };
-#endif
-
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstantTag or kPairLocationTag.
@@ -137,12 +129,6 @@ class TemplateLocation : public ValueObject {
     // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
     kFpuRegister = 12,
-
-#ifdef TARGET_ARCH_DBC
-    // We use this to signify a special `Location` where the different
-    // [SpecialDbcRegister]s can be found on DBC.
-    kSpecialDbcRegister = 15,
-#endif
   };
 
   TemplateLocation() : value_(kInvalidLocation) {
@@ -168,12 +154,6 @@ class TemplateLocation : public ValueObject {
 
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kConstantTag);
     COMPILE_ASSERT((kFpuRegister & kLocationTagMask) != kPairLocationTag);
-
-#ifdef TARGET_ARCH_DBC
-    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) != kConstantTag);
-    COMPILE_ASSERT((kSpecialDbcRegister & kLocationTagMask) !=
-                   kPairLocationTag);
-#endif
 
     // Verify tags and tagmask.
     COMPILE_ASSERT((kConstantTag & kLocationTagMask) == kConstantTag);
@@ -294,22 +274,6 @@ class TemplateLocation : public ValueObject {
   }
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
-
-#ifdef TARGET_ARCH_DBC
-  bool IsArgsDescRegister() const {
-    return IsSpecialDbcRegister(kArgsDescriptorReg);
-  }
-  bool IsExceptionRegister() const {
-    return IsSpecialDbcRegister(kExceptionReg);
-  }
-  bool IsStackTraceRegister() const {
-    return IsSpecialDbcRegister(kStackTraceReg);
-  }
-
-  bool IsSpecialDbcRegister(SpecialDbcRegister reg) const {
-    return kind() == kSpecialDbcRegister && payload() == reg;
-  }
-#endif
 
   FpuRegister fpu_reg() const {
     ASSERT(IsFpuRegister());
@@ -493,11 +457,8 @@ Location LocationRemapForSlowPath(Location loc,
                                   intptr_t* cpu_reg_slots,
                                   intptr_t* fpu_reg_slots);
 
-// DBC does not have an notion of 'address' in its instruction set.
-#if !defined(TARGET_ARCH_DBC)
 // Return a memory operand for stack slot locations.
 compiler::Address LocationToStackSlotAddress(Location loc);
-#endif
 
 template <class Location>
 class TemplatePairLocation : public ZoneAllocated {
@@ -608,7 +569,6 @@ class RegisterSet : public ValueObject {
 #endif
   }
 
-#if !defined(TARGET_ARCH_DBC)
   void AddAllArgumentRegisters() {
     // All (native) arguments are passed on the stack in IA32.
 #if !defined(TARGET_ARCH_IA32)
@@ -626,7 +586,6 @@ class RegisterSet : public ValueObject {
     }
 #endif
   }
-#endif
 
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
@@ -785,12 +744,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc) {
     ASSERT(index == 0);
-// DBC calls are different from call on other architectures so this
-// assert doesn't make sense.
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid() ||
                                loc.IsPairLocation()));
-#endif
     output_location_ = loc;
   }
 

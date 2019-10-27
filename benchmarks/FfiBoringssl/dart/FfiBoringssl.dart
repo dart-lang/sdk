@@ -65,9 +65,6 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
 //    * Architecture: x64
 //      * 23000 - 52000000 us (without optimizations)
 //      * 23000 - 30000 us (with optimizations)
-//    * Architecture: SimDBC64
-//      * 23000 - 5500000 us (without optimizations)
-//      * 23000 - 30000 us (with optimizations)
 const int L = 1000; // Length of data in bytes.
 
 final hashAlgorithm = EVP_sha512();

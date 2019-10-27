@@ -189,11 +189,9 @@ typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
                                          Assembler*,
                                          intptr_t);
 
-#if !defined(TARGET_ARCH_DBC)
 const Code& StubCodeAllocateArray();
 const Code& StubCodeSubtype2TestCache();
 const Code& StubCodeSubtype6TestCache();
-#endif  // !defined(TARGET_ARCH_DBC)
 
 class RuntimeEntry : public ValueObject {
  public:
@@ -674,7 +672,6 @@ class Thread : public AllStatic {
   static word callback_code_offset();
 
   static word AllocateArray_entry_point_offset();
-#if !defined(TARGET_ARCH_DBC)
   static word write_barrier_code_offset();
   static word array_write_barrier_code_offset();
   static word fix_callers_target_code_offset();
@@ -701,7 +698,6 @@ class Thread : public AllStatic {
   static word exit_safepoint_stub_offset();
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
-#endif  // !defined(TARGET_ARCH_DBC)
 
   static word no_scope_native_wrapper_entry_point_offset();
   static word auto_scope_native_wrapper_entry_point_offset();

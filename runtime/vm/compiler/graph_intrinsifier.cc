@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-// DBC does not use graph intrinsics.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/graph_intrinsifier.h"
 #include "vm/compiler/backend/block_builder.h"
@@ -989,4 +988,4 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
