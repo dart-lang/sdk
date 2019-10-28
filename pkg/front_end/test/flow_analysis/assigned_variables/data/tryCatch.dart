@@ -8,6 +8,11 @@ tryCatch(int a, int b) {
     a = 0;
     var c;
   } on String {
+    // Note: flow analysis doesn't need to track variables assigned, captured,
+    // or declared inside of catch blocks.  So we don't create an
+    // AssignedVariables node for this catch block, and consequently the
+    // assignment to `b` and declaration of `d` are considered to belong to the
+    // enclosing function.
     b = 0;
     var d;
   }
