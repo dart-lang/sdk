@@ -7554,6 +7554,14 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
+  bool operator ==(Object object) {
+    if (identical(this, object)) {
+      return true;
+    }
+    return object is TypeParameterElementImpl && object.location == location;
+  }
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTypeParameterElement(this);
 

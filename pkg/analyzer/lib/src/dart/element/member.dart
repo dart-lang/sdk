@@ -863,7 +863,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
 
   @override
   bool operator ==(Object other) =>
-      other is TypeParameterMember && baseElement == other.baseElement;
+      other is TypeParameterMember &&
+      other.baseElement == baseElement &&
+      other._bound == _bound;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -921,7 +923,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     var newTypes = List<TypeParameterType>(elements.length);
     for (int i = 0; i < newElements.length; i++) {
       var element = elements[i];
-      var bound = element?.bound;
+      var bound = element.bound;
       if (bound != null) {
         bound = substitution.substituteType(bound);
         element = TypeParameterMember(element, substitution, bound);
@@ -932,14 +934,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
       );
     }
 
-    // Recursive bounds are allowed too, so make sure these are updated
-    // to refer to any new TypeParameterMember we just made, rather than
-    // the original type parameter
+    // Update bounds to reference new TypeParameterMember(s).
     var substitution2 = Substitution.fromPairs(elements, newTypes);
     for (var newElement in newElements) {
       if (newElement is TypeParameterMember) {
-        // TODO(jmesserly): this is required so substituting for the
-        // type formal will work. Investigate if there's a better solution.
         newElement._bound = substitution2.substituteType(newElement.bound);
       }
     }
