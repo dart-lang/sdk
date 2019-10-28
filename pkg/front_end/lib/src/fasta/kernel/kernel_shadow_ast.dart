@@ -52,10 +52,7 @@ import '../fasta_codes.dart'
         templateSpreadMapEntryElementValueTypeMismatch,
         templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
-        templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
-        templateUndefinedGetter,
-        templateUndefinedMethod,
         templateUndefinedSetter,
         templateWebLiteralCannotBeRepresentedExactly;
 

@@ -28,30 +28,7 @@ import '../../base/instrumentation.dart'
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Template,
-        messageReturnFromVoidFunction,
-        messageReturnWithoutExpression,
-        messageVoidExpression,
-        noLength,
-        templateArgumentTypeNotAssignable,
-        templateDuplicatedNamedArgument,
-        templateImplicitCallOfNonMethod,
-        templateInvalidAssignment,
-        templateInvalidCastFunctionExpr,
-        templateInvalidCastLiteralList,
-        templateInvalidCastLiteralMap,
-        templateInvalidCastLiteralSet,
-        templateInvalidCastLocalFunction,
-        templateInvalidCastNewExpr,
-        templateInvalidCastStaticMethod,
-        templateInvalidCastTopLevelFunction,
-        templateInvokeNonFunction,
-        templateMixinInferenceNoMatchingClass,
-        templateUndefinedMethod;
+import '../fasta_codes.dart';
 
 import '../flow_analysis/flow_analysis.dart';
 
@@ -2494,6 +2471,115 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     return false;
+  }
+
+  Expression createMissingSuperIndexGet(int fileOffset, Expression index) {
+    if (isTopLevel) {
+      return engine.forest.createSuperMethodInvocation(fileOffset, indexGetName,
+          null, engine.forest.createArguments(fileOffset, <Expression>[index]));
+    } else {
+      return helper.buildProblem(
+          templateSuperclassHasNoMethod.withArguments(indexGetName.name),
+          fileOffset,
+          noLength);
+    }
+  }
+
+  Expression createMissingSuperIndexSet(
+      int fileOffset, Expression index, Expression value) {
+    if (isTopLevel) {
+      return engine.forest.createSuperMethodInvocation(
+          fileOffset,
+          indexSetName,
+          null,
+          engine.forest
+              .createArguments(fileOffset, <Expression>[index, value]));
+    } else {
+      return helper.buildProblem(
+          templateSuperclassHasNoMethod.withArguments(indexSetName.name),
+          fileOffset,
+          noLength);
+    }
+  }
+
+  Expression createMissingPropertyGet(int fileOffset, Expression receiver,
+      DartType receiverType, Name propertyName) {
+    if (isTopLevel) {
+      return engine.forest
+          .createPropertyGet(fileOffset, receiver, propertyName);
+    } else {
+      return helper.buildProblem(
+          templateUndefinedGetter.withArguments(
+              propertyName.name, resolveTypeParameter(receiverType)),
+          fileOffset,
+          propertyName.name.length);
+    }
+  }
+
+  Expression createMissingPropertySet(int fileOffset, Expression receiver,
+      DartType receiverType, Name propertyName, Expression value,
+      {bool forEffect}) {
+    assert(forEffect != null);
+    if (isTopLevel) {
+      return engine.forest.createPropertySet(
+          fileOffset, receiver, propertyName, value,
+          forEffect: forEffect);
+    } else {
+      return helper.buildProblem(
+          templateUndefinedSetter.withArguments(
+              propertyName.name, resolveTypeParameter(receiverType)),
+          fileOffset,
+          propertyName.name.length);
+    }
+  }
+
+  Expression createMissingIndexGet(int fileOffset, Expression receiver,
+      DartType receiverType, Expression index) {
+    if (isTopLevel) {
+      return engine.forest.createMethodInvocation(
+          fileOffset,
+          receiver,
+          indexGetName,
+          engine.forest.createArguments(fileOffset, <Expression>[index]));
+    } else {
+      return helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              indexGetName.name, resolveTypeParameter(receiverType)),
+          fileOffset,
+          noLength);
+    }
+  }
+
+  Expression createMissingIndexSet(int fileOffset, Expression receiver,
+      DartType receiverType, Expression index, Expression value) {
+    if (isTopLevel) {
+      return engine.forest.createMethodInvocation(
+          fileOffset,
+          receiver,
+          indexSetName,
+          engine.forest
+              .createArguments(fileOffset, <Expression>[index, value]));
+    } else {
+      return helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              indexSetName.name, resolveTypeParameter(receiverType)),
+          fileOffset,
+          noLength);
+    }
+  }
+
+  Expression createMissingBinary(int fileOffset, Expression left,
+      DartType leftType, Name binaryName, Expression right) {
+    if (isTopLevel) {
+      return engine.forest.createMethodInvocation(fileOffset, left, binaryName,
+          engine.forest.createArguments(fileOffset, <Expression>[right]));
+    } else {
+      return helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              binaryName.name, resolveTypeParameter(leftType)),
+          fileOffset,
+          binaryName.name.length);
+    }
   }
 }
 

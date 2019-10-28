@@ -1903,7 +1903,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   final Extension extension;
 
   /// The name of the original target;
-  final String targetName;
+  final Name targetName;
 
   /// The static [Member] generated for an instance extension member which is
   /// used for performing a read on this subexpression.
@@ -1967,6 +1967,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       Token token,
       int extensionTypeArgumentOffset,
       Extension extension,
+      Name targetName,
       Builder getterBuilder,
       Builder setterBuilder,
       Expression receiver,
@@ -1974,7 +1975,6 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       int extensionTypeParameterCount,
       {bool isNullAware}) {
     assert(getterBuilder != null || setterBuilder != null);
-    String targetName;
     Procedure readTarget;
     Procedure invokeTarget;
     if (getterBuilder != null) {
@@ -1989,18 +1989,15 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
         readTarget = memberBuilder.member;
-        targetName = memberBuilder.name;
       } else if (getterBuilder.isRegularMethod) {
         assert(!getterBuilder.isStatic);
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
-        targetName = procedureBuilder.name;
       } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
         invokeTarget = memberBuilder.member;
-        targetName = memberBuilder.name;
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -2013,12 +2010,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     if (setterBuilder != null) {
       assert(!setterBuilder.isStatic);
       if (setterBuilder is AccessErrorBuilder) {
-        targetName ??= setterBuilder.name;
+        // No setter.
       } else if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         MemberBuilder memberBuilder = setterBuilder;
         writeTarget = memberBuilder.member;
-        targetName ??= memberBuilder.name;
       } else {
         return unhandled(
             "${setterBuilder.runtimeType}",
@@ -2046,7 +2042,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
 
   @override
-  String get _plainNameForRead => targetName;
+  String get _plainNameForRead => targetName.name;
 
   List<DartType> _createExtensionTypeArguments() {
     return explicitTypeArguments ?? const <DartType>[];
@@ -2604,6 +2600,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
         // omitted).
         fileOffset,
         extensionBuilder.extension,
+        name,
         getter,
         setter,
         receiver,
