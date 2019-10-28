@@ -6662,8 +6662,8 @@ class VariableResolverVisitor extends ScopedVisitor {
   /// not inside a method or function.
   ExecutableElement _enclosingFunction;
 
-  /// Information about local variables in the enclosing function or method.
-  LocalVariableInfo _localVariableInfo;
+  /// The container with information about local variables.
+  final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
@@ -6680,9 +6680,8 @@ class VariableResolverVisitor extends ScopedVisitor {
   /// created based on [definingLibrary] and [typeProvider].
   VariableResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope, LocalVariableInfo localVariableInfo})
-      : _localVariableInfo = localVariableInfo,
-        super(definingLibrary, source, typeProvider, errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
   @override
@@ -6692,22 +6691,13 @@ class VariableResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _localVariableInfo = (node as CompilationUnitImpl).localVariableInfo;
-    super.visitCompilationUnit(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
-      _localVariableInfo ??= new LocalVariableInfo();
       (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
       _enclosingFunction = node.declaredElement;
       super.visitConstructorDeclaration(node);
     } finally {
-      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -6724,15 +6714,12 @@ class VariableResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
-      _localVariableInfo ??= new LocalVariableInfo();
       (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
           _localVariableInfo;
       _enclosingFunction = node.declaredElement;
       super.visitFunctionDeclaration(node);
     } finally {
-      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
@@ -6741,14 +6728,11 @@ class VariableResolverVisitor extends ScopedVisitor {
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       ExecutableElement outerFunction = _enclosingFunction;
-      LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
       try {
-        _localVariableInfo ??= new LocalVariableInfo();
         (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
         _enclosingFunction = node.declaredElement;
         super.visitFunctionExpression(node);
       } finally {
-        _localVariableInfo = outerLocalVariableInfo;
         _enclosingFunction = outerFunction;
       }
     } else {
@@ -6762,14 +6746,11 @@ class VariableResolverVisitor extends ScopedVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    LocalVariableInfo outerLocalVariableInfo = _localVariableInfo;
     try {
-      _localVariableInfo ??= new LocalVariableInfo();
       (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
       _enclosingFunction = node.declaredElement;
       super.visitMethodDeclaration(node);
     } finally {
-      _localVariableInfo = outerLocalVariableInfo;
       _enclosingFunction = outerFunction;
     }
   }
