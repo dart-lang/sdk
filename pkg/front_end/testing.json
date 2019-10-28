@@ -186,7 +186,7 @@
       "name": "old_dill_test",
       "kind": "Chain",
       "source": "test/old_dill_suite.dart",
-      "path": "testcases/old_dills/",
+      "path": "testcases/old_dills/dills/",
       "status": "testcases/old_dills/old_dills.status",
       "pattern": [
         ".*\\.dill$"

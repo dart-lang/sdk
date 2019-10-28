@@ -63,6 +63,7 @@ ccc
 charcode
 charset
 checkout
+cipd
 circular
 cli
 cloneable
@@ -368,6 +369,7 @@ unbreak
 unregistered
 untransformed
 untrimmed
+upload
 uppercase
 upward
 uses8

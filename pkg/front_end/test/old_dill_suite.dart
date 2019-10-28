@@ -17,8 +17,6 @@ Future<Null> main([List<String> arguments = const []]) async {
     await generateDill();
     return null;
   } else if (arguments.length == 1 && arguments[0] == "--checkDill") {
-    // Temporarily we don't require a dill to exist.
-    if (dartVm != null) return null;
     await checkDill();
     return null;
   }
@@ -29,7 +27,7 @@ Future<Null> main([List<String> arguments = const []]) async {
 String get dartVm => Platform.resolvedExecutable;
 
 Uri generateOutputUri(int binaryVersion, int compileNumber) {
-  return Uri.base.resolve("pkg/front_end/testcases/old_dills/"
+  return Uri.base.resolve("pkg/front_end/testcases/old_dills/dills/"
       "dart2js"
       ".version.$binaryVersion"
       ".compile.$compileNumber"
@@ -89,6 +87,17 @@ Future<Null> generateDill() async {
     throw "Got exit code ${result.exitCode}";
   } else {
     print("File generated.");
+    print("");
+    print("You should now upload via CIPD:");
+    print("");
+    print("cipd create -name dart/cfe/dart2js_dills "
+        "-in pkg/front_end/testcases/old_dills/dills/ "
+        "-install-mode copy "
+        "-tag \"binary_version:${Tag.BinaryFormatVersion}\"");
+    print("");
+    print("And update the DEPS file to say "
+        "binary_version:${Tag.BinaryFormatVersion} "
+        "under /pkg/front_end/testcases/old_dills/dills");
   }
 }
 
