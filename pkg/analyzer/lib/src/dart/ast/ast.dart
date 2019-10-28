@@ -15,8 +15,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
@@ -826,7 +826,7 @@ abstract class AstNodeImpl implements AstNode {
   @override
   String toSource() {
     StringBuffer buffer = new StringBuffer();
-    accept(new ToSourceVisitor2(buffer));
+    accept(new ToSourceVisitor(buffer));
     return buffer.toString();
   }
 
