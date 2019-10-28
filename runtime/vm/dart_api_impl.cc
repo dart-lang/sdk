@@ -1060,7 +1060,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 #if !defined(PRODUCT)
 #define VM_METRIC_API(type, variable, name, unit)                              \
   DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
-    return vm_metric_##variable.value();                                       \
+    return vm_metric_##variable.Value();                                       \
   }
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API
@@ -1071,7 +1071,7 @@ VM_METRIC_LIST(VM_METRIC_API);
       FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
     }                                                                          \
     Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
-    return iso->Get##variable##Metric()->value();                              \
+    return iso->Get##variable##Metric()->Value();                              \
   }
 ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
 #undef ISOLATE_METRIC_API
