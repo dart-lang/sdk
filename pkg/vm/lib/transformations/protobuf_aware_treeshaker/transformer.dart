@@ -20,7 +20,6 @@ TransformationInfo transformComponent(
     Component component, Map<String, String> environment, Target target,
     {@required bool collectInfo}) {
   final coreTypes = new CoreTypes(component);
-  component.computeCanonicalNames();
 
   TransformationInfo info = collectInfo ? TransformationInfo() : null;
 
@@ -165,7 +164,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
           final constant = annotation.constant;
           if (constant is InstanceConstant &&
               constant.classReference == tagNumberClass.reference) {
-            final name = procedure.canonicalName.name;
+            final name = procedure.name.name;
             if (dynamicNames.contains(name) || names.contains(name)) {
               usedTagNumbers.add(
                   (constant.fieldValues[tagNumberField] as IntConstant).value);
