@@ -1,0 +1,3 @@
+f() { obj![arg]![arg2]; }
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken] obj[StringToken]![SimpleToken][[BeginToken]arg[StringToken]][SimpleToken]![SimpleToken][[BeginToken]arg2[StringToken]][SimpleToken];[SimpleToken] }[SimpleToken][SimpleToken]
