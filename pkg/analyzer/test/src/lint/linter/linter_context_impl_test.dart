@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:test/test.dart';
@@ -25,6 +26,15 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
   Future<void> resolve(String content) async {
     await resolveTestCode(content);
     var contextUnit = LinterContextUnit(result.content, result.unit);
+
+    final libraryPath = result.libraryElement.source.fullName;
+    final builder = new ContextBuilder(
+        resourceProvider, null /* sdkManager */, null /* contentCache */);
+    // todo (pq): get workspace from analysis context
+    final workspace =
+        ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
+    final workspacePackage = workspace.findPackageFor(libraryPath);
+
     context = new LinterContextImpl(
       [contextUnit],
       contextUnit,
@@ -33,6 +43,8 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
       result.typeSystem,
       InheritanceManager3(result.typeSystem),
       analysisOptions,
+      // todo (pq): test package or consider passing in null
+      workspacePackage,
     );
   }
 }

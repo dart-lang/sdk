@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -321,8 +322,26 @@ class LibraryAnalyzer {
 
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
-    var context = LinterContextImpl(allUnits, currentUnit, _declaredVariables,
-        _typeProvider, _typeSystem, _inheritance, _analysisOptions);
+
+    // todo (pq): duplicates logic in resolver; de-dup, or...
+    // todo (pq): get workspace from analysis context
+    final libraryPath = _library.source.fullName;
+    final builder = new ContextBuilder(
+        _resourceProvider, null /* sdkManager */, null /* contentCache */);
+    final workspace =
+        ContextBuilder.createWorkspace(_resourceProvider, libraryPath, builder);
+    final workspacePackage = workspace.findPackageFor(libraryPath);
+
+    var context = LinterContextImpl(
+      allUnits,
+      currentUnit,
+      _declaredVariables,
+      _typeProvider,
+      _typeSystem,
+      _inheritance,
+      _analysisOptions,
+      workspacePackage,
+    );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       if (linter is NodeLintRule) {

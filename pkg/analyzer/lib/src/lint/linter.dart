@@ -33,6 +33,7 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
@@ -215,6 +216,8 @@ abstract class LinterContext {
 
   InheritanceManager3 get inheritanceManager;
 
+  WorkspacePackage get package;
+
   TypeProvider get typeProvider;
 
   TypeSystem get typeSystem;
@@ -255,6 +258,9 @@ class LinterContextImpl implements LinterContext {
   final DeclaredVariables declaredVariables;
 
   @override
+  final WorkspacePackage package;
+
+  @override
   final TypeProvider typeProvider;
 
   @override
@@ -271,6 +277,7 @@ class LinterContextImpl implements LinterContext {
     this.typeSystem,
     this.inheritanceManager,
     this.analysisOptions,
+    this.package,
   );
 
   @override

@@ -124,13 +124,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(
-        null /* allUnits */,
-        new LinterContextUnit(content, unit),
-        declaredVariables,
-        typeProvider,
-        _typeSystem,
-        _inheritanceManager,
-        analysisOptions);
+      null /* allUnits */,
+      new LinterContextUnit(content, unit),
+      declaredVariables,
+      typeProvider,
+      _typeSystem,
+      _inheritanceManager,
+      analysisOptions,
+      _workspacePackage,
+    );
   }
 
   @override
