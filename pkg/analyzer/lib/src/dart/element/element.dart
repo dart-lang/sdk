@@ -4527,19 +4527,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
-/// Implementation of [FunctionElementImpl] for a function typed parameter.
-class FunctionElementImpl_forFunctionTypedParameter
-    extends FunctionElementImpl {
-  @override
-  final CompilationUnitElementImpl enclosingUnit;
-
-  FunctionElementImpl_forFunctionTypedParameter(this.enclosingUnit)
-      : super('', -1);
-
-  @override
-  bool get isSynthetic => true;
-}
-
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
