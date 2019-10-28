@@ -134,16 +134,16 @@ import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
-import 'invalid_nonVirtual_annotation_test.dart'
-    as invalid_nonVirtual_annotation;
+import 'invalid_non_virtual_annotation_test.dart'
+    as invalid_non_virtual_annotation;
 import 'invalid_optional_parameter_type_test.dart'
     as invalid_optional_parameter_type;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
-import 'invalid_override_of_nonVirtual_member_test.dart'
-    as invalid_override_of_nonVirtual_member;
+import 'invalid_override_of_non_virtual_member_test.dart'
+    as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
@@ -453,11 +453,11 @@ main() {
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
     invalid_literal_annotation.main();
-    invalid_nonVirtual_annotation.main();
+    invalid_non_virtual_annotation.main();
     invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
-    invalid_override_of_nonVirtual_member.main();
+    invalid_override_of_non_virtual_member.main();
     invalid_override.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();
