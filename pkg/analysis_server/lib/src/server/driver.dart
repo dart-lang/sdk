@@ -75,6 +75,31 @@ class CommandLineParser {
         hide: hide);
   }
 
+  /// Defines an option that takes multiple values.
+  /// See [ArgParser.addMultiOption].
+  void addMultiOption(String name,
+      {String abbr,
+      String help,
+      String valueHelp,
+      Iterable<String> allowed,
+      Map<String, String> allowedHelp,
+      Iterable<String> defaultsTo,
+      void callback(List<String> values),
+      bool splitCommas = true,
+      bool hide = false}) {
+    _knownFlags.add(name);
+    _parser.addMultiOption(name,
+        abbr: abbr,
+        help: help,
+        valueHelp: valueHelp,
+        allowed: allowed,
+        allowedHelp: allowedHelp,
+        defaultsTo: defaultsTo,
+        callback: callback,
+        splitCommas: splitCommas,
+        hide: hide);
+  }
+
   /// Defines a value-taking option.
   /// See [ArgParser.addOption()].
   void addOption(String name,
@@ -213,6 +238,11 @@ class Driver implements ServerStarter {
       "disable-server-feature-search";
 
   /**
+   * The name of the option used to enable experiments.
+   */
+  static const String ENABLE_EXPERIMENT_OPTION = 'enable-experiment';
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -346,6 +376,10 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
+    if (results.wasParsed(ENABLE_EXPERIMENT_OPTION)) {
+      analysisServerOptions.enabledExperiments =
+          (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
+    }
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
 
@@ -737,6 +771,11 @@ class Driver implements ServerStarter {
         help: 'disable all completion features', defaultsTo: false, hide: true);
     parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
         help: 'disable all search features', defaultsTo: false, hide: true);
+    parser.addMultiOption(ENABLE_EXPERIMENT_OPTION,
+        help: 'Enable one or more experimental features. If multiple features '
+            'are being added, they should be comma separated.',
+        hide: true,
+        splitCommas: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,

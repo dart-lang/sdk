@@ -193,6 +193,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
+    defaultContextOptions.enabledExperiments = options.enabledExperiments;
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -748,6 +749,10 @@ class AnalysisServerOptions {
   /// The crash report sender instance; note, this object can be `null`, and
   /// should be accessed via a null-aware operator.
   CrashReportSender crashReportSender;
+
+  /// The list of the names of the experiments that should be enabled by
+  /// default, unless the analysis options file of a context overrides it.
+  List<String> enabledExperiments = const <String>[];
 
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
