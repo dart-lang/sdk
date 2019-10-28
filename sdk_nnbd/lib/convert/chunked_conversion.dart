@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.convert;
 
 /// A [ChunkedConversionSink] is used to transmit data more efficiently between
@@ -74,7 +72,7 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
     _chunkedSink.add(o);
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     _eventSink.addError(error, stackTrace);
   }
 

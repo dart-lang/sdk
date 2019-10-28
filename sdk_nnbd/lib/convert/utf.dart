@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.convert;
 
 /// The Unicode Replacement character `U+FFFD` (�).
 const int unicodeReplacementCharacterRune = 0xFFFD;
 
-/// The Unicode Byte Order Marker (BOM) character `U+FEFF`.
+/// The Unicode Byte Order Marker (f) character `U+FEFF`.
 const int unicodeBomCharacterRune = 0xFEFF;
 
 /// An instance of the default implementation of the [Utf8Codec].
@@ -56,9 +54,9 @@ class Utf8Codec extends Encoding {
   ///
   /// If [allowMalformed] is not given, it defaults to the `allowMalformed` that
   /// was used to instantiate `this`.
-  String decode(List<int> codeUnits, {bool allowMalformed}) {
-    allowMalformed ??= _allowMalformed;
-    return Utf8Decoder(allowMalformed: allowMalformed).convert(codeUnits);
+  String decode(List<int> codeUnits, {bool? allowMalformed}) {
+    return Utf8Decoder(allowMalformed: allowMalformed ?? _allowMalformed)
+        .convert(codeUnits);
   }
 
   Utf8Encoder get encoder => const Utf8Encoder();
@@ -77,9 +75,13 @@ class Utf8Encoder extends Converter<String, List<int>> {
   ///
   /// If [start] and [end] are provided, only the substring
   /// `string.substring(start, end)` is converted.
-  Uint8List convert(String string, [int start = 0, int end]) {
+  Uint8List convert(String string, [int start = 0, int? end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     var length = end - start;
     if (length == 0) return Uint8List(0);
     // Create a new encoder with a length that is guaranteed to be big enough.
@@ -298,7 +300,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
   ///
   /// If the [codeUnits] start with the encoding of a
   /// [unicodeBomCharacterRune], that character is discarded.
-  String convert(List<int> codeUnits, [int start = 0, int end]) {
+  String convert(List<int> codeUnits, [int start = 0, int? end]) {
     // Allow the implementation to intercept and specialize based on the type
     // of codeUnits.
     var result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
@@ -308,6 +310,10 @@ class Utf8Decoder extends Converter<List<int>, String> {
 
     var length = codeUnits.length;
     end = RangeError.checkValidRange(start, end, length);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
 
     // Fast case for ASCII strings avoids StringBuffer/_Utf8Decoder.
     int oneBytes = _scanOneByteCharacters(codeUnits, start, end);
@@ -321,9 +327,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
       }
       buffer = StringBuffer(firstPart);
       isFirstCharacter = false;
+    } else {
+      buffer = StringBuffer();
     }
-
-    buffer ??= StringBuffer();
     var decoder = _Utf8Decoder(buffer, _allowMalformed);
     decoder._isFirstCharacter = isFirstCharacter;
     decoder.convert(codeUnits, start, end);
@@ -350,8 +356,8 @@ class Utf8Decoder extends Converter<List<int>, String> {
 
   external Converter<List<int>, T> fuse<T>(Converter<String, T> next);
 
-  external static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end);
+  external static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end);
 }
 
 // UTF-8 constants.
@@ -409,7 +415,7 @@ class _Utf8Decoder {
   ///
   /// The [source] and [offset] of the current position may be provided,
   /// and are included in the exception if one is thrown.
-  void flush([List<int> source, int offset]) {
+  void flush([List<int>? source, int? offset]) {
     if (hasPartialInput) {
       if (!_allowMalformed) {
         throw FormatException(
