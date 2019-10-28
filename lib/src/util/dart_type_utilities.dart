@@ -375,17 +375,17 @@ class DartTypeUtilities {
         typeSystem.isSubtypeOf(rightType, leftType)) {
       return false;
     }
-    Element leftElement = leftType.element;
-    Element rightElement = rightType.element;
-    if (leftElement is ClassElement && rightElement is ClassElement) {
-      // In this case, [leftElement] and [rightElement] each represent a class,
-      // like `int` or `List` or `Future<T>` or `Iterable<String>`.
-      if (isClass(leftType, rightElement.name, rightElement.library.name)) {
+    if (leftType is InterfaceType && rightType is InterfaceType) {
+      // In this case, [leftElement] and [rightElement] each represent
+      // the same class, like `int`, or `Iterable<String>`.
+      var leftElement = leftType.element;
+      var rightElement = rightType.element;
+      if (leftElement == rightElement) {
         // In this case, [leftElement] and [rightElement] represent the same
         // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
         // need to check type arguments.
-        var leftTypeArguments = (leftType as ParameterizedType).typeArguments;
-        var rightTypeArguments = (rightType as ParameterizedType).typeArguments;
+        var leftTypeArguments = leftType.typeArguments;
+        var rightTypeArguments = rightType.typeArguments;
         if (leftTypeArguments.length != rightTypeArguments.length) {
           // I cannot think of how we would enter this block, but it guards
           // against RangeError below.
@@ -405,9 +405,10 @@ class DartTypeUtilities {
         return leftElement.supertype?.isObject == true ||
             leftElement.supertype != rightElement.supertype;
       }
-    } else if (leftElement is TypeParameterElement &&
-        rightElement is TypeParameterElement) {
-      return unrelatedTypes(typeSystem, leftElement.bound, rightElement.bound);
+    } else if (leftType is TypeParameterType &&
+        rightType is TypeParameterType) {
+      return unrelatedTypes(
+          typeSystem, leftType.element.bound, rightType.element.bound);
     } else if (leftType is FunctionType) {
       if (_isFunctionTypeUnrelatedToType(leftType, rightType)) {
         return true;

@@ -26,7 +26,7 @@ bool isWidgetProperty(DartType type) {
   if (isWidgetType(type)) {
     return true;
   }
-  if (type is ParameterizedType &&
+  if (type is InterfaceType &&
       DartTypeUtilities.implementsAnyInterface(type, _collectionInterfaces)) {
     return type.typeParameters.length == 1 &&
         isWidgetProperty(type.typeArguments.first);

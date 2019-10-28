@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
     } else if (isAsync &&
         type.isDartAsyncFuture &&
-        (type as ParameterizedType).typeArguments.first.isVoid) {
+        (type as InterfaceType).typeArguments.first.isVoid) {
       rule.reportLint(node);
     }
   }

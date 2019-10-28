@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type.isVoid) return true;
     if (type.isDartCoreNull) return true;
     if (type.isDartAsyncFuture &&
-        type is ParameterizedType &&
+        type is InterfaceType &&
         (type.typeArguments.first.isVoid ||
             type.typeArguments.first.isDartCoreNull)) {
       return true;

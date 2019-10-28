@@ -66,7 +66,7 @@ String _META_LIB_NAME = 'meta';
 /// type args.
 String _OPTIONAL_TYPE_ARGS_VAR_NAME = 'optionalTypeArgs';
 
-bool _isOptionallyParameterized(ParameterizedType type) {
+bool _isOptionallyParameterized(InterfaceType type) {
   List<ElementAnnotation> metadata = type.element?.metadata;
   if (metadata != null) {
     return metadata
@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   visitNamedType(NamedType namedType) {
     DartType type = namedType.type;
-    if (type is ParameterizedType) {
+    if (type is InterfaceType) {
       if (type.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
