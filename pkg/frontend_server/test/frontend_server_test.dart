@@ -1124,7 +1124,7 @@ true
       expect(await starter(args), 0);
     });
 
-    test('compile and recompile to JavaScript', () async {
+    test('compile to JavaScript', () async {
       var file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
       var packages = new File('${tempDir.path}/.packages')
@@ -1142,6 +1142,29 @@ true
         '--packages=${packages.path}',
         '--target=dartdevc',
         file.path,
+      ];
+
+      expect(await starter(args), 0);
+    });
+
+    test('compile to JavaScript with package scheme', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+        'package:hello/foo.dart'
       ];
 
       expect(await starter(args), 0);

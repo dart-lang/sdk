@@ -60,8 +60,8 @@ void main() {
 
   test('compiles JavaScript code', () async {
     final library = Library(
-      Uri.file('c.dart'),
-      fileUri: Uri.file('c.dart'),
+      Uri.file('/c.dart'),
+      fileUri: Uri.file('/c.dart'),
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
             FunctionNode(Block([])))
@@ -69,7 +69,7 @@ void main() {
     );
     final testComponent = Component(libraries: [library, ...testCoreLibraries]);
     final strongComponents =
-        StrongComponents(testComponent, Uri.file('c.dart'));
+        StrongComponents(testComponent, Uri.file('/c.dart'));
     strongComponents.computeModules();
     final javaScriptBundler =
         JavaScriptBundler(testComponent, strongComponents);
@@ -82,7 +82,7 @@ void main() {
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
 
     expect(manifest, {
-      'c.dart': [0, codeSink.buffer.length],
+      '/c.dart': [0, codeSink.buffer.length],
     });
     expect(utf8.decode(codeSink.buffer), contains('ArbitrarilyChosen'));
   });
@@ -90,13 +90,13 @@ void main() {
   test('can combine strongly connected components', () {
     // Create three libraries A, B, C where A is the entrypoint and B & C
     // circularly import each other.
-    final libraryC = Library(Uri.file('c.dart'), fileUri: Uri.file('c.dart'));
-    final libraryB = Library(Uri.file('b.dart'), fileUri: Uri.file('b.dart'));
+    final libraryC = Library(Uri.file('/c.dart'), fileUri: Uri.file('/c.dart'));
+    final libraryB = Library(Uri.file('/b.dart'), fileUri: Uri.file('/b.dart'));
     libraryC.dependencies.add(LibraryDependency.import(libraryB));
     libraryB.dependencies.add(LibraryDependency.import(libraryC));
     final libraryA = Library(
-      Uri.file('a.dart'),
-      fileUri: Uri.file('a.dart'),
+      Uri.file('/a.dart'),
+      fileUri: Uri.file('/a.dart'),
       dependencies: [
         LibraryDependency.import(libraryB),
       ],
@@ -109,7 +109,7 @@ void main() {
         libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries]);
 
     final strongComponents =
-        StrongComponents(testComponent, Uri.file('a.dart'));
+        StrongComponents(testComponent, Uri.file('/a.dart'));
     strongComponents.computeModules();
     final javaScriptBundler =
         JavaScriptBundler(testComponent, strongComponents);

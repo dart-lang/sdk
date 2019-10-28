@@ -2,8 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/util/graph.dart';
+
+import 'package:vm/kernel_front_end.dart';
+import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 
 /// Compute the strongly connected components for JavaScript compilation.
 ///
@@ -24,8 +29,10 @@ import 'package:kernel/util/graph.dart';
 class StrongComponents {
   StrongComponents(
     this.component,
-    this.entrypointFileUri,
-  );
+    this.mainUri, [
+    this.packagesUri,
+    this.fileSystem,
+  ]);
 
   /// The Component that is being compiled.
   ///
@@ -33,8 +40,14 @@ class StrongComponents {
   /// lbraries.
   final Component component;
 
-  /// The file URI containing main for this application.
-  final Uri entrypointFileUri;
+  /// The main URI for thiis application.
+  final Uri mainUri;
+
+  /// The URI of the .packages file.
+  final Uri packagesUri;
+
+  /// The filesystem instance for resolving files.
+  final FileSystem fileSystem;
 
   /// The set of libraries for each module URI.
   ///
@@ -47,13 +60,35 @@ class StrongComponents {
   final Map<Uri, Uri> moduleAssignment = <Uri, Uri>{};
 
   /// Compute the strongly connected components for the current program.
-  void computeModules() {
+  ///
+  /// Throws an [Exception] if [mainUri] cannot be located in the given
+  /// component.
+  Future<void> computeModules() async {
     assert(modules.isEmpty);
     if (component.libraries.isEmpty) {
       return;
     }
-    final Library entrypoint = component.libraries
-        .firstWhere((Library library) => library.fileUri == entrypointFileUri);
+    Uri entrypointFileUri = mainUri;
+    if (!entrypointFileUri.isScheme('file')) {
+      entrypointFileUri = await asFileUri(fileSystem,
+          await _convertToFileUri(fileSystem, entrypointFileUri, packagesUri));
+    }
+    if (entrypointFileUri == null || !entrypointFileUri.isScheme('file')) {
+      throw Exception(
+          'Unable to map ${entrypointFileUri} back to file scheme.');
+    }
+
+    // If we don't have a file uri, just use the first library in the
+    // component.
+    Library entrypoint = component.libraries.firstWhere(
+        (Library library) => library.fileUri == entrypointFileUri,
+        orElse: () => null);
+
+    if (entrypoint == null) {
+      throw Exception(
+          'Could not find entrypoint ${entrypointFileUri} in Component.');
+    }
+
     final List<List<Library>> results =
         computeStrongComponents(_LibraryGraph(entrypoint));
     for (List<Library> component in results) {
@@ -64,6 +99,52 @@ class StrongComponents {
         moduleAssignment[componentLibrary.fileUri] = moduleUri;
       }
     }
+  }
+
+  // Convert package URI to file URI if it is inside one of the packages.
+  Future<Uri> _convertToFileUri(
+      FileSystem fileSystem, Uri uri, Uri packagesUri) async {
+    if (uri == null || uri.scheme != 'package') {
+      return uri;
+    }
+    // Convert virtual URI to a real file URI.
+    // String uriString = (await asFileUri(fileSystem, uri)).toString();
+    List<String> packages;
+    try {
+      packages =
+          await File((await asFileUri(fileSystem, packagesUri)).toFilePath())
+              .readAsLines();
+    } on IOException {
+      // Can't read packages file - silently give up.
+      return uri;
+    }
+    // package:x.y/main.dart -> file:///a/b/x/y/main.dart
+    for (var line in packages) {
+      if (line.isEmpty || line.startsWith("#")) {
+        continue;
+      }
+
+      final colon = line.indexOf(':');
+      if (colon == -1) {
+        continue;
+      }
+      final packageName = line.substring(0, colon);
+      if (!uri.path.startsWith(packageName)) {
+        continue;
+      }
+      String packagePath;
+      try {
+        packagePath = (await asFileUri(
+                fileSystem, packagesUri.resolve(line.substring(colon + 1))))
+            .toString();
+      } on FileSystemException {
+        // Can't resolve package path.
+        continue;
+      }
+      return Uri.parse(
+          '$packagePath${uri.path.substring(packageName.length + 1)}');
+    }
+    return uri;
   }
 }
 

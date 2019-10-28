@@ -516,8 +516,9 @@ class FrontendCompiler implements CompilerInterface {
       KernelCompilationResults results, String filename) async {
     final Component component = results.component;
     // Compute strongly connected components.
-    final strongComponents = StrongComponents(component, _mainSource);
-    strongComponents.computeModules();
+    final strongComponents = StrongComponents(component, _mainSource,
+        _compilerOptions.packagesFileUri, _compilerOptions.fileSystem);
+    await strongComponents.computeModules();
 
     // Create JavaScript bundler.
     final File sourceFile = File('$filename.sources');
