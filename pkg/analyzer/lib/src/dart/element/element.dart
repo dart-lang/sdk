@@ -7147,9 +7147,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
-  List<ElementAnnotation> get metadata => variable.metadata;
-
-  @override
   DartType get returnType => variable.type;
 
   @override
@@ -7200,9 +7197,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   bool get isSetter => true;
-
-  @override
-  List<ElementAnnotation> get metadata => variable.metadata;
 
   @override
   List<ParameterElement> get parameters {

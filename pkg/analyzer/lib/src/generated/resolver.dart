@@ -335,7 +335,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
 
         final overriddenElement = getOverriddenPropertyAccessor();
-        if (overriddenElement?.hasNonVirtual == true) {
+        if (_hasNonVirtualAnnotation(overriddenElement)) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
               field.name,
@@ -509,7 +509,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         overriddenElement = getOverriddenPropertyAccessor();
       }
 
-      if (overriddenElement?.hasNonVirtual == true) {
+      if (_hasNonVirtualAnnotation(overriddenElement)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
@@ -1403,6 +1403,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  static bool _hasNonVirtualAnnotation(ExecutableElement element) {
+    if (element == null) {
+      return false;
+    }
+    if (element is PropertyAccessorElement && element.isSynthetic) {
+      return element.variable.hasNonVirtual;
+    }
+    return element.hasNonVirtual;
   }
 
   /// Given a parenthesized expression, this returns the parent (or recursively
