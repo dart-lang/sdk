@@ -144,13 +144,11 @@ mixin ElementsTypesMixin {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = MethodElementImpl(name, 0)
+    return MethodElementImpl(name, 0)
       ..isStatic = isStatic
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   ParameterElement namedParameter({
@@ -190,17 +188,6 @@ mixin ElementsTypesMixin {
     return TypeParameterTypeImpl(
       element,
       nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  /// TODO(scheglov) We should do the opposite - build type in the element.
-  /// But build a similar synthetic / structured type.
-  FunctionType _typeOfExecutableElement(ExecutableElement element) {
-    return FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 }

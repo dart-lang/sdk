@@ -961,12 +961,10 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = FunctionElementImpl(name, 0)
+    return FunctionElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   FunctionType _functionType({
@@ -998,7 +996,6 @@ class _MockSdkElementsBuilder {
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
-    getter.type = _typeOfExecutableElement(getter);
     getter.variable = field;
 
     field.getter = getter;
@@ -1022,12 +1019,10 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = MethodElementImpl(name, 0)
+    return MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   ParameterElement _namedParameter(String name, DartType type,
@@ -1073,17 +1068,6 @@ class _MockSdkElementsBuilder {
   }) {
     return ElementFactory.topLevelVariableElement3(
         name, isConst, isFinal, type);
-  }
-
-  /// TODO(scheglov) We should do the opposite - build type in the element.
-  /// But build a similar synthetic / structured type.
-  FunctionType _typeOfExecutableElement(ExecutableElement element) {
-    return FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 
   TypeParameterElementImpl _typeParameter(String name) {

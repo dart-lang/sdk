@@ -197,12 +197,10 @@ abstract class AbstractTypeSystemTest {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = MethodElementImpl(name, 0)
+    return MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   ParameterElement _requiredParameter(String name, DartType type) {
@@ -210,17 +208,6 @@ abstract class AbstractTypeSystemTest {
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
     return parameter;
-  }
-
-  /// TODO(scheglov) We should do the opposite - build type in the element.
-  /// But build a similar synthetic / structured type.
-  FunctionType _typeOfExecutableElement(ExecutableElement element) {
-    return FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   TypeParameterElementImpl _typeParameter(String name, {DartType bound}) {
