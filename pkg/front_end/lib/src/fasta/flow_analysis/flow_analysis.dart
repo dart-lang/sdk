@@ -1428,14 +1428,6 @@ class VariableModel<Type> {
         assigned = false,
         writeCaptured = false;
 
-  @override
-  bool operator ==(Object other) {
-    return other is VariableModel<Type> &&
-        _promotionChainsEqual(this.promotionChain, other.promotionChain) &&
-        this.assigned == other.assigned &&
-        this.writeCaptured == other.writeCaptured;
-  }
-
   /// Returns a new [VariableModel] in which any promotions present have been
   /// dropped.
   VariableModel<Type> discardPromotions() {
@@ -1548,16 +1540,6 @@ class VariableModel<Type> {
   /// been write-captured.
   VariableModel<Type> writeCapture() {
     return new VariableModel<Type>(null, assigned, true);
-  }
-
-  bool _promotionChainsEqual(List<Type> chain1, List<Type> chain2) {
-    if (chain1 == null) return chain2 == null;
-    if (chain2 == null) return false;
-    if (chain1.length != chain2.length) return false;
-    for (int i = 0; i < chain1.length; i++) {
-      if (chain1[i] != chain2[i]) return false;
-    }
-    return true;
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
