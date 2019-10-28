@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visit(AstNode node, Expression expression) {
-    if (expression.staticType?.isDartCoreNull != true) {
+    if (expression is! NullLiteral) {
       return;
     }
 
