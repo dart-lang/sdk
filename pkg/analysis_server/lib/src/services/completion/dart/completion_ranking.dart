@@ -159,6 +159,7 @@ class CompletionRanking {
       final completionSuggestions = suggestions.where((suggestion) =>
           areCompletionsEquivalent(suggestion.completion, entry.key));
       List<IncludedSuggestionRelevanceTag> includedSuggestions;
+      final isIncludedElementName = includedElementNames.contains(entry.key);
       if (includedSuggestionRelevanceTags != null) {
         includedSuggestions = includedSuggestionRelevanceTags
             .where((tag) => areCompletionsEquivalent(
@@ -177,23 +178,30 @@ class CompletionRanking {
           includedSuggestions.forEach((includedSuggestion) {
             includedSuggestion.relevanceBoost = relevance;
           });
-        } else {
-          suggestions
-              .add(createCompletionSuggestion(entry.key, featureSet, high--));
+        } else if (isIncludedElementName) {
           if (includedSuggestionRelevanceTags != null) {
             includedSuggestionRelevanceTags
                 .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
           }
+        } else {
+          suggestions
+              .add(createCompletionSuggestion(entry.key, featureSet, high--));
         }
       } else if (completionSuggestions.isNotEmpty ||
-          includedSuggestions.isNotEmpty) {
+          includedSuggestions.isNotEmpty ||
+          isIncludedElementName) {
         final relevance = middle--;
         completionSuggestions.forEach((completionSuggestion) {
           completionSuggestion.relevance = relevance;
         });
-        includedSuggestions.forEach((includedSuggestion) {
-          includedSuggestion.relevanceBoost = relevance;
-        });
+        if (!includedSuggestions.isEmpty) {
+          includedSuggestions.forEach((includedSuggestion) {
+            includedSuggestion.relevanceBoost = relevance;
+          });
+        } else if (includedSuggestionRelevanceTags != null) {
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+        }
       } else if (allowModelOnlySuggestions) {
         final relevance = low--;
         suggestions
