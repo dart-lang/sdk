@@ -1508,7 +1508,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> _bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false}) {
     return _ServerSocket.bind(address, port, backlog, v6Only, shared);
   }

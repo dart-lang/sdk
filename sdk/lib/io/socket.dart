@@ -327,7 +327,18 @@ abstract class ServerSocket implements Stream<Socket> {
    * distributed among all the bound `ServerSocket`s. Connections can be
    * distributed over multiple isolates this way.
    */
-  external static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> bind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return ServerSocket._bind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    return overrides.serverSocketBind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
+  }
+
+  external static Future<ServerSocket> _bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false});
 
   /**

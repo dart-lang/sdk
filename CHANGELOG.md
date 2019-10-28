@@ -77,6 +77,11 @@ main() { foo(() {}); }
 * Default values of parameters of abstract methods are no longer available
   via `dart:mirrors`.
 
+#### `dart:io`
+
+* **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
+  tests that wish to mock `ServerSocket.bind`.
+
 #### `dart:developer`
 
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for

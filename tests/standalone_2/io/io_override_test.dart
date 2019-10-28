@@ -168,6 +168,11 @@ Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
   return null;
 }
 
+Future<ServerSocket> serverSocketBind(address, int port,
+    {int backlog: 0, bool v6Only: false, bool shared: false}) {
+  return null;
+}
+
 Future<Null> ioOverridesRunTest() async {
   Future<Null> f = IOOverrides.runZoned(
     () async {
@@ -188,6 +193,7 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isTrue(new Link("link") is LinkMock);
       Expect.isNull(Socket.connect(null, 0));
       Expect.isNull(Socket.startConnect(null, 0));
+      Expect.isNull(ServerSocket.bind(null, 0));
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -205,6 +211,7 @@ Future<Null> ioOverridesRunTest() async {
     createLink: LinkMock.createLink,
     socketConnect: socketConnect,
     socketStartConnect: socketStartConnect,
+    serverSocketBind: serverSocketBind,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);

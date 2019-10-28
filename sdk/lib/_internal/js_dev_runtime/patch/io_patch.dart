@@ -448,7 +448,7 @@ class RawServerSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> _bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
     throw UnsupportedError("ServerSocket.bind");
   }
