@@ -2953,7 +2953,7 @@ class Parser {
       ++count;
     }
     token = token.next;
-    assert(optional('}', token));
+    assert(token.isEof || optional('}', token));
     listener.endClassOrMixinBody(kind, count, begin, token);
     return token;
   }
@@ -3844,7 +3844,7 @@ class Parser {
       ++statementCount;
     }
     token = token.next;
-    assert(optional('}', token));
+    assert(token.isEof || optional('}', token));
     listener.endBlockFunctionBody(statementCount, begin, token);
     loopState = savedLoopState;
     return token;
@@ -5919,7 +5919,7 @@ class Parser {
       startToken = token.next;
     }
     token = token.next;
-    assert(optional('}', token));
+    assert(token.isEof || optional('}', token));
     listener.endBlock(statementCount, begin, token);
     return token;
   }
@@ -6256,7 +6256,7 @@ class Parser {
     }
     token = token.next;
     listener.endSwitchBlock(caseCount, beginSwitch, token);
-    assert(optional('}', token));
+    assert(token.isEof || optional('}', token));
     return token;
   }
 
