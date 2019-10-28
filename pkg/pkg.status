@@ -186,6 +186,9 @@ crypto/test/base64_test: Slow
 [ $compiler == dart2js && $csp ]
 mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
 
+[ $compiler == dart2js && $host_checked ]
+js_ast/test/string_escape_test: Slow, Pass
+
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
