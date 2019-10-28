@@ -58,7 +58,7 @@ class RawCodeKeyValueTrait {
 
 typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)             \
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
