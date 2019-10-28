@@ -72,6 +72,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
   CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
+  // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,

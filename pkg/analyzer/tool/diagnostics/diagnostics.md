@@ -510,6 +510,8 @@ C f(int i) => C(i);
 
 _'{0}' is deprecated and shouldn't be used._
 
+_'{0}' is deprecated and shouldn't be used. {1}._
+
 #### Description
 
 The analyzer produces this diagnostic when a deprecated library or class
@@ -534,6 +536,8 @@ should indicate what code to use in place of the deprecated code.
 ### deprecated_member_use_from_same_package
 
 _'{0}' is deprecated and shouldn't be used._
+
+_'{0}' is deprecated and shouldn't be used. {1}._
 
 #### Description
 

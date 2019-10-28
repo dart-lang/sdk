@@ -407,6 +407,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
 
+  @Deprecated('Use ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS')
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
 
@@ -3499,7 +3500,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adding the missing arguments.",
           hasPublishedDocs: true);
 
-  @Deprecated('Use CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS')
+  @Deprecated('Use CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
       NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
