@@ -894,6 +894,7 @@ nnbd/intersection_types: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
+nnbd/null_shorting_explicit_extension: TextSerializationFailure
 nnbd/null_shorting_extension: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure

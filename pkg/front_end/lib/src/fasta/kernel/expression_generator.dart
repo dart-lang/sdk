@@ -514,20 +514,13 @@ class PropertyAccessGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    VariableDeclaration variable =
-        _helper.forest.createVariableDeclarationForValue(receiver);
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        new PropertyGet(
-            _helper.createVariableGet(variable, receiver.fileOffset), name)
-          ..fileOffset = fileOffset,
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
-    PropertySet write = _helper.forest.createPropertySet(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), name, binary,
-        forEffect: voidContext);
-    return new CompoundPropertySet(variable, write)..fileOffset = offset;
+    return new CompoundPropertySet(receiver, name, binaryOperator, value,
+        forEffect: voidContext,
+        readOnlyReceiver: false,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset)
+      ..fileOffset = offset;
   }
 
   @override
@@ -2167,18 +2160,14 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           forEffect: voidContext, readOnlyReceiver: true);
       return new NullAwareExtension(variable, write)..fileOffset = offset;
     } else {
-      VariableDeclaration variable =
-          _helper.forest.createVariableDeclarationForValue(receiver);
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
-          offset,
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
-          binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
-      Expression write = _createWrite(fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset), binary,
-          forEffect: voidContext, readOnlyReceiver: true);
-      return new CompoundPropertySet(variable, write)..fileOffset = offset;
+      return new CompoundExtensionSet(extension, explicitTypeArguments,
+          receiver, targetName, readTarget, binaryOperator, value, writeTarget,
+          readOnlyReceiver: false,
+          forEffect: voidContext,
+          readOffset: fileOffset,
+          binaryOffset: offset,
+          writeOffset: fileOffset)
+        ..fileOffset = offset;
     }
   }
 
@@ -3503,20 +3492,13 @@ class UnlinkedGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    VariableDeclaration variable =
-        _helper.forest.createVariableDeclarationForValue(receiver);
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        new PropertyGet(
-            _helper.createVariableGet(variable, receiver.fileOffset), name)
-          ..fileOffset = fileOffset,
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
-    PropertySet write = _helper.forest.createPropertySet(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), name, binary,
-        forEffect: voidContext);
-    return new CompoundPropertySet(variable, write)..fileOffset = offset;
+    return new CompoundPropertySet(receiver, name, binaryOperator, value,
+        forEffect: voidContext,
+        readOnlyReceiver: false,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset)
+      ..fileOffset = offset;
   }
 
   @override

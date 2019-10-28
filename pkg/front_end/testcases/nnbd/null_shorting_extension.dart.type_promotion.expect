@@ -79,12 +79,15 @@ pkg/front_end/testcases/nnbd/null_shorting_extension.dart:116:5: Context: Write 
 pkg/front_end/testcases/nnbd/null_shorting_extension.dart:123:5: Context: Write to c@681
   c = c?.field += 0;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_extension.dart:130:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:125:5: Context: Write to c@681
+  c = c?.field.field += 0;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:129:5: Context: Write to c@681
   c = c?.field++;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_extension.dart:132:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:131:5: Context: Write to c@681
   c = ++c?.field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_extension.dart:137:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:136:5: Context: Write to c@681
   c = c?.field ??= c;
     ^

@@ -102,13 +102,15 @@ static method operatorAccess(self::Class? c) → void {
   let final self::Class? #t96 = c in #t96.{core::Object::==}(null) ?{self::Class?} null : #t96.{self::Class::field}.{self::Class::+}(0);
   let final self::Class? #t97 = c in #t97.{core::Object::==}(null) ?{self::Class?} null : #t97.{self::Class::field} = #t97.{self::Class::field}.{self::Class::+}(0);
   c = let final self::Class? #t98 = c in #t98.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t99 = #t98.{self::Class::field}.{self::Class::+}(0) in let final void #t100 = #t98.{self::Class::field} = #t99 in #t99;
-  let final self::Class? #t101 = c in #t101.{core::Object::==}(null) ?{self::Class?} null : #t101.{self::Class::field} = #t101.{self::Class::field}.{self::Class::+}(1);
-  c = let final self::Class? #t102 = c in #t102.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t103 = #t102.{self::Class::field} in let final void #t104 = #t102.{self::Class::field} = #t103.{self::Class::+}(1) in #t103;
-  let final self::Class? #t105 = c in #t105.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t106 = #t105.{self::Class::field}.{self::Class::+}(1) in let final void #t107 = #t105.{self::Class::field} = #t106 in #t106;
-  c = let final self::Class? #t108 = c in #t108.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t109 = #t108.{self::Class::field}.{self::Class::+}(1) in let final void #t110 = #t108.{self::Class::field} = #t109 in #t109;
+  let final self::Class? #t101 = c in #t101.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t102 = #t101.{self::Class::field} in #t102.{self::Class::field} = #t102.{self::Class::field}.{self::Class::+}(0);
+  c = let final self::Class? #t103 = c in #t103.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t104 = #t103.{self::Class::field} in #t104.{self::Class::field} = #t104.{self::Class::field}.{self::Class::+}(0);
+  let final self::Class? #t105 = c in #t105.{core::Object::==}(null) ?{self::Class?} null : #t105.{self::Class::field} = #t105.{self::Class::field}.{self::Class::+}(1);
+  c = let final self::Class? #t106 = c in #t106.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t107 = #t106.{self::Class::field} in let final void #t108 = #t106.{self::Class::field} = #t107.{self::Class::+}(1) in #t107;
+  let final self::Class? #t109 = c in #t109.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t110 = #t109.{self::Class::field}.{self::Class::+}(1) in let final void #t111 = #t109.{self::Class::field} = #t110 in #t110;
+  c = let final self::Class? #t112 = c in #t112.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t113 = #t112.{self::Class::field}.{self::Class::+}(1) in let final void #t114 = #t112.{self::Class::field} = #t113 in #t113;
 }
 static method ifNull(self::Class? c) → void {
-  let final self::Class? #t111 = c in #t111.{core::Object::==}(null) ?{self::Class?} null : #t111.{self::Class::field}.{core::Object::==}(null) ?{self::Class?} #t111.{self::Class::field} = c : null;
-  c = let final self::Class? #t112 = c in #t112.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t113 = #t112.{self::Class::field} in #t113.{core::Object::==}(null) ?{self::Class?} #t112.{self::Class::field} = c : #t113;
-  let final self::Class? #t114 = c in #t114.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t115 = #t114.{self::Class::field} in let final self::Class? #t116 = c in #t115.{self::Class::[]}(#t116).{core::Object::==}(null) ?{self::Class?} #t115.{self::Class::[]=}(#t116, c) : null;
+  let final self::Class? #t115 = c in #t115.{core::Object::==}(null) ?{self::Class?} null : #t115.{self::Class::field}.{core::Object::==}(null) ?{self::Class?} #t115.{self::Class::field} = c : null;
+  c = let final self::Class? #t116 = c in #t116.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t117 = #t116.{self::Class::field} in #t117.{core::Object::==}(null) ?{self::Class?} #t116.{self::Class::field} = c : #t117;
+  let final self::Class? #t118 = c in #t118.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t119 = #t118.{self::Class::field} in let final self::Class? #t120 = c in #t119.{self::Class::[]}(#t120).{core::Object::==}(null) ?{self::Class?} #t119.{self::Class::[]=}(#t120, c) : null;
 }

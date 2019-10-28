@@ -245,6 +245,7 @@ class ClassInferenceInfo {
 enum InternalExpressionKind {
   Cascade,
   CompoundExtensionIndexSet,
+  CompoundExtensionSet,
   CompoundIndexSet,
   CompoundPropertySet,
   CompoundSuperIndexSet,
@@ -1099,24 +1100,171 @@ class IfNullSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing an compound extension assignment.
+///
+/// An compound extension assignment of the form
+///
+///     Extension(receiver).propertyName += rhs
+///
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       let valueVariable =
+///           Extension|get#propertyName(receiverVariable) + rhs) in
+///         let writeVariable =
+///             Extension|set#propertyName(receiverVariable, valueVariable) in
+///           valueVariable
+///
+/// and if used for effect as:
+///
+///     let receiverVariable = receiver in
+///         Extension|set#propertyName(receiverVariable,
+///           Extension|get#propertyName(receiverVariable) + rhs)
+///
+/// If [readOnlyReceiver] is `true` the [receiverVariable] is not created
+/// and the [receiver] is used directly.
+class CompoundExtensionSet extends InternalExpression {
+  /// The extension in which the [setter] is declared.
+  final Extension extension;
+
+  /// The explicit type arguments for the type parameters declared in
+  /// [extension].
+  final List<DartType> explicitTypeArguments;
+
+  /// The receiver used for the read/write operations.
+  Expression receiver;
+
+  /// The name of the property accessed by the read/write operations.
+  final Name propertyName;
+
+  /// The member used for the read operation.
+  final Member getter;
+
+  /// The binary operation performed on the getter result and [rhs].
+  final Name binaryName;
+
+  /// The right-hand side of the binary operation.
+  Expression rhs;
+
+  /// The member used for the write operation.
+  final Member setter;
+
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  CompoundExtensionSet(
+      this.extension,
+      this.explicitTypeArguments,
+      this.receiver,
+      this.propertyName,
+      this.getter,
+      this.binaryName,
+      this.rhs,
+      this.setter,
+      {this.readOnlyReceiver,
+      this.forEffect,
+      this.readOffset,
+      this.binaryOffset,
+      this.writeOffset})
+      : assert(readOnlyReceiver != null),
+        assert(forEffect != null),
+        assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null) {
+    receiver?.parent = this;
+    rhs?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundExtensionSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an compound property assignment.
 ///
-/// An compound property assignment of the form `o.a += b` is encoded as the
-/// expression:
+/// An compound property assignment of the form
 ///
-///     let v1 = o in v1.a = v1.a + b
+///     receiver.propertyName += rhs
+///
+/// is encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable.propertyName = receiverVariable.propertyName + rhs
 ///
 class CompoundPropertySet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  /// The receiver used for the read/write operations.
+  Expression receiver;
 
-  /// The expression that writes the result of the binary operation to the
-  /// property on [variable].
-  Expression write;
+  /// The name of the property accessed by the read/write operations.
+  final Name propertyName;
 
-  CompoundPropertySet(this.variable, this.write) {
-    variable?.parent = this;
-    write?.parent = this;
+  /// The binary operation performed on the getter result and [rhs].
+  final Name binaryName;
+
+  /// The right-hand side of the binary operation.
+  Expression rhs;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  CompoundPropertySet(
+      this.receiver, this.propertyName, this.binaryName, this.rhs,
+      {this.forEffect,
+      this.readOnlyReceiver,
+      this.readOffset,
+      this.binaryOffset,
+      this.writeOffset})
+      : assert(forEffect != null),
+        assert(readOnlyReceiver != null),
+        assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null) {
+    receiver?.parent = this;
+    rhs?.parent = this;
   }
 
   @override
@@ -1124,19 +1272,19 @@ class CompoundPropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    write?.accept(v);
+    receiver?.accept(v);
+    rhs?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
-      variable?.parent = this;
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
     }
-    if (write != null) {
-      write = write.accept<TreeNode>(v);
-      write?.parent = this;
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
     }
   }
 }
@@ -1447,8 +1595,11 @@ class SuperIndexSet extends InternalExpression {
 /// using [StaticInvocation].
 ///
 class ExtensionIndexSet extends InternalExpression {
+  /// The extension in which the [setter] is declared.
   final Extension extension;
 
+  /// The explicit type arguments for the type parameters declared in
+  /// [extension].
   final List<DartType> explicitTypeArguments;
 
   /// The receiver of the extension access.

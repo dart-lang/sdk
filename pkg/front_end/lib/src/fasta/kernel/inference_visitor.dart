@@ -43,6 +43,8 @@ class InferenceVisitor
           return visitCascade(node, typeContext);
         case InternalExpressionKind.CompoundExtensionIndexSet:
           return visitCompoundExtensionIndexSet(node, typeContext);
+        case InternalExpressionKind.CompoundExtensionSet:
+          return visitCompoundExtensionSet(node, typeContext);
         case InternalExpressionKind.CompoundIndexSet:
           return visitCompoundIndexSet(node, typeContext);
         case InternalExpressionKind.CompoundPropertySet:
@@ -497,6 +499,113 @@ class InferenceVisitor
     }
     replacement.fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(valueResult.inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitCompoundExtensionSet(
+      CompoundExtensionSet node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: false);
+
+    List<DartType> extensionTypeArguments =
+        inferrer.computeExtensionTypeArgument(node.extension,
+            node.explicitTypeArguments, receiverResult.inferredType);
+
+    DartType receiverType = inferrer.getExtensionReceiverType(
+        node.extension, extensionTypeArguments);
+
+    Expression receiver =
+        inferrer.ensureAssignableResult(receiverType, receiverResult);
+
+    VariableDeclaration receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+      readReceiver = receiver;
+      writeReceiver = receiver.accept<TreeNode>(new CloneVisitor());
+    } else {
+      receiverVariable = createVariable(receiver, receiverType);
+      readReceiver = createVariableGet(receiverVariable);
+      writeReceiver = createVariableGet(receiverVariable);
+    }
+
+    ObjectAccessTarget readTarget = node.getter == null
+        ? const ObjectAccessTarget.missing()
+        : new ExtensionAccessTarget(
+            node.getter, null, ProcedureKind.Getter, extensionTypeArguments);
+
+    DartType readType = inferrer.getGetterType(readTarget, receiverType);
+
+    Expression read;
+    if (readTarget.isMissing) {
+      read = inferrer.createMissingPropertyGet(
+          node.readOffset, readReceiver, readType, node.propertyName);
+    } else {
+      assert(readTarget.isExtensionMember);
+      read = new StaticInvocation(
+          readTarget.member,
+          new Arguments(<Expression>[
+            readReceiver,
+          ], types: readTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.readOffset)
+        ..fileOffset = node.readOffset;
+    }
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.binaryOffset, read, readType, node.binaryName, node.rhs);
+    Expression binary = binaryResult.expression;
+    DartType binaryType = binaryResult.inferredType;
+
+    ObjectAccessTarget writeTarget = node.setter == null
+        ? const ObjectAccessTarget.missing()
+        : new ExtensionAccessTarget(
+            node.setter, null, ProcedureKind.Setter, extensionTypeArguments);
+
+    DartType valueType = inferrer.getSetterType(writeTarget, receiverType);
+
+    Expression value = inferrer.ensureAssignable(valueType, binaryType, binary,
+        isVoidAllowed: true);
+
+    VariableDeclaration valueVariable;
+    if (node.forEffect) {
+      // No need for value variable.
+    } else {
+      valueVariable = createVariable(value, valueType);
+      value = createVariableGet(valueVariable);
+    }
+
+    Expression write;
+    if (writeTarget.isMissing) {
+      write = inferrer.createMissingPropertySet(
+          node.writeOffset, writeReceiver, readType, node.propertyName, value);
+    } else {
+      assert(writeTarget.isExtensionMember);
+      write = new StaticInvocation(
+          writeTarget.member,
+          new Arguments(<Expression>[
+            writeReceiver,
+            value,
+          ], types: writeTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.writeOffset)
+        ..fileOffset = node.writeOffset;
+    }
+
+    Expression replacement;
+    if (node.forEffect) {
+      assert(valueVariable == null);
+      replacement = write;
+    } else {
+      assert(valueVariable != null);
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      replacement = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
+    }
+    if (receiverVariable != null) {
+      replacement = createLet(receiverVariable, replacement);
+    }
+    replacement.fileOffset = node.fileOffset;
+    return new ExpressionInferenceResult(valueType, replacement);
   }
 
   ExpressionInferenceResult visitDeferredCheck(
@@ -2083,20 +2192,10 @@ class InferenceVisitor
     Member equalsMember = inferrer
         .findInterfaceMember(node.variable.type, equalsName, node.fileOffset)
         .member;
-
-    MethodInvocation equalsNull = createEqualsNull(
-        node.fileOffset,
-        new VariableGet(node.variable)..fileOffset = node.fileOffset,
-        equalsMember);
-    ConditionalExpression condition = new ConditionalExpression(
-        equalsNull,
-        new NullLiteral()..fileOffset = node.fileOffset,
+    return new ExpressionInferenceResult.nullAware(
+        expressionResult.inferredType,
         expressionResult.expression,
-        expressionResult.inferredType);
-    Expression replacement = new Let(node.variable, condition)
-      ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(
-        expressionResult.inferredType, replacement);
+        new NullAwareGuard(node.variable, node.fileOffset, equalsMember));
   }
 
   ExpressionInferenceResult visitStaticPostIncDec(
@@ -2158,12 +2257,66 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitCompoundPropertySet(
       CompoundPropertySet node, DartType typeContext) {
-    inferrer.inferStatement(node.variable);
-    ExpressionInferenceResult writeResult = inferrer
-        .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
-    Expression replacement = new Let(node.variable, writeResult.expression)
-      ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(writeResult.inferredType, replacement);
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: false);
+
+    NullAwareGuard nullAwareGuard;
+    Expression receiver;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = receiverResult.nullAwareGuard;
+      receiver = receiverResult.nullAwareAction;
+    } else {
+      receiver = receiverResult.expression;
+    }
+    DartType receiverType = receiverResult.inferredType;
+
+    VariableDeclaration receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (node.readOnlyReceiver && identical(receiver, node.receiver)) {
+      readReceiver = receiver;
+      writeReceiver = receiver.accept<TreeNode>(new CloneVisitor());
+    } else {
+      receiverVariable = createVariable(receiver, receiverType);
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          receiverVariable.fileOffset,
+          'type',
+          new InstrumentationValueForType(receiverType));
+      readReceiver = createVariableGet(receiverVariable);
+      writeReceiver = createVariableGet(receiverVariable);
+    }
+
+    ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
+        readReceiver, receiverType, node.propertyName, const UnknownType(),
+        isThisReceiver: node.receiver is ThisExpression);
+
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
+
+    ExpressionInferenceResult binaryResult = _computeBinaryExpression(
+        node.binaryOffset, read, readType, node.binaryName, node.rhs);
+    DartType binaryType = binaryResult.inferredType;
+
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, node.propertyName, node.writeOffset,
+        setter: true, instrumented: true, includeExtensionMethods: true);
+    DartType writeType = inferrer.getSetterType(writeTarget, receiverType);
+    Expression binary =
+        inferrer.ensureAssignableResult(writeType, binaryResult);
+
+    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
+        receiverType, node.propertyName, writeTarget, binary,
+        valueType: binaryType, forEffect: node.forEffect);
+
+    Expression replacement = write;
+    if (receiverVariable != null) {
+      replacement = createLet(receiverVariable, replacement);
+    }
+    replacement.fileOffset = node.fileOffset;
+    return new ExpressionInferenceResult.nullAware(
+        binaryType, replacement, nullAwareGuard);
   }
 
   ExpressionInferenceResult visitIfNullPropertySet(
@@ -2948,7 +3101,7 @@ class InferenceVisitor
               inferrer.uriForInstrumentation,
               fileOffset,
               'checkReturn',
-              new InstrumentationValueForType(leftType));
+              new InstrumentationValueForType(binaryType));
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true

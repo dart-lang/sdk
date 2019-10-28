@@ -2506,6 +2506,7 @@ shell
 shift
 short
 shortcut
+shorted
 shorten
 shortened
 shorting

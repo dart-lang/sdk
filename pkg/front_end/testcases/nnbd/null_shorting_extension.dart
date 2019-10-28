@@ -108,8 +108,8 @@ void indexAccess(Class? c) {
   c?.field[c].method();
   c?.field[c] += 0;
   c = c?.field[c] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shortened, awaiting
-  // spec update.
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  // update.
   c?.field[c]++;
   c = c?.field[c]++;
   ++c?.field[c];
@@ -121,11 +121,10 @@ void operatorAccess(Class? c) {
   c?.field + 0;
   c?.field += 0;
   c = c?.field += 0;
-  // TODO(johnniwinther): Handle compound property set.
-  //c?.field.field += 0;
-  //c = c?.field.field += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shortened, awaiting
-  // spec update.
+  c?.field.field += 0;
+  c = c?.field.field += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  // update.
   c?.field++;
   c = c?.field++;
   ++c?.field;
