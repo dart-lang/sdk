@@ -2888,9 +2888,9 @@ class Parser {
     Token next = token.next;
     assert(optional('[]', next));
     Token replacement;
-    if (token.isSynthetic) {
+    if (next.isSynthetic) {
       replacement = link(
-          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new SyntheticBeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
           new SyntheticToken(TokenType.CLOSE_SQUARE_BRACKET, next.offset));
     } else {
       replacement = link(
