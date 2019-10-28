@@ -200,7 +200,8 @@
       "path": "parser_testcases/",
       "status": "parser_testcases/parser.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": []
     },
