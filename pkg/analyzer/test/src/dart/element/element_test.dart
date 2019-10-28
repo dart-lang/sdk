@@ -1589,8 +1589,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(classA, <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1613,8 +1613,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1692,8 +1692,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(B);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
     List<InterfaceType> interfaces = typeBI.mixins;
     expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
@@ -1729,8 +1729,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
     PropertyAccessorElement setter = typeAI.getSetter(setterName);
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
@@ -1781,8 +1781,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(classB, <DartType>[typeI]);
     InterfaceType superclass = typeBI.superclass;
     expect(superclass.element, same(A));
     expect(superclass.typeArguments[0], same(typeI));
@@ -1990,8 +1990,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(B);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
     MethodElement method = typeBI.lookUpMethod(methodName, library);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -2134,16 +2134,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(type.resolveToBound(null), same(type));
   }
 
-  void test_setTypeArguments() {
-    InterfaceTypeImpl type = interfaceType(ElementFactory.classElement2('A'));
-    List<DartType> typeArguments = <DartType>[
-      interfaceType(class_(name: 'B')),
-      interfaceType(class_(name: 'C'))
-    ];
-    type.typeArguments = typeArguments;
-    expect(type.typeArguments, typeArguments);
-  }
-
   @deprecated
   void test_substitute_exception() {
     try {
@@ -2165,10 +2155,10 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     var classA = class_(name: 'A');
     TypeParameterElementImpl parameterElement =
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
     TypeParameterTypeImpl parameter =
         new TypeParameterTypeImpl(parameterElement);
-    type.typeArguments = <DartType>[parameter];
+    InterfaceTypeImpl type =
+        new InterfaceTypeImpl.explicit(classA, <DartType>[parameter]);
     InterfaceType argumentType = interfaceType(class_(name: 'B'));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("F")));

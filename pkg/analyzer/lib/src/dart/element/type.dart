@@ -915,12 +915,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
  */
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
-  final NullabilitySuffix nullabilitySuffix;
+  final List<DartType> typeArguments;
 
-  /**
-   * A list containing the actual types of the type arguments.
-   */
-  List<DartType> _typeArguments = const <DartType>[];
+  @override
+  final NullabilitySuffix nullabilitySuffix;
 
   /**
    * Cached [ConstructorElement]s - members or raw elements.
@@ -942,23 +940,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl(ClassElement element,
       {this.nullabilitySuffix = NullabilitySuffix.star})
-      : super(element, element.displayName);
-
-  InterfaceTypeImpl.explicit(ClassElement element, List<DartType> typeArguments,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : _typeArguments = typeArguments,
+      : typeArguments = const <DartType>[],
         super(element, element.displayName);
+
+  InterfaceTypeImpl.explicit(ClassElement element, this.typeArguments,
+      {this.nullabilitySuffix = NullabilitySuffix.star})
+      : super(element, element.displayName);
 
   /**
    * Private constructor.
    */
   InterfaceTypeImpl._(Element element, String name,
       {this.nullabilitySuffix = NullabilitySuffix.star})
-      : super(element, name);
+      : typeArguments = const <DartType>[],
+        super(element, name);
 
   InterfaceTypeImpl._withNullability(InterfaceTypeImpl original,
       {this.nullabilitySuffix = NullabilitySuffix.star})
-      : _typeArguments = original._typeArguments,
+      : typeArguments = original.typeArguments,
         super(original.element, original.name);
 
   @override
@@ -1201,18 +1200,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InterfaceType> get superclassConstraints {
     List<InterfaceType> constraints = element.superclassConstraints;
     return _instantiateSuperTypes(constraints);
-  }
-
-  @override
-  List<DartType> get typeArguments {
-    return _typeArguments;
-  }
-
-  /**
-   * Set [typeArguments].
-   */
-  void set typeArguments(List<DartType> typeArguments) {
-    _typeArguments = typeArguments;
   }
 
   @override
@@ -1622,9 +1609,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(typeArguments, this.typeArguments)) {
       return this;
     } else {
-      return new InterfaceTypeImpl._(element, name,
-          nullabilitySuffix: nullabilitySuffix)
-        ..typeArguments = typeArguments;
+      return new InterfaceTypeImpl.explicit(element, typeArguments,
+          nullabilitySuffix: nullabilitySuffix);
     }
   }
 
@@ -1643,9 +1629,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<DartType> newTypeArguments =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
 
-    InterfaceTypeImpl newType =
-        new InterfaceTypeImpl(element, nullabilitySuffix: nullabilitySuffix);
-    newType.typeArguments = newTypeArguments;
+    InterfaceTypeImpl newType = new InterfaceTypeImpl.explicit(
+        element, newTypeArguments,
+        nullabilitySuffix: nullabilitySuffix);
     return newType;
   }
 
@@ -1844,10 +1830,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return NullabilitySuffix.none;
     }
 
-    InterfaceTypeImpl lub = new InterfaceTypeImpl(firstElement,
+    return new InterfaceTypeImpl.explicit(firstElement, lubArguments,
         nullabilitySuffix: computeNullability());
-    lub.typeArguments = lubArguments;
-    return lub;
   }
 
   /**

@@ -870,8 +870,9 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   InterfaceType get type {
     if (_type == null) {
-      InterfaceTypeImpl type = new InterfaceTypeImpl(this);
-      type.typeArguments = typeParameters.map((e) => e.type).toList();
+      var typeArguments = typeParameters.map((e) => e.type).toList();
+      InterfaceTypeImpl type =
+          new InterfaceTypeImpl.explicit(this, typeArguments);
       _type = type;
     }
     return _type;
@@ -3458,8 +3459,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   InterfaceType get type {
     if (_type == null) {
-      InterfaceTypeImpl type = new InterfaceTypeImpl(this);
-      type.typeArguments = const <DartType>[];
+      var typeArguments = const <DartType>[];
+      InterfaceTypeImpl type = InterfaceTypeImpl.explicit(this, typeArguments);
       _type = type;
     }
     return _type;
