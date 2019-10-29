@@ -162,14 +162,29 @@ Never topLevelFunction() => throw 'foo';
 class C {
   final dynamic field1;
   final dynamic field2;
+
+  /*cfe.member: C.method:doesNotComplete*/
   Never method() => throw 'foo';
+
+  /*cfe.member: C.staticMethod:doesNotComplete*/
   static Never staticMethod() => throw 'foo';
+
   void methodTakingArgument(arg) {}
   void methodTakingNamedArgument({arg}) {}
+
+  /*cfe.member: C.getter:doesNotComplete*/
   Never get getter => throw 'foo';
+
+  /*cfe.member: C.staticGetter:doesNotComplete*/
   static Never get staticGetter => throw 'foo';
+
+  /*cfe.member: C.+:doesNotComplete*/
   Never operator +(other) => throw 'foo';
+
+  /*cfe.member: C.[]:doesNotComplete*/
   Never operator [](other) => throw 'foo';
+
+  /*cfe.member: C.unary-:doesNotComplete*/
   Never operator -() => throw 'foo';
 
   /*member: C.constructor_initializer:doesNotComplete*/

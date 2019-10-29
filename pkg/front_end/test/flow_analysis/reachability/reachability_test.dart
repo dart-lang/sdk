@@ -32,7 +32,6 @@ main(List<String> args) async {
         'assert.dart',
         'do.dart',
         'for.dart',
-        'never_return_type.dart',
         'switch.dart',
         'try_catch.dart',
       ]);
@@ -84,7 +83,14 @@ class ReachabilityDataExtractor
   @override
   Set<_ReachabilityAssertion> computeNodeValue(Id id, TreeNode node) {
     Set<_ReachabilityAssertion> result = {};
-    if (_flowResult.unreachableNodes.contains(node)) {
+    if (node is Expression && node.parent is ExpressionStatement) {
+      // The reachability of an expression statement and the statement it
+      // contains should always be the same.  We check this with an assert
+      // statement, and only annotate the expression statement, to reduce the
+      // amount of redundancy in the test files.
+      assert(_flowResult.unreachableNodes.contains(node) ==
+          _flowResult.unreachableNodes.contains(node.parent));
+    } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {

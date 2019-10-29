@@ -140,6 +140,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
+  NodeId createExpressionStatementId(ExpressionStatement node) {
+    if (node.expression.fileOffset == TreeNode.noOffset) {
+      // TODO(johnniwinther): Find out why we something have no offset.
+      return null;
+    }
+    return new NodeId(node.expression.fileOffset, IdKind.stmt);
+  }
+
   NodeId createLabeledStatementId(LabeledStatement node) =>
       computeDefaultNodeId(node.body);
   NodeId createLoopId(TreeNode node) => computeDefaultNodeId(node);
@@ -270,6 +278,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       computeForNode(node, createUpdateId(node));
     }
     super.visitVariableSet(node);
+  }
+
+  @override
+  visitExpressionStatement(ExpressionStatement node) {
+    computeForNode(node, createExpressionStatementId(node));
+    return super.visitExpressionStatement(node);
   }
 
   @override

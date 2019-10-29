@@ -1045,10 +1045,13 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
+    inferrer.flowAnalysis.ifStatement_thenBegin(condition);
     inferrer.inferStatement(node.then);
     if (node.otherwise != null) {
+      inferrer.flowAnalysis.ifStatement_elseBegin();
       inferrer.inferStatement(node.otherwise);
     }
+    inferrer.flowAnalysis.ifStatement_end(node.otherwise != null);
   }
 
   ExpressionInferenceResult visitIntJudgment(

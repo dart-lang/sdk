@@ -1452,6 +1452,9 @@ class TypeInferrerImpl implements TypeInferrer {
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
+    if (result.inferredType is NeverType) {
+      flowAnalysis.handleExit();
+    }
     return result;
   }
 
