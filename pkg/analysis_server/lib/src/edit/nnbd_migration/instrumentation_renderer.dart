@@ -424,14 +424,28 @@ class MigrationInfo {
   MigrationInfo(this.units, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.js script, relative to [unitInfo].
-  String highlightJsPath(UnitInfo unitInfo) => pathContext.relative(
-      pathContext.join(includedRoot, '..', 'highlight.pack.js'),
-      from: pathContext.dirname(unitInfo.path));
+  String highlightJsPath(UnitInfo unitInfo) {
+    if (pathContext.isWithin(includedRoot, unitInfo.path)) {
+      return pathContext.relative(
+          pathContext.join(includedRoot, '..', 'highlight.pack.js'),
+          from: pathContext.dirname(unitInfo.path));
+    }
+    // Files that aren't within the [includedRoot] are written to the top-level
+    // of the output directory, next to the Javascript file.
+    return 'highlight.pack.js';
+  }
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
-  String highlightStylePath(UnitInfo unitInfo) => pathContext.relative(
-      pathContext.join(includedRoot, '..', 'androidstudio.css'),
-      from: pathContext.dirname(unitInfo.path));
+  String highlightStylePath(UnitInfo unitInfo) {
+    if (pathContext.isWithin(includedRoot, unitInfo.path)) {
+      return pathContext.relative(
+          pathContext.join(includedRoot, '..', 'androidstudio.css'),
+          from: pathContext.dirname(unitInfo.path));
+    }
+    // Files that aren't within the [includedRoot] are written to the top-level
+    // of the output directory, next to the CSS file.
+    return 'androidstudio.css';
+  }
 
   /// Generate mustache context for unit links, for navigation in the
   /// instrumentation document for [thisUnit].
