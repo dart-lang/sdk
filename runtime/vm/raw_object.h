@@ -162,26 +162,19 @@ class RawObject {
     }
 
     static intptr_t decode(uword tag) {
-// Comment: I do not think considering the hashCode size should go here, but TagSize
-// is used instead of HeapSize or HeapSizeFromClass in a few places to traverse
-// pointers or to iterate over heap objects.
-// I suggest standarizing the method for retrieving the HeapSize, ideally using one
-// cannonical method everywhere (HeapSize()). Also to determine size of RawObject,
-// a method RawObject::RawSize should be used instead of sizeof(RawObject), which
-// allows considering the extra size, which should have no impact when hash n object
-// header is set, because the compiler probably optimizes RawSize() call to
-// sizeof(RawObject) in those cases.
-#if defined(HASH_IN_OBJECT_HEADER)
       return TagValueToSize(SizeBits::decode(tag));
-#else
-      return TagValueToSize(SizeBits::decode(tag)) +
-             (static_cast<uint8_t>(TrailingHashCodeBit::decode(tag))
-              << kWordSizeLog2);
-#endif
     }
 
     static uword update(intptr_t size, uword tag) {
       return SizeBits::update(SizeToTagValue(size), tag);
+    }
+
+    static uword increaseSize(intptr_t extraSize, uword tag) {
+      intptr_t oldSize = decode(tag);
+      if (oldSize >= kMaxSizeTag) {
+        return tag;
+      }
+      return update(oldSize + extraSize, tag);
     }
 
    private:
@@ -492,23 +485,16 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    // intptr_t instance_size = HeapSize();
-    // uword obj_addr = ToAddr(this);
-    // uword from = obj_addr + sizeof(RawObject);
-    // uword to = obj_addr + instance_size - kWordSize;
-    uword from = FirstPointerAddr(this);
-    uword to = LastPointerAddr(this);
+    intptr_t instance_size = HeapSize();
+    uword obj_addr = ToAddr(this);
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
 
     // Call visitor function virtually
     visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                            reinterpret_cast<RawObject**>(to));
-    // visitor->VisitPointers(
-    //     reinterpret_cast<RawObject**>(FirstPointerAddr(this)),
-    //     reinterpret_cast<RawObject**>(LastPointerAddr(this));
 
-    // This should return HeapSize(). Calculating the size from the addressed
-    // is more efficientthan recomputing HeapSize().
-    return to - ToAddr(this) + kWordSize;
+    return instance_size;
   }
 
   template <class V>
@@ -520,14 +506,13 @@ class RawObject {
     }
 
     // Calculate the first and last raw object pointer fields.
-    // intptr_t instance_size = HeapSize();
-    // uword obj_addr = ToAddr(this);
-    // uword to = obj_addr + instance_size - kWordSize;
+    intptr_t instance_size = HeapSize();
+    uword from = obj_addr + sizeof(RawObject);
+    uword to = obj_addr + instance_size - kWordSize;
 
     // Call visitor function non-virtually
-    visitor->V::VisitPointers(
-        reinterpret_cast<RawObject**>(FirstPointerAddr(this)),
-        reinterpret_cast<RawObject**>(LastPointerAddr(this)));
+    visitor->V::VisitPointers(reinterpret_cast<RawObject**>(from),
+                              reinterpret_cast<RawObject**>(to));
 
     return instance_size;
   }
@@ -551,15 +536,8 @@ class RawObject {
   }
 
   static uword LastPointerAddr(const RawObject* raw_obj) {
-#if defined(HASH_IN_OBJECT_HEADER)
     return reinterpret_cast<uword>(raw_obj->ptr()) + raw_obj->HeapSize() -
            kWordSize;
-// In 32bit arch, raw objects can have an extra trailing size where the
-// hashCode is stored.
-#else
-    return reinterpret_cast<uword>(raw_obj->ptr()) + raw_obj->HeapSize() -
-           raw_obj->TrailingExtraSize() - kWordSize;
-#endif
   }
 
   static bool IsCanonical(intptr_t value) {
@@ -606,7 +584,7 @@ class RawObject {
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   // why is this necessary? How come the returned RawObject can access fields
-  // and 'this' cannot, when both are RawObject
+  // and 'this' cannot when both are RawObject
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(reinterpret_cast<uword>(this) -

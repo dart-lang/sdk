@@ -189,7 +189,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
-      intptr_t size = raw_obj->HeapSize();
+      intptr_t size = raw_obj->ReallocationHeapSize();
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
@@ -207,6 +207,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
+          // Question: Is there is an inconsistency consquence if bytes_promoted
+          // does not match expected promoted bytes?
           bytes_promoted_ += size;
         } else {
           // Promotion did not succeed. Copy into the to space instead.

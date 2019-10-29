@@ -19,6 +19,8 @@ DEFINE_FLAG(bool,
             false,
             "Force compaction to move every movable object");
 
+typedef uint64_t bitset;
+
 static const intptr_t kBitVectorWordsPerBlock = 1;
 // The block size in bytes. One uword is used as a bit vector to keep track
 // of the sections-buckets in the block that are used. In 64 bit architectures,
@@ -52,7 +54,7 @@ class ForwardingBlock {
     // like 111000110011, where the 0s represent "dead" (garbage) space.
     // It's used to count the number of used ("live") buckets up to a any bucket
     // index, which in turn is used to calculate the forwarding address of a
-    // an old address in LookUp. As an example if an object is stored from
+    // an old address in Lookup. As an example if an object is stored from
     // bucket 16 (deduced from the address) and only 8 buckets are used up to
     // index 16 (vector has only 8 bits set in the first 15 bits), the object's
     // new address will represent bucket 9 of the forwarding block (the object
@@ -60,15 +62,27 @@ class ForwardingBlock {
     live_bitvector_ = 0;
   }
 
-  uword Lookup(uword old_addr) const {
-    uword block_offset = old_addr & ~kBlockMask;
+  intptr_t ComputeLiveVectorPosition(uword address) const {
+    uword block_offset = address & ~kBlockMask;
     intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
     ASSERT(first_unit_position < kBitsPerWord);
-    uword preceding_live_bitmask =
-        (static_cast<uword>(1) << first_unit_position) - 1;
-    uword preceding_live_bitset = live_bitvector_ & preceding_live_bitmask;
-    uword preceding_live_bytes = Utils::CountOneBitsWord(preceding_live_bitset)
-                                 << kObjectAlignmentLog2;
+#if !defined(HASH_IN_OBJECT_HEADER)
+    // In 32 bit platforms the previous objects might take one extra live space
+    // to store the hashCode when reallocated. The position is duplicated to
+    // take into account this extra size. In theory a block can increase in
+    // size when sliding.
+    first_unit_position <<= 1;
+#endif
+    return first_unit_position;
+  }
+
+  uword Lookup(uword old_addr) const {
+    intptr_t first_unit_position = ComputeLiveVectorPosition(old_addr);
+    bitset preceding_live_bitmask =
+        (static_cast<bitset>(1) << first_unit_position) - 1;
+    bitset preceding_live_bitset = live_bitvector_ & preceding_live_bitmask;
+    bitset preceding_live_bytes = Utils::CountOneBitsWord(preceding_live_bitset)
+                                  << kObjectAlignmentLog2;
     return new_address_ + preceding_live_bytes;
   }
 
@@ -82,19 +96,15 @@ class ForwardingBlock {
     if (size_in_units >= kBitsPerWord) {
       size_in_units = kBitsPerWord - 1;
     }
-    uword block_offset = old_addr & ~kBlockMask;
-    intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
-    ASSERT(first_unit_position < kBitsPerWord);
-    live_bitvector_ |= ((static_cast<uword>(1) << size_in_units) - 1)
+    intptr_t first_unit_position = ComputeLiveVectorPosition(old_addr);
+    live_bitvector_ |= ((static_cast<bitset>(1) << size_in_units) - 1)
                        << first_unit_position;
   }
 
   bool IsLive(uword old_addr) const {
-    uword block_offset = old_addr & ~kBlockMask;
-    intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
-    ASSERT(first_unit_position < kBitsPerWord);
-    return (live_bitvector_ & (static_cast<uword>(1) << first_unit_position)) !=
-           0;
+    intptr_t first_unit_position = ComputeLiveVectorPosition(old_addr);
+    return (live_bitvector_ &
+            (static_cast<bitset>(1) << first_unit_position)) != 0;
   }
 
   uword new_address() const { return new_address_; }
@@ -102,7 +112,7 @@ class ForwardingBlock {
 
  private:
   uword new_address_;
-  uword live_bitvector_;  // could make permanently uint64, too small in 32 bit
+  bitset live_bitvector_;
   COMPILE_ASSERT(kBitVectorWordsPerBlock == 1);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardingBlock);
@@ -479,19 +489,34 @@ uword CompactorTask::PlanBlock(uword first_object,
   intptr_t block_live_size = 0;
   intptr_t block_dead_size = 0;
   uword current = first_object;
+
   while (current < block_end) {
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
     if (obj->IsMarked()) {
 #if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
-      intptr_t extra_size = obj->ReallocationExtraSize();
-      size += extra_size;
+      intptr_t extra_size = 0;
+      // The first reallocated object that were to take more space (because
+      // they can grow to store the hashCode) than the currently available
+      // would be "reallocated" to the same address. So if free_current_ +
+      // block_live_size matches the current address the object is not going
+      // to be reallocated and it will not use extra memory. This way it
+      // is ensured that sliding will never take more memory than the currently
+      // available or that the reallocated object overlaps the memory of the
+      // next live object.
+      if (free_current_ + block_live_size != current) {
+        // In 32 bit platforms if the adresses don't match, the object will be
+        // reallocated and it might require extra space for the hashCode.
+        extra_size = obj->ReallocationExtraSize();
+        size += extra_size;
+      }
 #endif
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
 #if !defined(HASH_IN_OBJECT_HEADER)
+      // Restore size to the object's size.
       size -= extra_size;
 #endif
     } else {
@@ -525,9 +550,6 @@ uword CompactorTask::SlideBlock(uword first_object,
     if (old_obj->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {
-        // Question: blocks were planned before sliding to fit in the page, therefore
-        // this condition should never trigger?
-
         // The only situation where these two don't match is if we are moving
         // to a new page.  But if we exactly hit the end of the previous page
         // then free_current could be at the start of the next page, so we
