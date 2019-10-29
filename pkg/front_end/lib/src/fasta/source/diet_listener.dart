@@ -25,6 +25,7 @@ import '../../scanner/token.dart' show Token;
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -760,13 +761,14 @@ class DietListener extends StackListener {
     checkEmpty(token.charOffset);
     if (names == null || currentClassIsParserRecovery) return;
 
-    Builder declaration = lookupBuilder(token, null, names.first);
+    FieldBuilderImpl declaration = lookupBuilder(token, null, names.first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(
         createListener(declaration, memberScope,
             isDeclarationInstanceMember:
-                declaration.isDeclarationInstanceMember),
+                declaration.isDeclarationInstanceMember,
+            inferenceDataForTesting: declaration.dataForTesting?.inferenceData),
         token,
         metadata,
         isTopLevel);

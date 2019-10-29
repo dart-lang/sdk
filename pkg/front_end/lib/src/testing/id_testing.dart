@@ -631,7 +631,7 @@ Future runTests(Directory dataDir,
     if (shouldContinue) continued = true;
     testCount++;
 
-    if (skipList != null && skipList.contains(name)) {
+    if (skipList != null && skipList.contains(name) && !args.contains(name)) {
       print('Skip: ${name}');
       continue;
     }

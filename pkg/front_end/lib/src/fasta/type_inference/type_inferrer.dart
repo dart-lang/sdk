@@ -398,6 +398,8 @@ abstract class TypeInferrer {
   /// performed--this is used for testing.
   Uri get uriForInstrumentation;
 
+  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
+
   /// Performs full type inference on the given field initializer.
   Expression inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer);
@@ -440,6 +442,8 @@ class TypeInferrerImpl implements TypeInferrer {
   final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
       DartType> flowAnalysis;
 
+  final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+
   final InferenceDataForTesting dataForTesting;
 
   @override
@@ -476,7 +480,7 @@ class TypeInferrerImpl implements TypeInferrer {
   FunctionType lastCalleeType;
 
   TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
-      this.thisType, this.library, this.dataForTesting)
+      this.thisType, this.library, this.assignedVariables, this.dataForTesting)
       : assert(library != null),
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
@@ -486,7 +490,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // TODO(dmitryas): Pass in the actual assigned variables.
         flowAnalysis = new FlowAnalysis(
             new TypeOperationsCfe(engine.typeSchemaEnvironment),
-            new AssignedVariables());
+            assignedVariables);
 
   CoreTypes get coreTypes => engine.coreTypes;
 

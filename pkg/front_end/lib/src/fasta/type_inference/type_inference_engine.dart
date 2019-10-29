@@ -231,15 +231,31 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   @override
   TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
       SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+    if (dataForTesting != null) {
+      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
+          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+    } else {
+      assignedVariables =
+          new AssignedVariables<TreeNode, VariableDeclaration>();
+    }
     return new TypeInferrerImpl(
-        this, uri, false, thisType, library, dataForTesting);
+        this, uri, false, thisType, library, assignedVariables, dataForTesting);
   }
 
   @override
   TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
       SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+    if (dataForTesting != null) {
+      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
+          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+    } else {
+      assignedVariables =
+          new AssignedVariables<TreeNode, VariableDeclaration>();
+    }
     return new TypeInferrerImpl(
-        this, uri, true, thisType, library, dataForTesting);
+        this, uri, true, thisType, library, assignedVariables, dataForTesting);
   }
 }
 
@@ -260,6 +276,9 @@ class FlowAnalysisResult {
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
   final List<TreeNode> unassignedNodes = [];
+
+  /// The assigned variables information that computed for the member.
+  AssignedVariablesForTesting<TreeNode, VariableDeclaration> assignedVariables;
 }
 
 /// CFE-specific implementation of [TypeOperations].

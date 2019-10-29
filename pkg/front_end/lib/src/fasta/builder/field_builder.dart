@@ -4,16 +4,7 @@
 
 library fasta.field_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Expression,
-        Field,
-        InvalidType,
-        Member,
-        Name,
-        NullLiteral;
+import 'package:kernel/ast.dart' hide MapEntry, Variance;
 
 import '../constant_context.dart' show ConstantContext;
 

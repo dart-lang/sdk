@@ -115,9 +115,12 @@ class AssignedVariables<Node, Variable> {
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
-      assert(_writtenStack.length == 1);
-      assert(_declaredStack.length == 1);
-      assert(_capturedStack.length == 1);
+      assert(_writtenStack.length == 1,
+          "Unexpected written stack: $_writtenStack");
+      assert(_declaredStack.length == 1,
+          "Unexpected declared stack: $_declaredStack");
+      assert(_capturedStack.length == 1,
+          "Unexpected captured stack: $_capturedStack");
       Set<Variable> writtenInThisNode = _writtenStack.last;
       Set<Variable> declaredInThisNode = _declaredStack.last;
       Set<Variable> capturedInThisNode = _capturedStack.last;
@@ -153,6 +156,23 @@ class AssignedVariables<Node, Variable> {
     return _writtenInNode[node] ??
         (throw new StateError('No information for $node'));
   }
+
+  void _printOn(StringBuffer sb) {
+    sb.write('_writtenInNode=$_writtenInNode,');
+    sb.write('_capturedInNode=$_capturedInNode,');
+    sb.write('_writtenAnywhere=$_writtenAnywhere,');
+    sb.write('_capturedAnywhere=$_capturedAnywhere,');
+    sb.write('_writtenStack=$_writtenStack,');
+    sb.write('_capturedStack=$_capturedStack');
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('AssignedVariables(');
+    _printOn(sb);
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 /// Extension of [AssignedVariables] intended for use in tests.  This class
@@ -183,6 +203,20 @@ class AssignedVariablesForTesting<Node, Variable>
   bool isTracked(Node node) => _writtenInNode.containsKey(node);
 
   Set<Variable> writtenInNode(Node node) => _getWrittenInNode(node);
+
+  @override
+  void _printOn(StringBuffer sb) {
+    super._printOn(sb);
+    sb.write(',_declaredInNode=$_declaredInNode');
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('AssignedVariablesForTesting(');
+    _printOn(sb);
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the

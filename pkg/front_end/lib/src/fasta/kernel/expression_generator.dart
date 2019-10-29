@@ -345,8 +345,7 @@ class VariableUseGenerator extends Generator {
   }
 
   Expression _createWrite(int offset, Expression value) {
-    _helper.typePromoter
-        ?.mutateVariable(variable, _helper.functionNestingLevel);
+    _helper.registerVariableAssignment(variable);
     return new VariableSet(variable, value)..fileOffset = offset;
   }
 

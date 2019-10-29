@@ -22,8 +22,6 @@ import '../scope.dart' show Scope;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
-import '../type_inference/type_promotion.dart' show TypePromoter;
-
 import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
@@ -47,10 +45,6 @@ import 'kernel_ast_api.dart'
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get libraryBuilder;
-
-  TypePromoter get typePromoter;
-
-  int get functionNestingLevel;
 
   ConstantContext get constantContext;
 
@@ -158,4 +152,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
   Expression createVariableGet(VariableDeclaration variable, int charOffset);
+
+  /// Registers that [variable] is assigned to.
+  ///
+  /// This is needed for type promotion.
+  void registerVariableAssignment(VariableDeclaration variable);
 }

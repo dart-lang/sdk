@@ -193,7 +193,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   final TypeInferrer typeInferrer;
 
-  @override
   final TypePromoter typePromoter;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
@@ -326,7 +325,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
             coreTypes?.objectClass != declarationBuilder.cls,
         typePromoter = typeInferrer?.typePromoter,
-        super(enclosingScope);
+        super(enclosingScope) {
+    formalParameterScope?.forEach((String name, Builder builder) {
+      if (builder is VariableBuilder) {
+        typeInferrer?.assignedVariables?.declare(builder.variable);
+      }
+    });
+  }
 
   BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
       DeclarationBuilder declarationBuilder, TypeInferrer typeInferrer)
@@ -385,6 +390,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
 
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
+
+  @override
+  void registerVariableAssignment(VariableDeclaration variable) {
+    typePromoter?.mutateVariable(variable, functionNestingLevel);
+    typeInferrer?.assignedVariables?.write(variable);
+  }
 
   @override
   void push(Object node) {
@@ -822,6 +833,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter?.finished();
+    typeInferrer?.assignedVariables?.finish();
 
     FunctionBuilder builder = member;
     if (formals?.parameters != null) {
@@ -2245,6 +2257,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         isLate: isLate)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
+    typeInferrer?.assignedVariables?.declare(variable);
     libraryBuilder.checkBoundsInVariableDeclaration(
         variable, typeEnvironment, uri);
     push(variable);
@@ -3141,6 +3154,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     push(parameter);
+    typeInferrer?.assignedVariables?.declare(variable);
   }
 
   @override
@@ -4136,6 +4150,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     switchScope = null;
     push(inCatchBlock);
     inCatchBlock = false;
+    // This is matched by the call to [endNode] in [pushNamedFunction] or
+    // [endFunctionExpression].
+    typeInferrer?.assignedVariables?.beginNode();
   }
 
   void exitFunction() {
@@ -4239,6 +4256,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           push(declaration);
         }
       }
+      // This is matched by the call to [beginNode] in [enterFunction].
+      typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
     } else {
       return unhandled("${declaration.runtimeType}", "pushNamedFunction",
           token.charOffset, uri);
@@ -4270,13 +4289,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
+    Expression result;
     if (constantContext != ConstantContext.none) {
-      push(buildProblem(fasta.messageNotAConstantExpression, formals.charOffset,
-          formals.length));
+      result = buildProblem(fasta.messageNotAConstantExpression,
+          formals.charOffset, formals.length);
     } else {
-      push(new FunctionExpression(function)
-        ..fileOffset = offsetForToken(beginToken));
+      result = new FunctionExpression(function)
+        ..fileOffset = offsetForToken(beginToken);
     }
+    push(result);
+    // This is matched by the call to [beginNode] in [enterFunction].
+    typeInferrer?.assignedVariables?.endNode(result, isClosure: true);
+  }
+
+  @override
+  void beginDoWhileStatement(Token token) {
+    // This is matched by the [endNode] call in [endDoWhileStatement].
+    typeInferrer?.assignedVariables?.beginNode();
+    super.beginDoWhileStatement(token);
   }
 
   @override
@@ -4298,6 +4328,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
+    // This is matched by the [beginNode] call in [beginDoWhileStatement].
+    typeInferrer?.assignedVariables?.endNode(result);
   }
 
   @override
@@ -4542,6 +4574,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginWhileStatement(Token token) {
+    // This is matched by the [endNode] call in [endWhileStatement].
+    typeInferrer?.assignedVariables?.beginNode();
+    super.beginWhileStatement(token);
+  }
+
+  @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement");
     Statement body = popStatement();
@@ -4552,13 +4591,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       body = forest.createLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
-    Statement result = forest.createWhileStatement(
+    Statement whileStatement = forest.createWhileStatement(
         offsetForToken(whileKeyword), condition, body);
+    Statement result = whileStatement;
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
+    // This is matched by the [beginNode] call in [beginWhileStatement].
+    typeInferrer?.assignedVariables?.endNode(whileStatement);
   }
 
   @override
@@ -4652,6 +4694,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
+    // This is matched by the [endNode] call in [endSwitchStatement].
+    typeInferrer?.assignedVariables?.beginNode();
     enterLocalScope("switch block");
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
@@ -4737,13 +4781,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    Statement result = new SwitchStatement(expression, cases)
+    Statement switchStatement = new SwitchStatement(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
+    Statement result = switchStatement;
     if (target.hasUsers) {
       result = forest.createLabeledStatement(result);
       target.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
+    // This is matched by the [beginNode] call in [beginSwitchBlock].
+    typeInferrer?.assignedVariables?.endNode(switchStatement);
   }
 
   @override
