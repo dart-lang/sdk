@@ -733,6 +733,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
 
   intptr_t pos = 0;
   if (is_method) {
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -2784,6 +2785,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kBottomType:
       result_ =
           Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
+      // We set the nullability of Null to kNullable, even in legacy mode.
+      ASSERT(result_.IsNullable());
       break;
     case kNeverType:
       UNREACHABLE();
@@ -2814,7 +2817,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2829,10 +2832,12 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       // Fast path for non-generic types: retrieve or populate the class's only
       // canonical type, which is its declaration type.
       result_ = klass.DeclarationType();
+      result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
     } else {
       // Note that the type argument vector is not yet extended.
       result_ =
           Type::New(klass, Object::null_type_arguments(), klass.token_pos());
+      Type::Cast(result_).set_nullability(nullability);
     }
     return;
   }
@@ -2842,6 +2847,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
+  Type::Cast(result_).set_nullability(nullability);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -2856,7 +2862,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2939,6 +2945,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   Type& signature_type =
       Type::ZoneHandle(Z, signature_function.SignatureType());
+  signature_type.set_nullability(nullability);
 
   if (finalize_) {
     signature_type ^=
@@ -2952,7 +2959,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  helper_->ReadNullability();                      // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -2962,6 +2969,8 @@ void TypeTranslator::BuildTypeParameterType() {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
     result_ = class_types.TypeAt(parameter_index);
+    result_ =
+        TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
     return;
   }
   parameter_index -= class_types.Length();
@@ -2987,6 +2996,8 @@ void TypeTranslator::BuildTypeParameterType() {
       //
       if (class_types.Length() > parameter_index) {
         result_ = class_types.TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         return;
       }
       parameter_index -= class_types.Length();
@@ -3002,6 +3013,8 @@ void TypeTranslator::BuildTypeParameterType() {
         result_ =
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
                 .TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         if (finalize_) {
           result_ =
               ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3015,6 +3028,8 @@ void TypeTranslator::BuildTypeParameterType() {
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
+      result_ =
+          TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -3170,6 +3185,7 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                      klass.token_pos());
   }
+  // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
   return type;
 }
 
@@ -3220,6 +3236,7 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;

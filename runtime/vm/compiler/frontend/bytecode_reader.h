@@ -112,7 +112,11 @@ class BytecodeReaderHelper : public ValueObject {
   static const int kFlagBit1 = 1 << 6;
   static const int kFlagBit2 = 1 << 7;
   static const int kFlagBit3 = 1 << 8;
-  static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
+  static const int kFlagBit4 = 1 << 9;
+  static const int kFlagBit5 = 1 << 10;
+  static const int kTagMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
+  static const int kNullabilityMask = (kFlagBit4 | kFlagBit5);
+  static const int kFlagsMask = (kTagMask | kNullabilityMask);
 
   // Code flags, must be in sync with Code constants in
   // pkg/vm/lib/bytecode/declarations.dart.
@@ -190,7 +194,8 @@ class BytecodeReaderHelper : public ValueObject {
                                  bool has_optional_positional_params,
                                  bool has_optional_named_params,
                                  bool has_type_params,
-                                 bool has_positional_param_names);
+                                 bool has_positional_param_names,
+                                 Nullability nullability);
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
 
@@ -211,7 +216,7 @@ class BytecodeReaderHelper : public ValueObject {
 
   RawObject* ReadObjectContents(uint32_t header);
   RawObject* ReadConstObject(intptr_t tag);
-  RawObject* ReadType(intptr_t tag);
+  RawObject* ReadType(intptr_t tag, Nullability nullability);
   RawString* ReadString(bool is_canonical = true);
   RawScript* ReadSourceFile(const String& uri, intptr_t offset);
   RawTypeArguments* ReadTypeArguments();

@@ -89,6 +89,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // Set all non object fields.
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type.set_type_state(reader->Read<int8_t>());
+  type.set_nullability(static_cast<Nullability>(reader->Read<int8_t>()));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type);
@@ -152,6 +153,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int8_t>(ptr()->type_state_);
+  writer->Write<int8_t>(ptr()->nullability_);
 
   // Write out all the object pointer fields.
   ASSERT(ptr()->type_class_id_ != Object::null());
@@ -223,6 +225,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
   type_parameter.set_flags(reader->Read<uint8_t>());
+  type_parameter.set_nullability(
+      static_cast<Nullability>(reader->Read<int8_t>()));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type_parameter);
@@ -264,6 +268,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
   writer->Write<uint8_t>(ptr()->flags_);
+  writer->Write<int8_t>(ptr()->nullability_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

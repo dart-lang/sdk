@@ -2124,6 +2124,14 @@ class ICData : public Object {
   friend class SnapshotWriter;
 };
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum Nullability {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
 // Often used constants for number of free function type parameters.
 enum {
   kNoneFree = 0,
@@ -2163,7 +2171,8 @@ class Function : public Object {
   // owner class of this function, then its signature type is a parameterized
   // function type with uninstantiated type arguments 'T' and 'R' as elements of
   // its type argument vector.
-  RawType* SignatureType() const;
+  // A function type is non-nullable by default.
+  RawType* SignatureType(Nullability nullability = kNonNullable) const;
   RawType* ExistingSignatureType() const;
 
   // Update the signature type (with a canonical version).
@@ -6771,6 +6780,13 @@ class AbstractType : public Instance {
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual void SetIsBeingFinalized() const;
+
+  virtual Nullability nullability() const;
+  virtual bool IsUndetermined() const { return nullability() == kUndetermined; }
+  virtual bool IsNullable() const { return nullability() == kNullable; }
+  virtual bool IsNonNullable() const { return nullability() == kNonNullable; }
+  virtual bool IsLegacy() const { return nullability() == kLegacy; }
+
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
@@ -6996,6 +7012,15 @@ class Type : public AbstractType {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
   }
+  virtual Nullability nullability() const {
+    return static_cast<Nullability>(raw_ptr()->nullability_);
+  }
+  void set_nullability(Nullability value) const {
+    ASSERT(!IsCanonical());
+    ASSERT(value != kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, value);
+  }
+  RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   void set_type_class(const Class& value) const;
@@ -7127,6 +7152,11 @@ class TypeRef : public AbstractType {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return ref_type.IsNull() || ref_type.IsBeingFinalized();
   }
+  virtual Nullability nullability() const {
+    const AbstractType& ref_type = AbstractType::Handle(type());
+    ASSERT(!ref_type.IsNull());
+    return ref_type.nullability();
+  }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -7203,6 +7233,11 @@ class TypeParameter : public AbstractType {
     return RawTypeParameter::GenericCovariantImplBit::decode(raw_ptr()->flags_);
   }
   void SetGenericCovariantImpl(bool value) const;
+  virtual Nullability nullability() const {
+    return static_cast<Nullability>(raw_ptr()->nullability_);
+  }
+  void set_nullability(Nullability value) const;
+  RawTypeParameter* ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;

@@ -74,6 +74,8 @@ DEFINE_FLAG(
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
+// TODO(regis): Remove this temporary flag used to debug nullability.
+DEFINE_FLAG(bool, show_nullability, false, "Show nullability in type names");
 DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
 DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
@@ -1918,6 +1920,7 @@ RawError* Object::Init(Isolate* isolate,
     cls = object_store->null_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_null_type(type);
+    ASSERT(type.IsNullable());
 
     // Consider removing when/if Null becomes an ordinary class.
     type = object_store->object_type();
@@ -4311,6 +4314,11 @@ void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
+  // TODO(regis): Since declaration type is used as the runtime type of
+  // instances of a non-generic class, the nullability should be set to
+  // kNonNullable instead of kLegacy.
+  // For now, we set the nullability to kLegacy, except for Null.
+  ASSERT(value.IsLegacy() || (value.IsNullType() && value.IsNullable()));
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
@@ -6259,7 +6267,7 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-RawType* Function::SignatureType() const {
+RawType* Function::SignatureType(Nullability nullability) const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
     // The function type of this function is not yet cached and needs to be
@@ -6294,10 +6302,11 @@ RawType* Function::SignatureType() const {
         TypeArguments::Handle(scope_class.type_parameters());
     // Return the still unfinalized signature type.
     type = Type::New(scope_class, signature_type_arguments, token_pos());
+    type.set_nullability(nullability);
     type.set_signature(*this);
     SetSignatureType(type);
   }
-  return type.raw();
+  return type.ToNullability(nullability, Heap::kOld);
 }
 
 void Function::SetSignatureType(const Type& value) const {
@@ -17018,6 +17027,12 @@ TokenPosition AbstractType::token_pos() const {
   return TokenPosition::kNoSource;
 }
 
+Nullability AbstractType::nullability() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return kNullable;
+}
+
 bool AbstractType::IsInstantiated(Genericity genericity,
                                   intptr_t num_free_fun_type_params,
                                   TrailPtr trail) const {
@@ -17197,11 +17212,19 @@ RawString* AbstractType::PrintURIs(URIs* uris) {
   return Symbols::FromConcatAll(thread, pieces);
 }
 
+// Keep in sync with Nullability enum in runtime/vm/object.h.
+static const char* nullability_suffix[4] = {"%", "?", "", "*"};
+
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (IsTypeParameter()) {
+    if (FLAG_show_nullability) {
+      return Symbols::FromConcat(
+          thread, String::Handle(zone, TypeParameter::Cast(*this).name()),
+          String::Handle(zone, String::New(nullability_suffix[nullability()])));
+    }
     return TypeParameter::Cast(*this).name();
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
@@ -17214,6 +17237,13 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
     if (!cls.IsTypedefClass()) {
+      if (FLAG_show_nullability) {
+        return Symbols::FromConcat(
+            thread,
+            String::Handle(zone, signature_function.UserVisibleSignature()),
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
+      }
       return signature_function.UserVisibleSignature();
     }
     // Instead of printing the actual signature, use the typedef name with
@@ -17221,6 +17251,12 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     class_name = cls.Name();  // Typedef name.
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
+      if (FLAG_show_nullability) {
+        return Symbols::FromConcat(
+            thread, String::Handle(zone, class_name.raw()),
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
+      }
       return class_name.raw();
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
@@ -17260,6 +17296,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         zone, args.SubvectorName(first_type_param_index, num_type_params,
                                  name_visibility));
     pieces.Add(args_name);
+  }
+  if (FLAG_show_nullability) {
+    pieces.Add(
+        String::Handle(zone, String::New(nullability_suffix[nullability()])));
   }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
@@ -17653,6 +17693,24 @@ void Type::SetIsBeingFinalized() const {
   set_type_state(RawType::kBeingFinalized);
 }
 
+RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
+  if (nullability() == value) {
+    return raw();
+  }
+  // Clone type and set new nullability.
+  Type& type = Type::Handle();
+  type ^= Object::Clone(*this, space);
+  type.set_nullability(value);
+  type.SetHash(0);
+  if (IsCanonical()) {
+    // Object::Clone does not clone canonical bit.
+    ASSERT(!type.IsCanonical());
+    type ^= type.Canonicalize();
+  }
+  // TODO(regis): Should we link canonical types of different nullability?
+  return type.raw();
+}
+
 RawFunction* Type::signature() const {
   intptr_t cid = raw_ptr()->signature_->GetClassId();
   if (cid == kNullCid) {
@@ -17808,6 +17866,9 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
+  if (nullability() != other_type.nullability()) {
+    return false;
+  }
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;  // Too early to decide if equal.
   }
@@ -17960,8 +18021,10 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));
@@ -18085,8 +18148,10 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     type = cls.declaration_type();
     return (raw() == type.raw());
   }
@@ -18137,6 +18202,7 @@ intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
   result = CombineHashes(result, type_class_id());
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());
@@ -18188,6 +18254,11 @@ RawType* Type::New(const Class& clazz,
   result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
+  if (clazz.id() == kNullCid) {
+    result.set_nullability(kNullable);
+  } else {
+    result.set_nullability(kLegacy);
+  }
 
   result.SetTypeTestingStub(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
@@ -18348,7 +18419,8 @@ intptr_t TypeRef::Hash() const {
   //    type arguments are set).
   const AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
-  const uint32_t result = Class::Handle(ref_type.type_class()).id();
+  uint32_t result = Class::Handle(ref_type.type_class()).id();
+  result = CombineHashes(result, static_cast<uint32_t>(ref_type.nullability()));
   return FinalizeHash(result, kHashBits);
 }
 
@@ -18393,6 +18465,24 @@ void TypeParameter::SetGenericCovariantImpl(bool value) const {
       value, raw_ptr()->flags_));
 }
 
+void TypeParameter::set_nullability(Nullability value) const {
+  StoreNonPointer(&raw_ptr()->nullability_, value);
+}
+
+RawTypeParameter* TypeParameter::ToNullability(Nullability value,
+                                               Heap::Space space) const {
+  if (nullability() == value) {
+    return raw();
+  }
+  // Clone type and set new nullability.
+  TypeParameter& type_parameter = TypeParameter::Handle();
+  type_parameter ^= Object::Clone(*this, space);
+  type_parameter.set_nullability(value);
+  type_parameter.SetHash(0);
+  // TODO(regis): Should we link type parameters of different nullability?
+  return type_parameter.raw();
+}
+
 bool TypeParameter::IsInstantiated(Genericity genericity,
                                    intptr_t num_free_fun_type_params,
                                    TrailPtr trail) const {
@@ -18424,6 +18514,9 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
   }
   // The function doesn't matter in type tests, but it does in canonicalization.
   if (parameterized_function() != other_type_param.parameterized_function()) {
+    return false;
+  }
+  if (nullability() != other_type_param.nullability()) {
     return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
@@ -18544,6 +18637,7 @@ intptr_t TypeParameter::ComputeHash() const {
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;
@@ -18571,6 +18665,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_flags(0);
+  result.set_nullability(kLegacy);
   result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
   result.set_token_pos(token_pos);

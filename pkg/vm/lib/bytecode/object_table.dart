@@ -343,7 +343,10 @@ abstract class ObjectHandle extends BytecodeObject {
   static const int flagBit1 = 1 << 6;
   static const int flagBit2 = 1 << 7;
   static const int flagBit3 = 1 << 8;
-  static const int flagsMask = flagBit0 | flagBit1 | flagBit2 | flagBit3;
+  static const int flagBit4 = 1 << 9;
+  static const int flagBit5 = 1 << 10;
+  static const int flagsMask =
+      flagBit0 | flagBit1 | flagBit2 | flagBit3 | flagBit4 | flagBit5;
 
   static int _makeReference(int index) => (index << indexShift) | referenceBit;
 
@@ -407,7 +410,9 @@ abstract class ObjectHandle extends BytecodeObject {
       case ObjectKind.kScript:
         return new _ScriptHandle._empty();
       case ObjectKind.kType:
-        switch (TypeTag.values[flags ~/ flagBit0]) {
+        Nullability nullability = Nullability
+            .values[(flags & _TypeHandle.nullabilityMask) ~/ flagBit4];
+        switch (TypeTag.values[(flags & _TypeHandle.tagMask) ~/ flagBit0]) {
           case TypeTag.kInvalid:
             break;
           case TypeTag.kDynamic:
@@ -415,17 +420,17 @@ abstract class ObjectHandle extends BytecodeObject {
           case TypeTag.kVoid:
             return new _VoidTypeHandle();
           case TypeTag.kSimpleType:
-            return new _SimpleTypeHandle._empty();
+            return new _SimpleTypeHandle._empty(nullability);
           case TypeTag.kTypeParameter:
-            return new _TypeParameterHandle._empty();
+            return new _TypeParameterHandle._empty(nullability);
           case TypeTag.kGenericType:
-            return new _GenericTypeHandle._empty();
+            return new _GenericTypeHandle._empty(nullability);
           case TypeTag.kRecursiveGenericType:
-            return new _RecursiveGenericTypeHandle._empty();
+            return new _RecursiveGenericTypeHandle._empty(nullability);
           case TypeTag.kRecursiveTypeRef:
-            return new _RecursiveTypeRefHandle._empty();
+            return new _RecursiveTypeRefHandle._empty(nullability);
           case TypeTag.kFunctionType:
-            return new _FunctionTypeHandle._empty();
+            return new _FunctionTypeHandle._empty(nullability);
         }
         throw 'Unexpected type tag $flags';
       case ObjectKind.kUnused1:
@@ -666,26 +671,36 @@ class _ClosureHandle extends ObjectHandle {
 }
 
 abstract class _TypeHandle extends ObjectHandle {
-  final TypeTag tag;
+  static const int tagMask = ObjectHandle.flagBit0 |
+      ObjectHandle.flagBit1 |
+      ObjectHandle.flagBit2 |
+      ObjectHandle.flagBit3;
+  static const int nullabilityMask =
+      ObjectHandle.flagBit4 | ObjectHandle.flagBit5;
 
-  _TypeHandle(this.tag);
+  final TypeTag tag;
+  Nullability nullability;
+
+  _TypeHandle(this.tag, this.nullability);
 
   @override
   ObjectKind get kind => ObjectKind.kType;
 
   @override
-  int get flags => tag.index * ObjectHandle.flagBit0;
+  int get flags =>
+      (tag.index * ObjectHandle.flagBit0) |
+      (nullability.index * ObjectHandle.flagBit4);
 
   @override
   set flags(int value) {
     if (value != flags) {
-      throw 'Unable to set flags for _TypeHandle (they are occupied by type tag)';
+      throw 'Unable to set flags for _TypeHandle (they are occupied by type tag and nnbd)';
     }
   }
 }
 
 class _DynamicTypeHandle extends _TypeHandle {
-  _DynamicTypeHandle() : super(TypeTag.kDynamic);
+  _DynamicTypeHandle() : super(TypeTag.kDynamic, Nullability.nullable);
 
   @override
   void writeContents(BufferedWriter writer) {}
@@ -704,7 +719,7 @@ class _DynamicTypeHandle extends _TypeHandle {
 }
 
 class _VoidTypeHandle extends _TypeHandle {
-  _VoidTypeHandle() : super(TypeTag.kVoid);
+  _VoidTypeHandle() : super(TypeTag.kVoid, Nullability.nullable);
 
   @override
   void writeContents(BufferedWriter writer) {}
@@ -725,9 +740,11 @@ class _VoidTypeHandle extends _TypeHandle {
 class _SimpleTypeHandle extends _TypeHandle {
   _ClassHandle class_;
 
-  _SimpleTypeHandle._empty() : super(TypeTag.kSimpleType);
+  _SimpleTypeHandle._empty(Nullability nullability)
+      : super(TypeTag.kSimpleType, nullability);
 
-  _SimpleTypeHandle(this.class_) : super(TypeTag.kSimpleType);
+  _SimpleTypeHandle(this.class_, Nullability nullability)
+      : super(TypeTag.kSimpleType, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -747,13 +764,16 @@ class _SimpleTypeHandle extends _TypeHandle {
   }
 
   @override
-  int get hashCode => class_.hashCode + 11;
+  int get hashCode => _combineHashes(class_.hashCode, nullability.index);
 
   @override
   bool operator ==(other) =>
-      other is _SimpleTypeHandle && this.class_ == other.class_;
+      other is _SimpleTypeHandle &&
+      this.class_ == other.class_ &&
+      this.nullability == other.nullability;
 
   @override
+  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
   String toString() => '$class_';
 }
 
@@ -761,10 +781,11 @@ class _TypeParameterHandle extends _TypeHandle {
   ObjectHandle parent;
   int indexInParent;
 
-  _TypeParameterHandle._empty() : super(TypeTag.kTypeParameter);
+  _TypeParameterHandle._empty(Nullability nullability)
+      : super(TypeTag.kTypeParameter, nullability);
 
-  _TypeParameterHandle(this.parent, this.indexInParent)
-      : super(TypeTag.kTypeParameter) {
+  _TypeParameterHandle(this.parent, this.indexInParent, Nullability nullability)
+      : super(TypeTag.kTypeParameter, nullability) {
     assert(parent is _ClassHandle ||
         parent is _MemberHandle ||
         parent is _ClosureHandle ||
@@ -795,15 +816,18 @@ class _TypeParameterHandle extends _TypeHandle {
   }
 
   @override
-  int get hashCode => _combineHashes(parent.hashCode, indexInParent);
+  int get hashCode => _combineHashes(
+      parent.hashCode, _combineHashes(indexInParent, nullability.index));
 
   @override
   bool operator ==(other) =>
       other is _TypeParameterHandle &&
       this.parent == other.parent &&
-      this.indexInParent == other.indexInParent;
+      this.indexInParent == other.indexInParent &&
+      this.nullability == other.nullability;
 
   @override
+  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
   String toString() => '$parent::TypeParam/$indexInParent';
 }
 
@@ -811,9 +835,11 @@ class _GenericTypeHandle extends _TypeHandle {
   _ClassHandle class_;
   _TypeArgumentsHandle typeArgs;
 
-  _GenericTypeHandle._empty() : super(TypeTag.kGenericType);
+  _GenericTypeHandle._empty(Nullability nullability)
+      : super(TypeTag.kGenericType, nullability);
 
-  _GenericTypeHandle(this.class_, this.typeArgs) : super(TypeTag.kGenericType);
+  _GenericTypeHandle(this.class_, this.typeArgs, Nullability nullability)
+      : super(TypeTag.kGenericType, nullability);
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -836,15 +862,18 @@ class _GenericTypeHandle extends _TypeHandle {
   }
 
   @override
-  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
+  int get hashCode => _combineHashes(
+      class_.hashCode, _combineHashes(typeArgs.hashCode, nullability.index));
 
   @override
   bool operator ==(other) =>
       other is _GenericTypeHandle &&
       this.class_ == other.class_ &&
-      this.typeArgs == other.typeArgs;
+      this.typeArgs == other.typeArgs &&
+      this.nullability == other.nullability;
 
   @override
+  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
   String toString() => '$class_ $typeArgs';
 }
 
@@ -853,10 +882,12 @@ class _RecursiveGenericTypeHandle extends _TypeHandle {
   _ClassHandle class_;
   _TypeArgumentsHandle typeArgs;
 
-  _RecursiveGenericTypeHandle._empty() : super(TypeTag.kRecursiveGenericType);
+  _RecursiveGenericTypeHandle._empty(Nullability nullability)
+      : super(TypeTag.kRecursiveGenericType, nullability);
 
-  _RecursiveGenericTypeHandle(this.id, this.class_, this.typeArgs)
-      : super(TypeTag.kRecursiveGenericType);
+  _RecursiveGenericTypeHandle(
+      this.id, this.class_, this.typeArgs, Nullability nullability)
+      : super(TypeTag.kRecursiveGenericType, nullability);
 
   @override
   bool get isCacheable => (id == 0);
@@ -884,24 +915,29 @@ class _RecursiveGenericTypeHandle extends _TypeHandle {
   }
 
   @override
-  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
+  int get hashCode => _combineHashes(
+      class_.hashCode, _combineHashes(typeArgs.hashCode, nullability.index));
 
   @override
   bool operator ==(other) =>
       other is _RecursiveGenericTypeHandle &&
       this.class_ == other.class_ &&
-      this.typeArgs == other.typeArgs;
+      this.typeArgs == other.typeArgs &&
+      this.nullability == other.nullability;
 
   @override
+  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
   String toString() => '(recursive #$id) $class_ $typeArgs';
 }
 
 class _RecursiveTypeRefHandle extends _TypeHandle {
   int id;
 
-  _RecursiveTypeRefHandle._empty() : super(TypeTag.kRecursiveTypeRef);
+  _RecursiveTypeRefHandle._empty(Nullability nullability)
+      : super(TypeTag.kRecursiveTypeRef, nullability);
 
-  _RecursiveTypeRefHandle(this.id) : super(TypeTag.kRecursiveTypeRef);
+  _RecursiveTypeRefHandle(this.id)
+      : super(TypeTag.kRecursiveTypeRef, Nullability.legacy);
 
   @override
   bool get isCacheable => false;
@@ -943,6 +979,7 @@ class NameAndType {
       this.type == other.type;
 
   @override
+  // TODO(regis): Print nullability, always or only if nnbd experiment is enabled?
   String toString() => '$type ${name.name}';
 }
 
@@ -958,11 +995,17 @@ class _FunctionTypeHandle extends _TypeHandle {
   List<NameAndType> namedParams;
   _TypeHandle returnType;
 
-  _FunctionTypeHandle._empty() : super(TypeTag.kFunctionType);
+  _FunctionTypeHandle._empty(Nullability nullability)
+      : super(TypeTag.kFunctionType, nullability);
 
-  _FunctionTypeHandle(this.typeParams, this.numRequiredParams,
-      this.positionalParams, this.namedParams, this.returnType)
-      : super(TypeTag.kFunctionType) {
+  _FunctionTypeHandle(
+      this.typeParams,
+      this.numRequiredParams,
+      this.positionalParams,
+      this.namedParams,
+      this.returnType,
+      Nullability nullability)
+      : super(TypeTag.kFunctionType, nullability) {
     assert(numRequiredParams <= positionalParams.length + namedParams.length);
     if (numRequiredParams < positionalParams.length) {
       assert(namedParams.isEmpty);
@@ -1079,6 +1122,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.returnType == other.returnType;
 
   @override
+  // TODO(regis): Print nullability, only if nnbd experiment is enabled?
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionType');
@@ -2062,7 +2106,8 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   ObjectHandle visitInterfaceType(InterfaceType node) {
     final classHandle = objectTable.getHandle(node.classNode);
     if (!hasInstantiatorTypeArguments(node.classNode)) {
-      return objectTable.getOrAddObject(new _SimpleTypeHandle(classHandle));
+      return objectTable
+          .getOrAddObject(new _SimpleTypeHandle(classHandle, node.nullability));
     }
 
     // Non-finalized types are not recursive, but finalization of
@@ -2102,8 +2147,9 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
     final result = objectTable.getOrAddObject(isRecursive
         ? new _RecursiveGenericTypeHandle(
-            recursiveId, classHandle, typeArgsHandle)
-        : new _GenericTypeHandle(classHandle, typeArgsHandle));
+            recursiveId, classHandle, typeArgsHandle, node.nullability)
+        : new _GenericTypeHandle(
+            classHandle, typeArgsHandle, node.nullability));
 
     if (isRecursive) {
       _recursiveTypeIds.remove(node);
@@ -2117,7 +2163,14 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     final param = node.parameter;
     final handle = _typeParameters[param];
     if (handle != null) {
-      return handle;
+      final typeParameterHandle = handle as _TypeParameterHandle;
+      if (typeParameterHandle.nullability == node.nullability) {
+        return handle;
+      }
+      return objectTable.getOrAddObject(new _TypeParameterHandle(
+          typeParameterHandle.parent,
+          typeParameterHandle.indexInParent,
+          node.nullability));
     }
 
     final parent = param.parent;
@@ -2150,8 +2203,8 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     } else {
       throw 'Unexpected parent of TypeParameter: ${parent.runtimeType} $parent';
     }
-    return objectTable
-        .getOrAddObject(new _TypeParameterHandle(parentHandle, indexInParent));
+    return objectTable.getOrAddObject(new _TypeParameterHandle(
+        parentHandle, indexInParent, node.nullability));
   }
 
   @override
@@ -2159,7 +2212,11 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     final int numEnclosingTypeParameters = _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
-          new _TypeParameterHandle(null, numEnclosingTypeParameters + i));
+          new _TypeParameterHandle(
+              null, numEnclosingTypeParameters + i, Nullability.legacy));
+      // Nullability.legacy is a dummy value, since TypeParameter does not
+      // specify nullability, only the reference to a TypeParameter does, i.e.
+      // TypeParameterType.
     }
 
     final positionalParams = new List<_TypeHandle>();
@@ -2179,7 +2236,8 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
         node.requiredParameterCount,
         positionalParams,
         namedParams,
-        returnType));
+        returnType,
+        node.nullability));
 
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters.remove(node.typeParameters[i]);

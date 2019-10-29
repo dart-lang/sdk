@@ -2010,6 +2010,7 @@ class RawType : public RawAbstractType {
   VISIT_TO(RawObject*, signature_)
   TokenPosition token_pos_;
   int8_t type_state_;
+  int8_t nullability_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2050,6 +2051,7 @@ class RawTypeParameter : public RawAbstractType {
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;
+  int8_t nullability_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
