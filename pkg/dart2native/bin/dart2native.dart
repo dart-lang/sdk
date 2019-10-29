@@ -105,10 +105,6 @@ E.g.: dart2native -Da=1,b=2 main.dart''')
         negatable: false, help: 'Enable assert statements.')
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Display this help message.')
-    ..addOption('output', abbr: 'o', valueHelp: 'path', help: '''
-Set the output filename. <path> can be relative or absolute.
-E.g.: dart2native main.dart -o ../bin/my_app.exe
-''')
     ..addOption(
       'output-kind',
       abbr: 'k',
@@ -120,6 +116,10 @@ E.g.: dart2native main.dart -o ../bin/my_app.exe
       defaultsTo: 'exe',
       valueHelp: 'aot|exe',
     )
+    ..addOption('output', abbr: 'o', valueHelp: 'path', help: '''
+Set the output filename. <path> can be relative or absolute.
+E.g.: dart2native main.dart -o ../bin/my_app.exe
+''')
     ..addOption('packages', abbr: 'p', valueHelp: 'path', help: '''
 Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
 E.g.: dart2native --packages=/tmp/pkgs main.dart
