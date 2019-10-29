@@ -289,8 +289,11 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     }
     var initializer = js.ObjectInitializer(properties, isOneLiner: false);
 
-    _resource.value = js.js(r'var # = #',
-        [js.VariableDeclaration(typesHolderLocalName), initializer]);
+    var function = js.js(r'function rtii(){return #}', initializer);
+    _resource.value = js.js(r'var # = #()', [
+      js.VariableDeclaration(typesHolderLocalName),
+      js.Parentheses(function)
+    ]);
   }
 
   // This is a top-level local name in the generated JavaScript top-level
