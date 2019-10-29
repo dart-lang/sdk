@@ -118,11 +118,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
     String libraryPath = _currentLibrary.source.fullName;
-    ContextBuilder builder = new ContextBuilder(
-        resourceProvider, null /* sdkManager */, null /* contentCache */);
-    Workspace workspace =
-        ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
-    _workspacePackage = workspace.findPackageFor(libraryPath);
+    _workspacePackage = _getPackage(libraryPath, resourceProvider);
+
     _linterContext = LinterContextImpl(
       null /* allUnits */,
       new LinterContextUnit(content, unit),
@@ -1333,6 +1330,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
+  }
+
+  WorkspacePackage _getPackage(String root, ResourceProvider resourceProvider) {
+    Workspace workspace = _currentLibrary.session?.analysisContext?.workspace;
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ library_analyzer.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace =
+          ContextBuilder.createWorkspace(resourceProvider, root, builder);
+    }
+    return workspace?.findPackageFor(root);
   }
 
   bool _isLibraryInWorkspacePackage(LibraryElement library) {

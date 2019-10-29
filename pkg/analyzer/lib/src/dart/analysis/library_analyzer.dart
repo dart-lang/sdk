@@ -42,6 +42,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
@@ -323,14 +324,7 @@ class LibraryAnalyzer {
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
 
-    // todo (pq): duplicates logic in resolver; de-dup, or...
-    // todo (pq): get workspace from analysis context
-    final libraryPath = _library.source.fullName;
-    final builder = new ContextBuilder(
-        _resourceProvider, null /* sdkManager */, null /* contentCache */);
-    final workspace =
-        ContextBuilder.createWorkspace(_resourceProvider, libraryPath, builder);
-    final workspacePackage = workspace.findPackageFor(libraryPath);
+    final workspacePackage = _getPackage(currentUnit.unit);
 
     var context = LinterContextImpl(
       allUnits,
@@ -463,6 +457,23 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return new ErrorReporter(listener, file.source);
     });
+  }
+
+  WorkspacePackage _getPackage(CompilationUnit unit) {
+    final libraryPath = _library.source.fullName;
+    Workspace workspace =
+        unit.declaredElement.session?.analysisContext?.workspace;
+
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          _resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace = ContextBuilder.createWorkspace(
+          _resourceProvider, libraryPath, builder);
+    }
+    return workspace?.findPackageFor(libraryPath);
   }
 
   /**
