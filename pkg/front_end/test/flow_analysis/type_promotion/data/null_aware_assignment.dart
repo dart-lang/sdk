@@ -65,10 +65,9 @@ sameType(Object? x, int? y) {
 sameType_nonNull(Object? x, int y) {
   if (x is int?) {
     /*int?*/ x ??= y;
-    // TODO(paulberry): x should be promoted to `int` once types of
-    // interest are implemented (since the `??=` implicitly does a
-    // null check, so it makes `int` a type of interest).
-    /*int?*/ x;
+    // The implicit null test in the `??=` makes `int` a type of
+    // interest for `x`, so it is promoted.
+    /*int*/ x;
   }
 }
 
@@ -82,9 +81,8 @@ subtype(Object? x, int? y) {
 subtype_nonNull(Object? x, int y) {
   if (x is num?) {
     /*num?*/ x ??= y;
-    // TODO(paulberry): x should be promoted to `num` once types of
-    // interest are implemented (since the `??=` implicitly does a
-    // null check, so it makes `num` a type of interest).
-    /*num?*/ x;
+    // The implicit null test in the `??=` makes `num` a type of
+    // interest for `x`, so it is promoted.
+    /*num*/ x;
   }
 }

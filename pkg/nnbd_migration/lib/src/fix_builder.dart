@@ -147,7 +147,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       // TODO(paulberry): if targetInfo.readType is non-nullable, then the
       // assignment is dead code.
       // See https://github.com/dart-lang/sdk/issues/38678
-      _flowAnalysis.ifNullExpression_rightBegin();
+      _flowAnalysis.ifNullExpression_rightBegin(node.leftHandSide);
       var rhsType =
           visitSubexpression(node.rightHandSide, targetInfo.writeType);
       _flowAnalysis.ifNullExpression_end();
@@ -270,7 +270,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
         // migrate it to `(a ?? b)!`.  We want to migrate it to `a ?? b!`.
         var leftType = visitSubexpression(node.leftOperand,
             _typeSystem.makeNullable(_contextType as TypeImpl));
-        _flowAnalysis.ifNullExpression_rightBegin();
+        _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand);
         var rightType = visitSubexpression(node.rightOperand, _contextType);
         _flowAnalysis.ifNullExpression_end();
         return _typeSystem.leastUpperBound(

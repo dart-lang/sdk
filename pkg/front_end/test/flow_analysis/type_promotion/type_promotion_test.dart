@@ -30,6 +30,7 @@ main(List<String> args) async {
         'as.dart',
         'assert.dart',
         'assignment.dart',
+        'assignment_promoted.dart',
         'assigned_anywhere.dart',
         'binary.dart',
         'conditional.dart',

@@ -6,8 +6,7 @@ void toNonNull(int? x) {
   if (x != null) return;
   x;
   x = 0;
-  // TODO(paulberry): x should be known to be non-nullable now
-  x;
+  /*nonNullable*/ x;
 }
 
 void toNull(int? x) {

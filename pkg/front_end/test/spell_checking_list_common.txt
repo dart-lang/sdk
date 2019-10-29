@@ -376,6 +376,7 @@ catch
 catches
 categories
 category
+caveats
 caught
 cause
 caused
@@ -958,6 +959,7 @@ escapes
 escaping
 especially
 essence
+essentially
 essentials
 etc
 evaluate
@@ -1228,6 +1230,7 @@ growable
 guaranteed
 guarantees
 guard
+guarding
 guards
 guess
 guide
@@ -1441,6 +1444,7 @@ intercept
 interceptors
 interest
 interesting
+interests
 interface
 interfaces
 interferes
@@ -2074,6 +2078,7 @@ precisely
 precision
 preclude
 precondition
+preconditions
 predefined
 predicate
 preemptively
@@ -2399,6 +2404,7 @@ right
 rightfully
 rights
 rise
+roles
 roll
 root
 roots
@@ -2510,6 +2516,7 @@ shortcut
 shorted
 shorten
 shortened
+shorter
 shorting
 shorts
 should

@@ -3130,7 +3130,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
 
       if (operator == TokenType.QUESTION_QUESTION) {
-        flow?.ifNullExpression_rightBegin();
+        flow?.ifNullExpression_rightBegin(node.leftOperand);
         right.accept(this);
         flow?.ifNullExpression_end();
       } else {

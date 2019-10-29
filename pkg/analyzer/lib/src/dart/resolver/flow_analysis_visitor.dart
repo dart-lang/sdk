@@ -77,7 +77,7 @@ class FlowAnalysisHelper {
     if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_rightBegin();
+      flow.ifNullExpression_rightBegin(node.leftHandSide);
     }
 
     var left = node.leftHandSide;
