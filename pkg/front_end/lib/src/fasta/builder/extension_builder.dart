@@ -94,7 +94,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder lookupLocalMember(String name,
       {bool setter: false, bool required: false}) {
     // TODO(johnniwinther): Support patching on extensions.
-    Builder builder = setter ? scope.setters[name] : scope.local[name];
+    Builder builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

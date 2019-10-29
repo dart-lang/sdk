@@ -1203,12 +1203,12 @@ class ClassHierarchyNodeBuilder {
 
     /// Members (excluding setters) declared in [cls].
     List<ClassMember> localMembers =
-        new List<ClassMember>.from(scope.local.values)
+        new List<ClassMember>.from(scope.localMembers)
           ..sort(compareDeclarations);
 
     /// Setters declared in [cls].
     List<ClassMember> localSetters =
-        new List<ClassMember>.from(scope.setters.values)
+        new List<ClassMember>.from(scope.localSetters)
           ..sort(compareDeclarations);
 
     // Add implied setters from fields in [localMembers].

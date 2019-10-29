@@ -574,9 +574,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder lookupLocalMember(String name,
       {bool setter: false, bool required: false}) {
-    Builder builder = setter ? scope.setters[name] : scope.local[name];
+    Builder builder = scope.lookupLocalMember(name, setter: setter);
     if (builder == null && isPatch) {
-      builder = setter ? origin.scope.setters[name] : origin.scope.local[name];
+      builder = origin.scope.lookupLocalMember(name, setter: setter);
     }
     if (required && builder == null) {
       internalProblem(
@@ -934,16 +934,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
+    const String redirectingName = "_redirecting#";
     DillMemberBuilder constructorsField =
-        origin.scope.local.putIfAbsent("_redirecting#", () {
+        origin.scope.lookupLocalMember(redirectingName, setter: false);
+    if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
-      Name name = new Name("_redirecting#", library.library);
+      Name name = new Name(redirectingName, library.library);
       Field field = new Field(name,
           isStatic: true, initializer: literal, fileUri: cls.fileUri)
         ..fileOffset = cls.fileOffset;
       cls.addMember(field);
-      return new DillMemberBuilder(field, this);
-    });
+      constructorsField = new DillMemberBuilder(field, this);
+      origin.scope
+          .addLocalMember(redirectingName, constructorsField, setter: false);
+    }
     Field field = constructorsField.member;
     ListLiteral literal = field.initializer;
     literal.expressions
@@ -1746,14 +1750,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         patchForTesting = patch;
       }
       // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.local[name];
+      scope.forEachLocalMember((String name, Builder member) {
+        Builder memberPatch =
+            patch.scope.lookupLocalMember(name, setter: false);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      scope.setters.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.setters[name];
+      scope.forEachLocalSetter((String name, Builder member) {
+        Builder memberPatch = patch.scope.lookupLocalMember(name, setter: true);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }

@@ -764,7 +764,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     canAddImplementationBuilders = false;
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null ||
           !member.isField ||
@@ -1075,17 +1075,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    Map<String, Builder> map =
-        member.isSetter ? importScope.setters : importScope.local;
-    Builder existing = map[name];
+    Builder existing =
+        importScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing != null) {
       if (existing != member) {
-        map[name] = computeAmbiguousDeclaration(
-            name, existing, member, charOffset,
-            isImport: isImport);
+        importScope.addLocalMember(
+            name,
+            computeAmbiguousDeclaration(name, existing, member, charOffset,
+                isImport: isImport),
+            setter: member.isSetter);
       }
     } else {
-      map[name] = member;
+      importScope.addLocalMember(name, member, setter: member.isSetter);
     }
     if (member.isExtension) {
       importScope.addExtension(member);
@@ -2204,7 +2205,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Uri otherUri;
     Uri preferredUri;
     Uri hiddenUri;
-    if (scope.local[name] == declaration) {
+    if (scope.lookupLocalMember(name, setter: false) == declaration) {
       isLocal = true;
       preferred = declaration;
       hiddenUri = computeLibraryUri(other);
@@ -2495,7 +2496,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String name = originDeclarations.name;
       Builder member = originDeclarations.current;
       bool isSetter = member.isSetter;
-      Builder patch = isSetter ? scope.setters[name] : scope.local[name];
+      Builder patch = scope.lookupLocalMember(name, setter: isSetter);
       if (patch != null) {
         // [patch] has the same name as a [member] in [origin] library, so it
         // must be a patch to [member].
@@ -2540,10 +2541,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void injectMemberFromPatch(String name, Builder member) {
     if (member.isSetter) {
-      assert(scope.setters[name] == null);
+      assert(scope.lookupLocalMember(name, setter: true) == null);
       scopeBuilder.addSetter(name, member);
     } else {
-      assert(scope.local[name] == null);
+      assert(scope.lookupLocalMember(name, setter: false) == null);
       scopeBuilder.addMember(name, member);
     }
   }
@@ -2559,8 +2560,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // If this member already exist in the origin library scope, it should
     // have been marked as patch.
-    assert((member.isSetter && scope.setters[name] == null) ||
-        (!member.isSetter && scope.local[name] == null));
+    assert((member.isSetter &&
+            scope.lookupLocalMember(name, setter: true) == null) ||
+        (!member.isSetter &&
+            scope.lookupLocalMember(name, setter: false) == null));
     addToExportScope(name, member);
   }
 
@@ -2937,7 +2940,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, Builder> constructors;
 
-  final Map<String, Builder> setters;
+  final Map<String, MemberBuilder> setters;
 
   final List<ExtensionBuilder> extensions;
 
@@ -2977,7 +2980,7 @@ class TypeParameterScopeBuilder {
       : this(
             TypeParameterScopeKind.library,
             <String, Builder>{},
-            <String, Builder>{},
+            <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
             <ExtensionBuilder>[],
             "<library>",

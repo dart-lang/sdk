@@ -696,8 +696,10 @@ class KernelTarget extends TargetImplementation {
         for (VariableDeclaration formal
             in constructor.function.positionalParameters) {
           if (formal.isFieldFormal) {
-            Builder fieldBuilder = builder.scope.local[formal.name] ??
-                builder.origin.scope.local[formal.name];
+            Builder fieldBuilder =
+                builder.scope.lookupLocalMember(formal.name, setter: false) ??
+                    builder.origin.scope
+                        .lookupLocalMember(formal.name, setter: false);
             // If next is not null it's a duplicated field,
             // and it doesn't need to be initialized to null below
             // (and doing it will crash serialization).

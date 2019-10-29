@@ -328,7 +328,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             if (builder.isBuiltAndMarked) {
               // Clear cached calculations in classes which upon calculation can
               // mark things as needed.
-              for (Builder builder in builder.scope.local.values) {
+              for (Builder builder in builder.scope.localMembers) {
                 if (builder is DillClassBuilder) {
                   builder.supertype = null;
                   builder.interfaces = null;

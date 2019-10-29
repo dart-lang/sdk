@@ -474,10 +474,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Scope outerSwitchScope = pop();
     if (switchScope.unclaimedForwardDeclarations != null) {
       switchScope.unclaimedForwardDeclarations
-          .forEach((String name, Builder declaration) {
+          .forEach((String name, JumpTarget declaration) {
         if (outerSwitchScope == null) {
-          JumpTarget target = declaration;
-          for (Statement statement in target.users) {
+          for (Statement statement in declaration.users) {
             statement.parent.replaceChild(
                 statement,
                 wrapInProblemStatement(statement,
@@ -512,7 +511,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void declareVariable(VariableDeclaration variable, Scope scope) {
     String name = variable.name;
-    Builder existing = scope.local[name];
+    Builder existing = scope.lookupLocalMember(name, setter: false);
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
@@ -4140,7 +4139,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = name.charOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
-    Builder existing = scope.local[name.name];
+    Builder existing = scope.lookupLocalMember(name.name, setter: false);
     if (existing != null) {
       reportDuplicatedDeclaration(existing, name.name, name.charOffset);
     }

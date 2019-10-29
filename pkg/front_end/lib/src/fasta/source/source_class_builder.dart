@@ -208,7 +208,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     });
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null ||
           !(member.isField && !member.isFinal && !member.isConst ||
@@ -222,7 +222,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           member.charOffset, noLength);
     });
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder constructor = constructorScopeBuilder[name];
       if (constructor == null || !setter.isStatic) return;
       addProblem(templateConflictsWithConstructor.withArguments(name),

@@ -59,32 +59,17 @@ import 'dill_loader.dart' show DillLoader;
 
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
-class LazyLibraryScope extends Scope {
+class LazyLibraryScope extends LazyScope {
   DillLibraryBuilder libraryBuilder;
 
-  LazyLibraryScope(Map<String, Builder> local, Map<String, Builder> setters,
-      Scope parent, String debugName, {bool isModifiable: true})
-      : super(
-            local: local,
-            setters: setters,
-            parent: parent,
-            debugName: debugName,
-            isModifiable: isModifiable);
-
   LazyLibraryScope.top({bool isModifiable: false})
-      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
+      : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
             isModifiable: isModifiable);
 
-  Map<String, Builder> get local {
+  @override
+  void ensureScope() {
     if (libraryBuilder == null) throw new StateError("No library builder.");
     libraryBuilder.ensureLoaded();
-    return super.local;
-  }
-
-  Map<String, Builder> get setters {
-    if (libraryBuilder == null) throw new StateError("No library builder.");
-    libraryBuilder.ensureLoaded();
-    return super.setters;
   }
 }
 
@@ -323,10 +308,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       }
       Builder declaration;
       if (isSetter) {
-        declaration = library.exportScope.setters[name];
+        declaration = library.exportScope.lookupLocalMember(name, setter: true);
         exportScopeBuilder.addSetter(name, declaration);
       } else {
-        declaration = library.exportScope.local[name];
+        declaration =
+            library.exportScope.lookupLocalMember(name, setter: false);
         exportScopeBuilder.addMember(name, declaration);
       }
       if (declaration == null) {

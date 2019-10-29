@@ -156,7 +156,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     scope.forEach(buildBuilders);
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null) {
         // Setter without getter.
@@ -194,14 +194,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       if (retainDataForTesting) {
         patchForTesting = patch;
       }
-      scope.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.local[name];
+      scope.forEachLocalMember((String name, Builder member) {
+        Builder memberPatch =
+            patch.scope.lookupLocalMember(name, setter: false);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      scope.setters.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.setters[name];
+      scope.forEachLocalSetter((String name, Builder member) {
+        Builder memberPatch = patch.scope.lookupLocalMember(name, setter: true);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }

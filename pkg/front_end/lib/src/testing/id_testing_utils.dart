@@ -158,10 +158,9 @@ MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.constructors.local[memberName];
-    } else if (member is Procedure && member.isSetter) {
-      memberBuilder = classBuilder.scope.setters[memberName];
     } else {
-      memberBuilder = classBuilder.scope.local[memberName];
+      memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
+          setter: member is Procedure && member.isSetter);
     }
   }
   if (memberBuilder == null && required) {
@@ -223,11 +222,8 @@ MemberBuilder lookupExtensionMemberBuilder(
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder memberBuilder;
   if (extensionBuilder != null) {
-    if (isSetter) {
-      memberBuilder = extensionBuilder.scope.setters[memberName];
-    } else {
-      memberBuilder = extensionBuilder.scope.local[memberName];
-    }
+    memberBuilder =
+        extensionBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");

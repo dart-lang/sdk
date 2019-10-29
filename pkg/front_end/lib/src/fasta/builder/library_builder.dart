@@ -285,20 +285,20 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
-        member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
-    if (existing == member) return false;
-    if (existing != null) {
+    Builder existing =
+        exportScope.lookupLocalMember(name, setter: member.isSetter);
+    if (existing == member) {
+      return false;
+    } else if (existing != null) {
       Builder result = computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
-      map[name] = result;
+      exportScope.addLocalMember(name, result, setter: member.isSetter);
       return result != existing;
     } else {
-      map[name] = member;
+      exportScope.addLocalMember(name, member, setter: member.isSetter);
+      return true;
     }
-    return true;
   }
 
   @override
@@ -359,17 +359,17 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   void becomeCoreLibrary() {
-    if (scope.local["dynamic"] == null) {
+    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
       addSyntheticDeclarationOfDynamic();
     }
-    if (scope.local["Never"] == null) {
+    if (scope.lookupLocalMember("Never", setter: false) == null) {
       addSyntheticDeclarationOfNever();
     }
   }
 
   @override
   Builder lookupLocalMember(String name, {bool required: false}) {
-    Builder builder = scope.local[name];
+    Builder builder = scope.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

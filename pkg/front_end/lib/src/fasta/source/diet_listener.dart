@@ -963,12 +963,14 @@ class DietListener extends StackListener {
       }
 
       if (getOrSet != null && optional("set", getOrSet)) {
-        declaration = currentDeclaration.scope.setters[name];
+        declaration =
+            currentDeclaration.scope.lookupLocalMember(name, setter: true);
       } else {
-        declaration = currentDeclaration.scope.local[name];
+        declaration =
+            currentDeclaration.scope.lookupLocalMember(name, setter: false);
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
-      declaration = libraryBuilder.scope.setters[name];
+      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: true);
     } else {
       declaration = libraryBuilder.scopeBuilder[name];
     }
