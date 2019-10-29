@@ -4694,7 +4694,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     // TODO(sra): This should be JSArray<any>, created via
     // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
     InterfaceType interopType =
-        InterfaceType(_commonElements.jsArrayClass, [const DynamicType()]);
+        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction rti =
@@ -4993,8 +4993,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(
-        options.trustJSInteropTypeAnnotations ? type : const DynamicType());
+    nativeBehavior.typesReturned
+        .add(options.trustJSInteropTypeAnnotations ? type : DynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).

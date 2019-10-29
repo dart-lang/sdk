@@ -193,7 +193,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
               new TypedefType(
                   newTypedef,
                   new List<DartType>.filled(
-                      data.node.typeParameters.length, const DynamicType()),
+                      data.node.typeParameters.length, DynamicType()),
                   getDartType(data.node.type))));
       assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
@@ -709,7 +709,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.rawType = new InterfaceType(
             cls,
             new List<DartType>.filled(
-                node.typeParameters.length, const DynamicType()));
+                node.typeParameters.length, DynamicType()));
       }
     }
   }
@@ -722,8 +722,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         _ensureThisAndRawType(cls, data);
         data.jsInteropType = data.thisType;
       } else {
-        data.jsInteropType = InterfaceType(cls,
-            List<DartType>.filled(node.typeParameters.length, const AnyType()));
+        data.jsInteropType = InterfaceType(
+            cls, List<DartType>.filled(node.typeParameters.length, AnyType()));
       }
     }
   }
@@ -909,7 +909,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.parent is ir.Constructor) {
       // The return type on generative constructors is `void`, but we need
       // `dynamic` type to match the element model.
-      returnType = const DynamicType();
+      returnType = DynamicType();
     } else {
       returnType = getDartType(node.returnType);
     }
@@ -2180,7 +2180,7 @@ class JsElementEnvironment extends ElementEnvironment
   JsElementEnvironment(this.elementMap);
 
   @override
-  DartType get dynamicType => const DynamicType();
+  DartType get dynamicType => DynamicType();
 
   @override
   LibraryEntity get mainLibrary => elementMap._mainLibrary;

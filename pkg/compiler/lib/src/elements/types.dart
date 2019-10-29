@@ -396,7 +396,9 @@ class FunctionTypeVariable extends DartType {
 }
 
 class VoidType extends DartType {
-  const VoidType();
+  const VoidType._();
+
+  factory VoidType() => const VoidType._();
 
   @override
   bool get isVoid => true;
@@ -415,7 +417,9 @@ class VoidType extends DartType {
 }
 
 class DynamicType extends DartType {
-  const DynamicType();
+  const DynamicType._();
+
+  factory DynamicType() => const DynamicType._();
 
   @override
   bool get isDynamic => true;
@@ -437,7 +441,9 @@ class DynamicType extends DartType {
 }
 
 class ErasedType extends DartType {
-  const ErasedType();
+  const ErasedType._();
+
+  factory ErasedType() => const ErasedType._();
 
   @override
   bool get treatAsDynamic => true;
@@ -469,7 +475,9 @@ class ErasedType extends DartType {
 /// * Representing types appearing as generic method bounds which contain type
 /// variables. (See issue 33422.)
 class AnyType extends DartType {
-  const AnyType();
+  const AnyType._();
+
+  factory AnyType() => const AnyType._();
 
   @override
   bool get isAny => true;

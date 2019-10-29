@@ -141,7 +141,7 @@ class DartTypeWriter
     int index = functionTypeVariables.indexOf(type);
     if (index == -1) {
       // TODO(johnniwinther): Avoid free variables.
-      _sink._writeDartType(const DynamicType(), functionTypeVariables);
+      _sink._writeDartType(DynamicType(), functionTypeVariables);
     } else {
       _sink.writeEnum(DartTypeKind.functionTypeVariable);
       _sink.writeInt(index);

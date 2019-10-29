@@ -761,16 +761,15 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitDynamicType(DynamicType type, _EntityConverter converter) {
-    return const DynamicType();
+    return DynamicType();
   }
 
   @override
   DartType visitErasedType(ErasedType type, _EntityConverter converter) =>
-      const ErasedType();
+      ErasedType();
 
   @override
-  DartType visitAnyType(AnyType type, _EntityConverter converter) =>
-      const AnyType();
+  DartType visitAnyType(AnyType type, _EntityConverter converter) => AnyType();
 
   @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
@@ -831,7 +830,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitVoidType(VoidType type, _EntityConverter converter) {
-    return const VoidType();
+    return VoidType();
   }
 
   @override

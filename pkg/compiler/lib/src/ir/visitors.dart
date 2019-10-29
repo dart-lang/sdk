@@ -595,7 +595,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     if (node.parameter.parent is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
       // variables.
-      return const DynamicType();
+      return DynamicType();
     }
     return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
   }
@@ -647,19 +647,19 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(ir.VoidType node) {
-    return const VoidType();
+    return VoidType();
   }
 
   @override
   DartType visitDynamicType(ir.DynamicType node) {
-    return const DynamicType();
+    return DynamicType();
   }
 
   @override
   DartType visitInvalidType(ir.InvalidType node) {
     // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
     // cased in the builder, nested invalid types are treated as `dynamic`.
-    return const DynamicType();
+    return DynamicType();
   }
 
   @override

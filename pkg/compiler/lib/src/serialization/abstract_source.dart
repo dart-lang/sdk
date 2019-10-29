@@ -188,7 +188,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       case DartTypeKind.none:
         return null;
       case DartTypeKind.voidType:
-        return const VoidType();
+        return VoidType();
       case DartTypeKind.typeVariable:
         return new TypeVariableType(readTypeVariable());
       case DartTypeKind.functionTypeVariable:
@@ -235,11 +235,11 @@ abstract class AbstractDataSource extends DataSourceMixin
         DartType unaliased = _readDartType(functionTypeVariables);
         return new TypedefType(typedef, typeArguments, unaliased);
       case DartTypeKind.dynamicType:
-        return const DynamicType();
+        return DynamicType();
       case DartTypeKind.erasedType:
-        return const ErasedType();
+        return ErasedType();
       case DartTypeKind.anyType:
-        return const AnyType();
+        return AnyType();
       case DartTypeKind.futureOr:
         DartType typeArgument = _readDartType(functionTypeVariables);
         return new FutureOrType(typeArgument);

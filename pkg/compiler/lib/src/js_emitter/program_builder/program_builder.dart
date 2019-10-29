@@ -1012,7 +1012,7 @@ class ProgramBuilder {
         // Erase type arguments.
         List<DartType> typeArguments = enclosingType.typeArguments;
         type = type.subst(
-            List<DartType>.filled(typeArguments.length, const ErasedType()),
+            List<DartType>.filled(typeArguments.length, ErasedType()),
             typeArguments);
       }
     }

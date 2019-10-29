@@ -45,9 +45,9 @@ FunctionType buildJsFunctionType() {
   // range of positional arguments that need to be supported by JavaScript
   // function types.
   return new FunctionType(
-      const DynamicType(),
+      DynamicType(),
       const <DartType>[],
-      new List<DartType>.filled(16, const DynamicType()),
+      new List<DartType>.filled(16, DynamicType()),
       const <String>[],
       const <DartType>[],
       const <FunctionTypeVariable>[]);
