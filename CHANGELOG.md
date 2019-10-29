@@ -135,13 +135,14 @@ executables. See https://dart.dev/tools/dart2native for additional details.
 
 #### Linter
 
-The Linter was updated to `0.1.101`, which includes:
+The Linter was updated to `0.1.102`, which includes:
 
-* fixed `diagnostic_describe_all_properties` to flag properties in `Diagnosticable`s with no debug methods defined
-* fixed `noSuchMethod` exception in `camel_case_extensions` when analyzing unnamed extensions
-* fixed `avoid_print` to catch tear-off usage
-* new lint: `avoid_web_libraries_in_flutter` (experimental)
-* (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
+* `avoid_web_libraries_in_flutter` updated to disallow access from all but Flutter web plugin packages
+* updated `avoid_returning_null_for_void` to check only `null` literals (and not expressions having `Null` types)
+* fixed `prefer_final_fields` to respect non-mutating prefix operators
+* new lint: `prefer_is_not_operator`
+* new lint: `avoid_unnecessary_containers`
+* added basic nnbd-awareness to `avoid_init_to_null`
 
 
 ## 2.5.1 - 2019-09-27
