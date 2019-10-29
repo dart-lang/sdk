@@ -970,35 +970,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// provider.
   TypeProvider get _typeProvider => evaluationEngine.typeProvider;
 
-  /// Given a [type] that may contain free type variables, evaluate them against
-  /// the current lexical environment and return the substituted type.
-  DartType evaluateType(DartType type) {
-    if (type is TypeParameterType) {
-      return null;
-    }
-    if (type is ParameterizedType) {
-      List<DartType> typeArguments;
-      for (int i = 0; i < type.typeArguments.length; i++) {
-        DartType ta = type.typeArguments[i];
-        DartType t = evaluateType(ta);
-        if (!identical(t, ta)) {
-          if (typeArguments == null) {
-            typeArguments = type.typeArguments.toList(growable: false);
-          }
-          typeArguments[i] = t;
-        }
-      }
-      if (typeArguments == null) return type;
-      return type.instantiate(typeArguments);
-    }
-    return type;
-  }
-
-  /// Given a [type], returns the constant value that contains that type value.
-  DartObjectImpl typeConstant(DartType type) {
-    return new DartObjectImpl(_typeProvider.typeType, new TypeState(type));
-  }
-
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
     DartObjectImpl result;
@@ -1443,16 +1414,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _typeProvider.symbolType, new SymbolState(buffer.toString()));
   }
 
-  DartObjectImpl visitTypeAnnotation(TypeAnnotation node) {
-    DartType type = evaluateType(node.type);
-    if (type == null) {
+  @override
+  DartObjectImpl visitTypeName(TypeName node) {
+    var type = node.type;
+    if (_hasTypeParameterReference(type)) {
       return super.visitTypeName(node);
     }
-    return typeConstant(type);
+    return DartObjectImpl(_typeProvider.typeType, TypeState(type));
   }
-
-  @override
-  DartObjectImpl visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return `true` if the evaluation of one or more of the
@@ -1685,6 +1654,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return expressionValue;
     }
     return _typeProvider.nullObject;
+  }
+
+  /// Return `true` if the [type] has a type parameter reference, so is not
+  /// valid in a constant context.
+  static bool _hasTypeParameterReference(DartType type) {
+    if (type is TypeParameterType) {
+      return true;
+    }
+    if (type is ParameterizedType) {
+      return type.typeArguments.any(_hasTypeParameterReference);
+    }
+    return false;
   }
 }
 
