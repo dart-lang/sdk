@@ -65,7 +65,6 @@ class FunctionTypeTest with ElementsTypesMixin {
     expect(f.name, name, reason: 'name');
     // ParameterizedType properties
     expect(f.typeArguments, typeArguments, reason: 'typeArguments');
-    expect(f.typeParameters, typeParameters, reason: 'typeParameters');
     // FunctionType properties
     expect(f.namedParameterTypes, namedParameterTypes,
         reason: 'namedParameterTypes');

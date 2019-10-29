@@ -353,7 +353,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var positionalParameters = const <DecoratedType>[];
     var namedParameters = const <String, DecoratedType>{};
     var typeFormalBounds = const <DecoratedType>[];
-    if (type is InterfaceType && type.typeParameters.isNotEmpty) {
+    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
       if (node is TypeName) {
         if (node.typeArguments == null) {
           typeArguments = type.typeArguments

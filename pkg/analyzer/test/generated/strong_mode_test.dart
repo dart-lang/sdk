@@ -4683,8 +4683,7 @@ class C<T> {
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
     expect(f.staticInvokeType.toString(), 'S Function(int)');
     FunctionType ft = f.staticInvokeType;
-    expect('${ft.typeArguments}/${ft.typeParameters}',
-        '[S, int]/[T, S extends T]');
+    expect('${ft.typeArguments}', '[S, int]');
 
     expectIdentifierType('f;', 'S Function<S₀ extends S>(S₀)');
   }

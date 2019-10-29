@@ -1594,7 +1594,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, isEmpty);
   }
 
@@ -1618,7 +1617,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, isEmpty);
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;

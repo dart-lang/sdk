@@ -196,7 +196,8 @@ abstract class FunctionType implements ParameterizedType {
   /// The formal type parameters of this generic function.
   /// For example `<T> T -> T`.
   ///
-  /// These are distinct from the [typeParameters] list, which contains type
+  /// TODO(scheglov) Remove the mention for "typeParameters".
+  /// These are distinct from the `typeParameters` list, which contains type
   /// parameters from surrounding contexts, and thus are free type variables
   /// from the perspective of this function type.
   List<TypeParameterElement> get typeFormals;
@@ -474,16 +475,17 @@ abstract class InterfaceType implements ParameterizedType {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterizedType implements DartType {
-  /// Return a list containing the actual types of the type arguments. If this
-  /// type's element does not have type parameters, then the array should be
-  /// empty (although it is possible for type arguments to be erroneously
-  /// declared). If the element has type parameters and the actual type does not
-  /// explicitly include argument values, then the type "dynamic" will be
-  /// automatically provided.
+  /// Return the type arguments used to instantiate this type.
+  ///
+  /// An [InterfaceType] always has type arguments.
+  ///
+  /// A [FunctionType] has type arguments only if it is a result of a typedef
+  /// instantiation, otherwise the result is `null`.
   List<DartType> get typeArguments;
 
   /// Return a list containing all of the type parameters declared for this
   /// type.
+  @Deprecated("Use ClassElement.typeParmeters or FunctionType.typeFormals")
   List<TypeParameterElement> get typeParameters;
 
   /// Return the type resulting from instantiating (replacing) the given

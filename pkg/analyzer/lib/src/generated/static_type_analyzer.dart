@@ -284,7 +284,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     );
   }
 
-  ParameterizedType inferMapTypeDownwards(
+  InterfaceType inferMapTypeDownwards(
       SetOrMapLiteral node, DartType contextType) {
     if (contextType == null) {
       return null;

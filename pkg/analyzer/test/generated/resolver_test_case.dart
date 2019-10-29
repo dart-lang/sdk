@@ -737,7 +737,6 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
     expect(functionType.toString(), type);
     expect(identifier.staticType, isNull);
     expect(typeParameters(element).toString(), elementTypeParams);
-    expect(functionType.typeParameters.toString(), typeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
     expect(functionType.typeFormals.toString(), typeFormals);
     return functionType;

@@ -2804,7 +2804,7 @@ abstract class TypeSystem implements public.TypeSystem {
     if (type is FunctionType) {
       return type.typeFormals;
     } else if (type is InterfaceType) {
-      return type.typeParameters;
+      return type.element.typeParameters;
     } else {
       return const <TypeParameterElement>[];
     }

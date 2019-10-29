@@ -2317,17 +2317,17 @@ mixin _AssignmentChecker {
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard}) {
-    assert(_typeSystem.isSubtypeOf(destination.type, source.type));
+    var destinationType = destination.type;
+    assert(_typeSystem.isSubtypeOf(destinationType, source.type));
     // Nullability should narrow to maintain subtype relationship.
     _connect(source.node, destination.node, origin, hard: hard);
     if (source.type.isDynamic) {
       assert(destination.typeFormals?.isEmpty ?? true,
           'downcast to something with type parameters not yet supported.');
-      assert(destination is! FunctionType,
+      assert(destinationType is! FunctionType,
           'downcast to function type not yet supported.');
-      if (destination.type is ParameterizedType) {
-        for (final param
-            in (destination.type as ParameterizedType).typeParameters) {
+      if (destinationType is InterfaceType) {
+        for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,
               'downcast to type parameters with bounds not supported');
         }
@@ -2337,7 +2337,7 @@ mixin _AssignmentChecker {
         // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
         _checkDowncast(origin, source: source, destination: arg, hard: false);
       }
-    } else if (destination.type is TypeParameterType &&
+    } else if (destinationType is TypeParameterType &&
         source.type is! TypeParameterType) {
       // Assume an assignment to the type parameter's bound.
       _checkAssignment(origin,
@@ -2345,15 +2345,12 @@ mixin _AssignmentChecker {
           destination:
               _getTypeParameterTypeBound(destination).withNode(_graph.always),
           hard: false);
-    } else if (destination.type is InterfaceTypeImpl) {
+    } else if (destinationType is InterfaceType) {
       assert(source.typeArguments.isEmpty,
           'downcast from interface type with type args not supported.');
-      if (destination.type is ParameterizedType) {
-        for (final param
-            in (destination.type as ParameterizedType).typeParameters) {
-          assert(param.bound == null,
-              'downcast to type parameters with bounds not supported');
-        }
+      for (final param in destinationType.element.typeParameters) {
+        assert(param.bound == null,
+            'downcast to type parameters with bounds not supported');
       }
       for (final arg in destination.typeArguments) {
         // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
@@ -2366,7 +2363,7 @@ mixin _AssignmentChecker {
       assert(
           false,
           'downcasting from ${source.type.runtimeType} to '
-          '${destination.type.runtimeType} not supported.');
+          '${destinationType.runtimeType} not supported.');
     }
   }
 

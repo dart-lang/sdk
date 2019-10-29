@@ -985,18 +985,22 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// one (this is used to detect circularities).
   List<ConstructorElement> _computeMixinAppConstructors(
       [List<ClassElementImpl> visitedClasses]) {
-    // First get the list of constructors of the superclass which need to be
-    // forwarded to this class.
-    Iterable<ConstructorElement> constructorsToForward;
     if (supertype == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
       assert(false);
-      constructorsToForward = <ConstructorElement>[];
-    } else if (!supertype.element.isMixinApplication) {
+      return <ConstructorElement>[];
+    }
+
+    ClassElementImpl superElement = supertype.element;
+
+    // First get the list of constructors of the superclass which need to be
+    // forwarded to this class.
+    Iterable<ConstructorElement> constructorsToForward;
+    if (!superElement.isMixinApplication) {
       var library = this.library;
-      constructorsToForward = supertype.element.constructors
+      constructorsToForward = superElement.constructors
           .where((constructor) => constructor.isAccessibleIn(library));
     } else {
       if (visitedClasses == null) {
@@ -1010,7 +1014,6 @@ class ClassElementImpl extends AbstractClassElementImpl
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superElement = supertype.element;
         constructorsToForward =
             superElement._computeMixinAppConstructors(visitedClasses);
       } finally {
@@ -1022,9 +1025,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     // to produce constructors for this class.  We want to be robust in the
     // face of errors, so drop any extra type arguments and fill in any missing
     // ones with `dynamic`.
-    var superTypeParameters = supertype.typeParameters;
+    var superClassParameters = superElement.typeParameters;
     List<DartType> argumentTypes = new List<DartType>.filled(
-        superTypeParameters.length, DynamicTypeImpl.instance);
+        superClassParameters.length, DynamicTypeImpl.instance);
     for (int i = 0; i < supertype.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
         break;
@@ -1032,7 +1035,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       argumentTypes[i] = supertype.typeArguments[i];
     }
     var substitution =
-        Substitution.fromPairs(superTypeParameters, argumentTypes);
+        Substitution.fromPairs(superClassParameters, argumentTypes);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
