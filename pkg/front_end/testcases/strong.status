@@ -182,6 +182,7 @@ regress/issue_36647: RuntimeError # Expected
 regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
+regress/issue_39035.crash: RuntimeError
 regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError

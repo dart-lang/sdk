@@ -49,7 +49,8 @@
       "path": "testcases/",
       "status": "testcases/outline.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
@@ -66,7 +67,8 @@
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
@@ -83,7 +85,8 @@
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
@@ -100,7 +103,8 @@
       "path": "testcases/",
       "status": "testcases/text_serialization.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",

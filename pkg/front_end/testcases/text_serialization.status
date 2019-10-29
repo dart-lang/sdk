@@ -1088,6 +1088,7 @@ regress/issue_36793: TextSerializationFailure
 regress/issue_37285: TextSerializationFailure
 regress/issue_37681: TextSerializationFailure
 regress/issue_39040: TextSerializationFailure
+regress/issue_39035.crash: TextSerializationFailure
 regress/issue_39091_2: TextSerializationFailure
 regress/issue_39091_1: RuntimeError
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass

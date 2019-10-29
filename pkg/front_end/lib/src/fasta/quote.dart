@@ -136,12 +136,14 @@ String unescapeLastStringPart(String last, Quote quote, Object location,
 String unescapeString(
     String string, Object location, UnescapeErrorListener listener) {
   Quote quote = analyzeQuote(string);
+  int startIndex = firstQuoteLength(string, quote);
+  int endIndex = string.length - lastQuoteLength(quote);
+  if (startIndex > endIndex) {
+    // An error has already been signaled.
+    return "";
+  }
   return unescape(
-      string.substring(firstQuoteLength(string, quote),
-          string.length - lastQuoteLength(quote)),
-      quote,
-      location,
-      listener);
+      string.substring(startIndex, endIndex), quote, location, listener);
 }
 
 String unescape(String string, Quote quote, Object location,
