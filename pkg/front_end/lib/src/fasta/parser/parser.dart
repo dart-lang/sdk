@@ -53,6 +53,8 @@ import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
 
+import 'block_kind.dart';
+
 import 'declaration_kind.dart' show DeclarationKind;
 
 import 'directive_context.dart';
@@ -2774,24 +2776,28 @@ class Parser {
   }
 
   /// If the next token is an opening curly brace, return it. Otherwise, use the
-  /// given [template] or [blockKind] to report an error, insert an opening and
-  /// a closing curly brace, and return the newly inserted opening curly brace.
-  /// If  [template] and [blockKind] are `null`, then use
+  /// given [template] or [missingBlockName] to report an error, insert an
+  /// opening and a closing curly brace, and return the newly inserted opening
+  /// curly brace. If  [template] and [missingBlockName] are `null`, then use
   /// a default error message instead.
-  Token ensureBlock(Token token,
-      Template<Message Function(Token token)> template, String blockKind) {
+  Token ensureBlock(
+      Token token,
+      Template<Message Function(Token token)> template,
+      String missingBlockName) {
     Token next = token.next;
     if (optional('{', next)) return next;
     if (template == null) {
-      if (blockKind == null) {
+      if (missingBlockName == null) {
         // TODO(danrubel): rename ExpectedButGot to ExpectedBefore
         reportRecoverableError(
             next, fasta.templateExpectedButGot.withArguments('{'));
       } else {
         // TODO(danrubel): rename ExpectedClassOrMixinBody
         //  to ExpectedDeclarationOrClauseBody
-        reportRecoverableError(token,
-            fasta.templateExpectedClassOrMixinBody.withArguments(blockKind));
+        reportRecoverableError(
+            token,
+            fasta.templateExpectedClassOrMixinBody
+                .withArguments(missingBlockName));
       }
     } else {
       reportRecoverableError(next, template.withArguments(next));
@@ -3944,7 +3950,7 @@ class Parser {
     final String value = token.next.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
-      return parseBlock(token, null);
+      return parseBlock(token, BlockKind.statement);
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {
@@ -5902,9 +5908,9 @@ class Parser {
   ///   '{' statement* '}'
   /// ;
   /// ```
-  Token parseBlock(Token token, String blockKind) {
-    Token begin = token = ensureBlock(token, null, blockKind);
-    listener.beginBlock(begin);
+  Token parseBlock(Token token, BlockKind blockKind) {
+    Token begin = token = ensureBlock(token, null, blockKind.missingBlockName);
+    listener.beginBlock(begin, blockKind);
     int statementCount = 0;
     Token startToken = token.next;
     while (notEofOrValue('}', startToken)) {
@@ -5921,7 +5927,7 @@ class Parser {
     }
     token = token.next;
     assert(token.isEof || optional('}', token));
-    listener.endBlock(statementCount, begin, token);
+    listener.endBlock(statementCount, begin, token, blockKind);
     return token;
   }
 
@@ -5933,7 +5939,7 @@ class Parser {
     Listener originalListener = listener;
     listener = new ForwardingListener(listener)..forwardErrors = false;
     // The scanner ensures that `{` always has a closing `}`.
-    token = parseBlock(token, null);
+    token = parseBlock(token, BlockKind.invalid);
     listener = originalListener;
     listener.handleInvalidTopLevelBlock(begin);
     return token;
@@ -6051,7 +6057,7 @@ class Parser {
     Token tryKeyword = token.next;
     assert(optional('try', tryKeyword));
     listener.beginTryStatement(tryKeyword);
-    Token lastConsumed = parseBlock(tryKeyword, 'try statement');
+    Token lastConsumed = parseBlock(tryKeyword, BlockKind.tryStatement);
     token = lastConsumed.next;
     int catchCount = 0;
 
@@ -6146,7 +6152,7 @@ class Parser {
         token = lastConsumed.next;
       }
       listener.endCatchClause(token);
-      lastConsumed = parseBlock(lastConsumed, 'catch clause');
+      lastConsumed = parseBlock(lastConsumed, BlockKind.catchClause);
       token = lastConsumed.next;
       ++catchCount;
       listener.handleCatchBlock(onKeyword, catchKeyword, comma);
@@ -6156,7 +6162,7 @@ class Parser {
     Token finallyKeyword = null;
     if (optional('finally', token)) {
       finallyKeyword = token;
-      lastConsumed = parseBlock(token, 'finally clause');
+      lastConsumed = parseBlock(token, BlockKind.finallyClause);
       token = lastConsumed.next;
       listener.handleFinallyBlock(finallyKeyword);
     } else {

@@ -58,8 +58,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginBlock(Token token) {
-    super.beginBlock(token);
+  void beginBlock(Token token, BlockKind blockKind) {
+    super.beginBlock(token, blockKind);
     begin('Block');
   }
 
@@ -569,9 +569,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     end('Block');
-    super.endBlock(count, beginToken, endToken);
+    super.endBlock(count, beginToken, endToken, blockKind);
   }
 
   @override

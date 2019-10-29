@@ -30,8 +30,6 @@ main(List<String> args) async {
       skipList: [
         'for.dart',
         'for_element.dart',
-        'tryCatch.dart',
-        'tryFinally.dart',
       ]);
 }
 

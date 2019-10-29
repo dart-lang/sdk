@@ -41,8 +41,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginBlock(Token token) {
-    listener?.beginBlock(token);
+  void beginBlock(Token token, BlockKind blockKind) {
+    listener?.beginBlock(token, blockKind);
   }
 
   @override
@@ -490,8 +490,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endBlock(int count, Token beginToken, Token endToken) {
-    listener?.endBlock(count, beginToken, endToken);
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
+    listener?.endBlock(count, beginToken, endToken, blockKind);
   }
 
   @override

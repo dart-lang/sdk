@@ -44,6 +44,7 @@ import 'package:front_end/src/fasta/messages.dart'
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
+        BlockKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -604,7 +605,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void endBlock(int count, Token leftBracket, Token rightBracket) {
+  void endBlock(
+      int count, Token leftBracket, Token rightBracket, BlockKind blockKind) {
     assert(optional('{', leftBracket));
     assert(optional('}', rightBracket));
     debugEvent("Block");

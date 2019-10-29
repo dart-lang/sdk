@@ -15,6 +15,8 @@ import '../scanner/error_token.dart' show ErrorToken;
 
 import 'assert.dart' show Assert;
 
+import 'block_kind.dart' show BlockKind;
+
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -65,9 +67,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("InvalidAwaitExpression");
   }
 
-  void beginBlock(Token token) {}
+  void beginBlock(Token token, BlockKind blockKind) {}
 
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     logEvent("Block");
   }
 

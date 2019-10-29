@@ -11,6 +11,7 @@ import '../messages.dart' show LocatedMessage, Message, MessageCode;
 import '../parser.dart'
     show
         Assert,
+        BlockKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -230,13 +231,14 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void beginBlock(Token token) {
+  void beginBlock(Token token, BlockKind blockKind) {
     debugEvent("beginBlock", token);
     state.enterScope("block");
   }
 
   @override
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     debugEvent("Block", beginToken);
     state.exitScope(endToken);
   }

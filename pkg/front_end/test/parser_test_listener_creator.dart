@@ -39,6 +39,7 @@ main(List<String> args) {
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser/assert.dart';
+import 'package:front_end/src/fasta/parser/block_kind.dart';
 import 'package:front_end/src/fasta/parser/declaration_kind.dart';
 import 'package:front_end/src/fasta/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
@@ -82,7 +83,12 @@ class ParserTestListener implements Listener {
   out.writeln("}");
 
   if (out is StringBuffer) {
-    stdout.write(new DartFormatter().format("$out"));
+    String text = new DartFormatter().format("$out");
+    if (args.isNotEmpty) {
+      new File(args.first).writeAsStringSync(text);
+    } else {
+      stdout.write(text);
+    }
   }
 }
 

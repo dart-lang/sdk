@@ -60,10 +60,11 @@ import '../names.dart' show callName, emptyName, minusName, plusName;
 import '../parser.dart'
     show
         Assert,
-        Parser,
+        BlockKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
+        Parser,
         lengthForToken,
         lengthOfSpan,
         offsetForToken,
@@ -2374,11 +2375,27 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endBlock(int count, Token openBrace, Token closeBrace) {
+  void beginBlock(Token token, BlockKind blockKind) {
+    super.beginBlock(token, blockKind);
+    if (blockKind == BlockKind.tryStatement ||
+        blockKind == BlockKind.finallyClause) {
+      // This is matched by the call to [endNode] in [endBlock].
+      typeInferrer?.assignedVariables?.beginNode();
+    }
+  }
+
+  @override
+  void endBlock(
+      int count, Token openBrace, Token closeBrace, BlockKind blockKind) {
     debugEvent("Block");
     Statement block = popBlock(count, openBrace, closeBrace);
     exitLocalScope();
     push(block);
+    if (blockKind == BlockKind.tryStatement ||
+        blockKind == BlockKind.finallyClause) {
+      // This is matched by the call to [beginNode] in [beginBlock].
+      typeInferrer?.assignedVariables?.endNode(block);
+    }
   }
 
   void handleInvalidTopLevelBlock(Token token) {

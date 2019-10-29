@@ -43,6 +43,7 @@ import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/parser/assert.dart';
+import 'package:front_end/src/fasta/parser/block_kind.dart';
 import 'package:front_end/src/fasta/parser/declaration_kind.dart';
 import 'package:front_end/src/fasta/parser/directive_context.dart';
 import 'package:front_end/src/fasta/parser/formal_parameter_kind.dart';
@@ -88,7 +89,12 @@ class TestParser extends Parser {
   out.writeln("}");
 
   if (out is StringBuffer) {
-    stdout.write(new DartFormatter().format("$out"));
+    String text = new DartFormatter().format("$out");
+    if (args.isNotEmpty) {
+      new File(args.first).writeAsStringSync(text);
+    } else {
+      stdout.write(text);
+    }
   }
 }
 

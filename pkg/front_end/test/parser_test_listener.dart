@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser/assert.dart';
+import 'package:front_end/src/fasta/parser/block_kind.dart';
 import 'package:front_end/src/fasta/parser/declaration_kind.dart';
 import 'package:front_end/src/fasta/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/fasta/parser/identifier_context.dart';
@@ -82,14 +83,15 @@ class ParserTestListener implements Listener {
         '$errorCode)');
   }
 
-  void beginBlock(Token token) {
-    doPrint('beginBlock(' '$token)');
+  void beginBlock(Token token, BlockKind blockKind) {
+    doPrint('beginBlock(' '$token, ' '$blockKind)');
     indent++;
   }
 
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     indent--;
-    doPrint('endBlock(' '$count, ' '$beginToken, ' '$endToken)');
+    doPrint('endBlock(' '$count, ' '$beginToken, ' '$endToken, ' '$blockKind)');
   }
 
   void handleInvalidTopLevelBlock(Token token) {

@@ -6,6 +6,8 @@ library fasta.scope_listener;
 
 import '../../scanner/token.dart' show Token;
 
+import '../parser/block_kind.dart' show BlockKind;
+
 import '../scope.dart' show Scope;
 
 import 'stack_listener.dart' show NullValue, StackListener;
@@ -100,7 +102,7 @@ abstract class ScopeListener<J> extends StackListener {
   }
 
   @override
-  void beginBlock(Token token) {
+  void beginBlock(Token token, BlockKind blockKind) {
     debugEvent("beginBlock");
     enterLocalScope("block");
   }

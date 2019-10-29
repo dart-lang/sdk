@@ -16,6 +16,8 @@ import 'fasta_codes.dart' show Message, messageNativeClauseShouldBeAnnotation;
 
 export 'parser/assert.dart' show Assert;
 
+export 'parser/block_kind.dart' show BlockKind;
+
 export 'parser/class_member_parser.dart' show ClassMemberParser;
 
 export 'parser/formal_parameter_kind.dart' show FormalParameterKind;

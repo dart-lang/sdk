@@ -18,22 +18,46 @@ tryCatch(int a, int b) {
   }
 }
 
-/*member: catchClause:declared={e}*/
-catchClause() {
-  try {} catch (e) {}
+/*member: catchClause:declared={a, b, d, e}, assigned={a, b}*/
+catchClause(int a, int b) {
+  try /*declared={c}, assigned={a}*/ {
+    a = 0;
+    var c;
+  } catch (e) {
+    b = 0;
+    var d;
+  }
 }
 
-/*member: onCatch:declared={e}*/
-onCatch() {
-  try {} on String catch (e) {}
+/*member: onCatch:declared={a, b, d, e}, assigned={a, b}*/
+onCatch(int a, int b) {
+  try /*declared={c}, assigned={a}*/ {
+    a = 0;
+    var c;
+  } on String catch (e) {
+    b = 0;
+    var d;
+  }
 }
 
-/*member: catchStackTrace:declared={e, st}*/
-catchStackTrace() {
-  try {} catch (e, st) {}
+/*member: catchStackTrace:declared={a, b, d, e, st}, assigned={a, b}*/
+catchStackTrace(int a, int b) {
+  try /*declared={c}, assigned={a}*/ {
+    a = 0;
+    var c;
+  } catch (e, st) {
+    b = 0;
+    var d;
+  }
 }
 
-/*member: onCatchStackTrace:declared={e, st}*/
-onCatchStackTrace() {
-  try {} on String catch (e, st) {}
+/*member: onCatchStackTrace:declared={a, b, d, e, st}, assigned={a, b}*/
+onCatchStackTrace(int a, int b) {
+  try /*declared={c}, assigned={a}*/ {
+    a = 0;
+    var c;
+  } on String catch (e, st) {
+    b = 0;
+    var d;
+  }
 }

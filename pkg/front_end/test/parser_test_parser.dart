@@ -8,6 +8,7 @@ import 'package:front_end/src/scanner/token.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/parser/assert.dart';
+import 'package:front_end/src/fasta/parser/block_kind.dart';
 import 'package:front_end/src/fasta/parser/declaration_kind.dart';
 import 'package:front_end/src/fasta/parser/directive_context.dart';
 import 'package:front_end/src/fasta/parser/formal_parameter_kind.dart';
@@ -1705,7 +1706,7 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseBlock(Token token, String blockKind) {
+  Token parseBlock(Token token, BlockKind blockKind) {
     doPrint('parseBlock(' '$token, ' '$blockKind)');
     indent++;
     var result = super.parseBlock(token, blockKind);
