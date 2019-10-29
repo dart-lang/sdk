@@ -197,4 +197,26 @@ f(A a) {
 }
 ''');
   }
+
+  test_prefix_minus_defined() async {
+    await assertNoErrorsInCode('''
+extension E on String {
+  String operator -() => substring(1);
+}
+f() {
+  -E('a');
+}
+''');
+  }
+
+  test_prefix_minus_undefined() async {
+    await assertErrorsInCode('''
+extension E on String {}
+f() {
+  -E('a');
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 33, 1),
+    ]);
+  }
 }

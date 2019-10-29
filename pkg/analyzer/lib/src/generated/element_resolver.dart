@@ -659,6 +659,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
         operatorType.isIncrementOperator) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
+      if (operand is ExtensionOverride) {
+        ExtensionElement element = operand.extensionName.staticElement;
+        MethodElement member = element.getMethod(methodName);
+        if (member == null) {
+          _resolver.errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+              node.operator,
+              [methodName, element.name]);
+        }
+        node.staticElement = member;
+        return;
+      }
       DartType staticType = _getStaticType(operand, read: true);
       var result = _newPropertyResolver()
           .resolve(operand, staticType, methodName, operand);
