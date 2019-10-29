@@ -1769,6 +1769,11 @@ abstract class IntegrationTestMixin {
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
    *
+   * port: int (optional)
+   *
+   *   The port to be used to listen for and respond to http requests for
+   *   preview pages.
+   *
    * outputDir: FilePath (optional)
    *
    *   The absolute and normalized path to a directory to which non-nullability
@@ -1810,12 +1815,14 @@ abstract class IntegrationTestMixin {
       bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes,
+      int port,
       String outputDir}) async {
     var params = new EditDartfixParams(included,
             includedFixes: includedFixes,
             includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes,
+            port: port,
             outputDir: outputDir)
         .toJson();
     var result = await server.send("edit.dartfix", params);

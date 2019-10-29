@@ -498,12 +498,13 @@ public interface AnalysisServer {
    * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
+   * @param port The port to be used to listen for and respond to http requests for preview pages.
    * @param outputDir The absolute and normalized path to a directory to which non-nullability
    *         migration output will be written. The output is only produced if the non-nullable fix is
    *         included. Files in the directory might be overwritten, but no previously existing files
    *         will be deleted.
    */
-  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, String outputDir, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, int port, String outputDir, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}
