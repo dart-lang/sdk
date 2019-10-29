@@ -93,6 +93,8 @@ class _ReachabilityDataExtractor
       _checkBodyCompletion(node.functionExpression.body, result);
     } else if (node is ConstructorDeclaration) {
       _checkBodyCompletion(node.body, result);
+    } else if (node is MethodDeclaration) {
+      _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;
   }

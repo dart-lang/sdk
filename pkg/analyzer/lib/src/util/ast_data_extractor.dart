@@ -103,6 +103,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    return super.visitMethodDeclaration(node);
+  }
+
+  @override
   visitStatement(Statement node) {
     computeForStatement(
         node,

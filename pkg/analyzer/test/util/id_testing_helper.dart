@@ -201,6 +201,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
                     return variable.offset;
                   }
                 }
+              } else if (member is MethodDeclaration) {
+                if (member.name.name == name) {
+                  return member.offset;
+                }
               }
             }
           }
