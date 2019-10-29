@@ -186,7 +186,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(
+    return TypeParameterMember.from(
       baseElement.typeParameters,
       _substitution,
     );
@@ -669,7 +669,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(
+    return TypeParameterMember.from(
       baseElement.typeParameters,
       _substitution,
     );
@@ -893,23 +893,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     return buffer.toString();
   }
 
-  /**
-   * If the given [parameter]'s type is different when any type parameters from
-   * the defining type's declaration are replaced with the actual type
-   * arguments from the [definingType], create a parameter member representing
-   * the given parameter. Return the member that was created, or the base
-   * parameter if no member was created.
-   */
   static List<TypeParameterElement> from(
-      List<TypeParameterElement> formals, FunctionType definingType) {
-    var substitution = Substitution.fromPairs(
-      definingType.typeParameters,
-      definingType.typeArguments,
-    );
-    return from2(formals, substitution);
-  }
-
-  static List<TypeParameterElement> from2(
     List<TypeParameterElement> elements,
     MapSubstitution substitution,
   ) {
