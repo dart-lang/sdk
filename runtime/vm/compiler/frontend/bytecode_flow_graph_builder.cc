@@ -441,7 +441,6 @@ ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
   for (intptr_t i = count - 1; i >= 0; --i) {
     ASSERT(!IsStackEmpty());
     Definition* arg_def = B->stack_->definition();
-    ASSERT(!arg_def->HasSSATemp());
     ASSERT(arg_def->temp_index() >= i);
 
     PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());

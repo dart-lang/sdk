@@ -630,10 +630,15 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   variable->set_index(
       VariableIndex(-parsed_function_->num_stack_locals() - index));
 
-  // The value has uses as if it were a local variable.  Mark the definition
-  // as used so that its temp index will not be cleared (causing it to never
-  // be materialized in the expression stack).
-  stack_->definition()->set_ssa_temp_index(0);
+  // The value on top of the stack has uses as if it were a local variable.
+  // Mark all definitions on the stack as used so that their temp indices
+  // will not be cleared (causing them to never be materialized in the
+  // expression stack and skew stack depth).
+  for (Value* item = stack_; item != nullptr; item = item->next_use()) {
+    if (!item->definition()->IsPushArgument()) {
+      item->definition()->set_ssa_temp_index(0);
+    }
+  }
 
   return variable;
 }
