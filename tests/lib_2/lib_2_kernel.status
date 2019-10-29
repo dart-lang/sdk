@@ -4,7 +4,6 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-convert/streamed_conversion_json_utf8_decode_test: Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 
 [ $compiler == dartkb ]

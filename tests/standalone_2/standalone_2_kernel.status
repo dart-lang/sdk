@@ -4,8 +4,9 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-fragmentation_test: Slow # GC heavy
-io/process_sync_test: Slow # Spawns synchronously subprocesses in sequence.
+fragmentation_test: Pass, Slow # GC heavy
+fragmentation_typed_data_test: Pass, Slow # GC heavy
+io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $compiler == dartkb ]
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
