@@ -23,12 +23,7 @@ dependencies:
 
 dev_dependencies:
   cli_util: ^0.1.2
-  # Update when 1.3.3 lands.
-  # https://github.com/dart-lang/dart_style/issues/866
-  dart_style:
-    git:
-      url: git://github.com/dart-lang/dart_style.git
-      ref: 108a94c8b1797d4f535edff2746bf31b185d04b2
+  dart_style: ^1.3.3
   github: ^5.0.0
   grinder: ^0.8.0
   http: ^0.12.0
