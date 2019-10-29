@@ -103,8 +103,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   @override
   String get fullNameForErrors => name;
 
-  VariableDeclaration get target => variable;
-
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {

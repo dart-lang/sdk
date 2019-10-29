@@ -52,11 +52,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   bool mayImplementRestrictedTypes;
 
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target;
-
   /// Set the language version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
@@ -217,15 +212,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isSynthetic => false;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target => unsupported(
-      "LibraryBuilder.target is deprecated. "
-      "Use LibraryBuilder.library instead.",
-      charOffset,
-      fileUri);
 
   /// Set the language version to a specific non-null major and minor version.
   ///

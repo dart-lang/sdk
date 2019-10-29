@@ -26,11 +26,6 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Return the [Extension] built by this builder.
   Extension get extension;
 
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target;
-
   void buildOutlineExpressions(LibraryBuilder library);
 
   /// Looks up extension member by [name] taking privacy into account.
@@ -75,15 +70,6 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     // TODO(johnniwinther): Handle patched extensions.
     return declaration;
   }
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target => unsupported(
-      "ExtensionBuilder.target is deprecated. "
-      "Use ExtensionBuilder.extension instead.",
-      charOffset,
-      fileUri);
 
   @override
   DartType buildType(LibraryBuilder library,

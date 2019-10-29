@@ -30,9 +30,6 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   /// The [Member] built by this builder;
   Member get member;
 
-  // TODO(johnniwinther): Deprecate this.
-  Member get target;
-
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   Member get extensionTearOff;
 
@@ -106,10 +103,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       return cls.library;
     }
   }
-
-  // TODO(johnniwinther): Deprecate this.
-  @override
-  Member get target => member;
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override

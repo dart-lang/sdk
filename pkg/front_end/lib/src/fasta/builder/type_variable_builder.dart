@@ -13,11 +13,8 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
-import '../problems.dart' show unsupported;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'builder.dart';
 import 'class_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
@@ -71,14 +68,6 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   /// The [TypeParameter] built by this builder.
   TypeParameter get parameter => origin.actualParameter;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // uses until Builder.target is fully retired.
-  UnrelatedTarget get target => unsupported(
-      "TypeVariableBuilder.target is deprecated. "
-      "Use TypeVariableBuilder.parameter instead.",
-      charOffset,
-      fileUri);
 
   int get variance => parameter.variance;
 

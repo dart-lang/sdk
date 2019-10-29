@@ -128,21 +128,15 @@ main() {
         new VariableUseGenerator(helper, token, variable, type));
     check(
         "PropertyAccessGenerator(offset: 4,"
-        " receiver: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter)",
-        new PropertyAccessGenerator(
-            helper, token, expression, name, getter, setter));
-    check(
-        "ThisPropertyAccessGenerator(offset: 4, name: bar,"
-        " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new ThisPropertyAccessGenerator(helper, token, name, getter, setter));
+        " receiver: expression, name: bar)",
+        new PropertyAccessGenerator(helper, token, expression, name));
+    check("ThisPropertyAccessGenerator(offset: 4, name: bar)",
+        new ThisPropertyAccessGenerator(helper, token, name));
     check(
         "NullAwarePropertyAccessGenerator(offset: 4,"
         " receiver: final dynamic #t1 = expression;\n,"
-        " receiverExpression: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter, type: void)",
-        new NullAwarePropertyAccessGenerator(
-            helper, token, expression, name, getter, setter, type));
+        " receiverExpression: expression, name: bar)",
+        new NullAwarePropertyAccessGenerator(helper, token, expression, name));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",

@@ -550,8 +550,6 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
       String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  Member get target => null;
-
   Member get member => null;
 
   bool get isNative => false;

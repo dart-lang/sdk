@@ -6,9 +6,6 @@ library fasta.declaration;
 
 import '../problems.dart' show unsupported;
 
-/// Dummy class to help deprecate [Builder.target].
-abstract class UnrelatedTarget {}
-
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
@@ -20,8 +17,6 @@ abstract class Builder {
   Uri get fileUri;
 
   int get charOffset;
-
-  get target;
 
   Builder get origin;
 
@@ -215,9 +210,6 @@ abstract class BuilderImpl implements Builder {
   Builder next;
 
   BuilderImpl();
-
-  @override
-  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
 
   @override
   Builder get origin => this;

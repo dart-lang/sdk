@@ -34,9 +34,6 @@ class VariableBuilderImpl extends BuilderImpl implements VariableBuilder {
   bool get isFinal => variable.isFinal;
 
   @override
-  VariableDeclaration get target => variable;
-
-  @override
   bool get isAssignable => variable.isAssignable;
 
   @override

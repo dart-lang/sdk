@@ -1891,18 +1891,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (extensionThis != null) {
           // If we are in an extension instance member we interpret this as an
           // implicit access on the 'this' parameter.
-          return PropertyAccessGenerator.make(
-              this,
-              token,
-              createVariableGet(extensionThis, charOffset),
-              n,
-              null,
-              null,
-              false);
+          return PropertyAccessGenerator.make(this, token,
+              createVariableGet(extensionThis, charOffset), n, false);
         } else {
           // This is an implicit access on 'this'.
-          return new ThisPropertyAccessGenerator(this, token, n,
-              lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
+          return new ThisPropertyAccessGenerator(this, token, n);
         }
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
@@ -1939,31 +1932,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
       Name n = new Name(name, libraryBuilder.nameOrigin);
-      Member getter;
-      Member setter;
-      if (declaration is AccessErrorBuilder) {
-        setter = declaration.parent.target;
-        getter = lookupInstanceMember(n);
-      } else {
-        getter = declaration.target;
-        setter = lookupInstanceMember(n, isSetter: true);
-      }
-      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+      return new ThisPropertyAccessGenerator(this, token, n);
     } else if (declaration.isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = declarationBuilder;
-      Builder setter =
+      MemberBuilder setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       // TODO(johnniwinther): Check for constantContext like below?
       if (declaration.isField) {
         declaration = null;
       }
-      if (setter != null && (setter.isField || setter.isStatic)) {
-        setter = null;
+      if (setterBuilder != null &&
+          (setterBuilder.isField || setterBuilder.isStatic)) {
+        setterBuilder = null;
       }
-      if (declaration == null && setter == null) {
+      if (declaration == null && setterBuilder == null) {
         return new UnresolvedNameGenerator(
             this, token, new Name(name, libraryBuilder.nameOrigin));
       }
+      MemberBuilder getterBuilder =
+          declaration is MemberBuilder ? declaration : null;
       return new ExtensionInstanceAccessGenerator.fromBuilder(
           this,
           token,
@@ -1971,12 +1958,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           name,
           extensionThis,
           extensionTypeParameters,
-          declaration,
-          setter);
+          getterBuilder,
+          setterBuilder);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
+      MemberBuilder memberBuilder = declaration;
       return new StaticAccessGenerator(
-          this, token, name, declaration.target, null);
+          this, token, name, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       return new PrefixUseGenerator(this, token, declaration);
@@ -1985,10 +1973,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
       return declaration;
     } else {
-      Builder setter =
+      MemberBuilder setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
+      MemberBuilder getterBuilder =
+          declaration is MemberBuilder ? declaration : null;
+      assert(getterBuilder != null || setterBuilder != null);
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
-          this, name, declaration, token, setter);
+          this, name, token, getterBuilder, setterBuilder);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -2004,7 +1995,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// Returns the setter builder corresponding to [declaration] using the
   /// [name] and [charOffset] for the lookup into [scope] if necessary.
-  Builder _getCorrespondingSetterBuilder(
+  MemberBuilder _getCorrespondingSetterBuilder(
       Scope scope, Builder declaration, String name, int charOffset) {
     Builder setter;
     if (declaration.isSetter) {
@@ -2012,13 +2003,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (declaration.isGetter) {
       setter = scope.lookupSetter(name, charOffset, uri);
     } else if (declaration.isField) {
-      if (declaration.isFinal || declaration.isConst) {
+      MemberBuilder fieldBuilder = declaration;
+      if (!fieldBuilder.isAssignable) {
         setter = scope.lookupSetter(name, charOffset, uri);
       } else {
         setter = declaration;
       }
     }
-    return setter;
+    return setter is MemberBuilder ? setter : null;
   }
 
   @override
@@ -4115,8 +4107,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (context.isScopeReference &&
         isDeclarationInstanceContext &&
         extensionThis == null) {
-      Member member = this.member.target;
-      member.transformerFlags |= TransformerFlag.superCalls;
+      MemberBuilder memberBuilder = member;
+      memberBuilder.member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(this, token, inInitializer,
           inFieldInitializer, inLateFieldInitializer,
           isSuper: true));

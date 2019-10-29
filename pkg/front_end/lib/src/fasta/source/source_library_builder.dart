@@ -1061,8 +1061,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 library.additionalExports.add(memberLast.typedef.reference);
               } else if (memberLast is ExtensionBuilder) {
                 library.additionalExports.add(memberLast.extension.reference);
+              } else if (memberLast is MemberBuilder) {
+                library.additionalExports.add(memberLast.member.reference);
               } else {
-                library.additionalExports.add(memberLast.target.reference);
+                unhandled('member', 'exportScope', memberLast.charOffset,
+                    memberLast.fileUri);
               }
             }
         }

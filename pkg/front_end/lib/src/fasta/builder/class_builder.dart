@@ -107,7 +107,7 @@ import '../modifier.dart';
 import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unimplemented, unsupported;
+    show internalProblem, unexpected, unhandled, unimplemented;
 
 import '../scope.dart';
 
@@ -195,10 +195,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   ///
   /// For a patch class the origin class is returned.
   Class get cls;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  UnrelatedTarget get target;
 
   @override
   ClassBuilder get origin;
@@ -604,15 +600,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType _legacyRawType;
   InterfaceType _nullableRawType;
   InterfaceType _nonNullableRawType;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target => unsupported(
-      "ClassBuilder.target is deprecated. "
-      "Use ClassBuilder.cls instead.",
-      charOffset,
-      fileUri);
 
   @override
   ClassBuilder get origin => actualOrigin ?? this;

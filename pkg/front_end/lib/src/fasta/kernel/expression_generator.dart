@@ -239,8 +239,8 @@ abstract class Generator {
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
-      return PropertyAccessGenerator.make(_helper, send.token,
-          buildSimpleRead(), send.name, null, null, isNullAware);
+      return PropertyAccessGenerator.make(
+          _helper, send.token, buildSimpleRead(), send.name, isNullAware);
     }
   }
 
@@ -446,14 +446,8 @@ class PropertyAccessGenerator extends Generator {
   /// documentation.
   final Name name;
 
-  // TODO(johnniwinther): Remove [getter] and [setter]? These are never
-  // passed.
-  final Member getter;
-
-  final Member setter;
-
-  PropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.receiver, this.name, this.getter, this.setter)
+  PropertyAccessGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.receiver, this.name)
       : super(helper, token);
 
   @override
@@ -474,22 +468,17 @@ class PropertyAccessGenerator extends Generator {
     printNodeOn(receiver, sink, syntheticNames: syntheticNames);
     sink.write(", name: ");
     sink.write(name.name);
-    sink.write(", getter: ");
-    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
-    sink.write(", setter: ");
-    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
   }
 
   @override
   Expression buildSimpleRead() {
-    return _forest.createPropertyGet(fileOffset, receiver, name,
-        interfaceTarget: getter);
+    return _forest.createPropertyGet(fileOffset, receiver, name);
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     return _helper.forest.createPropertySet(fileOffset, receiver, name, value,
-        interfaceTarget: setter, forEffect: voidContext);
+        forEffect: voidContext);
   }
 
   @override
@@ -563,27 +552,14 @@ class PropertyAccessGenerator extends Generator {
   }
 
   /// Creates a [Generator] for the access of property [name] on [receiver].
-  static Generator make(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Name name,
-      // TODO(johnniwinther): Remove [getter] and [setter]? These are never
-      // passed.
-      Member getter,
-      Member setter,
-      bool isNullAware) {
+  static Generator make(ExpressionGeneratorHelper helper, Token token,
+      Expression receiver, Name name, bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
-      getter ??= helper.lookupInstanceMember(name);
-      setter ??= helper.lookupInstanceMember(name, isSetter: true);
-      return new ThisPropertyAccessGenerator(
-          helper, token, name, getter, setter);
+      return new ThisPropertyAccessGenerator(helper, token, name);
     } else {
       return isNullAware
-          ? new NullAwarePropertyAccessGenerator(
-              helper, token, receiver, name, getter, setter, null)
-          : new PropertyAccessGenerator(
-              helper, token, receiver, name, getter, setter);
+          ? new NullAwarePropertyAccessGenerator(helper, token, receiver, name)
+          : new PropertyAccessGenerator(helper, token, receiver, name);
     }
   }
 }
@@ -622,20 +598,8 @@ class ThisPropertyAccessGenerator extends Generator {
   /// documentation.
   final Name name;
 
-  /// The member accessed if this subexpression has a read.
-  ///
-  /// This is `null` if the `this` class does not have a readable property named
-  /// [name].
-  final Member getter;
-
-  /// The member accessed if this subexpression has a write.
-  ///
-  /// This is `null` if the `this` class does not have a writable property named
-  /// [name].
-  final Member setter;
-
-  ThisPropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.name, this.getter, this.setter)
+  ThisPropertyAccessGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.name)
       : super(helper, token);
 
   @override
@@ -651,8 +615,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   Expression _createRead() {
     return _forest.createPropertyGet(
-        fileOffset, _forest.createThisExpression(fileOffset), name,
-        interfaceTarget: getter);
+        fileOffset, _forest.createThisExpression(fileOffset), name);
   }
 
   @override
@@ -663,7 +626,7 @@ class ThisPropertyAccessGenerator extends Generator {
   Expression _createWrite(int offset, Expression value, {bool forEffect}) {
     return _helper.forest.createPropertySet(
         fileOffset, _forest.createThisExpression(fileOffset), name, value,
-        interfaceTarget: setter, forEffect: forEffect);
+        forEffect: forEffect);
   }
 
   @override
@@ -722,15 +685,8 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    Member interfaceTarget = getter;
-    if (interfaceTarget is Field) {
-      // TODO(ahe): In strong mode we should probably rewrite this to
-      // `this.name.call(arguments)`.
-      interfaceTarget = null;
-    }
     return _helper.buildMethodInvocation(
-        _forest.createThisExpression(fileOffset), name, arguments, offset,
-        interfaceTarget: interfaceTarget);
+        _forest.createThisExpression(fileOffset), name, arguments, offset);
   }
 
   @override
@@ -741,13 +697,8 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   void printOn(StringSink sink) {
-    NameSystem syntheticNames = new NameSystem();
     sink.write(", name: ");
     sink.write(name.name);
-    sink.write(", getter: ");
-    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
-    sink.write(", setter: ");
-    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
   }
 }
 
@@ -758,20 +709,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   final Name name;
 
-  final Member getter;
-
-  final Member setter;
-
-  final DartType type;
-
-  NullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      this.receiverExpression,
-      this.name,
-      this.getter,
-      this.setter,
-      this.type)
+  NullAwarePropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, this.receiverExpression, this.name)
       : this.receiver = makeOrReuseVariable(receiverExpression),
         super(helper, token);
 
@@ -867,12 +806,6 @@ class NullAwarePropertyAccessGenerator extends Generator {
     printNodeOn(receiverExpression, sink, syntheticNames: syntheticNames);
     sink.write(", name: ");
     sink.write(name.name);
-    sink.write(", getter: ");
-    printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
-    sink.write(", setter: ");
-    printQualifiedNameOn(setter, sink, syntheticNames: syntheticNames);
-    sink.write(", type: ");
-    printNodeOn(type, sink, syntheticNames: syntheticNames);
   }
 }
 
@@ -1413,30 +1346,11 @@ class StaticAccessGenerator extends Generator {
   factory StaticAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       String targetName,
-      Builder declaration,
       Token token,
-      Builder builderSetter) {
-    if (declaration is AccessErrorBuilder) {
-      AccessErrorBuilder error = declaration;
-      declaration = error.builder;
-      // We should only see an access error here if we've looked up a setter
-      // when not explicitly looking for a setter.
-      assert(declaration.isSetter);
-    } else if (declaration.target == null) {
-      return unhandled(
-          "${declaration.runtimeType}",
-          "StaticAccessGenerator.fromBuilder",
-          offsetForToken(token),
-          helper.uri);
-    }
-    Member getter = declaration.target.hasGetter ? declaration.target : null;
-    Member setter = declaration.target.hasSetter ? declaration.target : null;
-    if (setter == null) {
-      if (builderSetter?.target?.hasSetter ?? false) {
-        setter = builderSetter.target;
-      }
-    }
-    return new StaticAccessGenerator(helper, token, targetName, getter, setter);
+      MemberBuilder getterBuilder,
+      MemberBuilder setterBuilder) {
+    return new StaticAccessGenerator(helper, token, targetName,
+        getterBuilder?.member, setterBuilder?.member);
   }
 
   @override
@@ -1645,46 +1559,29 @@ class ExtensionInstanceAccessGenerator extends Generator {
       String targetName,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
-      Builder getterBuilder,
-      Builder setterBuilder) {
+      MemberBuilder getterBuilder,
+      MemberBuilder setterBuilder) {
     Procedure readTarget;
     Procedure invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder is AccessErrorBuilder) {
-        AccessErrorBuilder error = getterBuilder;
-        getterBuilder = error.builder;
-        // We should only see an access error here if we've looked up a setter
-        // when not explicitly looking for a setter.
-        assert(getterBuilder.isSetter);
-      } else if (getterBuilder.target == null) {
-        return unhandled(
-            "${getterBuilder.runtimeType}",
-            "ExtensionInstanceAccessGenerator.fromBuilder",
-            offsetForToken(token),
-            helper.uri);
-      }
       if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.target;
+        readTarget = getterBuilder.member;
       } else if (getterBuilder.isRegularMethod) {
         assert(!getterBuilder.isStatic);
-        MemberBuilder procedureBuilder = getterBuilder;
-        readTarget = procedureBuilder.extensionTearOff;
-        invokeTarget = procedureBuilder.procedure;
+        readTarget = getterBuilder.extensionTearOff;
+        invokeTarget = getterBuilder.procedure;
       } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
-        invokeTarget = getterBuilder.target;
+        invokeTarget = getterBuilder.member;
       }
     }
     Procedure writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder is AccessErrorBuilder) {
-        targetName ??= setterBuilder.name;
-      } else if (setterBuilder.isSetter) {
+      if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
-        MemberBuilder memberBuilder = setterBuilder;
-        writeTarget = memberBuilder.member;
-        targetName ??= memberBuilder.name;
+        writeTarget = setterBuilder.member;
+        targetName ??= setterBuilder.name;
       } else {
         return unhandled(
             "${setterBuilder.runtimeType}",
@@ -3065,12 +2962,14 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         Builder setter;
         if (member.isSetter) {
           setter = member;
+          member = null;
         } else if (member.isGetter) {
           setter = declaration.findStaticBuilder(
               name.name, fileOffset, _uri, _helper.libraryBuilder,
               isSetter: true);
         } else if (member.isField) {
-          if (member.isFinal || member.isConst) {
+          MemberBuilder fieldBuilder = member;
+          if (!fieldBuilder.isAssignable) {
             setter = declaration.findStaticBuilder(
                 name.name, fileOffset, _uri, _helper.libraryBuilder,
                 isSetter: true);
@@ -3079,7 +2978,11 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
           }
         }
         generator = new StaticAccessGenerator.fromBuilder(
-            _helper, name.name, member, send.token, setter);
+            _helper,
+            name.name,
+            send.token,
+            member is MemberBuilder ? member : null,
+            setter is MemberBuilder ? setter : null);
       }
 
       return arguments == null
@@ -4173,25 +4076,20 @@ class ThisAccessGenerator extends Generator {
     if (inFieldInitializer && !inLateFieldInitializer && !isInitializer) {
       return buildFieldInitializerError(null);
     }
-    Member getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
     if (send is SendAccessGenerator) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
-      if (getter == null) {
-        _helper.warnUnresolvedMethod(name, offsetForToken(send.token),
-            isSuper: isSuper);
-      }
       return _helper.buildMethodInvocation(
           _forest.createThisExpression(fileOffset),
           name,
           send.arguments,
           offsetForToken(send.token),
-          isSuper: isSuper,
-          interfaceTarget: getter);
+          isSuper: isSuper);
     } else {
-      Member setter =
-          _helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
+        Member getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
+        Member setter = _helper.lookupInstanceMember(name,
+            isSuper: isSuper, isSetter: true);
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
@@ -4204,9 +4102,7 @@ class ThisAccessGenerator extends Generator {
             _helper,
             // TODO(ahe): This is not the 'this' token.
             send.token,
-            name,
-            getter,
-            setter);
+            name);
       }
     }
   }
@@ -4487,8 +4383,8 @@ class IncompletePropertyAccessGenerator extends Generator
     if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
-    return PropertyAccessGenerator.make(_helper, token,
-        _helper.toValue(receiver), name, null, null, isNullAware);
+    return PropertyAccessGenerator.make(
+        _helper, token, _helper.toValue(receiver), name, isNullAware);
   }
 
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
