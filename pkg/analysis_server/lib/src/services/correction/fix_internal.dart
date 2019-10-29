@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -1896,7 +1895,6 @@ class FixProcessor extends BaseProcessor {
     String targetClassName = targetClassElement.name;
     // add proposals for all super constructors
     for (ConstructorElement superConstructor in superType.constructors) {
-      superConstructor = ConstructorMember.from(superConstructor, superType);
       String constructorName = superConstructor.name;
       // skip private
       if (Identifier.isPrivateName(constructorName)) {
