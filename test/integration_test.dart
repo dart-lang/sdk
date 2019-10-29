@@ -70,8 +70,8 @@ defineTests() {
           '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
-            contains('2 files analyzed, 0 issues found, in'));
-        expect(exitCode, 0);
+            contains('2 files analyzed, 3 issues found, in'));
+        expect(exitCode, 1);
       });
 
       test('web plugin', () async {
