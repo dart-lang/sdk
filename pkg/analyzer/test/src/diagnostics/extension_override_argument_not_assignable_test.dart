@@ -11,13 +11,13 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodWithNNBDTest);
+    defineReflectiveTests(ExtensionOverrideArgumentNotAssignableTest);
+    defineReflectiveTests(ExtensionOverrideArgumentNotAssignableWithNNBDTest);
   });
 }
 
 @reflectiveTest
-class ExtensionDeclaresAbstractMethodTest extends DriverResolutionTest {
+class ExtensionOverrideArgumentNotAssignableTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
@@ -65,10 +65,32 @@ void f(B b) {
           1),
     ]);
   }
+
+  test_void() async {
+    await assertErrorsInCode('''
+class C {
+  String name = "My name is C";
+}
+
+extension ExtendedC on C {
+  String checkme() => this.name;
+}
+
+void getC() => new C();
+
+main() {
+  ExtendedC(getC()).checkme();
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+          154, 6),
+    ]);
+  }
 }
 
 @reflectiveTest
-class ExtensionDeclaresAbstractMethodWithNNBDTest extends DriverResolutionTest {
+class ExtensionOverrideArgumentNotAssignableWithNNBDTest
+    extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(

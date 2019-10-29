@@ -148,7 +148,8 @@ class ExtensionMemberResolver {
       substitution,
     );
 
-    if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
+    if (receiverType.isVoid ||
+        !_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
