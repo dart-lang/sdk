@@ -765,6 +765,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   }
 
   @override
+  DartType visitErasedType(ErasedType type, _EntityConverter converter) =>
+      const ErasedType();
+
+  @override
   DartType visitAnyType(AnyType type, _EntityConverter converter) =>
       const AnyType();
 

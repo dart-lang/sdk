@@ -268,6 +268,11 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitErasedType(ErasedType type, _) {
+    _emitCode(Recipe.pushErased);
+  }
+
+  @override
   void visitAnyType(AnyType type, _) {
     _emitExtensionOp(Recipe.pushAnyExtension);
   }
@@ -460,13 +465,14 @@ class _RulesetEntry {
   Set<InterfaceType> _supertypes = {};
   Map<TypeVariableType, DartType> _typeVariables = {};
 
+  bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
+  bool get isNotEmpty => _supertypes.isNotEmpty || _typeVariables.isNotEmpty;
+
   void addAll(Iterable<InterfaceType> supertypes,
       Map<TypeVariableType, DartType> typeVariables) {
     _supertypes.addAll(supertypes);
     _typeVariables.addAll(typeVariables);
   }
-
-  bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
 }
 
 class Ruleset {
@@ -475,6 +481,9 @@ class Ruleset {
 
   Ruleset(this._redirections, this._entries);
   Ruleset.empty() : this({}, {});
+
+  bool get isEmpty => _redirections.isEmpty && _entries.isEmpty;
+  bool get isNotEmpty => _redirections.isNotEmpty || _entries.isNotEmpty;
 
   void addRedirection(ClassEntity targetClass, ClassEntity redirection) {
     _redirections[targetClass] = redirection;
@@ -590,4 +599,22 @@ class RulesetEncoder {
           InterfaceType targetType, DartType supertypeArgument) =>
       _recipeEncoder.encodeMetadataRecipe(
           _emitter, targetType, supertypeArgument);
+
+  jsAst.StringConcatenation encodeErasedTypes(
+          Map<ClassEntity, int> erasedTypes) =>
+      js.concatenateStrings([
+        _quote,
+        _leftBrace,
+        ...js.joinLiterals(erasedTypes.entries.map(encodeErasedType), _comma),
+        _rightBrace,
+        _quote,
+      ]);
+
+  jsAst.StringConcatenation encodeErasedType(
+          MapEntry<ClassEntity, int> entry) =>
+      js.concatenateStrings([
+        js.quoteName(_emitter.typeAccessNewRti(entry.key)),
+        _colon,
+        js.number(entry.value),
+      ]);
 }

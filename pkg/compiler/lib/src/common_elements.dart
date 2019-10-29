@@ -503,6 +503,7 @@ abstract class CommonElements {
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
+  FunctionEntity get rtiAddErasedTypesMethod;
 
   FunctionEntity get generalIsTestImplementation;
   FunctionEntity get generalAsCheckImplementation;
@@ -1936,6 +1937,11 @@ class CommonElementsImpl
   @override
   FunctionEntity get rtiAddRulesMethod =>
       _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
+
+  FunctionEntity _rtiAddErasedTypesMethod;
+  @override
+  FunctionEntity get rtiAddErasedTypesMethod => _rtiAddErasedTypesMethod ??=
+      _findClassMember(_rtiUniverseClass, 'addErasedTypes');
 
   FunctionEntity _generalIsTestImplementation;
   @override

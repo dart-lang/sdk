@@ -446,6 +446,11 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
+  visitErasedType(ErasedType type, _) {
+    sb.write('erased');
+  }
+
+  @override
   visitAnyType(AnyType type, _) {
     sb.write('any');
   }

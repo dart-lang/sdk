@@ -456,5 +456,6 @@ enum JsBuiltin {
 class RtiUniverseFieldNames {
   static String evalCache = 'eC';
   static String typeRules = 'tR';
+  static String erasedTypes = 'eT';
   static String sharedEmptyArray = 'sEA';
 }

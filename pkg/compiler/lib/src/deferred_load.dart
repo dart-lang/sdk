@@ -1656,6 +1656,11 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
+  void visitErasedType(ErasedType type, Null argument) {
+    // Nothing to add.
+  }
+
+  @override
   void visitAnyType(AnyType type, Null argument) {
     // Nothing to add.
   }

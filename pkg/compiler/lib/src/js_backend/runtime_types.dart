@@ -1018,6 +1018,11 @@ class TypeRepresentationGenerator
   }
 
   @override
+  jsAst.Expression visitErasedType(ErasedType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support erased types');
+  }
+
+  @override
   jsAst.Expression visitAnyType(AnyType type, ModularEmitter emitter) =>
       getJsInteropTypeArgumentValue();
 
