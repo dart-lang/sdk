@@ -40,8 +40,6 @@ void defineLinterEngineTests() {
 
       _test('exception', 'EXCEPTION: LinterException: foo',
           (r) => r.exception(LinterException('foo')));
-      _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
-      _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
       _test('warn', 'WARN: foo', (r) => r.warn('foo'));
     });
 
@@ -52,32 +50,6 @@ void defineLinterEngineTests() {
       test('toString', () {
         expect(const LinterException().toString(), 'LinterException');
         expect(const LinterException('foo').toString(), 'LinterException: foo');
-      });
-    });
-
-    group('analysis logger', () {
-      var currentErr = errorSink;
-      var currentOut = outSink;
-      var errCollector = CollectingSink();
-      var outCollector = CollectingSink();
-      var logger = StdLogger();
-      setUp(() {
-        errorSink = errCollector;
-        outSink = outCollector;
-      });
-      tearDown(() {
-        errorSink = currentErr;
-        outSink = currentOut;
-        errCollector.buffer.clear();
-        outCollector.buffer.clear();
-      });
-      test('logError', () {
-        logger.logError('logError');
-        expect(errCollector.trim(), 'logError');
-      });
-      test('logInformation', () {
-        logger.logInformation('logInformation');
-        expect(outCollector.trim(), 'logInformation');
       });
     });
 
