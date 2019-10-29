@@ -508,6 +508,8 @@ abstract class CommonElements {
   FunctionEntity get generalAsCheckImplementation;
   FunctionEntity get generalTypeCheckImplementation;
 
+  FunctionEntity get specializedIsTop;
+  FunctionEntity get specializedAsTop;
   FunctionEntity get specializedIsBool;
   FunctionEntity get specializedAsBoolNullable;
   FunctionEntity get specializedCheckBoolNullable;
@@ -1952,6 +1954,12 @@ class CommonElementsImpl
   FunctionEntity get generalTypeCheckImplementation =>
       _generalTypeCheckImplementation ??=
           _findRtiFunction('_generalTypeCheckImplementation');
+
+  @override
+  FunctionEntity get specializedIsTop => _findRtiFunction('_isTop');
+
+  @override
+  FunctionEntity get specializedAsTop => _findRtiFunction('_asTop');
 
   @override
   FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');

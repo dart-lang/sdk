@@ -711,6 +711,52 @@ class _Type implements Type {
 }
 
 /// Called from generated code.
+///
+/// The first time the default `_is` method is called, it replaces itself with a
+/// specialized version.
+// TODO(sra): Emit code to force-replace the `_is` method, generated dependent
+// on the types used in the program. e.g.
+//
+//     findType("bool")._is = H._isBool;
+//
+// This could be omitted if (1) the `bool` rti is not used directly for a test
+// (e.g. we lower a check to a direct helper), and (2) `bool` does not flow to a
+// tested type parameter. The trick will be to ensure that `H._isBool` is
+// generated.
+bool _installSpecializedIsTest(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  int kind = Rti._getKind(testRti);
+
+  var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
+
+  if (isTopType(testRti)) {
+    isFn = RAW_DART_FUNCTION_REF(_isTop);
+    var asFn = RAW_DART_FUNCTION_REF(_asTop);
+    Rti._setAsCheckFunction(testRti, asFn);
+    Rti._setTypeCheckFunction(testRti, asFn);
+  } else if (kind == Rti.kindInterface) {
+    String key = Rti._getCanonicalRecipe(testRti);
+
+    if (JS_GET_NAME(JsGetName.INT_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isInt);
+    } else if (JS_GET_NAME(JsGetName.DOUBLE_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isNum);
+    } else if (JS_GET_NAME(JsGetName.NUM_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isNum);
+    } else if (JS_GET_NAME(JsGetName.STRING_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isString);
+    } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isBool);
+    }
+  }
+
+  Rti._setIsTestFunction(testRti, isFn);
+  return Rti._isCheck(testRti, object);
+}
+
+/// Called from generated code.
 bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
@@ -797,6 +843,18 @@ class _TypeError extends _Error implements TypeError {
 //
 // Specializations can be placed on Rti objects as the _as, _check and _is
 // 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for 'is dynamic' and other top types.
+/// Called from generated code via Rti `_is` method.
+bool _isTop(object) {
+  return true;
+}
+
+/// Specialization for 'as dynamic' and other top types.
+/// Called from generated code via Rti `_as` and `_check` methods.
+dynamic _asTop(object) {
+  return object;
+}
 
 /// Specialization for 'is bool'.
 /// Called from generated code.
@@ -1317,26 +1375,13 @@ class _Universe {
     String key = Rti._getCanonicalRecipe(rti);
     _cacheSet(evalCache(universe), key, rti);
 
-    // Set up methods to perform type tests.
-
-    // TODO(sra): Find better way to install specializations. Perhaps the
-    // installed version should replace itself with the specialization.
+    // Set up methods to perform type tests. The general as-check / type-check
+    // methods use the is-test method. The is-test method on first use
+    // overwrites itself, and possibly the as-check / type-check methods, with a
+    // specialized version.
     var checkFn = RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation);
     var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
-    var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
-
-    if (JS_GET_NAME(JsGetName.INT_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isInt);
-    } else if (JS_GET_NAME(JsGetName.DOUBLE_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.NUM_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isNum);
-    } else if (JS_GET_NAME(JsGetName.STRING_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isString);
-    } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
-      isFn = RAW_DART_FUNCTION_REF(_isBool);
-    }
-
+    var isFn = RAW_DART_FUNCTION_REF(_installSpecializedIsTest);
     Rti._setAsCheckFunction(rti, asFn);
     Rti._setTypeCheckFunction(rti, checkFn);
     Rti._setIsTestFunction(rti, isFn);

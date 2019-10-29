@@ -814,6 +814,9 @@ class BackendImpacts {
         _commonElements.specializedIsString,
         _commonElements.specializedAsStringNullable,
         _commonElements.specializedCheckStringNullable,
+        _commonElements.specializedIsTop,
+        _commonElements.specializedAsTop,
+        // no specializedCheckTop
       ], globalClasses: [
         _commonElements.closureClass, // instanceOrFunctionType uses this.
       ], globalUses: [])
