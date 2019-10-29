@@ -5299,7 +5299,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var finder = YieldFinder();
     jsBlock.accept(finder);
     if (finder.hasYield) {
-      var genFn = js_ast.Fun([], jsBlock, isGenerator: true);
+      js_ast.Expression genFn = js_ast.Fun([], jsBlock, isGenerator: true);
+      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
       var asyncLibrary = emitLibraryName(_coreTypes.asyncLibrary);
       var returnType = _emitType(node.getStaticType(_types));
       var asyncCall =

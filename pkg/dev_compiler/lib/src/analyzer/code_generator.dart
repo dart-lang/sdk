@@ -5879,12 +5879,16 @@ class CodeGenerator extends Object
       var finder = YieldFinder();
       body.accept(finder);
       if (finder.hasYield) {
-        var genFn = js_ast.Fun([], body, isGenerator: true);
+        js_ast.Expression genFn = js_ast.Fun([], body, isGenerator: true);
+        if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
         var asyncLibrary = emitLibraryName(types.futureElement.library);
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
       }
-      return js_ast.Call(js_ast.ArrowFun([], body), []);
+
+      js_ast.Expression genFn = js_ast.ArrowFun([], body);
+      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
+      return js_ast.Call(genFn, []);
     }
 
     var expressions = <js_ast.Expression>[];
