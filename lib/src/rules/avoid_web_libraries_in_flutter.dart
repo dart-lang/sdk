@@ -10,19 +10,20 @@ import 'package:yaml/yaml.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 
-const _desc = r'Avoid using web-only libraries outside Flutter web projects.';
+const _desc =
+    r'Avoid using web-only libraries outside Flutter web plugin packages.';
 
 const _details = r'''Avoid using web libraries, `dart:html`, `dart:js` and 
-`dart:js_util` in non-web Flutter projects.  These libraries are not supported
-outside a web context and functionality that depends on them will fail at
-runtime.
+`dart:js_util` in Flutter packages that are not web plugins. These libraries are 
+not supported outside a web context; functionality that depends on them will
+fail at runtime in Flutter mobile, and their use is generally discouraged in
+Flutter web.
 
-Web library access is allowed in:
+Web library access *is* allowed in:
 
-* projects meant to run on the web (e.g., have a `web/` directory)
 * plugin packages that declare `web` as a supported context
 
-otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are flagged.
+otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.
 ''';
 
 /// todo (pq): consider making a utility and sharing w/ `prefer_relative_imports`
@@ -86,10 +87,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
 
-    // Check for a web directory or a web plugin context declaration.
-    return !pubspecFile.parent.getChild('web').exists &&
-        ((parsedPubspec['flutter'] ?? const {})['plugin'] ?? const {})['web'] ==
-            null;
+    // Check for a web plugin context declaration.
+    return ((parsedPubspec['flutter'] ?? const {})['plugin'] ??
+            const {})['web'] ==
+        null;
   }
 
   bool isWebUri(String uri) {
