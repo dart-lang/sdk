@@ -9684,9 +9684,9 @@ intptr_t Script::GetTokenLineUsingLineStarts(
   }
   Zone* zone = Thread::Current()->zone();
   TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  // Scripts loaded from bytecode may have null line_starts().
   if (line_starts_data.IsNull()) {
-    ASSERT(kind() != RawScript::kKernelTag);
-    UNREACHABLE();
+    return 0;
   }
 
   if (kind() == RawScript::kKernelTag) {
