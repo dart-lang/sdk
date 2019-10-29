@@ -2819,11 +2819,13 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_importLibrary_withExtension() async {
-    String extensionName = (node as SimpleIdentifier).name;
-    await _addFix_importLibrary_withElement(
-        extensionName,
-        const [ElementKind.EXTENSION],
-        const [TopLevelDeclarationKind.extension]);
+    if (node is SimpleIdentifier) {
+      String extensionName = (node as SimpleIdentifier).name;
+      await _addFix_importLibrary_withElement(
+          extensionName,
+          const [ElementKind.EXTENSION],
+          const [TopLevelDeclarationKind.extension]);
+    }
   }
 
   Future<void> _addFix_importLibrary_withFunction() async {
