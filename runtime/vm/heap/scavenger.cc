@@ -140,11 +140,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
-    if (FLAG_verify_gc_contains) {
-      ASSERT((visiting_old_object_ != NULL) ||
-             scavenger_->Contains(reinterpret_cast<uword>(first)) ||
-             !heap_->Contains(reinterpret_cast<uword>(first)));
-    }
     for (RawObject** current = first; current <= last; current++) {
       ScavengePointer(current);
     }
@@ -164,11 +159,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     ASSERT(obj->IsHeapObject());
-    if (FLAG_verify_gc_contains) {
-      uword ptr = reinterpret_cast<uword>(p);
-      ASSERT(!scavenger_->Contains(ptr));
-      ASSERT(heap_->DataContains(ptr));
-    }
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->IsRemembered()) {
       return;

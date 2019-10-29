@@ -2953,7 +2953,6 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     for (int i = 1000; i < 1500; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
     }
-    VERIFY_ON_TRANSITION;
     Dart_ExitScope();
   }
   Dart_ExitScope();
@@ -3674,7 +3673,6 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
           }
           EXPECT_EQ(300, thread->CountLocalHandles());
         }
-        VERIFY_ON_TRANSITION;
         Dart_ExitScope();
       }
       EXPECT_EQ(200, thread->CountLocalHandles());

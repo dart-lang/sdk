@@ -196,9 +196,6 @@ constexpr bool kDartUseBytecode = false;
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \
     "Enables heap verification before GC.")                                    \
-  D(verify_gc_contains, bool, false,                                           \
-    "Enables verification of address contains during GC.")                     \
-  D(verify_on_transition, bool, false, "Verify on dart <==> VM.")              \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
     "TESTING: slow-path triggers a GC.")                                       \

@@ -2139,13 +2139,6 @@ void Isolate::Shutdown() {
   delete optimizing_background_compiler_;
   optimizing_background_compiler_ = nullptr;
 
-#if defined(DEBUG)
-  if (heap_ != nullptr && FLAG_verify_on_transition) {
-    // The VM isolate keeps all objects marked.
-    heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
-  }
-#endif  // DEBUG
-
   Thread* thread = Thread::Current();
 
   // Don't allow anymore dart code to execution on this isolate.

@@ -44,10 +44,6 @@ class Thread;
 
 void VerifyOnTransition();
 
-#define VERIFY_ON_TRANSITION                                                   \
-  if (FLAG_verify_on_transition) {                                             \
-    VerifyOnTransition();                                                      \
-  }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
@@ -56,8 +52,6 @@ void VerifyOnTransition();
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
-#define VERIFY_ON_TRANSITION                                                   \
   {}
 #define DEOPTIMIZE_ALOT                                                        \
   {}

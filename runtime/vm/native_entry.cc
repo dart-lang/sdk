@@ -137,7 +137,6 @@ void NativeEntry::NoScopeNativeCallWrapper(Dart_NativeArguments args,
 void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
     Dart_NativeFunction func) {
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -151,7 +150,6 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     }
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-  VERIFY_ON_TRANSITION;
 }
 
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
@@ -173,7 +171,6 @@ void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
 void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
     Dart_NativeFunction func) {
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -196,7 +193,6 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     DEOPTIMIZE_ALOT;
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-  VERIFY_ON_TRANSITION;
 }
 
 static NativeFunction ResolveNativeFunction(Zone* zone,
@@ -233,7 +229,6 @@ uword NativeEntry::LinkNativeCallEntry() {
 
 void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   CHECK_STACK_ALIGNMENT;
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -346,7 +341,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                 is_bootstrap_native ? "bootstrap" : "non-bootstrap");
     }
   }
-  VERIFY_ON_TRANSITION;
 
   // Tail-call resolved target.
   if (is_bootstrap_native) {
