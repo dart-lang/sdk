@@ -4815,8 +4815,7 @@ class Parser {
     assert(optional('<', start.next));
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(start, true);
     Token token = typeParamOrArg.skip(start);
-    Token next = token.next;
-    if (optional('(', next)) {
+    if (optional('(', token.next)) {
       if (constKeyword != null) {
         reportRecoverableErrorWithToken(
             constKeyword, fasta.templateUnexpectedToken);
@@ -4824,7 +4823,9 @@ class Parser {
       token = typeParamOrArg.parseVariables(start, this);
       return parseLiteralFunctionSuffix(token);
     }
+    // Note that parseArguments can rewrite the token stream!
     token = typeParamOrArg.parseArguments(start, this);
+    Token next = token.next;
     if (optional('{', next)) {
       if (typeParamOrArg.typeArgumentCount > 2) {
         listener.handleRecoverableError(
