@@ -3539,6 +3539,9 @@ class ResolverVisitor extends ScopedVisitor {
       // variable cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
+      // Note: the iterable could have been rewritten so grab it from
+      // forLoopParts again.
+      iterable = forLoopParts.iterable;
       loopVariable?.accept(this);
       var elementType = typeAnalyzer.computeForEachElementType(
           iterable, node.awaitKeyword != null);
@@ -3628,6 +3631,9 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
+      // Note: the iterable could have been rewritten so grab it from
+      // forLoopParts again.
+      iterable = forLoopParts.iterable;
       loopVariable?.accept(this);
       var elementType = typeAnalyzer.computeForEachElementType(
           iterable, node.awaitKeyword != null);
