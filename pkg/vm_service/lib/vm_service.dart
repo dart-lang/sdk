@@ -1257,8 +1257,8 @@ class VmServerConnection {
       }
       _responseSink.add({
         'jsonrpc': '2.0',
-        'result': response.toJson(),
         'id': id,
+        'result': response.toJson(),
       });
     } catch (e, st) {
       var error = e is RPCError
@@ -1266,8 +1266,8 @@ class VmServerConnection {
           : {'code': -32603, 'message': '$e\n$st'};
       _responseSink.add({
         'jsonrpc': '2.0',
-        'error': error,
         'id': request['id'],
+        'error': error,
       });
     }
   }
