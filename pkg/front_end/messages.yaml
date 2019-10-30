@@ -182,6 +182,10 @@ ConstEvalNotMapInSpread:
   template: "Only maps can be used in spreads in constant maps."
   analyzerCode: CONST_SPREAD_EXPECTED_MAP
 
+ConstEvalExtension:
+  template: "Extension operations can't be used in constant expressions."
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+
 ConstEvalUnevaluated:
   template: "Could not evaluate constant expression."
 

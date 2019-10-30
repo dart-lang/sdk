@@ -38,6 +38,7 @@ import '../fasta_codes.dart'
         Message,
         messageConstEvalCircularity,
         messageConstEvalContext,
+        messageConstEvalExtension,
         messageConstEvalFailedAssertion,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
@@ -1726,6 +1727,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         // identical here.
         return makeBoolConstant(identical(left, right));
       }
+    } else if (target.isExtensionMember) {
+      return report(node, messageConstEvalExtension);
     }
 
     String name = target.name.name;

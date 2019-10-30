@@ -1164,6 +1164,16 @@ Message _withArgumentsConstEvalElementImplementsEqual(Constant _constant) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalExtension = messageConstEvalExtension;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalExtension = const MessageCode(
+    "ConstEvalExtension",
+    analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
+    message:
+        r"""Extension operations can't be used in constant expressions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
