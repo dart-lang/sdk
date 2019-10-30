@@ -135,9 +135,9 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
   String regExpStringInner = r"\s-=\|\/,";
   if (splitAsCode) {
     // If splitting as code also split by "_", ":", ".", "(", ")", "<", ">",
-    // "[", "]", "{", "}", "@", "&", "#", "?", "%".
+    // "[", "]", "{", "}", "@", "&", "#", "?", "%", "`".
     // (As well as doing stuff to camel casing further below).
-    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%";
+    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%`";
   }
   // Match one or more of the characters specified above.
   String regExp = "[$regExpStringInner]+";
