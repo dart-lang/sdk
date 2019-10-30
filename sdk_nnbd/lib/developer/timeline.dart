@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.developer;
 
 const bool _hasTimeline =
@@ -58,7 +56,7 @@ class Flow {
   /// When passed to a [Timeline] method, generates a "begin" Flow event.
   /// If [id] is not provided, an id that conflicts with no other Dart-generated
   /// flow id's will be generated.
-  static Flow begin({int id}) {
+  static Flow begin({int? id}) {
     return new Flow._(_begin, id ?? _getNextAsyncId());
   }
 
@@ -102,8 +100,9 @@ class Timeline {
   /// a [Map] of [arguments]. This slice may also optionally be associated with
   /// a [Flow] event. This operation must be finished before
   /// returning to the event queue.
-  static void startSync(String name, {Map arguments, Flow flow}) {
+  static void startSync(String name, {Map? arguments, Flow? flow}) {
     if (!_hasTimeline) return;
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Push a null onto the stack and return.
@@ -139,14 +138,15 @@ class Timeline {
   }
 
   /// Emit an instant event.
-  static void instantSync(String name, {Map arguments}) {
+  static void instantSync(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
     if (!_isDartStreamEnabled()) {
       // Stream is disabled.
       return;
     }
-    Map instantArguments;
+    Map? instantArguments;
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
@@ -157,7 +157,7 @@ class Timeline {
   /// A utility method to time a synchronous [function]. Internally calls
   /// [function] bracketed by calls to [startSync] and [finishSync].
   static T timeSync<T>(String name, TimelineSyncFunction<T> function,
-      {Map arguments, Flow flow}) {
+      {Map? arguments, Flow? flow}) {
     startSync(name, arguments: arguments, flow: flow);
     try {
       return function();
@@ -172,7 +172,7 @@ class Timeline {
   /// When run on the Dart VM, uses the same monotonic clock as the embedding
   /// API's `Dart_TimelineGetMicros`.
   static int get now => _getTraceClock();
-  static final List<_SyncBlock> _stack = new List<_SyncBlock>();
+  static final List<_SyncBlock?> _stack = [];
 }
 
 /// An asynchronous task on the timeline. An asynchronous task can have many
@@ -186,7 +186,7 @@ class TimelineTask {
   /// If [parent] is provided, the parent's task ID is provided as argument
   /// 'parentId' when [start] is called. In DevTools, this argument will result
   /// in this [TimelineTask] being linked to the [parent] [TimelineTask].
-  TimelineTask({TimelineTask parent})
+  TimelineTask({TimelineTask? parent})
       : _parent = parent,
         _taskId = _getNextAsyncId() {}
 
@@ -199,28 +199,39 @@ class TimelineTask {
   TimelineTask.withTaskId(int taskId)
       : _parent = null,
         _taskId = taskId {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(taskId, 'taskId');
   }
 
   /// Start a synchronous operation within this task named [name].
   /// Optionally takes a [Map] of [arguments].
-  void start(String name, {Map arguments}) {
+  void start(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
     var block = new _AsyncBlock._(name, _taskId);
     _stack.add(block);
-    block._start({
-      if (arguments != null) ...arguments,
-      if (_parent != null) 'parentId': _parent._taskId.toRadixString(16),
-    });
+    // TODO(39115): Spurious error about collection literal ambiguity.
+    // TODO(39117): Spurious error about typing of `...?arguments`.
+    // TODO(39120): Spurious error even about `...arguments`.
+    // When these TODOs are done, we can use spread and if elements.
+    var map = <Object?, Object?>{};
+    if (arguments != null) {
+      for (var key in arguments.keys) {
+        map[key] = arguments[key];
+      }
+    }
+    if (_parent != null) map['parentId'] = _parent!._taskId.toRadixString(16);
+    block._start(map);
   }
 
   /// Emit an instant event for this task.
   /// Optionally takes a [Map] of [arguments].
-  void instant(String name, {Map arguments}) {
+  void instant(String name, {Map? arguments}) {
     if (!_hasTimeline) return;
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
-    Map instantArguments;
+    Map? instantArguments;
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
@@ -230,7 +241,7 @@ class TimelineTask {
 
   /// Finish the last synchronous operation that was started.
   /// Optionally takes a [Map] of [arguments].
-  void finish({Map arguments}) {
+  void finish({Map? arguments}) {
     if (!_hasTimeline) {
       return;
     }
@@ -254,7 +265,7 @@ class TimelineTask {
     return r;
   }
 
-  final TimelineTask _parent;
+  final TimelineTask? _parent;
   final int _taskId;
   final List<_AsyncBlock> _stack = [];
 }
@@ -280,7 +291,7 @@ class _AsyncBlock {
   }
 
   // Emit the finish event.
-  void _finish(Map arguments) {
+  void _finish(Map? arguments) {
     _reportTaskEvent(_getTraceClock(), _taskId, 'e', category, name,
         _argumentsAsJson(arguments));
   }
@@ -297,14 +308,14 @@ class _SyncBlock {
 
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  Map _arguments;
+  Map? _arguments;
   // The start time stamp.
   final int _start;
   // The start time stamp of the thread cpu clock.
   final int _startCpu;
 
   /// An (optional) flow event associated with this block.
-  Flow _flow;
+  Flow? _flow;
 
   _SyncBlock._(this.name, this._start, this._startCpu);
 
@@ -315,8 +326,8 @@ class _SyncBlock {
     _reportCompleteEvent(
         _start, _startCpu, category, name, _argumentsAsJson(_arguments));
     if (_flow != null) {
-      _reportFlowEvent(_start, _startCpu, category, "${_flow.id}", _flow._type,
-          _flow.id, _argumentsAsJson(null));
+      _reportFlowEvent(_start, _startCpu, category, "${_flow!.id}",
+          _flow!._type, _flow!.id, _argumentsAsJson(null));
     }
   }
 
@@ -325,7 +336,7 @@ class _SyncBlock {
   }
 }
 
-String _argumentsAsJson(Map arguments) {
+String _argumentsAsJson(Map? arguments) {
   if ((arguments == null) || (arguments.length == 0)) {
     // Fast path no arguments. Avoid calling jsonEncode.
     return '{}';
