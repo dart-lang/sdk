@@ -62,7 +62,7 @@ class MutableScope {
   ///       Extension.staticMethod2();
   ///     }
   ///
-  List<ExtensionBuilder> _extensions;
+  Set<ExtensionBuilder> _extensions;
 
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
@@ -94,7 +94,7 @@ class Scope extends MutableScope {
   Scope(
       {Map<String, Builder> local,
       Map<String, MemberBuilder> setters,
-      List<ExtensionBuilder> extensions,
+      Set<ExtensionBuilder> extensions,
       Scope parent,
       String debugName,
       this.isModifiable: true})
@@ -323,7 +323,7 @@ class Scope extends MutableScope {
 
   /// Adds [builder] to the extensions in this scope.
   void addExtension(ExtensionBuilder builder) {
-    _extensions ??= [];
+    _extensions ??= <ExtensionBuilder>{};
     _extensions.add(builder);
   }
 

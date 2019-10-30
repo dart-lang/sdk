@@ -2942,7 +2942,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, MemberBuilder> setters;
 
-  final List<ExtensionBuilder> extensions;
+  final Set<ExtensionBuilder> extensions;
 
   final List<UnresolvedType> types = <UnresolvedType>[];
 
@@ -2982,7 +2982,7 @@ class TypeParameterScopeBuilder {
             <String, Builder>{},
             <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <ExtensionBuilder>[],
+            <ExtensionBuilder>{},
             "<library>",
             -1,
             null);
