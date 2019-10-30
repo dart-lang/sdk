@@ -1352,6 +1352,17 @@
           ]
         },
         {
+          "name": "ddc kernel modular NNBD tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevk-nnbd-${system}-release",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
