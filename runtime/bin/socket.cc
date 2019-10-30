@@ -974,7 +974,7 @@ void FUNCTION_NAME(RawSocketOption_GetOptionValue)(Dart_NativeArguments args) {
       Dart_SetIntegerReturnValue(args, IP_MULTICAST_IF);
       break;
     case DART_IPPROTO_IPV6:
-      Dart_SetIntegerReturnValue(args, DART_IPPROTO_IPV6);
+      Dart_SetIntegerReturnValue(args, IPPROTO_IPV6);
       break;
     case DART_IPV6_MULTICAST_IF:
       Dart_SetIntegerReturnValue(args, IPV6_MULTICAST_IF);
