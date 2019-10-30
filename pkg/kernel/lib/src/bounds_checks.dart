@@ -484,7 +484,8 @@ class VarianceCalculator implements DartTypeVisitor<int> {
   VarianceCalculator(this.typeParameter);
 
   @override
-  int defaultDartType(DartType node) => Variance.unrelated;
+  int defaultDartType(DartType node) => throw new StateError(
+      "Unhandled ${node.runtimeType} when computing variance of a type parameter.");
 
   @override
   int visitTypeParameterType(TypeParameterType node) {
@@ -544,17 +545,17 @@ class VarianceCalculator implements DartTypeVisitor<int> {
   }
 
   @override
-  int visitBottomType(BottomType node) => defaultDartType(node);
+  int visitBottomType(BottomType node) => Variance.unrelated;
 
   @override
-  int visitNeverType(NeverType node) => defaultDartType(node);
+  int visitNeverType(NeverType node) => Variance.unrelated;
 
   @override
-  int visitVoidType(VoidType node) => defaultDartType(node);
+  int visitVoidType(VoidType node) => Variance.unrelated;
 
   @override
-  int visitDynamicType(DynamicType node) => defaultDartType(node);
+  int visitDynamicType(DynamicType node) => Variance.unrelated;
 
   @override
-  int visitInvalidType(InvalidType node) => defaultDartType(node);
+  int visitInvalidType(InvalidType node) => Variance.unrelated;
 }
