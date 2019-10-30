@@ -21,7 +21,6 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -229,6 +228,12 @@ class AssistProcessor extends BaseProcessor {
     change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(new Assist(kind, change));
+  }
+
+  Future<void> _addProposal_addDiagnosticPropertyReference() async {
+    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
@@ -1738,31 +1743,46 @@ class AssistProcessor extends BaseProcessor {
 
       // Create the State subclass.
       builder.addInsertion(widgetClass.end, (builder) {
-        var stateType = stateClass.instantiate(
-          typeArguments: [
-            widgetClassElement.instantiate(
-              typeArguments: const [],
-              nullabilitySuffix: NullabilitySuffix.none,
-            ),
-          ],
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
+        builder.writeln();
+        builder.writeln();
 
-        builder.writeln();
-        builder.writeln();
-        builder.writeClassDeclaration(stateName, superclass: stateType,
-            membersWriter: () {
-          bool writeEmptyLine = false;
-          for (var member in nodesToMove) {
-            if (writeEmptyLine) {
-              builder.writeln();
+        var typeParams = '';
+        if (widgetClass.typeParameters != null) {
+          typeParams = utils.getNodeText(widgetClass.typeParameters);
+        }
+
+        builder.write('class $stateName$typeParams extends ');
+        builder.writeReference(stateClass);
+
+        // Write just param names (and not bounds, metadata and docs).
+        builder.write('<${widgetClass.name}');
+        if (widgetClass.typeParameters != null) {
+          builder.write('<');
+          var first = true;
+          for (var param in widgetClass.typeParameters.typeParameters) {
+            if (!first) {
+              builder.write(', ');
+              first = false;
             }
-            String text = rewriteWidgetMemberReferences(member);
-            builder.write(text);
-            // Write empty lines between members, but not before the first.
-            writeEmptyLine = true;
+            builder.write(param.name.name);
           }
-        });
+          builder.write('>');
+        }
+
+        builder.writeln('> {');
+
+        bool writeEmptyLine = false;
+        for (var member in nodesToMove) {
+          if (writeEmptyLine) {
+            builder.writeln();
+          }
+          String text = rewriteWidgetMemberReferences(member);
+          builder.write(text);
+          // Write empty lines between members, but not before the first.
+          writeEmptyLine = true;
+        }
+
+        builder.write('}');
       });
     });
     _addAssistFromBuilder(
@@ -3166,12 +3186,6 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_useCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-  }
-
-  Future<void> _addProposal_addDiagnosticPropertyReference() async {
-    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addProposals_addTypeAnnotation() async {
