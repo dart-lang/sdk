@@ -56,6 +56,7 @@ const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 final flutterRules = <String>[];
 final pedanticRules = <String>[];
+final effectiveDartRules = <String>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
@@ -90,13 +91,29 @@ Future<String> get pedanticLatestVersion async {
   return parts[1].split('.yaml')[0];
 }
 
+Future<String> get effectiveDartLatestVersion async {
+  var url =
+      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
+  var client = http.Client();
+  var req = await client.get(url);
+  var parts = req.body.split('package:effective_dart/analysis_options.');
+  return parts[1].split('.yaml')[0];
+}
+
 Future<void> fetchBadgeInfo() async {
   var latestPedantic = await pedanticLatestVersion;
+  var latestEffectiveDart = await effectiveDartLatestVersion;
 
   var pedantic = await fetchConfig(
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
   for (var ruleConfig in pedantic.ruleConfigs) {
     pedanticRules.add(ruleConfig.name);
+  }
+
+  var effectiveDart = await fetchConfig(
+      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.$latestEffectiveDart.yaml');
+  for (var ruleConfig in effectiveDart.ruleConfigs) {
+    effectiveDartRules.add(ruleConfig.name);
   }
 
   var flutter = await fetchConfig(
@@ -164,6 +181,10 @@ String getBadges(String rule) {
   if (pedanticRules.contains(rule)) {
     sb.write(
         '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
+  }
+  if (effectiveDartRules.contains(rule)) {
+    sb.write(
+        '<a href="https://github.com/tenhobi/effective_dart"><!--suppress HtmlUnknownTarget --><img alt="effective_dart" src="style-effective_dart.svg"></a>');
   }
   return sb.toString();
 }

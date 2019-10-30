@@ -41,6 +41,7 @@ main() async {
     Detail.sdk,
     Detail.fix,
     Detail.pedantic,
+    Detail.effectiveDart,
     Detail.flutterUser,
     Detail.flutterRepo,
     Detail.status,
@@ -124,6 +125,7 @@ class Detail {
   static const Detail sdk = Detail('dart sdk', header: Header.left);
   static const Detail fix = Detail('fix');
   static const Detail pedantic = Detail('pedantic');
+  static const Detail effectiveDart = Detail('effective_dart');
   static const Detail flutterUser = Detail('flutter user');
   static const Detail flutterRepo = Detail('flutter repo');
   static const Detail status = Detail('status');
@@ -230,6 +232,7 @@ class ScoreCard {
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
     var pedanticRuleset = await pedanticRules;
+    var effectiveDartRuleset = await effectiveDartRules;
 
     var issues = await _getIssues();
     var bugs = issues.where(_isBug).toList();
@@ -246,6 +249,9 @@ class ScoreCard {
       }
       if (pedanticRuleset.contains(lint.name)) {
         ruleSets.add('pedantic');
+      }
+      if (effectiveDartRuleset.contains(lint.name)) {
+        ruleSets.add('effective_dart');
       }
       var bugReferences = <String>[];
       for (var bug in bugs) {
@@ -315,6 +321,10 @@ class LintScore {
           break;
         case Detail.pedantic:
           sb.write('${ruleSets.contains('pedantic') ? " $checkMark" : ""} |');
+          break;
+        case Detail.effectiveDart:
+          sb.write(
+              '${ruleSets.contains('effective_dart') ? " $checkMark" : ""} |');
           break;
         case Detail.flutterUser:
           sb.write('${ruleSets.contains('flutter') ? " $checkMark" : ""} |');

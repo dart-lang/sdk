@@ -24,6 +24,10 @@ const _flutterRepoOptionsUrl =
 const _pedanticOptionsRootUrl =
     'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib';
 const _pedanticOptionsUrl = '$_pedanticOptionsRootUrl/analysis_options.yaml';
+const _effectiveDartOptionsRootUrl =
+    'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib';
+const _effectiveDartOptionsUrl =
+    '$_effectiveDartOptionsRootUrl/analysis_options.yaml';
 const _stagehandOptionsUrl =
     'https://raw.githubusercontent.com/dart-lang/stagehand/master/templates/analysis_options.yaml';
 
@@ -34,6 +38,7 @@ Map<String, List<String>> _sinceMap = <String, List<String>>{};
 List<String> _flutterRules;
 List<String> _flutterRepoRules;
 List<String> _pedanticRules;
+List<String> _effectiveDartRules;
 List<String> _stagehandRules;
 
 Future<List<String>> get flutterRules async =>
@@ -50,6 +55,17 @@ Future<List<String>> _fetchPedanticRules() async {
   var req = await client.get(_pedanticOptionsUrl);
   var includedOptions = req.body.split('include: package:pedantic/')[1].trim();
   return _fetchRules('$_pedanticOptionsRootUrl/$includedOptions');
+}
+
+Future<List<String>> get effectiveDartRules async =>
+    _effectiveDartRules ??= await _fetchEffectiveDartRules();
+
+Future<List<String>> _fetchEffectiveDartRules() async {
+  var client = http.Client();
+  var req = await client.get(_effectiveDartOptionsUrl);
+  var includedOptions =
+      req.body.split('include: package:effective_dart/')[1].trim();
+  return _fetchRules('$_effectiveDartOptionsRootUrl/$includedOptions');
 }
 
 Future<List<String>> get stagehandRules async =>
