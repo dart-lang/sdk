@@ -419,7 +419,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(returnType, required, [], JS('', '{}'))};
+ result = ${new FunctionType(returnType, required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -430,6 +430,7 @@ class FunctionType extends AbstractFunctionType {
   List optionals;
   // Named arguments native JS Object of the form { namedArgName: namedArgType }
   final named;
+  final requiredNamed;
   // TODO(vsm): This is just parameter metadata for now.
   // Suspected but not confirmed: Only used by mirrors for pageloader2 support.
   // The metadata is represented as a list of JS arrays, one for each argument
@@ -448,30 +449,34 @@ class FunctionType extends AbstractFunctionType {
   ///
   /// Note: Generic function subtype checks assume types have been canonicalized
   /// when testing if type bounds are equal.
-  static FunctionType create(returnType, List args, extra) {
-    // Note that if extra is ever passed as an empty array
-    // or an empty map, we can end up with semantically
-    // identical function types that don't canonicalize
-    // to the same object since we won't fall into this
-    // fast path.
-    if (extra == null && JS<bool>('!', '#.length < 3', args)) {
+  static FunctionType create(
+      returnType, List args, optionalArgs, requiredNamedArgs) {
+    // Note that if optionalArgs is ever passed as an empty array or an empty
+    // map, we can end up with semantically identical function types that don't
+    // canonicalize to the same object since we won't fall into this fast path.
+    var noOptionalArgs = optionalArgs == null && requiredNamedArgs == null;
+    if (noOptionalArgs && JS<bool>('!', '#.length < 3', args)) {
       return _createSmall(returnType, args);
     }
     args = _canonicalizeArray(args, _fnTypeArrayArgMap);
     var keys;
     FunctionType Function() create;
-    if (extra == null) {
+    if (noOptionalArgs) {
       keys = [returnType, args];
-      create = () => FunctionType(returnType, args, [], JS('', '{}'));
-    } else if (JS('!', '# instanceof Array', extra)) {
+      create =
+          () => FunctionType(returnType, args, [], JS('', '{}'), JS('', '{}'));
+    } else if (JS('!', '# instanceof Array', optionalArgs)) {
       var optionals =
-          _canonicalizeArray(JS('', '#', extra), _fnTypeArrayArgMap);
+          _canonicalizeArray(JS('', '#', optionalArgs), _fnTypeArrayArgMap);
       keys = [returnType, args, optionals];
-      create = () => FunctionType(returnType, args, optionals, JS('', '{}'));
+      create = () =>
+          FunctionType(returnType, args, optionals, JS('', '{}'), JS('', '{}'));
     } else {
-      var named = _canonicalizeNamed(extra, _fnTypeNamedArgMap);
-      keys = [returnType, args, named];
-      create = () => FunctionType(returnType, args, [], named);
+      var named = _canonicalizeNamed(optionalArgs, _fnTypeNamedArgMap);
+      var requiredNamed =
+          _canonicalizeNamed(requiredNamedArgs, _fnTypeNamedArgMap);
+      keys = [returnType, args, named, requiredNamed];
+      create = () => FunctionType(returnType, args, [], named, requiredNamed);
     }
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
@@ -496,7 +501,8 @@ class FunctionType extends AbstractFunctionType {
     return result;
   }
 
-  FunctionType(this.returnType, this.args, this.optionals, this.named) {
+  FunctionType(this.returnType, this.args, this.optionals, this.named,
+      this.requiredNamed) {
     this.args = _process(this.args);
     this.optionals = _process(this.optionals);
     // TODO(vsm): Named arguments were never used by pageloader2 so they were
@@ -513,9 +519,10 @@ class FunctionType extends AbstractFunctionType {
     return i < n ? args[i] : optionals[i + n];
   }
 
-  Map<String, Object> getNamedParameters() {
+  /// Maps argument names to their canonicalized type.
+  Map<String, Object> _createNameMap(List<String> names) {
     var result = <String, Object>{};
-    var names = getOwnPropertyNames(named);
+    // TODO: Remove this sort if ordering can be conserved.
     JS('', '#.sort()', names);
     for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
       String name = JS('!', '#[#]', names, i);
@@ -524,9 +531,16 @@ class FunctionType extends AbstractFunctionType {
     return result;
   }
 
+  /// Maps optional named parameter names to their canonicalized type.
+  Map<String, Object> getNamedParameters() =>
+      _createNameMap(getOwnPropertyNames(named));
+
+  /// Maps required named parameter names to their canonicalized type.
+  Map<String, Object> getRequiredNamedParameters() =>
+      _createNameMap(getOwnPropertyNames(requiredNamed));
+
   get name {
     if (_stringValue != null) return _stringValue;
-
     var buffer = '(';
     for (var i = 0; JS<bool>('!', '# < #.length', i, args); ++i) {
       if (i > 0) {
@@ -544,21 +558,32 @@ class FunctionType extends AbstractFunctionType {
         buffer += typeName(JS('', '#[#]', optionals, i));
       }
       buffer += ']';
-    } else if (JS('!', 'Object.keys(#).length > 0', named)) {
+    } else if (JS('!', 'Object.keys(#).length > 0 || Object.keys(#).length > 0',
+        named, requiredNamed)) {
       if (JS('!', '#.length > 0', args)) buffer += ', ';
       buffer += '{';
       var names = getOwnPropertyNames(named);
       JS('', '#.sort()', names);
-      for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
+      for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
         if (i > 0) {
           buffer += ', ';
         }
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
+      if (JS('!', '#.length > 0', names)) buffer += ', ';
+      names = getOwnPropertyNames(requiredNamed);
+      JS('', '#.sort()', names);
+      for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
+        if (i > 0) {
+          buffer += ', ';
+        }
+        var typeNameString =
+            typeName(JS('', '#[#[#]]', requiredNamed, names, i));
+        buffer += 'required $typeNameString ${JS('', '#[#]', names, i)}';
+      }
       buffer += '}';
     }
-
     var returnTypeName = typeName(returnType);
     buffer += ') => $returnTypeName';
     _stringValue = buffer;
@@ -644,8 +669,8 @@ class GenericFunctionType extends AbstractFunctionType {
 
   FunctionType instantiate(typeArgs) {
     var parts = JS('', '#.apply(null, #)', _instantiateTypeParts, typeArgs);
-    return FunctionType.create(
-        JS('', '#[0]', parts), JS('', '#[1]', parts), JS('', '#[2]', parts));
+    return FunctionType.create(JS('', '#[0]', parts), JS('', '#[1]', parts),
+        JS('', '#[2]', parts), JS('', '#[3]', parts));
   }
 
   List instantiateTypeBounds(List typeArgs) {
@@ -803,8 +828,9 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
 }
 
 /// Create a function type.
-FunctionType fnType(returnType, List args, [@undefined extra]) =>
-    FunctionType.create(returnType, args, extra);
+FunctionType fnType(returnType, List args,
+        [@undefined optional, @undefined requiredNamed]) =>
+    FunctionType.create(returnType, args, optional, requiredNamed);
 
 /// Creates a generic function type from [instantiateFn] and [typeBounds].
 ///
@@ -915,14 +941,40 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
     }
   }
 
+  // Named parameter invariants:
+  // 1) All named params in the superclass are named params in the subclass.
+  // 2) All required named params in the subclass are required named params
+  //    in the superclass.
   let named1 = $ft1.named;
+  let requiredNamed1 = $ft1.requiredNamed;
   let named2 = $ft2.named;
+  let requiredNamed2 = $ft2.requiredNamed;
 
-  let names = $getOwnPropertyNames(named2);
+  let names = $getOwnPropertyNames(requiredNamed1);
+  for (let i = 0; i < names.length; ++i) {
+    let name = names[i];
+    let n2 = requiredNamed2[name];
+    if (n2 === void 0) {
+      return false;
+    }
+  }
+  names = $getOwnPropertyNames(named2);
   for (let i = 0; i < names.length; ++i) {
     let name = names[i];
     let n1 = named1[name];
     let n2 = named2[name];
+    if (n1 === void 0) {
+      return false;
+    }
+    if (!$_isSubtype(n2, n1)) {
+      return false;
+    }
+  }
+  names = $getOwnPropertyNames(requiredNamed2);
+  for (let i = 0; i < names.length; ++i) {
+    let name = names[i];
+    let n1 = named1[name] || requiredNamed1[name];
+    let n2 = requiredNamed2[name];
     if (n1 === void 0) {
       return false;
     }
@@ -1344,12 +1396,29 @@ class _TypeInferrer {
         return false;
       }
     }
+
+    // Named parameter invariants:
+    // 1) All named params in the superclass are named params in the subclass.
+    // 2) All required named params in the subclass are required named params
+    //    in the superclass.
     var supertypeNamed = supertype.getNamedParameters();
+    var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
+    var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
+    for (var name in subtypeRequiredNamed.keys) {
+      var supertypeParamType = supertypeRequiredNamed[name];
+      if (supertypeParamType == null) return false;
+    }
     for (var name in supertypeNamed.keys) {
       var subtypeParamType = subtypeNamed[name];
       if (subtypeParamType == null) return false;
       if (!_isSubtypeMatch(supertypeNamed[name], subtypeParamType)) {
+        return false;
+      }
+    }
+    for (var name in supertypeRequiredNamed.keys) {
+      var subtypeParamType = subtypeRequiredNamed[name] ?? subtypeNamed[name];
+      if (!_isSubtypeMatch(supertypeRequiredNamed[name], subtypeParamType)) {
         return false;
       }
     }

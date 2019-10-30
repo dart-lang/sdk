@@ -2676,22 +2676,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ?.skip(type.requiredParameterCount)
         ?.toList();
 
-    var namedTypes = type.namedParameters;
-    var rt = _emitType(type.returnType);
-    var ra = _emitTypeNames(requiredTypes, requiredParams, member);
+    var namedTypes = <NamedType>[];
+    var requiredNamedTypes = <NamedType>[];
+    type.namedParameters.forEach((param) => param.isRequired
+        ? requiredNamedTypes.add(param)
+        : namedTypes.add(param));
+    var allNamedTypes = type.namedParameters;
+
+    var returnType = _emitType(type.returnType);
+    var requiredArgs = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<js_ast.Expression> typeParts;
-    if (namedTypes.isNotEmpty) {
+    if (allNamedTypes.isNotEmpty) {
       assert(optionalTypes.isEmpty);
-      // TODO(vsm): Pass in annotations here as well.
-      var na = _emitTypeProperties(namedTypes);
-      typeParts = [rt, ra, na];
+      // TODO(vsm): The old pageloader may require annotations here.
+      var namedArgs = _emitTypeProperties(namedTypes);
+      var requiredNamedArgs = _emitTypeProperties(requiredNamedTypes);
+      typeParts = [returnType, requiredArgs, namedArgs, requiredNamedArgs];
     } else if (optionalTypes.isNotEmpty) {
-      assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes, optionalParams, member);
-      typeParts = [rt, ra, oa];
+      assert(allNamedTypes.isEmpty);
+      var optionalArgs = _emitTypeNames(optionalTypes, optionalParams, member);
+      typeParts = [returnType, requiredArgs, optionalArgs];
     } else {
-      typeParts = [rt, ra];
+      typeParts = [returnType, requiredArgs];
     }
 
     var typeFormals = type.typeParameters;
@@ -2800,12 +2807,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return result;
   }
 
+  /// Emits named parameters in the form '{name: type}'.
   js_ast.ObjectInitializer _emitTypeProperties(Iterable<NamedType> types) {
     return js_ast.ObjectInitializer(types
         .map((t) => js_ast.Property(propertyName(t.name), _emitType(t.type)))
         .toList());
   }
 
+  /// Emits a list of types and their metadata annotations to code.
+  ///
+  /// Annotatable contexts include typedefs and method/function declarations.
   js_ast.ArrayInitializer _emitTypeNames(List<DartType> types,
       List<VariableDeclaration> parameters, Member member) {
     var result = <js_ast.Expression>[];
