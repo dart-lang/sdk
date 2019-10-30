@@ -442,13 +442,16 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
+    var finallyBlock = node.finallyBlock;
+    bool isDesugared = node.catchClauses.isNotEmpty && finallyBlock != null;
     assignedVariables.beginNode();
+    if (isDesugared) assignedVariables.beginNode();
     node.body.accept(this);
     assignedVariables.endNode(node.body);
 
     node.catchClauses.accept(this);
+    if (isDesugared) assignedVariables.endNode(node);
 
-    var finallyBlock = node.finallyBlock;
     if (finallyBlock != null) {
       assignedVariables.beginNode();
       finallyBlock.accept(this);

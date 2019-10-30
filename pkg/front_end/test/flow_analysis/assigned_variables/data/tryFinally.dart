@@ -13,9 +13,14 @@ tryFinally(int a, int b) {
   }
 }
 
-/*member: tryCatchFinally:declared={a, b, c, e}, assigned={a, b, c}*/
+/*analyzer.member: tryCatchFinally:declared={a, b, c}, assigned={a, b, c}*/
+/*cfe.member: tryCatchFinally:declared={a, b, c, e}, assigned={a, b, c}*/
 tryCatchFinally(int a, int b, int c) {
-  try /*declared={d}, assigned={a}*/ {
+  // Note: try/catch/finally is desugared into try/catch nested inside
+  // try/finally.  The comment preceding the "try" refers to the outer
+  // "try" block of the desugaring, and the comment after the "try"
+  // refers to the inner "try" block of the desugaring.
+  /*analyzer.declared={e}, assigned={a, b}*/ try /*declared={d}, assigned={a}*/ {
     a = 0;
     var d;
   } on String {
