@@ -7,6 +7,13 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+/// Sets the mode of the runtime subtype checks.
+///
+/// Changing the mode after any calls to dart.isSubtype() is not supported.
+void strictSubtypeChecks(bool flag) {
+  JS('', 'dart.__strictSubtypeChecks = #', flag);
+}
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// Types in dart are represented internally at runtime as follows.
@@ -904,7 +911,7 @@ String typeName(type) => JS('', '''(() => {
 })()''');
 
 /// Returns true if [ft1] <: [ft2].
-_isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
+_isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
@@ -916,7 +923,7 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
   }
 
   for (let i = 0; i < args1.length; ++i) {
-    if (!$_isSubtype(args2[i], args1[i])) {
+    if (!$_isSubtype(args2[i], args1[i], strictMode)) {
       return false;
     }
   }
@@ -930,13 +937,13 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
 
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$_isSubtype(args2[i], optionals1[j])) {
+    if (!$_isSubtype(args2[i], optionals1[j], strictMode)) {
       return false;
     }
   }
 
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$_isSubtype(optionals2[i], optionals1[j])) {
+    if (!$_isSubtype(optionals2[i], optionals1[j], strictMode)) {
       return false;
     }
   }
@@ -966,7 +973,7 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
     if (n1 === void 0) {
       return false;
     }
-    if (!$_isSubtype(n2, n1)) {
+    if (!$_isSubtype(n2, n1, strictMode)) {
       return false;
     }
   }
@@ -983,7 +990,7 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
     }
   }
 
-  return $_isSubtype(ret1, ret2);
+  return $_isSubtype(ret1, ret2, strictMode);
 })()''');
 
 /// Returns true if [t1] <: [t2].
@@ -1000,17 +1007,27 @@ bool isSubtypeOf(Object t1, Object t2) {
     bool result = JS('', '#.get(#)', map, t2);
     if (JS('!', '# !== void 0', result)) return result;
   }
-  // TODO(nshahan): Add support for strict/weak mode.
-  var result = _isSubtype(t1, t2);
-  JS('', '#.set(#, #)', map, t2, result);
-  return result;
+  var validSubtype = _isSubtype(t1, t2, true);
+
+  if (!validSubtype && !JS<bool>('!', 'dart.__strictSubtypeChecks')) {
+    validSubtype = _isSubtype(t1, t2, false);
+    if (validSubtype) {
+      // TODO(nshahan) Need more information to be helpful here.
+      // File and line number that caused the subtype check?
+      // Possibly break into debuger?
+      _warn("$t1 is not a subtype of $t2.\n"
+          "This will be a runtime failure when strict mode is enabled.");
+    }
+  }
+  JS('', '#.set(#, #)', map, t2, validSubtype);
+  return validSubtype;
 }
 
 final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
-// TODO(nshahan): Add support for strict/weak mode.
 @notNull
-bool _isBottom(type) => JS('!', '# == #', type, bottom);
+bool _isBottom(type, strictMode) =>
+    JS('!', '# == # || (!# && #)', type, bottom, strictMode, _isNullType(type));
 
 // TODO(nshahan): Add support for strict/weak mode.
 @notNull
@@ -1039,19 +1056,29 @@ bool _isNullType(Object type) => identical(type, unwrapType(Null));
 bool _isFutureOr(type) =>
     identical(getGenericClass(type), getGenericClass(FutureOr));
 
-bool _isSubtype(t1, t2) => JS('bool', '''(() => {
+bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
+  if (!$strictMode) {
+    // Strip nullable types when performing check in weak mode.
+    // TODO(nshahan) Investigate stripping off legacy types as well.
+    if (${_isNullable(t1)}) {
+      t1 = t1.type;
+    }
+    if (${_isNullable(t2)}) {
+      t2 = t2.type;
+    }
+  }
   if ($t1 === $t2) {
     return true;
   }
 
   // Trivially true, "Right Top" or "Left Bottom".
-  if (${_isTop(t2)} || ${_isBottom(t1)}) {
+  if (${_isTop(t2)} || ${_isBottom(t1, strictMode)}) {
     return true;
   }
 
   // "Left Top".
   if ($t1 == $dynamic || $t1 == $void_) {
-    return $_isSubtype($nullable($Object), $t2);
+    return $_isSubtype($nullable($Object), $t2, $strictMode);
   }
 
   // "Right Object".
@@ -1060,15 +1087,15 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     // https://github.com/dart-lang/sdk/issues/38816
     if (${_isFutureOr(t1)}) {
       let t1TypeArg = ${getGenericArgs(t1)}[0];
-      return $_isSubtype(t1TypeArg, $Object);
+      return $_isSubtype(t1TypeArg, $Object, $strictMode);
     }
 
     if (${_isLegacy(t1)}) {
-      return $_isSubtype(t1.type, t2);
+      return $_isSubtype(t1.type, t2, $strictMode);
     }
 
-    if ($t1 == $dynamic || $t1 == $void_ || $t1 == $Null
-        || ${_isNullable(t1)}) {
+    if (${_isNullType(t1)} || ${_isNullable(t1)}) {
+      // Checks for t1 is dynamic or void already performed in "Left Top" test.
       return false;
     }
     return true;
@@ -1080,7 +1107,7 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     // https://github.com/dart-lang/sdk/issues/38816
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
-      return $_isSubtype($Null, t2TypeArg);
+      return $_isSubtype($Null, t2TypeArg, $strictMode);
     }
 
     return $t2 == $Null || ${_isLegacy(t2)} || ${_isNullable(t2)};
@@ -1088,12 +1115,12 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
 
   // "Left Legacy".
   if (${_isLegacy(t1)}) {
-    return $_isSubtype(t1.type, t2);
+    return $_isSubtype(t1.type, t2, $strictMode);
   }
 
   // "Right Legacy".
   if (${_isLegacy(t2)}) {
-    return $_isSubtype(t1, $nullable(t2.type));
+    return $_isSubtype(t1, $nullable(t2.type), $strictMode);
   }
 
   // Handle FutureOr<T> union type.
@@ -1104,21 +1131,21 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
       // FutureOr<A> <: FutureOr<B> iff A <: B
       // TODO(nshahan): Proven to not actually be true and needs cleanup.
       // https://github.com/dart-lang/sdk/issues/38818
-      return $_isSubtype(t1TypeArg, t2TypeArg);
+      return $_isSubtype(t1TypeArg, t2TypeArg, $strictMode);
     }
 
     // given t1 is Future<A> | A, then:
     // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
     let t1Future = ${getGenericClass(Future)}(t1TypeArg);
     // Known to handle the case FutureOr<Null> <: Future<Null>.
-    return $_isSubtype(t1Future, $t2) && $_isSubtype(t1TypeArg, $t2);
+    return $_isSubtype(t1Future, $t2, $strictMode) && $_isSubtype(t1TypeArg, $t2, $strictMode);
   }
 
   // "Left Nullable".
   if (${_isNullable(t1)}) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1.type, t2) && $_isSubtype($Null, t2);
+    return $_isSubtype(t1.type, t2, $strictMode) && $_isSubtype($Null, t2, $strictMode);
   }
 
   if ($_isFutureOr($t2)) {
@@ -1128,14 +1155,14 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     let t2Future = ${getGenericClass(Future)}(t2TypeArg);
     // TODO(nshahan) Need to handle type variables on the left.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype($t1, t2Future) || $_isSubtype($t1, t2TypeArg);
+    return $_isSubtype($t1, t2Future, $strictMode) || $_isSubtype($t1, t2TypeArg, $strictMode);
   }
 
   // "Right Nullable".
   if (${_isNullable(t2)}) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1, t2.type) || $_isSubtype(t1, $Null);
+    return $_isSubtype(t1, t2.type, $strictMode) || $_isSubtype(t1, $Null, $strictMode);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
@@ -1156,7 +1183,7 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     }
 
     // Compare two interface types.
-    return ${_isInterfaceSubtype(t1, t2)};
+    return ${_isInterfaceSubtype(t1, t2, strictMode)};
   }
 
   // Function subtyping.
@@ -1214,10 +1241,10 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
   }
 
   // Handle non-generic functions.
-  return ${_isFunctionSubtype(t1, t2)};
+  return ${_isFunctionSubtype(t1, t2, strictMode)};
 })()''');
 
-bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
+bool _isInterfaceSubtype(t1, t2, strictMode) => JS('', '''(() => {
   // If we have lazy JS types, unwrap them.  This will effectively
   // reduce to a prototype check below.
   if ($t1 instanceof $LazyJSType) $t1 = $t1.rawJSTypeForCheck();
@@ -1255,16 +1282,16 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
       // When using implicit variance, variances will be undefined and
       // considered covariant.
       if (variances === void 0 || variances[i] == ${Variance.covariant}) {
-        if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode)) {
           return false;
         }
       } else if (variances[i] == ${Variance.contravariant}) {
-        if (!$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+        if (!$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
           return false;
         }
       } else if (variances[i] == ${Variance.invariant}) {
-        if (!$_isSubtype(typeArguments1[i], typeArguments2[i]) ||
-            !$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode) ||
+            !$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
           return false;
         }
       }
@@ -1272,13 +1299,13 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
     return true;
   }
 
-  if ($_isInterfaceSubtype(t1.__proto__, $t2)) {
+  if ($_isInterfaceSubtype(t1.__proto__, $t2, $strictMode)) {
     return true;
   }
 
   // Check mixin.
   let m1 = $getMixin($t1);
-  if (m1 != null && $_isInterfaceSubtype(m1, $t2)) {
+  if (m1 != null && $_isInterfaceSubtype(m1, $t2, $strictMode)) {
     return true;
   }
 
@@ -1286,7 +1313,7 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      if ($_isInterfaceSubtype(i1, $t2)) {
+      if ($_isInterfaceSubtype(i1, $t2, $strictMode)) {
         return true;
       }
     }

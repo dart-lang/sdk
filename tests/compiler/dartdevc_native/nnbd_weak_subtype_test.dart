@@ -4,7 +4,6 @@
 
 // Requirements=nnbd-weak
 
-import 'dart:_runtime' as dart;
 import 'dart:async';
 
 import 'runtime_utils.dart';
@@ -23,6 +22,9 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 void main() {
+  // Run tests with weak subtype checks.
+  strictSubtypeChecks(false);
+
   // Top type symmetry.
   // Object? <: dynamic
   checkSubtype(nullable(Object), dynamic);
@@ -47,7 +49,7 @@ void main() {
 
   // Object is between top and bottom.
   // Object <: Object?
-  checkProperSubtype(Object, nullable(Object));
+  checkSubtype(Object, nullable(Object));
   // never <: Object
   checkProperSubtype(neverType, Object);
 
@@ -55,7 +57,7 @@ void main() {
   // Null <: Object?
   checkProperSubtype(Null, nullable(Object));
   // never <: Null
-  checkProperSubtype(neverType, Null);
+  checkSubtype(neverType, Null);
 
   // Class is between Object and bottom.
   // A <: Object
@@ -65,7 +67,7 @@ void main() {
 
   // Nullable types are a union of T and Null.
   // A <: A?
-  checkProperSubtype(A, nullable(A));
+  checkSubtype(A, nullable(A));
   // Null <: A?
   checkProperSubtype(Null, nullable(A));
   // A? <: Object?
@@ -106,9 +108,17 @@ void main() {
   // Null <: FutureOr<Object?>
   checkProperSubtype(Null, generic1(FutureOr, nullable(Object)));
   // Object <: FutureOr<Object?>
-  checkProperSubtype(Object, generic1(FutureOr, nullable(Object)));
+  checkSubtype(Object, generic1(FutureOr, nullable(Object)));
   // Object? <: FutureOr<Object?>
   checkSubtype(nullable(Object), generic1(FutureOr, nullable(Object)));
+  // Object <: FutureOr<Object>
+  checkSubtype(Object, generic1(FutureOr, Object));
+  // FutureOr<Object> <: Object
+  checkSubtype(generic1(FutureOr, Object), Object);
+  // Object <: FutureOr<dynamic>
+  checkSubtype(Object, generic1(FutureOr, dynamic));
+  // Object <: FutureOr<void>
+  checkSubtype(Object, generic1(FutureOr, voidType));
   // Future<Object> <: FutureOr<Object?>
   checkProperSubtype(
       generic1(Future, Object), generic1(FutureOr, nullable(Object)));
@@ -255,29 +265,34 @@ void main() {
   checkSubtypeFailure(nullable(A), legacy(B));
 
   // Allowed in weak mode.
-  // TODO(nshahan) These should all pass in weak mode.
   // dynamic <: Object
-  checkSubtypeFailure(dynamic, Object);
+  checkSubtype(dynamic, Object);
   // void <: Object
-  checkSubtypeFailure(voidType, Object);
+  checkSubtype(voidType, Object);
   // Object? <: Object
-  checkSubtypeFailure(nullable(Object), Object);
+  checkSubtype(nullable(Object), Object);
   // A? <: Object
-  checkSubtypeFailure(nullable(A), Object);
+  checkProperSubtype(nullable(A), Object);
   // A? <: A
-  checkSubtypeFailure(nullable(A), A);
+  checkSubtype(nullable(A), A);
   // Null <: never
-  checkSubtypeFailure(Null, neverType);
+  checkSubtype(Null, neverType);
   // Null <: Object
-  checkSubtypeFailure(Null, Object);
+  checkProperSubtype(Null, Object);
   // Null <: A
-  checkSubtypeFailure(Null, A);
+  checkProperSubtype(Null, A);
   // Null <: FutureOr<A>
-  checkSubtypeFailure(Null, generic1(FutureOr, A));
+  checkProperSubtype(Null, generic1(FutureOr, A));
   // Null <: Future<A>
-  checkSubtypeFailure(Null, generic1(Future, A));
+  checkProperSubtype(Null, generic1(Future, A));
   // FutureOr<Null> <: Future<Null>
-  checkSubtypeFailure(generic1(FutureOr, Null), generic1(Future, Null));
+  checkSubtype(generic1(FutureOr, Null), generic1(Future, Null));
   // Null <: Future<A?>
-  checkSubtypeFailure(Null, generic1(Future, nullable(A)));
+  checkProperSubtype(Null, generic1(Future, nullable(A)));
+  // FutureOr<Object?> <: Object
+  checkSubtype(generic1(FutureOr, nullable(Object)), Object);
+  // FutureOr<dynamic> <: Object
+  checkSubtype(generic1(FutureOr, dynamic), Object);
+  // FutureOr<void> <: Object
+  checkSubtype(generic1(FutureOr, voidType), Object);
 }

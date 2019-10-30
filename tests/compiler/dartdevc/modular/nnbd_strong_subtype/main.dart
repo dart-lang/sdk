@@ -6,7 +6,6 @@
 
 // Requirements=nnbd-strong
 
-import 'dart:_runtime' as dart;
 import 'dart:async';
 
 import 'runtime_utils.dart';
@@ -25,6 +24,9 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 void main() {
+  // Run tests with strict subtype checks.
+  strictSubtypeChecks(true);
+
   // Top type symmetry.
   // Object? <: dynamic
   checkSubtype(nullable(Object), dynamic);
@@ -111,6 +113,14 @@ void main() {
   checkProperSubtype(Object, generic1(FutureOr, nullable(Object)));
   // Object? <: FutureOr<Object?>
   checkSubtype(nullable(Object), generic1(FutureOr, nullable(Object)));
+  // Object <: FutureOr<Object>
+  checkSubtype(Object, generic1(FutureOr, Object));
+  // FutureOr<Object> <: Object
+  checkSubtype(generic1(FutureOr, Object), Object);
+  // Object <: FutureOr<dynamic>
+  checkProperSubtype(Object, generic1(FutureOr, dynamic));
+  // Object <: FutureOr<void>
+  checkProperSubtype(Object, generic1(FutureOr, voidType));
   // Future<Object> <: FutureOr<Object?>
   checkProperSubtype(
       generic1(Future, Object), generic1(FutureOr, nullable(Object)));
@@ -257,28 +267,34 @@ void main() {
   checkSubtypeFailure(nullable(A), legacy(B));
 
   // Allowed in weak mode.
-  // dynamic <: Object
+  // dynamic <\: Object
   checkSubtypeFailure(dynamic, Object);
-  // void <: Object
+  // void <\: Object
   checkSubtypeFailure(voidType, Object);
-  // Object? <: Object
+  // Object? <\: Object
   checkSubtypeFailure(nullable(Object), Object);
-  // A? <: Object
+  // A? <\: Object
   checkSubtypeFailure(nullable(A), Object);
-  // A? <: A
+  // A? <\: A
   checkSubtypeFailure(nullable(A), A);
-  // Null <: never
+  // Null <\: never
   checkSubtypeFailure(Null, neverType);
-  // Null <: Object
+  // Null <\: Object
   checkSubtypeFailure(Null, Object);
-  // Null <: A
+  // Null <\: A
   checkSubtypeFailure(Null, A);
-  // Null <: FutureOr<A>
+  // Null <\: FutureOr<A>
   checkSubtypeFailure(Null, generic1(FutureOr, A));
-  // Null <: Future<A>
+  // Null <\: Future<A>
   checkSubtypeFailure(Null, generic1(Future, A));
-  // FutureOr<Null> <: Future<Null>
+  // FutureOr<Null> <\: Future<Null>
   checkSubtypeFailure(generic1(FutureOr, Null), generic1(Future, Null));
-  // Null <: Future<A?>
+  // Null <\: Future<A?>
   checkSubtypeFailure(Null, generic1(Future, nullable(A)));
+  // FutureOr<Object?> <\: Object
+  checkSubtypeFailure(generic1(FutureOr, nullable(Object)), Object);
+  // FutureOr<dynamic> <\: Object
+  checkSubtypeFailure(generic1(FutureOr, dynamic), Object);
+  // FutureOr<void> <\: Object
+  checkSubtypeFailure(generic1(FutureOr, voidType), Object);
 }
