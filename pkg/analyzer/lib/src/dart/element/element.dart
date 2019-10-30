@@ -4750,7 +4750,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
           encloseElement(_function);
           return _function;
         } else {
-          return null;
+          return _function = GenericFunctionTypeElementImpl.forOffset(-1)
+            ..typeParameters = const <TypeParameterElement>[]
+            ..parameters = const <ParameterElement>[]
+            ..returnType = DynamicTypeImpl.instance;
         }
       } else {
         return _function = GenericFunctionTypeElementImpl.forLinkedNode(

@@ -10510,8 +10510,8 @@ typedef F = int;
 F f;
 ''');
     checkElementText(library, r'''
-typedef F = <null>;
-dynamic f;
+typedef F = dynamic Function();
+dynamic Function() f;
 ''');
   }
 

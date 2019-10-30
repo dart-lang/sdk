@@ -196,6 +196,19 @@ class NamedTypeBuilder extends TypeBuilder {
     );
   }
 
+  DartType _buildGenericFunctionType(GenericFunctionType node) {
+    if (node != null) {
+      return _buildType(node?.type);
+    } else {
+      return FunctionTypeImpl.synthetic(
+        _dynamicType,
+        const <TypeParameterElement>[],
+        const <ParameterElement>[],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+  }
+
   DartType _buildNodeType(TypeAnnotation node) {
     if (node == null) {
       return _dynamicType;
@@ -219,12 +232,7 @@ class NamedTypeBuilder extends TypeBuilder {
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.
     if (!element.linkedContext.isLinking) {
-      var function = element.function;
-      if (function != null) {
-        return function.type;
-      } else {
-        return _dynamicType;
-      }
+      return element.function.type;
     }
 
     var typedefNode = element.linkedNode;
@@ -248,7 +256,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return result;
     } else if (typedefNode is GenericTypeAlias) {
       var functionNode = typedefNode.functionType;
-      var functionType = _buildType(functionNode?.type);
+      var functionType = _buildGenericFunctionType(functionNode);
       LazyAst.setRawFunctionType(typedefNode, functionType);
       return functionType;
     } else {
