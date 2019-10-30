@@ -1,3 +1,13 @@
+Problems reported:
+
+parser_test/error_recovery/issue_39026.crash:2:8: Operator declarations must be preceded by the keyword 'operator'.
+    co <{
+       ^
+
+parser_test/error_recovery/issue_39026.crash:2:8: A method declaration needs an explicit list of parameters.
+    co <{
+       ^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)

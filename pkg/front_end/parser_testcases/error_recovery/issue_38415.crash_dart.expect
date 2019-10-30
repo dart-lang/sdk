@@ -1,3 +1,13 @@
+Problems reported:
+
+parser_test/error_recovery/issue_38415.crash:1:15: Expected '[' before this.
+f() { m(T<R(<Z
+              ^...
+
+parser_test/error_recovery/issue_38415.crash:1:15: Expected ';' after this.
+f() { m(T<R(<Z
+              ^...
+
 beginCompilationUnit(f)
   beginMetadataStar(f)
   endMetadataStar(0)

@@ -1,3 +1,21 @@
+Problems reported:
+
+parser_test/error_recovery/issue_39060:2:6: Expected ';' after this.
+  {s A<}>
+     ^
+
+parser_test/error_recovery/issue_39060:2:8: Expected a type, but got '}'.
+  {s A<}>
+       ^
+
+parser_test/error_recovery/issue_39060:3:1: Expected '[' before this.
+}
+^
+
+parser_test/error_recovery/issue_39060:3:1: Expected ';' after this.
+}
+^
+
 beginCompilationUnit(main)
   beginMetadataStar(main)
   endMetadataStar(0)

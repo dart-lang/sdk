@@ -10,13 +10,22 @@ import 'dart:io' show File;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/fasta/parser.dart' show Parser;
-import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
+
+import 'package:front_end/src/fasta/messages.dart' show Message;
+
+import 'package:front_end/src/fasta/parser.dart'
+    show Parser, lengthOfSpan, offsetForToken;
+
+import 'package:front_end/src/fasta/scanner.dart'
+    show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 
 import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
 import 'package:front_end/src/scanner/token.dart' show Token;
+import 'package:kernel/ast.dart';
 
 import 'package:testing/testing.dart'
     show
@@ -52,7 +61,7 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(environment["updateExpectations"] == "true",
+  return new Context(suite.name, environment["updateExpectations"] == "true",
       environment["trace"] == "true");
 }
 
@@ -64,8 +73,9 @@ ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
   final bool addTrace;
+  final String suiteName;
 
-  Context(this.updateExpectations, this.addTrace);
+  Context(this.suiteName, this.updateExpectations, this.addTrace);
 
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
@@ -85,19 +95,34 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    Token firstToken = scanUri(description.uri);
+    List<int> lineStarts = new List<int>();
+    Token firstToken = scanUri(description.uri, lineStarts: lineStarts);
 
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
 
-    ParserTestListener parserTestListener =
-        new ParserTestListener(context.addTrace);
+    File f = new File.fromUri(description.uri);
+    List<int> rawBytes = f.readAsBytesSync();
+    Source source =
+        new Source(lineStarts, rawBytes, description.uri, description.uri);
+
+    String shortName = "${context.suiteName}/${description.shortName}";
+
+    ParserTestListenerWithMessageFormatting parserTestListener =
+        new ParserTestListenerWithMessageFormatting(
+            context.addTrace, source, shortName);
     Parser parser = new Parser(parserTestListener);
     parser.parseUnit(firstToken);
 
-    return context.match<TestDescription>(
-        ".expect", "${parserTestListener.sb}", description.uri, description);
+    String errors = "";
+    if (parserTestListener.errors.isNotEmpty) {
+      errors = "Problems reported:\n\n"
+          "${parserTestListener.errors.join("\n\n")}\n\n";
+    }
+
+    return context.match<TestDescription>(".expect",
+        "${errors}${parserTestListener.sb}", description.uri, description);
   }
 }
 
@@ -114,8 +139,8 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
       return Future.value(crash(description, StackTrace.current));
     }
 
-    ParserTestListener2 parserTestListener =
-        new ParserTestListener2(context.addTrace);
+    ParserTestListenerForIntertwined parserTestListener =
+        new ParserTestListenerForIntertwined(context.addTrace);
     TestParser parser = new TestParser(parserTestListener, context.addTrace);
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
@@ -248,10 +273,41 @@ Token scanUri(Uri uri, {List<int> lineStarts}) {
   return firstToken;
 }
 
-class ParserTestListener2 extends ParserTestListener {
+class ParserTestListenerWithMessageFormatting extends ParserTestListener {
+  final Source source;
+  final String shortName;
+  final List<String> errors = new List<String>();
+
+  ParserTestListenerWithMessageFormatting(
+      bool trace, this.source, this.shortName)
+      : super(trace);
+
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    if (source != null) {
+      Location location =
+          source.getLocation(source.fileUri, offsetForToken(startToken));
+      int length = lengthOfSpan(startToken, endToken);
+      if (length <= 0) length = 1;
+      errors.add(command_line_reporting.formatErrorMessage(
+          source.getTextLine(location.line),
+          location,
+          length,
+          shortName,
+          message.message));
+    } else {
+      errors.add(message.message);
+    }
+
+    super.handleRecoverableError(message, startToken, endToken);
+  }
+}
+
+class ParserTestListenerForIntertwined
+    extends ParserTestListenerWithMessageFormatting {
   TestParser parser;
 
-  ParserTestListener2(bool trace) : super(trace);
+  ParserTestListenerForIntertwined(bool trace) : super(trace, null, null);
 
   void doPrint(String s) {
     int prevIndent = super.indent;
