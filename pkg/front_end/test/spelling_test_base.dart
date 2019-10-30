@@ -67,13 +67,33 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     List<String> errors;
     Source source = new Source(
         scanner.lineStarts, rawBytes, description.uri, description.uri);
-    void addErrorMessage(int offset, int squigglyLength, String message) {
+    void addErrorMessage(
+        int offset, String word, bool blacklisted, List<String> alternatives) {
       errors ??= new List<String>();
+      String message;
+      if (blacklisted) {
+        message = "Misspelled word: '$word' has explicitly been blacklisted.";
+      } else {
+        message = "The word '$word' is not in our dictionary.";
+      }
+      if (alternatives != null && alternatives.isNotEmpty) {
+        message += "\n\nThe following word(s) was 'close' "
+            "and in our dictionary: "
+            "${alternatives.join(", ")}\n";
+      }
+      if (context.dictionaries.isNotEmpty) {
+        String dictionaryPathString = context.dictionaries
+            .map((d) => spell.dictionaryToUri(d).toString())
+            .join("\n- ");
+        message += "\n\nIf the word is correctly spelled please add "
+            "it to one of these files:\n"
+            "- $dictionaryPathString\n";
+      }
       Location location = source.getLocation(description.uri, offset);
       errors.add(command_line_reporting.formatErrorMessage(
           source.getTextLine(location.line),
           location,
-          squigglyLength,
+          word.length,
           description.uri.toString(),
           message));
     }
@@ -96,8 +116,8 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
               if (context.onlyBlacklisted && !blacklisted) continue;
               int offset =
                   comment.offset + spellingResult.misspelledWordsOffset[i];
-              String word = spellingResult.misspelledWords[i];
-              addErrorMessage(offset, word.length, "Misspelled word '$word'.");
+              addErrorMessage(offset, spellingResult.misspelledWords[i],
+                  blacklisted, spellingResult.misspelledWordsAlternatives[i]);
             }
           }
           comment = comment.next;
@@ -113,8 +133,8 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
             bool blacklisted = spellingResult.misspelledWordsBlacklisted[i];
             if (context.onlyBlacklisted && !blacklisted) continue;
             int offset = token.offset + spellingResult.misspelledWordsOffset[i];
-            String word = spellingResult.misspelledWords[i];
-            addErrorMessage(offset, word.length, "Misspelled word '$word'.");
+            addErrorMessage(offset, spellingResult.misspelledWords[i],
+                blacklisted, spellingResult.misspelledWordsAlternatives[i]);
           }
         }
       } else if (token is KeywordToken || token is BeginToken) {

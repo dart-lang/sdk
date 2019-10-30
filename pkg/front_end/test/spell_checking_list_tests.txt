@@ -319,6 +319,7 @@ somehow
 spans
 spell
 spellcheck
+spelled
 spelling
 spent
 splitting
@@ -366,6 +367,7 @@ typeparam
 typeparambounds
 unawaited
 unbreak
+unpacked
 unregistered
 untransformed
 untrimmed

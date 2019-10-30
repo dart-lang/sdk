@@ -255,6 +255,7 @@
         "test/memory_file_system_test\\.dart$",
         "test/scanner_fasta_test\\.dart$",
         "test/scanner_test\\.dart$",
+        "test/spell_checking_utils_test.dart",
         "test/standard_file_system_test\\.dart$",
         "test/tool/reload\\.dart$",
         "test/type_labeler_test\\.dart$",

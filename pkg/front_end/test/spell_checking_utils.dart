@@ -21,19 +21,26 @@ SpellingResult spellcheckString(String s,
   ensureDictionariesLoaded(dictionaries);
 
   List<String> wrongWords;
+  List<List<String>> wrongWordsAlternatives;
   List<int> wrongWordsOffset;
   List<bool> wrongWordBlacklisted;
   List<int> wordOffsets = new List<int>();
   List<String> words =
       splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
+  List<Set<String>> dictionariesUnpacked = [];
+  for (int j = 0; j < dictionaries.length; j++) {
+    Dictionaries dictionaryType = dictionaries[j];
+    if (dictionaryType == Dictionaries.blacklist) continue;
+    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    dictionariesUnpacked.add(dictionary);
+  }
   for (int i = 0; i < words.length; i++) {
     String word = words[i].toLowerCase();
     int offset = wordOffsets[i];
     bool found = false;
-    for (int j = 0; j < dictionaries.length; j++) {
-      Dictionaries dictionaryType = dictionaries[j];
-      if (dictionaryType == Dictionaries.blacklist) continue;
-      Set<String> dictionary = loadedDictionaries[dictionaryType];
+
+    for (int j = 0; j < dictionariesUnpacked.length; j++) {
+      Set<String> dictionary = dictionariesUnpacked[j];
       if (dictionary.contains(word)) {
         found = true;
         break;
@@ -42,6 +49,8 @@ SpellingResult spellcheckString(String s,
     if (!found) {
       wrongWords ??= new List<String>();
       wrongWords.add(word);
+      wrongWordsAlternatives ??= new List<List<String>>();
+      wrongWordsAlternatives.add(findAlternatives(word, dictionariesUnpacked));
       wrongWordsOffset ??= new List<int>();
       wrongWordsOffset.add(offset);
       wrongWordBlacklisted ??= new List<bool>();
@@ -50,16 +59,59 @@ SpellingResult spellcheckString(String s,
     }
   }
 
-  return new SpellingResult(wrongWords, wrongWordsOffset, wrongWordBlacklisted);
+  return new SpellingResult(wrongWords, wrongWordsOffset, wrongWordBlacklisted,
+      wrongWordsAlternatives);
+}
+
+List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
+  List<String> result;
+
+  bool check(String w) {
+    for (int j = 0; j < dictionaries.length; j++) {
+      Set<String> dictionary = dictionaries[j];
+      if (dictionary.contains(w)) return true;
+    }
+    return false;
+  }
+
+  void ok(String w) {
+    result ??= new List<String>();
+    result.add(w);
+  }
+
+  // Delete a letter, insert a letter or change a letter and lookup.
+  for (int i = 0; i < word.length; i++) {
+    String before = word.substring(0, i);
+    String after = word.substring(i + 1);
+    String afterIncluding = word.substring(i);
+
+    {
+      String deletedLetter = before + after;
+      if (check(deletedLetter)) ok(deletedLetter);
+    }
+    for (int j = 0; j < 25; j++) {
+      String c = new String.fromCharCode(97 + j);
+      String insertedLetter = before + c + afterIncluding;
+      if (check(insertedLetter)) ok(insertedLetter);
+    }
+    for (int j = 0; j < 25; j++) {
+      String c = new String.fromCharCode(97 + j);
+      String replacedLetter = before + c + after;
+      if (check(replacedLetter)) ok(replacedLetter);
+    }
+  }
+
+  return result;
 }
 
 class SpellingResult {
   final List<String> misspelledWords;
   final List<int> misspelledWordsOffset;
   final List<bool> misspelledWordsBlacklisted;
+  final List<List<String>> misspelledWordsAlternatives;
 
   SpellingResult(this.misspelledWords, this.misspelledWordsOffset,
-      this.misspelledWordsBlacklisted);
+      this.misspelledWordsBlacklisted, this.misspelledWordsAlternatives);
 }
 
 void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
