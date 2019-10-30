@@ -2832,7 +2832,11 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       // Fast path for non-generic types: retrieve or populate the class's only
       // canonical type, which is its declaration type.
       result_ = klass.DeclarationType();
-      result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
+      // TODO(regis): Remove this workaround once nullability of Null provided
+      // by CFE is always kNullable.
+      if (!result_.IsNullType()) {
+        result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
+      }
     } else {
       // Note that the type argument vector is not yet extended.
       result_ =
