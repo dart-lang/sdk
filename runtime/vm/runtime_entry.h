@@ -99,6 +99,8 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(&arguments, sizeof(arguments));                              \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     TRACE_RUNTIME_CALL("%s", "" #name);                                        \
     {                                                                          \
