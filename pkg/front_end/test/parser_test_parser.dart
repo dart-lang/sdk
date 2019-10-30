@@ -798,11 +798,13 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token ensureBlock(Token token,
-      Template<Message Function(Token token)> template, String blockKind) {
-    doPrint('ensureBlock(' '$token, ' '$template, ' '$blockKind)');
+  Token ensureBlock(
+      Token token,
+      Template<Message Function(Token token)> template,
+      String missingBlockName) {
+    doPrint('ensureBlock(' '$token, ' '$template, ' '$missingBlockName)');
     indent++;
-    var result = super.ensureBlock(token, template, blockKind);
+    var result = super.ensureBlock(token, template, missingBlockName);
     indent--;
     return result;
   }
@@ -1865,7 +1867,8 @@ class TestParser extends Parser {
       Token lateToken,
       Token varFinalOrConst,
       Token beforeType,
-      DeclarationKind kind) {
+      DeclarationKind kind,
+      String enclosingDeclarationName) {
     doPrint('parseInvalidOperatorDeclaration('
         '$beforeStart, '
         '$externalToken, '
@@ -1874,7 +1877,8 @@ class TestParser extends Parser {
         '$lateToken, '
         '$varFinalOrConst, '
         '$beforeType, '
-        '$kind)');
+        '$kind, '
+        '$enclosingDeclarationName)');
     indent++;
     var result = super.parseInvalidOperatorDeclaration(
         beforeStart,
@@ -1884,7 +1888,8 @@ class TestParser extends Parser {
         lateToken,
         varFinalOrConst,
         beforeType,
-        kind);
+        kind,
+        enclosingDeclarationName);
     indent--;
     return result;
   }

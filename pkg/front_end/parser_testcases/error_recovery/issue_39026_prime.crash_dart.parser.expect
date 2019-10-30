@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+class A{
+co operator <(){
+}
+}
+
+class[KeywordToken] A[StringToken]{[BeginToken]
+co[StringToken] operator[KeywordToken] <[BeginToken]([SyntheticBeginToken])[SyntheticToken]{[BeginToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]
