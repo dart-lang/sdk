@@ -4829,9 +4829,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   FunctionType get type {
     _type ??= FunctionTypeImpl.synthetic(
-      returnType,
+      function.returnType,
       typeParameters,
-      parameters,
+      function.parameters,
       element: this,
       typeArguments: typeParameters.map((e) {
         return e.instantiate(

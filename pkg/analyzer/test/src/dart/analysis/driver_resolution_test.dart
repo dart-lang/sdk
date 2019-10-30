@@ -7718,20 +7718,21 @@ typedef int F<T>(bool a, T b);
 
     FunctionTypeAlias alias = unit.declarations[0];
     FunctionTypeAliasElement aliasElement = alias.declaredElement;
+    GenericFunctionTypeElement aliasFunction = aliasElement.function;
     expect(aliasElement, same(unitElement.functionTypeAliases[0]));
-    expect(aliasElement.returnType, typeProvider.intType);
+    expect(aliasFunction.returnType, typeProvider.intType);
 
     _assertTypeNameSimple(alias.returnType, typeProvider.intType);
 
     _assertSimpleParameter(
-        alias.parameters.parameters[0], aliasElement.parameters[0],
+        alias.parameters.parameters[0], aliasFunction.parameters[0],
         name: 'a',
         offset: 22,
         kind: ParameterKind.REQUIRED,
         type: typeProvider.boolType);
 
     _assertSimpleParameter(
-        alias.parameters.parameters[1], aliasElement.parameters[1],
+        alias.parameters.parameters[1], aliasFunction.parameters[1],
         name: 'b',
         offset: 27,
         kind: ParameterKind.REQUIRED,

@@ -99,7 +99,7 @@ class ElementWalker {
   /// element.
   ElementWalker.forTypedef(GenericTypeAliasElementImpl element)
       : element = element,
-        _parameters = element.parameters,
+        _parameters = element.function.parameters,
         _typeParameters = element.typeParameters;
 
   ElementWalker._forExecutable(
