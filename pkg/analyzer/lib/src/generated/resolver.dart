@@ -4235,24 +4235,29 @@ class ResolverVisitor extends ScopedVisitor {
       flow.tryFinallyStatement_bodyBegin();
     }
 
-    flow.tryCatchStatement_bodyBegin();
+    if (catchClauses.isNotEmpty) {
+      flow.tryCatchStatement_bodyBegin();
+    }
     body.accept(this);
-    flow.tryCatchStatement_bodyEnd(body);
+    if (catchClauses.isNotEmpty) {
+      flow.tryCatchStatement_bodyEnd(body);
 
-    var catchLength = catchClauses.length;
-    for (var i = 0; i < catchLength; ++i) {
-      var catchClause = catchClauses[i];
-      flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.staticElement,
-          catchClause.stackTraceParameter?.staticElement);
-      catchClause.accept(this);
-      flow.tryCatchStatement_catchEnd();
+      var catchLength = catchClauses.length;
+      for (var i = 0; i < catchLength; ++i) {
+        var catchClause = catchClauses[i];
+        flow.tryCatchStatement_catchBegin(
+            catchClause.exceptionParameter?.staticElement,
+            catchClause.stackTraceParameter?.staticElement);
+        catchClause.accept(this);
+        flow.tryCatchStatement_catchEnd();
+      }
+
+      flow.tryCatchStatement_end();
     }
 
-    flow.tryCatchStatement_end();
-
     if (finallyBlock != null) {
-      flow.tryFinallyStatement_finallyBegin(body);
+      flow.tryFinallyStatement_finallyBegin(
+          catchClauses.isNotEmpty ? node : body);
       finallyBlock.accept(this);
       flow.tryFinallyStatement_end(finallyBlock);
     }

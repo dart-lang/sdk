@@ -33,6 +33,7 @@ main(List<String> args) async {
         'assignment_promoted.dart',
         'assigned_anywhere.dart',
         'binary.dart',
+        'bug39178.dart',
         'conditional.dart',
         'constructor_initializer.dart',
         'do.dart',
