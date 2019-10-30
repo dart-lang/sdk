@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/builtin_identifiers.dart:5:11: Error: Can't use 'mixin' as a name here.
+// extension mixin on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/extensions/builtin_identifiers.dart:7:11: Error: Can't use 'extension' as a name here.
+// extension extension on int {}
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/builtin_identifiers.dart:9:11: Error: Can't use 'as' as a name here.
+// extension as on int {}
+//           ^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension mixin on core::int* {
+}
+extension extension on core::int* {
+}
+extension as on core::int* {
+}
+static method main() → void
+  ;

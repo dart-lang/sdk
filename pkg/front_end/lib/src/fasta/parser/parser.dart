@@ -2111,6 +2111,10 @@ class Parser {
     Token name = token.next;
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
+      if (name.type.isBuiltIn) {
+        reportRecoverableErrorWithToken(
+            token, fasta.templateBuiltInIdentifierInDeclaration);
+      }
     } else {
       name = null;
     }

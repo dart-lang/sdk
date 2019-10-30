@@ -16,6 +16,7 @@ all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
+extensions/builtin_identifiers: TextSerializationFailure
 extensions/check_bounds: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
 extensions/conflict_with_object: TextSerializationFailure
