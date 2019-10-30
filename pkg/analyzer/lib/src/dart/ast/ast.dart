@@ -1996,10 +1996,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
-  /// ?
-  // TODO(brianwilkerson) Remove this field. It is never read, only written.
-  Map<int, AstNode> localDeclarations;
-
   @override
   final FeatureSet featureSet;
 

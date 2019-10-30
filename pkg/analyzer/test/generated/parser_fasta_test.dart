@@ -2097,7 +2097,6 @@ class FastaParserTestCase
     astBuilder.allowNativeClause = allowNativeClause;
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
-    unit.localDeclarations = astBuilder.localDeclarations;
 
     expect(unit, isNotNull);
     return unit;
