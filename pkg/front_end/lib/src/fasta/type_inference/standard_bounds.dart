@@ -15,7 +15,9 @@ import 'package:kernel/ast.dart'
         InvalidType,
         NamedType,
         Nullability,
+        TypeParameter,
         TypeParameterType,
+        Variance,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -400,13 +402,17 @@ abstract class StandardBounds {
     // causing pain in real code.  The current algorithm is:
     // 1. If either of the types is a supertype of the other, return it.
     //    This is in fact the best result in this case.
-    // 2. If the two types have the same class element, then take the
-    //    pointwise standard upper bound of the type arguments.  This is again
-    //    the best result, except that the recursive calls may not return
-    //    the true standard upper bounds.  The result is guaranteed to be a
-    //    well-formed type under the assumption that the input types were
-    //    well-formed (and assuming that the recursive calls return
-    //    well-formed types).
+    // 2. If the two types have the same class element and is implicitly or
+    //    explicitly covariant, then take the pointwise standard upper bound of
+    //    the type arguments. This is again the best result, except that the
+    //    recursive calls may not return the true standard upper bounds.  The
+    //    result is guaranteed to be a well-formed type under the assumption
+    //    that the input types were well-formed (and assuming that the
+    //    recursive calls return well-formed types).
+    //    If the variance of the type parameter is contravariant, we take the
+    //    standard lower bound of the type arguments. If the variance of the
+    //    type parameter is invariant, we verify if the type arguments satisfy
+    //    subtyping in both directions, then choose a bound.
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
@@ -421,11 +427,28 @@ abstract class StandardBounds {
         identical(type1.classNode, type2.classNode)) {
       List<DartType> tArgs1 = type1.typeArguments;
       List<DartType> tArgs2 = type2.typeArguments;
+      List<TypeParameter> tParams = type1.classNode.typeParameters;
 
       assert(tArgs1.length == tArgs2.length);
+      assert(tArgs1.length == tParams.length);
       List<DartType> tArgs = new List(tArgs1.length);
       for (int i = 0; i < tArgs1.length; i++) {
-        tArgs[i] = getStandardUpperBound(tArgs1[i], tArgs2[i]);
+        if (tParams[i].variance == Variance.contravariant) {
+          tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i]);
+        } else if (tParams[i].variance == Variance.invariant) {
+          if (!isSubtypeOf(tArgs1[i], tArgs2[i],
+                  SubtypeCheckMode.ignoringNullabilities) ||
+              !isSubtypeOf(tArgs2[i], tArgs1[i],
+                  SubtypeCheckMode.ignoringNullabilities)) {
+            // No bound will be valid, find bound at the interface level.
+            return getLegacyLeastUpperBound(type1, type2);
+          }
+          // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
+          //  parameters.
+          tArgs[i] = tArgs1[i];
+        } else {
+          tArgs[i] = getStandardUpperBound(tArgs1[i], tArgs2[i]);
+        }
       }
       return new InterfaceType(type1.classNode, tArgs);
     }
