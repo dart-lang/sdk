@@ -1264,7 +1264,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Element prefixElement = prefixNode.staticElement;
     // String.length
     if (prefixElement is! PrefixElement && prefixElement is! ClassElement) {
-      DartObjectImpl prefixResult = node.prefix.accept(this);
+      DartObjectImpl prefixResult = prefixNode.accept(this);
       if (_isStringLength(prefixResult, node.identifier)) {
         return prefixResult.stringLength(_typeProvider);
       }
@@ -1631,7 +1631,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (targetResult == null || targetResult.type != _typeProvider.stringType) {
       return false;
     }
-    return identifier.name == 'length';
+    return identifier.name == 'length' &&
+        identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
   void _reportNotPotentialConstants(AstNode node) {

@@ -116,6 +116,25 @@ const double d = 3;
     expect(result.toDoubleValue(), 3.0);
   }
 
+  test_visitPropertyAccess_fromExtension() async {
+    await resolveTestCode('''
+extension ExtObject on Object {
+  int get length => 4;
+}
+
+class B {
+  final l;
+  const B(Object o) : l = o.length;
+}
+
+const b = B('');
+''');
+    _evaluateConstant('b', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+    ]);
+  }
+
   test_visitSimpleIdentifier_className() async {
     await resolveTestCode('''
 const a = C;
