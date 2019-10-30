@@ -73,7 +73,6 @@ class AstBuilder extends StackListener {
   ScriptTag scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
-  final localDeclarations = <int, AstNode>{};
 
   @override
   final Uri uri;
@@ -319,7 +318,6 @@ class AstBuilder extends StackListener {
 
     Comment comment = _findComment(metadata, name.beginToken);
     var typeParameter = ast.typeParameter(comment, metadata, name, null, null);
-    localDeclarations[name.offset] = typeParameter;
     push(typeParameter);
   }
 
@@ -1337,7 +1335,6 @@ class AstBuilder extends StackListener {
       parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
           defaultValue.separator, defaultValue.value);
     }
-    localDeclarations[nameToken.offset] = parameter;
     push(parameter);
   }
 
@@ -1699,7 +1696,6 @@ class AstBuilder extends StackListener {
         ast.functionExpression(typeParameters, parameters, body);
     var functionDeclaration = ast.functionDeclaration(
         null, metadata, null, returnType, null, name, functionExpression);
-    localDeclarations[name.offset] = functionDeclaration;
     push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
@@ -2312,11 +2308,9 @@ class AstBuilder extends StackListener {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].identifier;
-        localDeclarations[exception.offset] = exception;
       }
       if (catchParameters.length > 1) {
         stackTrace = catchParameters[1].identifier;
-        localDeclarations[stackTrace.offset] = stackTrace;
       }
     }
     push(ast.catchClause(
@@ -3557,10 +3551,7 @@ class AstBuilder extends StackListener {
 
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token equals, Expression initializer) {
-    var variableDeclaration =
-        ast.variableDeclaration(name, equals, initializer);
-    localDeclarations[name.offset] = variableDeclaration;
-    return variableDeclaration;
+    return ast.variableDeclaration(name, equals, initializer);
   }
 
   ParameterKind _toAnalyzerParameterKind(
