@@ -5885,10 +5885,7 @@ class CodeGenerator extends Object
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
       }
-
-      js_ast.Expression genFn = js_ast.ArrowFun([], body);
-      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
-      return js_ast.Call(genFn, []);
+      return js_ast.Call(js_ast.ArrowFun([], body), []);
     }
 
     var expressions = <js_ast.Expression>[];
