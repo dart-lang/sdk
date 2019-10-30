@@ -647,6 +647,8 @@ randomly
 ranges
 ranked
 ratio
+rb
+rc
 re
 reach
 react
@@ -701,8 +703,6 @@ rewrote
 rhs
 ri
 rightmost
-rb
-rc
 rn
 rnystrom
 role
@@ -842,6 +842,7 @@ terminator
 tester
 tex
 th
+thought
 ti
 tick
 ticker

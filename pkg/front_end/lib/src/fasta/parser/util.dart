@@ -205,7 +205,7 @@ Token splitGtFromGtGtGtEq(Token token) {
       ..next = token.next);
 }
 
-/// Return a synthetic `<` followed by [next].
+/// Return a synthetic `>` followed by [next].
 /// Call [Token.setNext] to add the token to the stream.
 Token syntheticGt(Token next) {
   return new SyntheticToken(TokenType.GT, next.charOffset)
