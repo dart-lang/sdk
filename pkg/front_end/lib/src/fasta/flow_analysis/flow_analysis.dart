@@ -156,6 +156,14 @@ class AssignedVariables<Node, Variable> {
     }());
   }
 
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('AssignedVariables(');
+    _printOn(sb);
+    sb.write(')');
+    return sb.toString();
+  }
+
   /// This method should be called during pre-traversal, to mark a write to a
   /// variable.
   void write(Variable variable) {
@@ -184,14 +192,6 @@ class AssignedVariables<Node, Variable> {
     sb.write('_capturedAnywhere=$_capturedAnywhere,');
     sb.write('_writtenStack=$_writtenStack,');
     sb.write('_capturedStack=$_capturedStack');
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('AssignedVariables(');
-    _printOn(sb);
-    sb.write(')');
-    return sb.toString();
   }
 }
 
@@ -222,20 +222,20 @@ class AssignedVariablesForTesting<Node, Variable>
 
   bool isTracked(Node node) => _writtenInNode.containsKey(node);
 
-  Set<Variable> writtenInNode(Node node) => _getWrittenInNode(node);
-
-  @override
-  void _printOn(StringBuffer sb) {
-    super._printOn(sb);
-    sb.write(',_declaredInNode=$_declaredInNode');
-  }
-
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('AssignedVariablesForTesting(');
     _printOn(sb);
     sb.write(')');
     return sb.toString();
+  }
+
+  Set<Variable> writtenInNode(Node node) => _getWrittenInNode(node);
+
+  @override
+  void _printOn(StringBuffer sb) {
+    super._printOn(sb);
+    sb.write(',_declaredInNode=$_declaredInNode');
   }
 }
 
