@@ -187,6 +187,7 @@ crypto/test/base64_test: Slow
 mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
 
 [ $compiler == dart2js && $host_checked ]
+js_ast/test/printer_callback_test: Slow, Pass
 js_ast/test/string_escape_test: Slow, Pass
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
