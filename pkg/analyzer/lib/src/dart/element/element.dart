@@ -4776,6 +4776,8 @@ class GenericTypeAliasElementImpl extends ElementImpl
     _function = function;
   }
 
+  /// Return `true` if the element has direct or indirect reference to itself
+  /// from anywhere except a class element or type parameter bounds.
   bool get hasSelfReference {
     if (linkedNode != null) {
       return linkedContext.getHasTypedefSelfReference(linkedNode);
