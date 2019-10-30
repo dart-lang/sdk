@@ -188,6 +188,57 @@ main() {
       expect(assignedVariables.capturedInNode(outerNode), isEmpty);
     });
   });
+
+  test('discardNode percolates declarations to enclosing node', () {
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+    var v1 = _Variable('v1');
+    var v2 = _Variable('v2');
+    var node = _Node();
+    assignedVariables.beginNode();
+    assignedVariables.beginNode();
+    assignedVariables.declare(v1);
+    assignedVariables.declare(v2);
+    assignedVariables.discardNode();
+    assignedVariables.endNode(node);
+    assignedVariables.finish();
+    expect(assignedVariables.declaredInNode(node), unorderedEquals([v1, v2]));
+  });
+
+  test('discardNode percolates writes to enclosing node', () {
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+    var v1 = _Variable('v1');
+    var v2 = _Variable('v2');
+    var node = _Node();
+    assignedVariables.declare(v1);
+    assignedVariables.declare(v2);
+    assignedVariables.beginNode();
+    assignedVariables.beginNode();
+    assignedVariables.write(v1);
+    assignedVariables.write(v2);
+    assignedVariables.discardNode();
+    assignedVariables.endNode(node);
+    assignedVariables.finish();
+    expect(assignedVariables.writtenInNode(node), unorderedEquals([v1, v2]));
+  });
+
+  test('discardNode percolates captures to enclosing node', () {
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+    var v1 = _Variable('v1');
+    var v2 = _Variable('v2');
+    var node = _Node();
+    assignedVariables.declare(v1);
+    assignedVariables.declare(v2);
+    assignedVariables.beginNode();
+    assignedVariables.beginNode();
+    assignedVariables.beginNode();
+    assignedVariables.write(v1);
+    assignedVariables.write(v2);
+    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.discardNode();
+    assignedVariables.endNode(node);
+    assignedVariables.finish();
+    expect(assignedVariables.capturedInNode(node), unorderedEquals([v1, v2]));
+  });
 }
 
 class _Node {}
