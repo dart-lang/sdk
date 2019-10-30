@@ -2484,7 +2484,7 @@ class Parser {
     listener.beginTopLevelMethod(beforeStart, externalToken);
 
     Token token = typeInfo.parseType(beforeType, this);
-    assert(token.next == (getOrSet ?? name));
+    assert(token.next == (getOrSet ?? name) || token.next.isEof);
     name = ensureIdentifier(
         getOrSet ?? token, IdentifierContext.topLevelFunctionDeclaration);
 
