@@ -13,6 +13,8 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+import 'package:crypto/crypto.dart';
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -745,6 +747,53 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
   }
   file.write('\n');
   await file.close();
+}
+
+Future<void> createFarManifest(
+    String output, String dataDir, String packageManifestFilename) async {
+  List<String> packages = await File('$output-packages').readAsLines();
+
+  // Make sure the 'main' package is the last (convention with package loader).
+  packages.remove('main');
+  packages.add('main');
+
+  final IOSink packageManifest = File(packageManifestFilename).openWrite();
+
+  final String kernelListFilename = '$packageManifestFilename.dilplist';
+  final IOSink kernelList = File(kernelListFilename).openWrite();
+  for (String package in packages) {
+    final String filenameInPackage = '$package.dilp';
+    final String filenameInBuild = '$output-$package.dilp';
+    packageManifest
+        .write('data/$dataDir/$filenameInPackage=$filenameInBuild\n');
+    kernelList.write('$filenameInPackage\n');
+  }
+  await kernelList.close();
+
+  final String frameworkVersionFilename =
+      '$packageManifestFilename.frameworkversion';
+  final IOSink frameworkVersion = File(frameworkVersionFilename).openWrite();
+  for (String package in [
+    'collection',
+    'flutter',
+    'meta',
+    'typed_data',
+    'vector_math'
+  ]) {
+    Digest digest;
+    if (packages.contains(package)) {
+      final filenameInBuild = '$output-$package.dilp';
+      final bytes = await File(filenameInBuild).readAsBytes();
+      digest = sha256.convert(bytes);
+    }
+    frameworkVersion.write('$package=$digest\n');
+  }
+  await frameworkVersion.close();
+
+  packageManifest.write('data/$dataDir/app.dilplist=$kernelListFilename\n');
+  packageManifest
+      .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
+  await packageManifest.close();
 }
 
 // Used by kernel_front_end_test.dart
