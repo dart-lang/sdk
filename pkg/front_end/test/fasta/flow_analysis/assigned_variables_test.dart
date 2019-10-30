@@ -239,6 +239,33 @@ main() {
     assignedVariables.finish();
     expect(assignedVariables.capturedInNode(node), unorderedEquals([v1, v2]));
   });
+
+  test('deferNode allows deferring of node info', () {
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+    var v1 = _Variable('v1');
+    var v2 = _Variable('v2');
+    var v3 = _Variable('v3');
+    var v4 = _Variable('v4');
+    assignedVariables.declare(v1);
+    assignedVariables.declare(v2);
+    assignedVariables.declare(v4);
+    assignedVariables.beginNode();
+    assignedVariables.write(v1);
+    assignedVariables.declare(v3);
+    assignedVariables.beginNode();
+    assignedVariables.write(v2);
+    assignedVariables.endNode(_Node(), isClosure: true);
+    var info = assignedVariables.deferNode();
+    assignedVariables.beginNode();
+    assignedVariables.write(v4);
+    assignedVariables.endNode(_Node());
+    var node = _Node();
+    assignedVariables.storeInfo(node, info);
+    assignedVariables.finish();
+    expect(assignedVariables.declaredInNode(node), [v3]);
+    expect(assignedVariables.writtenInNode(node), unorderedEquals([v1, v2]));
+    expect(assignedVariables.capturedInNode(node), [v2]);
+  });
 }
 
 class _Node {}

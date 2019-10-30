@@ -25,42 +25,24 @@ import 'package:meta/meta.dart';
 /// statement, try statement, loop collection element, local function, or
 /// closure.
 class AssignedVariables<Node, Variable> {
-  /// Mapping from a node to the set of local variables that are potentially
-  /// written to within that node.
-  final Map<Node, Set<Variable>> _writtenInNode = {};
+  /// Mapping from a node to the info for that node.
+  final Map<Node, AssignedVariablesNodeInfo<Variable>> _info =
+      new Map<Node, AssignedVariablesNodeInfo<Variable>>.identity();
 
-  /// Mapping from a node to the set of local variables for which a potential
-  /// write is captured by a local function or closure inside that node.
-  final Map<Node, Set<Variable>> _capturedInNode = {};
+  /// Info for the variables written or captured anywhere in the code being
+  /// analyzed.
+  final AssignedVariablesNodeInfo<Variable> _anywhere =
+      new AssignedVariablesNodeInfo<Variable>();
 
-  /// Set of local variables that are potentially written to anywhere in the
-  /// code being analyzed.
-  final Set<Variable> _writtenAnywhere = {};
+  /// Stack of info for nodes that have been entered but not yet left.
+  final List<AssignedVariablesNodeInfo<Variable>> _stack = [
+    new AssignedVariablesNodeInfo<Variable>()
+  ];
 
-  /// Set of local variables for which a potential write is captured by a local
-  /// function or closure anywhere in the code being analyzed.
-  final Set<Variable> _capturedAnywhere = {};
-
-  /// Stack of sets accumulating variables that are potentially written to.
-  ///
-  /// A set is pushed onto the stack when a node is entered, and popped when
-  /// a node is left.
-  final List<Set<Variable>> _writtenStack = [new Set<Variable>.identity()];
-
-  /// Stack of sets accumulating variables that are declared.
-  ///
-  /// A set is pushed onto the stack when a node is entered, and popped when
-  /// a node is left.
-  final List<Set<Variable>> _declaredStack = [new Set<Variable>.identity()];
-
-  /// Stack of sets accumulating variables for which a potential write is
-  /// captured by a local function or closure.
-  ///
-  /// A set is pushed onto the stack when a node is entered, and popped when
-  /// a node is left.
-  final List<Set<Variable>> _capturedStack = [new Set<Variable>.identity()];
-
-  AssignedVariables();
+  /// When assertions are enabled, the set of info objects that have been
+  /// retrieved by [deferNode] but not yet sent to [storeNode].
+  final Set<AssignedVariablesNodeInfo<Variable>> _deferredInfos =
+      new Set<AssignedVariablesNodeInfo<Variable>>.identity();
 
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
@@ -75,9 +57,7 @@ class AssignedVariables<Node, Variable> {
   /// statement, the body of the switch statement should be covered, but the
   /// switch expression should not.
   void beginNode() {
-    _writtenStack.add(new Set<Variable>.identity());
-    _declaredStack.add(new Set<Variable>.identity());
-    _capturedStack.add(new Set<Variable>.identity());
+    _stack.add(new AssignedVariablesNodeInfo<Variable>());
   }
 
   /// This method should be called during pre-traversal, to indicate that the
@@ -86,7 +66,34 @@ class AssignedVariables<Node, Variable> {
   /// It is not required for the declaration to be seen prior to its use (this
   /// is to allow for error recovery in the analyzer).
   void declare(Variable variable) {
-    _declaredStack.last.add(variable);
+    _stack.last._declared.add(variable);
+  }
+
+  /// This method may be called during pre-traversal, to mark the end of a
+  /// loop statement, switch statement, try statement, loop collection element,
+  /// local function, or closure which might need to be queried later.
+  ///
+  /// [isClosure] should be true if the node is a local function or closure.
+  ///
+  /// In contrast to [endNode], this method doesn't store the data gathered for
+  /// the node for later use; instead it returns it to the caller.  At a later
+  /// time, the caller should pass the returned data to [storeNodeInfo].
+  ///
+  /// See [beginNode] for more details.
+  AssignedVariablesNodeInfo<Variable> deferNode({bool isClosure: false}) {
+    AssignedVariablesNodeInfo<Variable> info = _stack.removeLast();
+    info._written.removeAll(info._declared);
+    info._captured.removeAll(info._declared);
+    AssignedVariablesNodeInfo<Variable> last = _stack.last;
+    last._written.addAll(info._written);
+    last._captured.addAll(info._captured);
+    if (isClosure) {
+      last._captured.addAll(info._written);
+      _anywhere._captured.addAll(info._written);
+    }
+    // If we have already deferred this info, something has gone horribly wrong.
+    assert(_deferredInfos.add(info));
+    return info;
   }
 
   /// This method may be called during pre-traversal, to discard the effects of
@@ -101,12 +108,11 @@ class AssignedVariables<Node, Variable> {
   /// needed, use [discardNode] to discard the effects of one of the [beginNode]
   /// calls.
   void discardNode() {
-    Set<Variable> declared = _declaredStack.removeLast();
-    _declaredStack.last.addAll(declared);
-    Set<Variable> written = _writtenStack.removeLast();
-    _writtenStack.last.addAll(written);
-    Set<Variable> captured = _capturedStack.removeLast();
-    _capturedStack.last.addAll(captured);
+    AssignedVariablesNodeInfo<Variable> discarded = _stack.removeLast();
+    AssignedVariablesNodeInfo<Variable> last = _stack.last;
+    last._declared.addAll(discarded._declared);
+    last._written.addAll(discarded._written);
+    last._captured.addAll(discarded._captured);
   }
 
   /// This method should be called during pre-traversal, to mark the end of a
@@ -115,45 +121,38 @@ class AssignedVariables<Node, Variable> {
   ///
   /// [isClosure] should be true if the node is a local function or closure.
   ///
+  /// This is equivalent to a call to [deferNode] followed immediately by a call
+  /// to [storeInfo].
+  ///
   /// See [beginNode] for more details.
   void endNode(Node node, {bool isClosure: false}) {
-    Set<Variable> declaredInThisNode = _declaredStack.removeLast();
-    Set<Variable> writtenInThisNode = _writtenStack.removeLast()
-      ..removeAll(declaredInThisNode);
-    Set<Variable> capturedInThisNode = _capturedStack.removeLast()
-      ..removeAll(declaredInThisNode);
-    _writtenInNode[node] = writtenInThisNode;
-    _capturedInNode[node] = capturedInThisNode;
-    _writtenStack.last.addAll(writtenInThisNode);
-    _capturedStack.last.addAll(capturedInThisNode);
-    if (isClosure) {
-      _capturedStack.last.addAll(writtenInThisNode);
-      _capturedAnywhere.addAll(writtenInThisNode);
-    }
+    storeInfo(node, deferNode(isClosure: isClosure));
   }
 
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
-      assert(_writtenStack.length == 1,
-          "Unexpected written stack: $_writtenStack");
-      assert(_declaredStack.length == 1,
-          "Unexpected declared stack: $_declaredStack");
-      assert(_capturedStack.length == 1,
-          "Unexpected captured stack: $_capturedStack");
-      Set<Variable> writtenInThisNode = _writtenStack.last;
-      Set<Variable> declaredInThisNode = _declaredStack.last;
-      Set<Variable> capturedInThisNode = _capturedStack.last;
-      Set<Variable> undeclaredWrites =
-          writtenInThisNode.difference(declaredInThisNode);
+      assert(
+          _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
+      assert(_stack.length == 1, "Unexpected stack: $_stack");
+      AssignedVariablesNodeInfo<Variable> last = _stack.last;
+      Set<Variable> undeclaredWrites = last._written.difference(last._declared);
       assert(undeclaredWrites.isEmpty,
           'Variables written to but not declared: $undeclaredWrites');
       Set<Variable> undeclaredCaptures =
-          capturedInThisNode.difference(declaredInThisNode);
+          last._captured.difference(last._declared);
       assert(undeclaredCaptures.isEmpty,
           'Variables captured but not declared: $undeclaredCaptures');
       return true;
     }());
+  }
+
+  /// This method may be called at any time between a call to [deferNode] and
+  /// the call to [finish], to store assigned variable info for the node.
+  void storeInfo(Node node, AssignedVariablesNodeInfo<Variable> info) {
+    // Caller should not try to store the same piece of info more than once.
+    assert(_deferredInfos.remove(info));
+    _info[node] = info;
   }
 
   String toString() {
@@ -167,31 +166,19 @@ class AssignedVariables<Node, Variable> {
   /// This method should be called during pre-traversal, to mark a write to a
   /// variable.
   void write(Variable variable) {
-    _writtenStack.last.add(variable);
-    _writtenAnywhere.add(variable);
+    _stack.last._written.add(variable);
+    _anywhere._written.add(variable);
   }
 
-  /// Queries the set of variables for which a potential write is captured by a
-  /// local function or closure inside the [node].
-  Set<Variable> _getCapturedInNode(Node node) {
-    return _capturedInNode[node] ??
-        (throw new StateError('No information for $node'));
-  }
-
-  /// Queries the set of variables that are potentially written to inside the
-  /// [node].
-  Set<Variable> _getWrittenInNode(Node node) {
-    return _writtenInNode[node] ??
-        (throw new StateError('No information for $node'));
+  /// Queries the information stored for the given [node].
+  AssignedVariablesNodeInfo<Variable> _getInfoForNode(Node node) {
+    return _info[node] ?? (throw new StateError('No information for $node'));
   }
 
   void _printOn(StringBuffer sb) {
-    sb.write('_writtenInNode=$_writtenInNode,');
-    sb.write('_capturedInNode=$_capturedInNode,');
-    sb.write('_writtenAnywhere=$_writtenAnywhere,');
-    sb.write('_capturedAnywhere=$_capturedAnywhere,');
-    sb.write('_writtenStack=$_writtenStack,');
-    sb.write('_capturedStack=$_capturedStack');
+    sb.write('_info=$_info,');
+    sb.write('_stack=$_stack,');
+    sb.write('_anywhere=$_anywhere');
   }
 }
 
@@ -200,27 +187,17 @@ class AssignedVariables<Node, Variable> {
 /// Not intended to be used by clients of flow analysis.
 class AssignedVariablesForTesting<Node, Variable>
     extends AssignedVariables<Node, Variable> {
-  final Map<Node, Set<Variable>> _declaredInNode = {};
+  Set<Variable> get capturedAnywhere => _anywhere._captured;
 
-  Set<Variable> get capturedAnywhere => _capturedAnywhere;
+  Set<Variable> get declaredAtTopLevel => _stack.first._declared;
 
-  Set<Variable> get declaredAtTopLevel => _declaredStack.first;
+  Set<Variable> get writtenAnywhere => _anywhere._written;
 
-  Set<Variable> get writtenAnywhere => _writtenAnywhere;
+  Set<Variable> capturedInNode(Node node) => _getInfoForNode(node)._captured;
 
-  Set<Variable> capturedInNode(Node node) => _getCapturedInNode(node);
+  Set<Variable> declaredInNode(Node node) => _getInfoForNode(node)._declared;
 
-  Set<Variable> declaredInNode(Node node) =>
-      _declaredInNode[node] ??
-      (throw new StateError('No information for $node'));
-
-  @override
-  void endNode(Node node, {bool isClosure: false}) {
-    _declaredInNode[node] = _declaredStack.last;
-    super.endNode(node, isClosure: isClosure);
-  }
-
-  bool isTracked(Node node) => _writtenInNode.containsKey(node);
+  bool isTracked(Node node) => _info.containsKey(node);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -230,13 +207,24 @@ class AssignedVariablesForTesting<Node, Variable>
     return sb.toString();
   }
 
-  Set<Variable> writtenInNode(Node node) => _getWrittenInNode(node);
+  Set<Variable> writtenInNode(Node node) => _getInfoForNode(node)._written;
+}
 
-  @override
-  void _printOn(StringBuffer sb) {
-    super._printOn(sb);
-    sb.write(',_declaredInNode=$_declaredInNode');
-  }
+/// Information tracked by [AssignedVariables] for a single node.
+class AssignedVariablesNodeInfo<Variable> {
+  final Set<Variable> _written = new Set<Variable>.identity();
+
+  // The set of local variables that are potentially written in the node.
+  final Set<Variable> _captured = new Set<Variable>.identity();
+
+  // The set of local variables for which a potential write is captured by a
+  // local function or closure inside the node.
+  final Set<Variable> _declared = new Set<Variable>.identity();
+
+  // The set of local variables that are declared in the node.
+  String toString() =>
+      'AssignedVariablesNodeInfo(_written=$_written, _captured=$_captured, '
+      '_declared=$_declared)';
 }
 
 /// A collection of flow models representing the possible outcomes of evaluating
@@ -2032,14 +2020,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void doStatement_bodyBegin(Statement doStatement) {
-    Iterable<Variable> loopAssigned =
-        _assignedVariables._getWrittenInNode(doStatement);
-    Iterable<Variable> loopCaptured =
-        _assignedVariables._getCapturedInNode(doStatement);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(doStatement);
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>();
     _stack.add(context);
-    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    _current = _current.removePromotedAll(info._written, info._captured);
     _statementToContext[doStatement] = context;
   }
 
@@ -2107,11 +2093,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void for_conditionBegin(Node node) {
-    Iterable<Variable> loopAssigned =
-        _assignedVariables._getWrittenInNode(node);
-    Iterable<Variable> loopCaptured =
-        _assignedVariables._getCapturedInNode(node);
-    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(node);
+    _current = _current.removePromotedAll(info._written, info._captured);
   }
 
   @override
@@ -2134,14 +2118,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void forEach_bodyBegin(Node node, Variable loopVariable, Type writtenType) {
-    Iterable<Variable> loopAssigned =
-        _assignedVariables._getWrittenInNode(node);
-    Iterable<Variable> loopCaptured =
-        _assignedVariables._getCapturedInNode(node);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(node);
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(_current);
     _stack.add(context);
-    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    _current = _current.removePromotedAll(info._written, info._captured);
     if (loopVariable != null) {
       _current = _current.write(loopVariable, writtenType, typeOperations);
     }
@@ -2156,13 +2138,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void functionExpression_begin(Node node) {
-    Iterable<Variable> writeCaptured =
-        _assignedVariables._getWrittenInNode(node);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(node);
     ++_functionNestingLevel;
-    _current = _current.removePromotedAll(const [], writeCaptured);
+    _current = _current.removePromotedAll(const [], info._written);
     _stack.add(new _SimpleContext(_current));
-    _current = _current.removePromotedAll(_assignedVariables._writtenAnywhere,
-        _assignedVariables._capturedAnywhere);
+    _current = _current.removePromotedAll(_assignedVariables._anywhere._written,
+        _assignedVariables._anywhere._captured);
   }
 
   @override
@@ -2363,12 +2345,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void switchStatement_beginCase(bool hasLabel, Node node) {
-    Iterable<Variable> notPromoted = _assignedVariables._getWrittenInNode(node);
-    Iterable<Variable> captured = _assignedVariables._getCapturedInNode(node);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(node);
     _SimpleStatementContext<Variable, Type> context =
         _stack.last as _SimpleStatementContext<Variable, Type>;
     if (hasLabel) {
-      _current = context._previous.removePromotedAll(notPromoted, captured);
+      _current =
+          context._previous.removePromotedAll(info._written, info._captured);
     } else {
       _current = context._previous;
     }
@@ -2405,15 +2388,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyEnd(Node body) {
-    Iterable<Variable> assignedInBody =
-        _assignedVariables._getWrittenInNode(body);
-    Iterable<Variable> capturedInBody =
-        _assignedVariables._getCapturedInNode(body);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
     FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(assignedInBody, capturedInBody);
+        beforeBody.removePromotedAll(info._written, info._captured);
     context._beforeCatch = beforeCatch;
     context._afterBodyAndCatches = _current;
   }
@@ -2454,25 +2435,23 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryFinallyStatement_end(Node finallyBlock) {
-    Iterable<Variable> assignedInFinally =
-        _assignedVariables._getWrittenInNode(finallyBlock);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(finallyBlock);
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
     _current = _current.restrict(
-        typeOperations, context._afterBodyAndCatches, assignedInFinally);
+        typeOperations, context._afterBodyAndCatches, info._written);
   }
 
   @override
   void tryFinallyStatement_finallyBegin(Node body) {
-    Iterable<Variable> assignedInBody =
-        _assignedVariables._getWrittenInNode(body);
-    Iterable<Variable> capturedInBody =
-        _assignedVariables._getCapturedInNode(body);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.removePromotedAll(assignedInBody, capturedInBody));
+        context._previous.removePromotedAll(info._written, info._captured));
   }
 
   @override
@@ -2494,11 +2473,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void whileStatement_conditionBegin(Node node) {
-    Iterable<Variable> loopAssigned =
-        _assignedVariables._getWrittenInNode(node);
-    Iterable<Variable> loopCaptured =
-        _assignedVariables._getCapturedInNode(node);
-    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(node);
+    _current = _current.removePromotedAll(info._written, info._captured);
   }
 
   @override
@@ -2511,7 +2488,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void write(Variable variable, Type writtenType) {
     assert(
-        _assignedVariables._writtenAnywhere.contains(variable),
+        _assignedVariables._anywhere._written.contains(variable),
         "Variable is written to, but was not included in "
         "_variablesWrittenAnywhere: $variable");
     _current = _current.write(variable, writtenType, typeOperations);
