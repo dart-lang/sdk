@@ -641,17 +641,18 @@ class Dart2TypeSystem extends TypeSystem {
     // Right Object: if `T1` is `Object` then:
     var T1_nullability = T1.nullabilitySuffix;
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreObject) {
+      var T0_nullability = T0.nullabilitySuffix;
       // * if `T0` is an unpromoted type variable with bound `B`,
       //   then `T0 <: T1` iff `B <: Object`.
       // * if `T0` is a promoted type variable `X & S`,
       //   then `T0 <: T1`iff `S <: Object`.
-      if (T0 is TypeParameterTypeImpl) {
+      if (T0_nullability == NullabilitySuffix.none &&
+          T0 is TypeParameterTypeImpl) {
         var bound = T0.element.bound ?? _objectQuestion;
         return isSubtypeOf(bound, _objectNone);
       }
       // * if `T0` is `FutureOr<S>` for some `S`,
       //   then `T0 <: T1` iff `S <: Object`
-      var T0_nullability = T0.nullabilitySuffix;
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is InterfaceTypeImpl &&
           T0.isDartAsyncFutureOr) {
