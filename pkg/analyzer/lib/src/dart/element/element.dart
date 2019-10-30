@@ -5636,6 +5636,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (var unit in units) {
       yield* unit.accessors;
       yield* unit.enums;
+      yield* unit.extensions;
       yield* unit.functionTypeAliases;
       yield* unit.functions;
       yield* unit.mixins;
