@@ -75,16 +75,24 @@ void main() {
         JavaScriptBundler(testComponent, strongComponents);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
+    final sourcemapSink = _MemorySink();
 
     javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), codeSink, manifestSink);
+        CoreTypes(testComponent), codeSink, manifestSink, sourcemapSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
+    final String code = utf8.decode(codeSink.buffer);
 
     expect(manifest, {
-      '/c.dart': [0, codeSink.buffer.length],
+      '/c.dart.js': {
+        'code': [0, codeSink.buffer.length],
+        'sourcemap': [0, sourcemapSink.buffer.length],
+      },
     });
-    expect(utf8.decode(codeSink.buffer), contains('ArbitrarilyChosen'));
+    expect(code, contains('ArbitrarilyChosen'));
+
+    // verify source map url is correct.
+    expect(code, contains('sourceMappingURL=c.dart.js.map'));
   });
 
   test('can combine strongly connected components', () {
@@ -115,15 +123,28 @@ void main() {
         JavaScriptBundler(testComponent, strongComponents);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
+    final sourcemapSink = _MemorySink();
 
     javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), codeSink, manifestSink);
+        CoreTypes(testComponent), codeSink, manifestSink, sourcemapSink);
 
-    final source = utf8.decode(codeSink.buffer);
+    final code = utf8.decode(codeSink.buffer);
+    final manifest = json.decode(utf8.decode(manifestSink.buffer));
 
     // There should only be two modules since C and B should be combined.
     const moduleHeader = r"define(['dart_sdk'], function(dart_sdk) {";
-    expect(moduleHeader.allMatches(source), hasLength(2));
+
+    expect(moduleHeader.allMatches(code), hasLength(2));
+
+    // verify source map url is correct.
+    expect(code, contains('sourceMappingURL=a.dart.js.map'));
+
+    final offsets = manifest['/a.dart.js']['sourcemap'];
+    final sourcemapModuleA = json.decode(
+        utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)));
+
+    // verify source maps are pointing at correct source files.
+    expect(sourcemapModuleA['file'], 'a.dart');
   });
 }
 

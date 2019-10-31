@@ -36,7 +36,7 @@ class JavaScriptBundler {
       );
       _summaries.add(summaryComponent);
       _summaryUris.add(uri);
-      _moduleImportForSummary[uri] = uri.toFilePath();
+      _moduleImportForSummary[uri] = '${uri.path}.js';
       _uriToComponent[uri] = summaryComponent;
     }
   }
@@ -50,10 +50,11 @@ class JavaScriptBundler {
   Map<Uri, Component> _uriToComponent;
 
   /// Compile each component into a single JavaScript module.
-  Future<void> compile(ClassHierarchy classHierarchy, CoreTypes coreTypes,
-      IOSink codeSink, IOSink manifestSink) async {
-    var offset = 0;
-    final _manifest = <String, List<int>>{};
+  void compile(ClassHierarchy classHierarchy, CoreTypes coreTypes,
+      IOSink codeSink, IOSink manifestSink, IOSink sourceMapsSink) {
+    var codeOffset = 0;
+    var sourceMapOffset = 0;
+    final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
     for (Library library in _originalComponent.libraries) {
       if (library.isExternal || library.importUri.scheme == 'dart') {
@@ -78,16 +79,22 @@ class JavaScriptBundler {
       final code = jsProgramToCode(jsModule, ModuleFormat.amd,
           inlineSourceMap: true,
           buildSourceMap: true,
-          jsUrl: '$moduleUrl.js',
-          mapUrl: moduleUrl);
-      final bytes = utf8.encode(code.code);
-      codeSink.add(bytes);
-      _manifest[_moduleImportForSummary[moduleUri]] = <int>[
-        offset,
-        offset += bytes.length
-      ];
+          jsUrl: '$moduleUrl',
+          mapUrl: '$moduleUrl.js.map');
+      final codeBytes = utf8.encode(code.code);
+      final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
+      codeSink.add(codeBytes);
+      sourceMapsSink.add(sourceMapBytes);
+
+      final String moduleKey = _moduleImportForSummary[moduleUri];
+      manifest[moduleKey] = {
+        'code': <int>[codeOffset, codeOffset += codeBytes.length],
+        'sourcemap': <int>[
+          sourceMapOffset,
+          sourceMapOffset += sourceMapBytes.length
+        ],
+      };
     }
-    manifestSink.add(utf8.encode(json.encode(_manifest)));
-    await Future.wait([codeSink.close(), manifestSink.close()]);
+    manifestSink.add(utf8.encode(json.encode(manifest)));
   }
 }

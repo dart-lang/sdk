@@ -517,16 +517,21 @@ class FrontendCompiler implements CompilerInterface {
     // Create JavaScript bundler.
     final File sourceFile = File('$filename.sources');
     final File manifestFile = File('$filename.json');
+    final File sourceMapsFile = File('$filename.map');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
     final bundler = JavaScriptBundler(component, strongComponents);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
-    await bundler.compile(results.classHierarchy, results.coreTypes,
-        sourceFileSink, manifestFileSink);
-    await sourceFileSink.close();
-    await manifestFileSink.close();
+    final sourceMapsFileSink = sourceMapsFile.openWrite();
+    bundler.compile(results.classHierarchy, results.coreTypes, sourceFileSink,
+        manifestFileSink, sourceMapsFileSink);
+    await Future.wait([
+      sourceFileSink.close(),
+      manifestFileSink.close(),
+      sourceMapsFileSink.close()
+    ]);
   }
 
   writeDillFile(KernelCompilationResults results, String filename,

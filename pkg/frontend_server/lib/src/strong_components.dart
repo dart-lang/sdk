@@ -129,7 +129,7 @@ class StrongComponents {
         continue;
       }
       final packageName = line.substring(0, colon);
-      if (!uri.path.startsWith(packageName)) {
+      if (!uri.path.startsWith('$packageName/')) {
         continue;
       }
       String packagePath;
