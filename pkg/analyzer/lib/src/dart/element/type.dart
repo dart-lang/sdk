@@ -2071,12 +2071,12 @@ abstract class TypeImpl implements DartType {
     }
     for (int i = 0; i < first.length; i++) {
       if (first[i] == null) {
-        AnalysisEngine.instance.logger
-            .logInformation('Found null type argument in TypeImpl.equalArrays');
+        AnalysisEngine.instance.instrumentationService
+            .logInfo('Found null type argument in TypeImpl.equalArrays');
         return second[i] == null;
       } else if (second[i] == null) {
-        AnalysisEngine.instance.logger
-            .logInformation('Found null type argument in TypeImpl.equalArrays');
+        AnalysisEngine.instance.instrumentationService
+            .logInfo('Found null type argument in TypeImpl.equalArrays');
         return false;
       }
       if (first[i] != second[i]) {

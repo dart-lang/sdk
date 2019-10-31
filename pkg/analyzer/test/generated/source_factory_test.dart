@@ -6,8 +6,9 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
@@ -67,15 +68,17 @@ void runPackageMapTests() {
     }
     SourceFactory factory = new SourceFactory(resolvers, packages);
 
-    expect(AnalysisEngine.instance.logger, Logger.NULL);
-    var logger = new TestLogger();
-    AnalysisEngine.instance.logger = logger;
+    expect(AnalysisEngine.instance.instrumentationService,
+        InstrumentationService.NULL_SERVICE);
+    var instrumentor = new TestInstrumentor();
+    AnalysisEngine.instance.instrumentationService = instrumentor;
     try {
       Source source = factory.resolveUri(containingSource, uri);
-      expect(logger.log, []);
+      expect(instrumentor.log, []);
       return source != null ? source.fullName : null;
     } finally {
-      AnalysisEngine.instance.logger = Logger.NULL;
+      AnalysisEngine.instance.instrumentationService =
+          InstrumentationService.NULL_SERVICE;
     }
   }
 

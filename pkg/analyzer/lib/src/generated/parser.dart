@@ -307,7 +307,7 @@ class Parser {
     bool stringEndsAfterStart = end >= start;
     assert(stringEndsAfterStart);
     if (!stringEndsAfterStart) {
-      AnalysisEngine.instance.logger.logError(
+      AnalysisEngine.instance.instrumentationService.logError(
           "Internal error: computeStringValue($lexeme, $isFirst, $isLast)");
       return "";
     }

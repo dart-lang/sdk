@@ -49,7 +49,7 @@ class InstrumentationServiceTest {
     TestInstrumentationServer server = new TestInstrumentationServer();
     InstrumentationService service = new InstrumentationService(server);
     String message = 'exceptionMessage';
-    service.logException(message, null);
+    service.logException(message);
     assertNormal(server, InstrumentationService.TAG_EXCEPTION, '$message:null');
   }
 

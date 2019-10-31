@@ -13,7 +13,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
-import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
@@ -241,7 +240,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
@@ -897,7 +895,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (result.contextKey != null) {
         message += ' context: ${result.contextKey}';
       }
-      AnalysisEngine.instance.logger.logError(message, result.exception);
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.wrapInMessage(message, result.exception));
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

@@ -259,7 +259,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         if (library == null) {
           // TODO(brianwilkerson) We need to understand how the library could
           // ever be null.
-          AnalysisEngine.instance.logger
+          AnalysisEngine.instance.instrumentationService
               .logError("Found element with null library: ${element.name}");
         } else if (library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error.

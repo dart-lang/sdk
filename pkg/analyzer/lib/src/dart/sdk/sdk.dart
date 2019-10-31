@@ -151,7 +151,7 @@ abstract class AbstractDartSdk implements DartSdk {
     try {
       return file.createSource(Uri.parse(path));
     } on FormatException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
+      AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
           new CaughtException(exception, stackTrace));
     }
@@ -305,9 +305,11 @@ class EmbedderSdk extends AbstractDartSdk {
         return new PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Failed to load SDK analysis summary from $file',
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              'Failed to load SDK analysis summary from $file',
+              exception,
+              stackTrace));
     }
     return null;
   }
@@ -601,9 +603,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         return new PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Failed to load SDK analysis summary from $path',
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              'Failed to load SDK analysis summary from $path',
+              exception,
+              stackTrace));
     }
     return null;
   }
@@ -631,8 +635,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     if (resourceProvider is MemoryResourceProvider) {
       (resourceProvider as MemoryResourceProvider).writeOn(buffer);
     }
-    AnalysisEngine.instance.logger.logError(
-        buffer.toString(), new CaughtException(lastException, lastStackTrace));
+    AnalysisEngine.instance.instrumentationService.logException(
+        new CaughtException.withMessage(
+            buffer.toString(), lastException, lastStackTrace));
     return new LibraryMap();
   }
 

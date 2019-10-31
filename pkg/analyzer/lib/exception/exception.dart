@@ -45,6 +45,11 @@ class CaughtException implements Exception {
   final Object exception;
 
   /**
+   * The message describing where/how/why this was caught.
+   */
+  final String message;
+
+  /**
    * The stack trace associated with the exception.
    */
   StackTrace stackTrace;
@@ -53,16 +58,21 @@ class CaughtException implements Exception {
    * Initialize a newly created caught exception to have the given [exception]
    * and [stackTrace].
    */
-  CaughtException(this.exception, stackTrace) {
-    if (stackTrace == null) {
-      try {
-        throw this;
-      } catch (_, st) {
-        stackTrace = st;
-      }
-    }
-    this.stackTrace = stackTrace;
-  }
+  CaughtException(exception, stackTrace)
+      : this.withMessage(null, exception, stackTrace);
+
+  /**
+   * Initialize a newly created caught exception to have the given [exception],
+   * [stackTrace], and [message].
+   */
+  CaughtException.withMessage(this.message, this.exception, stackTrace)
+      : this.stackTrace = stackTrace ?? StackTrace.current;
+
+  /**
+   * Create a [CaughtException] to wrap a prior one, adding a [message].
+   */
+  CaughtException.wrapInMessage(String message, CaughtException exception)
+      : this.withMessage(message, exception, null);
 
   @override
   String toString() {
@@ -76,6 +86,9 @@ class CaughtException implements Exception {
    * stack trace.
    */
   void _writeOn(StringBuffer buffer) {
+    if (message != null) {
+      buffer.writeln(message);
+    }
     if (exception is AnalysisException) {
       AnalysisException analysisException = exception;
       buffer.writeln(analysisException.message);

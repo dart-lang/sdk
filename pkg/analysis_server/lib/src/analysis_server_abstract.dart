@@ -110,9 +110,9 @@ abstract class AbstractAnalysisServer {
           _analyzedFilesGlobs
               .add(new Glob(resourceProvider.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
+          AnalysisEngine.instance.instrumentationService.logException(
+              new CaughtException.withMessage(
+                  'Invalid glob pattern: "$pattern"', exception, stackTrace));
         }
       }
     }

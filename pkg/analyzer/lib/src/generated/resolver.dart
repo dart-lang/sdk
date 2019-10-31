@@ -2362,9 +2362,9 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       enclosingClass = node.declaredElement;
       typeAnalyzer.thisType = enclosingClass?.thisType;
       if (enclosingClass == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService.logInfo(
+            "Missing element for class declaration ${node.name.name} in "
+            "${definingLibrary.source.fullName}");
         // Don't try to re-resolve the initializers if we cannot set up the
         // right name scope for resolution.
       } else {
@@ -4954,8 +4954,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (classElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
+        AnalysisEngine.instance.instrumentationService.logInfo(
+            "Missing element for class declaration ${node.name.name} in "
+            "${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
@@ -5016,8 +5017,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       }
       buffer.write(" in ");
       buffer.write(definingLibrary.source.fullName);
-      AnalysisEngine.instance.logger.logInformation(buffer.toString(),
-          new CaughtException(new AnalysisException(), null));
+      AnalysisEngine.instance.instrumentationService.logInfo(buffer.toString());
     }
     Scope outerScope = nameScope;
     try {
@@ -5081,9 +5081,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (classElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for enum declaration ${node.name.name} in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService.logInfo(
+            "Missing element for enum declaration ${node.name.name} in "
+            "${definingLibrary.source.fullName}");
         super.visitEnumDeclaration(node);
       } else {
         ClassElement outerClass = enclosingClass;
@@ -5112,10 +5112,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (extensionElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
+        AnalysisEngine.instance.instrumentationService.logInfo(
             "Missing element for extension declaration ${node.name.name} "
-            "in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+            "in ${definingLibrary.source.fullName}");
         super.visitExtensionDeclaration(node);
       } else {
         ExtensionElement outerExtension = enclosingExtension;
@@ -5227,9 +5226,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (functionElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService.logInfo(
+            "Missing element for top-level function ${node.name.name} in "
+            "${definingLibrary.source.fullName}");
       } else {
         nameScope = new FunctionScope(nameScope, functionElement);
       }
@@ -5267,8 +5266,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           }
           buffer.write("in ");
           buffer.write(definingLibrary.source.fullName);
-          AnalysisEngine.instance.logger.logInformation(buffer.toString(),
-              new CaughtException(new AnalysisException(), null));
+          AnalysisEngine.instance.instrumentationService
+              .logInfo(buffer.toString());
         } else {
           nameScope = new FunctionScope(nameScope, functionElement);
         }
@@ -5300,9 +5299,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ParameterElement parameterElement = node.declaredElement;
       if (parameterElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for function typed formal parameter ${node.identifier.name} in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService.logInfo(
+            "Missing element for function typed formal parameter "
+            "${node.identifier.name} in ${definingLibrary.source.fullName}");
       } else {
         nameScope = new EnclosedScope(nameScope);
         var typeParameters = parameterElement.typeParameters;
@@ -5331,9 +5330,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (element == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for generic function type in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService
+            .logInfo("Missing element for generic function type in "
+                "${definingLibrary.source.fullName}");
         super.visitGenericFunctionType(node);
       } else {
         nameScope = new TypeParameterScope(nameScope, element);
@@ -5350,9 +5349,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       if (element == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for generic function type in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService
+            .logInfo("Missing element for generic function type in "
+                "${definingLibrary.source.fullName}");
         super.visitGenericTypeAlias(node);
       } else {
         nameScope = new TypeParameterScope(nameScope, element);
@@ -5395,9 +5394,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ExecutableElement methodElement = node.declaredElement;
       if (methodElement == null) {
-        AnalysisEngine.instance.logger.logInformation(
-            "Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}",
-            new CaughtException(new AnalysisException(), null));
+        AnalysisEngine.instance.instrumentationService
+            .logInfo("Missing element for method ${node.name.name} in "
+                "${definingLibrary.source.fullName}");
       } else {
         nameScope = new FunctionScope(nameScope, methodElement);
       }
