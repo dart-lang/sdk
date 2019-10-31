@@ -906,6 +906,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // Check in members.
     for (Field field in cls.fields) {
+      checkVarianceInField(field, typeEnvironment, cls.typeParameters);
       library.checkBoundsInField(field, typeEnvironment);
     }
     for (Procedure procedure in cls.procedures) {
@@ -924,6 +925,22 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           typeParameters: redirecting.typeParameters,
           positionalParameters: redirecting.positionalParameters,
           namedParameters: redirecting.namedParameters);
+    }
+  }
+
+  void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,
+      List<TypeParameter> typeParameters) {
+    for (TypeParameter typeParameter in typeParameters) {
+      int fieldVariance = computeVariance(typeParameter, field.type);
+      if (field.hasImplicitGetter) {
+        reportVariancePositionIfInvalid(
+            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      }
+      if (field.hasImplicitSetter && !field.isCovariant) {
+        fieldVariance = Variance.combine(Variance.contravariant, fieldVariance);
+        reportVariancePositionIfInvalid(
+            fieldVariance, typeParameter, field.fileUri, field.fileOffset);
+      }
     }
   }
 
