@@ -37,5 +37,5 @@ expected this query to fail: no such column: non_existing_column (Code 1: SQL lo
 ## Tutorial
 
 A tutorial walking through the code is available in [docs/sqlite-tutorial.md](docs/sqlite-tutorial.md).
-For information on how to use this package within a Flutter app, see [docs/android.md].
+For information on how to use this package within a Flutter app, see [docs/android.md](docs/android.md).
 (Note: iOS is not yet supported).
