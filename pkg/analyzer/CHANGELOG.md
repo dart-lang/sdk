@@ -1,4 +1,4 @@
-## 0.39.1-dev
+## 0.39.1
 * Deprecated `DartType.substitute2()`. Use `ClassElement.instantiate()`
   or `FunctionTypeAliasElement.instantiate()` instead.
 * Deprecated `ParameterizedType.instantiate()` and
@@ -6,7 +6,10 @@
   Using `FunctionType.instantiate()` is still valid.
 * Deprecated `FunctionTypeAliasElement.instantiate2`, use `instantiate2`.
   In the next version `instantiate2` will be removed.
-
+* Deprecated `ParameterizedType.typeParameters`.  Please use
+  `ClassElement.typeParmeters or FunctionType.typeFormals` instead.
+* Bug fixes: 27617, 34378, 35607, 38494, 38582, 38583, 38643, 38761, 38991,
+  39089, 39111, 39156, 39158, 39170, 39171, 39178.
 
 ## 0.39.0
 * Removed deprecated `DartType.isEquivalentTo`.

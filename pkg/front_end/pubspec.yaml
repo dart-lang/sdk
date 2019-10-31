@@ -1,7 +1,7 @@
 name: front_end
 # Currently, front_end API is not stable and users should not
 # depend on semver semantics when depending on this package.
-version: 0.1.28
+version: 0.1.29
 author: Dart Team <misc@dartlang.org>
 description: Front end for compilation of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
@@ -9,11 +9,11 @@ environment:
   sdk: '>=2.2.2 <3.0.0'
 dependencies:
   _fe_analyzer_shared: 1.0.0
-  kernel: 0.3.28
+  kernel: 0.3.29
   package_config: '^1.1.0'
   meta: ^1.0.2
 dev_dependencies:
-  analyzer: 0.39.0
+  analyzer: 0.39.1
   args: '>=0.13.0 <2.0.0'
   build_integration:
     path: ../build_integration
