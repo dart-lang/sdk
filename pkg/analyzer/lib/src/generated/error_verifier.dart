@@ -140,15 +140,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * A flag indicating whether the visitor is currently within an instance
-   * variable declaration.
+   * variable declaration, which is not `late`.
    */
-  bool _isInInstanceVariableDeclaration = false;
-
-  /**
-   * A flag indicating whether the visitor is currently within an instance
-   * variable initializer.
-   */
-  bool _isInInstanceVariableInitializer = false;
+  bool _isInInstanceNotLateVariableDeclaration = false;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -320,8 +314,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isEnclosingConstructorConst = false;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
-    _isInInstanceVariableDeclaration = false;
-    _isInInstanceVariableInitializer = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
@@ -724,13 +716,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    var fields = node.fields;
     _isInStaticVariableDeclaration = node.isStatic;
-    _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
-    if (_isInInstanceVariableDeclaration) {
-      VariableDeclarationList variables = node.fields;
-      if (variables.isConst) {
+    _isInInstanceNotLateVariableDeclaration =
+        !node.isStatic && !node.fields.isLate;
+    if (!_isInStaticVariableDeclaration) {
+      if (fields.isConst) {
         _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword);
+            CompileTimeErrorCode.CONST_INSTANCE_FIELD, fields.keyword);
       }
     }
     try {
@@ -738,7 +731,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
-      _isInInstanceVariableDeclaration = false;
+      _isInInstanceNotLateVariableDeclaration = false;
     }
   }
 
@@ -1375,14 +1368,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // visit initializer
     String name = nameNode.name;
     _namesForReferenceToDeclaredVariableInInitializer.add(name);
-    bool wasInInstanceVariableInitializer = _isInInstanceVariableInitializer;
-    _isInInstanceVariableInitializer = _isInInstanceVariableDeclaration;
     try {
       if (initializerNode != null) {
         initializerNode.accept(this);
       }
     } finally {
-      _isInInstanceVariableInitializer = wasInInstanceVariableInitializer;
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
     }
     // declare the variable
@@ -3233,10 +3223,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForImplicitThisReferenceInInitializer(
       SimpleIdentifier identifier) {
+    if (_isInComment) {
+      return;
+    }
     if (!_isInConstructorInitializer &&
         !_isInStaticMethod &&
         !_isInFactory &&
-        !_isInInstanceVariableInitializer &&
+        !_isInInstanceNotLateVariableDeclaration &&
         !_isInStaticVariableDeclaration) {
       return;
     }
@@ -3255,12 +3248,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (enclosingElement is! ClassElement) {
       return;
     }
-    // comment
-    AstNode parent = identifier.parent;
-    if (parent is CommentReference) {
-      return;
-    }
     // qualified method invocation
+    AstNode parent = identifier.parent;
     if (parent is MethodInvocation) {
       if (identical(parent.methodName, identifier) &&
           parent.realTarget != null) {

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,11 +12,32 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplicitThisReferenceInInitializerTest);
+    defineReflectiveTests(ImplicitThisReferenceInInitializerWithNnbdTest);
   });
 }
 
 @reflectiveTest
 class ImplicitThisReferenceInInitializerTest extends DriverResolutionTest {
+  test_class_field_commentReference_prefixedIdentifier() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int a = 0;
+  /// foo [a.isEven] bar
+  int x = 1;
+}
+''');
+  }
+
+  test_class_field_commentReference_simpleIdentifier() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int a = 0;
+  /// foo [a] bar
+  int x = 1;
+}
+''');
+  }
+
   test_constructorName() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -223,6 +246,60 @@ get f => 42;
 class A<T> {
   var v;
   A(p) : v = (p is T);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImplicitThisReferenceInInitializerWithNnbdTest
+    extends ImplicitThisReferenceInInitializerTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_class_field_late_invokeInstanceMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  int foo() => 0;
+}
+''');
+  }
+
+  test_class_field_late_invokeStaticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  static int foo() => 0;
+}
+''');
+  }
+
+  test_class_field_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int a = 0;
+  late int x = a;
+}
+''');
+  }
+
+  test_class_field_late_readStaticField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int a = 0;
+  late int x = a;
+}
+''');
+  }
+
+  test_mixin_field_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int a = 0;
+  late int x = a;
 }
 ''');
   }
