@@ -68,7 +68,7 @@ DEFINE_FLAG(
 
 #ifndef PRODUCT
 
-bool Profiler::initialized_ = false;
+RelaxedAtomic<bool> Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
 ProfilerCounters Profiler::counters_ = {};
@@ -82,9 +82,13 @@ void Profiler::Init() {
   }
   ASSERT(!initialized_);
   SetSamplePeriod(FLAG_profile_period);
-  intptr_t capacity = CalculateSampleBufferCapacity();
-  sample_buffer_ = new SampleBuffer(capacity);
-  Profiler::InitAllocationSampleBuffer();
+  // The profiler may have been shutdown previously, in which case the sample
+  // buffer will have already been initialized.
+  if (sample_buffer_ == NULL) {
+    intptr_t capacity = CalculateSampleBufferCapacity();
+    sample_buffer_ = new SampleBuffer(capacity);
+    Profiler::InitAllocationSampleBuffer();
+  }
   ThreadInterrupter::Init();
   ThreadInterrupter::Startup();
   initialized_ = true;
@@ -110,6 +114,15 @@ void Profiler::Cleanup() {
   delete sample_buffer_;
   sample_buffer_ = NULL;
 #endif
+  initialized_ = false;
+}
+
+void Profiler::UpdateRunningState() {
+  if (!FLAG_profiler && initialized_) {
+    Cleanup();
+  } else if (FLAG_profiler && !initialized_) {
+    Init();
+  }
 }
 
 void Profiler::SetSampleDepth(intptr_t depth) {

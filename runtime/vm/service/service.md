@@ -1155,9 +1155,15 @@ The following flags may be set at runtime:
  * pause_isolates_on_exit
  * pause_isolates_on_unhandled_exceptions
  * profile_period
+ * profiler
 
-Note: `profile_period` can be set to a minimum value of 50. Attempting to set
-`profile_period` to a lower value will result in a value of 50 being set.
+Notes:
+ * `profile_period` can be set to a minimum value of 50. Attempting to set
+   `profile_period` to a lower value will result in a value of 50 being set.
+ * Setting `profiler` will enable or disable the profiler depending on the
+   provided value. If set to false when the profiler is already running, the
+   profiler will be stopped but may not free its sample buffer depending on
+   platform limitations.
 
 See [Success](#success).
 

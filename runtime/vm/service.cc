@@ -260,8 +260,20 @@ static bool CheckCompilerDisabled(Thread* thread, JSONStream* js) {
 }
 
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
-  if (Profiler::sample_buffer() == NULL) {
+  if (!FLAG_profiler) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
+    return true;
+  }
+  return false;
+}
+
+static bool CheckNativeAllocationProfilerDisabled(Thread* thread,
+                                                  JSONStream* js) {
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
+  if (!FLAG_profiler_native_memory) {
+    js->PrintError(kFeatureDisabled, "Native memory profiling is disabled.");
     return true;
   }
   return false;
@@ -3906,7 +3918,7 @@ static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
 #if defined(DEBUG)
   Isolate::Current()->heap()->CollectAllGarbage();
 #endif
-  if (CheckProfilerDisabled(thread, js)) {
+  if (CheckNativeAllocationProfilerDisabled(thread, js)) {
     return true;
   }
   ProfilerService::PrintNativeAllocationJSON(
@@ -3920,9 +3932,6 @@ static const MethodParameter* clear_cpu_samples_params[] = {
 };
 
 static bool ClearCpuSamples(Thread* thread, JSONStream* js) {
-  if (CheckProfilerDisabled(thread, js)) {
-    return true;
-  }
   ProfilerService::ClearSamples();
   PrintSuccess(js);
   return true;
@@ -4498,19 +4507,23 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
   // Changing most flags at runtime is dangerous because e.g., it may leave the
   // behavior generated code and the runtime out of sync.
   const uintptr_t kProfilePeriodIndex = 3;
+  const uintptr_t kProfilerIndex = 4;
   const char* kAllowedFlags[] = {
       "pause_isolates_on_start",
       "pause_isolates_on_exit",
       "pause_isolates_on_unhandled_exceptions",
       "profile_period",
+      "profiler",
   };
 
   bool allowed = false;
   bool profile_period = false;
+  bool profiler = false;
   for (size_t i = 0; i < ARRAY_SIZE(kAllowedFlags); i++) {
     if (strcmp(flag_name, kAllowedFlags[i]) == 0) {
       allowed = true;
       profile_period = (i == kProfilePeriodIndex);
+      profiler = (i == kProfilerIndex);
       break;
     }
   }
@@ -4529,6 +4542,9 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       // FLAG_profile_period has already been set to the new value. Now we need
       // to notify the ThreadInterrupter to pick up the change.
       Profiler::UpdateSamplePeriod();
+    } else if (profiler) {
+      // FLAG_profiler has already been set to the new value.
+      Profiler::UpdateRunningState();
     }
     if (Service::vm_stream.enabled()) {
       ServiceEvent event(NULL, ServiceEvent::kVMFlagUpdate);
