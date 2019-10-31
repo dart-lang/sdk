@@ -112,7 +112,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SourceInformation sourceInformation = sourceInformationStrategy
           .createBuilderForContext(field)
           .buildDeclaration(field);
-      SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
+      SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
           emitter,
@@ -142,7 +142,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       if (method.asyncMarker != AsyncMarker.SYNC) {
         registry.registerAsyncMarker(method.asyncMarker);
       }
-      SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
+      SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
           emitter,
@@ -3405,7 +3405,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // 'findType' will be called somewhere to initialize the type reference.
     _registry.registerStaticUse(StaticUse.staticInvoke(
         _commonElements.findType, CallStructure.ONE_ARG));
-    push(TypeReference(node.typeExpression));
+    TypeReference reference = TypeReference(node.typeExpression);
+    reference.forLazyInitializer = currentGraph.isLazyInitializer;
+    push(reference);
   }
 
   @override

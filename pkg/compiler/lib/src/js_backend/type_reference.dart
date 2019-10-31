@@ -91,9 +91,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   /// [typeRecipe] is a recipe for a ground type or type environment.
   final TypeRecipe typeRecipe;
 
+  // TODO(sra): Refine the concept of reference context and replace the
+  // 'forConstant' and 'forLazyInitializer' flags.
+
   // `true` if TypeReference is in code that initializes constant value.
-  // TODO(sra): Refine the concept of reference context.
   bool forConstant = false;
+
+  // `true` if TypeReference is in code for a lazy initializer of a static
+  // variable.
+  bool forLazyInitializer = false;
 
   js.Expression _value;
 
@@ -106,13 +112,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   factory TypeReference.readFromDataSource(DataSource source) {
     source.begin(tag);
     TypeRecipe recipe = source.readTypeRecipe();
+    bool forLazyInitializer = source.readBool();
     source.end(tag);
-    return TypeReference(recipe);
+    return TypeReference(recipe)..forLazyInitializer = forLazyInitializer;
   }
 
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeTypeRecipe(typeRecipe);
+    sink.writeBool(forLazyInitializer);
     sink.end(tag);
   }
 
@@ -240,7 +248,9 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   void _registerTypeReference(TypeReference node) {
     TypeRecipe recipe = node.typeRecipe;
     _ReferenceSet refs = _referencesByRecipe[recipe] ??= _ReferenceSet(recipe);
-    refs.count += 1;
+    refs.count++;
+    if (node.forConstant) refs.countInConstant++;
+    if (node.forLazyInitializer) refs.countInLazyInitializer++;
     refs._references.add(node);
   }
 
@@ -302,19 +312,45 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   static const typesHolderLocalName = r'type$';
 
   void _allocateNames() {
-    // Step 1. Filter out generate-at-use cases and allocate unique
-    // characteristic names to the rest.
+    // Filter out generate-at-use cases and allocate unique names to the rest.
     List<_ReferenceSet> referencesInTable = [];
     Set<String> usedNames = {};
     for (_ReferenceSet referenceSet in _referencesByRecipe.values) {
-      // TODO(sra): Use more refined idea of context, e.g. single-use recipes in
-      // lazy initializers or 'throw' expressions.
+      // - If a type is used only once from a constant then the findType can be
+      // a subexpression of constant since it will be evaluated exactly once and
+      // need not be stored anywhere else.
+      if (referenceSet.count == 1 && referenceSet.countInConstant == 1) {
+        continue;
+      }
 
-      // If a type is used only once from a constant then the findType can be a
-      // subexpression of constant since it will be evaluated only once and need
-      // not be stored anywhere else.
-      if (referenceSet.count == 1 &&
-          referenceSet._references.single.forConstant) continue;
+      // - Lazy initializers are usually evaluated on demand and only once, so
+      // it is worth deferrering evaluating the type references until the lazy
+      // initializer is executed, provided it does not increase program
+      // size too much.
+      //
+      // Assuming minification in a large program, the size for precomputed is
+      //
+      //     abc:f("TTT"),/*once*/ +  type$.abc/*N times*/
+      //
+      // i.e. 13 + 5N. The size for repeated generate-at-use is
+      //
+      //      H.lookupType("TTT") /*N times*/
+      //
+      // i.e. 10N. Repeated is smaller when 10N < 13+5N, or N < 2.6. Since we
+      // get a startup benefit of not evaluating the type recipe, lets round
+      // up. Note that we don't know the size of the recipe ("TTT" assumes an
+      // infrequently referenced non-generic interface type), but if the recipe
+      // is larger, it is in a string so the program has the same number of
+      // tokens and the extra bytes will be parsed efficiently.
+      const int maxRepeatedLookups = 3;
+
+      if (referenceSet.countInLazyInitializer == referenceSet.count &&
+          referenceSet.count <= maxRepeatedLookups) {
+        continue;
+      }
+
+      // TODO(sra): There are other contexts that would be beneficial, e.g. a
+      // type reference occuring only in a throw expression.
 
       String suggestedName = _RecipeToIdentifier().run(referenceSet.recipe);
       if (usedNames.contains(suggestedName)) {
@@ -423,6 +459,11 @@ class _ReferenceSet {
   // Number of times a TypeReference for [recipe] occurs in the tree-scan of the
   // JavaScript ASTs.
   int count = 0;
+
+  // Number tree-scan occurrences in a constant initializer.
+  int countInConstant = 0;
+  // Number tree-scan occurrences in a static lazy initializer.
+  int countInLazyInitializer = 0;
 
   // It is possible for the JavaScript AST to be a DAG, so collect
   // [TypeReference]s as set so we don't try to update one twice.

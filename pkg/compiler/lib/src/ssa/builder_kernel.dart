@@ -150,7 +150,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
   Local _returnLocal;
   DartType _returnType;
-  bool _inLazyInitializerExpression = false;
 
   StackFrame _currentFrame;
 
@@ -586,7 +585,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   }
 
   void _buildField(ir.Field node) {
-    _inLazyInitializerExpression = node.isStatic;
+    graph.isLazyInitializer = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
     _openFunction(field, checks: TargetChecks.none);
     if (node.isInstanceMember &&
@@ -5803,7 +5802,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       }
 
       // Do not inline code that is rarely executed unless it reduces size.
-      if (_inExpressionOfThrow || _inLazyInitializerExpression) {
+      if (_inExpressionOfThrow || graph.isLazyInitializer) {
         return reductiveHeuristic(inlineData);
       }
 
