@@ -8,14 +8,7 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#if defined(FUCHSIA_SDK)
 #include <fuchsia/deprecatedtimezone/cpp/fidl.h>
-namespace fuchsia {
-namespace timezone = deprecatedtimezone;
-}
-#else
-#include <fuchsia/timezone/cpp/fidl.h>
-#endif  //  defined(FUCHSIA_SDK)
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
@@ -50,7 +43,7 @@ intptr_t OS::ProcessId() {
 // Putting this hack right now due to CP-120 as I need to remove
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
-static fuchsia::timezone::TimezoneSyncPtr tz;
+static fuchsia::deprecatedtimezone::TimezoneSyncPtr tz;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
