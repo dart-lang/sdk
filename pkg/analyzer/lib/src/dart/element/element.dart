@@ -1662,7 +1662,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ClassElement getType(String className) {
-    return getTypeFromTypes(className, types);
+    for (ClassElement type in types) {
+      if (type.name == className) {
+        return type;
+      }
+    }
+    return null;
   }
 
   @override
@@ -1676,16 +1681,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(mixins, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
-  }
-
-  static ClassElement getTypeFromTypes(
-      String className, List<ClassElement> types) {
-    for (ClassElement type in types) {
-      if (type.name == className) {
-        return type;
-      }
-    }
-    return null;
   }
 
   static void _createPropertiesAndAccessors(CompilationUnitElementImpl unit) {
