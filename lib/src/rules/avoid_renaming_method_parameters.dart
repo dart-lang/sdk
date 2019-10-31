@@ -55,24 +55,15 @@ class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    final visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
-    registry.addCompilationUnit(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
 
-  _Visitor(this.rule, this.context);
-
-  bool isInLib;
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    context.package;
-  }
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
