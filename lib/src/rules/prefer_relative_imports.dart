@@ -61,7 +61,7 @@ class PreferRelativeImports extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addImportDirective(this, visitor);
   }
@@ -69,12 +69,13 @@ class PreferRelativeImports extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final PreferRelativeImports rule;
+  final LinterContext context;
 
   bool isInLibFolder;
   File pubspecFile;
   YamlMap parsedPubspec;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
     // Ignore this compilation unit if it's not in the lib/ folder.
@@ -110,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    isInLibFolder = isDefinedInLib(node);
+    isInLibFolder = isInLibDir(node, context.package);
 
     pubspecFile = locatePubspecFile(node);
     parsedPubspec = null;

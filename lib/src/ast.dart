@@ -10,8 +10,9 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
 import 'analyzer.dart';
@@ -105,37 +106,6 @@ bool inPrivateMember(AstNode node) {
   return false;
 }
 
-/// Return true if the given node is declared in a compilation unit that is in
-/// a `lib/` folder.
-bool isDefinedInLib(CompilationUnit compilationUnit) {
-  String fullName = compilationUnit?.declaredElement?.source?.fullName;
-  if (fullName == null) {
-    return false;
-  }
-
-  final resourceProvider =
-      compilationUnit?.declaredElement?.session?.resourceProvider;
-  if (resourceProvider == null) {
-    return false;
-  }
-
-  File file = resourceProvider.getFile(fullName);
-  Folder folder = file.parent;
-
-  // Look for a pubspec.yaml file.
-  while (folder != null) {
-    if (folder.getChildAssumingFile('pubspec.yaml').exists) {
-      // Determine if this file is a child of the lib/ folder.
-      String relPath = file.path.substring(folder.path.length + 1);
-      return path.split(relPath).first == 'lib';
-    }
-
-    folder = folder.parent;
-  }
-
-  return false;
-}
-
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name?.name == '==';
@@ -150,6 +120,15 @@ bool isHashCode(ClassMember element) =>
     (element is MethodDeclaration && element.name?.name == 'hashCode') ||
     (element is FieldDeclaration &&
         getFieldIdentifier(element, 'hashCode') != null);
+
+/// Return true if this compilation unit [node] is declared within the given
+/// [package]'s `lib/` directory tree.
+bool isInLibDir(CompilationUnit node, WorkspacePackage package) {
+  final cuPath = node.declaredElement.library?.source?.fullName;
+  if (cuPath == null) return false;
+  final libDir = path.join(package.root, 'lib');
+  return path.isWithin(libDir, cuPath);
+}
 
 /// Returns `true` if the keyword associated with the given [token] matches
 /// [keyword].

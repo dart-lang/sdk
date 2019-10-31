@@ -203,7 +203,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitCompilationUnit(CompilationUnit node) {
     // Ignore this compilation unit if it's not in the lib/ folder.
-    isInLibFolder = isDefinedInLib(node);
+    isInLibFolder = isInLibDir(node, context.package);
     if (!isInLibFolder) return;
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
