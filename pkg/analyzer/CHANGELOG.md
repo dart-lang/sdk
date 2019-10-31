@@ -7,7 +7,7 @@
 * Deprecated `FunctionTypeAliasElement.instantiate2`, use `instantiate2`.
   In the next version `instantiate2` will be removed.
 * Deprecated `ParameterizedType.typeParameters`.  Please use
-  `ClassElement.typeParmeters or FunctionType.typeFormals` instead.
+  `ClassElement.typeParameters or FunctionType.typeFormals` instead.
 * Bug fixes: 27617, 34378, 35607, 38494, 38582, 38583, 38643, 38761, 38991,
   39089, 39111, 39156, 39158, 39170, 39171, 39178.
 

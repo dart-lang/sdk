@@ -485,7 +485,7 @@ abstract class ParameterizedType implements DartType {
 
   /// Return a list containing all of the type parameters declared for this
   /// type.
-  @Deprecated("Use ClassElement.typeParmeters or FunctionType.typeFormals")
+  @Deprecated("Use ClassElement.typeParameters or FunctionType.typeFormals")
   List<TypeParameterElement> get typeParameters;
 
   /// Return the type resulting from instantiating (replacing) the given
