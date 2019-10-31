@@ -41,7 +41,6 @@ class BufferedWriter {
   final StringWriter stringWriter;
   final ObjectWriter objectWriter;
   final LinkWriter linkWriter;
-  final int baseOffset;
 
   // Prefix of the data stored in this writer.
   // List of pairs Uint8List buffer, int length.
@@ -53,9 +52,8 @@ class BufferedWriter {
   int _currentLength = 0;
   int _nextBufferSize = initialSize << 1;
 
-  BufferedWriter(
-      this.formatVersion, this.stringWriter, this.objectWriter, this.linkWriter,
-      {this.baseOffset: 0});
+  BufferedWriter(this.formatVersion, this.stringWriter, this.objectWriter,
+      this.linkWriter);
 
   factory BufferedWriter.fromWriter(BufferedWriter writer) =>
       new BufferedWriter(writer.formatVersion, writer.stringWriter,
@@ -265,18 +263,6 @@ class BufferedWriter {
   void writeLinkOffset(Object target) {
     final offset = linkWriter.getOffset(target);
     writePackedUInt30(offset);
-  }
-
-  void align(int alignment) {
-    assert(alignment & (alignment - 1) == 0);
-    int offs = baseOffset + offset;
-    int padding = ((offs + alignment - 1) & -alignment) - offs;
-    if (_currentLength > _currentBuffer.length - padding) {
-      _grow();
-    }
-    for (int i = 0; i < padding; ++i) {
-      _addByte(0);
-    }
   }
 }
 

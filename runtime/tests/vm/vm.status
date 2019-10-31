@@ -24,6 +24,7 @@ dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate to
 
 [ $builder_tag == crossword ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+dart/bytecode_with_ast_in_aot_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 
 [ $builder_tag == obfuscated ]
 dart/causal_stacks/*: SkipByDesign # Asserts exact stacktrace output.
@@ -244,6 +245,7 @@ dart/redirection_type_shuffling_test/none: RuntimeError
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
+dart/bytecode_with_ast_in_aot_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode

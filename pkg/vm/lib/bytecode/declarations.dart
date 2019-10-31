@@ -1365,7 +1365,6 @@ class Component {
     int offset = headerSize;
     for (var section in sections) {
       if (section.writer != null) {
-        offset = (offset + sectionAlignment - 1) & ~(sectionAlignment - 1);
         section.offset = offset;
         offset += section.size;
       } else {
@@ -1384,7 +1383,6 @@ class Component {
     assert(writer.offset - start == headerSize);
     for (var section in sections) {
       if (section.writer != null) {
-        writer.align(sectionAlignment);
         assert(writer.offset - start == section.offset);
         writer.appendWriter(section.writer);
       }
