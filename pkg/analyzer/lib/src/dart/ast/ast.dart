@@ -647,8 +647,9 @@ class AssignmentExpressionImpl extends ExpressionImpl
       } else {
         message = "The right-hand size is null";
       }
-      AnalysisEngine.instance.logger.logError(
-          message, new CaughtException(new AnalysisException(message), null));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException(new AnalysisException(message), null),
+          StackTrace.current);
     }
     _leftHandSide = _becomeParentOf(leftHandSide);
     _rightHandSide = _becomeParentOf(rightHandSide);

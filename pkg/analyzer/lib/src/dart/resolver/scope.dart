@@ -858,7 +858,7 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.logger
+        AnalysisEngine.instance.instrumentationService
             .logError("Unknown type of combinator: ${combinator.runtimeType}");
       }
     }

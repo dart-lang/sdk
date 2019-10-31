@@ -96,7 +96,46 @@ var tests = <VMTest>[
     expect(result['type'], equals('Success'));
     await completer.future;
     expect(await getFlagValue(vm, kProfilePeriod), kValue.toString());
-  }
+  },
+
+  // Start and stop the profiler at runtime.
+  (VM vm) async {
+    final kProfiler = 'profiler';
+    expect(await getFlagValue(vm, kProfiler), 'true');
+    final params = {
+      'name': kProfiler,
+      'value': 'false',
+    };
+
+    var result = await vm.invokeRpcNoUpgrade('setFlag', params);
+    expect(result['type'], equals('Success'));
+    expect(await getFlagValue(vm, kProfiler), 'false');
+    try {
+      // Arbitrary RPC which checks whether or not the profiler is enabled.
+      await vm.isolates.first.invokeRpcNoUpgrade('getCpuSamples', {});
+      fail('Profiler is disabled and request should fail');
+    } on ServerRpcException catch (_) {/* Expected */}
+
+    // Clear CPU samples.
+    result = await vm.isolates.first.invokeRpcNoUpgrade('clearCpuSamples', {});
+    expect(result['type'], equals('Success'));
+
+    params['value'] = 'true';
+    result = await vm.invokeRpcNoUpgrade('setFlag', params);
+    expect(result['type'], equals('Success'));
+    expect(await getFlagValue(vm, kProfiler), 'true');
+
+    // Give the profiler some time to start collecting samples again.
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      // Arbitrary RPC which checks whether or not the profiler is enabled.
+      result = await vm.isolates.first.invokeRpcNoUpgrade('getCpuSamples', {});
+      expect(result['samples'].isNotEmpty, isTrue);
+    } on ServerRpcException catch (e) {
+      fail('Profiler is enabled and request should succeed. Error:\n$e');
+    }
+  },
 ];
 
 main(args) async => runVMTests(args, tests);

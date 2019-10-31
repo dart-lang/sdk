@@ -20,8 +20,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -529,7 +528,7 @@ abstract class NodeLintRule {
 @deprecated
 abstract class NodeLintRuleWithContext extends NodeLintRule {}
 
-class PrintingReporter implements Reporter, Logger {
+class PrintingReporter implements Reporter {
   final Printer _print;
 
   const PrintingReporter([this._print = print]);
@@ -537,16 +536,6 @@ class PrintingReporter implements Reporter, Logger {
   @override
   void exception(LinterException exception) {
     _print('EXCEPTION: $exception');
-  }
-
-  @override
-  void logError(String message, [CaughtException exception]) {
-    _print('ERROR: $message');
-  }
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    _print('INFO: $message');
   }
 
   @override

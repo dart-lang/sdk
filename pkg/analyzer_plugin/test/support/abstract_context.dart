@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -128,7 +127,6 @@ test:file:///home/test/lib
 
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    AnalysisEngine.instance.logger = null;
   }
 
   void _addTestPackageDependency(String name, String rootPath) {
@@ -159,29 +157,6 @@ test:file:///home/test/lib
     var context = collection.contextFor(testPath) as DriverBasedAnalysisContext;
 
     _driver = context.driver;
-  }
-}
-
-/**
- * Instances of the class [PrintLogger] print all of the errors.
- */
-class PrintLogger implements Logger {
-  static final Logger instance = new PrintLogger();
-
-  @override
-  void logError(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
-    }
-  }
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    print(message);
-    if (exception != null) {
-      print(exception);
-    }
   }
 }
 

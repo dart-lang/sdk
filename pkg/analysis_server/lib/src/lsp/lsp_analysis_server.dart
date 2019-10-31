@@ -625,7 +625,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (result.contextKey != null) {
         message += ' context: ${result.contextKey}';
       }
-      AnalysisEngine.instance.logger.logError(message, result.exception);
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.wrapInMessage(message, result.exception));
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

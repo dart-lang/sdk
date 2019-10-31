@@ -2475,8 +2475,9 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
       buffer.write(currentNode.runtimeType);
       currentNode = currentNode.parent;
     }
-    AnalysisEngine.instance.logger.logError(
-        buffer.toString(), new CaughtException(exception, stackTrace));
+    AnalysisEngine.instance.instrumentationService.logException(
+        new CaughtException.withMessage(
+            buffer.toString(), exception, stackTrace));
   }
 }
 
@@ -2530,9 +2531,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     try {
       node.accept(this);
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
-          "Unable to locate element at offset ($_startOffset - $_endOffset)",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              "Unable to locate element at offset ($_startOffset - $_endOffset)",
+              exception,
+              stackTrace));
       return null;
     }
     return _foundNode;
@@ -2568,9 +2571,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
-      AnalysisEngine.instance.logger.logInformation(
-          "Exception caught while traversing an AST structure.",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              "Exception caught while traversing an AST structure.",
+              exception,
+              stackTrace));
     }
     // Found a child.
     if (_foundNode != null) {
@@ -2626,9 +2631,11 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     try {
       node.accept(this);
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
-          "Unable to locate element at offset ($_startOffset - $_endOffset)",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              "Unable to locate element at offset ($_startOffset - $_endOffset)",
+              exception,
+              stackTrace));
       return null;
     }
     return _foundNode;
@@ -2664,9 +2671,11 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
-      AnalysisEngine.instance.logger.logInformation(
-          "Exception caught while traversing an AST structure.",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              "Exception caught while traversing an AST structure.",
+              exception,
+              stackTrace));
     }
     // Found a child.
     if (_foundNode != null) {

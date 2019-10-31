@@ -98,14 +98,21 @@ class SourceFactoryImpl implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     try {
-      Uri uri = Uri.parse(absoluteUri);
+      Uri uri;
+      try {
+        uri = Uri.parse(absoluteUri);
+      } catch (exception, stackTrace) {
+        AnalysisEngine.instance.instrumentationService
+            .logInfo('Could not resolve URI: $absoluteUri $stackTrace');
+        return null;
+      }
       if (uri.isAbsolute) {
         return _internalResolveUri(null, uri);
       }
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not resolve URI: $absoluteUri",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.withMessage(
+              "Could not resolve URI: $absoluteUri", exception, stackTrace));
     }
     return null;
   }
@@ -116,9 +123,9 @@ class SourceFactoryImpl implements SourceFactory {
       try {
         return _internalResolveUri(null, absoluteUri);
       } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError(
-            "Could not resolve URI: $absoluteUri",
-            new CaughtException(exception, stackTrace));
+        AnalysisEngine.instance.instrumentationService.logException(
+            new CaughtException.withMessage(
+                "Could not resolve URI: $absoluteUri", exception, stackTrace));
       }
     }
     return null;
@@ -137,10 +144,12 @@ class SourceFactoryImpl implements SourceFactory {
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
-      AnalysisEngine.instance.logger.logInformation(
-          "Could not resolve URI ($containedUri) "
-          "relative to source ($containingFullName)",
-          new CaughtException(exception, stackTrace));
+      AnalysisEngine.instance.instrumentationService
+          .logException(new CaughtException.withMessage(
+              "Could not resolve URI ($containedUri) "
+              "relative to source ($containingFullName)",
+              exception,
+              stackTrace));
       return null;
     }
   }

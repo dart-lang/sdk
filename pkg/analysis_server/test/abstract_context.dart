@@ -202,7 +202,6 @@ test:file:///home/test/lib
 
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    AnalysisEngine.instance.logger = null;
   }
 
   /// Update `/home/test/pubspec.yaml` and create the driver.

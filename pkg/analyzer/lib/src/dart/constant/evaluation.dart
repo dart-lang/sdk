@@ -254,7 +254,7 @@ class ConstantEvaluationEngine {
     } else {
       // Should not happen.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to compute "
               "the value of a node of type ${constant.runtimeType}");
       return;
@@ -354,7 +354,7 @@ class ConstantEvaluationEngine {
         // of the annotation, so there's not a lot of information in this
         // message, but it's better than getting an exception.
         // https://github.com/dart-lang/sdk/issues/26811
-        AnalysisEngine.instance.logger.logInformation(
+        AnalysisEngine.instance.instrumentationService.logInfo(
             'No annotationAst for $constant in ${constant.compilationUnit}');
       } else if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
@@ -368,7 +368,7 @@ class ConstantEvaluationEngine {
     } else {
       // Should not happen.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to compute "
               "the value of a node of type ${constant.runtimeType}");
     }
@@ -819,7 +819,7 @@ class ConstantEvaluationEngine {
       // Should not happen.  Formal parameter defaults and annotations should
       // never appear as part of a cycle because they can't be referred to.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to report a cycle error "
               "for a node of type ${constant.runtimeType}");
     }

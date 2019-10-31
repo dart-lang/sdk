@@ -2185,7 +2185,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       } else {
         message = 'Found unnamed constructor element with no enclosing element';
       }
-      AnalysisEngine.instance.logger.logError(message);
+      AnalysisEngine.instance.instrumentationService.logError(message);
       name = '<unknown class>';
     } else {
       name = enclosingElement.displayName;

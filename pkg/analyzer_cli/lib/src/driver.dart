@@ -613,7 +613,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Set up logging.
     if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
+      AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
     }
 
     // Save stats from previous context before clobbering it.

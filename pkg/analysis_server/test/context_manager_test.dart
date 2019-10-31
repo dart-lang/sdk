@@ -8,6 +8,7 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -2509,8 +2510,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
-      AnalysisEngine.instance.logger
-          .logError('Analysis failed: ${result.path}', result.exception);
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.wrapInMessage(
+              'Analysis failed: ${result.path}', result.exception));
     });
     return currentDriver;
   }
