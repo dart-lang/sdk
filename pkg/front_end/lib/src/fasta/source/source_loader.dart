@@ -10,6 +10,7 @@ import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/base/common.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -151,8 +152,12 @@ class SourceLoader extends Loader {
 
   SetLiteralTransformer setLiteralTransformer;
 
+  final SourceLoaderDataForTesting dataForTesting;
+
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
-      : super(target);
+      : dataForTesting =
+            retainDataForTesting ? new SourceLoaderDataForTesting() : null,
+        super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -1275,4 +1280,20 @@ class AmbiguousTypesRecord {
   final Supertype b;
 
   const AmbiguousTypesRecord(this.cls, this.a, this.b);
+}
+
+class SourceLoaderDataForTesting {
+  final Map<TreeNode, TreeNode> _aliasMap = {};
+
+  /// Registers that [original] has been replaced by [alias] in the generated
+  /// AST.
+  void registerAlias(TreeNode original, TreeNode alias) {
+    _aliasMap[alias] = original;
+  }
+
+  /// Returns the original node for [alias] or [alias] if it was not registered
+  /// as an alias.
+  TreeNode toOriginal(TreeNode alias) {
+    return _aliasMap[alias] ?? alias;
+  }
 }

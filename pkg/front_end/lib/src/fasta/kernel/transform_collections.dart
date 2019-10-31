@@ -66,7 +66,7 @@ import 'collections.dart'
 
 import '../problems.dart' show getFileUri, unhandled;
 
-import '../source/source_loader.dart' show SourceLoader;
+import '../source/source_loader.dart';
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -82,6 +82,7 @@ class CollectionTransformer extends Transformer {
   final Class mapEntryClass;
   final Field mapEntryKey;
   final Field mapEntryValue;
+  final SourceLoaderDataForTesting dataForTesting;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
@@ -105,7 +106,8 @@ class CollectionTransformer extends Transformer {
         mapEntryKey =
             loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'key'),
         mapEntryValue =
-            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value');
+            loader.coreTypes.index.getMember('dart:core', 'MapEntry', 'value'),
+        dataForTesting = loader.dataForTesting;
 
   TreeNode _translateListOrSet(
       Expression node, DartType elementType, List<Expression> elements,
@@ -208,6 +210,7 @@ class CollectionTransformer extends Transformer {
       ..fileOffset = element.fileOffset;
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
+    dataForTesting?.registerAlias(element, loop);
     body.add(loop);
   }
 
@@ -228,10 +231,12 @@ class CollectionTransformer extends Transformer {
     if (element.problem != null) {
       body.add(new ExpressionStatement(element.problem.accept<TreeNode>(this)));
     }
-    body.add(new ForInStatement(
+    ForInStatement loop = new ForInStatement(
         element.variable, element.iterable.accept<TreeNode>(this), loopBody,
         isAsync: element.isAsync)
-      ..fileOffset = element.fileOffset);
+      ..fileOffset = element.fileOffset;
+    dataForTesting?.registerAlias(element, loop);
+    body.add(loop);
   }
 
   void _translateSpreadElement(SpreadElement element, DartType elementType,
@@ -396,6 +401,7 @@ class CollectionTransformer extends Transformer {
     ForStatement loop = new ForStatement(entry.variables,
         entry.condition?.accept<TreeNode>(this), entry.updates, loopBody)
       ..fileOffset = entry.fileOffset;
+    dataForTesting?.registerAlias(entry, loop);
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
     body.add(loop);
@@ -418,10 +424,12 @@ class CollectionTransformer extends Transformer {
     if (entry.problem != null) {
       body.add(new ExpressionStatement(entry.problem.accept<TreeNode>(this)));
     }
-    body.add(new ForInStatement(
+    ForInStatement loop = new ForInStatement(
         entry.variable, entry.iterable.accept<TreeNode>(this), loopBody,
         isAsync: entry.isAsync)
-      ..fileOffset = entry.fileOffset);
+      ..fileOffset = entry.fileOffset;
+    dataForTesting?.registerAlias(entry, loop);
+    body.add(loop);
   }
 
   void _translateSpreadEntry(SpreadMapEntry entry, DartType keyType,

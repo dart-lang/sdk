@@ -383,7 +383,6 @@ class Forest {
       int fileOffset,
       List<VariableDeclaration> variables,
       Expression condition,
-      Statement conditionStatement,
       List<Expression> updaters,
       Statement body) {
     assert(fileOffset != null);

@@ -984,12 +984,12 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleForInitializerExpressionStatement(Token token) {
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
     calls.add('handleForInitializerExpressionStatement $token');
   }
 
   @override
-  void handleForInitializerLocalVariableDeclaration(Token token) {
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     calls.add('handleForInitializerLocalVariableDeclaration $token');
   }
 

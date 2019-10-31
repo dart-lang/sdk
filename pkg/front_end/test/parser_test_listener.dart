@@ -450,12 +450,13 @@ class ParserTestListener implements Listener {
     doPrint('handleForInitializerEmptyStatement(' '$token)');
   }
 
-  void handleForInitializerExpressionStatement(Token token) {
-    doPrint('handleForInitializerExpressionStatement(' '$token)');
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
+    doPrint('handleForInitializerExpressionStatement(' '$token, ' '$forIn)');
   }
 
-  void handleForInitializerLocalVariableDeclaration(Token token) {
-    doPrint('handleForInitializerLocalVariableDeclaration(' '$token)');
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
+    doPrint(
+        'handleForInitializerLocalVariableDeclaration(' '$token, ' '$forIn)');
   }
 
   void beginForStatement(Token token) {

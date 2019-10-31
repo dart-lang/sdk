@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+main() async {
+await for (in) {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] async[KeywordToken] {[BeginToken]
+await[KeywordToken] for[KeywordToken] ([BeginToken][SyntheticStringToken]in[SyntheticKeywordToken][SyntheticStringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

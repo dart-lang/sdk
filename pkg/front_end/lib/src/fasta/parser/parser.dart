@@ -5736,12 +5736,19 @@ class Parser {
   Token parseForLoopPartsMid(Token token, Token awaitToken, Token forToken) {
     if (token != forToken.next) {
       token = parseVariablesDeclarationRest(token, false);
-      listener.handleForInitializerLocalVariableDeclaration(token);
+      listener.handleForInitializerLocalVariableDeclaration(
+          token, optional('in', token.next));
     } else if (optional(';', token.next)) {
       listener.handleForInitializerEmptyStatement(token.next);
     } else {
       token = parseExpression(token);
-      listener.handleForInitializerExpressionStatement(token);
+      listener.handleForInitializerExpressionStatement(
+          token,
+          optional('in', token.next) ||
+              optional(':', token.next) ||
+              // If this is an empty `await for`, we rewrite it into an
+              // `await for (_ in _)`.
+              (awaitToken != null && optional(')', token.next)));
     }
     Token next = token.next;
     if (optional(';', next)) {

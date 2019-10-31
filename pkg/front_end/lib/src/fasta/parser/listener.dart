@@ -407,13 +407,13 @@ class Listener implements UnescapeErrorListener {
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
   /// it was an expression statement.
-  void handleForInitializerExpressionStatement(Token token) {
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
     logEvent("ForInitializerExpressionStatement");
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
   /// it was a `localVariableDeclaration`.
-  void handleForInitializerLocalVariableDeclaration(Token token) {
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     logEvent("ForInitializerLocalVariableDeclaration");
   }
 

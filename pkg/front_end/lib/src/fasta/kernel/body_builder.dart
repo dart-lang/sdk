@@ -42,6 +42,8 @@ import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
+import '../flow_analysis/flow_analysis.dart';
+
 import '../identifiers.dart'
     show
         Identifier,
@@ -2465,16 +2467,29 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleForInitializerEmptyStatement(Token token) {
     debugEvent("ForInitializerEmptyStatement");
     push(NullValue.Expression);
+    // This is matched by the call to [deferNode] in [endForStatement] or
+    // [endForControlFlow].
+    typeInferrer?.assignedVariables?.beginNode();
   }
 
   @override
-  void handleForInitializerExpressionStatement(Token token) {
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
     debugEvent("ForInitializerExpressionStatement");
+    if (!forIn) {
+      // This is matched by the call to [deferNode] in [endForStatement] or
+      // [endForControlFlow].
+      typeInferrer?.assignedVariables?.beginNode();
+    }
   }
 
   @override
-  void handleForInitializerLocalVariableDeclaration(Token token) {
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     debugEvent("ForInitializerLocalVariableDeclaration");
+    if (!forIn) {
+      // This is matched by the call to [deferNode] in [endForStatement] or
+      // [endForControlFlow].
+      typeInferrer?.assignedVariables?.beginNode();
+    }
   }
 
   @override
@@ -2496,10 +2511,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token forToken = pop();
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement(); // condition
-    Object variableOrExpression = pop();
-    exitLocalScope();
 
     if (constantContext != ConstantContext.none) {
+      pop(); // Pop variable or expression.
+      exitLocalScope();
+      typeInferrer?.assignedVariables?.discardNode();
+
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -2508,6 +2525,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(invalidCollectionElement);
       return;
     }
+
+    // This is matched by the call to [beginNode] in
+    // [handleForInitializerEmptyStatement],
+    // [handleForInitializerExpressionStatement], and
+    // [handleForInitializerLocalVariableDeclaration].
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+        typeInferrer?.assignedVariables?.deferNode();
+
+    Object variableOrExpression = pop();
+    exitLocalScope();
 
     transformCollections = true;
     List<VariableDeclaration> variables =
@@ -2519,11 +2546,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       assert(conditionStatement is EmptyStatement);
     }
     if (entry is MapEntry) {
-      push(forest.createForMapEntry(
-          offsetForToken(forToken), variables, condition, updates, entry));
+      ForMapEntry result = forest.createForMapEntry(
+          offsetForToken(forToken), variables, condition, updates, entry);
+      typeInferrer?.assignedVariables
+          ?.storeInfo(result, assignedVariablesNodeInfo);
+      push(result);
     } else {
-      push(forest.createForElement(offsetForToken(forToken), variables,
-          condition, updates, toValue(entry)));
+      ForElement result = forest.createForElement(offsetForToken(forToken),
+          variables, condition, updates, toValue(entry));
+      typeInferrer?.assignedVariables
+          ?.storeInfo(result, assignedVariablesNodeInfo);
+      push(result);
     }
   }
 
@@ -2560,6 +2593,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
+    // This is matched by the call to [beginNode] in
+    // [handleForInitializerEmptyStatement],
+    // [handleForInitializerExpressionStatement], and
+    // [handleForInitializerLocalVariableDeclaration].
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+        typeInferrer?.assignedVariables?.deferNode();
+
     Object variableOrExpression = pop();
     List<VariableDeclaration> variables =
         buildVariableDeclarations(variableOrExpression);
@@ -2576,8 +2616,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    Statement result = forest.createForStatement(offsetForToken(forKeyword),
-        variables, condition, conditionStatement, updates, body);
+    Statement result = forest.createForStatement(
+        offsetForToken(forKeyword), variables, condition, updates, body);
+    typeInferrer?.assignedVariables
+        ?.storeInfo(result, assignedVariablesNodeInfo);
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
@@ -4359,6 +4401,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(awaitToken ?? NullValue.AwaitToken);
     push(forToken);
     push(inKeyword);
+    // This is matched by the call to [deferNode] in [endForIn] or
+    // [endForInControlFlow].
+    typeInferrer?.assignedVariables?.beginNode();
   }
 
   @override
@@ -4368,11 +4413,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token inToken = pop();
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
-    Expression iterable = popForValue();
-    Object lvalue = pop(); // lvalue
-    exitLocalScope();
 
     if (constantContext != ConstantContext.none) {
+      popForValue(); // Pop iterable
+      pop(); // Pop lvalue
+      exitLocalScope();
+      typeInferrer?.assignedVariables?.discardNode();
+
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -4382,23 +4429,45 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
+    // This is matched by the call to [beginNode] in [handleForInLoopParts].
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+        typeInferrer?.assignedVariables?.deferNode();
+
+    Expression iterable = popForValue();
+    Object lvalue = pop(); // lvalue
+    exitLocalScope();
+
     transformCollections = true;
     VariableDeclaration variable = buildForInVariable(forToken, lvalue);
     Expression problem = checkForInVariable(lvalue, variable, forToken);
     Statement prologue = buildForInBody(lvalue, variable, forToken, inToken);
     if (entry is MapEntry) {
-      push(forest.createForInMapEntry(offsetForToken(forToken), variable,
-          iterable, prologue, entry, problem,
-          isAsync: awaitToken != null));
+      ForInMapEntry result = forest.createForInMapEntry(
+          offsetForToken(forToken),
+          variable,
+          iterable,
+          prologue,
+          entry,
+          problem,
+          isAsync: awaitToken != null);
+      typeInferrer?.assignedVariables
+          ?.storeInfo(result, assignedVariablesNodeInfo);
+      push(result);
     } else {
-      push(forest.createForInElement(offsetForToken(forToken), variable,
-          iterable, prologue, toValue(entry), problem,
-          isAsync: awaitToken != null));
+      ForInElement result = forest.createForInElement(offsetForToken(forToken),
+          variable, iterable, prologue, toValue(entry), problem,
+          isAsync: awaitToken != null);
+      typeInferrer?.assignedVariables
+          ?.storeInfo(result, assignedVariablesNodeInfo);
+      push(result);
     }
   }
 
   VariableDeclaration buildForInVariable(Token token, Object lvalue) {
-    if (lvalue is VariableDeclaration) return lvalue;
+    if (lvalue is VariableDeclaration) {
+      typeInferrer?.assignedVariables?.write(lvalue);
+      return lvalue;
+    }
     return forest.createVariableDeclaration(
         offsetForToken(token), null, functionNestingLevel,
         isFinal: true);
@@ -4476,6 +4545,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
 
+    // This is matched by the call to [beginNode] in [handleForInLoopParts].
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+        typeInferrer?.assignedVariables?.deferNode();
+
     Expression expression = popForValue();
     Object lvalue = pop();
     exitLocalScope();
@@ -4506,6 +4579,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
+    typeInferrer?.assignedVariables
+        ?.storeInfo(result, assignedVariablesNodeInfo);
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);

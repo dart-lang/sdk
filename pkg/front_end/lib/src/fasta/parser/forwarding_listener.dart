@@ -1164,13 +1164,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleForInitializerExpressionStatement(Token token) {
-    listener?.handleForInitializerExpressionStatement(token);
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
+    listener?.handleForInitializerExpressionStatement(token, forIn);
   }
 
   @override
-  void handleForInitializerLocalVariableDeclaration(Token token) {
-    listener?.handleForInitializerLocalVariableDeclaration(token);
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
+    listener?.handleForInitializerLocalVariableDeclaration(token, forIn);
   }
 
   @override
