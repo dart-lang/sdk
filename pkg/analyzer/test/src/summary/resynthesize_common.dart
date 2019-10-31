@@ -10063,6 +10063,7 @@ Never d;
         annotateNullability: true);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_legacy() async {
     featureSet = disableNnbd;
     var library = await checkLibrary('''
@@ -10080,6 +10081,7 @@ T f<T>(T t) {}
     expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_migrated() async {
     featureSet = enableNnbd;
     var library = await checkLibrary('''

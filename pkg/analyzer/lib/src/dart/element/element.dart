@@ -868,12 +868,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
+  @deprecated
   InterfaceType get type {
     if (_type == null) {
-      var typeArguments = typeParameters.map((e) => e.type).toList();
-      InterfaceTypeImpl type =
-          new InterfaceTypeImpl.explicit(this, typeArguments);
-      _type = type;
+      var typeArguments = typeParameters
+          .map((e) => e.instantiate(nullabilitySuffix: _noneOrStarSuffix))
+          .toList();
+      _type = InterfaceTypeImpl.explicit(this, typeArguments);
     }
     return _type;
   }
@@ -3460,6 +3461,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   InterfaceType get supertype => context.typeProvider.objectType;
 
   @override
+  @deprecated
   InterfaceType get type {
     if (_type == null) {
       var typeArguments = const <DartType>[];
@@ -4827,6 +4829,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   }
 
   @override
+  @deprecated
   FunctionType get type {
     _type ??= FunctionTypeImpl.synthetic(
       function.returnType,
@@ -7544,6 +7547,8 @@ class TypeParameterElementImpl extends ElementImpl
     return super.nameOffset;
   }
 
+  @override
+  @deprecated
   TypeParameterType get type {
     // Note: TypeParameterElement.type has nullability suffix `star` regardless
     // of whether it appears in a migrated library.  This is because for type

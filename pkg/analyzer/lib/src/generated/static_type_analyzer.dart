@@ -954,8 +954,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       staticType = _getTypeOfProperty(staticElement);
     } else if (staticElement is ExecutableElement) {
       staticType = staticElement.type;
-    } else if (staticElement is TypeParameterElement) {
-      staticType = staticElement.type;
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }

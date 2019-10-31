@@ -184,6 +184,7 @@ abstract class ClassElement
   InterfaceType get thisType;
 
   @override
+  @deprecated
   InterfaceType get type;
 
   /// Return the unnamed constructor declared in this class, or `null` if either
@@ -1161,8 +1162,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 /// Clients may not extend, implement, or mix-in this class.
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 
-/// A [FunctionTypeAliasElement] whose returned function type has a [type]
-/// parameter.
+/// A synonym for [FunctionTypeAliasElement].
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
@@ -1342,6 +1342,7 @@ abstract class MultiplyDefinedElement implements Element {
   List<Element> get conflictingElements;
 
   /// Return the type of this element as the dynamic type.
+  @deprecated
   DartType get type;
 }
 
@@ -1552,6 +1553,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeDefiningElement implements Element {
   /// Return the type defined by this element.
+  @deprecated
   DartType get type;
 }
 
@@ -1566,6 +1568,7 @@ abstract class TypeParameterElement implements TypeDefiningElement {
   DartType get bound;
 
   @override
+  @deprecated
   TypeParameterType get type;
 
   /// Create the [TypeParameterType] with the given [nullabilitySuffix] for
