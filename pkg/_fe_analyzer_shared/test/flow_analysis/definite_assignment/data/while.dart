@@ -90,8 +90,10 @@ true_break_if3(bool c) {
 
 true_breakOuterFromInner(bool c) {
   late int v1, v2, v3;
-  L1: while (true) {
-    L2: while (true) {
+  L1:
+  while (true) {
+    L2:
+    while (true) {
       v1 = 0;
       if (c) break L1;
       v2 = 0;

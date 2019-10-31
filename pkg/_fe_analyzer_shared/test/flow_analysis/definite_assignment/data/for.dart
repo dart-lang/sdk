@@ -115,7 +115,7 @@ collection_for_initializer_variable() {
 
 collection_for_updaters(bool c) {
   late int v1, v2, v3, v4;
-  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1];
+  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1 ];
   /*unassigned*/ v2;
 }
 

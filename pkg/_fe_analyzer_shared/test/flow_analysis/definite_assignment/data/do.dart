@@ -23,7 +23,8 @@ break_beforeAssignment(bool c) {
 
 breakOuterFromInner(bool c) {
   late int v1, v2, v3;
-  L1: do {
+  L1:
+  do {
     do {
       v1 = 0;
       if (c) break L1;
@@ -62,7 +63,8 @@ condition_break_continue(bool c1, bool c2) {
     if (c2) continue;
     v4 = 0; // not visible
     v5 = 0; // not visible
-  } while ((v6 = v1 + v2 + /*unassigned*/ v4) == 0); // has break => v6 is not visible outside
+  } while ((v6 = v1 + v2 + /*unassigned*/ v4) ==
+      0); // has break => v6 is not visible outside
   v1;
   /*unassigned*/ v3;
   /*unassigned*/ v5;
@@ -76,7 +78,8 @@ condition_continue(bool c) {
     if (c) continue;
     v2 = 0; // not visible
     v3 = 0; // not visible
-  } while ((v4 = v1 + /*unassigned*/ v2) == 0); // no break => v4 visible outside
+  } while (
+      (v4 = v1 + /*unassigned*/ v2) == 0); // no break => v4 visible outside
   v1;
   /*unassigned*/ v3;
   v4;

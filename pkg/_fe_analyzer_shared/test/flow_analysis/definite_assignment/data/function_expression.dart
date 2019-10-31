@@ -4,9 +4,9 @@
 
 closure_read() {
   late int v1, v2;
-  
+
   v1 = 0;
-  
+
   [0, 1, 2].forEach((t) {
     v1;
     /*unassigned*/ v2;
@@ -15,7 +15,7 @@ closure_read() {
 
 closure_write() {
   late int v;
-  
+
   [0, 1, 2].forEach((t) {
     v = t;
   });

@@ -53,7 +53,8 @@ case_default_break(int e, bool c) {
 case_default_continue(int e) {
   late int v;
   switch (e) {
-    L: case 1:
+    L:
+    case 1:
       v = 0;
       break;
     case 2:
@@ -76,6 +77,7 @@ case_noDefault(int e) {
 
 condition() {
   late int v;
-  switch (v = 0) {}
+  switch (v = 0) {
+  }
   v;
 }
