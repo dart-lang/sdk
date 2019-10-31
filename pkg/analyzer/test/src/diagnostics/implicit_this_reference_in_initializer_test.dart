@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ImplicitThisReferenceInInitializerTest extends DriverResolutionTest {
-  test_implicitThisReferenceInInitializer_constructorName() async {
+  test_constructorName() async {
     await assertNoErrorsInCode(r'''
 class A {
   A.named() {}
@@ -27,7 +27,7 @@ class B {
 ''');
   }
 
-  test_implicitThisReferenceInInitializer_field() async {
+  test_field() async {
     await assertErrorsInCode(r'''
 class A {
   var v;
@@ -39,7 +39,7 @@ class A {
     ]);
   }
 
-  test_implicitThisReferenceInInitializer_field2() async {
+  test_field2() async {
     await assertErrorsInCode(r'''
 class A {
   final x = 0;
@@ -51,7 +51,7 @@ class A {
     ]);
   }
 
-  test_implicitThisReferenceInInitializer_invocation() async {
+  test_invocation() async {
     await assertErrorsInCode(r'''
 class A {
   var v;
@@ -63,7 +63,7 @@ class A {
     ]);
   }
 
-  test_implicitThisReferenceInInitializer_invocationInStatic() async {
+  test_invocationInStatic() async {
     await assertErrorsInCode(r'''
 class A {
   static var F = m();
@@ -72,137 +72,6 @@ class A {
 ''', [
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 27, 1),
     ]);
-  }
-
-  test_implicitThisReferenceInInitializer_prefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var f;
-}
-class B {
-  var v;
-  B(A a) : v = a.f;
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_qualifiedMethodInvocation() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  f() {}
-}
-class B {
-  var v;
-  B() : v = new A().f();
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_qualifiedPropertyAccess() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var f;
-}
-class B {
-  var v;
-  B() : v = new A().f;
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p) {}
-  A.named() : this(f);
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_staticField_thisClass() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-  static var f;
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_staticGetter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-  static get f => 42;
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_staticMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f();
-  static f() => 42;
-}
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_superConstructorInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p) {}
-}
-class B extends A {
-  B() : super(f);
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 56, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_topLevelField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-}
-var f = 42;
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_topLevelFunction() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f();
-}
-f() => 42;
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_topLevelGetter() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-}
-get f => 42;
-''');
-  }
-
-  test_implicitThisReferenceInInitializer_typeParameter() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  var v;
-  A(p) : v = (p is T);
-}
-''');
   }
 
   test_isInInstanceVariableInitializer_restored() async {
@@ -225,5 +94,136 @@ class Foo {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 4),
       error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 89, 4),
     ]);
+  }
+
+  test_prefixedIdentifier() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var f;
+}
+class B {
+  var v;
+  B(A a) : v = a.f;
+}
+''');
+  }
+
+  test_qualifiedMethodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  f() {}
+}
+class B {
+  var v;
+  B() : v = new A().f();
+}
+''');
+  }
+
+  test_qualifiedPropertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var f;
+}
+class B {
+  var v;
+  B() : v = new A().f;
+}
+''');
+  }
+
+  test_redirectingConstructorInvocation() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(p) {}
+  A.named() : this(f);
+  var f;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
+    ]);
+  }
+
+  test_staticField_thisClass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+  static var f;
+}
+''');
+  }
+
+  test_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+  static get f => 42;
+}
+''');
+  }
+
+  test_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f();
+  static f() => 42;
+}
+''');
+  }
+
+  test_superConstructorInvocation() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(p) {}
+}
+class B extends A {
+  B() : super(f);
+  var f;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 56, 1),
+    ]);
+  }
+
+  test_topLevelField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+}
+var f = 42;
+''');
+  }
+
+  test_topLevelFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f();
+}
+f() => 42;
+''');
+  }
+
+  test_topLevelGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+}
+get f => 42;
+''');
+  }
+
+  test_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  var v;
+  A(p) : v = (p is T);
+}
+''');
   }
 }
