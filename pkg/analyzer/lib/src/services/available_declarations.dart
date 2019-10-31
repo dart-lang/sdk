@@ -1032,6 +1032,8 @@ class _DeclarationStorage {
       children: d.children.map(toIdl).toList(),
       defaultArgumentListString: d.defaultArgumentListString,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
+      codeOffset: d.codeOffset,
+      codeLength: d.codeLength,
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
@@ -1095,7 +1097,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 13;
+  static const int DATA_VERSION = 14;
 
   /// The next value for [id].
   static int _nextId = 0;
