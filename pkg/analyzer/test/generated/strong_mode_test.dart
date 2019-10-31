@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,7 +16,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

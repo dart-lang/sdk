@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../base/errors.dart';
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import '../fasta/fasta_codes.dart';
 import '../fasta/scanner/error_token.dart';
 import 'token.dart' show Token, TokenType;

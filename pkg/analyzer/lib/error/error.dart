@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -15,10 +16,9 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
-import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
 
-export 'package:front_end/src/base/errors.dart'
+export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
 
 const List<ErrorCode> errorCodeValues = const [
