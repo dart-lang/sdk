@@ -3,6 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
+  exclude:
+    - test/flow_analysis/assigned_variables/data/**
+    - test/flow_analysis/definite_assignment/data/**
+    - test/flow_analysis/nullability/data/**
+    - test/flow_analysis/reachability/data/**
+    - test/flow_analysis/type_promotion/data/**
   errors:
     # Allow having TODOs in the code
     todo: ignore
