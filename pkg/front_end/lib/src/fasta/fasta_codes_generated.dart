@@ -5028,6 +5028,69 @@ Message _withArgumentsInvalidTypeVariableInSupertypeWithVariance(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String name,
+        String
+            string2)> templateInvalidTypeVariableVariancePosition = const Template<
+        Message Function(String string, String name, String string2)>(
+    messageTemplate:
+        r"""Can't use '#string' type variable '#name' in an '#string2' position.""",
+    withArguments: _withArgumentsInvalidTypeVariableVariancePosition);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name, String string2)>
+    codeInvalidTypeVariableVariancePosition =
+    const Code<Message Function(String string, String name, String string2)>(
+  "InvalidTypeVariableVariancePosition",
+  templateInvalidTypeVariableVariancePosition,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidTypeVariableVariancePosition(
+    String string, String name, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeInvalidTypeVariableVariancePosition,
+      message:
+          """Can't use '${string}' type variable '${name}' in an '${string2}' position.""",
+      arguments: {'string': string, 'name': name, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, String name, String string2)>
+    templateInvalidTypeVariableVariancePositionInReturnType = const Template<
+            Message Function(String string, String name, String string2)>(
+        messageTemplate:
+            r"""Can't use '#string' type variable '#name' in an '#string2' position in the return type.""",
+        withArguments:
+            _withArgumentsInvalidTypeVariableVariancePositionInReturnType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String name, String string2)>
+    codeInvalidTypeVariableVariancePositionInReturnType =
+    const Code<Message Function(String string, String name, String string2)>(
+  "InvalidTypeVariableVariancePositionInReturnType",
+  templateInvalidTypeVariableVariancePositionInReturnType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidTypeVariableVariancePositionInReturnType(
+    String string, String name, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeInvalidTypeVariableVariancePositionInReturnType,
+      message:
+          """Can't use '${string}' type variable '${name}' in an '${string2}' position in the return type.""",
+      arguments: {'string': string, 'name': name, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

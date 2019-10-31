@@ -348,6 +348,12 @@ InvalidTypeVariableInSupertype/analyzerCode: Fail
 InvalidTypeVariableInSupertypeWithVariance/analyzerCode: Fail
 InvalidTypeVariableInSupertypeWithVariance/part_wrapped_script: Fail # Triggers multiple errors
 InvalidTypeVariableInSupertypeWithVariance/script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePosition/analyzerCode: Fail
+InvalidTypeVariableVariancePosition/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePosition/script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePositionInReturnType/analyzerCode: Fail
+InvalidTypeVariableVariancePositionInReturnType/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePositionInReturnType/script: Fail # Triggers multiple errors
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail

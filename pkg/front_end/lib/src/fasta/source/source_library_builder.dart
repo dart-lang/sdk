@@ -2910,7 +2910,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
       } else if (declaration is ClassBuilder) {
-        declaration.checkBoundsInOutline(typeEnvironment);
+        declaration.checkTypesInOutline(typeEnvironment);
       }
     }
     inferredTypes.clear();

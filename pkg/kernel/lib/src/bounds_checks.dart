@@ -514,11 +514,13 @@ class VarianceCalculator
   int visitInterfaceType(InterfaceType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
-    for (DartType argument in node.typeArguments) {
+    for (int i = 0; i < node.typeArguments.length; ++i) {
       result = Variance.meet(
           result,
-          computeVariance(typeParameter, argument,
-              computedVariances: computedVariances));
+          Variance.combine(
+              node.classNode.typeParameters[i].variance,
+              computeVariance(typeParameter, node.typeArguments[i],
+                  computedVariances: computedVariances)));
     }
     return result;
   }

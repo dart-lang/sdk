@@ -32,6 +32,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
+        Variance,
         VoidType;
 
 import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
@@ -43,7 +44,11 @@ import 'package:kernel/clone.dart' show CloneWithoutBody;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/src/bounds_checks.dart'
-    show TypeArgumentIssue, findTypeArgumentIssues, getGenericTypeName;
+    show
+        TypeArgumentIssue,
+        computeVariance,
+        findTypeArgumentIssues,
+        getGenericTypeName;
 import 'package:kernel/text/text_serialization_verifier.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
@@ -80,6 +85,8 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInSupertypeInferred,
         templateInterfaceCheck,
         templateInternalProblemNotFoundIn,
+        templateInvalidTypeVariableVariancePosition,
+        templateInvalidTypeVariableVariancePositionInReturnType,
         templateMixinApplicationIncompatibleSupertype,
         templateNamedMixinOverride,
         templateOverriddenMethodCause,
@@ -224,7 +231,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   void checkBoundsInSupertype(
       Supertype supertype, TypeEnvironment typeEnvironment);
 
-  void checkBoundsInOutline(TypeEnvironment typeEnvironment);
+  void checkTypesInOutline(TypeEnvironment typeEnvironment);
 
   void addRedirectingConstructor(
       ProcedureBuilder constructorBuilder, SourceLibraryBuilder library);
@@ -845,7 +852,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder library = this.library;
 
     // Check in bounds of own type variables.
@@ -902,6 +909,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       library.checkBoundsInField(field, typeEnvironment);
     }
     for (Procedure procedure in cls.procedures) {
+      checkVarianceInFunction(procedure, typeEnvironment, cls.typeParameters);
       library.checkBoundsInFunctionNode(
           procedure.function, typeEnvironment, fileUri);
     }
@@ -916,6 +924,80 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           typeParameters: redirecting.typeParameters,
           positionalParameters: redirecting.positionalParameters,
           namedParameters: redirecting.namedParameters);
+    }
+  }
+
+  void checkVarianceInFunction(Procedure procedure,
+      TypeEnvironment typeEnvironment, List<TypeParameter> typeParameters) {
+    List<TypeParameter> functionTypeParameters =
+        procedure.function.typeParameters;
+    List<VariableDeclaration> positionalParameters =
+        procedure.function.positionalParameters;
+    List<VariableDeclaration> namedParameters =
+        procedure.function.namedParameters;
+    DartType returnType = procedure.function.returnType;
+
+    if (functionTypeParameters != null) {
+      for (TypeParameter functionParameter in functionTypeParameters) {
+        for (TypeParameter typeParameter in typeParameters) {
+          int typeVariance = Variance.combine(Variance.invariant,
+              computeVariance(typeParameter, functionParameter.bound));
+          reportVariancePositionIfInvalid(typeVariance, typeParameter, fileUri,
+              functionParameter.fileOffset);
+        }
+      }
+    }
+    if (positionalParameters != null) {
+      for (VariableDeclaration formal in positionalParameters) {
+        if (!formal.isCovariant) {
+          for (TypeParameter typeParameter in typeParameters) {
+            int formalVariance = Variance.combine(Variance.contravariant,
+                computeVariance(typeParameter, formal.type));
+            reportVariancePositionIfInvalid(
+                formalVariance, typeParameter, fileUri, formal.fileOffset);
+          }
+        }
+      }
+    }
+    if (namedParameters != null) {
+      for (VariableDeclaration named in namedParameters) {
+        for (TypeParameter typeParameter in typeParameters) {
+          int namedVariance = Variance.combine(Variance.contravariant,
+              computeVariance(typeParameter, named.type));
+          reportVariancePositionIfInvalid(
+              namedVariance, typeParameter, fileUri, named.fileOffset);
+        }
+      }
+    }
+    if (returnType != null) {
+      for (TypeParameter typeParameter in typeParameters) {
+        int returnTypeVariance = computeVariance(typeParameter, returnType);
+        reportVariancePositionIfInvalid(returnTypeVariance, typeParameter,
+            fileUri, procedure.function.fileOffset,
+            isReturnType: true);
+      }
+    }
+  }
+
+  void reportVariancePositionIfInvalid(
+      int variance, TypeParameter typeParameter, Uri fileUri, int fileOffset,
+      {bool isReturnType: false}) {
+    SourceLibraryBuilder library = this.library;
+    if (!typeParameter.isLegacyCovariant &&
+        !Variance.greaterThanOrEqual(variance, typeParameter.variance)) {
+      Message message;
+      if (isReturnType) {
+        message = templateInvalidTypeVariableVariancePositionInReturnType
+            .withArguments(Variance.keywordString(typeParameter.variance),
+                typeParameter.name, Variance.keywordString(variance));
+      } else {
+        message = templateInvalidTypeVariableVariancePosition.withArguments(
+            Variance.keywordString(typeParameter.variance),
+            typeParameter.name,
+            Variance.keywordString(variance));
+      }
+      library.reportTypeArgumentIssue(
+          message, fileUri, fileOffset, typeParameter);
     }
   }
 
