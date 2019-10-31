@@ -7,9 +7,9 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../ast.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
@@ -65,21 +65,17 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool isInLib;
-
   _Visitor(this.rule, this.context);
+
+  bool isInLib;
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final package = context.package;
-    final libDir = path.join(package.root, 'lib');
-    final cuPath = node.declaredElement.library.source.fullName;
-    isInLib = cuPath.startsWith(libDir);
+    context.package;
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!isInLib) return;
     if (node.isStatic) return;
     if (node.documentationComment != null) return;
 
@@ -93,6 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final classElement = parentElement as ClassElement;
 
     if (classElement.isPrivate) return;
+    if (!isDefinedInLib(getCompilationUnit(node))) return;
 
     final parentMethod = classElement.lookUpInheritedMethod(
         node.name.name, classElement.library);
