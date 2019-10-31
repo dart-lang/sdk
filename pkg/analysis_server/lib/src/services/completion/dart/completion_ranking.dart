@@ -194,7 +194,7 @@ class CompletionRanking {
         completionSuggestions.forEach((completionSuggestion) {
           completionSuggestion.relevance = relevance;
         });
-        if (!includedSuggestions.isEmpty) {
+        if (includedSuggestions.isNotEmpty) {
           includedSuggestions.forEach((includedSuggestion) {
             includedSuggestion.relevanceBoost = relevance;
           });
