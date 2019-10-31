@@ -101,7 +101,10 @@ var tests = <VMTest>[
   // Start and stop the profiler at runtime.
   (VM vm) async {
     final kProfiler = 'profiler';
-    expect(await getFlagValue(vm, kProfiler), 'true');
+    if (await getFlagValue(vm, kProfiler) == 'false') {
+      // Either in release or product modes and the profiler is disabled.
+      return;
+    }
     final params = {
       'name': kProfiler,
       'value': 'false',
