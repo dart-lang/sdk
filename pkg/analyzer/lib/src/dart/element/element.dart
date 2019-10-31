@@ -1665,14 +1665,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return getTypeFromTypes(className, types);
   }
 
-  /// Replace the given [from] top-level variable with [to] in this compilation
-  /// unit.
-  void replaceTopLevelVariable(
-      TopLevelVariableElement from, TopLevelVariableElement to) {
-    int index = _variables.indexOf(from);
-    _variables[index] = to;
-  }
-
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
