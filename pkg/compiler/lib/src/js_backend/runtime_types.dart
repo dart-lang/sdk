@@ -133,6 +133,8 @@ abstract class RuntimeTypesSubstitutionsMixin
 
   /// Compute the required type checks and substitutions for the given
   /// instantiated and checked classes.
+  // TODO(fishythefish): Unify type checks and substitutions once old RTI is
+  // removed.
   TypeChecks _computeChecks(Map<ClassEntity, ClassUse> classUseMap) {
     // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
@@ -297,9 +299,17 @@ abstract class RuntimeTypesSubstitutionsMixin
               } else {
                 // We need a non-trivial substitution function for
                 // [checkedClass].
-                checks.add(new TypeCheck(
-                    checkedClass, computeSubstitution(cls, checkedClass),
-                    needsIs: false));
+                Substitution substitution =
+                    computeSubstitution(cls, checkedClass);
+                checks.add(
+                    new TypeCheck(checkedClass, substitution, needsIs: false));
+
+                assert(substitution != null);
+                for (DartType argument in substitution.arguments) {
+                  if (argument is InterfaceType) {
+                    computeChecks(argument.element);
+                  }
+                }
               }
             }
           } else {
@@ -312,9 +322,17 @@ abstract class RuntimeTypesSubstitutionsMixin
             } else {
               // We need a non-trivial substitution function for
               // [checkedClass].
-              checks.add(new TypeCheck(
-                  checkedClass, computeSubstitution(cls, checkedClass),
-                  needsIs: needsIs));
+              Substitution substitution =
+                  computeSubstitution(cls, checkedClass);
+              checks.add(
+                  new TypeCheck(checkedClass, substitution, needsIs: needsIs));
+
+              assert(substitution != null);
+              for (DartType argument in substitution.arguments) {
+                if (argument is InterfaceType) {
+                  computeChecks(argument.element);
+                }
+              }
             }
           }
         }
