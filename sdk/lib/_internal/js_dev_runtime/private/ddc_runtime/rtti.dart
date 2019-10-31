@@ -152,6 +152,9 @@ void trackLibraries(
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
   JS('', '#.set(#, #)', _loadedPartMaps, moduleName, parts);
+  _libraries = null;
+  _libraryObjects = null;
+  _parts = null;
 }
 
 List<String> _libraries;
