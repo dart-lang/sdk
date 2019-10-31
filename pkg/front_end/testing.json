@@ -233,7 +233,8 @@
         "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$"
+        "src/fasta/fasta_codes_generated\\.dart$",
+        "src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {
