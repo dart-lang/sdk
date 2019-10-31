@@ -22,7 +22,8 @@ import 'package:kernel/ast.dart' show Class, Member, TreeNode;
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  Directory dataDir = new Directory.fromUri(Platform.script
+      .resolve('../../../_fe_analyzer_shared/test/constants/data'));
   await runTests(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,

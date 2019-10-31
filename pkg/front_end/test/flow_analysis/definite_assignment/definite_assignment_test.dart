@@ -17,7 +17,9 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+      '../../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
+      'data'));
   await runTests(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,

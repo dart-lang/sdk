@@ -22,7 +22,7 @@ import '../helpers/shared_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/front_end/test/constants/data'));
+        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
     await checkTests(dataDir, new ConstantDataComputer(),
         args: args,
         testedConfigs: [sharedConfig],
