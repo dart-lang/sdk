@@ -611,3 +611,13 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// the platform.
   external T operator [](int index);
 }
+
+/// Extension to retrieve the native `Dart_Port` from a [SendPort].
+extension NativePort on SendPort {
+  /// The native port of this [SendPort].
+  ///
+  /// The returned native port can for example be used by C code to post
+  /// messages to the connected [ReceivePort] via `Dart_PostCObject()` - see
+  /// `dart_native_api.h`.
+  external int get nativePort;
+}

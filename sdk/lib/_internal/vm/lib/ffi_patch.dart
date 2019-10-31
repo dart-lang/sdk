@@ -6,6 +6,7 @@
 // the patches are applied.
 import "dart:_internal" show patch;
 import 'dart:typed_data';
+import 'dart:isolate';
 
 const Map<Type, int> _knownSizes = {
   Int8: 1,
@@ -441,4 +442,9 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 
   @patch
   T operator [](int index) => _loadStruct(this, index);
+}
+
+extension NativePort on SendPort {
+  @patch
+  int get nativePort native "SendPortImpl_get_id";
 }
