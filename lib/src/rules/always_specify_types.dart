@@ -127,7 +127,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   visitNamedType(NamedType namedType) {
     DartType type = namedType.type;
     if (type is InterfaceType) {
-      if (type.typeParameters.isNotEmpty &&
+      if (type.element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !_isOptionallyParameterized(type)) {

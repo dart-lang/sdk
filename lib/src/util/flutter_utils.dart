@@ -28,7 +28,7 @@ bool isWidgetProperty(DartType type) {
   }
   if (type is InterfaceType &&
       DartTypeUtilities.implementsAnyInterface(type, _collectionInterfaces)) {
-    return type.typeParameters.length == 1 &&
+    return type.element.typeParameters.length == 1 &&
         isWidgetProperty(type.typeArguments.first);
   }
   return false;
