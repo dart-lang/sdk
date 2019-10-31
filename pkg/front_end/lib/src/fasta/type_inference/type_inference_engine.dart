@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+
 import 'package:kernel/ast.dart'
     show
         Constructor,
@@ -29,8 +31,6 @@ import 'package:kernel/type_environment.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../builder/library_builder.dart';
-
-import '../flow_analysis/flow_analysis.dart';
 
 import '../kernel/forest.dart';
 

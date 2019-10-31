@@ -6,6 +6,7 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -41,8 +42,6 @@ import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
-
-import '../flow_analysis/flow_analysis.dart';
 
 import '../identifiers.dart'
     show

@@ -8,6 +8,7 @@ homepage: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
 environment:
   sdk: '>=2.2.2 <3.0.0'
 dependencies:
+  _fe_analyzer_shared: 1.0.0
   kernel: 0.3.28
   package_config: '^1.1.0'
   meta: ^1.0.2

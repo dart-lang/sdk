@@ -75,8 +75,10 @@ Future<void> main() async {
   Set<Uri> otherNonDartUris = new Set<Uri>();
   Set<Uri> frontEndUris = new Set<Uri>();
   Set<Uri> kernelUris = new Set<Uri>();
+  Set<Uri> feAnalyzerSharedUris = new Set<Uri>();
   Set<Uri> dartPlatformUris = new Set<Uri>();
   Uri kernelUri = repoDir.resolve("pkg/kernel/");
+  Uri feAnalyzerSharedUri = repoDir.resolve("pkg/_fe_analyzer_shared/");
   Uri platformUri1 = repoDir.resolve("sdk/lib/");
   Uri platformUri2 = repoDir.resolve("runtime/lib/");
   Uri platformUri3 = repoDir.resolve("runtime/bin/");
@@ -85,6 +87,8 @@ Future<void> main() async {
       frontEndUris.add(uri);
     } else if (uri.toString().startsWith(kernelUri.toString())) {
       kernelUris.add(uri);
+    } else if (uri.toString().startsWith(feAnalyzerSharedUri.toString())) {
+      feAnalyzerSharedUris.add(uri);
     } else if (uri.toString().startsWith(platformUri1.toString()) ||
         uri.toString().startsWith(platformUri2.toString()) ||
         uri.toString().startsWith(platformUri3.toString())) {

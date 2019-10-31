@@ -4,6 +4,8 @@
 
 import 'dart:core' hide MapEntry;
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
 import 'package:kernel/ast.dart' hide Variance;
@@ -29,8 +31,6 @@ import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
-
-import '../flow_analysis/flow_analysis.dart';
 
 import '../kernel/expression_generator.dart' show buildIsNull;
 
