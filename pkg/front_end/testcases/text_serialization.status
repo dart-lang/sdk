@@ -6,12 +6,6 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
-inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: ExpectationFileMismatchSerialized
-inference/generic_methods_infer_generic_function_parameter_type2: ExpectationFileMismatchSerialized
-regress/issue_31181: ExpectationFileMismatchSerialized
-regress/issue_31213: ExpectationFileMismatchSerialized
-runtime_checks/contravariant_generic_return_tear_off: ExpectationFileMismatchSerialized
-
 all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
@@ -185,10 +179,10 @@ general/generic_function_type_in_message: TextSerializationFailure
 general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
-general/ignore_function: TypeCheckError
 general/if_null_in_cascade: TextSerializationFailure
 general/if_null_in_list_literal: TextSerializationFailure
 general/if_null_in_set_literal: TextSerializationFailure
+general/ignore_function: TypeCheckError
 general/illegal_named_function_expression: TextSerializationFailure # Was: Pass
 general/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
@@ -217,6 +211,7 @@ general/issue38944: TextSerializationFailure
 general/issue38961: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
+general/long_chain_of_typedefs: TextSerializationFailure
 general/magic_const: TextSerializationFailure # Was: Pass
 general/many_errors: TextSerializationFailure
 general/map: TextSerializationFailure # Was: Pass
@@ -303,6 +298,7 @@ general/stringliteral: TextSerializationFailure # Was: Pass
 general/super_call: TextSerializationFailure # Was: Pass
 general/super_nsm: TextSerializationFailure # Was: Pass
 general/tabs: TextSerializationFailure # Was: Pass
+general/three_typedefs_loop: TextSerializationFailure
 general/top_level_accessors: TextSerializationFailure # Was: Pass
 general/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general/top_level_library_method: TextSerializationFailure # Was: Pass
@@ -1089,10 +1085,10 @@ regress/issue_36669: TextSerializationFailure
 regress/issue_36793: TextSerializationFailure
 regress/issue_37285: TextSerializationFailure
 regress/issue_37681: TextSerializationFailure
-regress/issue_39040: TextSerializationFailure
 regress/issue_39035.crash: TextSerializationFailure
-regress/issue_39091_2: TextSerializationFailure
+regress/issue_39040: TextSerializationFailure
 regress/issue_39091_1: RuntimeError
+regress/issue_39091_2: TextSerializationFailure
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds_get: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds_set: TextSerializationFailure # Was: Pass

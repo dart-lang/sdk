@@ -513,6 +513,16 @@ class SourceLoader extends Loader {
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
+  void computeVariances() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count += library.computeVariances();
+      }
+    });
+    ticker.logMs("Computed variances of $count type variables");
+  }
+
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     int count = 0;

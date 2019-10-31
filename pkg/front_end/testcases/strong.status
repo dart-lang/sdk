@@ -6,12 +6,6 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: ExpectationFileMismatchSerialized
-inference/generic_methods_infer_generic_function_parameter_type2: ExpectationFileMismatchSerialized
-regress/issue_31181: ExpectationFileMismatchSerialized
-regress/issue_31213: ExpectationFileMismatchSerialized
-runtime_checks/contravariant_generic_return_tear_off: ExpectationFileMismatchSerialized
-
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

@@ -137,6 +137,12 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType);
 
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
+  int computeVariances() => 0;
+
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
@@ -350,6 +356,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
+
+  @override
+  int computeVariances() => 0;
 
   @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,

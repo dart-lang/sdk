@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef Asserter<contravariant T extends core::Object* = dynamic> = (T*) →* void;
-typedef AsserterBuilder<contravariant S extends core::Object* = dynamic, unrelated T extends core::Object* = dynamic> = (S*) →* (T*) →* void;
+typedef AsserterBuilder<contravariant S extends core::Object* = dynamic, contravariant T extends core::Object* = dynamic> = (S*) →* (T*) →* void;
 class DartType extends core::Object {
   synthetic constructor •() → self::DartType*
     : super core::Object::•()

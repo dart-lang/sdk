@@ -177,7 +177,8 @@ import '../kernel/type_algorithms.dart'
         computeVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeVariables;
+        getNonSimplicityIssuesForTypeVariables,
+        pendingVariance;
 
 import '../loader.dart' show Loader;
 
@@ -1995,9 +1996,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       FunctionTypeBuilder type,
       int charOffset) {
     if (typeVariables != null) {
-      for (int i = 0; i < typeVariables.length; ++i) {
-        TypeVariableBuilder variable = typeVariables[i];
-        variable.variance = computeVariance(variable, type);
+      for (TypeVariableBuilder typeVariable in typeVariables) {
+        typeVariable.variance = pendingVariance;
       }
     }
     TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
@@ -2395,6 +2395,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeVariableBuilder.finishNullabilities(this, pendingNullabilities);
     pendingNullabilities.clear();
 
+    return count;
+  }
+
+  int computeVariances() {
+    int count = 0;
+    for (Builder declaration in libraryDeclaration.members.values) {
+      if (declaration is TypeAliasBuilder &&
+          declaration.typeVariablesCount > 0) {
+        for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
+          typeParameter.variance =
+              computeVariance(typeParameter, declaration.type, this);
+          ++count;
+        }
+      }
+    }
     return count;
   }
 

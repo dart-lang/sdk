@@ -27,6 +27,7 @@ import '../builder/class_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -44,21 +45,27 @@ import '../fasta_codes.dart'
         templateBoundIssueViaCycleNonSimplicity,
         templateBoundIssueViaLoopNonSimplicity,
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
+        templateCyclicTypedef,
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
 
 export 'package:kernel/ast.dart' show Variance;
+
+/// Initial value for "variance" that is to be computed by the compiler.
+const int pendingVariance = -1;
 
 // Computes the variance of a variable in a type.  The function can be run
 // before the types are resolved to compute variances of typedefs' type
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
+int computeVariance(TypeVariableBuilder variable, TypeBuilder type,
+    LibraryBuilder libraryBuilder) {
   if (type is NamedTypeBuilder) {
+    assert(type.declaration != null);
     TypeDeclarationBuilder declaration = type.declaration;
-    if (declaration == null || declaration is TypeVariableBuilder) {
-      if (type.name == variable.name) {
+    if (declaration is TypeVariableBuilder) {
+      if (declaration == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
@@ -70,21 +77,46 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
           for (int i = 0; i < type.arguments.length; ++i) {
             result = Variance.meet(
                 result,
-                Variance.combine(declaration.cls.typeParameters[i].variance,
-                    computeVariance(variable, type.arguments[i])));
+                Variance.combine(
+                    declaration.cls.typeParameters[i].variance,
+                    computeVariance(
+                        variable, type.arguments[i], libraryBuilder)));
           }
         }
         return result;
       } else if (declaration is TypeAliasBuilder) {
         int result = Variance.unrelated;
+
         if (type.arguments != null) {
           for (int i = 0; i < type.arguments.length; ++i) {
+            const int visitMarker = -2;
+
+            TypeVariableBuilder declarationTypeVariable =
+                declaration.typeVariables[i];
+
+            if (declarationTypeVariable.variance == pendingVariance) {
+              declarationTypeVariable.variance = visitMarker;
+              int computedVariance = computeVariance(
+                  declarationTypeVariable, declaration.type, libraryBuilder);
+              declarationTypeVariable.variance = computedVariance;
+            } else if (declarationTypeVariable.variance == visitMarker) {
+              libraryBuilder.addProblem(
+                  templateCyclicTypedef.withArguments(declaration.name),
+                  declaration.charOffset,
+                  declaration.name.length,
+                  declaration.fileUri);
+              // Use [Variance.unrelated] for recovery.  The type with the
+              // cyclic dependency will be replaced with an [InvalidType]
+              // elsewhere.
+              declarationTypeVariable.variance = Variance.unrelated;
+            }
+
             result = Variance.meet(
                 result,
                 Variance.combine(
-                    computeVariance(variable, type.arguments[i]),
                     computeVariance(
-                        declaration.typeVariables[i], declaration.type)));
+                        variable, type.arguments[i], libraryBuilder),
+                    declarationTypeVariable.variance));
           }
         }
         return result;
@@ -93,8 +125,8 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
   } else if (type is FunctionTypeBuilder) {
     int result = Variance.unrelated;
     if (type.returnType != null) {
-      result =
-          Variance.meet(result, computeVariance(variable, type.returnType));
+      result = Variance.meet(
+          result, computeVariance(variable, type.returnType, libraryBuilder));
     }
     if (type.typeVariables != null) {
       for (TypeVariableBuilder typeVariable in type.typeVariables) {
@@ -103,7 +135,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
         // of [computeVariance] below is made to simply figure out if [variable]
         // occurs in the bound.
         if (typeVariable.bound != null &&
-            computeVariance(variable, typeVariable.bound) !=
+            computeVariance(variable, typeVariable.bound, libraryBuilder) !=
                 Variance.unrelated) {
           result = Variance.invariant;
         }
@@ -114,7 +146,7 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
         result = Variance.meet(
             result,
             Variance.combine(Variance.contravariant,
-                computeVariance(variable, formal.type)));
+                computeVariance(variable, formal.type, libraryBuilder)));
       }
     }
     return result;
