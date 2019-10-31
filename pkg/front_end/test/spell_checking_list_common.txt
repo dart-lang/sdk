@@ -712,6 +712,7 @@ definition
 definitions
 degenerate
 degrade
+delay
 delayed
 delegate
 delegates
@@ -1879,6 +1880,7 @@ occurrences
 occurring
 occurs
 odd
+odds
 of
 off
 offset
@@ -2390,6 +2392,7 @@ retired
 retrieve
 retrieved
 retrieves
+retry
 return
 returned
 returning
@@ -2840,6 +2843,7 @@ thus
 time
 timeline
 times
+timing
 tip
 to
 today
