@@ -9,6 +9,19 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
+fib(int n) {
+  if (n == 0)
+    return 0;
+  else if (n == 1) return 1;
+  return fib(n - 1) + fib(n - 2);
+}
+
+testee() {
+  while (true) {
+    print(fib(100));
+  }
+}
+
 Future getFlagValue(VM vm, String flagName) async {
   var result = await vm.invokeRpcNoUpgrade('getFlagList', {});
   expect(result['type'], equals('FlagList'));
@@ -141,4 +154,4 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(args, tests, testeeConcurrent: testee);
