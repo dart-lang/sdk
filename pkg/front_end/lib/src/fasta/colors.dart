@@ -74,10 +74,27 @@ setaf 7
 op
 """;
 
+/// Boolean value caching whether or not we should display ANSI colors.
+///
+/// If `null`, we haven't decided whether we should display ANSI colors or not.
+bool _enableColors;
+
+/// Finds out whether we are displaying ANSI colors.
+///
+/// The first time this getter is invoked (either by a client or by an attempt
+/// to use a color), it decides whether colors should be used based on the
+/// logic in [_computeEnableColors] (unless a value has previously been set).
+bool get enableColors => _enableColors ??= _computeEnableColors();
+
+/// Allows the client to override the decision of whether to disable ANSI
+/// colors.
+void set enableColors(bool value) {
+  assert(value != null);
+  _enableColors = value;
+}
+
 String wrap(String string, String color) {
-  return CompilerContext.enableColors
-      ? "${color}$string${DEFAULT_COLOR}"
-      : string;
+  return enableColors ? "${color}$string${DEFAULT_COLOR}" : string;
 }
 
 String black(String string) => wrap(string, BLACK_COLOR);
@@ -102,6 +119,12 @@ bool _supportsAnsiEscapes(sink) {
   }
 }
 
+typedef void _StringToNullFunction(String s);
+
+/// Callback used by [_computeEnableColors] to report why it has or hasn't
+/// chosen to use ANSI colors.
+_StringToNullFunction printEnableColorsReason = (_) {};
+
 /// True if we should enable colors in output.
 ///
 /// We enable colors when both `stdout` and `stderr` support ANSI escapes.
@@ -112,22 +135,18 @@ bool _supportsAnsiEscapes(sink) {
 ///
 /// Note: do not call this method directly, as it is expensive to
 /// compute. Instead, use [CompilerContext.enableColors].
-bool computeEnableColors(CompilerContext context) {
-  // TODO(ahe): Remove this method.
-
+bool _computeEnableColors() {
   bool stderrSupportsColors = _supportsAnsiEscapes(stdout);
   bool stdoutSupportsColors = _supportsAnsiEscapes(stderr);
 
   if (stdoutSupportsColors == false) {
-    if (context.options.verbose) {
-      print("Not enabling colors, stdout does not support ANSI colors.");
-    }
+    printEnableColorsReason(
+        "Not enabling colors, stdout does not support ANSI colors.");
     return false;
   }
   if (stderrSupportsColors == false) {
-    if (context.options.verbose) {
-      print("Not enabling colors, stderr does not support ANSI colors.");
-    }
+    printEnableColorsReason(
+        "Not enabling colors, stderr does not support ANSI colors.");
     return false;
   }
 
@@ -136,14 +155,10 @@ bool computeEnableColors(CompilerContext context) {
       // In this case, either [stdout] or [stderr] did not support the
       // property `supportsAnsiEscapes`. Since we do not have another way
       // to determine support for colors, we disable them.
-      if (context.options.verbose) {
-        print("Not enabling colors as ANSI is not supported.");
-      }
+      printEnableColorsReason("Not enabling colors as ANSI is not supported.");
       return false;
     }
-    if (context.options.verbose) {
-      print("Enabling colors as OS is Windows.");
-    }
+    printEnableColorsReason("Enabling colors as OS is Windows.");
     return true;
   }
 
@@ -157,42 +172,33 @@ bool computeEnableColors(CompilerContext context) {
       "/bin/sh", ["-c", "printf '%s' '$TERMINAL_CAPABILITIES' | tput -S"]);
 
   if (result.exitCode != 0) {
-    if (context.options.verbose) {
-      print("Not enabling colors, running tput failed.");
-    }
+    printEnableColorsReason("Not enabling colors, running tput failed.");
     return false;
   }
 
   List<String> lines = result.stdout.split("\n");
 
   if (lines.length != 2) {
-    if (context.options.verbose) {
-      print("Not enabling colors, unexpected output from tput: "
-          "${jsonEncode(result.stdout)}.");
-    }
+    printEnableColorsReason("Not enabling colors, unexpected output from tput: "
+        "${jsonEncode(result.stdout)}.");
     return false;
   }
 
   String numberOfColors = lines[0];
   if ((int.tryParse(numberOfColors) ?? -1) < 8) {
-    if (context.options.verbose) {
-      print("Not enabling colors, less than 8 colors supported: "
-          "${jsonEncode(numberOfColors)}.");
-    }
+    printEnableColorsReason(
+        "Not enabling colors, less than 8 colors supported: "
+        "${jsonEncode(numberOfColors)}.");
     return false;
   }
 
   String allCodes = lines[1].trim();
   if (ALL_CODES != allCodes) {
-    if (context.options.verbose) {
-      print("Not enabling colors, color codes don't match: "
-          "${jsonEncode(ALL_CODES)} != ${jsonEncode(allCodes)}.");
-    }
+    printEnableColorsReason("Not enabling colors, color codes don't match: "
+        "${jsonEncode(ALL_CODES)} != ${jsonEncode(allCodes)}.");
     return false;
   }
 
-  if (context.options.verbose) {
-    print("Enabling colors.");
-  }
+  printEnableColorsReason("Enabling colors.");
   return true;
 }

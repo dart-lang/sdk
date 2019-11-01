@@ -28,6 +28,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/external_state_snapshot.dart'
     show ExternalStateSnapshot;
 
+import 'package:front_end/src/fasta/colors.dart' as colors;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
@@ -427,7 +429,7 @@ Future<Context> createContext(
 
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
-  compilerContext.disableColors();
+  colors.enableColors = false;
 
   return new Context(compilerContext, snapshot, errors, updateExpectations);
 }

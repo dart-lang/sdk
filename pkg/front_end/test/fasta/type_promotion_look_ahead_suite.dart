@@ -15,6 +15,8 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/fasta/builder/builder.dart';
 
+import 'package:front_end/src/fasta/colors.dart' as colors;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/messages.dart'
@@ -56,7 +58,7 @@ Future<ChainContext> createContext(
           (CompilerContext context) =>
               new Future<CompilerContext>.value(context),
           errorOnMissingInput: false);
-  context.disableColors();
+  colors.enableColors = false;
   return new TypePromotionLookAheadContext(
       context, environment["updateExpectations"] == "true");
 }

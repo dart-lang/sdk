@@ -674,8 +674,10 @@ debug
 debugging
 decide
 decided
+decides
 deciding
 decimal
+decision
 declarable
 declarated
 declaration

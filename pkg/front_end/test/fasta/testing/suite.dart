@@ -35,6 +35,8 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
+import 'package:front_end/src/fasta/colors.dart' as colors;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
@@ -408,7 +410,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
-      CompilerContext.current.disableColors();
+      colors.enableColors = false;
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(

@@ -17,9 +17,9 @@ import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import 'command_line_reporting.dart' as command_line_reporting;
+import 'colors.dart' as colors;
 
-import 'colors.dart' show computeEnableColors;
+import 'command_line_reporting.dart' as command_line_reporting;
 
 import 'fasta_codes.dart'
     show LocatedMessage, Message, messageInternalProblemMissingContext;
@@ -53,16 +53,14 @@ class CompilerContext {
 
   FileSystem get fileSystem => options.fileSystem;
 
-  bool enableColorsCached = null;
-
   Uri cachedSdkRoot = null;
 
   bool compilingPlatform = false;
 
-  CompilerContext(this.options);
-
-  void disableColors() {
-    enableColorsCached = false;
+  CompilerContext(this.options) {
+    if (options.verbose) {
+      colors.printEnableColorsReason = print;
+    }
   }
 
   /// Report [message], for example, by printing it.
@@ -141,10 +139,6 @@ class CompilerContext {
   static Future<T> runWithDefaultOptions<T>(
       Future<T> action(CompilerContext c)) {
     return new CompilerContext(new ProcessedOptions()).runInContext<T>(action);
-  }
-
-  static bool get enableColors {
-    return current.enableColorsCached ??= computeEnableColors(current);
   }
 
   void clear() {
