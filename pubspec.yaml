@@ -1,5 +1,5 @@
 name: linter
-version: 0.1.102
+version: 0.1.103
 
 author: Dart Team <misc@dartlang.org>
 
@@ -14,7 +14,7 @@ environment:
   sdk: '>=2.2.2 <3.0.0'
 
 dependencies:
-  analyzer: ^0.39.0
+  analyzer: ^0.39.1
   args: '>=1.4.0 <2.0.0'
   glob: ^1.0.3
   meta: ^1.0.2

@@ -1,3 +1,9 @@
+# 0.1.103
+
+* updated `prefer_relative_imports` to use a faster and more robust way to check for self-package references
+* updated our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and 
+  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
+
 # 0.1.102
 
 * `avoid_web_libraries_in_flutter` updated to disallow access from all but Flutter web plugin packages
