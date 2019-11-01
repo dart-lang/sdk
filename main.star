@@ -36,13 +36,13 @@ STANDARD_PATHS = [
 
 VM_PATHS = STANDARD_PATHS + [
     # VM sources
-    "pkg/(front_end|kernel|vm)/.+",
+    "pkg/(front_end|kernel|vm|_fe_analyzer_shared)/.+",
     "runtime/.+",
 ]
 
 DART2JS_PATHS = STANDARD_PATHS + [
     # compiler sources
-    "pkg/(compiler|dart2js_tools|front_end|kernel|js_ast)/.+",
+    "pkg/(compiler|dart2js_tools|front_end|kernel|js_ast|_fe_analyzer_shared)/.+",
     "utils/compiler/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing)/.+",
@@ -50,7 +50,7 @@ DART2JS_PATHS = STANDARD_PATHS + [
 
 DDC_PATHS = STANDARD_PATHS + [
     # compiler sources
-    "pkg/(analyzer|build_integration|dev_compiler|front_end|kernel|meta)/.+",
+    "pkg/(analyzer|build_integration|dev_compiler|front_end|kernel|meta|_fe_analyzer_shared)/.+",
     "utils/dartdevc/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing|testing)/.+",
@@ -719,6 +719,7 @@ dart_ci_sandbox_builder(
         ".+/[+]/pkg/analyzer/.+",
         ".+/[+]/pkg/analyzer_plugin/.+",
         ".+/[+]/pkg/front_end/.+",
+        ".+/[+]/pkg/_fe_analyzer_shared/.+",
         ".+/[+]/pkg/meta/.+",
         ".+/[+]/pkg/telemetry/.+",
     ])
