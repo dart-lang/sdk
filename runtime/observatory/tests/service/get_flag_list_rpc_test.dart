@@ -9,19 +9,6 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-fib(int n) {
-  if (n == 0)
-    return 0;
-  else if (n == 1) return 1;
-  return fib(n - 1) + fib(n - 2);
-}
-
-testee() {
-  while (true) {
-    print(fib(100));
-  }
-}
-
 Future getFlagValue(VM vm, String flagName) async {
   var result = await vm.invokeRpcNoUpgrade('getFlagList', {});
   expect(result['type'], equals('FlagList'));
@@ -141,17 +128,13 @@ var tests = <VMTest>[
     expect(result['type'], equals('Success'));
     expect(await getFlagValue(vm, kProfiler), 'true');
 
-    // Give the profiler some time to start collecting samples again.
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
       // Arbitrary RPC which checks whether or not the profiler is enabled.
       result = await vm.isolates.first.invokeRpcNoUpgrade('getCpuSamples', {});
-      expect(result['samples'].isNotEmpty, isTrue);
     } on ServerRpcException catch (e) {
       fail('Profiler is enabled and request should succeed. Error:\n$e');
     }
   },
 ];
 
-main(args) async => runVMTests(args, tests, testeeConcurrent: testee);
+main(args) async => runVMTests(args, tests);
