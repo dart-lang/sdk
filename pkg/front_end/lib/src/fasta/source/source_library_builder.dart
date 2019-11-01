@@ -10,6 +10,9 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
+    show resolveRelativeUri;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -59,8 +62,6 @@ import 'package:kernel/src/bounds_checks.dart'
 import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
-import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
