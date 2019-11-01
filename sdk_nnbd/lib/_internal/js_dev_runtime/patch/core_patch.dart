@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
@@ -33,11 +31,11 @@ String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
     : _symbol_dev.Symbol.getName(symbol);
 
 @patch
-int identityHashCode(Object object) {
+int identityHashCode(Object? object) {
   if (object == null) return 0;
   // Note: this works for primitives because we define the `identityHashCode`
   // for them to be equivalent to their computed hashCode function.
-  int hash = JS('int|Null', r'#[#]', object, dart.identityHashCode_);
+  int? hash = JS<int?>('int|Null', r'#[#]', object, dart.identityHashCode_);
   if (hash == null) {
     hash = JS<int>('!', '(Math.random() * 0x3fffffff) | 0');
     JS('void', r'#[#] = #', object, dart.identityHashCode_, hash);
@@ -49,7 +47,7 @@ int identityHashCode(Object object) {
 @patch
 class Object {
   @patch
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @patch
   int get hashCode => identityHashCode(this);
@@ -59,7 +57,7 @@ class Object {
       "Instance of '${dart.typeName(dart.getReifiedType(this))}'";
 
   @patch
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     return dart.defaultNoSuchMethod(this, invocation);
   }
 
@@ -77,8 +75,8 @@ class Null {
 @patch
 class Function {
   @patch
-  static apply(Function f, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  static apply(Function f, List<Object>? positionalArguments,
+      [Map<Symbol, dynamic>? namedArguments]) {
     positionalArguments ??= [];
     // dcall expects the namedArguments as a JS map in the last slot.
     if (namedArguments != null && namedArguments.isNotEmpty) {
@@ -104,18 +102,18 @@ class Function {
 // TODO(jmesserly): switch to WeakMap
 // Patch for Expando implementation.
 @patch
-class Expando<T> {
+class Expando<T extends Object> {
   @patch
-  Expando([String name]) : this.name = name;
+  Expando([String? name]) : this.name = name;
 
   @patch
-  T operator [](Object object) {
+  T? operator [](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     return (values == null) ? null : Primitives.getProperty(values, _getKey());
   }
 
   @patch
-  void operator []=(Object object, T value) {
+  void operator []=(Object object, T? value) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     if (values == null) {
       values = Object();
@@ -144,17 +142,17 @@ Null _kNull(_) => null;
 class int {
   @patch
   static int parse(String source,
-      {int radix, @deprecated int onError(String source)}) {
-    return Primitives.parseInt(source, radix, onError);
+      {int? radix, @deprecated int onError(String source)?}) {
+    return Primitives.parseInt(source, radix, onError)!;
   }
 
   @patch
-  static int tryParse(String source, {int radix}) {
+  static int? tryParse(String source, {int? radix}) {
     return Primitives.parseInt(source, radix, _kNull);
   }
 
   @patch
-  factory int.fromEnvironment(String name, {int defaultValue}) {
+  factory int.fromEnvironment(String name, {int defaultValue = 0}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
@@ -166,11 +164,11 @@ class double {
   @patch
   static double parse(String source,
       [@deprecated double onError(String source)]) {
-    return Primitives.parseDouble(source, onError);
+    return Primitives.parseDouble(source, onError)!;
   }
 
   @patch
-  static double tryParse(String source) {
+  static double? tryParse(String source) {
     return Primitives.parseDouble(source, _kNull);
   }
 }
@@ -185,11 +183,11 @@ class BigInt implements Comparable<BigInt> {
   static BigInt get two => _BigIntImpl.two;
 
   @patch
-  static BigInt parse(String source, {int radix}) =>
+  static BigInt parse(String source, {int? radix}) =>
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
-  static BigInt tryParse(String source, {int radix}) =>
+  static BigInt? tryParse(String source, {int? radix}) =>
       _BigIntImpl._tryParse(source, radix: radix);
 
   @patch
@@ -199,7 +197,7 @@ class BigInt implements Comparable<BigInt> {
 @patch
 class Error {
   @patch
-  static String _objectToString(Object object) {
+  static String _objectToString(Object? object) {
     return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
   }
 
@@ -245,10 +243,7 @@ class DateTime {
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
       int second, int millisecond, int microsecond, bool isUtc)
-      // checkBool is manually inlined here because dart2js doesn't inline it
-      // and [isUtc] is usually a constant.
-      : this.isUtc =
-            isUtc is bool ? isUtc : throw ArgumentError.value(isUtc, 'isUtc'),
+      : isUtc = isUtc,
         _value = checkInt(Primitives.valueFromDecomposedDate(
             year,
             month,
@@ -272,7 +267,7 @@ class DateTime {
   }
 
   @patch
-  static int _brokenDownDateToValue(int year, int month, int day, int hour,
+  static int? _brokenDownDateToValue(int year, int month, int day, int hour,
       int minute, int second, int millisecond, int microsecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
         year,
@@ -293,7 +288,7 @@ class DateTime {
 
   @patch
   Duration get timeZoneOffset {
-    if (isUtc) return Duration();
+    if (isUtc) return Duration.zero;
     return Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
 
@@ -370,9 +365,9 @@ class DateTime {
 @patch
 class Stopwatch {
   @patch
-  static void _initTicker() {
+  static int _initTicker() {
     Primitives.initTicker();
-    _frequency = Primitives.timerFrequency;
+    return Primitives.timerFrequency;
   }
 
   @patch
@@ -464,7 +459,7 @@ class Map<K, V> {
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]) {
+      [int start = 0, int? end]) {
     if (charCodes is JSArray) {
       return _stringFromJSArray(charCodes, start, end);
     }
@@ -480,7 +475,7 @@ class String {
   }
 
   @patch
-  factory String.fromEnvironment(String name, {String defaultValue}) {
+  factory String.fromEnvironment(String name, {String defaultValue = ""}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
@@ -489,7 +484,7 @@ class String {
   static String _stringFromJSArray(
       /*=JSArray<int>*/ list,
       int start,
-      int endOrNull) {
+      int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
@@ -499,14 +494,14 @@ class String {
   }
 
   static String _stringFromUint8List(
-      NativeUint8List charCodes, int start, int endOrNull) {
+      NativeUint8List charCodes, int start, int? endOrNull) {
     int len = charCodes.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
   static String _stringFromIterable(
-      Iterable<int> charCodes, int start, int end) {
+      Iterable<int> charCodes, int start, int? end) {
     if (start < 0) throw RangeError.range(start, 0, charCodes.length);
     if (end != null && end < start) {
       throw RangeError.range(end, start, charCodes.length);
@@ -565,7 +560,7 @@ class RegExp {
 
 // Patch for 'identical' function.
 @patch
-bool identical(Object a, Object b) {
+bool identical(Object? a, Object? b) {
   return JS<bool>('!', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
@@ -580,7 +575,7 @@ class StringBuffer {
   int get length => _contents.length;
 
   @patch
-  void write(Object obj) {
+  void write(Object? obj) {
     _writeString('$obj');
   }
 
@@ -595,7 +590,7 @@ class StringBuffer {
   }
 
   @patch
-  void writeln([Object obj = ""]) {
+  void writeln([Object? obj = ""]) {
     _writeString('$obj\n');
   }
 
@@ -607,7 +602,7 @@ class StringBuffer {
   @patch
   String toString() => Primitives.flattenString(_contents);
 
-  void _writeString(str) {
+  void _writeString(String str) {
     _contents = Primitives.stringConcatUnchecked(_contents, str);
   }
 
@@ -642,17 +637,17 @@ class _CompileTimeError extends Error {
 
 @patch
 class NoSuchMethodError {
-  final Object _receiver;
+  final Object? _receiver;
   final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
-  final Invocation _invocation;
+  final List? _arguments;
+  final Map<Symbol, dynamic>? _namedArguments;
+  final List? _existingArgumentNames;
+  final Invocation? _invocation;
 
   @patch
-  NoSuchMethodError(Object receiver, Symbol memberName,
-      List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null])
+  NoSuchMethodError(Object? receiver, Symbol memberName,
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
+      [List? existingArgumentNames = null])
       : _receiver = receiver,
         _memberName = memberName,
         _arguments = positionalArguments,
@@ -661,7 +656,7 @@ class NoSuchMethodError {
         _invocation = null;
 
   @patch
-  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
+  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
       : _receiver = receiver,
         _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
@@ -673,15 +668,17 @@ class NoSuchMethodError {
   String toString() {
     StringBuffer sb = StringBuffer('');
     String comma = '';
-    if (_arguments != null) {
-      for (var argument in _arguments) {
+    var arguments = _arguments;
+    if (arguments != null) {
+      for (var argument in arguments) {
         sb.write(comma);
         sb.write(Error.safeToString(argument));
         comma = ', ';
       }
     }
-    if (_namedArguments != null) {
-      _namedArguments.forEach((Symbol key, var value) {
+    var namedArguments = _namedArguments;
+    if (namedArguments != null) {
+      namedArguments.forEach((Symbol key, var value) {
         sb.write(comma);
         sb.write(_symbolToString(key));
         sb.write(": ");
@@ -692,16 +689,18 @@ class NoSuchMethodError {
     String memberName = _symbolToString(_memberName);
     String receiverText = Error.safeToString(_receiver);
     String actualParameters = '$sb';
-    var failureMessage = (_invocation is dart.InvocationImpl)
-        ? (_invocation as dart.InvocationImpl).failureMessage
+    var invocation = _invocation;
+    var failureMessage = (invocation is dart.InvocationImpl)
+        ? invocation.failureMessage
         : 'method not found';
-    if (_existingArgumentNames == null) {
+    List? existingArgumentNames = _existingArgumentNames;
+    if (existingArgumentNames == null) {
       return "NoSuchMethodError: '$memberName'\n"
           "$failureMessage\n"
           "Receiver: ${receiverText}\n"
           "Arguments: [$actualParameters]";
     } else {
-      String formalParameters = _existingArgumentNames.join(', ');
+      String formalParameters = existingArgumentNames.join(', ');
       return "NoSuchMethodError: incorrect number of arguments passed to "
           "method named '$memberName'\n"
           "Receiver: ${receiverText}\n"
@@ -908,7 +907,7 @@ class _BigIntImpl implements BigInt {
    * Throws a [FormatException] if the [source] is not a valid integer literal,
    * optionally prefixed by a sign.
    */
-  static _BigIntImpl parse(String source, {int radix}) {
+  static _BigIntImpl parse(String source, {int? radix}) {
     var result = _tryParse(source, radix: radix);
     if (result == null) {
       throw FormatException("Could not parse BigInt", source);
@@ -1020,7 +1019,7 @@ class _BigIntImpl implements BigInt {
   /// Returns the parsed big integer, or `null` if it failed.
   ///
   /// If the [radix] is `null` accepts decimal literals or `0x` hex literals.
-  static _BigIntImpl _tryParse(String source, {int radix}) {
+  static _BigIntImpl? _tryParse(String source, {int? radix}) {
     if (source == "") return null;
 
     var match = _parseRE.firstMatch(source);
@@ -1032,9 +1031,9 @@ class _BigIntImpl implements BigInt {
 
     bool isNegative = match[signIndex] == "-";
 
-    String decimalMatch = match[decimalIndex];
-    String hexMatch = match[hexIndex];
-    String nonDecimalMatch = match[nonDecimalHexIndex];
+    String? decimalMatch = match[decimalIndex];
+    String? hexMatch = match[hexIndex];
+    String? nonDecimalMatch = match[nonDecimalHexIndex];
 
     if (radix == null) {
       if (decimalMatch != null) {
@@ -1048,9 +1047,6 @@ class _BigIntImpl implements BigInt {
       return null;
     }
 
-    if (radix is! int) {
-      throw ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
     if (radix < 2 || radix > 36) {
       throw RangeError.range(radix, 2, 36, 'radix');
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.core;
 
 /// Opaque name used by mirrors, invocations and [Function.apply].
@@ -95,5 +93,5 @@ abstract class Symbol {
    * Qualified member names, like `#foo.bar` are equal only if they have the
    * same identifiers before the same final member name.
    */
-  bool operator ==(other);
+  bool operator ==(Object other);
 }

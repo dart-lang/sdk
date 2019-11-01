@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.core;
 
 /**
@@ -121,7 +119,7 @@ abstract class String implements Comparable<String>, Pattern {
    * `0 <= start <= end <= charCodes.length`.
    */
   external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]);
+      [int start = 0, int? end]);
 
   /**
    * Allocates a new String for the specified [charCode].
@@ -131,7 +129,7 @@ abstract class String implements Comparable<String>, Pattern {
    * the code units form a surrogate pair. See documentation for
    * [fromCharCodes].
    *
-   * Creating a String with half of a surrogate pair is allowed.
+   * Creating a [String] with one half of a surrogate pair is allowed.
    */
   external factory String.fromCharCode(int charCode);
 
@@ -160,7 +158,7 @@ abstract class String implements Comparable<String>, Pattern {
   //ignore: const_constructor_with_body
   //ignore: const_factory
   external const factory String.fromEnvironment(String name,
-      {String defaultValue});
+      {String defaultValue = ""});
 
   /**
    * Gets the character (as a single-code-unit [String]) at the given [index].
@@ -287,7 +285,7 @@ abstract class String implements Comparable<String>, Pattern {
    *
    * [start] must be non-negative and not greater than [length].
    */
-  int indexOf(Pattern pattern, [int start]);
+  int indexOf(Pattern pattern, [int start = 0]);
 
   /**
    * Returns the position of the last match [pattern] in this string, searching
@@ -303,7 +301,7 @@ abstract class String implements Comparable<String>, Pattern {
    *
    * The [start] must be non-negative and not greater than [length].
    */
-  int lastIndexOf(Pattern pattern, [int start]);
+  int lastIndexOf(Pattern pattern, [int? start]);
 
   /**
    * Returns true if this string is empty.
@@ -330,7 +328,7 @@ abstract class String implements Comparable<String>, Pattern {
    *     string.substring(1);    // 'artlang'
    *     string.substring(1, 4); // 'art'
    */
-  String substring(int startIndex, [int endIndex]);
+  String substring(int startIndex, [int? endIndex]);
 
   /**
    * Returns the string without any leading and trailing whitespace.
@@ -522,7 +520,7 @@ abstract class String implements Comparable<String>, Pattern {
    * That is `0 <= start <= end <= this.length`.
    * If [end] is `null`, it defaults to [length].
    */
-  String replaceRange(int start, int end, String replacement);
+  String replaceRange(int start, int? end, String replacement);
 
   /**
    * Splits the string at matches of [pattern] and returns a list of substrings.
@@ -591,7 +589,7 @@ abstract class String implements Comparable<String>, Pattern {
    *         onNonMatch: (n) => '*'); // *shoots*
    */
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)});
+      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?});
 
   /**
    * Returns an unmodifiable list of the UTF-16 code units of this string.
@@ -670,9 +668,9 @@ int _combineSurrogatePair(int start, int end) {
   return 0x10000 + ((start & 0x3FF) << 10) + (end & 0x3FF);
 }
 
-/** [Iterator] for reading runes (integer Unicode code points) out of a Dart
-  * string.
-  */
+/**
+ * [Iterator] for reading runes (integer Unicode code points) of a Dart string.
+ */
 class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
@@ -683,10 +681,10 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * Current code point.
    *
-   * If the iterator has hit either end, the [_currentCodePoint] is null
+   * If the iterator has hit either end, the [_currentCodePoint] is -1
    * and [: _position == _nextPosition :].
    */
-  int _currentCodePoint;
+  int _currentCodePoint = -1;
 
   /** Create an iterator positioned at the beginning of the string. */
   RuneIterator(String string)
@@ -758,11 +756,14 @@ class RuneIterator implements BidirectionalIterator<int> {
     RangeError.checkValueInInterval(rawIndex, 0, string.length, "rawIndex");
     _checkSplitSurrogate(rawIndex);
     _position = _nextPosition = rawIndex;
-    _currentCodePoint = null;
+    _currentCodePoint = -1;
   }
 
-  /** The rune (integer Unicode code point) starting at the current position in
-   *  the string.
+  /**
+   * The rune (integer Unicode code point) starting at the current position in
+   * the string.
+   *
+   * The value is -1 if there is no current code point.
    */
   int get current => _currentCodePoint;
 
@@ -779,10 +780,10 @@ class RuneIterator implements BidirectionalIterator<int> {
    * For runes outside the basic multilingual plane, this will be
    * a String of length 2, containing two code units.
    *
-   * Returns null if [current] is null.
+   * Returns an empty string if there is no [current] value.
    */
   String get currentAsString {
-    if (_position == _nextPosition) return null;
+    if (_position == _nextPosition) return "";
     if (_position + 1 == _nextPosition) return string[_position];
     return string.substring(_position, _nextPosition);
   }
@@ -790,7 +791,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int codeUnit = string.codeUnitAt(_position);
@@ -811,7 +812,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   bool movePrevious() {
     _nextPosition = _position;
     if (_position == 0) {
-      _currentCodePoint = null;
+      _currentCodePoint = -1;
       return false;
     }
     int position = _position - 1;
