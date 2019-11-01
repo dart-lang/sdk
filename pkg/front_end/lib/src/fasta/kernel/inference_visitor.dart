@@ -243,6 +243,7 @@ class InferenceVisitor
   void visitAssertStatement(AssertStatement node) {
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
+    inferrer.flowAnalysis.assert_begin();
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
         node.condition, expectedType, !inferrer.isTopLevel,
         isVoidAllowed: true);
@@ -250,12 +251,14 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
+    inferrer.flowAnalysis.assert_afterCondition(node.condition);
     if (node.message != null) {
       ExpressionInferenceResult messageResult = inferrer.inferExpression(
           node.message, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
       node.message = messageResult.expression..parent = node;
     }
+    inferrer.flowAnalysis.assert_end();
   }
 
   @override
@@ -623,7 +626,9 @@ class InferenceVisitor
 
   @override
   void visitDoStatement(DoStatement node) {
+    inferrer.flowAnalysis.doStatement_bodyBegin(node);
     inferrer.inferStatement(node.body);
+    inferrer.flowAnalysis.doStatement_conditionBegin();
     InterfaceType boolType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
@@ -632,6 +637,7 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(boolType, conditionResult);
     node.condition = condition..parent = node;
+    inferrer.flowAnalysis.doStatement_end(condition);
   }
 
   ExpressionInferenceResult visitDoubleLiteral(
@@ -709,7 +715,12 @@ class InferenceVisitor
       variable.type = inferredType;
     }
 
-    if (body != null) inferrer.inferStatement(body);
+    if (body != null) {
+      inferrer.flowAnalysis
+          .forEach_bodyBegin(body?.parent, variable, variable.type);
+      inferrer.inferStatement(body);
+      inferrer.flowAnalysis.forEach_end();
+    }
 
     VariableDeclaration tempVariable =
         new VariableDeclaration(null, type: inferredType, isFinal: true);
@@ -869,6 +880,8 @@ class InferenceVisitor
       variable.type = inferredType;
     }
 
+    inferrer.flowAnalysis
+        .forEach_bodyBegin(body.parent, variable, variable.type);
     if (body is Block) {
       for (Statement statement in body.statements) {
         if (!skipStatement || statement != syntheticStatement) {
@@ -880,6 +893,7 @@ class InferenceVisitor
         inferrer.inferStatement(body);
       }
     }
+    inferrer.flowAnalysis.forEach_end();
 
     if (syntheticWriteType != null) {
       rhs = inferrer.ensureAssignable(
@@ -934,6 +948,7 @@ class InferenceVisitor
         inferrer.inferStatement(variable);
       }
     }
+    inferrer.flowAnalysis.for_conditionBegin(node);
     if (node.condition != null) {
       InterfaceType expectedType =
           inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
@@ -945,13 +960,16 @@ class InferenceVisitor
       node.condition = condition..parent = node;
     }
 
+    inferrer.flowAnalysis.for_bodyBegin(node.body, node.condition);
+    inferrer.inferStatement(node.body);
+    inferrer.flowAnalysis.for_updaterBegin();
     for (int index = 0; index < node.updates.length; index++) {
       ExpressionInferenceResult updateResult = inferrer.inferExpression(
           node.updates[index], const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
       node.updates[index] = updateResult.expression..parent = node;
     }
-    inferrer.inferStatement(node.body);
+    inferrer.flowAnalysis.for_end();
   }
 
   DartType visitFunctionNode(FunctionNode node, DartType typeContext,
@@ -1251,6 +1269,7 @@ class InferenceVisitor
           inferrer.inferStatement(declaration);
         }
       }
+      inferrer.flowAnalysis.for_conditionBegin(element);
       if (element.condition != null) {
         ExpressionInferenceResult conditionResult = inferrer.inferExpression(
             element.condition,
@@ -1261,14 +1280,7 @@ class InferenceVisitor
         inferredConditionTypes[element.condition] =
             conditionResult.inferredType;
       }
-      for (int index = 0; index < element.updates.length; index++) {
-        ExpressionInferenceResult updateResult = inferrer.inferExpression(
-            element.updates[index],
-            const UnknownType(),
-            inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: true);
-        element.updates[index] = updateResult.expression..parent = element;
-      }
+      inferrer.flowAnalysis.for_bodyBegin(null, element.condition);
       ExpressionInferenceResult bodyResult = inferElement(
           element.body,
           inferredTypeArgument,
@@ -1277,6 +1289,16 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       element.body = bodyResult.expression..parent = element;
+      inferrer.flowAnalysis.for_updaterBegin();
+      for (int index = 0; index < element.updates.length; index++) {
+        ExpressionInferenceResult updateResult = inferrer.inferExpression(
+            element.updates[index],
+            const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+        element.updates[index] = updateResult.expression..parent = element;
+      }
+      inferrer.flowAnalysis.for_end();
       return new ExpressionInferenceResult(bodyResult.inferredType, element);
     } else if (element is ForInElement) {
       ForInResult result;
@@ -1302,6 +1324,8 @@ class InferenceVisitor
             isVoidAllowed: true);
         element.problem = problemResult.expression..parent = element;
       }
+      inferrer.flowAnalysis
+          .forEach_bodyBegin(element, element.variable, element.variable.type);
       ExpressionInferenceResult bodyResult = inferElement(
           element.body,
           inferredTypeArgument,
@@ -1310,6 +1334,7 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       element.body = bodyResult.expression..parent = element;
+      inferrer.flowAnalysis.forEach_end();
       return new ExpressionInferenceResult(bodyResult.inferredType, element);
     } else {
       ExpressionInferenceResult result = inferrer.inferExpression(
@@ -1677,6 +1702,7 @@ class InferenceVisitor
           inferrer.inferStatement(declaration);
         }
       }
+      inferrer.flowAnalysis.for_conditionBegin(entry);
       if (entry.condition != null) {
         ExpressionInferenceResult conditionResult = inferrer.inferExpression(
             entry.condition,
@@ -1687,14 +1713,7 @@ class InferenceVisitor
         // TODO(johnniwinther): Ensure assignability of condition?
         inferredConditionTypes[entry.condition] = conditionResult.inferredType;
       }
-      for (int index = 0; index < entry.updates.length; index++) {
-        ExpressionInferenceResult updateResult = inferrer.inferExpression(
-            entry.updates[index],
-            const UnknownType(),
-            inferenceNeeded || typeChecksNeeded,
-            isVoidAllowed: true);
-        entry.updates[index] = updateResult.expression..parent = entry;
-      }
+      inferrer.flowAnalysis.for_bodyBegin(null, entry.condition);
       // Actual types are added by the recursive call.
       MapEntry body = inferMapEntry(
           entry.body,
@@ -1709,6 +1728,16 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       entry.body = body..parent = entry;
+      inferrer.flowAnalysis.for_updaterBegin();
+      for (int index = 0; index < entry.updates.length; index++) {
+        ExpressionInferenceResult updateResult = inferrer.inferExpression(
+            entry.updates[index],
+            const UnknownType(),
+            inferenceNeeded || typeChecksNeeded,
+            isVoidAllowed: true);
+        entry.updates[index] = updateResult.expression..parent = entry;
+      }
+      inferrer.flowAnalysis.for_end();
       return entry;
     } else if (entry is ForInMapEntry) {
       ForInResult result;
@@ -1734,6 +1763,8 @@ class InferenceVisitor
             isVoidAllowed: true);
         entry.problem = problemResult.expression..parent = entry;
       }
+      inferrer.flowAnalysis
+          .forEach_bodyBegin(entry, entry.variable, entry.variable.type);
       // Actual types are added by the recursive call.
       MapEntry body = inferMapEntry(
           entry.body,
@@ -1748,6 +1779,7 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       entry.body = body..parent = entry;
+      inferrer.flowAnalysis.forEach_end();
       return entry;
     } else {
       ExpressionInferenceResult keyResult = inferrer.inferExpression(
@@ -1938,7 +1970,8 @@ class InferenceVisitor
         List<DartType> formalTypesForSet = <DartType>[];
         InterfaceType setType = inferrer.coreTypes.setClass.thisType;
         for (int i = 0; i < node.entries.length; ++i) {
-          setElements.add(convertToElement(node.entries[i], inferrer.helper));
+          setElements.add(convertToElement(node.entries[i], inferrer.helper,
+              inferrer.assignedVariables.reassignInfo));
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
@@ -4397,8 +4430,13 @@ class InferenceVisitor
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     DartType expressionType = expressionResult.inferredType;
+    inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
+    bool hasDefault = false;
     for (SwitchCase switchCase in node.cases) {
+      hasDefault = hasDefault || switchCase.isDefault;
+      // TODO(dmitryas): Pass in the actual value for the first parameter.
+      inferrer.flowAnalysis.switchStatement_beginCase(false, node);
       for (int index = 0; index < switchCase.expressions.length; index++) {
         ExpressionInferenceResult caseExpressionResult =
             inferrer.inferExpression(
@@ -4426,6 +4464,7 @@ class InferenceVisitor
       }
       inferrer.inferStatement(switchCase.body);
     }
+    inferrer.flowAnalysis.switchStatement_end(hasDefault);
   }
 
   @override
@@ -4457,16 +4496,27 @@ class InferenceVisitor
 
   @override
   void visitTryCatch(TryCatch node) {
+    inferrer.flowAnalysis.tryCatchStatement_bodyBegin();
     inferrer.inferStatement(node.body);
+    inferrer.flowAnalysis.tryCatchStatement_bodyEnd(node.body);
     for (Catch catch_ in node.catches) {
+      inferrer.flowAnalysis
+          .tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
+      inferrer.flowAnalysis.initialize(catch_.exception);
+      inferrer.flowAnalysis.initialize(catch_.stackTrace);
       visitCatch(catch_);
+      inferrer.flowAnalysis.tryCatchStatement_catchEnd();
     }
+    inferrer.flowAnalysis.tryCatchStatement_end();
   }
 
   @override
   void visitTryFinally(TryFinally node) {
+    inferrer.flowAnalysis.tryFinallyStatement_bodyBegin();
     inferrer.inferStatement(node.body);
+    inferrer.flowAnalysis.tryFinallyStatement_finallyBegin(node.finalizer);
     inferrer.inferStatement(node.finalizer);
+    inferrer.flowAnalysis.tryFinallyStatement_end(node.finalizer);
   }
 
   @override

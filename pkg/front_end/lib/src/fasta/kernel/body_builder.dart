@@ -2370,12 +2370,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginBlock(Token token, BlockKind blockKind) {
-    super.beginBlock(token, blockKind);
-    if (blockKind == BlockKind.tryStatement ||
-        blockKind == BlockKind.finallyClause) {
+    if (blockKind == BlockKind.tryStatement) {
       // This is matched by the call to [endNode] in [endBlock].
       typeInferrer?.assignedVariables?.beginNode();
+    } else if (blockKind == BlockKind.finallyClause) {
+      // This is matched by the call to [endNode] in [endTryStatement].
+      typeInferrer?.assignedVariables?.beginNode();
     }
+    super.beginBlock(token, blockKind);
   }
 
   @override
@@ -2385,9 +2387,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement block = popBlock(count, openBrace, closeBrace);
     exitLocalScope();
     push(block);
-    if (blockKind == BlockKind.tryStatement ||
-        blockKind == BlockKind.finallyClause) {
-      // This is matched by the call to [beginNode] in [beginBlock].
+    if (blockKind == BlockKind.tryStatement) {
+      // This is matched by the calls to [deferNode] and [endNode] in
+      // [endTryStatement].
       typeInferrer?.assignedVariables?.endNode(block);
     }
   }
@@ -2806,7 +2808,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (setOrMapEntries[i] is MapEntry) {
           mapEntries[i] = setOrMapEntries[i];
         } else {
-          mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this);
+          mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this,
+              typeInferrer?.assignedVariables?.reassignInfo);
         }
       }
       buildLiteralMap(typeArguments, constKeyword, leftBrace, mapEntries);
@@ -3393,7 +3396,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
-    Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
+    Statement finallyBlock;
+    if (finallyKeyword != null) {
+      finallyBlock = pop();
+      typeInferrer?.assignedVariables?.endNode(finallyBlock);
+    }
     List<Catch> catchBlocks;
     List<Statement> compileTimeErrors;
     if (catchCount != 0) {
@@ -3410,13 +3417,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Statement tryBlock = popStatement();
-    Statement tryStatement = forest.createTryStatement(
-        offsetForToken(tryKeyword), tryBlock, catchBlocks, finallyBlock);
+    int fileOffset = offsetForToken(tryKeyword);
+    Statement result = tryBlock;
+    if (catchBlocks != null) {
+      result = forest.createTryCatch(fileOffset, result, catchBlocks);
+    }
+    if (finallyBlock != null) {
+      result = forest.createTryFinally(fileOffset, result, finallyBlock);
+    }
+
     if (compileTimeErrors != null) {
-      compileTimeErrors.add(tryStatement);
+      compileTimeErrors.add(result);
       push(forest.createBlock(noLocation, compileTimeErrors));
     } else {
-      push(tryStatement);
+      push(result);
     }
   }
 
@@ -4047,7 +4061,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(forest.createIfMapEntry(
             offsetForToken(ifToken), toValue(condition), thenEntry, elseEntry));
       } else if (elseEntry is ControlFlowElement) {
-        MapEntry elseMapEntry = elseEntry.toMapEntry();
+        MapEntry elseMapEntry =
+            elseEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (elseMapEntry != null) {
           push(forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenEntry, elseMapEntry));
@@ -4073,7 +4088,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (elseEntry is MapEntry) {
       if (thenEntry is ControlFlowElement) {
-        MapEntry thenMapEntry = thenEntry.toMapEntry();
+        MapEntry thenMapEntry =
+            thenEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (thenMapEntry != null) {
           push(forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenMapEntry, elseEntry));
@@ -4374,13 +4390,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     Statement result =
         forest.createDoStatement(offsetForToken(doKeyword), body, condition);
+    // This is matched by the [beginNode] call in [beginDoWhileStatement].
+    typeInferrer?.assignedVariables?.endNode(result);
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
-    // This is matched by the [beginNode] call in [beginDoWhileStatement].
-    typeInferrer?.assignedVariables?.endNode(result);
   }
 
   @override

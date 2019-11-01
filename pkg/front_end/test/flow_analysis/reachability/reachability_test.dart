@@ -27,15 +27,7 @@ main(List<String> args) async {
       runTest: runTestFor(const ReachabilityDataComputer(), [
         new TestConfig(cfeMarker, 'cfe with nnbd',
             experimentalFlags: const {ExperimentalFlag.nonNullable: true})
-      ]),
-      skipList: [
-        // TODO(dmitryas): Run all reachability tests.
-        'assert.dart',
-        'do.dart',
-        'for.dart',
-        'switch.dart',
-        'try_catch.dart',
-      ]);
+      ]));
 }
 
 class ReachabilityDataComputer

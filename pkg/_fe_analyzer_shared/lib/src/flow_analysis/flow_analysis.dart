@@ -129,6 +129,21 @@ class AssignedVariables<Node, Variable> {
     storeInfo(node, deferNode(isClosure: isClosure));
   }
 
+  /// Call this method to register that the node [from] for which information
+  /// has been stored is replaced by the node [to].
+  // TODO(johnniwinther): Remove this when unified collections are encoded as
+  // general elements in the front-end.
+  void reassignInfo(Node from, Node to) {
+    assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
+    AssignedVariablesNodeInfo<Variable> info = _info.remove(from);
+    assert(
+        info != null,
+        'No information for $from (${from.hashCode}) in '
+        '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}');
+
+    _info[to] = info;
+  }
+
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
@@ -172,7 +187,9 @@ class AssignedVariables<Node, Variable> {
 
   /// Queries the information stored for the given [node].
   AssignedVariablesNodeInfo<Variable> _getInfoForNode(Node node) {
-    return _info[node] ?? (throw new StateError('No information for $node'));
+    return _info[node] ??
+        (throw new StateError('No information for $node (${node.hashCode}) in '
+            '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
   }
 
   void _printOn(StringBuffer sb) {
