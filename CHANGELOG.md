@@ -138,14 +138,11 @@ program-defined, whereas previously it was undefined.
 
 #### Linter
 
-The Linter was updated to `0.1.102`, which includes:
+The Linter was updated to `0.1.103`, which includes:
 
-* `avoid_web_libraries_in_flutter` updated to disallow access from all but Flutter web plugin packages
-* updated `avoid_returning_null_for_void` to check only `null` literals (and not expressions having `Null` types)
-* fixed `prefer_final_fields` to respect non-mutating prefix operators
-* new lint: `prefer_is_not_operator`
-* new lint: `avoid_unnecessary_containers`
-* added basic nnbd-awareness to `avoid_init_to_null`
+* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
+* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
+  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
 
 
 ## 2.5.1 - 2019-09-27
