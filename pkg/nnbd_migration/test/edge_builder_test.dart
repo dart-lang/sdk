@@ -1201,6 +1201,15 @@ int f(int i, int j) => i ?? j;
     assertEdge(right, expression, guards: [left], hard: false);
   }
 
+  test_binaryExpression_questionQuestion_genericReturnType() async {
+    await analyze('''
+class C<E> {
+  C<E> operator +(C<E> c) => this;
+}
+C<int> f(C<int> i, C<int> j) => i ?? j;
+''');
+  }
+
   test_binaryExpression_right_dynamic() async {
     await analyze('''
 class C {

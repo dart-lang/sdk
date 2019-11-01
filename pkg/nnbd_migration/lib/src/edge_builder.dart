@@ -378,7 +378,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           rightType = rightOperand.accept(this);
         });
         var ifNullNode = NullabilityNode.forIfNotNull();
-        expressionType = DecoratedType(node.staticType, ifNullNode);
+        expressionType = _decorateUpperOrLowerBound(
+            node, node.staticType, leftType, rightType, true,
+            node: ifNullNode);
         _connect(
             rightType.node, expressionType.node, IfNullOrigin(source, node));
       } finally {
