@@ -1252,7 +1252,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     // performing a reload.
     if (!FLAG_precompiled_mode) {
       if (field.IsUninitialized()) {
-        error = field.Initialize();
+        error = field.InitializeStatic();
         if (!error.IsNull()) {
           ReportError(error);
         }

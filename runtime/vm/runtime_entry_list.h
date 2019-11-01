@@ -52,6 +52,7 @@ namespace dart {
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
+  V(InitInstanceField)                                                         \
   V(InitStaticField)                                                           \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \

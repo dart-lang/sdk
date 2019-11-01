@@ -392,7 +392,8 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
   if (word_character_field.IsUninitialized()) {
     ASSERT(!Compiler::IsBackgroundCompilation());
-    const Error& error = Error::Handle(Z, word_character_field.Initialize());
+    const Error& error =
+        Error::Handle(Z, word_character_field.InitializeStatic());
     if (!error.IsNull()) {
       Report::LongJump(error);
     }

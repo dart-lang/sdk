@@ -60,8 +60,6 @@ class InstanceMorpher : public ZoneAllocated {
   // Called on each instance that needs to be morphed.
   RawInstance* Morph(const Instance& instance) const;
 
-  void RunNewFieldInitializers() const;
-
   // Adds an object to be morphed.
   void AddObject(RawObject* object) const;
 
@@ -249,8 +247,6 @@ class IsolateReloadContext {
   void CheckpointLibraries();
 
   void MorphInstancesAndApplyNewClassTable();
-
-  void RunNewFieldInitializers();
 
   bool ValidateReload();
 

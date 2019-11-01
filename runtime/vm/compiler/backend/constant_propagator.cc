@@ -770,6 +770,10 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitInitInstanceField(InitInstanceFieldInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
   // Nothing to do.
 }

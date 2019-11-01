@@ -741,6 +741,9 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   // Inline implicit instance getter.
   Field& field = Field::ZoneHandle(Z, targets.FirstTarget().accessor_field());
   ASSERT(!field.IsNull());
+  if (field.needs_load_guard()) {
+    return false;
+  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }

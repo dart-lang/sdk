@@ -411,6 +411,14 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
+Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
+  ASSERT(field.is_instance());
+  ASSERT(field.needs_load_guard());
+  InitInstanceFieldInstr* init = new (Z)
+      InitInstanceFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
+  return Fragment(init);
+}
+
 Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
   InitStaticFieldInstr* init = new (Z)
       InitStaticFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
@@ -2489,6 +2497,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     }
     body += NullConstant();
   } else if (is_method) {
+#if !defined(PRODUCT)
+    if (field.needs_load_guard()) {
+      ASSERT(Isolate::Current()->HasAttemptedReload());
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += InitInstanceField(field);
+      // TODO(rmacnak): Type check.
+    }
+#endif
     body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += LoadField(field);
   } else if (field.is_const()) {

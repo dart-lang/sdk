@@ -3064,6 +3064,22 @@ SwitchDispatch:
     RawObject* value =
         reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
 
+    if (UNLIKELY(value == Object::sentinel().raw())) {
+      SP[1] = 0;  // Result slot.
+      SP[2] = instance;
+      SP[3] = field;
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(
+          DRT_InitInstanceField,
+          NativeArguments(thread, 2, /* argv */ SP + 2, /* ret val */ SP + 1));
+
+      function = FrameFunction(FP);
+      instance = reinterpret_cast<RawInstance*>(SP[2]);
+      field = reinterpret_cast<RawField*>(SP[3]);
+      offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+      value = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    }
+
     *++SP = value;
 
     const bool unboxing =

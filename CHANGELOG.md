@@ -91,6 +91,9 @@ main() { foo(() {}); }
 
 * Added a new tool for AOT compiling Dart programs to native, self-contained
 executables. See https://dart.dev/tools/dart2native for additional details.
+* New fields added to existing instances by a reload will now be initialized
+lazily, as if the field was a late field. This makes the initialization order
+program-defined, whereas previously it was undefined.
 
 ### Foreign Function Interface (`dart:ffi`)
 

@@ -8950,7 +8950,7 @@ bool Field::IsUninitialized() const {
 }
 
 RawFunction* Field::EnsureInitializerFunction() const {
-  ASSERT(is_static() && has_initializer());
+  ASSERT(has_initializer());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -8974,7 +8974,32 @@ bool Field::HasInitializerFunction() const {
   return raw_ptr()->initializer_function_ != Function::null();
 }
 
-RawError* Field::Initialize() const {
+RawError* Field::InitializeInstance(const Instance& instance) const {
+  ASSERT(IsOriginal());
+  ASSERT(is_instance());
+  ASSERT(instance.GetField(*this) == Object::sentinel().raw());
+  Object& value = Object::Handle();
+  if (has_initializer()) {
+    const Function& initializer = Function::Handle(EnsureInitializerFunction());
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, instance);
+    value = DartEntry::InvokeFunction(initializer, args);
+    if (!value.IsNull() && value.IsError()) {
+      return Error::Cast(value).raw();
+    }
+  } else {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    value = saved_initial_value();
+#endif
+  }
+  ASSERT(value.IsNull() || value.IsInstance());
+  instance.SetField(*this, value);
+  return Error::null();
+}
+
+RawError* Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {

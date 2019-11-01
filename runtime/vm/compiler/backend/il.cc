@@ -1048,6 +1048,10 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   return &this->slot_ == &other_load->slot_;
 }
 
+Instruction* InitInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  return this;
+}
+
 Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool is_initialized =
       (field_.StaticValue() != Object::sentinel().raw()) &&

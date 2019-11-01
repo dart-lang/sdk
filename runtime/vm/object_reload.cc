@@ -259,13 +259,13 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
   for (intptr_t i = 0; i < field_list.Length(); i++) {
     field = Field::RawCast(field_list.At(i));
     name = field.name();
-    if (field.is_static()) {
-      // Find the corresponding old field, if it exists, and migrate
-      // over the field value.
-      for (intptr_t j = 0; j < old_field_list.Length(); j++) {
-        old_field = Field::RawCast(old_field_list.At(j));
-        old_name = old_field.name();
-        if (name.Equals(old_name)) {
+    // Find the corresponding old field, if it exists, and migrate
+    // over the field value.
+    for (intptr_t j = 0; j < old_field_list.Length(); j++) {
+      old_field = Field::RawCast(old_field_list.At(j));
+      old_name = old_field.name();
+      if (name.Equals(old_name)) {
+        if (field.is_static()) {
           // We only copy values if requested and if the field is not a const
           // field. We let const fields be updated with a reload.
           if (update_values && !field.is_const()) {
@@ -273,6 +273,12 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
             field.SetStaticValue(value);
           }
           reload_context->AddStaticFieldMapping(old_field, field);
+        } else {
+          if (old_field.needs_load_guard()) {
+            ASSERT(!old_field.is_unboxing_candidate());
+            field.set_needs_load_guard(true);
+            field.set_is_unboxing_candidate(false);
+          }
         }
       }
     }

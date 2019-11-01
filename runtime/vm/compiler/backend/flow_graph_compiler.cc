@@ -1208,7 +1208,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
 
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
-        if (field.is_instance() &&
+        if (field.is_instance() && !field.needs_load_guard() &&
             (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));

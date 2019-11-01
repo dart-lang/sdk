@@ -684,7 +684,7 @@ static void VerifyMethodKindShifts() {
   field = cls.LookupField(fname);                                              \
   ASSERT(!field.IsNull());                                                     \
   if (field.IsUninitialized()) {                                               \
-    error ^= field.Initialize();                                               \
+    error ^= field.InitializeStatic();                                         \
     ASSERT(error.IsNull());                                                    \
   }                                                                            \
   value ^= field.StaticValue();                                                \

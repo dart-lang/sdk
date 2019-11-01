@@ -137,6 +137,9 @@ void InstanceMorpher::ComputeMapping() {
     if (new_field) {
       const Field& field = Field::Handle(to_field.raw());
       new_fields_->Add(&field);
+
+      field.set_needs_load_guard(true);
+      field.set_is_unboxing_candidate(false);
     }
   }
 }
@@ -151,61 +154,15 @@ RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
         Object::Handle(instance.RawGetFieldAtOffset(from_offset));
     result.RawSetFieldAtOffset(to_offset, value);
   }
-  // Convert the instance into a filler object.
-  Become::MakeDummyObject(instance);
-  return result.raw();
-}
-
-void InstanceMorpher::RunNewFieldInitializers() const {
-  if ((new_fields_->length() == 0) || (after_->length() == 0)) {
-    return;
-  }
-
-  TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& init_func = Function::Handle(zone);
-  Object& result = Object::Handle(zone);
-  // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->has_initializer()) {
-      if (field->is_declared_in_bytecode() && (field->bytecode_offset() == 0)) {
-        FATAL1(
-            "Missing field initializer for '%s'. Reload requires bytecode "
-            "to be generated with 'instance-field-initializers'",
-            field->ToCString());
-      }
-      init_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
-      const Array& args = Array::Handle(zone, Array::New(1));
-      for (intptr_t j = 0; j < after_->length(); j++) {
-        const Instance* instance = after_->At(j);
-        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                  after_->length());
-        // Run the function and assign the field.
-        args.SetAt(0, *instance);
-        result = DartEntry::InvokeFunction(init_func, args);
-        if (result.IsError()) {
-          // TODO(johnmccutchan): Report this error in the reload response?
-          OS::PrintErr(
-              "RELOAD: Running initializer for new field `%s` resulted in "
-              "an error: %s\n",
-              field->ToCString(), Error::Cast(result).ToErrorCString());
-          continue;
-        }
-        instance->RawSetFieldAtOffset(field->Offset(), result);
-      }
-    } else {
-      result = field->saved_initial_value();
-      for (intptr_t j = 0; j < after_->length(); j++) {
-        const Instance* instance = after_->At(j);
-        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                  after_->length());
-        instance->RawSetFieldAtOffset(field->Offset(), result);
-      }
-    }
+    ASSERT(field->needs_load_guard());
+    result.RawSetFieldAtOffset(field->Offset(), Object::sentinel());
   }
+  // Convert the instance into a filler object.
+  Become::MakeDummyObject(instance);
+  return result.raw();
 }
 
 void InstanceMorpher::CreateMorphedCopies() const {
@@ -1378,9 +1335,6 @@ void IsolateReloadContext::Commit() {
                 saved_libs.Length(), libs.Length());
     }
   }
-
-  // Run the initializers for new instance fields.
-  RunNewFieldInitializers();
 }
 
 bool IsolateReloadContext::IsDirty(const Library& lib) {
@@ -1526,13 +1480,6 @@ void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   Become::ElementsForwardIdentity(before, after);
   // The heap now contains only instances with the new size. Ordinary GC is safe
   // again.
-}
-
-void IsolateReloadContext::RunNewFieldInitializers() {
-  // Run new field initializers on all instances.
-  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-    instance_morphers_.At(i)->RunNewFieldInitializers();
-  }
 }
 
 bool IsolateReloadContext::ValidateReload() {

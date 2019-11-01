@@ -411,6 +411,7 @@ struct InstrAttrs {
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
   M(StoreInstanceField, _)                                                     \
+  M(InitInstanceField, _)                                                      \
   M(InitStaticField, _)                                                        \
   M(LoadStaticField, kNoGC)                                                    \
   M(StoreStaticField, kNoGC)                                                   \
@@ -5848,6 +5849,29 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
+};
+
+class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
+ public:
+  InitInstanceFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), field_(field) {
+    SetInputAt(0, input);
+    CheckField(field);
+  }
+
+  virtual TokenPosition token_pos() const { return field_.token_pos(); }
+  const Field& field() const { return field_; }
+
+  DECLARE_INSTRUCTION(InitInstanceField)
+
+  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
 };
 
 class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {

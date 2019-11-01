@@ -279,7 +279,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
       (field_.StaticValue() == Object::sentinel().raw())) {
     processed = true;
-    error_ = field_.Initialize();
+    error_ = field_.InitializeStatic();
     if (error_.IsError()) {
       if (FLAG_trace_compilation_trace) {
         THR_Print(
