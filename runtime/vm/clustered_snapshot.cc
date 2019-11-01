@@ -1100,7 +1100,7 @@ class ScriptSerializationCluster : public SerializationCluster {
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
-      s->Write<uint8_t>(script->ptr()->kind_and_tags_);
+      s->Write<uint8_t>(script->ptr()->flags_);
       s->Write<int32_t>(script->ptr()->kernel_script_index_);
     }
   }
@@ -1133,7 +1133,7 @@ class ScriptDeserializationCluster : public DeserializationCluster {
       ReadFromTo(script);
       script->ptr()->line_offset_ = d->Read<int32_t>();
       script->ptr()->col_offset_ = d->Read<int32_t>();
-      script->ptr()->kind_and_tags_ = d->Read<uint8_t>();
+      script->ptr()->flags_ = d->Read<uint8_t>();
       script->ptr()->kernel_script_index_ = d->Read<int32_t>();
       script->ptr()->load_timestamp_ = 0;
     }

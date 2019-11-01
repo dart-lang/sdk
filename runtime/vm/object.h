@@ -3904,11 +3904,6 @@ class Script : public Object {
   void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
 
-  RawScript::Kind kind() const {
-    return RawScript::KindBits::decode(raw_ptr()->kind_and_tags_);
-  }
-
-  const char* GetKindAsCString() const;
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
@@ -3973,14 +3968,11 @@ class Script : public Object {
     return RoundedAllocationSize(sizeof(RawScript));
   }
 
-  static RawScript* New(const String& url,
-                        const String& source,
-                        RawScript::Kind kind);
+  static RawScript* New(const String& url, const String& source);
 
   static RawScript* New(const String& url,
                         const String& resolved_url,
-                        const String& source,
-                        RawScript::Kind kind);
+                        const String& source);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
@@ -3993,8 +3985,7 @@ class Script : public Object {
  private:
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
-  void set_kind(RawScript::Kind value) const;
-  void set_kind_and_tags(uint8_t value) const;
+  void set_flags(uint8_t value) const;
   void set_load_timestamp(int64_t value) const;
   RawArray* debug_positions() const;
 

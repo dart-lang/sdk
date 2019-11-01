@@ -2059,7 +2059,7 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
       for (intptr_t i = 0; i < libs.Length(); i++) {
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
-        if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        if (!script.IsNull()) {
           sources = script.Source();
           line_starts = script.line_starts();
           break;
@@ -2071,8 +2071,7 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
   }
 
   const Script& script =
-      Script::Handle(Z, Script::New(import_uri_string, uri_string, sources,
-                                    RawScript::kKernelTag));
+      Script::Handle(Z, Script::New(import_uri_string, uri_string, sources));
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);

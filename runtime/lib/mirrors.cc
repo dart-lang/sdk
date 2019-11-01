@@ -1697,10 +1697,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
       return Instance::null();  // No source.
     }
     const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
-    for (intptr_t i = 0; i < scripts.Length(); i++) {
-      script ^= scripts.At(i);
-      if (script.kind() == RawScript::kLibraryTag) break;
-    }
+    ASSERT(scripts.Length() > 0);
+    script ^= scripts.At(scripts.Length() - 1);
     ASSERT(!script.IsNull());
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);

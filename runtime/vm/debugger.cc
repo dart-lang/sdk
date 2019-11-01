@@ -1053,7 +1053,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   }
 
   ASSERT(!IsInterpreted());
-  ASSERT(script.kind() == RawScript::kKernelTag);
   const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
@@ -3063,7 +3062,6 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
     const TokenPosition begin_pos = best_fit_pos;
 
     TokenPosition end_of_line_pos;
-    ASSERT(script.kind() == RawScript::kKernelTag);
     if (best_line == -1) {
       script.GetTokenLocation(begin_pos, &best_line, NULL);
     }
@@ -4379,7 +4377,6 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     }
     ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    ASSERT(script.kind() == RawScript::kKernelTag);
     const auto& yield_positions = GrowableObjectArray::Handle(
         zone, script.GetYieldPositions(top_frame->function()));
     // No yield statements

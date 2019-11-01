@@ -8067,43 +8067,36 @@ RawString* Function::GetSource() const {
   Zone* zone = Thread::Current()->zone();
   const Script& func_script = Script::Handle(zone, script());
 
-  if (func_script.kind() == RawScript::kKernelTag) {
-    intptr_t from_line;
-    intptr_t from_col;
-    intptr_t to_line;
-    intptr_t to_col;
-    intptr_t to_length;
-    func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
-    func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col,
-                                 &to_length);
+  intptr_t from_line;
+  intptr_t from_col;
+  intptr_t to_line;
+  intptr_t to_col;
+  intptr_t to_length;
+  func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
+  func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col, &to_length);
 
-    if (to_length == 1) {
-      // Handle special cases for end tokens of closures (where we exclude the
-      // last token):
-      // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
-      // (2) "foo(() => null);": End token is ')`, but we don't print it.
-      // (3) "var foo = () => null;": End token is `;', but in this case the
-      // token semicolon belongs to the assignment so we skip it.
-      const String& src = String::Handle(func_script.Source());
-      if (src.IsNull() || src.Length() == 0) {
-        return Symbols::OptimizedOut().raw();
-      }
-      uint16_t end_char = src.CharAt(end_token_pos().value());
-      if ((end_char == ',') ||  // Case 1.
-          (end_char == ')') ||  // Case 2.
-          (end_char == ';' &&
-           String::Handle(zone, name())
-               .Equals("<anonymous closure>"))) {  // Case 3.
-        to_length = 0;
-      }
+  if (to_length == 1) {
+    // Handle special cases for end tokens of closures (where we exclude the
+    // last token):
+    // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+    // (2) "foo(() => null);": End token is ')`, but we don't print it.
+    // (3) "var foo = () => null;": End token is `;', but in this case the
+    // token semicolon belongs to the assignment so we skip it.
+    const String& src = String::Handle(func_script.Source());
+    if (src.IsNull() || src.Length() == 0) {
+      return Symbols::OptimizedOut().raw();
     }
-
-    return func_script.GetSnippet(from_line, from_col, to_line,
-                                  to_col + to_length);
+    uint16_t end_char = src.CharAt(end_token_pos().value());
+    if ((end_char == ',') ||  // Case 1.
+        (end_char == ')') ||  // Case 2.
+        (end_char == ';' && String::Handle(zone, name())
+                                .Equals("<anonymous closure>"))) {  // Case 3.
+      to_length = 0;
+    }
   }
 
-  UNREACHABLE();
-  return String::null();
+  return func_script.GetSnippet(from_line, from_col, to_line,
+                                to_col + to_length);
 }
 
 // Construct fingerprint from token stream. The token stream contains also
@@ -9518,7 +9511,7 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
-      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+      if (!script.IsNull()) {
         const auto& source = String::Handle(zone, script.Source());
         const auto& line_starts = TypedData::Handle(zone, script.line_starts());
         if (!source.IsNull() || !line_starts.IsNull()) {
@@ -9534,7 +9527,6 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
 }
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
-  ASSERT(kind() == RawScript::kKernelTag);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
@@ -9587,25 +9579,6 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return info.raw();
-}
-
-const char* Script::GetKindAsCString() const {
-  switch (kind()) {
-    case RawScript::kScriptTag:
-      return "script";
-    case RawScript::kLibraryTag:
-      return "library";
-    case RawScript::kSourceTag:
-      return "source";
-    case RawScript::kEvaluateTag:
-      return "evaluate";
-    case RawScript::kKernelTag:
-      return "kernel";
-    default:
-      UNIMPLEMENTED();
-  }
-  UNREACHABLE();
-  return NULL;
 }
 
 void Script::set_url(const String& value) const {
@@ -9662,7 +9635,7 @@ RawTypedData* Script::line_starts() const {
 RawArray* Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions_);
-  if (debug_positions_array.IsNull() && kind() == RawScript::kKernelTag) {
+  if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
     kernel::CollectTokenPositionsFor(*this);
   }
@@ -9670,23 +9643,17 @@ RawArray* Script::debug_positions() const {
   return raw_ptr()->debug_positions_;
 }
 
-void Script::set_kind(RawScript::Kind value) const {
-  set_kind_and_tags(
-      RawScript::KindBits::update(value, raw_ptr()->kind_and_tags_));
-}
-
-void Script::set_kind_and_tags(uint8_t value) const {
-  StoreNonPointer(&raw_ptr()->kind_and_tags_, value);
+void Script::set_flags(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->flags_, value);
 }
 
 void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
-  set_kind_and_tags(RawScript::LazyLookupSourceAndLineStartsBit::update(
-      value, raw_ptr()->kind_and_tags_));
+  set_flags(RawScript::LazyLookupSourceAndLineStartsBit::update(
+      value, raw_ptr()->flags_));
 }
 
 bool Script::IsLazyLookupSourceAndLineStarts() const {
-  return RawScript::LazyLookupSourceAndLineStartsBit::decode(
-      raw_ptr()->kind_and_tags_);
+  return RawScript::LazyLookupSourceAndLineStartsBit::decode(raw_ptr()->flags_);
 }
 
 void Script::set_load_timestamp(int64_t value) const {
@@ -9715,31 +9682,12 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     return 0;
   }
 
-  if (kind() == RawScript::kKernelTag) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-    return line_starts_reader.LineNumberForPosition(target_token_pos.value());
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  return line_starts_reader.LineNumberForPosition(target_token_pos.value());
 #else
-    return 0;
+  return 0;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
-    ASSERT(line_starts_data.Length() > 0);
-    intptr_t offset = target_token_pos.Pos();
-    intptr_t min = 0;
-    intptr_t max = line_starts_data.Length() - 1;
-
-    // Binary search to find the line containing this offset.
-    while (min < max) {
-      int midpoint = (max - min + 1) / 2 + min;
-      int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
-      if (token_pos > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-    return min + 1;  // Line numbers start at 1.
-  }
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -9767,7 +9715,6 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   ASSERT(line != NULL);
   Zone* zone = Thread::Current()->zone();
 
-  ASSERT(kind() == RawScript::kKernelTag);
   LookupSourceAndLineStarts(zone);
   if (line_starts() == TypedData::null()) {
     // Scripts in the AOT snapshot do not have a line starts array.
@@ -9806,7 +9753,6 @@ void Script::GetTokenLocation(TokenPosition token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
-  ASSERT(kind() == RawScript::kKernelTag);
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
 
@@ -9944,16 +9890,13 @@ RawScript* Script::New() {
   return reinterpret_cast<RawScript*>(raw);
 }
 
-RawScript* Script::New(const String& url,
-                       const String& source,
-                       RawScript::Kind kind) {
-  return Script::New(url, url, source, kind);
+RawScript* Script::New(const String& url, const String& source) {
+  return Script::New(url, url, source);
 }
 
 RawScript* Script::New(const String& url,
                        const String& resolved_url,
-                       const String& source,
-                       RawScript::Kind kind) {
+                       const String& source) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& result = Script::Handle(zone, Script::New());
@@ -9962,8 +9905,7 @@ RawScript* Script::New(const String& url,
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.SetLocationOffset(0, 0);
-  result.set_kind_and_tags(0);
-  result.set_kind(kind);
+  result.set_flags(0);
   result.set_kernel_script_index(0);
   result.set_load_timestamp(
       FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
@@ -22009,11 +21951,7 @@ static void PrintStackTraceFrame(Zone* zone,
     line = token_pos.value();
   } else {
     if (!script.IsNull() && token_pos.IsSourcePosition()) {
-      if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-        script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
-      } else {
-        script.GetTokenLocation(token_pos.SourcePosition(), &line, NULL);
-      }
+      script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
     }
   }
 

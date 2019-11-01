@@ -822,11 +822,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   intptr_t column = -1;
   ASSERT(!script.IsNull());
   if (location.IsReal()) {
-    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-      script.GetTokenLocation(location, &line, &column);
-    } else {
-      script.GetTokenLocation(location, &line, NULL);
-    }
+    script.GetTokenLocation(location, &line, &column);
   }
   // Initialize '_url', '_line', and '_column' arguments.
   args.SetAt(0, String::Handle(zone, script.url()));

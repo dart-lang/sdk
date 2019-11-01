@@ -1540,7 +1540,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
                                     reader_.ReadUInt());
       } else {
-        script = Script::New(uri, Object::null_string(), RawScript::kKernelTag);
+        script = Script::New(uri, Object::null_string());
       }
       script.set_kernel_program_info(H.GetKernelProgramInfo());
       return script.raw();
@@ -1910,8 +1910,8 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
     source = ReadString(/* is_canonical = */ false);
   }
 
-  const Script& script = Script::Handle(
-      Z, Script::New(import_uri, uri, source, RawScript::kKernelTag));
+  const Script& script =
+      Script::Handle(Z, Script::New(import_uri, uri, source));
   script.set_line_starts(line_starts);
 
   if (source.IsNull() && line_starts.IsNull()) {

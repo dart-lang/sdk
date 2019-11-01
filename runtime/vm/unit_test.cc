@@ -699,8 +699,7 @@ void AssemblerTest::Assemble() {
   // assembler instructions that do runtime calls.
   const char* kDummyScript = "assembler_test_dummy_function() {}";
   const Script& script = Script::Handle(
-      Script::New(function_name, String::Handle(String::New(kDummyScript)),
-                  RawScript::kSourceTag));
+      Script::New(function_name, String::Handle(String::New(kDummyScript))));
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
