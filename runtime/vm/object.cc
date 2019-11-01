@@ -133,6 +133,7 @@ RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -930,6 +931,13 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
+  cls = Class::New<Instance>(kNeverCid, isolate);
+  cls.set_num_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
+  cls.set_is_type_finalized();
+  never_class_ = cls.raw();
+
   cls = Class::New<Type>(isolate);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
@@ -940,6 +948,9 @@ void Object::Init(Isolate* isolate) {
 
   cls = void_class_;
   *void_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = never_class_;
+  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -1084,7 +1095,7 @@ void Object::Init(Isolate* isolate) {
 
 void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
-  // canonical type of kDynamicCid/kVoidCid need to be set in this
+  // canonical type of kDynamicCid/kVoidCid/kNeverCid need to be set in this
   // method, which is called after StubCode::InitOnce().
   Code& code = Code::Handle();
 
@@ -1093,6 +1104,9 @@ void Object::FinishInit(Isolate* isolate) {
 
   code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
   void_type_->SetTypeTestingStub(code);
+
+  code = TypeTestingStubGenerator::DefaultCodeForType(*never_type_);
+  never_type_->SetTypeTestingStub(code);
 }
 
 void Object::Cleanup() {
@@ -1100,6 +1114,7 @@ void Object::Cleanup() {
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1200,6 +1215,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
+  SET_CLASS_NAME(never, Never);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
@@ -4057,6 +4073,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Dynamic().raw();
     case kVoidCid:
       return Symbols::Void().raw();
+    case kNeverCid:
+      return Symbols::Never().raw();
     case kClassCid:
       return Symbols::Class().raw();
     case kTypeArgumentsCid:
@@ -17317,30 +17335,28 @@ bool AbstractType::IsNullTypeRef() const {
 }
 
 bool AbstractType::IsDynamicType() const {
-  if (IsCanonical()) {
-    return raw() == Object::dynamic_type().raw();
-  }
   return type_class_id() == kDynamicCid;
 }
 
 bool AbstractType::IsVoidType() const {
-  // The void type is always canonical, because void is a keyword.
-  return raw() == Object::void_type().raw();
+  return type_class_id() == kVoidCid;
+}
+
+bool AbstractType::IsNeverType() const {
+  return type_class_id() == kNeverCid;
 }
 
 bool AbstractType::IsObjectType() const {
   return type_class_id() == kInstanceCid;
 }
 
-bool AbstractType::IsTopType() const {
-  if (IsVoidType()) {
-    return true;
-  }
+bool AbstractType::IsTopType(NNBDMode mode) const {
   const classid_t cid = type_class_id();
   if (cid == kIllegalCid) {
     return false;
   }
-  if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
+  if (cid == kDynamicCid || cid == kVoidCid ||
+      (cid == kInstanceCid && (mode != kStrong || IsNullable()))) {
     return true;
   }
   // FutureOr<T> where T is a top type behaves as a top type.
@@ -17354,7 +17370,7 @@ bool AbstractType::IsTopType() const {
         TypeArguments::Handle(zone, arguments());
     const AbstractType& type_arg =
         AbstractType::Handle(zone, type_arguments.TypeAt(0));
-    if (type_arg.IsTopType()) {
+    if (type_arg.IsTopType(mode)) {
       return true;
     }
   }
@@ -17581,7 +17597,8 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
   if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
-    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
+    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid ||
+           type_class_id() == kNeverCid);
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
   } else {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
@@ -17599,6 +17616,10 @@ RawType* Type::DynamicType() {
 
 RawType* Type::VoidType() {
   return Object::void_type().raw();
+}
+
+RawType* Type::NeverType() {
+  return Object::never_type().raw();
 }
 
 RawType* Type::ObjectType() {
@@ -18016,6 +18037,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   if ((type_class_id() == kDynamicCid) && (isolate != Dart::vm_isolate())) {
     ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
+  }
+
+  if ((type_class_id() == kNeverCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::never_type().IsCanonical());
+    return Object::never_type().raw();
   }
 
   const Class& cls = Class::Handle(zone, type_class());

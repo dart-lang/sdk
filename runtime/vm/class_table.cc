@@ -44,6 +44,7 @@ SharedClassTable::SharedClassTable()
         vm_shared_class_table->SizeAt(kForwardingCorpse);
     table_[kDynamicCid] = vm_shared_class_table->SizeAt(kDynamicCid);
     table_[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
+    table_[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
   }
 #ifndef PRODUCT
   class_heap_stats_table_ = static_cast<ClassHeapStats*>(
@@ -90,6 +91,7 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
+    table_[kNeverCid] = vm_class_table->At(kNeverCid);
   }
 }
 

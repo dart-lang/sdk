@@ -1689,6 +1689,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
     kRecursiveGenericType,
     kRecursiveTypeRef,
     kFunctionType,
+    kNever,
   };
 
   // FunctionType flags, must be in sync with _FunctionTypeHandle constants in
@@ -1705,6 +1706,8 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       return AbstractType::dynamic_type().raw();
     case kVoid:
       return AbstractType::void_type().raw();
+    case kNever:
+      return AbstractType::never_type().raw();
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       if (!cls.is_declaration_loaded()) {

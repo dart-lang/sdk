@@ -861,7 +861,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     if (!src_type.IsNull()) {
       src_type.EnumerateURIs(&uris);
     }
-    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType() &&
+        !dst_type.IsNeverType()) {
       dst_type.EnumerateURIs(&uris);
     }
     const String& formatted_uris =

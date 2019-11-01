@@ -433,6 +433,7 @@ class Object {
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
+  V(Type, never_type)                                                          \
   V(AbstractType, null_abstract_type)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
@@ -448,6 +449,7 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawClass* never_class() { return never_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
@@ -719,6 +721,7 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
+  static RawClass* never_class_;             // Class of the 'Never' type.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
@@ -1038,6 +1041,9 @@ class Class : public Object {
 
   // Check if this class represents the 'void' class.
   bool IsVoidClass() const { return id() == kVoidCid; }
+
+  // Check if this class represents the 'Never' class.
+  bool IsNeverClass() const { return id() == kNeverCid; }
 
   // Check if this class represents the 'Object' class.
   bool IsObjectClass() const { return id() == kInstanceCid; }
@@ -2130,6 +2136,13 @@ enum Nullability {
   kNullable = 1,
   kNonNullable = 2,
   kLegacy = 3,
+};
+
+// Nullability aware subtype checking modes.
+enum NNBDMode {
+  kUnaware,
+  kWeak,
+  kStrong,
 };
 
 // Often used constants for number of free function type parameters.
@@ -6899,12 +6912,15 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
 
+  // Check if this type represents the 'Never' type.
+  bool IsNeverType() const;
+
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const;
 
-  // Check if this type represents a top type, i.e. 'dynamic', 'Object', or
-  // 'void' type.
-  bool IsTopType() const;
+  // Check if this type represents a top type.
+  // TODO(regis): Remove default kUnaware mode as implementation progresses.
+  bool IsTopType(NNBDMode mode = kUnaware) const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -7070,6 +7086,9 @@ class Type : public AbstractType {
 
   // The 'void' type.
   static RawType* VoidType();
+
+  // The 'Never' type.
+  static RawType* NeverType();
 
   // The 'Object' type.
   static RawType* ObjectType();

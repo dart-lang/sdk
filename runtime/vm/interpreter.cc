@@ -3125,6 +3125,7 @@ SwitchDispatch:
     // Perform type test of value if field type is not one of dynamic, object,
     // or void, and if the value is not null.
     RawObject* null_value = Object::null();
+    // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
     if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
         value != null_value) {
       RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;

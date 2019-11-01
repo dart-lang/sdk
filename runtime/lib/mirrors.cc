@@ -625,6 +625,10 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
+    } else if (cls.IsNeverClass()) {
+      Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, Symbols::Never());
+      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
     // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
     // Null type, which should remain nullable.

@@ -2789,7 +2789,7 @@ void TypeTranslator::BuildTypeInternal() {
       ASSERT(result_.IsNullable());
       break;
     case kNeverType:
-      UNREACHABLE();
+      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);

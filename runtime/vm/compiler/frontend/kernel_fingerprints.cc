@@ -232,7 +232,6 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kNeverType:
       // those contain nothing.
       break;
-      UNIMPLEMENTED();
     case kInterfaceType:
       CalculateInterfaceTypeFingerprint(false);
       break;

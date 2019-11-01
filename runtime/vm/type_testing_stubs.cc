@@ -96,17 +96,23 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
-  // `null` and patch these later in `Object::FinishInitOnce()`.
+  // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
     const intptr_t cid = Type::Cast(type).type_class_id();
-    ASSERT(cid == kDynamicCid || cid == kVoidCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid | cid == kNeverCid);
     return Code::null();
   }
 
+  // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
     return StubCode::TopTypeTypeTest().raw();
+  }
+
+  if (type.raw() == Type::NeverType()) {
+    // TODO(regis): Revisit.
+    return StubCode::StubCode::DefaultTypeTest().raw();
   }
 
   if (type.IsTypeRef()) {

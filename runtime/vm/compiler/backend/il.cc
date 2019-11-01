@@ -204,6 +204,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kTypeArgumentsCid) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
+    if (cid == kNeverCid) continue;
     if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;

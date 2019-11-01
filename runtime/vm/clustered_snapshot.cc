@@ -4902,6 +4902,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid), "Class");
   AddBaseObject(table->At(kVoidCid), "Class");
+  AddBaseObject(table->At(kNeverCid), "Class");
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
@@ -5360,6 +5361,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   }
   AddBaseObject(table->At(kDynamicCid));
   AddBaseObject(table->At(kVoidCid));
+  AddBaseObject(table->At(kNeverCid));
 
   if (!Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {

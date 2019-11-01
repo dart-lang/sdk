@@ -201,6 +201,11 @@ type VoidType extends Type {
   typeTag (flags) = 2
 }
 
+type NeverType extends Type {
+  kind = 15
+  typeTag (flags) = 9
+}
+
 // SimpleType can be used only for types without instantiator type arguments.
 type SimpleType extends Type {
   kind = 15
@@ -321,6 +326,7 @@ enum TypeTag {
   kRecursiveGenericType,
   kRecursiveTypeRef,
   kFunctionType,
+  kNever,
 }
 
 /// Name of artificial class containing top-level members of a library.
@@ -419,6 +425,8 @@ abstract class ObjectHandle extends BytecodeObject {
             return new _DynamicTypeHandle();
           case TypeTag.kVoid:
             return new _VoidTypeHandle();
+          case TypeTag.kNever:
+            return new _NeverTypeHandle();
           case TypeTag.kSimpleType:
             return new _SimpleTypeHandle._empty(nullability);
           case TypeTag.kTypeParameter:
@@ -735,6 +743,25 @@ class _VoidTypeHandle extends _TypeHandle {
 
   @override
   String toString() => 'void';
+}
+
+class _NeverTypeHandle extends _TypeHandle {
+  _NeverTypeHandle() : super(TypeTag.kNever, Nullability.nonNullable);
+
+  @override
+  void writeContents(BufferedWriter writer) {}
+
+  @override
+  void readContents(BufferedReader reader) {}
+
+  @override
+  int get hashCode => 2049;
+
+  @override
+  bool operator ==(other) => other is _NeverTypeHandle;
+
+  @override
+  String toString() => 'Never';
 }
 
 class _SimpleTypeHandle extends _TypeHandle {
@@ -1717,12 +1744,14 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   List<ObjectHandle> _indexTable;
   _TypeHandle _dynamicType;
   _TypeHandle _voidType;
+  _TypeHandle _neverType;
   CoreTypes coreTypes;
   _NodeVisitor _nodeVisitor;
 
   ObjectTable() {
     _dynamicType = getOrAddObject(new _DynamicTypeHandle());
     _voidType = getOrAddObject(new _VoidTypeHandle());
+    _neverType = getOrAddObject(new _NeverTypeHandle());
     _nodeVisitor = new _NodeVisitor(this);
   }
 
@@ -2097,6 +2126,9 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitVoidType(VoidType node) => objectTable._voidType;
+
+  @override
+  ObjectHandle visitNeverType(NeverType node) => objectTable._neverType;
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
