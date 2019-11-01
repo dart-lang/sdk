@@ -235,8 +235,16 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// distinct symbols will be used, so each library will have distinct private
   /// member names, that won't collide at runtime, as required by the Dart
   /// language spec.
+  ///
+  /// If an [id] is provided, try to use that.
+  ///
+  /// TODO(vsm): Clean up id generation logic.  This method is used to both
+  /// define new symbols and to reference existing ones.  If it's called
+  /// multiple times with same [library] and [name], we'll allocate redundant
+  /// top-level variables (see callers to this method).
   @protected
-  js_ast.TemporaryId emitPrivateNameSymbol(Library library, String name) {
+  js_ast.TemporaryId emitPrivateNameSymbol(Library library, String name,
+      [js_ast.TemporaryId id]) {
     /// Initializes the JS `Symbol` for the private member [name] in [library].
     ///
     /// If the library is in the current JS module ([_libraries] contains it),
@@ -253,7 +261,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     js_ast.TemporaryId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       idName = idName.replaceAll('.', '_');
-      var id = js_ast.TemporaryId(idName);
+      id ??= js_ast.TemporaryId(idName);
       moduleItems.add(js.statement('const # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
@@ -270,8 +278,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// overridden within the same library.
   @protected
   js_ast.TemporaryId emitClassPrivateNameSymbol(
-      Library library, String className, String memberName) {
-    return emitPrivateNameSymbol(library, '$className.$memberName');
+      Library library, String className, String memberName,
+      [js_ast.TemporaryId id]) {
+    return emitPrivateNameSymbol(library, '$className.$memberName', id);
   }
 
   /// Emits an expression to set the property [nameExpr] on the class [className],

@@ -2877,9 +2877,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitVirtualFieldSymbols(Class c, List<js_ast.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      var symbol = emitClassPrivateNameSymbol(
-          c.enclosingLibrary, getLocalClassName(c), field.name.name);
-      body.add(js.statement('const # = #;', [virtualField, symbol]));
+      // TODO(vsm): Clean up this logic.  See comments on the following method.
+      //
+      // Typically, [emitClassPrivateNameSymbol] creates a new symbol.  If it
+      // is called multiple times, that symbol is cached.  If the former,
+      // assign directly to [virtualField].  If the latter, copy the old
+      // variable to [virtualField].
+      var symbol = emitClassPrivateNameSymbol(c.enclosingLibrary,
+          getLocalClassName(c), field.name.name, virtualField);
+      if (symbol != virtualField) {
+        body.add(js.statement('const # = #;', [virtualField, symbol]));
+      }
     });
   }
 
