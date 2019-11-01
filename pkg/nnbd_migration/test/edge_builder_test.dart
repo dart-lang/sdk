@@ -1377,6 +1377,15 @@ D f(int/*2*/ i) => D(i);
         decoratedTypeAnnotation('int/*1*/').node);
   }
 
+  test_class_metadata() async {
+    await analyze('''
+@deprecated
+class C {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
   test_conditionalExpression_condition_check() async {
     await analyze('''
 int f(bool b, int i, int j) {

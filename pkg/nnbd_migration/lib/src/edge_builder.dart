@@ -455,6 +455,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
+    node.metadata.accept(this);
     node.members.accept(this);
     return null;
   }
