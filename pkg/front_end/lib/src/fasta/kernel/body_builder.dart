@@ -7,6 +7,26 @@ library fasta.body_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show
+        Assert,
+        BlockKind,
+        FormalParameterKind,
+        IdentifierContext,
+        MemberKind,
+        Parser,
+        lengthForToken,
+        lengthOfSpan,
+        optional;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -58,19 +78,6 @@ import '../modifier.dart'
 
 import '../names.dart' show callName, emptyName, minusName, plusName;
 
-import '../parser.dart'
-    show
-        Assert,
-        BlockKind,
-        FormalParameterKind,
-        IdentifierContext,
-        MemberKind,
-        Parser,
-        lengthForToken,
-        lengthOfSpan,
-        offsetForToken,
-        optional;
-
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
 
@@ -83,14 +90,7 @@ import '../quote.dart'
         unescapeLastStringPart,
         unescapeString;
 
-import '../scanner.dart' show Token;
-
-import '../scanner/token.dart'
-    show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
-
 import '../scope.dart';
-
-import '../severity.dart' show Severity;
 
 import '../source/scope_listener.dart'
     show
@@ -102,6 +102,8 @@ import '../source/scope_listener.dart'
         ScopeListener;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../source/stack_listener.dart' show offsetForToken;
 
 import '../source/value_kinds.dart';
 

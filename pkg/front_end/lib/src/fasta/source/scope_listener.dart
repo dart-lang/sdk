@@ -4,9 +4,9 @@
 
 library fasta.scope_listener;
 
-import '../../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/parser/block_kind.dart' show BlockKind;
 
-import '../parser/block_kind.dart' show BlockKind;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../scope.dart' show Scope;
 

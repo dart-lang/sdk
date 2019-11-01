@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show AbstractScanner;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show ScannerResult, scanString;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -17,11 +22,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/scanner.dart'
-    show ScannerResult, scanString;
-import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
-    show AbstractScanner;
-import 'package:front_end/src/scanner/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

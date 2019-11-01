@@ -4,6 +4,14 @@
 
 library fasta.stack_listener;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Listener, MemberKind, Parser, lengthOfSpan;
+
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart'
+    show IdentifierContext;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show AsyncMarker, Expression, FunctionNode, TreeNode;
 
@@ -16,17 +24,10 @@ import '../fasta_codes.dart'
         codeNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
-import '../parser.dart'
-    show Listener, MemberKind, Parser, lengthOfSpan, offsetForToken;
-
-import '../parser/identifier_context.dart' show IdentifierContext;
-
 import '../problems.dart'
     show internalProblem, unhandled, unimplemented, unsupported;
 
 import '../quote.dart' show unescapeString;
-
-import '../scanner.dart' show Token;
 
 import 'value_kinds.dart';
 
@@ -625,4 +626,10 @@ class ParserRecovery {
   ParserRecovery(this.charOffset);
 
   String toString() => "ParserRecovery(@$charOffset)";
+}
+
+/// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
+/// `TreeNode.noOffset`.
+int offsetForToken(Token token) {
+  return token == null ? TreeNode.noOffset : token.offset;
 }

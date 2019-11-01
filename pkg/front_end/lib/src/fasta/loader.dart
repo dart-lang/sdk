@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show Class, DartType, Library;
 
 import 'scope.dart';
@@ -36,8 +38,6 @@ import 'messages.dart'
         templateSourceBodySummary;
 
 import 'problems.dart' show internalProblem, unhandled;
-
-import 'severity.dart' show Severity;
 
 import 'target_implementation.dart' show TargetImplementation;
 

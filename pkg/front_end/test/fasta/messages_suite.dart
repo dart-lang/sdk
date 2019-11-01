@@ -10,6 +10,12 @@ import "dart:io" show File;
 
 import "dart:typed_data" show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show Severity, severityEnumValues;
+
 import 'package:kernel/ast.dart' show Location, Source;
 
 import "package:kernel/target/targets.dart" show TargetFlags;
@@ -24,9 +30,6 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
-
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
 
@@ -35,9 +38,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
-
-import 'package:front_end/src/fasta/severity.dart'
-    show Severity, severityEnumValues;
 
 import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;

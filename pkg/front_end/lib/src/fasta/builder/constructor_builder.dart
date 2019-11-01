@@ -4,9 +4,9 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import '../../scanner/token.dart' show Token;
+import 'package:kernel/ast.dart' hide Variance;
 
 import '../constant_context.dart' show ConstantContext;
 

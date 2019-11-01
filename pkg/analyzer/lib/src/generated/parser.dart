@@ -7,6 +7,12 @@ library analyzer.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart'
+    as fasta;
+import 'package:_fe_analyzer_shared/src/parser/member_kind.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -25,11 +31,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/parser/identifier_context.dart' as fasta;
-import 'package:front_end/src/fasta/parser/member_kind.dart' as fasta;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
-import 'package:front_end/src/fasta/parser/type_info.dart' as fasta;
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;

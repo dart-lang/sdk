@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:meta/meta.dart';
 
 /**

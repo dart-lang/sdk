@@ -4,10 +4,10 @@
 
 library fasta.implicit_type;
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
-
-import '../../scanner/token.dart' show Token;
 
 import '../builder/member_builder.dart';
 

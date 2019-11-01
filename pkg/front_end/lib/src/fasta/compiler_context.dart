@@ -6,13 +6,16 @@ library fasta.compiler_context;
 
 import 'dart:async' show Future, Zone, runZoned;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show StringToken;
+
 import 'package:kernel/ast.dart' show Source;
 
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import 'scanner/token.dart' show StringToken;
 
 import 'command_line_reporting.dart' as command_line_reporting;
 
@@ -20,8 +23,6 @@ import 'colors.dart' show computeEnableColors;
 
 import 'fasta_codes.dart'
     show LocatedMessage, Message, messageInternalProblemMissingContext;
-
-import 'severity.dart' show Severity;
 
 final Object compilerContextKey = new Object();
 

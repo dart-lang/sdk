@@ -4,6 +4,8 @@
 
 library fasta.target_implementation;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show Source;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
@@ -21,8 +23,6 @@ import 'loader.dart' show Loader;
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
 
 import 'rewrite_severity.dart' show rewriteSeverity;
-
-import 'severity.dart' show Severity;
 
 import 'target.dart' show Target;
 

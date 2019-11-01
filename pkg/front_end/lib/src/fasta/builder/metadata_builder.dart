@@ -4,11 +4,11 @@
 
 library fasta.metadata_builder;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
-import '../scanner.dart' show Token;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 

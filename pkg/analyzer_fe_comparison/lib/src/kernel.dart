@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler, getMessageHeaderText;
 import 'package:analyzer_fe_comparison/src/comparison_node.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler, getMessageHeaderText;
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:kernel/ast.dart';

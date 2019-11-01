@@ -4,6 +4,8 @@
 
 library fasta.field_builder;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart' hide MapEntry, Variance;
 
 import '../constant_context.dart' show ConstantContext;
@@ -20,8 +22,6 @@ import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
 import '../problems.dart' show internalProblem;
-
-import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 

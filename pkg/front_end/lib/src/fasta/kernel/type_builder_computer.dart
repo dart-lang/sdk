@@ -4,6 +4,9 @@
 
 library fasta.type_builder_computer;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+
 import 'package:kernel/ast.dart'
     show
         BottomType,
@@ -35,8 +38,6 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_builder.dart';
 
 import '../loader.dart' show Loader;
-
-import '../parser.dart' show FormalParameterKind;
 
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader loader;

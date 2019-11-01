@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show Token, TokenType;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';

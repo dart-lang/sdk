@@ -10,7 +10,21 @@ import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/base/common.dart';
+import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
+    show ClassMemberParser;
+
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Parser, lengthForToken;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show
+        ErrorToken,
+        LanguageVersionToken,
+        ScannerConfiguration,
+        ScannerResult,
+        Token,
+        scan;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -33,6 +47,8 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../api_prototype/file_system.dart';
+
+import '../../base/common.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -96,20 +112,9 @@ import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
 
-import '../parser/class_member_parser.dart' show ClassMemberParser;
-
-import '../parser.dart' show Parser, lengthForToken, offsetForToken;
-
 import '../problems.dart' show internalProblem;
 
-import '../scanner.dart'
-    show
-        ErrorToken,
-        LanguageVersionToken,
-        ScannerConfiguration,
-        ScannerResult,
-        Token,
-        scan;
+import '../source/stack_listener.dart' show offsetForToken;
 
 import '../type_inference/type_inference_engine.dart';
 

@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 

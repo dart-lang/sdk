@@ -10,6 +10,9 @@ import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show isWindows, relativizeUri;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
@@ -29,10 +32,6 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
-
-import 'package:front_end/src/fasta/resolve_input_uri.dart' show isWindows;
-
-import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:kernel/ast.dart' show Component, Library;
 

@@ -4,6 +4,11 @@
 
 library fasta.diet_listener;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Assert, DeclarationKind, MemberKind, Parser, optional;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show
         AsyncMarker,
@@ -19,8 +24,6 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
-
-import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -51,9 +54,6 @@ import '../fasta_codes.dart'
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
-import '../parser.dart'
-    show Assert, DeclarationKind, MemberKind, Parser, optional;
 
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;

@@ -7,6 +7,9 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:kernel/kernel.dart' show Component, Library;
@@ -15,8 +18,6 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
-
-import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -33,10 +34,13 @@ import 'compiler_state.dart' show InitializedCompilerState;
 import 'modular_incremental_compilation.dart' as modular
     show initializeIncrementalCompiler;
 
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
+
+export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 export '../api_prototype/compiler_options.dart'
     show parseExperimentalFlags, parseExperimentalArguments;
-
-export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
@@ -47,8 +51,6 @@ export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
 export '../fasta/kernel/utils.dart' show serializeComponent;
-
-export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 

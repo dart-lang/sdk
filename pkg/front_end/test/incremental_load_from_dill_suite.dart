@@ -6,13 +6,15 @@ import 'dart:async' show Future;
 
 import 'dart:io' show Directory, File;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -35,8 +37,6 @@ import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 

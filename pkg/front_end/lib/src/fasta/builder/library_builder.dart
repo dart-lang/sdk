@@ -4,6 +4,8 @@
 
 library fasta.library_builder;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show Combinator;
@@ -22,8 +24,6 @@ import '../messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
-
-import '../severity.dart' show Severity;
 
 import '../scope.dart';
 

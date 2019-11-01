@@ -6,7 +6,10 @@ library fasta.source_library_builder;
 
 import 'dart:convert' show jsonEncode;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -58,8 +61,6 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
-
-import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
@@ -169,6 +170,8 @@ import '../kernel/kernel_builder.dart'
         compareProcedures,
         toKernelCombinators;
 
+import '../kernel/kernel_shadow_ast.dart';
+
 import '../kernel/metadata_collector.dart';
 
 import '../kernel/type_algorithms.dart'
@@ -199,8 +202,6 @@ import '../names.dart' show indexSetName;
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
-
-import '../severity.dart' show Severity;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 

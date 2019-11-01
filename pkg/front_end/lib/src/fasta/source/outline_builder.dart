@@ -4,6 +4,18 @@
 
 library fasta.outline_builder;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show
+        Assert,
+        DeclarationKind,
+        FormalParameterKind,
+        IdentifierContext,
+        lengthOfSpan,
+        MemberKind,
+        optional;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
 import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
@@ -79,22 +91,9 @@ import '../operator.dart'
         operatorToString,
         operatorRequiredArgumentCount;
 
-import '../parser.dart'
-    show
-        Assert,
-        DeclarationKind,
-        FormalParameterKind,
-        IdentifierContext,
-        lengthOfSpan,
-        MemberKind,
-        offsetForToken,
-        optional;
-
 import '../problems.dart' show unhandled;
 
 import '../quote.dart' show unescapeString;
-
-import '../scanner.dart' show Token;
 
 import 'source_library_builder.dart'
     show
@@ -104,7 +103,12 @@ import 'source_library_builder.dart'
         SourceLibraryBuilder;
 
 import 'stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery, StackListener;
+    show
+        FixedNullableList,
+        NullValue,
+        ParserRecovery,
+        StackListener,
+        offsetForToken;
 
 import 'value_kinds.dart';
 

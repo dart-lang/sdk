@@ -10,6 +10,8 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import "package:kernel/ast.dart" show Component;
 
 import "package:testing/testing.dart"
@@ -44,8 +46,6 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;

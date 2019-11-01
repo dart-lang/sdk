@@ -7,9 +7,12 @@ library fasta.expression_generator;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart';
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show lengthForToken, lengthOfSpan;
 
-import '../../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
+import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
@@ -48,11 +51,11 @@ import '../names.dart'
         rightShiftName,
         tripleShiftName;
 
-import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
-
 import '../problems.dart';
 
 import '../scope.dart';
+
+import '../source/stack_listener.dart' show offsetForToken;
 
 import 'body_builder.dart' show noLocation;
 

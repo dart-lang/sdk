@@ -18,9 +18,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:analysis_tool/tools.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';

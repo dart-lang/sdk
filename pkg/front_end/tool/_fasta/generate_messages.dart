@@ -8,11 +8,12 @@ import 'dart:io';
 
 import 'dart:isolate';
 
-import 'package:yaml/yaml.dart' show loadYaml;
+import "package:_fe_analyzer_shared/src/messages/severity.dart"
+    show severityEnumNames;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import "package:front_end/src/fasta/severity.dart" show severityEnumNames;
+import 'package:yaml/yaml.dart' show loadYaml;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();
@@ -25,8 +26,8 @@ main(List<String> arguments) async {
 }
 
 Future<Uri> computeSharedGeneratedFile() {
-  return Isolate.resolvePackageUri(
-      Uri.parse('package:front_end/src/fasta/fasta_codes_generated.dart'));
+  return Isolate.resolvePackageUri(Uri.parse(
+      'package:_fe_analyzer_shared/src/messages/codes_generated.dart'));
 }
 
 Future<Uri> computeCfeGeneratedFile() {
@@ -63,7 +64,7 @@ Future<Messages> generateMessagesFiles() async {
 
   sharedMessages.writeln(preamble);
   sharedMessages.writeln("""
-part of fasta.codes.shared;
+part of _fe_analyzer_shared.messages.codes;
 """);
 
   cfeMessages.writeln(preamble);

@@ -4,6 +4,8 @@
 
 library fasta.named_type_builder;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../fasta_codes.dart'
@@ -27,8 +29,6 @@ import '../messages.dart'
 import '../problems.dart' show unhandled;
 
 import '../scope.dart';
-
-import '../severity.dart' show Severity;
 
 import 'builder.dart';
 import 'builtin_type_builder.dart';

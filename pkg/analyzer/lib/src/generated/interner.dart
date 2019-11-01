@@ -4,9 +4,9 @@
 
 import 'dart:collection';
 
-import 'package:front_end/src/scanner/interner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/interner.dart';
 
-export 'package:front_end/src/scanner/interner.dart'
+export 'package:_fe_analyzer_shared/src/scanner/interner.dart'
     show Interner, NullInterner;
 
 /**

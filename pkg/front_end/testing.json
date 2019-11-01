@@ -397,7 +397,6 @@
     "options": "analysis_options_no_lints.yaml",
     "uris": [
       "lib/",
-      "../analyzer/lib/src/generated/parser_fasta.dart",
       "tool/",
       "test/",
       "../kernel/lib/",

@@ -15,16 +15,20 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 
 import 'package:front_end/src/fasta/messages.dart' show Message;
 
-import 'package:front_end/src/fasta/parser.dart'
-    show Parser, lengthOfSpan, offsetForToken;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Parser, lengthOfSpan;
 
-import 'package:front_end/src/fasta/scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 
-import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
+import 'package:front_end/src/fasta/source/stack_listener.dart'
+    show offsetForToken;
+
 import 'package:kernel/ast.dart';
 
 import 'package:testing/testing.dart'

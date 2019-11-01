@@ -4,6 +4,9 @@
 
 /// Test of toString on generators.
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show Token, scanString;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart'
@@ -46,8 +49,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/relativize.dart';
 import 'package:expect/expect.dart' show Expect;
-
 import 'package:front_end/src/fasta/resolve_input_uri.dart';
 
 test() {

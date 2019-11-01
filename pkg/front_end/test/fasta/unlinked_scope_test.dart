@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler;
+
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show Token, scanString;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart' show Expression, ProcedureKind;
@@ -10,9 +18,6 @@ import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -30,10 +35,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 
 import 'package:front_end/src/fasta/kernel/unlinked_scope.dart'
     show UnlinkedScope;
-
-import 'package:front_end/src/fasta/parser.dart' show Parser;
-
-import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/scope.dart' show Scope;
 

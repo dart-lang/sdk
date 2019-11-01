@@ -13,7 +13,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 import 'memory_compiler.dart';
 import 'output_collector.dart';
 

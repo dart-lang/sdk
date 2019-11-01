@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, getMessageCodeObject;
+
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
 
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;

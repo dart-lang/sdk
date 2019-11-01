@@ -4,21 +4,22 @@
 
 library fasta.formal_parameter_builder;
 
-import 'package:kernel/ast.dart' show Expression, VariableDeclaration;
-
-import '../parser.dart' show FormalParameterKind;
-
-import '../parser/formal_parameter_kind.dart'
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show
         isMandatoryFormalParameterKind,
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
+import 'package:kernel/ast.dart' show Expression, VariableDeclaration;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../modifier.dart';
-
-import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 

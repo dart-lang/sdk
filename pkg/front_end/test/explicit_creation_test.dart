@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/base/processed_options.dart';
@@ -22,7 +24,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart' as fasta;
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/constness.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/severity.dart';
 import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
@@ -32,7 +33,6 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';

@@ -2,22 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ExtensionDeclarationImpl,
-        MixinDeclarationImpl;
-import 'package:analyzer/src/fasta/error_converter.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/messages.dart'
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         LocatedMessage,
         Message,
@@ -41,7 +26,7 @@ import 'package:front_end/src/fasta/messages.dart'
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateUnexpectedToken;
-import 'package:front_end/src/fasta/parser.dart'
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
@@ -51,15 +36,31 @@ import 'package:front_end/src/fasta/parser.dart'
         MemberKind,
         optional,
         Parser;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show SyntheticStringToken, SyntheticToken;
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show
+        ClassDeclarationImpl,
+        CompilationUnitImpl,
+        ExtensionDeclarationImpl,
+        MixinDeclarationImpl;
+import 'package:analyzer/src/fasta/error_converter.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/quote.dart';
-import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart'
-    show SyntheticStringToken, SyntheticToken;
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();

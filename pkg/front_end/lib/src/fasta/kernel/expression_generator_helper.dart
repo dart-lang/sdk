@@ -4,7 +4,7 @@
 
 library fasta.expression_generator_helper;
 
-import '../../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
 import '../builder/library_builder.dart';

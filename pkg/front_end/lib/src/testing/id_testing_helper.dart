@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -10,7 +11,6 @@ import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
 import '../fasta/messages.dart' show FormattedMessage;
-import '../fasta/severity.dart' show Severity;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id.dart'

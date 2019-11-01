@@ -4,9 +4,10 @@
 
 library fasta.testing.scanner_chain;
 
-import 'package:front_end/src/fasta/scanner.dart' show ScannerResult, scan;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show ScannerResult, scan;
 
-import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFile;
+import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
 
 import 'package:testing/testing.dart'
     show ChainContext, Future, Result, Step, TestDescription;

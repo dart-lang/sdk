@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
+import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
+    as fasta;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
+    show ErrorToken;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
@@ -16,13 +25,6 @@ import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:front_end/src/fasta/parser/async_modifier.dart';
-import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner.dart'
-    show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
-import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

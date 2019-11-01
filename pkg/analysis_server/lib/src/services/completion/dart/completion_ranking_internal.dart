@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:front_end/src/fasta/scanner.dart';
 
 /// Constructs a [CompletionSuggestion] object.
 CompletionSuggestion createCompletionSuggestion(

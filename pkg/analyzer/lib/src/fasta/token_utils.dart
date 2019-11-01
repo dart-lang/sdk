@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/scanner/token.dart' show CommentToken, Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show CommentToken, Token;
 
 /// Search for the token before [target] starting the search with [start].
 /// Return `null` if [target] is a comment token

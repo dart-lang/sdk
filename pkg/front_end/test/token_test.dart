@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, scanString;
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/scanner/token.dart' as analyzer;
-import 'package:front_end/src/scanner/errors.dart'
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show ScannerErrorCode, translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

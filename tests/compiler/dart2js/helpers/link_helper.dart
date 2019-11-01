@@ -4,8 +4,8 @@
 
 library link_helper;
 
-import 'package:front_end/src/fasta/util/link.dart';
-import 'package:front_end/src/fasta/util/link_implementation.dart';
+import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:_fe_analyzer_shared/src/util/link_implementation.dart';
 
 Link LinkFromList(List list) {
   switch (list.length) {

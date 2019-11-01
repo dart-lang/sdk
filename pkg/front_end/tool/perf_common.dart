@@ -7,21 +7,21 @@ library front_end.tool.perf_common;
 
 import 'dart:io' show exitCode, stderr;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 
 import 'package:vm/target/flutter.dart' show FlutterTarget;
 
 import 'package:vm/target/vm.dart' show VmTarget;
 
-import 'package:front_end/src/api_prototype/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
-
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.

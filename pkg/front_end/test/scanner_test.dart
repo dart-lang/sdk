@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner, ScannerConfiguration;
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/reader.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

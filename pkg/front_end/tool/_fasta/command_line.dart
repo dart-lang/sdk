@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:io' show exit, stderr;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
@@ -43,8 +45,6 @@ import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
 
 import 'package:front_end/src/fasta/resolve_input_uri.dart'
     show resolveInputUri;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;

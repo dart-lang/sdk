@@ -8,18 +8,18 @@ import 'dart:io' show File;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/fasta/command_line_reporting.dart'
-    as command_line_reporting;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show ErrorToken;
 
-import 'package:front_end/src/fasta/scanner.dart' show ErrorToken;
-
-import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import 'package:front_end/src/scanner/token.dart'
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, KeywordToken, BeginToken;
 
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
 
 import 'package:kernel/kernel.dart';
 

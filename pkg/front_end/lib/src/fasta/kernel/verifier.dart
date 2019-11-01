@@ -4,6 +4,8 @@
 
 library fasta.verifier;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart'
     show
         AsExpression,
@@ -33,8 +35,6 @@ import '../compiler_context.dart' show CompilerContext;
 
 import '../fasta_codes.dart'
     show LocatedMessage, noLength, templateInternalProblemVerificationError;
-
-import '../severity.dart' show Severity;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
