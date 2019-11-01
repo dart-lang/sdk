@@ -300,6 +300,11 @@ class InfoBuilder {
     List<RegionDetail> details = [];
     for (var edge in edgeInfos) {
       EdgeOriginInfo origin = info.edgeOrigin[edge];
+      if (origin == null) {
+        // TODO(https://github.com/dart-lang/sdk/issues/39203): I think this
+        //  shouldn't happen? But it does on the path package.
+        continue;
+      }
       NavigationTarget target =
           _targetForNode(origin.source.fullName, origin.node);
       if (origin.kind == EdgeOriginKind.expressionChecks) {
