@@ -117,11 +117,9 @@ bool _supportsAnsiEscapes(sink) {
   }
 }
 
-typedef void _StringToNullFunction(String s);
-
 /// Callback used by [_computeEnableColors] to report why it has or hasn't
 /// chosen to use ANSI colors.
-_StringToNullFunction printEnableColorsReason = (_) {};
+void Function(String) printEnableColorsReason = (_) {};
 
 /// True if we should enable colors in output.
 ///
