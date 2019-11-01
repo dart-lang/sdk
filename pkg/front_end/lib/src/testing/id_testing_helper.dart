@@ -3,6 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/testing/id.dart'
+    show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
+    show
+        CompiledData,
+        DataInterpreter,
+        MemberAnnotations,
+        RunTestFunction,
+        TestData,
+        cfeMarker,
+        cfeWithNnbdMarker,
+        checkCode;
 import 'package:kernel/ast.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -13,19 +25,7 @@ import '../base/common.dart';
 import '../fasta/messages.dart' show FormattedMessage;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
-import 'id.dart'
-    show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
 import 'id_extractor.dart' show DataExtractor;
-import 'id_testing.dart'
-    show
-        CompiledData,
-        DataInterpreter,
-        MemberAnnotations,
-        RunTestFunction,
-        TestData,
-        cfeMarker,
-        cfeWithNnbdMarker,
-        checkCode;
 import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;

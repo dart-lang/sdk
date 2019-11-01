@@ -18,14 +18,15 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 
+import 'package:_fe_analyzer_shared/src/util/colors.dart'
+    show enableColors, green, magenta, red;
+
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
 import 'package:kernel/ast.dart' show Location, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
-
-import 'colors.dart' show enableColors, green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 

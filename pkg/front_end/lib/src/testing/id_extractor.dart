@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
-import 'id.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
 Id computeMemberId(Member node) {

@@ -10,6 +10,8 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show Directory, File, Platform;
 
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
         CompilerOptions,
@@ -34,8 +36,6 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/colors.dart' as colors;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

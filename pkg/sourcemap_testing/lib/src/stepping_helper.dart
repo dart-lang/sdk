@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:expect/minitest.dart';
-import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 

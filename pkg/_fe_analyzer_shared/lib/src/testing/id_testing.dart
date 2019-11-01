@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'annotated_code_helper.dart';
 import 'id.dart';
-import '../fasta/colors.dart' as colors;
+import '../util/colors.dart' as colors;
 
 const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';

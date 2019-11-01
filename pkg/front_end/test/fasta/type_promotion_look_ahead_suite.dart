@@ -10,12 +10,12 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/fasta/builder/builder.dart';
-
-import 'package:front_end/src/fasta/colors.dart' as colors;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

@@ -10,6 +10,8 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File, IOSink;
 
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
 
@@ -27,8 +29,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/external_state_snapshot.dart'
     show ExternalStateSnapshot;
-
-import 'package:front_end/src/fasta/colors.dart' as colors;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

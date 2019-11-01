@@ -5,6 +5,10 @@
 // TODO(paulberry,johnniwinther): Use the code for extraction of test data from
 // annotated code from CFE.
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
+import 'package:_fe_analyzer_shared/src/testing/id.dart'
+    show ActualData, Id, IdValue, MemberId, NodeId;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
@@ -20,10 +24,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:front_end/src/testing/annotated_code_helper.dart';
-import 'package:front_end/src/testing/id.dart'
-    show ActualData, Id, IdValue, MemberId, NodeId;
-import 'package:front_end/src/testing/id_testing.dart';
 
 /// Test configuration used for testing the analyzer with constant evaluation.
 final TestConfig analyzerConstantUpdate2018Config = TestConfig(

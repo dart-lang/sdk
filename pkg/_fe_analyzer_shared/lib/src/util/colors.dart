@@ -10,8 +10,6 @@ import 'dart:convert' show jsonEncode;
 
 import 'dart:io' show Platform, Process, ProcessResult, stderr, stdout;
 
-import 'compiler_context.dart' show CompilerContext;
-
 /// ANSI/xterm termcap for setting default colors. Output from Unix
 /// command-line program `tput op`.
 const String DEFAULT_COLOR = "\x1b[39;49m";
