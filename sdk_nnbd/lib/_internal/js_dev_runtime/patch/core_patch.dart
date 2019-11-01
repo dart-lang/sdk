@@ -411,6 +411,13 @@ class List<E> {
   }
 
   @patch
+  factory List.empty({bool growable = false}) {
+    var list = JSArray<E>.of(JS('', 'new Array()'));
+    if (!growable) JSArray.markFixedList(list);
+    return list;
+  }
+
+  @patch
   factory List.filled(@nullCheck int length, E fill, {bool growable = false}) {
     var list = JSArray<E>.of(JS('', 'new Array(#)', length));
     JS('', '#.fill(#)', list, fill);
