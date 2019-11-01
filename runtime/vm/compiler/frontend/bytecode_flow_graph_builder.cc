@@ -1065,13 +1065,9 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   // A DebugStepCheck is performed as part of the calling stub.
 
-  const UnlinkedCall& selector =
-      UnlinkedCall::Cast(ConstantAt(DecodeOperandD()).value());
-
+  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
   const ArgumentsDescriptor arg_desc(
-      Array::Handle(Z, selector.args_descriptor()));
-
-  const String& name = String::ZoneHandle(Z, selector.target_name());
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value()));
 
   Token::Kind token_kind;
   intptr_t checked_argument_count;
@@ -1331,18 +1327,6 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     return;
   }
   PushConstant(operand);
-  code_ += B->LoadStaticField();
-}
-
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-              "Cleanup PushStatic bytecode instruction");
-void BytecodeFlowGraphBuilder::BuildPushStatic() {
-  // Note: Field object is both pushed into the stack and
-  // available in constant pool entry D.
-  // TODO(alexmarkov): clean this up. If we stop pushing field object
-  // explicitly, we might need the following code to get it from constant
-  // pool: PushConstant(ConstantAt(DecodeOperandD()));
-
   code_ += B->LoadStaticField();
 }
 

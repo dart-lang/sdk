@@ -1971,9 +1971,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawUnlinkedCall* selector = RAW_CAST(UnlinkedCall, LOAD_CONSTANT(kidx));
-      RawString* target_name = selector->ptr()->target_name_;
-      argdesc_ = selector->ptr()->args_descriptor_;
+      RawString* target_name = RAW_CAST(String, LOAD_CONSTANT(kidx));
+      argdesc_ = RAW_CAST(Array, LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -2244,16 +2243,6 @@ SwitchDispatch:
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
-    DISPATCH();
-  }
-
-  {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-                  "Cleanup PushStatic bytecode instruction");
-    BYTECODE(PushStatic, D);
-    RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    // Note: field is also on the stack, hence no increment.
-    *SP = field->ptr()->value_.static_value_;
     DISPATCH();
   }
 
