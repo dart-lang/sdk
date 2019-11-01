@@ -847,9 +847,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
                                               : " no-causal_async_stacks");
 
-    buffer.AddString((FLAG_enable_interpreter || FLAG_use_bytecode_compiler)
-                         ? " bytecode"
-                         : " no-bytecode");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

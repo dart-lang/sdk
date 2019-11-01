@@ -5887,7 +5887,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
 
 void Function::AttachBytecode(const Bytecode& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
-  ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
   ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
   if (!value.InVMIsolateHeap()) {

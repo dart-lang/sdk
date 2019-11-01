@@ -430,9 +430,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
     scripts.SetAt(index, script);
   }
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    bytecode_metadata_helper_.ReadBytecodeComponent();
-  }
+  bytecode_metadata_helper_.ReadBytecodeComponent();
 }
 
 KernelLoader::KernelLoader(const Script& script,
@@ -734,12 +732,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    bool libraries_loaded = false;
-    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-      libraries_loaded = bytecode_metadata_helper_.ReadLibraries();
-    }
-
-    if (!libraries_loaded) {
+    if (!bytecode_metadata_helper_.ReadLibraries()) {
       // Note that `problemsAsJson` on Component is implicitly skipped.
       const intptr_t length = program_->library_count();
       for (intptr_t i = 0; i < length; i++) {
@@ -785,11 +778,9 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 void KernelLoader::LoadLibrary(const Library& library) {
   ASSERT(!library.Loaded());
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    bytecode_metadata_helper_.ReadLibrary(library);
-    if (library.Loaded()) {
-      return;
-    }
+  bytecode_metadata_helper_.ReadLibrary(library);
+  if (library.Loaded()) {
+    return;
   }
   const auto& uri = String::Handle(Z, library.url());
   const intptr_t num_libraries = program_->library_count();
@@ -916,11 +907,9 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
                                            bool* is_empty_program,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
-            modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
-      return;
-    }
+  if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
+          modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
+    return;
   }
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);

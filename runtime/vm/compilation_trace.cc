@@ -449,9 +449,6 @@ static char* CompilerFlags() {
   ADD_FLAG(causal_async_stacks);
   ADD_FLAG(fields_may_be_reset);
 #undef ADD_FLAG
-  buffer.AddString(FLAG_use_bytecode_compiler || FLAG_enable_interpreter
-                       ? " bytecode"
-                       : " no-bytecode");
 
   return buffer.Steal();
 }

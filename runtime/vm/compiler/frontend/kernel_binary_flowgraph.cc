@@ -993,13 +993,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
   if (function.is_declared_in_bytecode()) {
-    if (!(FLAG_use_bytecode_compiler || FLAG_enable_interpreter)) {
-      FATAL1(
-          "Cannot run bytecode function %s: specify --enable-interpreter or "
-          "--use-bytecode-compiler",
-          function.ToFullyQualifiedCString());
-    }
-
     bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
 
     switch (function.kind()) {
