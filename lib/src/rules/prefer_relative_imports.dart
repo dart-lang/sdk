@@ -4,12 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:yaml/yaml.dart';
+import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../rules/implementation_imports.dart';
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
@@ -34,22 +32,6 @@ import 'package:my_package/bar.dart';
 
 ''';
 
-YamlMap _parseYaml(String content) {
-  if (content == null) {
-    return YamlMap();
-  }
-  try {
-    YamlNode doc = loadYamlNode(content);
-    if (doc is YamlMap) {
-      return doc;
-    }
-    return YamlMap();
-    // ignore: avoid_catches_without_on_clauses
-  } catch (_) {
-    return YamlMap();
-  }
-}
-
 class PreferRelativeImports extends LintRule implements NodeLintRule {
   PreferRelativeImports()
       : super(
@@ -72,8 +54,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
 
   bool isInLibFolder;
-  File pubspecFile;
-  YamlMap parsedPubspec;
 
   _Visitor(this.rule, this.context);
 
@@ -82,45 +62,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!isInLibFolder) return false;
 
     // Is it a package: import?
-    String importUri = node?.uri?.stringValue;
-    if (importUri == null) return false;
+    final importUri = node.uriContent;
+    if (importUri?.startsWith('package:') != true) return false;
 
-    Uri uri;
-    try {
-      uri = Uri.parse(importUri);
-      if (!isPackage(uri)) return false;
-    } on FormatException catch (_) {
-      return false;
-    }
+    final source = node.uriSource;
+    if (source == null) return false;
 
-    // Is the package: import referencing the current package?
-    var segments = uri.pathSegments;
-    if (segments.isEmpty) return false;
-
-    if (parsedPubspec == null) {
-      String content;
-      try {
-        content = pubspecFile.readAsStringSync();
-        // ignore: avoid_catches_without_on_clauses
-      } catch (_) {}
-      parsedPubspec = _parseYaml(content);
-    }
-
-    return parsedPubspec['name'] == segments[0];
+    // todo (pq): context.package.contains(source) should work (but does not)
+    return path.isWithin(context.package.root, source.fullName);
   }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
     isInLibFolder = isInLibDir(node, context.package);
-
-    pubspecFile = locatePubspecFile(node);
-    parsedPubspec = null;
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (pubspecFile == null) return;
-
     if (isPackageSelfReference(node)) {
       rule.reportLint(node.uri);
     }

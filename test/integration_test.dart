@@ -686,8 +686,12 @@ defineTests() {
           '--packages',
           'test/_data/prefer_relative_imports/_packages'
         ], LinterOptions());
-        expect(collectingOut.trim(),
-            contains('3 files analyzed, 1 issue found, in'));
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'main.dart 1:8',
+              '4 files analyzed, 1 issue found, in',
+            ]));
         expect(exitCode, 1);
       });
     });
