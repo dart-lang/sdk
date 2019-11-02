@@ -1,93 +1,93 @@
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:35:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:37:5: Context: Write to c@714
   c = Extension(c)?.field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:40:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:45:5: Context: Write to c@714
   c = Extension(c)?.field.field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:43:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:48:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:45:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:50:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:47:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:52:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:54:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:59:5: Context: Write to c@714
   c = Extension(c)?.field.field.field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:57:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:62:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field.field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:59:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:64:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field.field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:61:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:66:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field.method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:67:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:72:5: Context: Write to c@714
   c = Extension(c)?.field.field = new Class().field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:69:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:74:5: Context: Write to c@714
   c = Extension(c)?.field.field = new Class().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:71:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:76:5: Context: Write to c@714
   c = Extension(c)?.field.field = new Class().method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:73:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:78:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field = new Class().field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:75:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:80:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field = new Class().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:77:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:82:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().field = new Class().method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:79:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:84:5: Context: Write to c@714
   c = Extension(c)?.method().field = new Class().field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:81:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:86:5: Context: Write to c@714
   c = Extension(c)?.method().field = new Class().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:83:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:88:5: Context: Write to c@714
   c = Extension(c)?.method().field = new Class().method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:87:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:92:5: Context: Write to c@714
   c = Extension(c)?.field.method().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:90:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:95:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().method().field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:92:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:97:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().method().field = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:94:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:99:5: Context: Write to c@714
   c = Extension(c)?.field = new Class().method().method();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:107:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:112:5: Context: Write to c@714
   c = Extension(c)?.field[c] = new Class();
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:110:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:115:5: Context: Write to c@714
   c = Extension(c)?.field[c] += 0;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:114:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:119:5: Context: Write to c@714
   c = Extension(c)?.field[c]++;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:116:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:121:5: Context: Write to c@714
   c = ++Extension(c)?.field[c];
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:123:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:128:5: Context: Write to c@714
   c = Extension(c)?.field += 0;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:125:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:130:5: Context: Write to c@714
   c = Extension(c)?.field.field += 0;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:129:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:134:5: Context: Write to c@714
   c = Extension(c)?.field++;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:131:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:136:5: Context: Write to c@714
   c = ++Extension(c)?.field;
     ^
-pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:136:5: Context: Write to c@681
+pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:141:5: Context: Write to c@714
   c = Extension(c)?.field ??= c;
     ^

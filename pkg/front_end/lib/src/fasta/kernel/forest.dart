@@ -675,6 +675,34 @@ class Forest {
         readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = fileOffset;
   }
+
+  EqualsExpression createEquals(
+      int fileOffset, Expression left, Expression right,
+      {bool isNot}) {
+    assert(fileOffset != null);
+    assert(isNot != null);
+    return new EqualsExpression(left, right, isNot: isNot)
+      ..fileOffset = fileOffset;
+  }
+
+  BinaryExpression createBinary(
+      int fileOffset, Expression left, Name binaryName, Expression right) {
+    assert(fileOffset != null);
+    return new BinaryExpression(left, binaryName, right)
+      ..fileOffset = fileOffset;
+  }
+
+  UnaryExpression createUnary(
+      int fileOffset, Name unaryName, Expression expression) {
+    assert(fileOffset != null);
+    return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
+  }
+
+  ParenthesizedExpression createParenthesized(
+      int fileOffset, Expression expression) {
+    assert(fileOffset != null);
+    return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

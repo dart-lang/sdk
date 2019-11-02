@@ -38,5 +38,7 @@ static method implicit() → dynamic
   ;
 static method explicit() → dynamic
   ;
+static method errors(self::Complex* c) → void
+  ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

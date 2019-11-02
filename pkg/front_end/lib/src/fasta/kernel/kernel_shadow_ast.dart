@@ -243,6 +243,7 @@ class ClassInferenceInfo {
 }
 
 enum InternalExpressionKind {
+  Binary,
   Cascade,
   CompoundExtensionIndexSet,
   CompoundExtensionSet,
@@ -250,6 +251,7 @@ enum InternalExpressionKind {
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  Equals,
   ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
@@ -268,10 +270,12 @@ enum InternalExpressionKind {
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
+  Parenthesized,
   PropertyPostIncDec,
   StaticPostIncDec,
   SuperIndexSet,
   SuperPostIncDec,
+  Unary,
 }
 
 /// Common base class for internal expressions.
@@ -2532,6 +2536,124 @@ class ExtensionTearOff extends InternalExpression {
     if (arguments != null) {
       arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for an equals or not-equals expression.
+class EqualsExpression extends InternalExpression {
+  Expression left;
+  Expression right;
+  bool isNot;
+
+  EqualsExpression(this.left, this.right, {this.isNot})
+      : assert(isNot != null) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Equals;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a binary expression.
+class BinaryExpression extends InternalExpression {
+  Expression left;
+  Name binaryName;
+  Expression right;
+
+  BinaryExpression(this.left, this.binaryName, this.right) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Binary;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a unary expression.
+class UnaryExpression extends InternalExpression {
+  Name unaryName;
+  Expression expression;
+
+  UnaryExpression(this.unaryName, this.expression) {
+    expression?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Unary;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a parenthesized expression.
+class ParenthesizedExpression extends InternalExpression {
+  Expression expression;
+
+  ParenthesizedExpression(this.expression) {
+    expression?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Parenthesized;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
     }
   }
 }

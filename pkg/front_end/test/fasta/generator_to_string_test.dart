@@ -38,7 +38,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show LoadLibraryBuilder, UnlinkedDeclaration;
+    show LoadLibraryBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -196,10 +196,6 @@ main() {
         new TypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator.internal(helper, token, name));
-    check(
-        "UnlinkedGenerator(offset: 4, name: foo)",
-        new UnlinkedGenerator(
-            helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
     check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
         prefixUseGenerator);
     check(

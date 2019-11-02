@@ -298,7 +298,10 @@ class ClosureContext {
 
   void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
       ExpressionInferenceResult expressionResult) {
-    if (!isGenerator) return;
+    if (!isGenerator) {
+      node.expression = expressionResult.expression..parent = node;
+      return;
+    }
     DartType expectedType = node.isYieldStar
         ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
         : returnOrYieldContext;
@@ -1994,14 +1997,14 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  StaticInvocation transformExtensionMethodInvocation(ObjectAccessTarget target,
-      Expression expression, Expression receiver, Arguments arguments) {
+  StaticInvocation transformExtensionMethodInvocation(int fileOffset,
+      ObjectAccessTarget target, Expression receiver, Arguments arguments) {
     assert(target.isExtensionMember);
     Procedure procedure = target.member;
     return engine.forest.createStaticInvocation(
-        expression.fileOffset,
+        fileOffset,
         target.member,
-        arguments = engine.forest.createArgumentsForExtensionMethod(
+        engine.forest.createArgumentsForExtensionMethod(
             arguments.fileOffset,
             target.inferredExtensionTypeArguments.length,
             procedure.function.typeParameters.length -
@@ -2084,7 +2087,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Arguments arguments = node.arguments;
     if (target.isExtensionMember) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
-          target, node, receiver, node.arguments);
+          node.fileOffset, target, receiver, node.arguments);
       arguments = staticInvocation.arguments;
       replacement = staticInvocation;
     } else {
@@ -2586,6 +2589,20 @@ class TypeInferrerImpl implements TypeInferrer {
               binaryName.name, resolveTypeParameter(leftType)),
           fileOffset,
           binaryName.name.length);
+    }
+  }
+
+  Expression createMissingUnary(int fileOffset, Expression expression,
+      DartType expressionType, Name unaryName) {
+    if (isTopLevel) {
+      return new UnaryExpression(unaryName, expression)
+        ..fileOffset = fileOffset;
+    } else {
+      return helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              unaryName.name, resolveTypeParameter(expressionType)),
+          fileOffset,
+          unaryName.name == unaryMinusName.name ? 1 : unaryName.name.length);
     }
   }
 }

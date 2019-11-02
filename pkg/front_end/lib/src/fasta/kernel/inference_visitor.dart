@@ -39,6 +39,8 @@ class InferenceVisitor
       Expression node, DartType typeContext) {
     if (node is InternalExpression) {
       switch (node.kind) {
+        case InternalExpressionKind.Binary:
+          return visitBinary(node, typeContext);
         case InternalExpressionKind.Cascade:
           return visitCascade(node, typeContext);
         case InternalExpressionKind.CompoundExtensionIndexSet:
@@ -53,6 +55,8 @@ class InferenceVisitor
           return visitCompoundSuperIndexSet(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.Equals:
+          return visitEquals(node, typeContext);
         case InternalExpressionKind.ExtensionIndexSet:
           return visitExtensionIndexSet(node, typeContext);
         case InternalExpressionKind.ExtensionTearOff:
@@ -89,6 +93,8 @@ class InferenceVisitor
           return visitNullAwarePropertyGet(node, typeContext);
         case InternalExpressionKind.NullAwarePropertySet:
           return visitNullAwarePropertySet(node, typeContext);
+        case InternalExpressionKind.Parenthesized:
+          return visitParenthesized(node, typeContext);
         case InternalExpressionKind.PropertyPostIncDec:
           return visitPropertyPostIncDec(node, typeContext);
         case InternalExpressionKind.StaticPostIncDec:
@@ -97,6 +103,8 @@ class InferenceVisitor
           return visitSuperIndexSet(node, typeContext);
         case InternalExpressionKind.SuperPostIncDec:
           return visitSuperPostIncDec(node, typeContext);
+        case InternalExpressionKind.Unary:
+          return visitUnary(node, typeContext);
       }
     }
     return _unhandledExpression(node, typeContext);
@@ -3076,6 +3084,26 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
+  /// Creates an equals expression of using [left] and [right] as operands.
+  ///
+  /// [fileOffset] is used as the file offset for created nodes. [leftType] is
+  /// the already inferred type of the [left] expression. The inferred type of
+  /// [right] is computed by this method. If [isNot] is `true` the result is
+  /// negated to perform a != operation.
+  // TODO(johnniwinther): Extract handle of == from [_computeBinaryExpression].
+  ExpressionInferenceResult _computeEqualsExpression(
+      int fileOffset, Expression left, DartType leftType, Expression right,
+      {bool isNot}) {
+    assert(isNot != null);
+    ExpressionInferenceResult equalsResult =
+        _computeBinaryExpression(fileOffset, left, leftType, equalsName, right);
+    if (isNot) {
+      equalsResult = new ExpressionInferenceResult(equalsResult.inferredType,
+          new Not(equalsResult.expression)..fileOffset = fileOffset);
+    }
+    return equalsResult;
+  }
+
   /// Creates a binary expression of the binary operator with [binaryName] using
   /// [left] and [right] as operands.
   ///
@@ -3096,14 +3124,29 @@ class InferenceVisitor
     DartType rightType =
         inferrer.getPositionalParameterTypeForTarget(binaryTarget, leftType, 0);
 
-    ExpressionInferenceResult rightResult =
-        inferrer.inferExpression(right, rightType, true, isVoidAllowed: true);
+    bool isOverloadedArithmeticOperatorAndType =
+        inferrer.isOverloadedArithmeticOperatorAndType(binaryTarget, leftType);
+
+    bool typeNeeded =
+        !inferrer.isTopLevel || isOverloadedArithmeticOperatorAndType;
+    ExpressionInferenceResult rightResult = inferrer
+        .inferExpression(right, rightType, typeNeeded, isVoidAllowed: true);
+    if (rightResult.inferredType == null) {
+      assert(!typeNeeded,
+          "Missing right type for overloaded arithmetic operator.");
+      return new ExpressionInferenceResult(
+          binaryType,
+          inferrer.engine.forest
+              .createBinary(fileOffset, left, binaryName, right));
+    }
+
     right = inferrer.ensureAssignableResult(rightType, rightResult);
 
-    if (inferrer.isOverloadedArithmeticOperatorAndType(
-        binaryTarget, leftType)) {
+    if (isOverloadedArithmeticOperatorAndType) {
       binaryType = inferrer.typeSchemaEnvironment
           .getTypeOfOverloadedArithmetic(leftType, rightResult.inferredType);
+    } else if (binaryName == equalsName) {
+      binaryType = inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     }
 
     Expression binary;
@@ -3121,6 +3164,16 @@ class InferenceVisitor
             ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
     } else {
+      if (binaryTarget.isInstanceMember &&
+          inferrer.instrumentation != null &&
+          leftType == const DynamicType()) {
+        inferrer.instrumentation.record(
+            inferrer.uriForInstrumentation,
+            fileOffset,
+            'target',
+            new InstrumentationValueForMember(binaryTarget.member));
+      }
+
       binary = new MethodInvocation(
           left,
           binaryName,
@@ -3145,6 +3198,70 @@ class InferenceVisitor
       }
     }
     return new ExpressionInferenceResult(binaryType, binary);
+  }
+
+  /// Creates a unary expression of the unary operator with [unaryName] using
+  /// [expression] as the operand.
+  ///
+  /// [fileOffset] is used as the file offset for created nodes.
+  /// [expressionType] is the already inferred type of the [expression].
+  ExpressionInferenceResult _computeUnaryExpression(int fileOffset,
+      Expression expression, DartType expressionType, Name unaryName) {
+    ObjectAccessTarget unaryTarget = inferrer.findInterfaceMember(
+        expressionType, unaryName, fileOffset,
+        includeExtensionMethods: true);
+
+    MethodContravarianceCheckKind unaryCheckKind =
+        inferrer.preCheckInvocationContravariance(expressionType, unaryTarget,
+            isThisReceiver: false);
+
+    DartType unaryType = inferrer.getReturnType(unaryTarget, expressionType);
+
+    Expression unary;
+    if (unaryTarget.isMissing) {
+      unary = inferrer.createMissingUnary(
+          fileOffset, expression, expressionType, unaryName);
+    } else if (unaryTarget.isExtensionMember) {
+      assert(unaryTarget.extensionMethodKind != ProcedureKind.Setter);
+      unary = new StaticInvocation(
+          unaryTarget.member,
+          new Arguments(<Expression>[
+            expression,
+          ], types: unaryTarget.inferredExtensionTypeArguments)
+            ..fileOffset = fileOffset)
+        ..fileOffset = fileOffset;
+    } else {
+      if (unaryTarget.isInstanceMember &&
+          inferrer.instrumentation != null &&
+          expressionType == const DynamicType()) {
+        inferrer.instrumentation.record(
+            inferrer.uriForInstrumentation,
+            fileOffset,
+            'target',
+            new InstrumentationValueForMember(unaryTarget.member));
+      }
+
+      unary = new MethodInvocation(
+          expression,
+          unaryName,
+          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          unaryTarget.member)
+        ..fileOffset = fileOffset;
+
+      if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+        if (inferrer.instrumentation != null) {
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              fileOffset,
+              'checkReturn',
+              new InstrumentationValueForType(expressionType));
+        }
+        unary = new AsExpression(unary, unaryType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+      }
+    }
+    return new ExpressionInferenceResult(unaryType, unary);
   }
 
   /// Creates an index operation of [readTarget] on [receiver] using [index] as
@@ -4671,6 +4788,106 @@ class InferenceVisitor
     // TODO(dmitryas): Figure out the suitable nullability for that.
     return new ExpressionInferenceResult(
         inferrer.coreTypes.objectRawType(inferrer.library.nullable), node);
+  }
+
+  ExpressionInferenceResult visitEquals(
+      EqualsExpression node, DartType typeContext) {
+    ExpressionInferenceResult leftResult =
+        inferrer.inferExpression(node.left, const UnknownType(), true);
+    return _computeEqualsExpression(node.fileOffset, leftResult.expression,
+        leftResult.inferredType, node.right,
+        isNot: node.isNot);
+  }
+
+  ExpressionInferenceResult visitBinary(
+      BinaryExpression node, DartType typeContext) {
+    ExpressionInferenceResult leftResult =
+        inferrer.inferExpression(node.left, const UnknownType(), true);
+    return _computeBinaryExpression(node.fileOffset, leftResult.expression,
+        leftResult.inferredType, node.binaryName, node.right);
+  }
+
+  ExpressionInferenceResult visitUnary(
+      UnaryExpression node, DartType typeContext) {
+    ExpressionInferenceResult expressionResult;
+    if (node.unaryName.name == 'unary-') {
+      // Replace integer literals in a double context with the corresponding
+      // double literal if it's exact.  For double literals, the negation is
+      // folded away.  In any non-double context, or if there is no exact
+      // double value, then the corresponding integer literal is left.  The
+      // negation is not folded away so that platforms with web literals can
+      // distinguish between (non-negated) 0x8000000000000000 represented as
+      // integer literal -9223372036854775808 which should be a positive number,
+      // and negated 9223372036854775808 represented as
+      // -9223372036854775808.unary-() which should be a negative number.
+      if (node.expression is IntJudgment) {
+        IntJudgment receiver = node.expression;
+        if (inferrer.isDoubleContext(typeContext)) {
+          double doubleValue = receiver.asDouble(negated: true);
+          if (doubleValue != null) {
+            Expression replacement = new DoubleLiteral(doubleValue)
+              ..fileOffset = node.fileOffset;
+            DartType inferredType =
+                inferrer.coreTypes.doubleRawType(inferrer.library.nonNullable);
+            return new ExpressionInferenceResult(inferredType, replacement);
+          }
+        }
+        Expression error = checkWebIntLiteralsErrorIfUnexact(
+            inferrer, receiver.value, receiver.literal, receiver.fileOffset);
+        if (error != null) {
+          return new ExpressionInferenceResult(const DynamicType(), error);
+        }
+      } else if (node.expression is ShadowLargeIntLiteral) {
+        ShadowLargeIntLiteral receiver = node.expression;
+        if (!receiver.isParenthesized) {
+          if (inferrer.isDoubleContext(typeContext)) {
+            double doubleValue = receiver.asDouble(negated: true);
+            if (doubleValue != null) {
+              Expression replacement = new DoubleLiteral(doubleValue)
+                ..fileOffset = node.fileOffset;
+              DartType inferredType = inferrer.coreTypes
+                  .doubleRawType(inferrer.library.nonNullable);
+              return new ExpressionInferenceResult(inferredType, replacement);
+            }
+          }
+          int intValue = receiver.asInt64(negated: true);
+          if (intValue == null) {
+            Expression error = inferrer.helper.buildProblem(
+                templateIntegerLiteralIsOutOfRange
+                    .withArguments(receiver.literal),
+                receiver.fileOffset,
+                receiver.literal.length);
+            return new ExpressionInferenceResult(const DynamicType(), error);
+          }
+          if (intValue != null) {
+            Expression error = checkWebIntLiteralsErrorIfUnexact(
+                inferrer, intValue, receiver.literal, receiver.fileOffset);
+            if (error != null) {
+              return new ExpressionInferenceResult(const DynamicType(), error);
+            }
+            expressionResult = new ExpressionInferenceResult(
+                inferrer.coreTypes.intRawType(inferrer.library.nonNullable),
+                new IntLiteral(-intValue)
+                  ..fileOffset = node.expression.fileOffset);
+          }
+        }
+      }
+    }
+    if (expressionResult == null) {
+      expressionResult =
+          inferrer.inferExpression(node.expression, const UnknownType(), true);
+    }
+    return _computeUnaryExpression(node.fileOffset, expressionResult.expression,
+        expressionResult.inferredType, node.unaryName);
+  }
+
+  ExpressionInferenceResult visitParenthesized(
+      ParenthesizedExpression node, DartType typeContext) {
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        node.expression, typeContext, true,
+        isVoidAllowed: true);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.expression);
   }
 }
 

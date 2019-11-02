@@ -121,6 +121,11 @@ explicit() {
   expect(c0, -c0);
 }
 
+void errors(Complex c) {
+  Operators(c) == c;
+  Operators(c) != c;
+}
+
 expect(expected, actual) {
   if (expected != actual) {
     throw 'Mismatch: expected=$expected, actual=$actual';
