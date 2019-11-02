@@ -55,7 +55,7 @@ import '../problems.dart';
 
 import '../scope.dart';
 
-import '../source/stack_listener.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import 'body_builder.dart' show noLocation;
 

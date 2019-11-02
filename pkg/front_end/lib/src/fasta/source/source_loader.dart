@@ -114,7 +114,7 @@ import '../loader.dart' show Loader, untranslatableUriScheme;
 
 import '../problems.dart' show internalProblem;
 
-import '../source/stack_listener.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../type_inference/type_inference_engine.dart';
 

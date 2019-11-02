@@ -2,34 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.stack_listener;
+library _fe_analyzer_shared.stack_listener;
 
-import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show Listener, MemberKind, Parser, lengthOfSpan;
-
-import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart'
-    show IdentifierContext;
-
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
-import 'package:kernel/ast.dart'
-    show AsyncMarker, Expression, FunctionNode, TreeNode;
-
-import '../fasta_codes.dart'
+import '../messages/codes.dart'
     show
         Code,
         LocatedMessage,
         Message,
         codeCatchSyntaxExtraParameters,
         codeNativeClauseShouldBeAnnotation,
-        templateInternalProblemStackNotEmpty;
+        templateInternalProblemStackNotEmpty,
+        templateInternalProblemUnhandled;
 
-import '../problems.dart'
-    show internalProblem, unhandled, unimplemented, unsupported;
+import '../scanner/scanner.dart' show Token;
 
-import '../quote.dart' show unescapeString;
+import 'identifier_context.dart' show IdentifierContext;
 
-import 'value_kinds.dart';
+import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
+
+import 'quote.dart' show unescapeString;
+
+import 'value_kind.dart';
 
 enum NullValue {
   Arguments,
@@ -79,6 +72,9 @@ enum NullValue {
 
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
+
+  /// Used to report an internal error encountered in the stack listener.
+  dynamic internalProblem(Message message, int charOffset, Uri uri);
 
   /// Checks that [value] matches the expected [kind].
   ///
@@ -214,37 +210,13 @@ abstract class StackListener extends Listener {
     }
   }
 
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  void finishFunction(
-      covariant formals, AsyncMarker asyncModifier, covariant body) {
-    return unsupported("finishFunction", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  dynamic finishFields() {
-    return unsupported("finishFields", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  List<Expression> finishMetadata(TreeNode parent) {
-    return unsupported("finishMetadata", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  void exitLocalScope() => unsupported("exitLocalScope", -1, uri);
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart.
-  dynamic parseSingleExpression(
-      Parser parser, Token token, FunctionNode parameters) {
-    return unsupported("finishSingleExpression", -1, uri);
-  }
-
   void push(Object node) {
-    if (node == null) unhandled("null", "push", -1, uri);
+    if (node == null) {
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments("null", "push"),
+          -1,
+          uri);
+    }
     stack.push(node);
   }
 
@@ -282,7 +254,10 @@ abstract class StackListener extends Listener {
   @override
   void logEvent(String name) {
     printEvent(name);
-    unhandled(name, "$runtimeType", -1, uri);
+    internalProblem(
+        templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
+        -1,
+        uri);
   }
 
   @override
@@ -453,7 +428,11 @@ abstract class StackListener extends Listener {
       Token token = pop();
       push(unescapeString(token.lexeme, token, this));
     } else {
-      unimplemented("string interpolation", endToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "string interpolation", "endLiteralString"),
+          endToken.charOffset,
+          uri);
     }
   }
 
@@ -490,8 +469,8 @@ abstract class StackListener extends Listener {
       Message message, Token startToken, Token endToken) {
     debugEvent("Error: ${message.message}");
     if (isIgnoredError(message.code, startToken)) return;
-    addProblem(message, offsetForToken(startToken),
-        lengthOfSpan(startToken, endToken));
+    addProblem(
+        message, startToken.charOffset, lengthOfSpan(startToken, endToken));
   }
 
   bool isIgnoredError(Code<dynamic> code, Token token) {
@@ -626,10 +605,4 @@ class ParserRecovery {
   ParserRecovery(this.charOffset);
 
   String toString() => "ParserRecovery(@$charOffset)";
-}
-
-/// A null-aware alternative to `token.offset`.  If [token] is `null`, returns
-/// `TreeNode.noOffset`.
-int offsetForToken(Token token) {
-  return token == null ? TreeNode.noOffset : token.offset;
 }

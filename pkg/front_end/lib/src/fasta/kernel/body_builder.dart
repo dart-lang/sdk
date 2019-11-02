@@ -22,6 +22,17 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         lengthOfSpan,
         optional;
 
+import 'package:_fe_analyzer_shared/src/parser/quote.dart'
+    show
+        Quote,
+        analyzeQuote,
+        unescape,
+        unescapeFirstStringPart,
+        unescapeLastStringPart,
+        unescapeString;
+
+import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
@@ -81,15 +92,6 @@ import '../names.dart' show callName, emptyName, minusName, plusName;
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
 
-import '../quote.dart'
-    show
-        Quote,
-        analyzeQuote,
-        unescape,
-        unescapeFirstStringPart,
-        unescapeLastStringPart,
-        unescapeString;
-
 import '../scope.dart';
 
 import '../source/scope_listener.dart'
@@ -103,7 +105,7 @@ import '../source/scope_listener.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../source/stack_listener.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../source/value_kinds.dart';
 
@@ -1421,14 +1423,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSend(Token beginToken, Token endToken) {
     assert(checkState(beginToken, [
-      ValueKind.ArgumentsOrNull,
-      ValueKind.TypeArgumentsOrNull,
+      ValueKinds.ArgumentsOrNull,
+      ValueKinds.TypeArgumentsOrNull,
       unionOfKinds([
-        ValueKind.Expression,
-        ValueKind.Generator,
-        ValueKind.Identifier,
-        ValueKind.ParserRecovery,
-        ValueKind.ProblemBuilder
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Identifier,
+        ValueKinds.ParserRecovery,
+        ValueKinds.ProblemBuilder
       ])
     ]));
     debugEvent("Send");
@@ -1539,8 +1541,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doBinaryExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
     ]));
     Expression right = popForValue();
     Object left = pop();
@@ -2566,11 +2568,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endForStatement(Token endToken) {
     assert(checkState(endToken, <ValueKind>[
-      /* body */ ValueKind.Statement,
-      /* expression count */ ValueKind.Integer,
-      /* left separator */ ValueKind.Token,
-      /* left parenthesis */ ValueKind.Token,
-      /* for keyword */ ValueKind.Token,
+      /* body */ ValueKinds.Statement,
+      /* expression count */ ValueKinds.Integer,
+      /* left separator */ ValueKinds.Token,
+      /* left parenthesis */ ValueKinds.Token,
+      /* for keyword */ ValueKinds.Token,
     ]));
     debugEvent("ForStatement");
     Statement body = popStatement();
@@ -2582,15 +2584,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     assert(checkState(endToken, <ValueKind>[
       /* expressions */ ...repeatedKinds(
-          unionOfKinds(<ValueKind>[ValueKind.Expression, ValueKind.Generator]),
+          unionOfKinds(
+              <ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
           updateExpressionCount),
-      /* condition */ ValueKind.Statement,
+      /* condition */ ValueKinds.Statement,
       /* variable or expression */ unionOfKinds(<ValueKind>[
-        ValueKind.Generator,
-        ValueKind.ExpressionOrNull,
-        ValueKind.Statement,
-        ValueKind.ObjectList,
-        ValueKind.ParserRecovery,
+        ValueKinds.Generator,
+        ValueKinds.ExpressionOrNull,
+        ValueKinds.Statement,
+        ValueKinds.ObjectList,
+        ValueKinds.ParserRecovery,
       ]),
     ]));
 
@@ -2919,7 +2922,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNonNullAssertExpression(Token bang) {
     assert(checkState(bang, [
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator])
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator])
     ]));
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
@@ -3438,9 +3441,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     assert(checkState(openSquareBracket, [
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       unionOfKinds(
-          [ValueKind.Expression, ValueKind.Generator, ValueKind.Initializer])
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Initializer])
     ]));
     debugEvent("IndexedExpression");
     Expression index = popForValue();
@@ -3461,8 +3464,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleUnaryPrefixExpression(Token token) {
     assert(checkState(token, <ValueKind>[
       unionOfKinds(<ValueKind>[
-        ValueKind.Expression,
-        ValueKind.Generator,
+        ValueKinds.Expression,
+        ValueKinds.Generator,
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
@@ -3581,13 +3584,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
     assert(checkState(start, [
-      /*suffix*/ if (periodBeforeName != null) ValueKind.Identifier,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*suffix*/ if (periodBeforeName != null) ValueKinds.Identifier,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*type*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.QualifiedName,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.QualifiedName,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ])
     ]));
     Identifier suffix = popIfNotNull(periodBeforeName);
@@ -3600,7 +3603,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Object qualifier = qualified.qualifier;
       assert(checkValue(
           start,
-          unionOfKinds([ValueKind.Generator, ValueKind.ProblemBuilder]),
+          unionOfKinds([ValueKinds.Generator, ValueKinds.ProblemBuilder]),
           qualifier));
       if (qualifier is TypeUseGenerator) {
         type = qualifier;
@@ -3635,13 +3638,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(suffix ?? identifier ?? NullValue.Identifier);
 
     assert(checkState(start, [
-      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
-      /*constructor name*/ ValueKind.Name,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
+      /*constructor name*/ ValueKinds.Name,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ]),
     ]));
   }
@@ -3871,14 +3874,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _buildConstructorReferenceInvocation(
       Token nameToken, int offset, Constness constness) {
     assert(checkState(nameToken, [
-      /*arguments*/ ValueKind.Arguments,
-      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
-      /*constructor name*/ ValueKind.Name,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*arguments*/ ValueKinds.Arguments,
+      /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
+      /*constructor name*/ ValueKinds.Name,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ]),
     ]));
     Arguments arguments = pop();

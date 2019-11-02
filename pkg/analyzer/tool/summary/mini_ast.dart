@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show LocatedMessage, Message;
+    show LocatedMessage, Message, templateInternalProblemUnsupported;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/problems.dart'
-    show internalProblem, unsupported;
-import 'package:front_end/src/fasta/source/stack_listener.dart';
 
 /// "Mini AST" representation of a declaration which can accept annotations.
 class AnnotatedNode {
@@ -189,6 +187,11 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
+  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+    throw UnsupportedError(message.message);
+  }
+
+  @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
     internalProblem(message, charOffset, uri);
@@ -264,7 +267,10 @@ class MiniAstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
     if (count != 0) {
-      unsupported("Conditional URIs", -1, null);
+      internalProblem(
+          templateInternalProblemUnsupported.withArguments("Conditional URIs"),
+          -1,
+          null);
     }
   }
 

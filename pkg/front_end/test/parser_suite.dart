@@ -26,7 +26,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/source/stack_listener.dart'
+import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
 import 'package:kernel/ast.dart';

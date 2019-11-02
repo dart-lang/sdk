@@ -25,6 +25,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
+        templateInternalProblemUnhandled,
         templateUnexpectedToken;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
@@ -36,6 +37,9 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         MemberKind,
         optional,
         Parser;
+import 'package:_fe_analyzer_shared/src/parser/quote.dart';
+import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
+    show NullValue, StackListener;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
@@ -57,11 +61,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         MixinDeclarationImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
-import 'package:front_end/src/fasta/quote.dart';
-import 'package:front_end/src/fasta/source/stack_listener.dart'
-    show NullValue, StackListener;
-import 'package:kernel/ast.dart' show AsyncMarker;
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
 
@@ -77,6 +76,11 @@ class AstBuilder extends StackListener {
 
   @override
   final Uri uri;
+
+  @override
+  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+    throw UnsupportedError(message.message);
+  }
 
   /// The parser that uses this listener, used to parse optional parts, e.g.
   /// `native` support.
@@ -672,8 +676,11 @@ class AstBuilder extends StackListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     SimpleIdentifier prefixOrName;
@@ -753,8 +760,11 @@ class AstBuilder extends StackListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     FormalParameterList parameters = pop();
@@ -856,8 +866,11 @@ class AstBuilder extends StackListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     Token operatorKeyword;
@@ -1576,7 +1589,11 @@ class AstBuilder extends StackListener {
     } else if (node is SimpleIdentifier) {
       variable = _makeVariableDeclaration(node, null, null);
     } else {
-      unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${node.runtimeType}", "identifier"),
+          nameToken.charOffset,
+          uri);
     }
     push(variable);
   }
@@ -1659,8 +1676,11 @@ class AstBuilder extends StackListener {
         } else if (part is InterpolationExpression) {
           elements.add(part);
         } else {
-          unhandled("${part.runtimeType}", "string interpolation",
-              first.charOffset, uri);
+          internalProblem(
+              templateInternalProblemUnhandled.withArguments(
+                  "${part.runtimeType}", "string interpolation"),
+              first.charOffset,
+              uri);
         }
       }
       elements.add(ast.interpolationString(
@@ -2195,41 +2215,6 @@ class AstBuilder extends StackListener {
 
     Expression expression = pop();
     push(ast.yieldStatement(yieldToken, starToken, expression, semicolon));
-  }
-
-  @override
-  void exitLocalScope() {}
-
-  @override
-  AstNode finishFields() {
-    debugEvent("finishFields");
-
-    if (classDeclaration != null) {
-      return classDeclaration.members
-          .removeAt(classDeclaration.members.length - 1);
-    } else if (mixinDeclaration != null) {
-      return mixinDeclaration.members
-          .removeAt(mixinDeclaration.members.length - 1);
-    } else {
-      return declarations.removeLast();
-    }
-  }
-
-  void finishFunction(formals, AsyncMarker asyncModifier, FunctionBody body) {
-    debugEvent("finishFunction");
-
-    Statement bodyStatement;
-    if (body is EmptyFunctionBody) {
-      bodyStatement = ast.emptyStatement(body.semicolon);
-    } else if (body is NativeFunctionBody) {
-      // TODO(danrubel): what do we need to do with NativeFunctionBody?
-    } else if (body is ExpressionFunctionBody) {
-      bodyStatement = ast.returnStatement(null, body.expression, null);
-    } else {
-      bodyStatement = (body as BlockFunctionBody).block;
-    }
-    // TODO(paulberry): what do we need to do with bodyStatement at this point?
-    bodyStatement; // Suppress "unused local variable" hint
   }
 
   void handleAsOperator(Token asOperator) {
