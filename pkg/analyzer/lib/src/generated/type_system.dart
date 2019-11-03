@@ -217,7 +217,7 @@ class Dart2TypeSystem extends TypeSystem {
 
     // No subtype relation, so no known GLB.
     // TODO(mfairhurst): implement fully NNBD GLB, and return Never (non-legacy)
-    return BottomTypeImpl.instanceLegacy;
+    return NeverTypeImpl.instanceLegacy;
   }
 
   /**
@@ -634,7 +634,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Left Bottom: if `T0` is `Never`, then `T0 <: T1`.
-    if (identical(T0, BottomTypeImpl.instance)) {
+    if (identical(T0, NeverTypeImpl.instance)) {
       return true;
     }
 
@@ -2671,7 +2671,7 @@ abstract class TypeSystem implements public.TypeSystem {
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   DartType promoteToNonNull(covariant TypeImpl type) {
-    if (type.isDartCoreNull) return BottomTypeImpl.instance;
+    if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
       var element = type.element;

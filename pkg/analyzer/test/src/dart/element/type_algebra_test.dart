@@ -101,7 +101,7 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
 
     var result = Substitution.fromUpperAndLowerBounds(
       {T: typeProvider.intType},
-      {T: BottomTypeImpl.instance},
+      {T: NeverTypeImpl.instance},
     ).substituteType(type);
     expect(result.toString(), 'int Function(Never)');
   }

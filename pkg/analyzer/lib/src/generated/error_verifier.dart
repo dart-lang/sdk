@@ -3130,7 +3130,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Similar logic applies for sync* and async*.
     //
     var lowerBound = expectedElement.instantiate(
-      typeArguments: [BottomTypeImpl.instance],
+      typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
     if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
@@ -5092,7 +5092,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
-        !identical(expression.staticType, BottomTypeImpl.instance)) {
+        !identical(expression.staticType, NeverTypeImpl.instance)) {
       return false;
     }
 

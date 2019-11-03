@@ -5331,11 +5331,11 @@ class _SubtypingTestBase with ElementsTypesMixin {
 
   ClassElement _comparableElement;
 
-  BottomTypeImpl get bottomNone => BottomTypeImpl.instance;
+  NeverTypeImpl get bottomNone => NeverTypeImpl.instance;
 
-  BottomTypeImpl get bottomQuestion => BottomTypeImpl.instanceNullable;
+  NeverTypeImpl get bottomQuestion => NeverTypeImpl.instanceNullable;
 
-  BottomTypeImpl get bottomStar => BottomTypeImpl.instanceLegacy;
+  NeverTypeImpl get bottomStar => NeverTypeImpl.instanceLegacy;
 
   ClassElement get comparableElement {
     return _comparableElement ??=
@@ -5416,9 +5416,9 @@ class _SubtypingTestBase with ElementsTypesMixin {
     );
   }
 
-  BottomTypeImpl get neverNone => BottomTypeImpl.instance;
+  NeverTypeImpl get neverNone => NeverTypeImpl.instance;
 
-  BottomTypeImpl get neverQuestion => BottomTypeImpl.instanceNullable;
+  NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
 
   InterfaceType get nullNone {
     var element = typeProvider.nullType.element;
@@ -5566,9 +5566,6 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
   }
 
   @override
-  void visitBottomType(BottomTypeImpl type) {}
-
-  @override
   void visitDynamicType(DynamicTypeImpl type) {}
 
   @override
@@ -5591,6 +5588,9 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
       DartTypeVisitor.visit(typeArgument, this);
     }
   }
+
+  @override
+  void visitNeverType(NeverTypeImpl type) {}
 
   @override
   void visitTypeParameterType(TypeParameterType type) {

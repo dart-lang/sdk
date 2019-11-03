@@ -40,102 +40,6 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 }
 
 /**
- * A [Type] that represents the type 'bottom'.
- */
-class BottomTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class, nullable.
-   *
-   * This behaves equivalently to the `Null` type, but we distinguish it for two
-   * reasons: (1) there are circumstances where we need access to this type, but
-   * we don't have access to the type provider, so using `Never?` is a
-   * convenient solution.  (2) we may decide that the distinction is convenient
-   * in diagnostic messages (this is TBD).
-   */
-  static final BottomTypeImpl instanceNullable =
-      new BottomTypeImpl._(NullabilitySuffix.question);
-
-  /**
-   * The unique instance of this class, starred.
-   *
-   * This behaves like a version of the Null* type that could be conceivably
-   * migrated to be of type Never. Therefore, it's the bottom of all legacy
-   * types, and also assignable to the true bottom. Note that Never? and Never*
-   * are not the same type, as Never* is a subtype of Never, while Never? is
-   * not.
-   */
-  static final BottomTypeImpl instanceLegacy =
-      new BottomTypeImpl._(NullabilitySuffix.star);
-
-  /**
-   * The unique instance of this class, non-nullable.
-   */
-  static final BottomTypeImpl instance =
-      new BottomTypeImpl._(NullabilitySuffix.none);
-
-  @override
-  final NullabilitySuffix nullabilitySuffix;
-
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  BottomTypeImpl._(this.nullabilitySuffix)
-      : super(new NeverElementImpl(), "Never");
-
-  @override
-  int get hashCode => 0;
-
-  @override
-  bool get isBottom => true;
-
-  @override
-  bool get isDartCoreNull {
-    // `Never?` is equivalent to `Null`, so make sure it behaves the same.
-    return nullabilitySuffix == NullabilitySuffix.question;
-  }
-
-  @override
-  bool operator ==(Object object) => identical(object, this);
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return this;
-    } else {
-      // In theory this should never happen, since we only need to do this
-      // replacement when checking super-boundedness of explicitly-specified
-      // types, or types produced by mixin inference or instantiate-to-bounds,
-      // and bottom can't occur in any of those cases.
-      assert(false,
-          'Attempted to check super-boundedness of a type including "bottom"');
-      // But just in case it does, return `dynamic` since that's similar to what
-      // we do with Null.
-      return typeProvider.objectType;
-    }
-  }
-
-  @override
-  @deprecated
-  BottomTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
-      this;
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    switch (nullabilitySuffix) {
-      case NullabilitySuffix.question:
-        return instanceNullable;
-      case NullabilitySuffix.star:
-        return instanceLegacy;
-      case NullabilitySuffix.none:
-        return instance;
-    }
-    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
-  }
-}
-
-/**
  * The [Type] representing the type `dynamic`.
  */
 class DynamicTypeImpl extends TypeImpl {
@@ -1891,6 +1795,102 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return _lookUpMemberInInterfaces(
         superclass, true, library, visitedInterfaces, getMember);
+  }
+}
+
+/**
+ * The type `Never` represents the uninhabited bottom type.
+ */
+class NeverTypeImpl extends TypeImpl {
+  /**
+   * The unique instance of this class, nullable.
+   *
+   * This behaves equivalently to the `Null` type, but we distinguish it for two
+   * reasons: (1) there are circumstances where we need access to this type, but
+   * we don't have access to the type provider, so using `Never?` is a
+   * convenient solution.  (2) we may decide that the distinction is convenient
+   * in diagnostic messages (this is TBD).
+   */
+  static final NeverTypeImpl instanceNullable =
+      new NeverTypeImpl._(NullabilitySuffix.question);
+
+  /**
+   * The unique instance of this class, starred.
+   *
+   * This behaves like a version of the Null* type that could be conceivably
+   * migrated to be of type Never. Therefore, it's the bottom of all legacy
+   * types, and also assignable to the true bottom. Note that Never? and Never*
+   * are not the same type, as Never* is a subtype of Never, while Never? is
+   * not.
+   */
+  static final NeverTypeImpl instanceLegacy =
+      new NeverTypeImpl._(NullabilitySuffix.star);
+
+  /**
+   * The unique instance of this class, non-nullable.
+   */
+  static final NeverTypeImpl instance =
+      new NeverTypeImpl._(NullabilitySuffix.none);
+
+  @override
+  final NullabilitySuffix nullabilitySuffix;
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  NeverTypeImpl._(this.nullabilitySuffix)
+      : super(new NeverElementImpl(), 'Never');
+
+  @override
+  int get hashCode => 0;
+
+  @override
+  bool get isBottom => true;
+
+  @override
+  bool get isDartCoreNull {
+    // `Never?` is equivalent to `Null`, so make sure it behaves the same.
+    return nullabilitySuffix == NullabilitySuffix.question;
+  }
+
+  @override
+  bool operator ==(Object object) => identical(object, this);
+
+  @override
+  DartType replaceTopAndBottom(TypeProvider typeProvider,
+      {bool isCovariant = true}) {
+    if (isCovariant) {
+      return this;
+    } else {
+      // In theory this should never happen, since we only need to do this
+      // replacement when checking super-boundedness of explicitly-specified
+      // types, or types produced by mixin inference or instantiate-to-bounds,
+      // and bottom can't occur in any of those cases.
+      assert(false,
+          'Attempted to check super-boundedness of a type including "bottom"');
+      // But just in case it does, return `dynamic` since that's similar to what
+      // we do with Null.
+      return typeProvider.objectType;
+    }
+  }
+
+  @override
+  @deprecated
+  NeverTypeImpl substitute2(
+          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
+      this;
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return instanceNullable;
+      case NullabilitySuffix.star:
+        return instanceLegacy;
+      case NullabilitySuffix.none:
+        return instance;
+    }
+    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
   }
 }
 

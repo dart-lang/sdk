@@ -90,7 +90,7 @@ class NamedTypeBuilder extends TypeBuilder {
         _type = _dynamicType;
       }
     } else if (element is NeverElementImpl) {
-      _type = BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(
         element,

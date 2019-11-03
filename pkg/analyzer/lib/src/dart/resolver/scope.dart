@@ -786,7 +786,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = BottomTypeImpl.instance.element;
+      definedNames['Never'] = NeverTypeImpl.instance.element;
     }
 
     return new Namespace(definedNames);

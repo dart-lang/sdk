@@ -376,9 +376,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitBottomType(BottomTypeImpl type) => type;
-
-  @override
   DartType visitDynamicType(DynamicTypeImpl type) => type;
 
   @override
@@ -507,6 +504,9 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       type.nullabilitySuffix,
     );
   }
+
+  @override
+  DartType visitNeverType(NeverTypeImpl type) => type;
 
   @override
   DartType visitTypeParameterType(TypeParameterType type) {

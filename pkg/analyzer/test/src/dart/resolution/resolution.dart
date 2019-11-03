@@ -22,9 +22,9 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 
-final isBottomType = new TypeMatcher<BottomTypeImpl>();
-
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+
+final isNeverType = new TypeMatcher<NeverTypeImpl>();
 
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 

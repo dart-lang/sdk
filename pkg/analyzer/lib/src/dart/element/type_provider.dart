@@ -101,9 +101,9 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   DartType get bottomType {
     if (_nullabilitySuffix == NullabilitySuffix.none) {
-      return BottomTypeImpl.instance;
+      return NeverTypeImpl.instance;
     }
-    return BottomTypeImpl.instanceLegacy;
+    return NeverTypeImpl.instanceLegacy;
   }
 
   @override
@@ -247,7 +247,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  DartType get neverType => BottomTypeImpl.instance;
+  DartType get neverType => NeverTypeImpl.instance;
 
   @override
   DartObjectImpl get nullObject {

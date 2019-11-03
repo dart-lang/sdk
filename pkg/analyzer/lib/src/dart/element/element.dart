@@ -6316,7 +6316,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
   static NeverElementImpl get instance =>
-      BottomTypeImpl.instance.element as NeverElementImpl;
+      NeverTypeImpl.instance.element as NeverElementImpl;
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
@@ -6342,11 +6342,11 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   }) {
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
-        return BottomTypeImpl.instanceNullable;
+        return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.star:
-        return BottomTypeImpl.instanceLegacy;
+        return NeverTypeImpl.instanceLegacy;
       case NullabilitySuffix.none:
-        return BottomTypeImpl.instance;
+        return NeverTypeImpl.instance;
     }
     throw StateError('Unsupported nullability: $nullabilitySuffix');
   }
