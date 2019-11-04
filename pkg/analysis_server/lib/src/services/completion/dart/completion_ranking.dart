@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/completion/dart/language_model.dart
 import 'package:analyzer/dart/analysis/features.dart';
 
 /// Number of lookback tokens.
-const int _LOOKBACK = 50;
+const int _LOOKBACK = 100;
 
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;

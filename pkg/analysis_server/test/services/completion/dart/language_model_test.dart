@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
     '..', '..', '..', 'language_model', 'lexeme');
-const expectedLookback = 50;
+const expectedLookback = 100;
 
 void main() {
   if (sizeOf<IntPtr>() == 4) {
@@ -46,7 +46,7 @@ void main() {
     final suggestions = model.predictWithScores(tokens);
     final best = suggestions.entries.first;
     expect(best.key, 'length');
-    expect(best.value, greaterThan(0.85));
+    expect(best.value, greaterThan(0.9));
   });
 
   test('predict when no previous tokens', () {
