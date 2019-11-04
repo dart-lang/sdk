@@ -47,6 +47,10 @@ const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 /// the static function's unique (potentially minified) name.
 const STATIC_FUNCTION_NAME_PROPERTY_NAME = r'$static_name';
 
+/// The name of a property on the constructor function of Dart Object
+/// and interceptor types, used for caching Rti types.
+const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
+
 /// The name of the embedded global for metadata.
 ///
 /// Use [JsBuiltin.getMetadata] instead of directly accessing this embedded
