@@ -743,6 +743,8 @@ class LinkedUnitContext {
       return node.abstractKeyword != null;
     } else if (node is ClassTypeAlias) {
       return node.abstractKeyword != null;
+    } else if (node is ConstructorDeclaration) {
+      return false;
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
