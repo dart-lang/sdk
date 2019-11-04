@@ -29,6 +29,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
+import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -2435,6 +2436,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         emitIs(input, '!==', sourceInformation);
       } else if (input is HIsViaInterceptor) {
         emitIsViaInterceptor(input, sourceInformation, negative: true);
+      } else if (input is HIsTestSimple) {
+        _emitIsTestSimple(input, negative: true);
       } else if (input is HNot) {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
@@ -3364,6 +3367,51 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
         node.sourceInformation));
+  }
+
+  @override
+  visitIsTestSimple(HIsTestSimple node) {
+    _emitIsTestSimple(node);
+  }
+
+  _emitIsTestSimple(HIsTestSimple node, {bool negative: false}) {
+    use(node.checkedInput);
+    js.Expression value = pop();
+    String relation = negative ? '!=' : '==';
+
+    js.Expression typeof(String type) =>
+        js.Binary(relation, js.Prefix('typeof', value), js.string(type));
+
+    js.Expression isTest(MemberEntity helper) {
+      _registry.registerStaticUse(
+          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+      js.Expression test =
+          js.Call(_emitter.staticFunctionAccess(helper), [value]);
+      if (negative) {
+        test = js.Prefix('!', test);
+      }
+      return test;
+    }
+
+    js.Expression test;
+    switch (node.specialization) {
+      case IsTestSpecialization.string:
+        test = typeof("string");
+        break;
+
+      case IsTestSpecialization.bool:
+        test = isTest(_commonElements.specializedIsBool);
+        break;
+
+      case IsTestSpecialization.num:
+        test = typeof("number");
+        break;
+
+      case IsTestSpecialization.int:
+        test = isTest(_commonElements.specializedIsInt);
+        break;
+    }
+    push(test.withSourceInformation(node.sourceInformation));
   }
 
   @override

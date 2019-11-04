@@ -14,6 +14,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_model/type_recipe.dart'
     show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
 import '../native/behavior.dart';
@@ -108,6 +109,7 @@ abstract class HVisitor<R> {
 
   // Instructions for 'dart:_rti'.
   R visitIsTest(HIsTest node);
+  R visitIsTestSimple(HIsTestSimple node);
   R visitAsCheck(HAsCheck node);
   R visitAsCheckSimple(HAsCheckSimple node);
   R visitSubtypeCheck(HSubtypeCheck node);
@@ -604,6 +606,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitIsTest(HIsTest node) => visitInstruction(node);
   @override
+  visitIsTestSimple(HIsTestSimple node) => visitInstruction(node);
+  @override
   visitAsCheck(HAsCheck node) => visitCheck(node);
   @override
   visitAsCheckSimple(HAsCheckSimple node) => visitCheck(node);
@@ -1096,13 +1100,14 @@ abstract class HInstruction implements Spannable {
   static const int PRIMITIVE_CHECK_TYPECODE = 46;
 
   static const int IS_TEST_TYPECODE = 47;
-  static const int AS_CHECK_TYPECODE = 48;
-  static const int AS_CHECK_SIMPLE_TYPECODE = 49;
-  static const int SUBTYPE_CHECK_TYPECODE = 50;
-  static const int LOAD_TYPE_TYPECODE = 51;
-  static const int INSTANCE_ENVIRONMENT_TYPECODE = 52;
-  static const int TYPE_EVAL_TYPECODE = 53;
-  static const int TYPE_BIND_TYPECODE = 54;
+  static const int IS_TEST_SIMPLE_TYPECODE = 48;
+  static const int AS_CHECK_TYPECODE = 49;
+  static const int AS_CHECK_SIMPLE_TYPECODE = 50;
+  static const int SUBTYPE_CHECK_TYPECODE = 51;
+  static const int LOAD_TYPE_TYPECODE = 52;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 53;
+  static const int TYPE_EVAL_TYPECODE = 54;
+  static const int TYPE_BIND_TYPECODE = 55;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -4383,6 +4388,37 @@ class HIsTest extends HInstruction {
   String toString() => 'HIsTest()';
 }
 
+/// Simple is-test for a known type that can be achieved without reference to an
+/// Rti describing the type.
+class HIsTestSimple extends HInstruction {
+  final DartType dartType;
+  final AbstractValueWithPrecision checkedAbstractValue;
+  final IsTestSpecialization specialization;
+
+  HIsTestSimple(this.dartType, this.checkedAbstractValue, this.specialization,
+      HInstruction checked, AbstractValue type)
+      : super([checked], type) {
+    setUseGvn();
+  }
+
+  HInstruction get checkedInput => inputs[0];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
+
+  @override
+  int typeCode() => HInstruction.IS_TEST_SIMPLE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsTestSimple;
+
+  @override
+  bool dataEquals(HIsTestSimple other) => dartType == other.dartType;
+
+  @override
+  String toString() => 'HIsTestSimple()';
+}
+
 /// Type cast or type check using Rti form of type expression.
 class HAsCheck extends HCheck {
   final AbstractValueWithPrecision checkedType;
@@ -4482,7 +4518,7 @@ class HAsCheckSimple extends HCheck {
   @override
   String toString() {
     String error = isTypeError ? 'TypeError' : 'CastError';
-    return 'HAsCheck($error)';
+    return 'HAsCheckSimple($error)';
   }
 }
 

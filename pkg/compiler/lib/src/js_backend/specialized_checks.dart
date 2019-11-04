@@ -6,7 +6,47 @@ import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 
+enum IsTestSpecialization {
+  string,
+  bool,
+  num,
+  int,
+}
+
 class SpecializedChecks {
+  static IsTestSpecialization findIsTestSpecialization(
+      DartType dartType, JCommonElements commonElements) {
+    if (dartType is InterfaceType && dartType.typeArguments.isEmpty) {
+      ClassEntity element = dartType.element;
+
+      if (element == commonElements.jsStringClass ||
+          element == commonElements.stringClass) {
+        return IsTestSpecialization.string;
+      }
+
+      if (element == commonElements.jsBoolClass ||
+          element == commonElements.boolClass) {
+        return IsTestSpecialization.bool;
+      }
+
+      if (element == commonElements.jsDoubleClass ||
+          element == commonElements.doubleClass ||
+          element == commonElements.jsNumberClass ||
+          element == commonElements.numClass) {
+        return IsTestSpecialization.num;
+      }
+
+      if (element == commonElements.jsIntClass ||
+          element == commonElements.intClass ||
+          element == commonElements.jsUInt32Class ||
+          element == commonElements.jsUInt31Class ||
+          element == commonElements.jsPositiveIntClass) {
+        return IsTestSpecialization.int;
+      }
+    }
+    return null;
+  }
+
   static MemberEntity findAsCheck(
       DartType dartType, bool isTypeError, JCommonElements commonElements) {
     if (dartType is InterfaceType) {
