@@ -133,12 +133,12 @@ class CodeGenerator extends Object
   final ClassElement functionClass;
   final ClassElement internalSymbolClass;
   final ClassElement privateSymbolClass;
-  final InterfaceType linkedHashMapImplType;
-  final InterfaceType identityHashMapImplType;
-  final InterfaceType linkedHashSetImplType;
-  final InterfaceType identityHashSetImplType;
-  final InterfaceType syncIterableType;
-  final InterfaceType asyncStarImplType;
+  final ClassElement linkedHashMapImplElement;
+  final ClassElement identityHashMapImplElement;
+  final ClassElement linkedHashSetImplElement;
+  final ClassElement identityHashSetImplElement;
+  final ClassElement syncIterableElement;
+  final ClassElement asyncStarImplElement;
 
   ConstFieldVisitor _constants;
 
@@ -218,18 +218,17 @@ class CodeGenerator extends Object
         internalSymbolClass = driver.getClass('dart:_internal', 'Symbol'),
         privateSymbolClass =
             driver.getClass('dart:_js_helper', 'PrivateSymbol'),
-        linkedHashMapImplType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'LinkedMap')),
-        identityHashMapImplType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'IdentityMap')),
-        linkedHashSetImplType = getLegacyRawClassType(
-            driver.getClass('dart:collection', '_HashSet')),
-        identityHashSetImplType = getLegacyRawClassType(
-            driver.getClass('dart:collection', '_IdentityHashSet')),
-        syncIterableType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'SyncIterable')),
-        asyncStarImplType = getLegacyRawClassType(
-            driver.getClass('dart:async', '_AsyncStarImpl')),
+        linkedHashMapImplElement =
+            driver.getClass('dart:_js_helper', 'LinkedMap'),
+        identityHashMapImplElement =
+            driver.getClass('dart:_js_helper', 'IdentityMap'),
+        linkedHashSetImplElement =
+            driver.getClass('dart:collection', '_HashSet'),
+        identityHashSetImplElement =
+            driver.getClass('dart:collection', '_IdentityHashSet'),
+        syncIterableElement =
+            driver.getClass('dart:_js_helper', 'SyncIterable'),
+        asyncStarImplElement = driver.getClass('dart:async', '_AsyncStarImpl'),
         dartJSLibrary = driver.getLibrary('dart:js') {
     jsTypeRep = JSTypeRep(rules, driver);
   }
@@ -2272,6 +2271,7 @@ class CodeGenerator extends Object
       element.returnType,
       element.typeParameters,
       parameters,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -2942,7 +2942,12 @@ class CodeGenerator extends Object
       var gen = emitGeneratorFn(jsParams);
       if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
 
-      var syncIterable = _emitType(syncIterableType.instantiate([returnType]));
+      var syncIterable = _emitType(
+        syncIterableElement.instantiate(
+          typeArguments: [returnType],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+      );
       return js.call('new #.new(#)', [syncIterable, gen]);
     }
 
@@ -2957,7 +2962,10 @@ class CodeGenerator extends Object
       var asyncStarParam = js_ast.TemporaryId('stream');
       var gen = emitGeneratorFn([asyncStarParam], asyncStarParam);
 
-      var asyncStarImpl = asyncStarImplType.instantiate([returnType]);
+      var asyncStarImpl = asyncStarImplElement.instantiate(
+        typeArguments: [returnType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
       return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
     }
 
@@ -5735,7 +5743,10 @@ class CodeGenerator extends Object
     if (itemType.isDynamic) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = getLegacyRawClassType(_jsArray).instantiate([itemType]);
+    var arrayType = _jsArray.instantiate(
+      typeArguments: [itemType],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
@@ -5764,8 +5775,14 @@ class CodeGenerator extends Object
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
-    type = identity ? identityHashMapImplType : linkedHashMapImplType;
-    return _emitType(type.instantiate(typeArgs));
+    var element =
+        identity ? identityHashMapImplElement : linkedHashMapImplElement;
+    return _emitType(
+      element.instantiate(
+        typeArguments: typeArgs,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
   }
 
   js_ast.Expression _emitConstSet(
@@ -5778,8 +5795,14 @@ class CodeGenerator extends Object
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
-    type = identity ? identityHashSetImplType : linkedHashSetImplType;
-    return _emitType(type.instantiate(typeArgs));
+    var element =
+        identity ? identityHashSetImplElement : linkedHashSetImplElement;
+    return _emitType(
+      element.instantiate(
+        typeArguments: typeArgs,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
   }
 
   @override
@@ -5893,8 +5916,10 @@ class CodeGenerator extends Object
       if (_isUiAsCodeElement(node)) {
         // Create a temporary variable to build a new collection from.
         var previousCollectionVariable = _currentCollectionVariable;
-        var arrayType =
-            getLegacyRawClassType(_jsArray).instantiate([elementType]);
+        var arrayType = _jsArray.instantiate(
+          typeArguments: [elementType],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
         var temporaryIdentifier = _createTemporary('items', arrayType);
         _currentCollectionVariable = _emitSimpleIdentifier(temporaryIdentifier);
         var items = js.statement('let # = #',
