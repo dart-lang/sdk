@@ -349,7 +349,10 @@ class Library extends NamedNode
   ///
   /// If the library is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
+  @Deprecated("Library.isExternal is going away.")
   bool get isExternal => (flags & ExternalFlag) != 0;
+
+  @Deprecated("Library.isExternal is going away.")
   void set isExternal(bool value) {
     flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
   }
@@ -416,6 +419,7 @@ class Library extends NamedNode
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
+    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
     this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
@@ -1215,13 +1219,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   R accept<R>(TreeVisitor<R> v) => v.visitClass(this);
   R acceptReference<R>(Visitor<R> v) => v.visitClassReference(this);
 
-  /// If true, the class is part of an external library, that is, it is defined
-  /// in another build unit.  Only a subset of its members are present.
-  ///
-  /// These classes should be loaded at either [ClassLevel.Type] or
-  /// [ClassLevel.Hierarchy] level.
-  bool get isInExternalLibrary => enclosingLibrary.isExternal;
-
   Supertype get asRawSupertype {
     return new Supertype(this,
         new List<DartType>.filled(typeParameters.length, const DynamicType()));
@@ -1452,11 +1449,6 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
 
   R accept<R>(MemberVisitor<R> v);
   acceptReference(MemberReferenceVisitor v);
-
-  /// If true, the member is part of an external library, that is, it is defined
-  /// in another build unit.  Such members have no body or initializer present
-  /// in the IR.
-  bool get isInExternalLibrary => enclosingLibrary.isExternal;
 
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;

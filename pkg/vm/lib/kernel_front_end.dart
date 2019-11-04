@@ -669,6 +669,7 @@ Future writeOutputSplitByPackages(
 
 String packageFor(Library lib) {
   // Core libraries are not written into any package kernel binaries.
+  // ignore: DEPRECATED_MEMBER_USE
   if (lib.isExternal) return null;
 
   // Packages are written into their own kernel binaries.

@@ -30,6 +30,8 @@ import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
 
+// ignore_for_file: DEPRECATED_MEMBER_USE
+
 /// Invoke the compiler with [args].
 ///
 /// Returns `true` if the program compiled without any fatal errors.

@@ -75,6 +75,7 @@ Future<CompilerResult> generateKernelInternal(
 
     Set<Uri> externalLibs(Component component) {
       return component.libraries
+          // ignore: DEPRECATED_MEMBER_USE
           .where((lib) => lib.isExternal)
           .map((lib) => lib.importUri)
           .toSet();
@@ -102,6 +103,7 @@ Future<CompilerResult> generateKernelInternal(
     // All summaries are considered external and shouldn't include source-info.
     dillTarget.loader.libraries.forEach((lib) {
       // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
+      // ignore: DEPRECATED_MEMBER_USE
       lib.isExternal = true;
     });
 

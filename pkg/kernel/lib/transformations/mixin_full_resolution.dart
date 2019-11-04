@@ -55,6 +55,7 @@ class MixinFullResolution {
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
     for (var library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
@@ -71,6 +72,7 @@ class MixinFullResolution {
     }
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {

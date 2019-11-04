@@ -57,6 +57,7 @@ class JavaScriptBundler {
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
     for (Library library in _originalComponent.libraries) {
+      // ignore: DEPRECATED_MEMBER_USE
       if (library.isExternal || library.importUri.scheme == 'dart') {
         continue;
       }

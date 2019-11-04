@@ -543,6 +543,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitLibrary(Library node) {
+    // ignore: DEPRECATED_MEMBER_USE
     if (node.isExternal ||
         node.importUri.scheme == 'package' &&
             node.importUri.pathSegments[0] == 'meta') {

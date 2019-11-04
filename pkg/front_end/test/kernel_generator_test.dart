@@ -109,6 +109,7 @@ main() {
           ?.component;
       for (var lib in component.libraries) {
         if (lib.importUri.scheme == 'dart') {
+          // ignore: DEPRECATED_MEMBER_USE
           expect(lib.isExternal, isTrue);
         }
       }
@@ -126,6 +127,7 @@ main() {
 
       var aLib = component.libraries
           .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
+      // ignore: DEPRECATED_MEMBER_USE
       expect(aLib.isExternal, isTrue);
     });
 
@@ -136,6 +138,7 @@ main() {
           ?.component;
       for (var lib in component.libraries) {
         if (lib.importUri.scheme == 'dart') {
+          // ignore: DEPRECATED_MEMBER_USE
           expect(lib.isExternal, isTrue);
         }
       }
@@ -152,6 +155,7 @@ main() {
 
       var aLib = component.libraries
           .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
+      // ignore: DEPRECATED_MEMBER_USE
       expect(aLib.isExternal, isFalse);
     });
 

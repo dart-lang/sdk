@@ -91,6 +91,7 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   @override
   visitLibrary(Library node) {
     if (_trace) {
+      // ignore: DEPRECATED_MEMBER_USE
       String external = node.isExternal ? " (external)" : "";
       print("[devirt] Processing library ${node.name}${external}");
     }

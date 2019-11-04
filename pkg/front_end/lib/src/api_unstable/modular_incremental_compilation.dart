@@ -122,6 +122,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         Component sdkComponent = cachedSdkInput.component;
         // Reset the state of the component.
         for (Library lib in sdkComponent.libraries) {
+          // ignore: DEPRECATED_MEMBER_USE
           lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
         }
 
@@ -186,6 +187,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           // Need to reset cached components so they are usable again.
           Component component = cachedInput.component;
           for (Library lib in component.libraries) {
+            // ignore: DEPRECATED_MEMBER_USE
             lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
             if (trackNeededDillLibraries) {
               libraryToInputDill[lib.importUri] = summaryUri;

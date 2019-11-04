@@ -433,6 +433,7 @@ class WidgetCreatorTracker {
       ..addAll(libraries);
 
     for (Library library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) {
         continue;
       }
@@ -453,6 +454,7 @@ class WidgetCreatorTracker {
             tracker: this);
 
     for (Library library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) {
         continue;
       }

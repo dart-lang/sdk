@@ -581,7 +581,10 @@ class FrontendCompiler implements CompilerInterface {
         final IOSink sink = file.openWrite();
         final BinaryPrinter printer = filterExternal
             ? LimitedBinaryPrinter(
-                sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+                sink,
+                // ignore: DEPRECATED_MEMBER_USE
+                (lib) => !lib.isExternal,
+                true /* excludeUriToSource */)
             : printerFactory.newBinaryPrinter(sink);
 
         sortComponent(component);
@@ -594,7 +597,10 @@ class FrontendCompiler implements CompilerInterface {
       final IOSink sink = File(filename).openWrite();
       final BinaryPrinter printer = filterExternal
           ? LimitedBinaryPrinter(
-              sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+              sink,
+              // ignore: DEPRECATED_MEMBER_USE
+              (lib) => !lib.isExternal,
+              true /* excludeUriToSource */)
           : printerFactory.newBinaryPrinter(sink);
 
       sortComponent(component);

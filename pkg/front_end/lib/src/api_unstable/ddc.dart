@@ -108,8 +108,10 @@ Future<InitializedCompilerState> initializeCompiler(
     // as external.
     (await oldState.processedOpts.loadSdkSummary(null))
         .libraries
+        // ignore: DEPRECATED_MEMBER_USE
         .forEach((lib) => lib.isExternal = false);
     (await oldState.processedOpts.loadInputSummaries(null))
+        // ignore: DEPRECATED_MEMBER_USE
         .forEach((p) => p.libraries.forEach((lib) => lib.isExternal = false));
 
     return oldState;

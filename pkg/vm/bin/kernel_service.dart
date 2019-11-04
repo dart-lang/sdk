@@ -682,7 +682,9 @@ Future _processLoadRequest(request) async {
 
     if (compiler.errors.isNotEmpty) {
       if (component != null) {
-        result = new CompilationResult.errors(compiler.errors,
+        result = new CompilationResult.errors(
+            compiler.errors,
+            // ignore: DEPRECATED_MEMBER_USE
             serializeComponent(component, filter: (lib) => !lib.isExternal));
       } else {
         result = new CompilationResult.errors(compiler.errors, null);
@@ -693,6 +695,7 @@ Future _processLoadRequest(request) async {
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
       result = new CompilationResult.ok(
+          // ignore: DEPRECATED_MEMBER_USE
           serializeComponent(component, filter: (lib) => !lib.isExternal));
     }
   } catch (error, stack) {

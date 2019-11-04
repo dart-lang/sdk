@@ -157,6 +157,7 @@ class _LibraryGraph implements Graph<Library> {
   Iterable<Library> neighborsOf(Library vertex) {
     return <Library>[
       for (LibraryDependency dependency in vertex.dependencies)
+        // ignore: DEPRECATED_MEMBER_USE
         if (!dependency.targetLibrary.isExternal &&
             dependency.targetLibrary.importUri.scheme != 'dart')
           dependency.targetLibrary
