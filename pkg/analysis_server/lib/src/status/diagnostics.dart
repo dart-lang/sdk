@@ -829,7 +829,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new ContextsPage(this));
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
-    pages.add(new InstrumentationPage(this));
+    //pages.add(new InstrumentationPage(this));
     pages.add(new ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
@@ -1016,41 +1016,41 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
-class InstrumentationPage extends DiagnosticPageWithNav {
-  InstrumentationPage(DiagnosticsSite site)
-      : super(site, 'instrumentation', 'Instrumentation',
-            description:
-                'Verbose instrumentation data from the analysis server.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    p(
-        'Instrumentation can be enabled by starting the analysis server with the '
-        '<code>--instrumentation-log-file=path/to/file</code> flag.',
-        raw: true);
-
-    if (!AnalysisEngine.instance.instrumentationService.isActive) {
-      blankslate('Instrumentation not active.');
-      return;
-    }
-
-    h3('Instrumentation');
-
-    p('Instrumentation active.');
-
-    InstrumentationServer instrumentation =
-        AnalysisEngine.instance.instrumentationService.instrumentationServer;
-    String description = instrumentation.describe;
-    HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.element);
-    description = htmlEscape.convert(description);
-    // Convert http(s): references to hyperlinks.
-    final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
-    description = description.replaceAllMapped(urlRegExp, (Match match) {
-      return '<a href="${match.group(0)}">${match.group(1)}</a>';
-    });
-    p(description.replaceAll('\n', '<br>'), raw: true);
-  }
-}
+// class InstrumentationPage extends DiagnosticPageWithNav {
+//   InstrumentationPage(DiagnosticsSite site)
+//       : super(site, 'instrumentation', 'Instrumentation',
+//             description:
+//                 'Verbose instrumentation data from the analysis server.');
+//
+//   @override
+//   Future generateContent(Map<String, String> params) async {
+//     p(
+//         'Instrumentation can be enabled by starting the analysis server with the '
+//         '<code>--instrumentation-log-file=path/to/file</code> flag.',
+//         raw: true);
+//
+//     if (!AnalysisEngine.instance.instrumentationService.isActive) {
+//       blankslate('Instrumentation not active.');
+//       return;
+//     }
+//
+//     h3('Instrumentation');
+//
+//     p('Instrumentation active.');
+//
+//     InstrumentationServer instrumentation =
+//         AnalysisEngine.instance.instrumentationService.instrumentationServer;
+//     String description = instrumentation.describe;
+//     HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.element);
+//     description = htmlEscape.convert(description);
+//     // Convert http(s): references to hyperlinks.
+//     final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
+//     description = description.replaceAllMapped(urlRegExp, (Match match) {
+//       return '<a href="${match.group(0)}">${match.group(1)}</a>';
+//     });
+//     p(description.replaceAll('\n', '<br>'), raw: true);
+//   }
+// }
 
 class LspCapabilitiesPage extends DiagnosticPageWithNav {
   @override
@@ -1410,8 +1410,8 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="column one-half">');
     h3('Status');
     buf.writeln(writeOption('Server type', server.runtimeType));
-    buf.writeln(writeOption('Instrumentation enabled',
-        AnalysisEngine.instance.instrumentationService.isActive));
+    // buf.writeln(writeOption('Instrumentation enabled',
+    //     AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(writeOption('Server process ID', pid));
     buf.writeln('</div>');
 

@@ -9,7 +9,6 @@ import 'dart:io';
 import 'log/log.dart';
 import 'page/log_page.dart';
 import 'page/stats_page.dart';
-import 'page/task_page.dart';
 
 /**
  * An exception that is thrown when a request is received that cannot be
@@ -30,11 +29,6 @@ class WebServer {
    * The path to the page containing statistics about the instrumentation log.
    */
   static final String statsPath = '/stats';
-
-  /**
-   * The path to the page containing statistics about the instrumentation log.
-   */
-  static final String taskPath = '/task';
 
   /**
    * The content type for HTML responses.
@@ -118,8 +112,6 @@ class WebServer {
         _writeLogPage(request, buffer);
       } else if (path == statsPath) {
         _writeStatsPage(request, buffer);
-      } else if (path == taskPath) {
-        _writeTaskPage(request, buffer);
       } else {
         _returnUnknownRequest(request);
         return;
@@ -218,23 +210,5 @@ class WebServer {
 
   void _writeStatsPage(HttpRequest request, StringBuffer buffer) {
     new StatsPage(log).writePage(buffer);
-  }
-
-  void _writeTaskPage(HttpRequest request, StringBuffer buffer) {
-    Map<String, String> parameterMap = getParameterMap(request);
-    String analysisStart = parameterMap['analysisStart'];
-    String start = parameterMap['start'];
-    TaskPage page = new TaskPage(log);
-    if (analysisStart == null) {
-      throw new UnknownRequest();
-    }
-    page.analysisStart = int.parse(analysisStart);
-    if (start != null) {
-      page.pageStart = int.parse(start);
-    } else {
-      page.pageStart = 0;
-    }
-    page.pageLength = 25;
-    page.writePage(buffer);
   }
 }

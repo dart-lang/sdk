@@ -262,9 +262,7 @@ class AnalyzerImpl {
 
 /// This [InstrumentationService] prints out information comments to [outSink]
 /// and error messages to [errorSink].
-class StdInstrumentation extends InstrumentationService {
-  StdInstrumentation() : super(null);
-
+class StdInstrumentation extends NoopInstrumentationService {
   @override
   void logError(String message) {
     errorSink.writeln(message);

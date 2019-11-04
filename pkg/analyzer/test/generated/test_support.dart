@@ -358,11 +358,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
 /// Instances of the class [TestInstrumentor] implement an instrumentation
 /// service that can be used by tests.
-class TestInstrumentor extends InstrumentationService {
+class TestInstrumentor extends NoopInstrumentationService {
   /// All logged messages.
   List<String> log = [];
-
-  TestInstrumentor() : super(null);
 
   @override
   void logError(String message) {
