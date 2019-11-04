@@ -1971,8 +1971,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name = RAW_CAST(String, LOAD_CONSTANT(kidx));
-      argdesc_ = RAW_CAST(Array, LOAD_CONSTANT(kidx + 1));
+      RawString* target_name = String::RawCast(LOAD_CONSTANT(kidx));
+      argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
