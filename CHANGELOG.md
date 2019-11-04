@@ -104,7 +104,7 @@ program-defined, whereas previously it was undefined.
     for accessing the value in native memory and `[]` and `[]=` for indexed access.
     The method `asExternalTypedData` has been replaced with `asTypedList` extension
     methods. And finally, `Structs` do no longer have a type argument and are
-    accessed the extension member `.ref` on `Pointer`.
+    accessed using the extension member `.ref` on `Pointer`.
     These changes makes the code using `dart:ffi` much more concise.
 *   **Breaking change**: The memory management has been removed (`Pointer.allocate`
     and `Pointer.free`). Instead, memory management is available in
@@ -131,7 +131,7 @@ program-defined, whereas previously it was undefined.
 
 * `pub publish` now warns about the old flutter plugin registration format.
 
-* `pub publish` now warns about the `author` field in pubspec.yaml being.
+* `pub publish` now warns about the `author` field in pubspec.yaml being
   obsolete.
 
 * Show a proper error message when `git` is not installed.
