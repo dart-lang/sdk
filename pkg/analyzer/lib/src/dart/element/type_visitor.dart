@@ -13,8 +13,6 @@ class DartTypeVisitor<R> {
 
   R defaultDartType(DartType type) => null;
 
-  R visitNeverType(NeverTypeImpl type) => defaultDartType(type);
-
   R visitDynamicType(DynamicTypeImpl type) => defaultDartType(type);
 
   R visitFunctionType(FunctionType type) => defaultDartType(type);
@@ -24,6 +22,8 @@ class DartTypeVisitor<R> {
   R visitInterfaceType(InterfaceType type) => defaultDartType(type);
 
   R visitNamedTypeBuilder(NamedTypeBuilder type) => defaultDartType(type);
+
+  R visitNeverType(NeverTypeImpl type) => defaultDartType(type);
 
   R visitTypeParameterType(TypeParameterType type) => defaultDartType(type);
 
