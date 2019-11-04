@@ -121,7 +121,7 @@ void visitClass(ClassElement classElement) {
         constructor.isFactory &&
         constructor.name.isNotEmpty) {
       addToTable(
-          typeString(classElement.type),
+          typeString(classElement.thisType),
           '${classElement.name}.${constructor.name}',
           protoString(null, constructor.parameters));
     }
@@ -135,7 +135,7 @@ void visitClass(ClassElement classElement) {
             protoString(null, method.parameters));
       } else {
         addToTable(typeString(method.returnType), method.name,
-            protoString(classElement.type, method.parameters));
+            protoString(classElement.thisType, method.parameters));
       }
     }
   }
@@ -147,7 +147,7 @@ void visitClass(ClassElement classElement) {
             '${classElement.name}.${variable.name}', 'Vv');
       } else {
         addToTable(typeString(variable.type), variable.name,
-            '${typeString(classElement.type)}v');
+            '${typeString(classElement.thisType)}v');
       }
     }
   }
