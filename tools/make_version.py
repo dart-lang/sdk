@@ -55,16 +55,15 @@ def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
         else:
             git_hash = utils.GetShortGitHash()
             version_string = ("%s.%s-%s" % (latest, custom_for_pub, git_hash))
-        # TODO(athom): remove the custom 2.5.0 logic post release.
-        # For 2.5.0, we want flutter to claim Dart is 2.5.0 even before it is
-        # decided what exactly 2.5.0 will be. Dart & Flutter stable releases
-        # will be synced, so that what will be released as Dart 2.5.0 will also
+        # TODO(athom): remove the custom 2.7.0 logic post release.
+        # For 2.7.0, we want flutter to claim Dart is 2.7.0 even before it is
+        # decided what exactly 2.7.0 will be. Dart & Flutter stable releases
+        # will be synced, so that what will be released as Dart 2.7.0 will also
         # be what will be packaged with Flutter.
         version = utils.ReadVersionFile()
         custom_version_string = "%s.%s.%s" % (version.major, version.minor, version.patch)
-        if custom_version_string == "2.5.0" and custom_for_pub == "flutter":
-            version_string = "2.5.0"
-
+        if custom_version_string == "2.7.0" and custom_for_pub == "flutter":
+            version_string = "2.7.0"
 
     else:
         version_string = utils.GetSemanticSDKVersion(no_git_hash=no_git_hash)
