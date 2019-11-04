@@ -4253,7 +4253,7 @@ void main() {
     FunctionElement fElement = fNode.declaredElement;
 
     expect(fElement.type.toString(),
-        'void Function<T extends U,U,V extends U>(T, U, V)');
+        'void Function<T extends U, U, V extends U>(T, U, V)');
     var tElement = fElement.typeParameters[0];
     var uElement = fElement.typeParameters[1];
     var vElement = fElement.typeParameters[2];

@@ -308,7 +308,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         typeParametersBuffer.write('<');
         for (TypeParameterElement e in typeFormals) {
           if (e != typeFormals[0]) {
-            typeParametersBuffer.write(',');
+            typeParametersBuffer.write(', ');
           }
           String name = e.name;
           int counter = 0;

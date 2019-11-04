@@ -200,13 +200,13 @@ class SubstituteTest extends _Base {
 
     assertElementTypeString(
       type,
-      'bool Function<T extends Triple<T, U, V>,U>()',
+      'bool Function<T extends Triple<T, U, V>, U>()',
     );
 
     var result = substitute(type, {V: intType}) as FunctionType;
     assertElementTypeString(
       result,
-      'bool Function<T extends Triple<T, U, int>,U>()',
+      'bool Function<T extends Triple<T, U, int>, U>()',
     );
     var T2 = result.typeFormals[0];
     var U2 = result.typeFormals[1];

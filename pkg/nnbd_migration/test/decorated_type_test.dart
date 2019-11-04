@@ -326,7 +326,7 @@ class DecoratedTypeTest extends Object
         .toFinalType(typeProvider) as FunctionType;
     assertDartType(
         type,
-        'dynamic Function<T extends List<U>,U extends Object,'
+        'dynamic Function<T extends List<U>, U extends Object, '
         'V extends List<U>>()');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(type.typeFormals[1], isNot(same(u)));

@@ -605,7 +605,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: intStar,
       ),
-      strT0: 'int* Function<E0,F0>(int*)*',
+      strT0: 'int* Function<E0, F0>(int*)*',
       strT1: 'int* Function<E1>(int*)*',
     );
   }
@@ -1931,7 +1931,7 @@ class SubtypeTest extends _SubtypingTestBase {
           returnType: typeParameterTypeNone(E1),
         ),
       ),
-      strT0: 'E0 Function(F0)* Function<E0,F0>(E0)*',
+      strT0: 'E0 Function(F0)* Function<E0, F0>(E0)*',
       strT1: 'E1 Function<F1>(F1)* Function<E1>(E1)*',
     );
 
@@ -1960,8 +1960,8 @@ class SubtypeTest extends _SubtypingTestBase {
           returnType: typeParameterTypeNone(E1),
         ),
       ),
-      strT0: 'E0 Function(F0)* Function<E0,F0>(E0)*',
-      strT1: 'E1 Function(F1)* Function<F1,E1>(E1)*',
+      strT0: 'E0 Function(F0)* Function<E0, F0>(E0)*',
+      strT1: 'E1 Function(F1)* Function<F1, E1>(E1)*',
     );
   }
 
@@ -3903,8 +3903,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function<S extends Object*,T extends void>(S, T)*',
-      strT1: 'void Function<U extends dynamic,V extends Object*>(U, V)*',
+      strT0: 'void Function<S extends Object*, T extends void>(S, T)*',
+      strT1: 'void Function<U extends dynamic, V extends Object*>(U, V)*',
     );
   }
 
