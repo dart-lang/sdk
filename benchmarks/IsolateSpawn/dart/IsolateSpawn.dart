@@ -3,16 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:developer';
 import 'dart:isolate';
 import 'dart:math';
 
 import 'package:meta/meta.dart';
 
 import 'package:compiler/src/dart2js.dart' as dart2js_main;
+import 'package:vm_service/vm_service.dart' as vm_service;
+import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
 class SpawnLatencyAndMemory {
-  SpawnLatencyAndMemory(this.name);
+  SpawnLatencyAndMemory(this.name, this.wsUri, this.groupRefId);
 
   Future<ResultMessageLatencyAndMemory> run() async {
     final completerResult = Completer();
@@ -25,8 +27,8 @@ class SpawnLatencyAndMemory {
     final DateTime beforeSpawn = DateTime.now();
     await Isolate.spawn(
         isolateCompiler,
-        StartMessageLatencyAndMemory(
-            receivePort.sendPort, beforeSpawn, ProcessInfo.currentRss),
+        StartMessageLatencyAndMemory(receivePort.sendPort, beforeSpawn,
+            await currentHeapUsage(wsUri, groupRefId), wsUri, groupRefId),
         onExit: onExitReceivePort.sendPort,
         onError: onExitReceivePort.sendPort);
     final DateTime afterSpawn = DateTime.now();
@@ -51,17 +53,17 @@ class SpawnLatencyAndMemory {
     final Metric toFinishRunningCodeUs =
         LatencyMetric("${name}ToFinishRunning");
     final Metric toExitUs = LatencyMetric("${name}ToExit");
-    final Metric deltaRss = MemoryMetric("${name}Delta");
+    final Metric deltaHeap = MemoryMetric("${name}Delta");
     while (watch.elapsedMicroseconds < minimumMicros) {
       final ResultMessageLatencyAndMemory result = await run();
       toAfterIsolateSpawnUs.add(result.timeToIsolateSpawnUs);
       toStartRunningCodeUs.add(result.timeToStartRunningCodeUs);
       toFinishRunningCodeUs.add(result.timeToFinishRunningCodeUs);
       toExitUs.add(result.timeToExitUs);
-      deltaRss.add(result.deltaRss);
+      deltaHeap.add(result.deltaHeap);
     }
     return AggregatedResultMessageLatencyAndMemory(toAfterIsolateSpawnUs,
-        toStartRunningCodeUs, toFinishRunningCodeUs, toExitUs, deltaRss);
+        toStartRunningCodeUs, toFinishRunningCodeUs, toExitUs, deltaHeap);
   }
 
   Future<AggregatedResultMessageLatencyAndMemory> measure() async {
@@ -75,6 +77,8 @@ class SpawnLatencyAndMemory {
   }
 
   final String name;
+  final String wsUri;
+  final String groupRefId;
   RawReceivePort receivePort;
 }
 
@@ -106,32 +110,37 @@ class Metric {
 }
 
 class LatencyMetric extends Metric {
-  LatencyMetric(String name) : super(prefix: "${name}(Latency", suffix: " us.");
+  LatencyMetric(String name) : super(prefix: "$name(Latency", suffix: " us.");
 }
 
 class MemoryMetric extends Metric {
-  MemoryMetric(String name) : super(prefix: "${name}Rss(MemoryUse", suffix: "");
+  MemoryMetric(String name)
+      : super(prefix: "${name}Heap(MemoryUse", suffix: "");
 
   toString() => "$prefix): ${_average()}$suffix\n";
 }
 
 class StartMessageLatencyAndMemory {
-  StartMessageLatencyAndMemory(this.sendPort, this.spawned, this.rss);
+  StartMessageLatencyAndMemory(
+      this.sendPort, this.spawned, this.rss, this.wsUri, this.groupRefId);
 
   final SendPort sendPort;
   final DateTime spawned;
   final int rss;
+
+  final String wsUri;
+  final String groupRefId;
 }
 
 class ResultMessageLatencyAndMemory {
   ResultMessageLatencyAndMemory(
       {this.timeToStartRunningCodeUs,
       this.timeToFinishRunningCodeUs,
-      this.deltaRss});
+      this.deltaHeap});
 
   final int timeToStartRunningCodeUs;
   final int timeToFinishRunningCodeUs;
-  final int deltaRss;
+  final int deltaHeap;
 
   int timeToIsolateSpawnUs;
   int timeToExitUs;
@@ -143,20 +152,20 @@ class AggregatedResultMessageLatencyAndMemory {
     this.toStartRunningCodeUs,
     this.toFinishRunningCodeUs,
     this.toExitUs,
-    this.deltaRss,
+    this.deltaHeap,
   );
 
   String toString() => """$toAfterIsolateSpawnUs
 $toStartRunningCodeUs
 $toFinishRunningCodeUs
 $toExitUs
-$deltaRss""";
+$deltaHeap""";
 
   final Metric toAfterIsolateSpawnUs;
   final Metric toStartRunningCodeUs;
   final Metric toFinishRunningCodeUs;
   final Metric toExitUs;
-  final Metric deltaRss;
+  final Metric deltaHeap;
 }
 
 Future<void> isolateCompiler(StartMessageLatencyAndMemory start) async {
@@ -174,9 +183,47 @@ Future<void> isolateCompiler(StartMessageLatencyAndMemory start) async {
           timeRunningCodeUs.difference(start.spawned).inMicroseconds,
       timeToFinishRunningCodeUs:
           timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds,
-      deltaRss: ProcessInfo.currentRss - start.rss));
+      deltaHeap:
+          await currentHeapUsage(start.wsUri, start.groupRefId) - start.rss));
+}
+
+Future<int> currentHeapUsage(String wsUri, String groupRefId) async {
+  final vm_service.VmService vmService =
+      await vm_service_io.vmServiceConnectUri(wsUri);
+  final vm_service.MemoryUsage usage =
+      await vmService.getIsolateGroupMemoryUsage(groupRefId);
+  vmService.dispose();
+  return usage.heapUsage + usage.externalUsage;
 }
 
 Future<void> main() async {
-  await SpawnLatencyAndMemory("IsolateSpawn.Dart2JS").report();
+  final ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
+  final Uri observatoryUri = info.serverUri;
+  final String wsUri =
+      'ws://${observatoryUri.authority}${observatoryUri.path}ws';
+  final vm_service.VmService vmService =
+      await vm_service_io.vmServiceConnectUri(wsUri);
+  final String mainGroupRefId = await getMainGroupRefId(vmService);
+  vmService.dispose();
+
+  await SpawnLatencyAndMemory("IsolateSpawn.Dart2JS", wsUri, mainGroupRefId)
+      .report();
+}
+
+Future<String> getMainGroupRefId(vm_service.VmService vmService) async {
+  final vm = await vmService.getVM();
+  for (vm_service.IsolateGroupRef groupRef in vm.isolateGroups) {
+    final vm_service.IsolateGroup group =
+        await vmService.getIsolateGroup(groupRef.id);
+    for (vm_service.IsolateRef isolateRef in group.isolates) {
+      final isolateOrSentinel = await vmService.getIsolate(isolateRef.id);
+      if (isolateOrSentinel is vm_service.Isolate) {
+        final vm_service.Isolate isolate = isolateOrSentinel;
+        if (isolate.name == 'main') {
+          return groupRef.id;
+        }
+      }
+    }
+  }
+  throw "Could not find main isolate";
 }
