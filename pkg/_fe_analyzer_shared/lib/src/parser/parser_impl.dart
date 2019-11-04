@@ -2421,7 +2421,7 @@ class Parser {
     }
 
     Token token = typeInfo.parseType(beforeType, this);
-    assert(token.next == name);
+    assert(token.next == name || token.next.isEof);
 
     IdentifierContext context = kind == DeclarationKind.TopLevel
         ? IdentifierContext.topLevelVariableDeclaration
