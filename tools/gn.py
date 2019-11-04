@@ -246,11 +246,13 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args['is_msan'] = args.msan
     gn_args['is_tsan'] = args.tsan
     gn_args['is_ubsan'] = args.ubsan
+    gn_args['include_dart2native'] = True
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
     gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args['dartaotruntime_stripped_binary'] = 'exe.stripped/dartaotruntime'
+    gn_args[
+        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
     gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
 
     # Setup the user-defined sysroot.

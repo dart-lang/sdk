@@ -22,7 +22,7 @@ declare_args() {
 
   # Path to stripped dart binaries relative to build output directory.
   dart_stripped_binary = "dart"
-  dartaotruntime_stripped_binary = "dartaotruntime"
+  dart_precompiled_runtime_stripped = "dart_precompiled_runtime_stripped"
   gen_snapshot_stripped_binary = "gen_snapshot"
 }
 
@@ -35,7 +35,7 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2native
+# ......dart2native (on all configurations except ia32)
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
@@ -68,13 +68,13 @@ declare_args() {
 # ....lib/
 # ......libraries.json
 # ......_internal/
-#.........strong.sum
-#.........dart2js_platform.dill
-#.........dart2js_server_platform.dill
-#.........dart2js_platform_strong.dill
-#.........dart2js_server_platform_strong.dill
-#.........vm_platform_strong.dill
-#.........dev_compiler/
+# ........strong.sum
+# ........dart2js_platform.dill
+# ........dart2js_server_platform.dill
+# ........dart2js_platform_strong.dill
+# ........dart2js_server_platform_strong.dill
+# ........vm_platform_strong.dill
+# ........dev_compiler/
 # ......async/
 # ......collection/
 # ......convert/
@@ -394,25 +394,25 @@ if (target_os != current_os && target_os == "fuchsia") {
 
 copy("copy_dartaotruntime") {
   deps = [
-    "../runtime/bin:dartaotruntime",
+    "../runtime/bin:dart_precompiled_runtime",
   ]
   dartaotruntime_out =
-      get_label_info("../runtime/bin:dartaotruntime", "root_out_dir")
+      get_label_info("../runtime/bin:dart_precompiled_runtime", "root_out_dir")
   if (is_win) {
     sources = [
-      "$dartaotruntime_out/dartaotruntime.exe",
+      "$dartaotruntime_out/dart_precompiled_runtime.exe",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/dartaotruntime.exe",
     ]
   } else {
     sources = [
-      "$dartaotruntime_out/$dartaotruntime_stripped_binary",
+      "$dartaotruntime_out/$dart_precompiled_runtime_stripped",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/dartaotruntime",
     ]
   }
-  if (is_win) {
-    sources += [ "$dartaotruntime_out/dartaotruntime.lib" ]
-  }
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
-  ]
 }
 
 copy("copy_gen_snapshot") {
@@ -437,6 +437,7 @@ copy("copy_gen_snapshot") {
 
 copy("copy_dart2native") {
   deps = [
+    ":copy_dartaotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
   ]
@@ -987,7 +988,6 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
-    ":copy_dart2native",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
@@ -999,6 +999,13 @@ group("create_common_sdk") {
     ":write_revision_file",
     ":write_version_file",
   ]
+
+  # We do not support AOT on ia32 and should therefore not add the
+  # dart2native script (since there is no AOT compiler/runtime available)
+  if (dart_target_arch != "ia32") {
+    public_deps += [ ":copy_dart2native" ]
+  }
+
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
   }
