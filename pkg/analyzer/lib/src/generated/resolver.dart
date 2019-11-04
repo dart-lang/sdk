@@ -6292,6 +6292,9 @@ class TypeNameResolver {
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.
 abstract class TypeProvider {
+  /// Return the element representing the built-in class 'bool'.
+  ClassElement get boolElement;
+
   /// Return the type representing the built-in type 'bool'.
   InterfaceType get boolType;
 
@@ -6300,6 +6303,9 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Deprecated'.
   InterfaceType get deprecatedType;
+
+  /// Return the element representing the built-in class 'double'.
+  ClassElement get doubleElement;
 
   /// Return the type representing the built-in type 'double'.
   InterfaceType get doubleType;
@@ -6332,6 +6338,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Future'.
   @Deprecated('Use futureType2() instead.')
   InterfaceType get futureType;
+
+  /// Return the element representing the built-in class 'int'.
+  ClassElement get intElement;
 
   /// Return the type representing the built-in type 'int'.
   InterfaceType get intType;
@@ -6371,13 +6380,24 @@ abstract class TypeProvider {
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
+  @Deprecated('Use nonSubtypableClasses instead.')
   List<InterfaceType> get nonSubtypableTypes;
+
+  /// Return a list containing all of the types that cannot be either extended
+  /// or implemented.
+  Set<ClassElement> get nonSubtypableClasses;
+
+  /// Return the element representing the built-in class 'null'.
+  ClassElement get nullElement;
 
   /// Return a [DartObjectImpl] representing the `null` object.
   DartObjectImpl get nullObject;
 
   /// Return the type representing the built-in type 'Null'.
   InterfaceType get nullType;
+
+  /// Return the element representing the built-in class 'num'.
+  ClassElement get numElement;
 
   /// Return the type representing the built-in type 'num'.
   InterfaceType get numType;
@@ -6404,6 +6424,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Stream'.
   @Deprecated('Use streamType2() instead.')
   InterfaceType get streamType;
+
+  /// Return the element representing the built-in class 'String'.
+  ClassElement get stringElement;
 
   /// Return the type representing the built-in type 'String'.
   InterfaceType get stringType;

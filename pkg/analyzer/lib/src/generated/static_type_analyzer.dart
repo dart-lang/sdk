@@ -1899,14 +1899,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   // node's argumentList. (This likely affects only explicit calls to
   // `Object.noSuchMethod`.)
   bool _inferMethodInvocationObject(MethodInvocation node) {
-    // If we have a call like `toString()` or `libraryPrefix.toString()` don't
+    // If we have a call like `toString()` or `libraryPrefix.toString()`, don't
     // infer it.
     Expression target = node.realTarget;
     if (target == null ||
         target is SimpleIdentifier && target.staticElement is PrefixElement) {
       return false;
     }
-
+    DartType nodeType = node.staticInvokeType;
+    if (nodeType == null ||
+        !nodeType.isDynamic ||
+        node.argumentList.arguments.isNotEmpty) {
+      return false;
+    }
     // Object methods called on dynamic targets can have their types improved.
     String name = node.methodName.name;
     MethodElement inferredElement =
@@ -1915,16 +1920,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return false;
     }
     DartType inferredType = inferredElement.type;
-    DartType nodeType = node.staticInvokeType;
-    if (nodeType != null &&
-        nodeType.isDynamic &&
-        inferredType is FunctionType &&
-        inferredType.parameters.isEmpty &&
-        node.argumentList.arguments.isEmpty &&
-        _typeProvider.nonSubtypableTypes.contains(inferredType.returnType)) {
-      node.staticInvokeType = inferredType;
-      _recordStaticType(node, inferredType.returnType);
-      return true;
+    if (inferredType is FunctionType) {
+      DartType returnType = inferredType.returnType;
+      if (inferredType.parameters.isEmpty &&
+          returnType is InterfaceType &&
+          _typeProvider.nonSubtypableClasses.contains(returnType.element)) {
+        node.staticInvokeType = inferredType;
+        _recordStaticType(node, inferredType.returnType);
+        return true;
+      }
     }
     return false;
   }
@@ -1953,8 +1957,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     DartType inferredType = inferredElement.type.returnType;
     if (nodeType != null &&
         nodeType.isDynamic &&
-        inferredType != null &&
-        _typeProvider.nonSubtypableTypes.contains(inferredType)) {
+        inferredType is InterfaceType &&
+        _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
       _recordStaticType(id, inferredType);
       _recordStaticType(node, inferredType);
       return true;

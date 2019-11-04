@@ -274,12 +274,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   HiddenElements _hiddenElements;
 
-  /**
-   * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
-   * and [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
-   */
-  List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
-
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
   /// Setting this flag to `true` disables the check for conflicting generics.
@@ -318,7 +312,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
@@ -2876,7 +2869,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
+    return typeName.type is InterfaceType &&
+        _typeProvider.nonSubtypableClasses.contains(typeName.type.element);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {

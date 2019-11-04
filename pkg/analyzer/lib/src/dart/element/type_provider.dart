@@ -45,13 +45,19 @@ class TypeProviderImpl extends TypeProviderBase {
   final LibraryElement _coreLibrary;
   final LibraryElement _asyncLibrary;
 
+  ClassElement _boolElement;
+  ClassElement _doubleElement;
   ClassElement _futureElement;
   ClassElement _futureOrElement;
+  ClassElement _intElement;
   ClassElement _iterableElement;
   ClassElement _listElement;
   ClassElement _mapElement;
+  ClassElement _nullElement;
+  ClassElement _numElement;
   ClassElement _setElement;
   ClassElement _streamElement;
+  ClassElement _stringElement;
   ClassElement _symbolElement;
 
   InterfaceType _boolType;
@@ -82,6 +88,8 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _symbolType;
   InterfaceType _typeType;
 
+  Set<ClassElement> _nonSubtypableClasses;
+
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(
@@ -91,6 +99,11 @@ class TypeProviderImpl extends TypeProviderBase {
   })  : _nullabilitySuffix = nullabilitySuffix,
         _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary;
+
+  @override
+  ClassElement get boolElement {
+    return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
+  }
 
   @override
   InterfaceType get boolType {
@@ -110,6 +123,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get deprecatedType {
     _deprecatedType ??= _getType(_coreLibrary, "Deprecated");
     return _deprecatedType;
+  }
+
+  @override
+  ClassElement get doubleElement {
+    return _doubleElement ??= _getClassElement(_coreLibrary, "double");
   }
 
   @override
@@ -175,6 +193,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureType {
     _futureType ??= _getType(_asyncLibrary, "Future");
     return _futureType;
+  }
+
+  @override
+  ClassElement get intElement {
+    return _intElement ??= _getClassElement(_coreLibrary, "int");
   }
 
   @override
@@ -250,6 +273,22 @@ class TypeProviderImpl extends TypeProviderBase {
   DartType get neverType => NeverTypeImpl.instance;
 
   @override
+  Set<ClassElement> get nonSubtypableClasses => _nonSubtypableClasses ??= {
+        boolElement,
+        doubleElement,
+        futureOrElement,
+        intElement,
+        nullElement,
+        numElement,
+        stringElement,
+      };
+
+  @override
+  ClassElement get nullElement {
+    return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
+  }
+
+  @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
       _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
@@ -261,6 +300,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get nullType {
     _nullType ??= _getType(_coreLibrary, "Null");
     return _nullType;
+  }
+
+  @override
+  ClassElement get numElement {
+    return _numElement ??= _getClassElement(_coreLibrary, 'num');
   }
 
   @override
@@ -310,6 +354,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get streamType {
     _streamType ??= _getType(_asyncLibrary, "Stream");
     return _streamType;
+  }
+
+  @override
+  ClassElement get stringElement {
+    return _stringElement ??= _getClassElement(_coreLibrary, 'String');
   }
 
   @override

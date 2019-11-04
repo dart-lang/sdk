@@ -331,7 +331,8 @@ class _ClassVerifier {
     }
 
     DartType type = typeName.type;
-    if (typeProvider.nonSubtypableTypes.contains(type)) {
+    if (type is InterfaceType &&
+        typeProvider.nonSubtypableClasses.contains(type.element)) {
       reporter.reportErrorForNode(errorCode, typeName, [type.displayName]);
       return true;
     }
