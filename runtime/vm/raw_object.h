@@ -436,10 +436,6 @@ class RawObject {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
 
-  intptr_t GetClassIdMayBeSmi() const {
-    return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
-  }
-
   intptr_t HeapSize() const {
     ASSERT(IsHeapObject());
     uint32_t tags = ptr()->tags_;
@@ -507,6 +503,7 @@ class RawObject {
 
     // Calculate the first and last raw object pointer fields.
     intptr_t instance_size = HeapSize();
+    uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
 
