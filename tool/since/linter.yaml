@@ -35,8 +35,10 @@ avoid_shadowing_type_parameters: 0.1.72
 avoid_single_cascade_in_expression_statements: 0.1.46
 avoid_slow_async_io: 0.1.30
 avoid_types_as_parameter_names: 0.1.45
+avoid_unnecessary_containers : 0.1.102
 avoid_unused_constructor_parameters: 0.1.36
 avoid_void_async: 0.1.60
+avoid_web_libraries_in_flutter : 0.1.101
 await_only_futures: 0.1.16
 camel_case_types: 0.1.1
 camel_case_extensions: 0.1.97+1
@@ -106,8 +108,10 @@ prefer_interpolation_to_compose_strings: 0.1.30
 prefer_iterable_whereType: 0.1.47
 prefer_is_empty: 0.1.30
 prefer_is_not_empty: 0.1.5
+prefer_is_not_operator : 0.1.102
 prefer_mixin: 0.1.62
 prefer_null_aware_operators: 0.1.80
+prefer_relative_imports : 0.1.99
 prefer_single_quotes: 0.1.33
 prefer_spread_collections: 0.1.85
 prefer_typing_uninitialized_variables: 0.1.36
