@@ -36,6 +36,7 @@ import 'package:args/args.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
+import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
 /// Commandline argument parser. (Copied from analyzer/lib/options.dart)
@@ -422,6 +423,9 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
+    final crashReportSender =
+        new CrashReportSender('Dart_analysis_server', analytics);
+
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
         analytics.enabled = results[ANALYTICS_FLAG];
@@ -461,19 +465,18 @@ class Driver implements ServerStarter {
     // Initialize the instrumentation service.
     //
     String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    List<InstrumentationService> allInstrumentationServices =
+        instrumentationService == null ? [] : [instrumentationService];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      FileInstrumentationLogger fileBasedServer =
-          new FileInstrumentationLogger(logFilePath);
-      instrumentationService = instrumentationService != null
-          ? new MulticastInstrumentationService([
-              instrumentationService,
-              InstrumentationLogAdapter(fileBasedServer)
-            ])
-          : fileBasedServer;
-    } else if (instrumentationService == null) {
-      instrumentationService = InstrumentationService.NULL_SERVICE;
+      allInstrumentationServices.add(InstrumentationLogAdapter(
+          new FileInstrumentationLogger(logFilePath)));
     }
+
+    allInstrumentationServices
+        .add(CrashReportingInstrumentation(crashReportSender));
+    instrumentationService =
+        new MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
         results[TRAIN_USING] != null

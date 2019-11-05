@@ -282,7 +282,10 @@ abstract class AbstractAnalysisServer {
 
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
+        .catchError((e, st) {
+      AnalysisEngine.instance.instrumentationService.logException(e, st);
+      return null;
+    });
   }
 
   /// Notify the declarations tracker that the file with the given [path] was
