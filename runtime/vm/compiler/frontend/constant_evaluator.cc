@@ -173,9 +173,6 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         helper_->SkipDartType();
         result_ = EvaluateConstantExpression(helper_->ReadUInt());
         break;
-      case kDeprecated_ConstantExpression:
-        result_ = EvaluateConstantExpression(helper_->ReadUInt());
-        break;
       case kInvalidExpression: {
         helper_->ReadPosition();  // Skip position.
         const String& message = H.DartString(helper_->ReadStringReference());

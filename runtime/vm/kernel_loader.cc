@@ -157,9 +157,7 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
   class_index_offset_ = procedure_index_offset_ - 4 - (class_count_ + 1) * 4;
 
   source_references_offset_ = -1;
-  if (binary_version >= 25) {
-    source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
-  }
+  source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
 }
 
 ClassIndex::ClassIndex(const uint8_t* buffer,
@@ -526,15 +524,13 @@ void KernelLoader::AnnotateNativeProcedures() {
     const intptr_t annotation_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < annotation_count; ++j) {
       const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression || tag == kDeprecated_ConstantExpression) {
+      if (tag == kConstantExpression) {
         helper_.ReadByte();  // Skip the tag.
+        helper_.ReadPosition();  // Skip fileOffset.
+        helper_.SkipDartType();  // Skip type.
 
         // We have a candidate. Let's look if it's an instance of the
         // ExternalName class.
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-        }
         const intptr_t constant_table_offset = helper_.ReadUInt();
         if (constant_evaluator.IsInstanceConstant(constant_table_offset,
                                                   external_name_class_)) {
@@ -661,16 +657,13 @@ void KernelLoader::LoadNativeExtensionLibraries() {
         uri_path = String::null();
 
         const intptr_t tag = helper_.PeekTag();
-        if (tag == kConstantExpression ||
-            tag == kDeprecated_ConstantExpression) {
+        if (tag == kConstantExpression) {
           helper_.ReadByte();  // Skip the tag.
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
 
           // We have a candidate. Let's look if it's an instance of the
           // ExternalName class.
-          if (tag == kConstantExpression) {
-            helper_.ReadPosition();  // Skip fileOffset.
-            helper_.SkipDartType();  // Skip type.
-          }
           const intptr_t constant_table_offset = helper_.ReadUInt();
           if (constant_evaluator.IsInstanceConstant(constant_table_offset,
                                                     external_name_class_)) {
@@ -1101,17 +1094,15 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   if (register_class) {
-    if (library_index.HasSourceReferences()) {
-      helper_.SetOffset(library_index.SourceReferencesOffset());
-      intptr_t count = helper_.ReadUInt();
-      const GrowableObjectArray& owned_scripts =
-          GrowableObjectArray::Handle(library.owned_scripts());
-      Script& script = Script::Handle(Z);
-      for (intptr_t i = 0; i < count; i++) {
-        intptr_t uri_index = helper_.ReadUInt();
-        script = ScriptAt(uri_index);
-        owned_scripts.Add(script);
-      }
+    helper_.SetOffset(library_index.SourceReferencesOffset());
+    intptr_t count = helper_.ReadUInt();
+    const GrowableObjectArray& owned_scripts =
+        GrowableObjectArray::Handle(library.owned_scripts());
+    Script& script = Script::Handle(Z);
+    for (intptr_t i = 0; i < count; i++) {
+      intptr_t uri_index = helper_.ReadUInt();
+      script = ScriptAt(uri_index);
+      owned_scripts.Add(script);
     }
   }
   if (!library.Loaded()) library.SetLoaded();
@@ -1785,8 +1776,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
       if (DetectPragmaCtor()) {
         *has_pragma_annotation = true;
       }
-    } else if (tag == kConstantExpression ||
-               tag == kDeprecated_ConstantExpression) {
+    } else if (tag == kConstantExpression) {
       const Array& constant_table_array =
           Array::Handle(kernel_program_info_.constants());
       if (constant_table_array.IsNull()) {
@@ -1807,11 +1797,8 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         // and avoid the "potential natives" list.
 
         helper_.ReadByte();  // Skip the tag.
-
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-        }
+        helper_.ReadPosition();  // Skip fileOffset.
+        helper_.SkipDartType();  // Skip type.
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
         AlternativeReadingScopeWithNewData scope(

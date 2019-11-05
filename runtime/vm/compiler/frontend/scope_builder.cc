@@ -917,10 +917,6 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipDartType();
       helper_.SkipConstantReference();
       return;
-    case kDeprecated_ConstantExpression: {
-      helper_.SkipConstantReference();
-      return;
-    }
     case kInstantiation: {
       VisitExpression();
       const intptr_t list_length =
@@ -1369,9 +1365,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       helper_.SkipStringReference();
       VisitDartType();  // read named_parameters[i].type.
-      if (helper_.translation_helper_.info().kernel_binary_version() >= 29) {
-        helper_.ReadByte();  // read flags
-      }
+      helper_.ReadByte();  // read flags
     }
   }
 

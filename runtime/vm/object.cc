@@ -10684,14 +10684,9 @@ RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // TODO(jensj): Once minimum kernel support is >= 25 this can be cleaned up.
+    // TODO(jensj): This can be cleaned up.
     // It really should just return the content of `owned_scripts`, and there
     // should be no need to do the O(n) call to `AddScriptIfUnique` per script.
-    static_assert(
-        kernel::kMinSupportedKernelFormatVersion < 25,
-        "Once minimum kernel support is >= 25 this can be cleaned up.");
-#endif
 
     // Iterate over the library dictionary and collect all scripts.
     const GrowableObjectArray& scripts =

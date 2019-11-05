@@ -1009,11 +1009,7 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
-        flags_ = helper_->ReadUInt();
-      } else {
-        flags_ = helper_->ReadFlags();
-      }
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1081,11 +1077,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
-        flags_ = helper_->ReadUInt();
-      } else {
-        flags_ = helper_->ReadFlags();
-      }
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1317,10 +1309,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       FALL_THROUGH;
     }
     case kLanguageVersion: {
-      if (binary_version_ >= 27) {
-        helper_->ReadUInt();  // Read major language version.
-        helper_->ReadUInt();  // Read minor language version.
-      }
+      helper_->ReadUInt();  // Read major language version.
+      helper_->ReadUInt();  // Read minor language version.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     }
@@ -2043,9 +2033,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       SkipStringReference();
       SkipDartType();  // read named_parameters[i].type.
-      if (translation_helper_.info().kernel_binary_version() >= 29) {
-        SkipBytes(1);  // read flags
-      }
+      SkipBytes(1);    // read flags
     }
   }
 
@@ -2358,9 +2346,6 @@ void KernelReaderHelper::SkipExpression() {
     case kConstantExpression:
       ReadPosition();  // read position.
       SkipDartType();  // read type.
-      SkipConstantReference();
-      return;
-    case kDeprecated_ConstantExpression:
       SkipConstantReference();
       return;
     case kLoadLibrary:
@@ -2929,10 +2914,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      if (translation_helper_.info().kernel_binary_version() >= 29) {
-        // TODO(markov): Store 'required' bit.
-        helper_->ReadFlags();  // read flags
-      }
+      // TODO(markov): Store 'required' bit.
+      helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }
