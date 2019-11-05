@@ -12,7 +12,6 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 
 const _binaryName = 'dartanalyzer';
 
@@ -326,10 +325,6 @@ class CommandLineOptions {
           help: 'Verbose output.',
           negatable: false);
 
-    parser.addFlag('analytics',
-        help: 'Enable or disable sending analytics information to Google.',
-        hide: !telemetry.SHOW_ANALYTICS_UI);
-
     // Build mode options.
     if (!hide) {
       parser.addSeparator('Build mode flags:');
@@ -503,27 +498,16 @@ class CommandLineOptions {
 
       // Help requests.
       if (cast(results['help'])) {
-        _showUsage(parser, analytics, fromHelp: true);
+        _showUsage(parser, fromHelp: true);
         exitHandler(0);
         return null; // Only reachable in testing.
-      }
-
-      // Enable / disable analytics.
-      if (telemetry.SHOW_ANALYTICS_UI) {
-        if (results.wasParsed('analytics')) {
-          analytics.enabled = cast(results['analytics']);
-          outSink.writeln(
-              telemetry.createAnalyticsStatusMessage(analytics.enabled));
-          exitHandler(0);
-          return null; // Only reachable in testing.
-        }
       }
 
       // Batch mode and input files.
       if (cast(results['batch'])) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
-          _showUsage(parser, analytics);
+          _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -531,7 +515,7 @@ class CommandLineOptions {
         if (results.rest.isNotEmpty) {
           errorSink.writeln(
               'No source files expected in the persistent worker mode.');
-          _showUsage(parser, analytics);
+          _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -541,7 +525,7 @@ class CommandLineOptions {
         return null; // Only reachable in testing.
       } else {
         if (results.rest.isEmpty && !cast<bool>(results['build-mode'])) {
-          _showUsage(parser, analytics, fromHelp: true);
+          _showUsage(parser, fromHelp: true);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -564,7 +548,7 @@ class CommandLineOptions {
           errorSink.writeln('$kind: ${validationResult.message}');
         }
         if (errorFound) {
-          _showUsage(parser, null);
+          _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
@@ -573,46 +557,18 @@ class CommandLineOptions {
       return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
-      _showUsage(parser, null);
+      _showUsage(parser);
       exitHandler(15);
       return null; // Only reachable in testing.
     }
   }
 
-  static _showUsage(ArgParser parser, telemetry.Analytics analytics,
-      {bool fromHelp: false}) {
-    void printAnalyticsInfo() {
-      if (!telemetry.SHOW_ANALYTICS_UI) {
-        return;
-      }
-
-      if (fromHelp) {
-        errorSink.writeln('');
-        errorSink.writeln(telemetry.analyticsNotice);
-      }
-
-      if (analytics != null) {
-        errorSink.writeln('');
-        errorSink.writeln(telemetry.createAnalyticsStatusMessage(
-            analytics.enabled,
-            command: 'analytics'));
-      }
-    }
-
+  static _showUsage(ArgParser parser, {bool fromHelp: false}) {
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
 
-    // If it's our first run, we display the analytics info more prominently.
-    if (analytics != null && analytics.firstRun) {
-      printAnalyticsInfo();
-    }
-
     errorSink.writeln('');
     errorSink.writeln(parser.usage);
-
-    if (analytics != null && !analytics.firstRun) {
-      printAnalyticsInfo();
-    }
 
     errorSink.writeln('');
     errorSink.writeln('''
