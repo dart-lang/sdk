@@ -227,7 +227,7 @@ class SubListIterable<E> extends ListIterable<E> {
 
   SubListIterable(this._iterable, this._start, this._endOrLength) {
     RangeError.checkNotNegative(_start, "start");
-    var endOrLength = _endOrLength;
+    int? endOrLength = _endOrLength;
     if (endOrLength != null) {
       RangeError.checkNotNegative(endOrLength, "end");
       if (_start > endOrLength) {
@@ -270,7 +270,7 @@ class SubListIterable<E> extends ListIterable<E> {
   Iterable<E> skip(int count) {
     RangeError.checkNotNegative(count, "count");
     int newStart = _start + count;
-    var endOrLength = _endOrLength;
+    int? endOrLength = _endOrLength;
     if (endOrLength != null && newStart >= endOrLength) {
       return new EmptyIterable<E>();
     }
@@ -535,7 +535,11 @@ class TakeIterator<E> extends Iterator<E> {
   }
 
   E get current {
-    if (_remaining < 0) throw IterableElementError.noElement();
+    // Before NNBD, this returned null when iteration was complete. In order to
+    // avoid a hard breaking change, we return "null as E" in that case so that
+    // if strong checking is not enabled or E is nullable, the existing
+    // behavior is preserved.
+    if (_remaining < 0) return null as E;
     return _iterator.current;
   }
 }
