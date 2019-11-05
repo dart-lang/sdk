@@ -3549,8 +3549,6 @@ class HTypeConversion extends HCheck {
   final int kind;
 
   AbstractValue checkedType; // Not final because we refine it.
-  AbstractValue
-      inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
       HInstruction input, SourceInformation sourceInformation)
@@ -3682,8 +3680,6 @@ class HPrimitiveCheck extends HCheck {
   final Selector receiverTypeCheckSelector;
 
   AbstractValue checkedType; // Not final because we refine it.
-  AbstractValue
-      inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
       HInstruction input, SourceInformation sourceInformation,
@@ -4590,6 +4586,8 @@ class HLoadType extends HRtiInstruction {
 /// instance. The reified environment is typically stored as the instance type,
 /// e.g. "UnmodifiableListView<int>".
 class HInstanceEnvironment extends HRtiInstruction {
+  AbstractValue codegenInputType; // Assigned in SsaTypeKnownRemover
+
   HInstanceEnvironment(HInstruction instance, AbstractValue type)
       : super([instance], type) {
     setUseGvn();

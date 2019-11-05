@@ -3477,7 +3477,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     // Try to use the 'rti' field, or a specialization of 'instanceType'.
-    AbstractValue receiverMask = input.instructionType;
+    AbstractValue receiverMask = node.codegenInputType;
 
     AbstractBool isArray = _abstractValueDomain.isInstanceOf(
         receiverMask, _commonElements.jsArrayClass);
