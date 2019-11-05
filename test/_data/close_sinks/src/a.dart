@@ -2,8 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// ignore_for_file: prefer_initializing_formals
+// ignore_for_file: unnecessary_new
+// ignore_for_file: unnecessary_this
+// ignore_for_file: unused_field
+// ignore_for_file: unused_local_variable
+// ignore_for_file: use_setters_to_change_properties
+
 import 'dart:async';
+import 'dart:io';
 
 class MockIOSink implements Sink {
   @override
@@ -20,14 +27,14 @@ void inScope() {
 
 class A {
   IOSink _sinkA; // LINT
-  void init(filename) {
+  void init(String filename) {
     _sinkA = new File(filename).openWrite();
   }
 }
 
 class B {
   IOSink _sinkB;
-  void init(filename) {
+  void init(String filename) {
     _sinkB = new File(filename).openWrite(); // OK
   }
 
@@ -38,11 +45,11 @@ class B {
 
 class B1 {
   Socket _socketB1;
-  Future init(filename) async {
+  Future init(String filename) async {
     _socketB1 = await Socket.connect(null /*address*/, 1234); // OK
   }
 
-  void dispose(filename) {
+  void dispose(String filename) {
     _socketB1.destroy();
   }
 }
@@ -79,7 +86,7 @@ class C3 {
 }
 
 class D {
-  IOSink init(filename) {
+  IOSink init(String filename) {
     IOSink _sinkF = new File(filename).openWrite(); // OK
     return _sinkF;
   }
