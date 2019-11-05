@@ -21,11 +21,10 @@ import 'package:kernel/type_algebra.dart'
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
-import '../problems.dart' show unhandled, unsupported;
+import '../problems.dart' show unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_type_builder.dart';
 import 'library_builder.dart';
@@ -55,14 +54,6 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
                 fileUri: parent.library.fileUri)
               ..fileOffset = charOffset),
         super(metadata, 0, name, parent, charOffset);
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  UnrelatedTarget get target => unsupported(
-      "TypeAliasBuilder.target is deprecated. "
-      "Use TypeAliasBuilder.typedef instead.",
-      charOffset,
-      fileUri);
 
   String get debugName => "TypeAliasBuilder";
 

@@ -117,9 +117,9 @@ abstract class AbstractDartSdk implements DartSdk {
     try {
       return new FileBasedSource(file, Uri.parse(path));
     } on FormatException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logInformation(
+      AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
-          new CaughtException(exception, stackTrace));
+          CaughtException(exception, stackTrace));
     }
     return null;
   }

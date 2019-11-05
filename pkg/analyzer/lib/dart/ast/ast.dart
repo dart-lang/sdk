@@ -159,20 +159,11 @@ abstract class Annotation implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ArgumentList implements AstNode {
-  /// Return the expressions producing the values of the arguments. Although the
-  /// language requires that positional arguments appear before named arguments,
-  /// this class allows them to be intermixed.
-  NodeList<Expression> get arguments;
-
-  /// Set the parameter elements corresponding to each of the arguments in this
-  /// list to the given list of [parameters]. The list of parameters must be the
-  /// same length as the number of arguments, but can contain `null` entries if
-  /// a given argument does not correspond to a formal parameter.
+  /// Return the expressions producing the values of the arguments.
   ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [correspondingStaticParameters] instead.
-  @deprecated
-  void set correspondingPropagatedParameters(List<ParameterElement> parameters);
+  /// Although the language requires that positional arguments appear before
+  /// named arguments, this class allows them to be intermixed.
+  NodeList<Expression> get arguments;
 
   /// Set the parameter elements corresponding to each of the arguments in this
   /// list to the given list of [parameters]. The list of parameters must be the
@@ -320,11 +311,12 @@ abstract class AssignmentExpression
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AstNode implements SyntacticEntity {
-  /// A comparator that can be used to sort AST nodes in lexical order. In other
-  /// words, `compare` will return a negative value if the offset of the first
-  /// node is less than the offset of the second node, zero (0) if the nodes
-  /// have the same offset, and a positive value if the offset of the first node
-  /// is greater than the offset of the second node.
+  /// A comparator that can be used to sort AST nodes in lexical order.
+  ///
+  /// In other words, `compare` will return a negative value if the offset of
+  /// the first node is less than the offset of the second node, zero (0) if
+  /// the nodes have the same offset, and a positive value if the offset of the
+  /// first node is greater than the offset of the second node.
   static Comparator<AstNode> LEXICAL_ORDER =
       (AstNode first, AstNode second) => first.offset - second.offset;
 
@@ -337,20 +329,23 @@ abstract class AstNode implements SyntacticEntity {
   Iterable<SyntacticEntity> get childEntities;
 
   /// Return the offset of the character immediately following the last
-  /// character of this node's source range. This is equivalent to
-  /// `node.getOffset() + node.getLength()`. For a compilation unit this will be
-  /// equal to the length of the unit's source. For synthetic nodes this will be
-  /// equivalent to the node's offset (because the length is zero (0) by
-  /// definition).
+  /// character of this node's source range.
+  ///
+  /// This is equivalent to `node.getOffset() + node.getLength()`. For a
+  /// compilation unit this will be equal to the length of the unit's source.
+  /// For synthetic nodes this will be equivalent to the node's offset (because
+  /// the length is zero (0) by definition).
   @override
   int get end;
 
   /// Return the last token included in this node's source range.
   Token get endToken;
 
-  /// Return `true` if this node is a synthetic node. A synthetic node is a node
-  /// that was introduced by the parser in order to recover from an error in the
-  /// code. Synthetic nodes always have a length of zero (`0`).
+  /// Return `true` if this node is a synthetic node.
+  ///
+  /// A synthetic node is a node that was introduced by the parser in order to
+  /// recover from an error in the code. Synthetic nodes always have a length
+  /// of zero (`0`).
   bool get isSynthetic;
 
   @override
@@ -366,13 +361,16 @@ abstract class AstNode implements SyntacticEntity {
   /// change over the lifetime of a node.
   AstNode get parent;
 
-  /// Return the node at the root of this node's AST structure. Note that this
-  /// method's performance is linear with respect to the depth of the node in
-  /// the AST structure (O(depth)).
+  /// Return the node at the root of this node's AST structure.
+  ///
+  /// Note that this method's performance is linear with respect to the depth
+  /// of the node in the AST structure (O(depth)).
   AstNode get root;
 
-  /// Use the given [visitor] to visit this node. Return the value returned by
-  /// the visitor as a result of visiting this node.
+  /// Use the given [visitor] to visit this node.
+  ///
+  /// Return the value returned by the visitor as a result of visiting this
+  /// node.
   E accept<E>(AstVisitor<E> visitor);
 
   /// Return the token before [target] or `null` if it cannot be found.
@@ -395,12 +393,15 @@ abstract class AstNode implements SyntacticEntity {
   T thisOrAncestorOfType<T extends AstNode>();
 
   /// Return a textual description of this node in a form approximating valid
-  /// source. The returned string will not be valid source primarily in the case
-  /// where the node itself is not well-formed.
+  /// source.
+  ///
+  /// The returned string will not be valid source primarily in the case where
+  /// the node itself is not well-formed.
   String toSource();
 
-  /// Use the given [visitor] to visit all of the children of this node. The
-  /// children will be visited in lexical order.
+  /// Use the given [visitor] to visit all of the children of this node.
+  ///
+  /// The children will be visited in lexical order.
   void visitChildren(AstVisitor visitor);
 }
 
@@ -803,12 +804,13 @@ abstract class BreakStatement implements Statement {
   /// Set the semicolon terminating the statement to the given [token].
   void set semicolon(Token token);
 
-  /// Return the node from which this break statement is breaking. This will be
-  /// either a [Statement] (in the case of breaking out of a loop), a
-  /// [SwitchMember] (in the case of a labeled break statement whose label
-  /// matches a label on a switch case in an enclosing switch statement), or
-  /// `null` if the AST has not yet been resolved or if the target could not be
-  /// resolved. Note that if the source code has errors, the target might be
+  /// Return the node from which this break statement is breaking.
+  ///
+  /// This will be either a [Statement] (in the case of breaking out of a
+  /// loop), a [SwitchMember] (in the case of a labeled break statement whose
+  /// label matches a label on a switch case in an enclosing switch statement),
+  /// or `null` if the AST has not yet been resolved or if the target could not
+  /// be resolved. Note that if the source code has errors, the target might be
   /// invalid (e.g. trying to break to a switch case).
   AstNode get target;
 
@@ -818,6 +820,7 @@ abstract class BreakStatement implements Statement {
 }
 
 /// A sequence of cascaded expressions: expressions that share a common target.
+///
 /// There are three kinds of expressions that can be used in a cascade
 /// expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
 ///
@@ -943,10 +946,6 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Set the token representing the 'class' keyword.
   void set classKeyword(Token token);
 
-  @deprecated
-  @override
-  ClassElement get element;
-
   /// Return the extends clause for this class, or `null` if the class does not
   /// extend any other class.
   ExtendsClause get extendsClause;
@@ -985,8 +984,10 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   void set withClause(WithClause withClause);
 
   /// Return the constructor declared in the class with the given [name], or
-  /// `null` if there is no such constructor. If the [name] is `null` then the
-  /// default constructor will be searched for.
+  /// `null` if there is no such constructor.
+  ///
+  /// If the [name] is `null` then the default constructor will be searched
+  /// for.
   ConstructorDeclaration getConstructor(String name);
 }
 
@@ -1213,11 +1214,6 @@ abstract class CompilationUnit implements AstNode {
   /// Return the directives contained in this compilation unit.
   NodeList<Directive> get directives;
 
-  /// Return the element associated with this compilation unit, or `null` if the
-  /// AST structure has not been resolved.
-  @deprecated
-  CompilationUnitElement get element;
-
   /// Set the element associated with this compilation unit to the given
   /// [element].
   void set element(CompilationUnitElement element);
@@ -1436,10 +1432,6 @@ abstract class ConstructorDeclaration implements ClassMember {
   @override
   ConstructorElement get declaredElement;
 
-  @override
-  @deprecated
-  ConstructorElement get element;
-
   /// Set the element associated with this constructor to the given [element].
   void set element(ConstructorElement element);
 
@@ -1490,9 +1482,11 @@ abstract class ConstructorDeclaration implements ClassMember {
   /// redirected to the given [redirectedConstructor] name.
   void set redirectedConstructor(ConstructorName redirectedConstructor);
 
-  /// Return the type of object being created. This can be different than the
-  /// type in which the constructor is being declared if the constructor is the
-  /// implementation of a factory constructor.
+  /// Return the type of object being created.
+  ///
+  /// This can be different than the type in which the constructor is being
+  /// declared if the constructor is the implementation of a factory
+  /// constructor.
   Identifier get returnType;
 
   /// Set the type of object being created to the given [typeName].
@@ -1632,12 +1626,14 @@ abstract class ContinueStatement implements Statement {
   /// Set the semicolon terminating the statement to the given [token].
   void set semicolon(Token token);
 
-  /// Return the node to which this continue statement is continuing. This will
-  /// be either a [Statement] (in the case of continuing a loop), a
+  /// Return the node to which this continue statement is continuing.
+  ///
+  /// This will be either a [Statement] (in the case of continuing a loop), a
   /// [SwitchMember] (in the case of continuing from one switch case to
   /// another), or `null` if the AST has not yet been resolved or if the target
-  /// could not be resolved. Note that if the source code has errors, the target
-  /// might be invalid (e.g. the target may be in an enclosing function).
+  /// could not be resolved. Note that if the source code has errors, the
+  /// target might be invalid (e.g. the target may be in an enclosing
+  /// function).
   AstNode get target;
 
   /// Set the node to which this continue statement is continuing to the given
@@ -1645,8 +1641,9 @@ abstract class ContinueStatement implements Statement {
   void set target(AstNode node);
 }
 
-/// A node that represents the declaration of one or more names. Each declared
-/// name is visible within a name scope.
+/// A node that represents the declaration of one or more names.
+///
+/// Each declared name is visible within a name scope.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Declaration implements AnnotatedNode {
@@ -1654,12 +1651,6 @@ abstract class Declaration implements AnnotatedNode {
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
   Element get declaredElement;
-
-  /// Return the element associated with this declaration, or `null` if either
-  /// this node corresponds to a list of declarations or if the AST structure
-  /// has not been resolved.
-  @deprecated
-  Element get element;
 }
 
 /// The declaration of a single identifier.
@@ -1671,10 +1662,6 @@ abstract class Declaration implements AnnotatedNode {
 abstract class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement get declaredElement;
-
-  @deprecated
-  @override
-  LocalVariableElement get element;
 
   /// Return the name of the variable being declared.
   SimpleIdentifier get identifier;
@@ -1706,9 +1693,10 @@ abstract class DeclaredIdentifier implements Declaration {
   void set type(TypeAnnotation type);
 }
 
-/// A formal parameter with a default value. There are two kinds of parameters
-/// that are both represented by this class: named formal parameters and
-/// positional formal parameters.
+/// A formal parameter with a default value.
+///
+/// There are two kinds of parameters that are both represented by this class:
+/// named formal parameters and positional formal parameters.
 ///
 ///    defaultFormalParameter ::=
 ///        [NormalFormalParameter] ('=' [Expression])?
@@ -1910,10 +1898,6 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   @override
   ClassElement get declaredElement;
 
-  @deprecated
-  @override
-  ClassElement get element;
-
   /// Return the 'enum' keyword.
   Token get enumKeyword;
 
@@ -1950,71 +1934,16 @@ abstract class ExportDirective implements NamespaceDirective {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Expression implements CollectionElement {
-  /// Return the best parameter element information available for this
-  /// expression. If type propagation was able to find a better parameter
-  /// element than static analysis, that type will be returned. Otherwise, the
-  /// result of static analysis will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticParameterElement] instead.
-  @deprecated
-  ParameterElement get bestParameterElement;
-
-  /// Return the best type information available for this expression. If type
-  /// propagation was able to find a better type than static analysis, that type
-  /// will be returned. Otherwise, the result of static analysis will be
-  /// returned. If no type analysis has been performed, then the type 'dynamic'
-  /// will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead, but be aware that [staticType] will return
-  /// `null` under some circumstances, while [bestType] did not.
-  @deprecated
-  DartType get bestType;
-
   /// Return `true` if this expression is syntactically valid for the LHS of an
   /// [AssignmentExpression].
   bool get isAssignable;
 
-  /// Return the precedence of this expression. The precedence is a positive
-  /// integer value that defines how the source code is parsed into an AST. For
-  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
-  /// `*` is greater than the precedence of `+`.
+  /// Return the precedence of this expression.
+  ///
+  /// The precedence is a positive integer value that defines how the source
+  /// code is parsed into an AST. For example `a * b + c` is parsed as `(a * b)
+  /// + c` because the precedence of `*` is greater than the precedence of `+`.
   Precedence get precedence;
-
-  /// Return the precedence of this expression. The precedence is a positive
-  /// integer value that defines how the source code is parsed into an AST. For
-  /// example `a * b + c` is parsed as `(a * b) + c` because the precedence of
-  /// `*` is greater than the precedence of `+`.
-  @Deprecated('Use precedence')
-  Precedence get precedence2;
-
-  /// If this expression is an argument to an invocation, and the AST structure
-  /// has been resolved, and the function being invoked is known based on
-  /// propagated type information, and this expression corresponds to one of the
-  /// parameters of the function being invoked, then return the parameter
-  /// element representing the parameter to which the value of this expression
-  /// will be bound. Otherwise, return `null`.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticParameterElement] instead.
-  @deprecated
-  ParameterElement get propagatedParameterElement;
-
-  /// Return the propagated type of this expression, or `null` if type
-  /// propagation has not been performed on the AST structure.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead.
-  @deprecated
-  DartType get propagatedType;
-
-  /// Set the propagated type of this expression to the given [type].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticType] instead.
-  @deprecated
-  void set propagatedType(DartType type);
 
   /// If this expression is an argument to an invocation, and the AST structure
   /// has been resolved, and the function being invoked is known based on static
@@ -2249,6 +2178,11 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   /// is not a function-typed field formal parameter.
   FormalParameterList get parameters;
 
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token get question;
+
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
   void set parameters(FormalParameterList parameters);
@@ -2266,8 +2200,10 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   void set thisKeyword(Token token);
 
   /// Return the declared type of the parameter, or `null` if the parameter does
-  /// not have a declared type. Note that if this is a function-typed field
-  /// formal parameter this is the return type of the function.
+  /// not have a declared type.
+  ///
+  /// Note that if this is a function-typed field formal parameter this is the
+  /// return type of the function.
   TypeAnnotation get type;
 
   /// Set the declared type of the parameter to the given [type].
@@ -2370,11 +2306,6 @@ abstract class FormalParameter implements AstNode {
   /// parameter has not been resolved.
   ParameterElement get declaredElement;
 
-  /// Return the element representing this parameter, or `null` if this
-  /// parameter has not been resolved.
-  @deprecated
-  ParameterElement get element;
-
   /// Return the name of the parameter being declared.
   SimpleIdentifier get identifier;
 
@@ -2382,16 +2313,19 @@ abstract class FormalParameter implements AstNode {
   bool get isConst;
 
   /// Return `true` if this parameter was declared with the 'final' modifier.
-  /// Parameters that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
+  ///
+  /// Parameters that are declared with the 'const' modifier will return
+  /// `false` even though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters can
-  /// either be required or optional.
+  /// Return `true` if this parameter is a named parameter.
+  ///
+  /// Named parameters can either be required or optional.
   bool get isNamed;
 
-  /// Return `true` if this parameter is an optional parameter. Optional
-  /// parameters can either be positional or named.
+  /// Return `true` if this parameter is an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named.
   bool get isOptional;
 
   /// Return `true` if this parameter is both an optional and named parameter.
@@ -2401,12 +2335,14 @@ abstract class FormalParameter implements AstNode {
   /// parameter.
   bool get isOptionalPositional;
 
-  /// Return `true` if this parameter is a positional parameter. Positional
-  /// parameters can either be required or optional.
+  /// Return `true` if this parameter is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
   bool get isPositional;
 
-  /// Return `true` if this parameter is a required parameter. Required
-  /// parameters can either be positional or named.
+  /// Return `true` if this parameter is a required parameter.
+  ///
+  /// Required parameters can either be positional or named.
   ///
   /// Note: this will return `false` for a named parameter that is annotated
   /// with the `@required` annotation.
@@ -2477,8 +2413,10 @@ abstract class FormalParameterList implements AstNode {
   void set leftParenthesis(Token token);
 
   /// Return a list containing the elements representing the parameters in this
-  /// list. The list will contain `null`s if the parameters in this list have
-  /// not been resolved.
+  /// list.
+  ///
+  /// The list will contain `null`s if the parameters in this list have not
+  /// been resolved.
   List<ParameterElement> get parameterElements;
 
   /// Return the parameters associated with the method.
@@ -2648,10 +2586,6 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   @override
   ExecutableElement get declaredElement;
 
-  @deprecated
-  @override
-  ExecutableElement get element;
-
   /// Return the token representing the 'external' keyword, or `null` if this is
   /// not an external function.
   Token get externalKeyword;
@@ -2718,11 +2652,6 @@ abstract class FunctionExpression implements Expression {
   /// structure has not been resolved.
   ExecutableElement get declaredElement;
 
-  /// Return the element associated with the function, or `null` if the AST
-  /// structure has not been resolved.
-  @deprecated
-  ExecutableElement get element;
-
   /// Set the element associated with the function to the given [element].
   void set element(ExecutableElement element);
 
@@ -2744,6 +2673,7 @@ abstract class FunctionExpression implements Expression {
 }
 
 /// The invocation of a function resulting from evaluating an expression.
+///
 /// Invocations of methods and other forms of functions are represented by
 /// [MethodInvocation] nodes. Invocations of getters and setters are represented
 /// by either [PrefixedIdentifier] or [PropertyAccess] nodes.
@@ -2756,17 +2686,6 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   void set argumentList(ArgumentList argumentList);
 
-  /// Return the best element available for the function being invoked. If
-  /// resolution was able to find a better element based on type propagation,
-  /// that element will be returned. Otherwise, the element found using the
-  /// result of static analysis will be returned. If resolution has not been
-  /// performed, then `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  ExecutableElement get bestElement;
-
   /// Return the expression producing the function being invoked.
   @override
   Expression get function;
@@ -2774,23 +2693,6 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
   /// Set the expression producing the function being invoked to the given
   /// [expression].
   void set function(Expression expression);
-
-  /// Return the element associated with the function being invoked based on
-  /// propagated type information, or `null` if the AST structure has not been
-  /// resolved or the function could not be resolved.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  ExecutableElement get propagatedElement;
-
-  /// Set the element associated with the function being invoked based on
-  /// propagated type information to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(ExecutableElement element);
 
   /// Return the element associated with the function being invoked based on
   /// static type information, or `null` if the AST structure has not been
@@ -2995,34 +2897,15 @@ abstract class HideCombinator implements Combinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Identifier implements Expression {
-  /// Return the best element available for this operator. If resolution was
-  /// able to find a better element based on type propagation, that element will
-  /// be returned. Otherwise, the element found using the result of static
-  /// analysis will be returned. If resolution has not been performed, then
-  /// `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  Element get bestElement;
-
   /// Return the lexical representation of the identifier.
   String get name;
 
-  /// Return the element associated with this identifier based on propagated
-  /// type information, or `null` if the AST structure has not been resolved or
-  /// if this identifier could not be resolved. One example of the latter case
-  /// is an identifier that is not defined within the scope in which it appears.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  Element get propagatedElement;
-
   /// Return the element associated with this identifier based on static type
   /// information, or `null` if the AST structure has not been resolved or if
-  /// this identifier could not be resolved. One example of the latter case is
-  /// an identifier that is not defined within the scope in which it appears.
+  /// this identifier could not be resolved.
+  ///
+  /// One example of the latter case is an identifier that is not defined
+  /// within the scope in which it appears.
   Element get staticElement;
 
   /// Return `true` if the given [name] is visible only within the library in
@@ -3281,9 +3164,10 @@ abstract class ImportDirective implements NamespaceDirective {
 abstract class IndexExpression
     implements Expression, MethodReferenceExpression {
   /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context. The
-  /// auxiliary elements hold the static and propagated elements associated with
-  /// the getter context.
+  /// if this identifier is not in both a getter and setter context.
+  ///
+  /// The auxiliary elements hold the static and propagated elements associated
+  /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
   AuxiliaryElements get auxiliaryElements;
 
@@ -3298,9 +3182,10 @@ abstract class IndexExpression
   /// Set the expression used to compute the index to the given [expression].
   void set index(Expression expression);
 
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this index expression is null aware (as opposed to non-null).
@@ -3320,9 +3205,10 @@ abstract class IndexExpression
   /// [token].
   void set period(Token token);
 
-  /// Return the expression used to compute the object being indexed. If this
-  /// index expression is not part of a cascade expression, then this is the
-  /// same as [target]. If this index expression is part of a cascade
+  /// Return the expression used to compute the object being indexed.
+  ///
+  /// If this index expression is not part of a cascade expression, then this
+  /// is the same as [target]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
   Expression get realTarget;
@@ -3511,27 +3397,6 @@ abstract class InvocationExpression implements Expression {
   /// In either case, the [function.staticType] will be the
   /// [staticInvokeType] before applying type arguments `TArgs`.
   Expression get function;
-
-  /// Return the function type of the invocation based on the propagated type
-  /// information, or `null` if the AST structure has not been resolved, or if
-  /// the invoke could not be resolved.
-  ///
-  /// This will usually be a [FunctionType], but it can also be an
-  /// [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-  /// interface type that implements `Function`.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticInvokeType] instead.
-  @deprecated
-  DartType get propagatedInvokeType;
-
-  /// Sets the function type of the invocation based on the propagated type
-  /// information.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticInvokeType] instead.
-  @deprecated
-  void set propagatedInvokeType(DartType value);
 
   /// Return the function type of the invocation based on the static type
   /// information, or `null` if the AST structure has not been resolved, or if
@@ -3769,10 +3634,6 @@ abstract class MethodDeclaration implements ClassMember {
   @override
   ExecutableElement get declaredElement;
 
-  @deprecated
-  @override
-  ExecutableElement get element;
-
   /// Return the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
   Token get externalKeyword;
@@ -3848,10 +3709,12 @@ abstract class MethodDeclaration implements ClassMember {
   void set typeParameters(TypeParameterList typeParameters);
 }
 
-/// The invocation of either a function or a method. Invocations of functions
-/// resulting from evaluating an expression are represented by
-/// [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
-/// represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
+/// The invocation of either a function or a method.
+///
+/// Invocations of functions resulting from evaluating an expression are
+/// represented by [FunctionExpressionInvocation] nodes. Invocations of getters
+/// and setters are represented by either [PrefixedIdentifier] or
+/// [PropertyAccess] nodes.
 ///
 ///    methodInvocation ::=
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
@@ -3861,9 +3724,10 @@ abstract class MethodInvocation implements InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   void set argumentList(ArgumentList argumentList);
 
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this method invocation is null aware (as opposed to non-null).
@@ -3876,19 +3740,21 @@ abstract class MethodInvocation implements InvocationExpression {
   void set methodName(SimpleIdentifier identifier);
 
   /// Return the operator that separates the target from the method name, or
-  /// `null` if there is no target. In an ordinary method invocation this will
-  /// be period ('.'). In a cascade section this will be the cascade operator
-  /// ('..').
+  /// `null` if there is no target.
+  ///
+  /// In an ordinary method invocation this will be period ('.'). In a cascade
+  /// section this will be the cascade operator ('..').
   Token get operator;
 
   /// Set the operator that separates the target from the method name to the
   /// given [token].
   void set operator(Token token);
 
-  /// Return the expression used to compute the receiver of the invocation. If
-  /// this invocation is not part of a cascade expression, then this is the same
-  /// as [target]. If this invocation is part of a cascade expression, then the
-  /// target stored with the cascade expression is returned.
+  /// Return the expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation is not part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
   /// Return the expression producing the object on which the method is defined,
@@ -3912,36 +3778,6 @@ abstract class MethodInvocation implements InvocationExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodReferenceExpression implements AstNode {
-  /// Return the best element available for this expression. If resolution was
-  /// able to find a better element based on type propagation, that element will
-  /// be returned. Otherwise, the element found using the result of static
-  /// analysis will be returned. If resolution has not been performed, then
-  /// `null` will be returned.
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  MethodElement get bestElement;
-
-  /// Return the element associated with the expression based on propagated
-  /// types, or `null` if the AST structure has not been resolved, or there is
-  /// no meaningful propagated element to return (e.g. because this is a
-  /// non-compound assignment expression, or because the method referred to
-  /// could not be resolved).
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  MethodElement get propagatedElement;
-
-  /// Set the element associated with the expression based on propagated types
-  /// to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(MethodElement element);
-
   /// Return the element associated with the expression based on the static
   /// types, or `null` if the AST structure has not been resolved, or there is
   /// no meaningful static element to return (e.g. because this is a
@@ -4062,16 +3898,19 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// ('import', 'export', 'library' or 'part') to the given [token].
   void set keyword(Token token);
 
-  /// Return the source that was selected based on the declared variables. This
-  /// will be the source from the first configuration whose condition is true,
-  /// or the [uriSource] if either there are no configurations or if there are
-  /// no configurations whose condition is true.
+  /// Return the source that was selected based on the declared variables.
+  ///
+  /// This will be the source from the first configuration whose condition is
+  /// true, or the [uriSource] if either there are no configurations or if
+  /// there are no configurations whose condition is true.
   Source get selectedSource;
 
   /// Return the content of the URI that was selected based on the declared
-  /// variables. This will be the URI from the first configuration whose
-  /// condition is true, or the [uriContent] if either there are no
-  /// configurations or if there are no configurations whose condition is true.
+  /// variables.
+  ///
+  /// This will be the URI from the first configuration whose condition is
+  /// true, or the [uriContent] if either there are no configurations or if
+  /// there are no configurations whose condition is true.
   String get selectedUriContent;
 
   /// Return the semicolon terminating the directive.
@@ -4412,9 +4251,10 @@ abstract class PrefixExpression
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyAccess implements Expression {
-  /// Return `true` if this expression is cascaded. If it is, then the target of
-  /// this expression is not stored locally but is stored in the nearest
-  /// ancestor that is a [CascadeExpression].
+  /// Return `true` if this expression is cascaded.
+  ///
+  /// If it is, then the target of this expression is not stored locally but is
+  /// stored in the nearest ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
   /// Whether this property access is null aware (as opposed to non-null).
@@ -4432,10 +4272,11 @@ abstract class PropertyAccess implements Expression {
   /// Set the name of the property being accessed to the given [identifier].
   void set propertyName(SimpleIdentifier identifier);
 
-  /// Return the expression used to compute the receiver of the invocation. If
-  /// this invocation is not part of a cascade expression, then this is the same
-  /// as [target]. If this invocation is part of a cascade expression, then the
-  /// target stored with the cascade expression is returned.
+  /// Return the expression used to compute the receiver of the invocation.
+  ///
+  /// If this invocation is not part of a cascade expression, then this is the
+  /// same as [target]. If this invocation is part of a cascade expression,
+  /// then the target stored with the cascade expression is returned.
   Expression get realTarget;
 
   /// Return the expression computing the object defining the property being
@@ -4656,9 +4497,10 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SimpleIdentifier implements Identifier {
   /// Return the auxiliary elements associated with this identifier, or `null`
-  /// if this identifier is not in both a getter and setter context. The
-  /// auxiliary elements hold the static and propagated elements associated with
-  /// the getter context.
+  /// if this identifier is not in both a getter and setter context.
+  ///
+  /// The auxiliary elements hold the static and propagated elements associated
+  /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
   AuxiliaryElements get auxiliaryElements;
 
@@ -4670,14 +4512,6 @@ abstract class SimpleIdentifier implements Identifier {
   /// Return `true` if this identifier is the "name" part of a prefixed
   /// identifier or a method invocation.
   bool get isQualified;
-
-  /// Set the element associated with this identifier based on propagated type
-  /// information to the given [element].
-  ///
-  /// Deprecated: The analyzer no longer computes propagated type information.
-  /// Use [staticElement] instead.
-  @deprecated
-  void set propagatedElement(Element element);
 
   /// Set the element associated with this identifier based on static type
   /// information to the given [element].
@@ -4770,8 +4604,9 @@ abstract class SingleStringLiteral implements StringLiteral {
   /// Return the offset of the after-last contents character.
   int get contentsEnd;
 
-  /// Return the offset of the first contents character. If the string is
-  /// multiline, then leading whitespaces are skipped.
+  /// Return the offset of the first contents character.
+  ///
+  /// If the string is multiline, then leading whitespaces are skipped.
   int get contentsOffset;
 
   /// Return `true` if this string literal is a multi-line string.
@@ -5302,8 +5137,10 @@ abstract class UriBasedDirective implements Directive {
 
   /// Return the element associated with the [uri] of this directive, or `null`
   /// if the AST structure has not been resolved or if the URI could not be
-  /// resolved. Examples of the latter case include a directive that contains an
-  /// invalid URL or a URL that does not exist.
+  /// resolved.
+  ///
+  /// Examples of the latter case include a directive that contains an invalid
+  /// URL or a URL that does not exist.
   Element get uriElement;
 
   /// Return the source to which the [uri] was resolved.
@@ -5313,25 +5150,22 @@ abstract class UriBasedDirective implements Directive {
   void set uriSource(Source source);
 }
 
-/// An identifier that has an initial value associated with it. Instances of
-/// this class are always children of the class [VariableDeclarationList].
+/// An identifier that has an initial value associated with it.
+///
+/// Instances of this class are always children of the class
+/// [VariableDeclarationList].
 ///
 ///    variableDeclaration ::=
 ///        [SimpleIdentifier] ('=' [Expression])?
 ///
-/// TODO(paulberry): the grammar does not allow metadata to be associated with
-/// a VariableDeclaration, and currently we don't record comments for it either.
-/// Consider changing the class hierarchy so that [VariableDeclaration] does not
-/// extend [Declaration].
-///
 /// Clients may not extend, implement or mix-in this class.
+// TODO(paulberry): the grammar does not allow metadata to be associated with a
+// VariableDeclaration, and currently we don't record comments for it either.
+// Consider changing the class hierarchy so that [VariableDeclaration] does not
+// extend [Declaration].
 abstract class VariableDeclaration implements Declaration {
   @override
   VariableElement get declaredElement;
-
-  @deprecated
-  @override
-  VariableElement get element;
 
   /// Return the equal sign separating the variable name from the initial value,
   /// or `null` if the initial value was not specified.
@@ -5353,6 +5187,7 @@ abstract class VariableDeclaration implements Declaration {
   bool get isConst;
 
   /// Return `true` if this variable was declared with the 'final' modifier.
+  ///
   /// Variables that are declared with the 'const' modifier will return `false`
   /// even though they are implicitly final.
   bool get isFinal;
@@ -5385,9 +5220,11 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   bool get isConst;
 
   /// Return `true` if the variables in this list were declared with the 'final'
-  /// modifier. Variables that are declared with the 'const' modifier will
-  /// return `false` even though they are implicitly final. (In other words,
-  /// this is a syntactic check rather than a semantic check.)
+  /// modifier.
+  ///
+  /// Variables that are declared with the 'const' modifier will return `false`
+  /// even though they are implicitly final. (In other words, this is a
+  /// syntactic check rather than a semantic check.)
   bool get isFinal;
 
   /// Return `true` if the variables in this list were declared with the 'late'

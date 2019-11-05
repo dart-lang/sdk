@@ -407,6 +407,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
 
+  @Deprecated('Use ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS')
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
 
@@ -2008,22 +2009,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing type parameters from the generic function "
               "type, or using 'dynamic' as the type argument here.");
 
-  /**
-   * Temporary error to work around dartbug.com/28515.
-   *
-   * We cannot yet properly summarize function-typed parameters with generic
-   * arguments, so to prevent confusion, we produce an error for any such
-   * constructs (regardless of whether summaries are in use).
-   *
-   * TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-   */
-  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED =
-      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED',
-          "Analysis of generic function typed parameters isn't yet supported.",
-          correction:
-              "Try using an explicit typedef, or changing type parameters to "
-              "`dynamic`.");
-
   static const CompileTimeErrorCode IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
@@ -3515,7 +3500,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adding the missing arguments.",
           hasPublishedDocs: true);
 
-  @Deprecated('Use CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS')
+  @Deprecated('Use CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
       NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
@@ -3994,7 +3979,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR =
       const CompileTimeErrorCode(
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
-          "Constant factory constructor can't delegate to a non-constant "
+          "Constant redirecting constructor can't redirect to a non-constant "
               "constructor.",
           correction: "Try redirecting to a different constructor.");
 
@@ -6407,8 +6392,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * abstract class and <i>q</i> is not a factory constructor.
    */
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode('NEW_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be instantiated.",
+      const StaticWarningCode(
+          'NEW_WITH_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
           correction: "Try creating an instance of a subtype.");
 
   /**

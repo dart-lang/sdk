@@ -98,6 +98,10 @@ class FlowGraphSerializer : ValueObject {
   SExpression* SlotToSExp(const Slot& s);
   SExpression* ICDataToSExp(const ICData* ic_data);
 
+  // Helper methods for adding Definition-specific extra info.
+  bool HasDefinitionExtraInfo(const Definition* def);
+  void AddDefinitionExtraInfoToSExp(const Definition* def, SExpList* sexp);
+
   // Helper methods for adding atoms to S-expression lists
   void AddBool(SExpList* sexp, bool b);
   void AddInteger(SExpList* sexp, intptr_t i);
@@ -118,9 +122,9 @@ class FlowGraphSerializer : ValueObject {
 
   // Helper methods for the function level that are not used by any
   // instruction serialization methods.
-  SExpression* FunctionEntryToSExp(BlockEntryInstr* entry);
-  SExpression* EntriesToSExp(GraphEntryInstr* start);
-  SExpression* ConstantPoolToSExp(GraphEntryInstr* start);
+  SExpression* FunctionEntryToSExp(const BlockEntryInstr* entry);
+  SExpression* EntriesToSExp(const GraphEntryInstr* start);
+  SExpression* ConstantPoolToSExp(const GraphEntryInstr* start);
 
   const FlowGraph* const flow_graph_;
   Zone* const zone_;

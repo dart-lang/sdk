@@ -25,11 +25,15 @@ class Elf : public ZoneAllocated {
 
   static const intptr_t kPageSize = 4096;
 
-  intptr_t NextMemoryOffset();
+  intptr_t NextMemoryOffset() const;
+  intptr_t NextSectionIndex() const;
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
+  void AddStaticSymbol(intptr_t section,
+                       const char* name,
+                       size_t memory_offset);
 
   void Finalize();
 
@@ -79,7 +83,9 @@ class Elf : public ZoneAllocated {
   intptr_t program_table_file_offset_;
   intptr_t program_table_file_size_;
   StringTable* shstrtab_;
-  StringTable* symstrtab_;
+  StringTable* dynstrtab_;
+  SymbolTable* dynsym_;
+  StringTable* strtab_;
   SymbolTable* symtab_;
   DynamicTable* dynamic_;
 };

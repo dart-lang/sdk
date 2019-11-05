@@ -119,6 +119,9 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
   DartType visitDynamicType(DynamicType node) => null;
 
   @override
+  DartType visitNeverType(NeverType node) => null;
+
+  @override
   DartType visitInvalidType(InvalidType node) => null;
 
   @override

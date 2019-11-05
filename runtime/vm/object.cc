@@ -74,6 +74,8 @@ DEFINE_FLAG(
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
+// TODO(regis): Remove this temporary flag used to debug nullability.
+DEFINE_FLAG(bool, show_nullability, false, "Show nullability in type names");
 DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
 DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
@@ -131,6 +133,7 @@ RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -928,6 +931,13 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
+  cls = Class::New<Instance>(kNeverCid, isolate);
+  cls.set_num_type_arguments(0);
+  cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
+  cls.set_is_type_finalized();
+  never_class_ = cls.raw();
+
   cls = Class::New<Type>(isolate);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
@@ -938,6 +948,9 @@ void Object::Init(Isolate* isolate) {
 
   cls = void_class_;
   *void_type_ = Type::NewNonParameterizedType(cls);
+
+  cls = never_class_;
+  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -1082,7 +1095,7 @@ void Object::Init(Isolate* isolate) {
 
 void Object::FinishInit(Isolate* isolate) {
   // The type testing stubs we initialize in AbstractType objects for the
-  // canonical type of kDynamicCid/kVoidCid need to be set in this
+  // canonical type of kDynamicCid/kVoidCid/kNeverCid need to be set in this
   // method, which is called after StubCode::InitOnce().
   Code& code = Code::Handle();
 
@@ -1091,6 +1104,9 @@ void Object::FinishInit(Isolate* isolate) {
 
   code = TypeTestingStubGenerator::DefaultCodeForType(*void_type_);
   void_type_->SetTypeTestingStub(code);
+
+  code = TypeTestingStubGenerator::DefaultCodeForType(*never_type_);
+  never_type_->SetTypeTestingStub(code);
 }
 
 void Object::Cleanup() {
@@ -1098,6 +1114,7 @@ void Object::Cleanup() {
   class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   dynamic_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   void_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  never_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1198,6 +1215,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(dynamic, Dynamic);
   SET_CLASS_NAME(void, Void);
+  SET_CLASS_NAME(never, Never);
   SET_CLASS_NAME(type_arguments, TypeArguments);
   SET_CLASS_NAME(patch_class, PatchClass);
   SET_CLASS_NAME(function, Function);
@@ -1918,6 +1936,7 @@ RawError* Object::Init(Isolate* isolate,
     cls = object_store->null_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_null_type(type);
+    ASSERT(type.IsNullable());
 
     // Consider removing when/if Null becomes an ordinary class.
     type = object_store->object_type();
@@ -2202,7 +2221,11 @@ RawString* Object::DictionaryName() const {
 }
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
-  uword cur = address;
+  // Note: we skip the header word here because it confuses TSAN. TSAN records
+  // an 8-byte write from the this loop, but doesn't overwrite that entry with
+  // the 4-byte relaxed store of the header below, then reports false data races
+  // based on the record of the 8-byte write.
+  uword cur = address + sizeof(RawObject);
   uword end = address + size;
   if (class_id == kInstructionsCid) {
     compiler::target::uword initial_value =
@@ -2306,12 +2329,16 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
-  if (raw_obj->IsOldObject() && thread->is_marking()) {
+  if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
     // Black allocation. Prevents a data race between the mutator and concurrent
     // marker on ARM and ARM64 (the marker may observe a publishing store of
     // this object before the stores that initialize its slots), and helps the
     // collection to finish sooner.
     raw_obj->SetMarkBitUnsynchronized();
+    // Setting the mark bit must not be ordered after a publishing store of this
+    // object. Adding a barrier here is cheaper than making every store into the
+    // heap a store-release.
+    std::atomic_thread_fence(std::memory_order_release);
     heap->old_space()->AllocateBlack(size);
   }
   return raw_obj;
@@ -4046,6 +4073,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Dynamic().raw();
     case kVoidCid:
       return Symbols::Void().raw();
+    case kNeverCid:
+      return Symbols::Never().raw();
     case kClassCid:
       return Symbols::Class().raw();
     case kTypeArgumentsCid:
@@ -4303,6 +4332,11 @@ void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
+  // TODO(regis): Since declaration type is used as the runtime type of
+  // instances of a non-generic class, the nullability should be set to
+  // kNonNullable instead of kLegacy.
+  // For now, we set the nullability to kLegacy, except for Null.
+  ASSERT(value.IsLegacy() || (value.IsNullType() && value.IsNullable()));
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
@@ -5853,7 +5887,6 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
 
 void Function::AttachBytecode(const Bytecode& value) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
-  ASSERT(FLAG_enable_interpreter || FLAG_use_bytecode_compiler);
   ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
   if (!value.InVMIsolateHeap()) {
@@ -6251,7 +6284,7 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-RawType* Function::SignatureType() const {
+RawType* Function::SignatureType(Nullability nullability) const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
     // The function type of this function is not yet cached and needs to be
@@ -6286,10 +6319,11 @@ RawType* Function::SignatureType() const {
         TypeArguments::Handle(scope_class.type_parameters());
     // Return the still unfinalized signature type.
     type = Type::New(scope_class, signature_type_arguments, token_pos());
+    type.set_nullability(nullability);
     type.set_signature(*this);
     SetSignatureType(type);
   }
-  return type.raw();
+  return type.ToNullability(nullability, Heap::kOld);
 }
 
 void Function::SetSignatureType(const Type& value) const {
@@ -6696,7 +6730,7 @@ void Function::SetIsOptimizable(bool value) const {
   set_is_optimizable(value);
   if (!value) {
     set_is_inlinable(false);
-    set_usage_counter(INT_MIN);
+    set_usage_counter(INT32_MIN);
   }
 }
 
@@ -8033,43 +8067,36 @@ RawString* Function::GetSource() const {
   Zone* zone = Thread::Current()->zone();
   const Script& func_script = Script::Handle(zone, script());
 
-  if (func_script.kind() == RawScript::kKernelTag) {
-    intptr_t from_line;
-    intptr_t from_col;
-    intptr_t to_line;
-    intptr_t to_col;
-    intptr_t to_length;
-    func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
-    func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col,
-                                 &to_length);
+  intptr_t from_line;
+  intptr_t from_col;
+  intptr_t to_line;
+  intptr_t to_col;
+  intptr_t to_length;
+  func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
+  func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col, &to_length);
 
-    if (to_length == 1) {
-      // Handle special cases for end tokens of closures (where we exclude the
-      // last token):
-      // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
-      // (2) "foo(() => null);": End token is ')`, but we don't print it.
-      // (3) "var foo = () => null;": End token is `;', but in this case the
-      // token semicolon belongs to the assignment so we skip it.
-      const String& src = String::Handle(func_script.Source());
-      if (src.IsNull() || src.Length() == 0) {
-        return Symbols::OptimizedOut().raw();
-      }
-      uint16_t end_char = src.CharAt(end_token_pos().value());
-      if ((end_char == ',') ||  // Case 1.
-          (end_char == ')') ||  // Case 2.
-          (end_char == ';' &&
-           String::Handle(zone, name())
-               .Equals("<anonymous closure>"))) {  // Case 3.
-        to_length = 0;
-      }
+  if (to_length == 1) {
+    // Handle special cases for end tokens of closures (where we exclude the
+    // last token):
+    // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+    // (2) "foo(() => null);": End token is ')`, but we don't print it.
+    // (3) "var foo = () => null;": End token is `;', but in this case the
+    // token semicolon belongs to the assignment so we skip it.
+    const String& src = String::Handle(func_script.Source());
+    if (src.IsNull() || src.Length() == 0) {
+      return Symbols::OptimizedOut().raw();
     }
-
-    return func_script.GetSnippet(from_line, from_col, to_line,
-                                  to_col + to_length);
+    uint16_t end_char = src.CharAt(end_token_pos().value());
+    if ((end_char == ',') ||  // Case 1.
+        (end_char == ')') ||  // Case 2.
+        (end_char == ';' && String::Handle(zone, name())
+                                .Equals("<anonymous closure>"))) {  // Case 3.
+      to_length = 0;
+    }
   }
 
-  UNREACHABLE();
-  return String::null();
+  return func_script.GetSnippet(from_line, from_col, to_line,
+                                to_col + to_length);
 }
 
 // Construct fingerprint from token stream. The token stream contains also
@@ -8157,12 +8184,13 @@ void Function::RestoreICDataMap(
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->ic_data_array_,
-                                                 value.raw());
+  StorePointer<RawArray*, std::memory_order_release>(&raw_ptr()->ic_data_array_,
+                                                     value.raw());
 }
 
 RawArray* Function::ic_data_array() const {
-  return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_array_);
+  return LoadPointer<RawArray*, std::memory_order_acquire>(
+      &raw_ptr()->ic_data_array_);
 }
 
 void Function::ClearICDataArray() const {
@@ -8202,6 +8230,12 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
   if (is_declared_in_bytecode()) {
     // AST and bytecode compute different fingerprints, and we only track one
     // fingerprint set.
+    return true;
+  }
+
+  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+    // The non-nullable experiment changes the fingerprints, and we only track
+    // one fingerprint set.
     return true;
   }
 
@@ -8916,7 +8950,7 @@ bool Field::IsUninitialized() const {
 }
 
 RawFunction* Field::EnsureInitializerFunction() const {
-  ASSERT(is_static() && has_initializer());
+  ASSERT(has_initializer());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -8940,7 +8974,32 @@ bool Field::HasInitializerFunction() const {
   return raw_ptr()->initializer_function_ != Function::null();
 }
 
-RawError* Field::Initialize() const {
+RawError* Field::InitializeInstance(const Instance& instance) const {
+  ASSERT(IsOriginal());
+  ASSERT(is_instance());
+  ASSERT(instance.GetField(*this) == Object::sentinel().raw());
+  Object& value = Object::Handle();
+  if (has_initializer()) {
+    const Function& initializer = Function::Handle(EnsureInitializerFunction());
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, instance);
+    value = DartEntry::InvokeFunction(initializer, args);
+    if (!value.IsNull() && value.IsError()) {
+      return Error::Cast(value).raw();
+    }
+  } else {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    value = saved_initial_value();
+#endif
+  }
+  ASSERT(value.IsNull() || value.IsInstance());
+  instance.SetField(*this, value);
+  return Error::null();
+}
+
+RawError* Field::InitializeStatic() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
@@ -9477,7 +9536,7 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
-      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+      if (!script.IsNull()) {
         const auto& source = String::Handle(zone, script.Source());
         const auto& line_starts = TypedData::Handle(zone, script.line_starts());
         if (!source.IsNull() || !line_starts.IsNull()) {
@@ -9493,7 +9552,6 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
 }
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
-  ASSERT(kind() == RawScript::kKernelTag);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
@@ -9546,25 +9604,6 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return info.raw();
-}
-
-const char* Script::GetKindAsCString() const {
-  switch (kind()) {
-    case RawScript::kScriptTag:
-      return "script";
-    case RawScript::kLibraryTag:
-      return "library";
-    case RawScript::kSourceTag:
-      return "source";
-    case RawScript::kEvaluateTag:
-      return "evaluate";
-    case RawScript::kKernelTag:
-      return "kernel";
-    default:
-      UNIMPLEMENTED();
-  }
-  UNREACHABLE();
-  return NULL;
 }
 
 void Script::set_url(const String& value) const {
@@ -9621,7 +9660,7 @@ RawTypedData* Script::line_starts() const {
 RawArray* Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Array& debug_positions_array = Array::Handle(raw_ptr()->debug_positions_);
-  if (debug_positions_array.IsNull() && kind() == RawScript::kKernelTag) {
+  if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
     kernel::CollectTokenPositionsFor(*this);
   }
@@ -9629,23 +9668,17 @@ RawArray* Script::debug_positions() const {
   return raw_ptr()->debug_positions_;
 }
 
-void Script::set_kind(RawScript::Kind value) const {
-  set_kind_and_tags(
-      RawScript::KindBits::update(value, raw_ptr()->kind_and_tags_));
-}
-
-void Script::set_kind_and_tags(uint8_t value) const {
-  StoreNonPointer(&raw_ptr()->kind_and_tags_, value);
+void Script::set_flags(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->flags_, value);
 }
 
 void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
-  set_kind_and_tags(RawScript::LazyLookupSourceAndLineStartsBit::update(
-      value, raw_ptr()->kind_and_tags_));
+  set_flags(RawScript::LazyLookupSourceAndLineStartsBit::update(
+      value, raw_ptr()->flags_));
 }
 
 bool Script::IsLazyLookupSourceAndLineStarts() const {
-  return RawScript::LazyLookupSourceAndLineStartsBit::decode(
-      raw_ptr()->kind_and_tags_);
+  return RawScript::LazyLookupSourceAndLineStartsBit::decode(raw_ptr()->flags_);
 }
 
 void Script::set_load_timestamp(int64_t value) const {
@@ -9669,36 +9702,17 @@ intptr_t Script::GetTokenLineUsingLineStarts(
   }
   Zone* zone = Thread::Current()->zone();
   TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  // Scripts loaded from bytecode may have null line_starts().
   if (line_starts_data.IsNull()) {
-    ASSERT(kind() != RawScript::kKernelTag);
-    UNREACHABLE();
-  }
-
-  if (kind() == RawScript::kKernelTag) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-    return line_starts_reader.LineNumberForPosition(target_token_pos.value());
-#else
     return 0;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
-    ASSERT(line_starts_data.Length() > 0);
-    intptr_t offset = target_token_pos.Pos();
-    intptr_t min = 0;
-    intptr_t max = line_starts_data.Length() - 1;
-
-    // Binary search to find the line containing this offset.
-    while (min < max) {
-      int midpoint = (max - min + 1) / 2 + min;
-      int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
-      if (token_pos > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-    return min + 1;  // Line numbers start at 1.
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  return line_starts_reader.LineNumberForPosition(target_token_pos.value());
+#else
+  return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -9726,7 +9740,6 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   ASSERT(line != NULL);
   Zone* zone = Thread::Current()->zone();
 
-  ASSERT(kind() == RawScript::kKernelTag);
   LookupSourceAndLineStarts(zone);
   if (line_starts() == TypedData::null()) {
     // Scripts in the AOT snapshot do not have a line starts array.
@@ -9765,7 +9778,6 @@ void Script::GetTokenLocation(TokenPosition token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
-  ASSERT(kind() == RawScript::kKernelTag);
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
 
@@ -9903,16 +9915,13 @@ RawScript* Script::New() {
   return reinterpret_cast<RawScript*>(raw);
 }
 
-RawScript* Script::New(const String& url,
-                       const String& source,
-                       RawScript::Kind kind) {
-  return Script::New(url, url, source, kind);
+RawScript* Script::New(const String& url, const String& source) {
+  return Script::New(url, url, source);
 }
 
 RawScript* Script::New(const String& url,
                        const String& resolved_url,
-                       const String& source,
-                       RawScript::Kind kind) {
+                       const String& source) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& result = Script::Handle(zone, Script::New());
@@ -9921,8 +9930,7 @@ RawScript* Script::New(const String& url,
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.SetLocationOffset(0, 0);
-  result.set_kind_and_tags(0);
-  result.set_kind(kind);
+  result.set_flags(0);
   result.set_kernel_script_index(0);
   result.set_load_timestamp(
       FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
@@ -12587,6 +12595,21 @@ const char* Instructions::ToCString() const {
   return "Instructions";
 }
 
+CodeStatistics* Instructions::stats() const {
+#if defined(DART_PRECOMPILER)
+  return reinterpret_cast<CodeStatistics*>(
+      Thread::Current()->heap()->GetPeer(raw()));
+#else
+  return nullptr;
+#endif
+}
+
+void Instructions::set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+  Thread::Current()->heap()->SetPeer(raw(), stats);
+#endif
+}
+
 // Encode integer |value| in SLEB128 format and store into |data|.
 static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
   bool is_last_part = false;
@@ -13427,8 +13450,8 @@ void ICData::set_deopt_id(intptr_t value) const {
 
 void ICData::set_entries(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->entries_,
-                                                 value.raw());
+  StorePointer<RawArray*, std::memory_order_release>(&raw_ptr()->entries_,
+                                                     value.raw());
 }
 
 intptr_t ICData::NumArgsTested() const {
@@ -15164,17 +15187,12 @@ void Code::DisableDartCode() const {
 }
 
 void Code::DisableStubCode() const {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixAllocationStubTarget();
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
-#else
-  // DBC does not use allocation stubs.
-  UNIMPLEMENTED();
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void Code::SetActiveInstructions(const Instructions& instructions) const {
@@ -16993,6 +17011,12 @@ TokenPosition AbstractType::token_pos() const {
   return TokenPosition::kNoSource;
 }
 
+Nullability AbstractType::nullability() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return kNullable;
+}
+
 bool AbstractType::IsInstantiated(Genericity genericity,
                                   intptr_t num_free_fun_type_params,
                                   TrailPtr trail) const {
@@ -17172,11 +17196,19 @@ RawString* AbstractType::PrintURIs(URIs* uris) {
   return Symbols::FromConcatAll(thread, pieces);
 }
 
+// Keep in sync with Nullability enum in runtime/vm/object.h.
+static const char* nullability_suffix[4] = {"%", "?", "", "*"};
+
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (IsTypeParameter()) {
+    if (FLAG_show_nullability) {
+      return Symbols::FromConcat(
+          thread, String::Handle(zone, TypeParameter::Cast(*this).name()),
+          String::Handle(zone, String::New(nullability_suffix[nullability()])));
+    }
     return TypeParameter::Cast(*this).name();
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
@@ -17189,6 +17221,13 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
     if (!cls.IsTypedefClass()) {
+      if (FLAG_show_nullability) {
+        return Symbols::FromConcat(
+            thread,
+            String::Handle(zone, signature_function.UserVisibleSignature()),
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
+      }
       return signature_function.UserVisibleSignature();
     }
     // Instead of printing the actual signature, use the typedef name with
@@ -17196,6 +17235,12 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     class_name = cls.Name();  // Typedef name.
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
+      if (FLAG_show_nullability) {
+        return Symbols::FromConcat(
+            thread, String::Handle(zone, class_name.raw()),
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
+      }
       return class_name.raw();
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
@@ -17236,6 +17281,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
                                  name_visibility));
     pieces.Add(args_name);
   }
+  if (FLAG_show_nullability) {
+    pieces.Add(
+        String::Handle(zone, String::New(nullability_suffix[nullability()])));
+  }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
@@ -17252,30 +17301,28 @@ bool AbstractType::IsNullTypeRef() const {
 }
 
 bool AbstractType::IsDynamicType() const {
-  if (IsCanonical()) {
-    return raw() == Object::dynamic_type().raw();
-  }
   return type_class_id() == kDynamicCid;
 }
 
 bool AbstractType::IsVoidType() const {
-  // The void type is always canonical, because void is a keyword.
-  return raw() == Object::void_type().raw();
+  return type_class_id() == kVoidCid;
+}
+
+bool AbstractType::IsNeverType() const {
+  return type_class_id() == kNeverCid;
 }
 
 bool AbstractType::IsObjectType() const {
   return type_class_id() == kInstanceCid;
 }
 
-bool AbstractType::IsTopType() const {
-  if (IsVoidType()) {
-    return true;
-  }
+bool AbstractType::IsTopType(NNBDMode mode) const {
   const classid_t cid = type_class_id();
   if (cid == kIllegalCid) {
     return false;
   }
-  if ((cid == kDynamicCid) || (cid == kInstanceCid)) {
+  if (cid == kDynamicCid || cid == kVoidCid ||
+      (cid == kInstanceCid && (mode != kStrong || IsNullable()))) {
     return true;
   }
   // FutureOr<T> where T is a top type behaves as a top type.
@@ -17289,7 +17336,7 @@ bool AbstractType::IsTopType() const {
         TypeArguments::Handle(zone, arguments());
     const AbstractType& type_arg =
         AbstractType::Handle(zone, type_arguments.TypeAt(0));
-    if (type_arg.IsTopType()) {
+    if (type_arg.IsTopType(mode)) {
       return true;
     }
   }
@@ -17516,7 +17563,8 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
   if (stub.IsNull()) {
     // This only happens during bootstrapping when creating Type objects before
     // we have the instructions.
-    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid);
+    ASSERT(type_class_id() == kDynamicCid || type_class_id() == kVoidCid ||
+           type_class_id() == kNeverCid);
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
   } else {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, stub.EntryPoint());
@@ -17534,6 +17582,10 @@ RawType* Type::DynamicType() {
 
 RawType* Type::VoidType() {
   return Object::void_type().raw();
+}
+
+RawType* Type::NeverType() {
+  return Object::never_type().raw();
 }
 
 RawType* Type::ObjectType() {
@@ -17626,6 +17678,24 @@ void Type::ResetIsFinalized() const {
 void Type::SetIsBeingFinalized() const {
   ASSERT(!IsFinalized() && !IsBeingFinalized());
   set_type_state(RawType::kBeingFinalized);
+}
+
+RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
+  if (nullability() == value) {
+    return raw();
+  }
+  // Clone type and set new nullability.
+  Type& type = Type::Handle();
+  type ^= Object::Clone(*this, space);
+  type.set_nullability(value);
+  type.SetHash(0);
+  if (IsCanonical()) {
+    // Object::Clone does not clone canonical bit.
+    ASSERT(!type.IsCanonical());
+    type ^= type.Canonicalize();
+  }
+  // TODO(regis): Should we link canonical types of different nullability?
+  return type.raw();
 }
 
 RawFunction* Type::signature() const {
@@ -17783,6 +17853,9 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
+  if (nullability() != other_type.nullability()) {
+    return false;
+  }
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;  // Too early to decide if equal.
   }
@@ -17932,11 +18005,18 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
 
+  if ((type_class_id() == kNeverCid) && (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::never_type().IsCanonical());
+    return Object::never_type().raw();
+  }
+
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));
@@ -18060,8 +18140,10 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     type = cls.declaration_type();
     return (raw() == type.raw());
   }
@@ -18112,6 +18194,7 @@ intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
   result = CombineHashes(result, type_class_id());
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());
@@ -18163,6 +18246,11 @@ RawType* Type::New(const Class& clazz,
   result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
+  if (clazz.id() == kNullCid) {
+    result.set_nullability(kNullable);
+  } else {
+    result.set_nullability(kLegacy);
+  }
 
   result.SetTypeTestingStub(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
@@ -18323,7 +18411,8 @@ intptr_t TypeRef::Hash() const {
   //    type arguments are set).
   const AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
-  const uint32_t result = Class::Handle(ref_type.type_class()).id();
+  uint32_t result = Class::Handle(ref_type.type_class()).id();
+  result = CombineHashes(result, static_cast<uint32_t>(ref_type.nullability()));
   return FinalizeHash(result, kHashBits);
 }
 
@@ -18368,6 +18457,24 @@ void TypeParameter::SetGenericCovariantImpl(bool value) const {
       value, raw_ptr()->flags_));
 }
 
+void TypeParameter::set_nullability(Nullability value) const {
+  StoreNonPointer(&raw_ptr()->nullability_, value);
+}
+
+RawTypeParameter* TypeParameter::ToNullability(Nullability value,
+                                               Heap::Space space) const {
+  if (nullability() == value) {
+    return raw();
+  }
+  // Clone type and set new nullability.
+  TypeParameter& type_parameter = TypeParameter::Handle();
+  type_parameter ^= Object::Clone(*this, space);
+  type_parameter.set_nullability(value);
+  type_parameter.SetHash(0);
+  // TODO(regis): Should we link type parameters of different nullability?
+  return type_parameter.raw();
+}
+
 bool TypeParameter::IsInstantiated(Genericity genericity,
                                    intptr_t num_free_fun_type_params,
                                    TrailPtr trail) const {
@@ -18399,6 +18506,9 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
   }
   // The function doesn't matter in type tests, but it does in canonicalization.
   if (parameterized_function() != other_type_param.parameterized_function()) {
+    return false;
+  }
+  if (nullability() != other_type_param.nullability()) {
     return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
@@ -18519,6 +18629,7 @@ intptr_t TypeParameter::ComputeHash() const {
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());
+  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;
@@ -18546,6 +18657,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_flags(0);
+  result.set_nullability(kLegacy);
   result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
   result.set_token_pos(token_pos);
@@ -21696,7 +21808,9 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                          const Context& context,
                          Heap::Space space) {
   return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      Object::empty_type_arguments(), function, context, space);
+                      function.IsGeneric() ? Object::empty_type_arguments()
+                                           : Object::null_type_arguments(),
+                      function, context, space);
 }
 
 RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
@@ -21862,11 +21976,7 @@ static void PrintStackTraceFrame(Zone* zone,
     line = token_pos.value();
   } else {
     if (!script.IsNull() && token_pos.IsSourcePosition()) {
-      if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-        script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
-      } else {
-        script.GetTokenLocation(token_pos.SourcePosition(), &line, NULL);
-      }
+      script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
     }
   }
 

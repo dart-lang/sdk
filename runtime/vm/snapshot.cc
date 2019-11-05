@@ -34,7 +34,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
   return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
           (class_id == kTypeArgumentsCid) ||
-          (class_id >= kNullCid && class_id <= kVoidCid));
+          (class_id >= kNullCid && class_id <= kNeverCid));
 }
 
 static bool IsBootstrapedClassId(intptr_t class_id) {
@@ -721,6 +721,7 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
   READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
   READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
+  READ_VM_SINGLETON_OBJ(kNeverType, Object::never_type().raw());
   READ_VM_SINGLETON_OBJ(kEmptyTypeArguments,
                         Object::empty_type_arguments().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
@@ -878,6 +879,7 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
   WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::never_type().raw(), kNeverType);
   WRITE_VM_SINGLETON_OBJ(Object::empty_type_arguments().raw(),
                          kEmptyTypeArguments);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);

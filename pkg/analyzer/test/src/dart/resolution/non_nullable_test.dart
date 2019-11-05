@@ -56,6 +56,20 @@ class X = A with B implements C;
     assertType(findNode.typeName('C;'), 'C');
   }
 
+  test_field_functionTypeAlias() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(int, T);
+
+class C {
+  F? f;
+}
+''');
+    assertElementTypeString(
+      findElement.field('f').type,
+      'T Function<T>(int, T)?',
+    );
+  }
+
   test_local_getterNullAwareAccess_interfaceType() async {
     await resolveTestCode(r'''
 main() {
@@ -173,7 +187,6 @@ main<T>(T a) {
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
-  @failingTest
   test_local_variable_genericFunctionType() async {
     await resolveTestCode('''
 main() {
@@ -184,7 +197,7 @@ main() {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -238,6 +251,19 @@ mixin X2 implements A {} // 2
     assertType(findNode.typeName('A {} // 2'), 'A');
   }
 
+  test_nonNullPromotion_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  void foo(T? t) {
+    T temp = t!;
+  }
+  T bar(T? t) {
+    return t!;
+  }
+}
+''');
+  }
+
   test_null_assertion_operator_changes_null_to_never() async {
     await resolveTestCode('''
 main() {
@@ -260,9 +286,26 @@ main() {
     assertType(findNode.postfix('x!'), 'Object');
   }
 
-  @FailingTest(
-    reason: 'The question token is not added to FieldFormalParameter yet',
-  )
+  test_parameter_functionTyped() async {
+    await assertNoErrorsInCode('''
+void f1(void p1()) {}
+void f2(void p2()?) {}
+void f3({void p3()?}) {}
+''');
+    assertElementTypeString(
+      findElement.parameter('p1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('p2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('p3').type,
+      'void Function()?',
+    );
+  }
+
   test_parameter_functionTyped_fieldFormal() async {
     await assertNoErrorsInCode('''
 class A {
@@ -284,26 +327,6 @@ class A {
     );
     assertElementTypeString(
       findElement.parameter('f3').type,
-      'void Function()?',
-    );
-  }
-
-  test_parameter_functionTyped() async {
-    await assertNoErrorsInCode('''
-void f1(void p1()) {}
-void f2(void p2()?) {}
-void f3({void p3()?}) {}
-''');
-    assertElementTypeString(
-      findElement.parameter('p1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('p2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('p3').type,
       'void Function()?',
     );
   }
@@ -330,7 +353,6 @@ f() {
     );
   }
 
-  @failingTest
   test_parameter_genericFunctionType() async {
     await resolveTestCode('''
 main(int? Function(bool, String?)? a) {
@@ -340,7 +362,7 @@ main(int? Function(bool, String?)? a) {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -458,7 +480,6 @@ main() {
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
-  @failingTest
   test_typedef_function() async {
     await resolveTestCode('''
 typedef F<T> = int? Function(bool, T, T?);
@@ -471,7 +492,7 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      'int? Function(bool!, String!, String?)?',
+      'int? Function(bool, String, String?)?',
     );
   }
 }

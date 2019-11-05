@@ -55,7 +55,7 @@ var tests = <IsolateTest>[
 
 var vmArgs = [
   '--profiler=true',
-  '--profile-vm=false', // So this also works with DBC and KBC.
+  '--profile-vm=false', // So this also works with KBC.
 ];
 
 main(args) async =>

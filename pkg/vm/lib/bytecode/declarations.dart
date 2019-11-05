@@ -4,9 +4,14 @@
 
 library vm.bytecode.declarations;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show TreeNode, listHashCode, listEquals;
 import 'bytecode_serialization.dart'
-    show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
+    show
+        BufferedWriter,
+        BufferedReader,
+        BytecodeDeclaration,
+        BytecodeSizeStatistics,
+        StringTable;
 import 'constant_pool.dart' show ConstantPool;
 import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
@@ -15,7 +20,9 @@ import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
 import 'source_positions.dart' show LineStarts, SourcePositions;
 
-class LibraryDeclaration {
+import 'dart:typed_data' show Uint8List;
+
+class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
@@ -89,7 +96,7 @@ class LibraryDeclaration {
   }
 }
 
-class ClassDeclaration {
+class ClassDeclaration extends BytecodeDeclaration {
   static const isAbstractFlag = 1 << 0;
   static const isEnumFlag = 1 << 1;
   static const hasTypeParamsFlag = 1 << 2;
@@ -220,7 +227,7 @@ class ClassDeclaration {
   }
 }
 
-class SourceFile {
+class SourceFile extends BytecodeDeclaration {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
 
@@ -274,7 +281,7 @@ class SourceFile {
   }
 }
 
-class Members {
+class Members extends BytecodeDeclaration {
   final List<FieldDeclaration> fields;
   final List<FunctionDeclaration> functions;
 
@@ -789,7 +796,7 @@ class ParameterDeclaration {
   String toString() => '$type $name';
 }
 
-class Code {
+class Code extends BytecodeDeclaration {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasNullableFieldsFlag = 1 << 2;
@@ -800,7 +807,7 @@ class Code {
   static const hasLocalVariablesFlag = 1 << 7;
 
   final ConstantPool constantPool;
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -898,7 +905,7 @@ class Code {
             (_) => new ClosureDeclaration.read(reader))
         : const <ClosureDeclaration>[];
     final ConstantPool constantPool = new ConstantPool.read(reader);
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -949,16 +956,17 @@ class Code {
 }
 
 class ClosureDeclaration {
-  static const int hasOptionalPositionalParamsFlag = 1 << 0;
-  static const int hasOptionalNamedParamsFlag = 1 << 1;
-  static const int hasTypeParamsFlag = 1 << 2;
-  static const int hasSourcePositionsFlag = 1 << 3;
-  static const int isAsyncFlag = 1 << 4;
-  static const int isAsyncStarFlag = 1 << 5;
-  static const int isSyncStarFlag = 1 << 6;
-  static const int isDebuggableFlag = 1 << 7;
+  static const hasOptionalPositionalParamsFlag = 1 << 0;
+  static const hasOptionalNamedParamsFlag = 1 << 1;
+  static const hasTypeParamsFlag = 1 << 2;
+  static const hasSourcePositionsFlag = 1 << 3;
+  static const isAsyncFlag = 1 << 4;
+  static const isAsyncStarFlag = 1 << 5;
+  static const isSyncStarFlag = 1 << 6;
+  static const isDebuggableFlag = 1 << 7;
+  static const hasAttributesFlag = 1 << 8;
 
-  final int flags;
+  int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -968,6 +976,7 @@ class ClosureDeclaration {
   final int numNamedParams;
   final List<NameAndType> parameters;
   final ObjectHandle returnType;
+  ObjectHandle attributes;
   ClosureCode code;
 
   ClosureDeclaration(
@@ -980,7 +989,8 @@ class ClosureDeclaration {
       this.numRequiredParams,
       this.numNamedParams,
       this.parameters,
-      this.returnType);
+      this.returnType,
+      [this.attributes]);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1012,6 +1022,9 @@ class ClosureDeclaration {
       writer.writePackedObject(param.type);
     }
     writer.writePackedObject(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
+    }
   }
 
   factory ClosureDeclaration.read(BufferedReader reader) {
@@ -1051,8 +1064,20 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(flags, parent, name, position, endPosition,
-        typeParams, numRequiredParams, numNamedParams, parameters, returnType);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new ClosureDeclaration(
+        flags,
+        parent,
+        name,
+        position,
+        endPosition,
+        typeParams,
+        numRequiredParams,
+        numNamedParams,
+        parameters,
+        returnType,
+        attributes);
   }
 
   @override
@@ -1088,6 +1113,9 @@ class ClosureDeclaration {
     }
     sb.write(') -> ');
     sb.writeln(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
+    }
     if (code != null) {
       sb.write(code.toString());
     }
@@ -1102,7 +1130,7 @@ class ClosureCode {
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
 
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -1137,7 +1165,7 @@ class ClosureCode {
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -1169,7 +1197,7 @@ class ClosureCode {
   }
 }
 
-class AnnotationsDeclaration {
+class AnnotationsDeclaration extends BytecodeDeclaration {
   final ObjectHandle object;
 
   AnnotationsDeclaration(this.object);
@@ -1337,7 +1365,6 @@ class Component {
     int offset = headerSize;
     for (var section in sections) {
       if (section.writer != null) {
-        offset = (offset + sectionAlignment - 1) & ~(sectionAlignment - 1);
         section.offset = offset;
         offset += section.size;
       } else {
@@ -1356,9 +1383,8 @@ class Component {
     assert(writer.offset - start == headerSize);
     for (var section in sections) {
       if (section.writer != null) {
-        writer.align(sectionAlignment);
         assert(writer.offset - start == section.offset);
-        writer.writeBytes(section.writer.takeBytes());
+        writer.appendWriter(section.writer);
       }
     }
 
@@ -1556,13 +1582,13 @@ class Component {
   }
 }
 
-void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
+void _writeBytecodeInstructions(BufferedWriter writer, Uint8List bytecodes) {
   writer.writePackedUInt30(bytecodes.length);
-  writer.writeBytes(bytecodes);
+  writer.appendUint8List(bytecodes);
   BytecodeSizeStatistics.instructionsSize += bytecodes.length;
 }
 
-List<int> _readBytecodeInstructions(BufferedReader reader) {
+Uint8List _readBytecodeInstructions(BufferedReader reader) {
   int len = reader.readPackedUInt30();
   return reader.readBytesAsUint8List(len);
 }

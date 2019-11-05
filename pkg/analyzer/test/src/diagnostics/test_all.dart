@@ -134,12 +134,16 @@ import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
+import 'invalid_non_virtual_annotation_test.dart'
+    as invalid_non_virtual_annotation;
 import 'invalid_optional_parameter_type_test.dart'
     as invalid_optional_parameter_type;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
+import 'invalid_override_of_non_virtual_member_test.dart'
+    as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
@@ -191,6 +195,8 @@ import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
+import 'must_be_a_native_function_type_test.dart'
+    as must_be_a_native_function_type;
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
@@ -217,8 +223,6 @@ import 'non_constant_map_value_from_deferred_library_test.dart'
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
-import 'non_constant_type_argument_to_pointer_test.dart'
-    as non_constant_type_argument_to_pointer;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
@@ -267,6 +271,8 @@ import 'redirect_to_invalid_return_type_test.dart'
 import 'redirect_to_missing_constructor_test.dart'
     as redirect_to_missing_constructor;
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
+import 'redirect_to_non_const_constructor_test.dart'
+    as redirect_to_non_const_constructor;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -447,9 +453,11 @@ main() {
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
     invalid_literal_annotation.main();
+    invalid_non_virtual_annotation.main();
     invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
+    invalid_override_of_non_virtual_member.main();
     invalid_override.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();
@@ -486,6 +494,7 @@ main() {
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
+    must_be_a_native_function_type.main();
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
@@ -506,7 +515,6 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
-    non_constant_type_argument_to_pointer.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
@@ -538,6 +546,7 @@ main() {
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
+    redirect_to_non_const_constructor.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();

@@ -8,6 +8,7 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -237,20 +238,19 @@ SExpSymbol* FlowGraphSerializer::BlockEntryKindToTag(BlockEntryKind k) {
 #define KIND_TAG(name) block_entry_kind_tags[k##name]
 SExpSymbol* FlowGraphSerializer::BlockEntryTag(const BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
-  BlockEntryInstr* const to_test = const_cast<BlockEntryInstr*>(entry);
-  if (to_test->IsGraphEntry()) {
+  if (entry->IsGraphEntry()) {
     return BlockEntryKindToTag(kGraph);
   }
-  if (to_test->IsOsrEntry()) {
+  if (entry->IsOsrEntry()) {
     return BlockEntryKindToTag(kOSR);
   }
-  if (to_test->IsCatchBlockEntry()) {
+  if (entry->IsCatchBlockEntry()) {
     return BlockEntryKindToTag(kCatch);
   }
-  if (to_test->IsIndirectEntry()) {
+  if (entry->IsIndirectEntry()) {
     return BlockEntryKindToTag(kIndirect);
   }
-  if (to_test->IsFunctionEntry()) {
+  if (entry->IsFunctionEntry()) {
     if (entry == flow_graph()->graph_entry()->normal_entry()) {
       return BlockEntryKindToTag(kNormal);
     }
@@ -258,20 +258,21 @@ SExpSymbol* FlowGraphSerializer::BlockEntryTag(const BlockEntryInstr* entry) {
       return BlockEntryKindToTag(kUnchecked);
     }
   }
-  if (to_test->IsJoinEntry()) {
+  if (entry->IsJoinEntry()) {
     return BlockEntryKindToTag(kJoin);
   }
   return nullptr;
 }
 #undef KIND_TAG
 
-SExpression* FlowGraphSerializer::FunctionEntryToSExp(BlockEntryInstr* entry) {
+SExpression* FlowGraphSerializer::FunctionEntryToSExp(
+    const BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
   auto sexp = new (zone()) SExpList(zone());
   sexp->Add(BlockEntryTag(entry));
   sexp->Add(BlockIdToSExp(entry->block_id()));
-  if (auto with_defs = entry->AsBlockEntryWithInitialDefs()) {
-    auto initial_defs = with_defs->initial_definitions();
+  if (auto const with_defs = entry->AsBlockEntryWithInitialDefs()) {
+    auto const initial_defs = with_defs->initial_definitions();
     for (intptr_t i = 0; i < initial_defs->length(); i++) {
       sexp->Add(initial_defs->At(i)->ToSExpression(this));
     }
@@ -284,7 +285,7 @@ SExpression* FlowGraphSerializer::FunctionEntryToSExp(BlockEntryInstr* entry) {
   return sexp;
 }
 
-SExpression* FlowGraphSerializer::EntriesToSExp(GraphEntryInstr* start) {
+SExpression* FlowGraphSerializer::EntriesToSExp(const GraphEntryInstr* start) {
   auto sexp = new (zone()) SExpList(zone());
   AddSymbol(sexp, "Entries");
   if (auto const normal = FunctionEntryToSExp(start->normal_entry())) {
@@ -409,13 +410,8 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
                        CanonicalNameToSExp(flow_graph_->function()));
       }
     } else if (param.IsClassTypeParameter()) {
-      if (param.parameterized_class() != flow_graph_->function().Owner()) {
-        type_class_ = param.parameterized_class();
-        AddExtraInteger(sexp, "class", type_class_.id());
-      } else if (FLAG_verbose_flow_graph_serialization) {
-        type_class_ = flow_graph_->function().Owner();
-        AddExtraInteger(sexp, "class", type_class_.id());
-      }
+      type_class_ = param.parameterized_class();
+      AddExtraInteger(sexp, "class", type_class_.id());
     }
     return sexp;
   }
@@ -731,7 +727,8 @@ SExpression* FlowGraphSerializer::NonEmptyTypeArgumentsToSExp(
   return DartValueToSExp(ta);
 }
 
-SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
+SExpression* FlowGraphSerializer::ConstantPoolToSExp(
+    const GraphEntryInstr* start) {
   auto const initial_defs = start->initial_definitions();
   if (initial_defs == nullptr || initial_defs->is_empty()) return nullptr;
   auto constant_list = new (zone()) SExpList(zone());
@@ -745,14 +742,7 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
     // Use ObjectToSExp here, not DartValueToSExp!
     const auto& value = definition->AsConstant()->value();
     elem->Add(ObjectToSExp(value));
-    // Check this first, otherwise Type() can have the side effect of setting
-    // a new CompileType!
-    if (definition->HasType()) {
-      auto const type = definition->Type();
-      if (ShouldSerializeType(type)) {
-        elem->AddExtra("type", type->ToSExpression(this));
-      }
-    }
+    AddDefinitionExtraInfoToSExp(definition, elem);
     // Only add constants to the LLVM constant pool that are actually used in
     // the flow graph.
     if (FLAG_populate_llvm_constant_pool && definition->HasUses()) {
@@ -808,10 +798,8 @@ void BlockEntryInstr::AddExtraInfoToSExpression(SExpList* sexp,
 
 void BlockEntryInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  // We don't use RemoveCurrentFromGraph(), so this cast is safe.
-  auto block = const_cast<BlockEntryInstr*>(this);
-  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-    sexp->Add(it.Current()->ToSExpression(s));
+  for (const auto* inst = next_; inst != nullptr; inst = inst->next_) {
+    sexp->Add(inst->ToSExpression(s));
   }
 }
 
@@ -844,18 +832,75 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (!token_pos().IsNoSource()) {
     s->AddExtraInteger(sexp, "token_pos", token_pos().value());
   }
+  if (lifetime_position() != kNoPlaceId) {
+    s->AddExtraInteger(sexp, "lifetime_position", lifetime_position());
+  }
+}
+
+SExpression* Range::ToSExpression(FlowGraphSerializer* s) {
+  auto const sexp = new (s->zone()) SExpList(s->zone());
+  s->AddSymbol(sexp, "Range");
+  sexp->Add(min_.ToSExpression(s));
+  if (!max_.Equals(min_)) sexp->Add(max_.ToSExpression(s));
+  return sexp;
+}
+
+SExpression* RangeBoundary::ToSExpression(FlowGraphSerializer* s) {
+  switch (kind_) {
+    case kSymbol: {
+      auto const sexp = new (s->zone()) SExpList(s->zone());
+      sexp->Add(s->UseToSExp(symbol()));
+      if (offset() != 0) {
+        s->AddExtraInteger(sexp, "offset", offset());
+      }
+      return sexp;
+    }
+    case kConstant:
+      return new (s->zone()) SExpInteger(value_);
+    default:
+      return new (s->zone()) SExpSymbol(RangeBoundary::KindToCString(kind_));
+  }
+}
+
+bool FlowGraphSerializer::HasDefinitionExtraInfo(const Definition* def) {
+  return ShouldSerializeType(def->type_) || def->range() != nullptr;
+}
+
+void FlowGraphSerializer::AddDefinitionExtraInfoToSExp(const Definition* def,
+                                                       SExpList* sexp) {
+  // Type() isn't a const method as it can cause changes to the type_
+  // field, so access type_ directly instead.
+  if (ShouldSerializeType(def->type_)) {
+    sexp->AddExtra("type", def->type_->ToSExpression(this));
+  }
+  if (def->range() != nullptr) {
+    sexp->AddExtra("range", def->range()->ToSExpression(this));
+  }
 }
 
 SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
-  if (!HasSSATemp() && !HasTemp()) {
+  // If we don't have a temp index, then this is a Definition that has no
+  // usable result, like PushArgumentInstr.
+  const bool binds_name = HasSSATemp() || HasTemp();
+  // Don't serialize non-binding definitions as definitions unless we either
+  // have Definition-specific extra info or we're in verbose mode.
+  if (!binds_name && !FLAG_verbose_flow_graph_serialization &&
+      !s->HasDefinitionExtraInfo(this)) {
     return Instruction::ToSExpression(s);
   }
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "def");
-  sexp->Add(s->UseToSExp(this));
-  if (ShouldSerializeType(type_)) {
-    sexp->AddExtra("type", type_->ToSExpression(s));
+  if (binds_name) {
+    sexp->Add(s->UseToSExp(this));
+  } else {
+    // Since there is Definition-specific extra info to serialize, we use "_"
+    // as the bound name, which lets the deserializer know the result is unused.
+    s->AddSymbol(sexp, "_");
   }
+  // Add only Definition-specific extra info to this form. Any extra info
+  // that is Instruction-specific or specific to the actual instruction type is
+  // added to the nested instruction form.
+  s->AddDefinitionExtraInfoToSExp(this, sexp);
   sexp->Add(Instruction::ToSExpression(s));
   return sexp;
 }
@@ -1256,6 +1301,9 @@ void AllocateObjectInstr::AddExtraInfoToSExpression(
   }
   if (auto const closure = s->DartValueToSExp(closure_function())) {
     sexp->AddExtra("closure_function", closure);
+  }
+  if (!Identity().IsUnknown() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraSymbol(sexp, "identity", Identity().ToCString());
   }
 }
 

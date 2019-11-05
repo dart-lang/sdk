@@ -8,14 +8,7 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#if defined(FUCHSIA_SDK)
 #include <fuchsia/deprecatedtimezone/cpp/fidl.h>
-namespace fuchsia {
-namespace timezone = deprecatedtimezone;
-}
-#else
-#include <fuchsia/timezone/cpp/fidl.h>
-#endif  //  defined(FUCHSIA_SDK)
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
@@ -50,7 +43,7 @@ intptr_t OS::ProcessId() {
 // Putting this hack right now due to CP-120 as I need to remove
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
-static fuchsia::timezone::TimezoneSyncPtr tz;
+static fuchsia::deprecatedtimezone::TimezoneSyncPtr tz;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
@@ -125,13 +118,9 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC) &&                                                \
-        (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                  \
-         defined(HOST_ARCH_ARM64))
+    defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) ||                                              \
-    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -142,25 +131,6 @@ intptr_t OS::ActivationFrameAlignment() {
   // Flags::DebugIsInt("stackalign", &alignment);
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
-  return alignment;
-}
-
-intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM)
-  const int kMinimumAlignment = 16;
-#else
-#error Unsupported architecture.
-#endif
-  intptr_t alignment = kMinimumAlignment;
-  // TODO(5411554): Allow overriding default code alignment for
-  // testing purposes.
-  // Flags::DebugIsInt("codealign", &alignment);
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
 }
 

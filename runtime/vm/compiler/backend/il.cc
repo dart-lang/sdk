@@ -10,6 +10,7 @@
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
+#include "vm/compiler/backend/evaluator.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
@@ -46,7 +47,7 @@ DEFINE_FLAG(bool,
             "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool,
             unbox_numeric_fields,
-            !USING_DBC,
+            true,
             "Support unboxed double and float32x4 fields.");
 
 class SubclassFinder {
@@ -203,6 +204,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kTypeArgumentsCid) continue;
     if (cid == kVoidCid) continue;
     if (cid == kDynamicCid) continue;
+    if (cid == kNeverCid) continue;
     if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
@@ -466,7 +468,7 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                               /*include_abstract=*/false,
                               /*exclude_null=*/true);
     if (ranges.length() == 1) {
-      const CidRange& range = ranges[0];
+      const CidRangeValue& range = ranges[0];
       if (!range.IsIllegalRange()) {
         *lower_limit = range.cid_start;
         *upper_limit = range.cid_end;
@@ -903,6 +905,16 @@ Representation LoadFieldInstr::representation() const {
   return kTagged;
 }
 
+AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
+    TokenPosition token_pos,
+    intptr_t num_context_variables)
+    : token_pos_(token_pos),
+      num_context_variables_(num_context_variables),
+      identity_(AliasIdentity::Unknown()) {
+  // This instruction is not used in AOT for code size reasons.
+  ASSERT(!FLAG_precompiled_mode);
+}
+
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_numeric_fields && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
@@ -935,11 +947,12 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
 Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Dart objects are allocated null-initialized, which means we can eliminate
   // all initializing stores which store null value.
-  // TODO(dartbug.com/38454) Context objects can be allocated uninitialized
-  // as a performance optimization (all initializing stores are inlined into
-  // the caller, which allocates the context). Investigate if this can be
-  // changed to align with normal Dart objects for code size reasons.
-  if (is_initialization_ && slot().IsDartField() &&
+  // Context objects can be allocated uninitialized as a performance
+  // optimization in JIT mode - however in AOT mode we always allocate them
+  // null initialized.
+  if (is_initialization_ &&
+      (!slot().IsContextSlot() ||
+       !instance()->definition()->IsAllocateUninitializedContext()) &&
       value()->BindsToConstantNull()) {
     return nullptr;
   }
@@ -1033,6 +1046,10 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   return &this->slot_ == &other_load->slot_;
+}
+
+Instruction* InitInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  return this;
 }
 
 Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2021,12 +2038,8 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
       return RangeUtils::CanBeZero(right_range());
 
     case Token::kTRUNCDIV:
-#if defined(TARGET_ARCH_DBC)
-      return true;
-#else
       return RangeUtils::CanBeZero(right_range()) ||
              RangeUtils::Overlaps(right_range(), -1, -1);
-#endif
 
     default:
       return can_overflow();
@@ -2066,73 +2079,11 @@ static int64_t RepresentationMask(Representation r) {
                               (64 - RepresentationBits(r)));
 }
 
-static int64_t TruncateTo(int64_t v, Representation r) {
-  switch (r) {
-    case kTagged: {
-      // Smi occupies word minus kSmiTagShift bits.
-      const intptr_t kTruncateBits =
-          (kBitsPerInt64 - kBitsPerWord) + kSmiTagShift;
-      return Utils::ShiftLeftWithTruncation(v, kTruncateBits) >> kTruncateBits;
-    }
-    case kUnboxedInt32:
-      return Utils::ShiftLeftWithTruncation(v, kBitsPerInt32) >> kBitsPerInt32;
-    case kUnboxedUint32:
-      return v & kMaxUint32;
-    case kUnboxedInt64:
-      return v;
-    default:
-      UNREACHABLE();
-      return 0;
-  }
-}
-
-static bool ToIntegerConstant(Value* value, int64_t* result) {
-  if (!value->BindsToConstant()) {
-    UnboxInstr* unbox = value->definition()->AsUnbox();
-    if (unbox != NULL) {
-      switch (unbox->representation()) {
-        case kUnboxedDouble:
-        case kUnboxedInt64:
-          return ToIntegerConstant(unbox->value(), result);
-
-        case kUnboxedUint32:
-          if (ToIntegerConstant(unbox->value(), result)) {
-            *result = TruncateTo(*result, kUnboxedUint32);
-            return true;
-          }
-          break;
-
-        // No need to handle Unbox<Int32>(Constant(C)) because it gets
-        // canonicalized to UnboxedConstant<Int32>(C).
-        case kUnboxedInt32:
-        default:
-          break;
-      }
-    }
-    return false;
-  }
-
-  const Object& constant = value->BoundConstant();
-  if (constant.IsDouble()) {
-    const Double& double_constant = Double::Cast(constant);
-    *result = Utils::SafeDoubleToInt<int64_t>(double_constant.value());
-    return (static_cast<double>(*result) == double_constant.value());
-  } else if (constant.IsSmi()) {
-    *result = Smi::Cast(constant).Value();
-    return true;
-  } else if (constant.IsMint()) {
-    *result = Mint::Cast(constant).value();
-    return true;
-  }
-
-  return false;
-}
-
 static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
                                                            Value* left,
                                                            Value* right) {
   int64_t left_value;
-  if (!ToIntegerConstant(left, &left_value)) {
+  if (!Evaluator::ToIntegerConstant(left, &left_value)) {
     return NULL;
   }
 
@@ -2330,142 +2281,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
-static bool IsRepresentable(const Integer& value, Representation rep) {
-  switch (rep) {
-    case kTagged:  // Smi case.
-      return value.IsSmi();
-
-    case kUnboxedInt32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsInt(32, value.AsInt64Value());
-      }
-      return false;
-
-    case kUnboxedInt64:
-      return value.IsSmi() || value.IsMint();
-
-    case kUnboxedUint32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsUint(32, value.AsInt64Value());
-      }
-      return false;
-
-    default:
-      UNREACHABLE();
-  }
-
-  return false;
-}
-
-RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Integer& result = Integer::Handle(zone);
-
-  switch (op_kind()) {
-    case Token::kNEGATE:
-      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(zone, Smi::New(-1)),
-                                  Heap::kOld);
-      break;
-
-    case Token::kBIT_NOT:
-      if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
-      } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
-      }
-      break;
-
-    default:
-      UNREACHABLE();
-  }
-
-  if (!result.IsNull()) {
-    if (!IsRepresentable(result, representation())) {
-      // If this operation is not truncating it would deoptimize on overflow.
-      // Check that we match this behavior and don't produce a value that is
-      // larger than something this operation can produce. We could have
-      // specialized instructions that use this value under this assumption.
-      return Integer::null();
-    }
-
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
-  }
-
-  return result.raw();
-}
-
-RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
-                                           const Integer& right) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Integer& result = Integer::Handle(zone);
-
-  switch (op_kind()) {
-    case Token::kTRUNCDIV:
-      FALL_THROUGH;
-    case Token::kMOD:
-      // Check right value for zero.
-      if (right.AsInt64Value() == 0) {
-        break;  // Will throw.
-      }
-      FALL_THROUGH;
-    case Token::kADD:
-      FALL_THROUGH;
-    case Token::kSUB:
-      FALL_THROUGH;
-    case Token::kMUL: {
-      result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
-      break;
-    }
-    case Token::kSHL:
-      FALL_THROUGH;
-    case Token::kSHR:
-      if (right.AsInt64Value() >= 0) {
-        result = left.ShiftOp(op_kind(), right, Heap::kOld);
-      }
-      break;
-    case Token::kBIT_AND:
-      FALL_THROUGH;
-    case Token::kBIT_OR:
-      FALL_THROUGH;
-    case Token::kBIT_XOR: {
-      result = left.BitOp(op_kind(), right, Heap::kOld);
-      break;
-    }
-    case Token::kDIV:
-      break;
-    default:
-      UNREACHABLE();
-  }
-
-  if (!result.IsNull()) {
-    if (is_truncating()) {
-      const int64_t truncated =
-          TruncateTo(result.AsTruncatedInt64Value(), representation());
-      result = Integer::New(truncated, Heap::kOld);
-      ASSERT(IsRepresentable(result, representation()));
-    } else if (!IsRepresentable(result, representation())) {
-      // If this operation is not truncating it would deoptimize on overflow.
-      // Check that we match this behavior and don't produce a value that is
-      // larger than something this operation can produce. We could have
-      // specialized instructions that use this value under this assumption.
-      return Integer::null();
-    }
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
-  }
-
-  return result.raw();
-}
-
 Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
                                                        const Integer& result) {
   Definition* result_defn = flow_graph->GetConstant(result);
@@ -2556,11 +2371,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
   // have already been run.
-  if (left()->BindsToConstant() && left()->BoundConstant().IsInteger() &&
-      right()->BindsToConstant() && right()->BoundConstant().IsInteger()) {
-    const Integer& result =
-        Integer::Handle(Evaluate(Integer::Cast(left()->BoundConstant()),
-                                 Integer::Cast(right()->BoundConstant())));
+
+  if (left()->BindsToConstant() && right()->BindsToConstant()) {
+    const Integer& result = Integer::Handle(Evaluator::BinaryIntegerEvaluate(
+        left()->BoundConstant(), right()->BoundConstant(), op_kind(),
+        is_truncating(), representation(), Thread::Current()));
+
     if (!result.IsNull()) {
       return CreateConstantResult(flow_graph, result);
     }
@@ -2575,7 +2391,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   int64_t rhs;
-  if (!ToIntegerConstant(right(), &rhs)) {
+  if (!Evaluator::ToIntegerConstant(right(), &rhs)) {
     return this;
   }
 
@@ -2587,7 +2403,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       case Token::kBIT_AND:
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
-        rhs = TruncateTo(rhs, representation());
+        rhs = Evaluator::TruncateTo(rhs, representation());
         break;
       default:
         break;
@@ -3325,10 +3141,7 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-// Currently we perform this only on 64-bit architectures and not on simdbc64
-// (on simdbc64 the [UnboxedConstantInstr] handling is only implemented for
-//  doubles and causes a bailout for everthing else)
-#if !defined(TARGET_ARCH_DBC)
+  // Currently we perform this only on 64-bit architectures.
   if (compiler::target::kBitsPerWord == 64) {
     ConstantInstr* c = value()->definition()->AsConstant();
     if (c != NULL && (c->value().IsSmi() || c->value().IsMint())) {
@@ -3341,7 +3154,6 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
       return uc;
     }
   }
-#endif  // !defined(TARGET_ARCH_DBC)
 
   return this;
 }
@@ -4062,13 +3874,9 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // TODO(kusterman): Remove duplicate between
   // {TargetEntryInstr,FunctionEntryInstr}::EmitNativeCode.
   if (!compiler->is_optimizing()) {
-#if !defined(TARGET_ARCH_DBC)
-    // TODO(vegorov) re-enable edge counters on DBC if we consider them
-    // beneficial for the quality of the optimized bytecode.
     if (compiler->NeedsEdgeCounter(this)) {
       compiler->EmitEdgeCounter(preorder_number());
     }
-#endif
 
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM, where we can reuse pattern matching code that
@@ -4144,13 +3952,9 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   if (!compiler->is_optimizing()) {
-#if !defined(TARGET_ARCH_DBC)
-    // TODO(vegorov) re-enable edge counters on DBC if we consider them
-    // beneficial for the quality of the optimized bytecode.
     if (compiler->NeedsEdgeCounter(this)) {
       compiler->EmitEdgeCounter(preorder_number());
     }
-#endif
 
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM, where we can reuse pattern matching code that
@@ -4277,7 +4081,6 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if !defined(TARGET_ARCH_DBC)
   // The native entry frame has size -kExitLinkSlotFromFp. In order to access
   // the top of stack from above the entry frame, we add a constant to account
   // for the the two frame pointers and two return addresses of the entry frame.
@@ -4288,14 +4091,10 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location src = rebase.Rebase(loc_);
   NoTemporaryAllocator no_temp;
   compiler->EmitMove(dst, src, &no_temp);
-#else
-  UNREACHABLE();
-#endif
 }
 
 LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(opt);
   Location input = Location::Any();
   if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
@@ -4308,9 +4107,6 @@ LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
   }
   return LocationSummary::Make(zone, /*num_inputs=*/0, input,
                                LocationSummary::kNoCall);
-#else
-  UNREACHABLE();
-#endif
 }
 
 bool ParallelMoveInstr::IsRedundant() const {
@@ -4426,23 +4222,10 @@ LocationSummary* DropTempsInstr::MakeLocationSummary(Zone* zone,
 }
 
 void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(TARGET_ARCH_DBC)
-  // On DBC the action of poping the TOS value and then pushing it
-  // after all intermediates are poped is folded into a special
-  // bytecode (DropR). On other architectures this is handled by
-  // instruction prologue/epilogues.
-  ASSERT(!compiler->is_optimizing());
-  if ((InputCount() != 0) && HasTemp()) {
-    __ DropR(num_temps());
-  } else {
-    __ Drop(num_temps() + ((InputCount() != 0) ? 1 : 0));
-  }
-#else
   ASSERT(!compiler->is_optimizing());
   // Assert that register assignment is correct.
   ASSERT((InputCount() == 0) || (locs()->out(0).reg() == locs()->in(0).reg()));
   __ Drop(num_temps());
-#endif  // defined(TARGET_ARCH_DBC)
 }
 
 StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
@@ -4463,8 +4246,6 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
   return MakeCallSummary(zone);
 }
 
-// DBC does not use specialized inline cache stubs for smi operations.
-#if !defined(TARGET_ARCH_DBC)
 static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   if (!FLAG_two_args_smi_icd) {
     return Code::null();
@@ -4480,59 +4261,6 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
       return Code::null();
   }
 }
-#else
-static void TryFastPathSmiOp(FlowGraphCompiler* compiler,
-                             ICData* call_ic_data,
-                             Token::Kind op_kind) {
-  if (!FLAG_two_args_smi_icd) {
-    return;
-  }
-  switch (op_kind) {
-    case Token::kADD:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ AddTOS();
-      }
-      break;
-    case Token::kSUB:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ SubTOS();
-      }
-      break;
-    case Token::kEQ:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ EqualTOS();
-      }
-      break;
-    case Token::kLT:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ LessThanTOS();
-      }
-      break;
-    case Token::kGT:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ GreaterThanTOS();
-      }
-      break;
-    case Token::kBIT_AND:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ BitAndTOS();
-      }
-      break;
-    case Token::kBIT_OR:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ BitOrTOS();
-      }
-      break;
-    case Token::kMUL:
-      if (call_ic_data->AddSmiSmiCheckForFastSmiStubs()) {
-        __ MulTOS();
-      }
-      break;
-    default:
-      break;
-  }
-}
-#endif
 
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
@@ -4554,7 +4282,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
 
-#if !defined(TARGET_ARCH_DBC)
   if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
       HasICData()) {
     ASSERT(HasICData());
@@ -4589,46 +4316,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      *call_ic_data);
     }
   }
-#else
-  ICData* original_ic_data = &ICData::ZoneHandle(call_ic_data->Original());
-
-  // Emit smi fast path instruction. If fast-path succeeds it skips the next
-  // instruction otherwise it falls through. Only attempt in unoptimized code
-  // because TryFastPathSmiOp will update original_ic_data.
-  if (!compiler->is_optimizing()) {
-    TryFastPathSmiOp(compiler, original_ic_data, token_kind());
-  }
-
-  const intptr_t call_ic_data_kidx = __ AddConstant(*original_ic_data);
-  switch (original_ic_data->NumArgsTested()) {
-    case 1:
-      if (compiler->is_optimizing()) {
-        __ InstanceCall1Opt(ArgumentCount(), call_ic_data_kidx);
-      } else {
-        __ InstanceCall1(ArgumentCount(), call_ic_data_kidx);
-      }
-      break;
-    case 2:
-      if (compiler->is_optimizing()) {
-        __ InstanceCall2Opt(ArgumentCount(), call_ic_data_kidx);
-      } else {
-        __ InstanceCall2(ArgumentCount(), call_ic_data_kidx);
-      }
-      break;
-    default:
-      UNIMPLEMENTED();
-      break;
-  }
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
-                                 token_pos());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall, deopt_id(),
-                                 token_pos());
-  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
-
-  if (compiler->is_optimizing()) {
-    __ PopLocal(locs()->out(0).reg());
-  }
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 bool InstanceCallInstr::MatchesCoreName(const String& name) {
@@ -4748,9 +4435,6 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
   return targets().AggregateCallCount();
 }
 
-// DBC does not support optimizing compiler and thus doesn't emit
-// PolymorphicInstanceCallInstr.
-#if !defined(TARGET_ARCH_DBC)
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(instance_call()->type_args_len(),
                           instance_call()->ArgumentCount(),
@@ -4759,7 +4443,6 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       targets_, *instance_call(), args_info, deopt_id(),
       instance_call()->token_pos(), locs(), complete(), total_call_count());
 }
-#endif
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
     const CallTargets& targets) {
@@ -4903,7 +4586,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
   }
 
-#if !defined(TARGET_ARCH_DBC)
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
   compiler->GenerateStaticCall(deopt_id(), token_pos(), function(), args_info,
                                locs(), *call_ic_data, rebind_rule_,
@@ -4916,30 +4598,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                ArgumentAt(0));
     }
   }
-#else
-  const Array& arguments_descriptor = Array::Handle(
-      zone, (ic_data() == NULL) ? GetArgumentsDescriptor()
-                                : ic_data()->arguments_descriptor());
-  const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
-
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
-                                 token_pos());
-  if (compiler->is_optimizing()) {
-    __ PushConstant(function());
-    __ StaticCall(ArgumentCount(), argdesc_kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
-                                   token_pos());
-    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
-    __ PopLocal(locs()->out(0).reg());
-  } else {
-    const intptr_t ic_data_kidx = __ AddConstant(*call_ic_data);
-    __ PushConstant(ic_data_kidx);
-    __ IndirectStaticCall(ArgumentCount(), argdesc_kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kUnoptStaticCall,
-                                   deopt_id(), token_pos());
-    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
-  }
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 intptr_t AssertAssignableInstr::statistics_tag() const {
@@ -4960,15 +4618,10 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(token_pos(), deopt_id(), dst_type(),
                                      dst_name(), locs());
-
-// DBC does not use LocationSummaries in the same way as other architectures.
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(sub_type().IsFinalized());
   ASSERT(super_type().IsFinalized());
 
@@ -4982,19 +4635,6 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 kSubtypeCheckRuntimeEntry, 5, locs());
 
   __ Drop(5);
-#else
-  if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());  // Instantiator type arguments.
-    __ Push(locs()->in(1).reg());  // Function type arguments.
-  } else {
-    // The 2 inputs are already on the expression stack.
-  }
-  __ PushConstant(sub_type());
-  __ PushConstant(super_type());
-  __ PushConstant(dst_name());
-  __ AssertSubtype();
-
-#endif
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -5003,14 +4643,8 @@ LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if !defined(TARGET_ARCH_DBC)
   __ Jump(compiler->AddDeoptStub(deopt_id(), deopt_reason_));
-#else
-  compiler->EmitDeopt(deopt_id(), deopt_reason_);
-#endif
 }
-
-#if !defined(TARGET_ARCH_DBC)
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
@@ -5109,8 +4743,6 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-#endif  // !defined(TARGET_ARCH_DBC)
-
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
   const String& function_name = check_null->function_name();
@@ -5119,8 +4751,6 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
   compiler->AddNullCheck(compiler->assembler()->CodeSize(),
                          check_null->token_pos(), name_index);
 }
-
-#if !defined(TARGET_ARCH_DBC)
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
@@ -5198,8 +4828,6 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-#endif  // !defined(TARGET_ARCH_DBC)
-
 Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
@@ -5227,7 +4855,7 @@ Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
-    copy->values_.Add(values_[i]->Copy(zone));
+    copy->values_.Add(values_[i]->CopyWithType(zone));
     if (locations_ != NULL) {
       copy->locations_[i] = locations_[i].Copy();
     }
@@ -5343,16 +4971,13 @@ bool TestCidsInstr::AttributesEqual(Instruction* other) const {
   return true;
 }
 
-#if !defined(TARGET_ARCH_DBC)
 static bool BindsToSmiConstant(Value* value) {
   return value->BindsToConstant() && value->BoundConstant().IsSmi();
 }
-#endif
 
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
-#if !defined(TARGET_ARCH_DBC)
   bool is_smi_result = BindsToSmiConstant(v1) && BindsToSmiConstant(v2);
   if (comparison->IsStrictCompare()) {
     // Strict comparison with number checks calls a stub and is not supported
@@ -5365,9 +4990,6 @@ bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
     return false;
   }
   return is_smi_result;
-#else
-  return false;
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 bool PhiInstr::IsRedundant() const {
@@ -5731,8 +5353,6 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   }
 }
 
-#if !defined(TARGET_ARCH_DBC)
-
 #define Z zone_
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
@@ -5816,34 +5436,8 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
 
 #undef Z
 
-#else
-
-LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
-                                                   bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
-                                 /*num_temps=*/0, LocationSummary::kCall);
-
-  summary->set_in(
-      TargetAddressIndex(),
-      Location::RegisterLocation(compiler::ffi::kFunctionAddressRegister));
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    summary->set_in(i, arg_locations_[i]);
-  }
-  summary->set_out(0, compiler::ffi::ResultLocation(
-                          compiler::ffi::ResultHostRepresentation(signature_)));
-
-  return summary;
-}
-
-#endif  // !defined(TARGET_ARCH_DBC)
-
 Representation FfiCallInstr::representation() const {
-#if !defined(TARGET_ARCH_DBC)
   return compiler::ffi::ResultRepresentation(signature_);
-#else
-  return compiler::ffi::ResultHostRepresentation(signature_);
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 // SIMD

@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+typedef F<Glib>.=;
+
+typedef[KeywordToken] F[StringToken]<[BeginToken]Glib[StringToken]>[SyntheticToken].[SimpleToken]=[SimpleToken][SyntheticStringToken];[SyntheticToken][SimpleToken]

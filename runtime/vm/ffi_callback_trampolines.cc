@@ -13,7 +13,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, disassemble_stubs);
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 uword NativeCallbackTrampolines::TrampolineForId(int32_t callback_id) {
 #if defined(DART_PRECOMPILER)
   ASSERT(!Enabled());
@@ -98,6 +98,6 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
   next_callback_id_++;
 #endif  // defined(DART_PRECOMPILER)
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

@@ -814,6 +814,9 @@ class BackendImpacts {
         _commonElements.specializedIsString,
         _commonElements.specializedAsStringNullable,
         _commonElements.specializedCheckStringNullable,
+        _commonElements.specializedIsTop,
+        _commonElements.specializedAsTop,
+        // no specializedCheckTop
       ], globalClasses: [
         _commonElements.closureClass, // instanceOrFunctionType uses this.
       ], globalUses: [])
@@ -822,7 +825,10 @@ class BackendImpacts {
 
   BackendImpact _rtiAddRules;
 
-  BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(
-      globalUses: [_commonElements.rtiAddRulesMethod],
-      otherImpacts: [_needsString('Needed to encode the new RTI ruleset.')]);
+  BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(globalUses: [
+        _commonElements.rtiAddRulesMethod,
+        _commonElements.rtiAddErasedTypesMethod
+      ], otherImpacts: [
+        _needsString('Needed to encode the new RTI ruleset.')
+      ]);
 }

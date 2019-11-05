@@ -33,6 +33,7 @@ enum {
   kNullType,
   kDynamicType,
   kVoidType,
+  kNeverType,
   kFunctionType,
   kNumberType,
   kSmiType,

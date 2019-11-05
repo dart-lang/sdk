@@ -28,3 +28,17 @@ Generated file:///.../sdk/hello_sizes/index.html
 % chrome hello_sizes/index.html
 ```
 
+
+## Comparing the sizes of two AOT builds
+
+To visualize the differences between two AOT builds one can use our binary size
+comparison tool:
+
+```
+% dart pkg/vm/bin/compare_sizes.dart app-sizes--before.json app-sizes--after.json
+
++---------+--------+--------------+
+| Library | Method | Diff (Bytes) |
++---------+--------+--------------+
+...
+```

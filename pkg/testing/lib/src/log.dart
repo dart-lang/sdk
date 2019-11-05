@@ -63,7 +63,9 @@ abstract class Logger {
   void logUnexpectedResult(Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes);
 
-  void logSuiteComplete();
+  void logSuiteStarted(Suite suite);
+
+  void logSuiteComplete(Suite suite);
 
   void logUncaughtError(error, StackTrace stackTrace);
 }
@@ -167,7 +169,11 @@ class StdoutLogger implements Logger {
     }
   }
 
-  void logSuiteComplete() {
+  void logSuiteStarted(Suite suite) {
+    print("Running suite ${suite.name}...");
+  }
+
+  void logSuiteComplete(Suite suite) {
     if (!isVerbose) {
       print("");
     }

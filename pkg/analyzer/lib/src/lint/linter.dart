@@ -20,8 +20,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -33,6 +32,7 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
@@ -215,6 +215,8 @@ abstract class LinterContext {
 
   InheritanceManager3 get inheritanceManager;
 
+  WorkspacePackage get package;
+
   TypeProvider get typeProvider;
 
   TypeSystem get typeSystem;
@@ -255,6 +257,9 @@ class LinterContextImpl implements LinterContext {
   final DeclaredVariables declaredVariables;
 
   @override
+  final WorkspacePackage package;
+
+  @override
   final TypeProvider typeProvider;
 
   @override
@@ -271,6 +276,7 @@ class LinterContextImpl implements LinterContext {
     this.typeSystem,
     this.inheritanceManager,
     this.analysisOptions,
+    this.package,
   );
 
   @override
@@ -522,7 +528,7 @@ abstract class NodeLintRule {
 @deprecated
 abstract class NodeLintRuleWithContext extends NodeLintRule {}
 
-class PrintingReporter implements Reporter, Logger {
+class PrintingReporter implements Reporter {
   final Printer _print;
 
   const PrintingReporter([this._print = print]);
@@ -530,16 +536,6 @@ class PrintingReporter implements Reporter, Logger {
   @override
   void exception(LinterException exception) {
     _print('EXCEPTION: $exception');
-  }
-
-  @override
-  void logError(String message, [CaughtException exception]) {
-    _print('ERROR: $message');
-  }
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {
-    _print('INFO: $message');
   }
 
   @override

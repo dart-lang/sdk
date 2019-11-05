@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:front_end/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/testing/id_testing.dart'
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, runTests;
-import 'package:front_end/src/testing/id_testing.dart';
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
@@ -22,7 +22,8 @@ import 'package:kernel/ast.dart' show Class, Member, TreeNode;
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  Directory dataDir = new Directory.fromUri(Platform.script
+      .resolve('../../../_fe_analyzer_shared/test/constants/data'));
   await runTests(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,

@@ -35,11 +35,6 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
-DEFINE_FLAG(bool,
-            trace_reused_instructions,
-            false,
-            "Print code that lacks reusable instructions");
-
 intptr_t ObjectOffsetTrait::Hashcode(Key key) {
   RawObject* obj = key;
   ASSERT(!obj->IsSmi());
@@ -82,19 +77,13 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-ImageWriter::ImageWriter(Heap* heap,
-                         const void* shared_objects,
-                         const void* shared_instructions,
-                         const void* reused_instructions)
+ImageWriter::ImageWriter(Heap* heap)
     : heap_(heap),
       next_data_offset_(0),
       next_text_offset_(0),
       objects_(),
       instructions_() {
   ResetOffsets();
-  SetupShared(&shared_objects_, shared_objects);
-  SetupShared(&shared_instructions_, shared_instructions);
-  SetupShared(&reuse_instructions_, reused_instructions);
 }
 
 void ImageWriter::PrepareForSerialization(
@@ -130,49 +119,11 @@ void ImageWriter::PrepareForSerialization(
   }
 }
 
-void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
-  if (shared_image == NULL) {
-    return;
-  }
-  Image image(shared_image);
-  uword obj_addr = reinterpret_cast<uword>(image.object_start());
-  uword end_addr = obj_addr + image.object_size();
-  while (obj_addr < end_addr) {
-    int32_t offset = obj_addr - reinterpret_cast<uword>(shared_image);
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-    ObjectOffsetPair pair;
-    pair.object = raw_obj;
-    pair.offset = offset;
-    map->Insert(pair);
-    obj_addr += SizeInSnapshot(raw_obj);
-  }
-  ASSERT(obj_addr == end_addr);
-}
-
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
   intptr_t offset = heap_->GetObjectId(instructions);
   if (offset != 0) {
     return offset;
-  }
-
-  if (!reuse_instructions_.IsEmpty()) {
-    ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
-    if (pair == NULL) {
-      // Code should have been removed by DropCodeWithoutReusableInstructions.
-      return 0;
-    }
-    ASSERT(pair->offset != 0);
-    return pair->offset;
-  }
-
-  ObjectOffsetPair* pair = shared_instructions_.Lookup(instructions);
-  if (pair != NULL) {
-    // Negative offsets tell the reader the offset is w/r/t the shared
-    // instructions image instead of the app-specific instructions image.
-    // Compare ImageReader::GetInstructionsAt.
-    ASSERT(pair->offset != 0);
-    return -pair->offset;
   }
 
   offset = next_text_offset_;
@@ -220,12 +171,9 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
 
-static constexpr intptr_t kSimarmX64InstructionsAlignment =
-    2 * compiler::target::ObjectAlignment::kObjectAlignment;
 static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
-  const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
-                                              kSimarmX64InstructionsAlignment);
-  return header_size + Utils::RoundUp(len, kSimarmX64InstructionsAlignment);
+  return Utils::RoundUp(compiler::target::Instructions::HeaderSize() + len,
+                        compiler::target::ObjectAlignment::kObjectAlignment);
 }
 
 intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
@@ -267,16 +215,6 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   return raw_object->HeapSize();
 }
 #endif  // defined(IS_SIMARM_X64)
-
-bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
-                                         uint32_t* offset) {
-  ObjectOffsetPair* pair = shared_objects_.Lookup(raw_object);
-  if (pair == NULL) {
-    return false;
-  }
-  *offset = pair->offset;
-  return true;
-}
 
 uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t snap_size = SizeInSnapshot(raw_object);
@@ -399,15 +337,15 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 }
 
 void ImageWriter::WriteROData(WriteStream* stream) {
-  stream->Align(OS::kMaxPreferredCodeAlignment);
+  stream->Align(kMaxObjectAlignment);
 
   // Heap page starts here.
 
   intptr_t section_start = stream->Position();
 
   stream->WriteWord(next_data_offset_);  // Data length.
-  COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
-  stream->Align(OS::kMaxPreferredCodeAlignment);
+  COMPILE_ASSERT(kMaxObjectAlignment >= kObjectAlignment);
+  stream->Align(kMaxObjectAlignment);
 
   ASSERT(stream->Position() - section_start == Image::kHeaderSize);
 
@@ -503,10 +441,8 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
 AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          Dart_StreamingWriteCallback callback,
-                                         void* callback_data,
-                                         const void* shared_objects,
-                                         const void* shared_instructions)
-    : ImageWriter(thread->heap(), shared_objects, shared_instructions, nullptr),
+                                         void* callback_data)
+    : ImageWriter(thread->heap()),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(nullptr) {
 #if defined(DART_PRECOMPILER)
@@ -521,6 +457,7 @@ void AssemblyImageWriter::Finalize() {
 #endif
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void EnsureAssemblerIdentifier(char* label) {
   for (char c = *label; c != '\0'; c = *++label) {
     if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
@@ -531,8 +468,8 @@ static void EnsureAssemblerIdentifier(char* label) {
   }
 }
 
-const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
-                                          const Code& code) {
+static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
+                                                 const Code& code) {
   if (code.raw() == object_store->build_method_extractor_code()) {
     return "_iso_stub_BuildMethodExtractorStub";
   } else if (code.raw() == object_store->null_error_stub_with_fpu_regs_stub()) {
@@ -553,8 +490,46 @@ const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
   }
   return nullptr;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+const char* AssemblyCodeNamer::AssemblyNameFor(intptr_t code_index,
+                                               const Code& code) {
+  ASSERT(!code.IsNull());
+  owner_ = code.owner();
+  if (owner_.IsNull()) {
+    insns_ = code.instructions();
+    const char* name = StubCode::NameOfStub(insns_.EntryPoint());
+    if (name != nullptr) {
+      return OS::SCreate(zone_, "Precompiled_Stub_%s", name);
+    } else {
+      if (name == nullptr) {
+        name = NameOfStubIsolateSpecificStub(store_, code);
+      }
+      ASSERT(name != nullptr);
+      return OS::SCreate(zone_, "Precompiled__%s", name);
+    }
+  } else if (owner_.IsClass()) {
+    string_ = Class::Cast(owner_).Name();
+    const char* name = string_.ToCString();
+    EnsureAssemblerIdentifier(const_cast<char*>(name));
+    return OS::SCreate(zone_, "Precompiled_AllocationStub_%s_%" Pd, name,
+                       code_index);
+  } else if (owner_.IsAbstractType()) {
+    const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
+    return OS::SCreate(zone_, "Precompiled_%s", name);
+  } else if (owner_.IsFunction()) {
+    const char* name = Function::Cast(owner_).ToQualifiedCString();
+    EnsureAssemblerIdentifier(const_cast<char*>(name));
+    return OS::SCreate(zone_, "Precompiled_%s_%" Pd, name, code_index);
+  } else {
+    UNREACHABLE();
+  }
+}
 
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Zone* zone = Thread::Current()->zone();
 
 #if defined(DART_PRECOMPILER)
@@ -568,7 +543,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print(".globl %s\n", instructions_symbol);
 
   // Start snapshot at page boundary.
-  ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
+  ASSERT(VirtualMemory::PageSize() >= kMaxObjectAlignment);
   assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
   assembly_stream_.Print("%s:\n", instructions_symbol);
 
@@ -591,13 +566,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   FrameUnwindPrologue();
 
-  Object& owner = Object::Handle(zone);
-  String& str = String::Handle(zone);
   PcDescriptors& descriptors = PcDescriptors::Handle(zone);
-
-  ObjectStore* object_store = Isolate::Current()->object_store();
-
-  TypeTestingStubNamer tts;
+  AssemblyCodeNamer namer(zone);
   intptr_t text_offset = 0;
 
   ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
@@ -639,9 +609,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                                         SizeInSnapshot(insns.raw()));
     }
 
-    ASSERT(insns.raw()->HeapSize() % sizeof(uint64_t) == 0);
-
-    // 1. Write from the header to the entry point.
+    // 1. Write from the object start to the payload start. This includes the
+    // object header and the fixed fields.
     {
       NoSafepointScope no_safepoint;
 
@@ -667,83 +636,48 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += sizeof(compiler::target::uword);
       WriteWordLiteralText(insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
       text_offset += sizeof(compiler::target::uword);
-      WriteWordLiteralText(0);
-      text_offset += sizeof(compiler::target::uword);
 #else   // defined(IS_SIMARM_X64)
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
+      uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
+      uword payload_start = insns.PayloadStart();
       WriteWordLiteralText(marked_tags);
-      beginning += sizeof(uword);
+      object_start += sizeof(uword);
       text_offset += sizeof(uword);
-      text_offset += WriteByteSequence(beginning, entry);
+      text_offset += WriteByteSequence(object_start, payload_start);
 #endif  // defined(IS_SIMARM_X64)
 
       ASSERT((text_offset - instr_start) ==
              compiler::target::Instructions::HeaderSize());
     }
 
-    // 2. Write a label at the entry point.
-    // Linux's perf uses these labels.
-    ASSERT(!code.IsNull());
-    owner = code.owner();
-    if (owner.IsNull()) {
-      const char* name = StubCode::NameOfStub(insns.EntryPoint());
-      if (name != nullptr) {
-        assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
-      } else {
-        if (name == nullptr) {
-          name = NameOfStubIsolateSpecificStub(object_store, code);
-        }
-        ASSERT(name != nullptr);
-        assembly_stream_.Print("Precompiled__%s:\n", name);
-      }
-    } else if (owner.IsClass()) {
-      str = Class::Cast(owner).Name();
-      const char* name = str.ToCString();
-      EnsureAssemblerIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
-                             i);
-    } else if (owner.IsAbstractType()) {
-      const char* name = tts.StubNameForType(AbstractType::Cast(owner));
-      assembly_stream_.Print("Precompiled_%s:\n", name);
-    } else if (owner.IsFunction()) {
-      const char* name = Function::Cast(owner).ToQualifiedCString();
-      EnsureAssemblerIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
-    } else {
-      UNREACHABLE();
-    }
-
+    intptr_t dwarf_index = i;
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
     if ((dwarf_ != nullptr) && !code.IsNull()) {
-      const intptr_t dwarf_index = dwarf_->AddCode(code);
-      assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
+      dwarf_index = dwarf_->AddCode(code);
     }
 #endif
+    // 2. Write a label at the entry point.
+    // Linux's perf uses these labels.
+    assembly_stream_.Print("%s:\n", namer.AssemblyNameFor(dwarf_index, code));
 
     {
-      // 3. Write from the entry point to the end.
+      // 3. Write from the payload start to payload end.
       NoSafepointScope no_safepoint;
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
-      uword payload_size = insns.raw()->HeapSize() - insns.HeaderSize();
-      uword end = entry + payload_size;
-
-      ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
-      ASSERT(Utils::IsAligned(entry, sizeof(uword)));
-      ASSERT(Utils::IsAligned(end, sizeof(uword)));
+      const uword payload_start = insns.PayloadStart();
+      const uword payload_size =
+          Utils::RoundUp(insns.Size(), sizeof(compiler::target::uword));
+      const uword payload_end = payload_start + payload_size;
 
 #if defined(DART_PRECOMPILER)
       PcDescriptors::Iterator iterator(descriptors,
                                        RawPcDescriptors::kBSSRelocation);
       uword next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
 
-      for (uword cursor = entry; cursor < end;
+      for (uword cursor = payload_start; cursor < payload_end;
            cursor += sizeof(compiler::target::uword)) {
         compiler::target::uword data =
             *reinterpret_cast<compiler::target::uword*>(cursor);
-        if ((cursor - entry) == next_reloc_offset) {
+        if ((cursor - payload_start) == next_reloc_offset) {
           assembly_stream_.Print("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
                                  bss_symbol, /*addend=*/data);
           next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
@@ -751,13 +685,31 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
           WriteWordLiteralText(data);
         }
       }
-      text_offset += end - entry;
+      text_offset += payload_size;
 #else
-      text_offset += WriteByteSequence(entry, end);
+      text_offset += WriteByteSequence(payload_start, payload_end);
 #endif
+
+      // 4. Write from the payload end to object end. Note we can't simply copy
+      // from the object because the host object may have less alignment filler
+      // than the target object in the cross-word case.
+      uword unaligned_size =
+          compiler::target::Instructions::HeaderSize() + payload_size;
+      uword alignment_size =
+          Utils::RoundUp(unaligned_size,
+                         compiler::target::ObjectAlignment::kObjectAlignment) -
+          unaligned_size;
+      while (alignment_size > 0) {
+        WriteWordLiteralText(compiler::Assembler::GetBreakInstructionFiller());
+        alignment_size -= sizeof(compiler::target::uword);
+        text_offset += sizeof(compiler::target::uword);
+      }
+
       ASSERT(kWordSize != compiler::target::kWordSize ||
              (text_offset - instr_start) == insns.raw()->HeapSize());
     }
+
+    ASSERT((text_offset - instr_start) == SizeInSnapshot(insns.raw()));
   }
 
   FrameUnwindEpilogue();
@@ -784,12 +736,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const char* data_symbol =
       vm ? "_kDartVmSnapshotData" : "_kDartIsolateSnapshotData";
   assembly_stream_.Print(".globl %s\n", data_symbol);
-  assembly_stream_.Print(".balign %" Pd ", 0\n",
-                         OS::kMaxPreferredCodeAlignment);
+  assembly_stream_.Print(".balign %" Pd ", 0\n", kMaxObjectAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
   uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
   intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void AssemblyImageWriter::FrameUnwindPrologue() {
@@ -881,15 +833,9 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
-                                 const void* shared_objects,
-                                 const void* shared_instructions,
-                                 const void* reused_instructions,
                                  Elf* elf,
                                  Dwarf* dwarf)
-    : ImageWriter(thread->heap(),
-                  shared_objects,
-                  shared_instructions,
-                  reused_instructions),
+    : ImageWriter(thread->heap()),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
       dwarf_(dwarf) {
@@ -942,6 +888,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle();
+  AssemblyCodeNamer namer(Thread::Current()->zone());
 #endif
 
   NoSafepointScope no_safepoint;
@@ -964,14 +911,16 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     const Instructions& insns = *instructions_[i].insns_;
     AutoTraceImage(insns, 0, &this->instructions_blob_stream_);
 
-    uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-    uword entry = beginning + Instructions::HeaderSize();
-    uword payload_size = insns.Size();
-    payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
-    uword end = entry + payload_size;
+    uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
+    uword payload_start = insns.PayloadStart();
+    uword payload_size =
+        Utils::RoundUp(
+            compiler::target::Instructions::HeaderSize() + insns.Size(),
+            compiler::target::ObjectAlignment::kObjectAlignment) -
+        compiler::target::Instructions::HeaderSize();
+    uword object_end = payload_start + payload_size;
 
-    ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
-    ASSERT(Utils::IsAligned(entry, sizeof(uword)));
+    ASSERT(Utils::IsAligned(payload_start, sizeof(uword)));
 
 #ifdef DART_PRECOMPILER
     const Code& code = *instructions_[i].code_;
@@ -1005,25 +954,32 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         insns.raw_ptr()->size_and_flags_);
     instructions_blob_stream_.WriteFixed<uint32_t>(
         insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
-    instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
     payload_stream_start = instructions_blob_stream_.Position();
     instructions_blob_stream_.WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
-    instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
+    instructions_blob_stream_.Align(
+        compiler::target::ObjectAlignment::kObjectAlignment);
     const intptr_t end_offset = instructions_blob_stream_.bytes_written();
     text_offset += (end_offset - start_offset);
-    USE(end);
+    USE(object_start);
+    USE(object_end);
 #else   // defined(IS_SIMARM_X64)
     payload_stream_start = instructions_blob_stream_.Position() +
-                           (insns.PayloadStart() - beginning);
+                           (insns.PayloadStart() - object_start);
 
     instructions_blob_stream_.WriteWord(marked_tags);
     text_offset += sizeof(uword);
-    beginning += sizeof(uword);
-    text_offset += WriteByteSequence(beginning, end);
+    object_start += sizeof(uword);
+    text_offset += WriteByteSequence(object_start, object_end);
 #endif  // defined(IS_SIMARM_X64)
 
 #if defined(DART_PRECOMPILER)
+    if (elf_ != nullptr && dwarf_ != nullptr) {
+      elf_->AddStaticSymbol(elf_->NextSectionIndex(),
+                            namer.AssemblyNameFor(i, code),
+                            segment_base + payload_stream_start);
+    }
+
     // Don't patch the relocation if we're not generating ELF. The regular blobs
     // format does not yet support these relocations. Use
     // Code::VerifyBSSRelocations to check whether the relocations are patched
@@ -1061,6 +1017,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       // Restore stream position after the relocation was patched.
       instructions_blob_stream_.SetPosition(current_stream_position);
     }
+#else
+    USE(payload_stream_start);
 #endif
 
     ASSERT((text_offset - instr_start) ==
@@ -1087,23 +1045,15 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ImageReader::ImageReader(const uint8_t* data_image,
-                         const uint8_t* instructions_image,
-                         const uint8_t* shared_data_image,
-                         const uint8_t* shared_instructions_image)
-    : data_image_(data_image),
-      instructions_image_(instructions_image),
-      shared_data_image_(shared_data_image),
-      shared_instructions_image_(shared_instructions_image) {
+                         const uint8_t* instructions_image)
+    : data_image_(data_image), instructions_image_(instructions_image) {
   ASSERT(data_image != NULL);
   ASSERT(instructions_image != NULL);
 }
 
 RawApiError* ImageReader::VerifyAlignment() const {
   if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(shared_data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(instructions_image_, OS::PreferredCodeAlignment()) ||
-      !Utils::IsAligned(shared_instructions_image_,
-                        OS::PreferredCodeAlignment())) {
+      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment)) {
     return ApiError::New(
         String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
         Heap::kOld);
@@ -1111,17 +1061,11 @@ RawApiError* ImageReader::VerifyAlignment() const {
   return ApiError::null();
 }
 
-RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
+RawInstructions* ImageReader::GetInstructionsAt(uint32_t offset) const {
+  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  RawObject* result;
-  if (offset < 0) {
-    result = RawObject::FromAddr(
-        reinterpret_cast<uword>(shared_instructions_image_) - offset);
-  } else {
-    result = RawObject::FromAddr(reinterpret_cast<uword>(instructions_image_) +
-                                 offset);
-  }
+  RawObject* result = RawObject::FromAddr(
+      reinterpret_cast<uword>(instructions_image_) + offset);
   ASSERT(result->IsInstructions());
   ASSERT(result->IsMarked());
 
@@ -1137,117 +1081,5 @@ RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
 
   return result;
 }
-
-RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
-
-  RawObject* result =
-      RawObject::FromAddr(reinterpret_cast<uword>(shared_data_image_) + offset);
-  ASSERT(result->IsMarked());
-
-  return result;
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
-  class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
-   public:
-    explicit DropCodeVisitor(const void* reused_instructions)
-        : code_(Code::Handle()),
-          instructions_(Instructions::Handle()),
-          pool_(ObjectPool::Handle()),
-          table_(Array::Handle()),
-          entry_(Object::Handle()) {
-      ImageWriter::SetupShared(&reused_instructions_, reused_instructions);
-      if (FLAG_trace_reused_instructions) {
-        OS::PrintErr("%" Pd " reusable instructions\n",
-                     reused_instructions_.Size());
-      }
-    }
-
-    void Visit(const Class& cls) {
-      code_ = cls.allocation_stub();
-      if (!code_.IsNull()) {
-        if (!CanKeep(code_)) {
-          if (FLAG_trace_reused_instructions) {
-            OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
-          }
-          cls.DisableAllocationStub();
-        }
-      }
-    }
-
-    void Visit(const Function& func) {
-      if (func.HasCode()) {
-        code_ = func.CurrentCode();
-        if (!CanKeep(code_)) {
-          if (FLAG_trace_reused_instructions) {
-            OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
-          }
-          func.ClearCode();
-          func.ClearICDataArray();
-          return;
-        }
-      }
-      code_ = func.unoptimized_code();
-      if (!code_.IsNull() && !CanKeep(code_)) {
-        if (FLAG_trace_reused_instructions) {
-          OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
-        }
-        func.ClearCode();
-        func.ClearICDataArray();
-      }
-    }
-
-    bool CanKeep(const Code& code) {
-      if (!IsAvailable(code)) {
-        return false;
-      }
-
-      pool_ = code.object_pool();
-      for (intptr_t i = 0; i < pool_.Length(); i++) {
-        if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
-          entry_ = pool_.ObjectAt(i);
-          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
-            return false;
-          }
-        }
-      }
-
-      table_ = code.static_calls_target_table();
-      if (!table_.IsNull()) {
-        StaticCallsTable static_calls(table_);
-        for (auto& view : static_calls) {
-          entry_ = view.Get<Code::kSCallTableCodeTarget>();
-          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-   private:
-    bool IsAvailable(const Code& code) {
-      ObjectOffsetPair* pair = reused_instructions_.Lookup(code.instructions());
-      return pair != NULL;
-    }
-
-    ObjectOffsetMap reused_instructions_;
-    Code& code_;
-    Instructions& instructions_;
-    ObjectPool& pool_;
-    Array& table_;
-    Object& entry_;
-
-    DISALLOW_COPY_AND_ASSIGN(DropCodeVisitor);
-  };
-
-  DropCodeVisitor visitor(reused_instructions);
-  ProgramVisitor::VisitClasses(&visitor);
-  ProgramVisitor::VisitFunctions(&visitor);
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

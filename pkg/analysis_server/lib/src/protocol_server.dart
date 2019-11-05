@@ -68,7 +68,7 @@ String getReturnTypeString(engine.Element element) {
     engine.DartType type = element.type;
     return type != null ? type.displayName : 'dynamic';
   } else if (element is engine.FunctionTypeAliasElement) {
-    return element.returnType.toString();
+    return element.function.returnType.toString();
   } else {
     return null;
   }

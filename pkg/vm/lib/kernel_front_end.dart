@@ -13,6 +13,8 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+import 'package:crypto/crypto.dart';
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -59,6 +61,8 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
+import 'transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -102,14 +106,14 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
-  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
+  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: null);
   args.addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
       valueHelp: 'opt1,opt2,...',
       allowed: BytecodeOptions.commandLineFlags.keys,
       allowedHelp: BytecodeOptions.commandLineFlags);
   args.addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: false);
+      help: 'Include only bytecode into the output file', defaultsTo: true);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
@@ -153,7 +157,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
-  final bool genBytecode = options['gen-bytecode'];
+  final bool genBytecode = options['gen-bytecode'] ?? aot;
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
@@ -166,10 +170,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final BytecodeOptions bytecodeOptions = new BytecodeOptions(
-      enableAsserts: enableAsserts,
-      emitSourceFiles: embedSources,
-      environmentDefines: environmentDefines)
-    ..parseCommandLineFlags(options['bytecode-options']);
+    enableAsserts: enableAsserts,
+    emitSourceFiles: embedSources,
+    environmentDefines: environmentDefines,
+    aot: aot,
+  )..parseCommandLineFlags(options['bytecode-options']);
 
   final target = createFrontEndTarget(targetName);
   if (target == null) {
@@ -216,6 +221,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
+      enableAsserts: enableAsserts,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
@@ -284,6 +290,7 @@ Future<KernelCompilationResults> compileToKernel(
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
+    bool enableAsserts: true,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
@@ -307,6 +314,7 @@ Future<KernelCompilationResults> compileToKernel(
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
+        enableAsserts,
         useProtobufTreeShaker,
         errorDetector);
   }
@@ -361,6 +369,7 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
+    bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
@@ -374,6 +383,10 @@ Future _runGlobalTransformations(
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
+
+  // Unreachable code elimination transformation should be performed
+  // before type flow analysis so TFA won't take unreachable code into account.
+  unreachable_code_elimination.transformComponent(component, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(
@@ -614,6 +627,8 @@ Future writeOutputSplitByPackages(
   final packages = new List<String>();
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
+    // When loading a kernel file list, flutter_runner and dart_runner expect
+    // 'main' to be last.
     await forEachPackage(component,
         (String package, List<Library> libraries) async {
       packages.add(package);
@@ -638,7 +653,7 @@ Future writeOutputSplitByPackages(
       printer.writeComponentFile(partComponent);
 
       await sink.close();
-    });
+    }, mainFirst: false);
   });
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
@@ -680,32 +695,35 @@ void sortComponent(Component component) {
   }
 }
 
-Future<Null> forEachPackage<T>(Component component,
-    T action(String package, List<Library> libraries)) async {
+Future<Null> forEachPackage<T>(
+    Component component, T action(String package, List<Library> libraries),
+    {bool mainFirst}) async {
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
+  packages['main'] = new List<Library>(); // Always create 'main'.
   for (Library lib in component.libraries) {
     packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
   }
-  if (packages.containsKey(null)) {
-    packages.remove(null);
+  packages.remove(null); // Ignore external libraries.
+
+  final mainLibraries = packages.remove('main');
+  if (mainFirst) {
+    await action('main', mainLibraries);
   }
-  // Make sure main package is last.
-  packages['main'] = packages.remove('main') ?? const <Library>[];
 
+  final mainMethod = component.mainMethod;
+  final problemsAsJson = component.problemsAsJson;
+  component.mainMethod = null;
+  component.problemsAsJson = null;
   for (String package in packages.keys) {
-    final main = component.mainMethod;
-    final problems = component.problemsAsJson;
-    if (package != 'main') {
-      component.mainMethod = null;
-      component.problemsAsJson = null;
-    }
-
     await action(package, packages[package]);
+  }
+  component.mainMethod = mainMethod;
+  component.problemsAsJson = problemsAsJson;
 
-    component.mainMethod = main;
-    component.problemsAsJson = problems;
+  if (!mainFirst) {
+    await action('main', mainLibraries);
   }
 }
 
@@ -729,6 +747,53 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
   }
   file.write('\n');
   await file.close();
+}
+
+Future<void> createFarManifest(
+    String output, String dataDir, String packageManifestFilename) async {
+  List<String> packages = await File('$output-packages').readAsLines();
+
+  // Make sure the 'main' package is the last (convention with package loader).
+  packages.remove('main');
+  packages.add('main');
+
+  final IOSink packageManifest = File(packageManifestFilename).openWrite();
+
+  final String kernelListFilename = '$packageManifestFilename.dilplist';
+  final IOSink kernelList = File(kernelListFilename).openWrite();
+  for (String package in packages) {
+    final String filenameInPackage = '$package.dilp';
+    final String filenameInBuild = '$output-$package.dilp';
+    packageManifest
+        .write('data/$dataDir/$filenameInPackage=$filenameInBuild\n');
+    kernelList.write('$filenameInPackage\n');
+  }
+  await kernelList.close();
+
+  final String frameworkVersionFilename =
+      '$packageManifestFilename.frameworkversion';
+  final IOSink frameworkVersion = File(frameworkVersionFilename).openWrite();
+  for (String package in [
+    'collection',
+    'flutter',
+    'meta',
+    'typed_data',
+    'vector_math'
+  ]) {
+    Digest digest;
+    if (packages.contains(package)) {
+      final filenameInBuild = '$output-$package.dilp';
+      final bytes = await File(filenameInBuild).readAsBytes();
+      digest = sha256.convert(bytes);
+    }
+    frameworkVersion.write('$package=$digest\n');
+  }
+  await frameworkVersion.close();
+
+  packageManifest.write('data/$dataDir/app.dilplist=$kernelListFilename\n');
+  packageManifest
+      .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
+  await packageManifest.close();
 }
 
 // Used by kernel_front_end_test.dart

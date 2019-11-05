@@ -56,11 +56,11 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.5.0",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "bazel_worker-v0.1.20",
+  "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_tag" : "1.0.4",
-  "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
-  "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
+  "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
+  "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "charcode_tag": "v1.1.2",
   "chrome_rev" : "19997",
   "cli_util_rev" : "4ad7ccbe3195fd2583b30f86a86697ef61e80f41",
@@ -82,10 +82,10 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.3.1",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
   "args_tag" : "1.5.2",
-  "dartdoc_tag" : "v0.28.8",
+  "dartdoc_tag" : "v0.29.0",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -101,7 +101,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.101",
+  "linter_tag": "0.1.103",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -117,8 +117,8 @@ vars = {
   "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
-  "pub_rev": "df0f72daaa724e29ed6075e0fb5549a6d6dc5daf",
+  "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
+  "pub_rev": "80ac76400ff58fde3c5a335d860d196c3febe837",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -148,7 +148,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
-  "yaml_tag": "2.1.15",
+  "yaml_tag": "2.2.0",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
@@ -342,7 +342,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
+       Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
@@ -458,7 +458,17 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/benchmark_data",
-        "version": "sha1sum:4168b133ab7bce01c91311a8d4f25d4d6cb026f3",
+        "version": "sha1sum:4640fa0bff40726392748d1ad3147e5dd0324ea2",
+      }
+    ],
+    "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/pkg/front_end/testcases/old_dills/dills": {
+    "packages": [
+      {
+        "package": "dart/cfe/dart2js_dills",
+        "version": "binary_version:36",
       }
     ],
     "dep_type": "cipd",

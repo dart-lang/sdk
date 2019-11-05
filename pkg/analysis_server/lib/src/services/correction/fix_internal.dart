@@ -14,10 +14,10 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -1896,7 +1895,6 @@ class FixProcessor extends BaseProcessor {
     String targetClassName = targetClassElement.name;
     // add proposals for all super constructors
     for (ConstructorElement superConstructor in superType.constructors) {
-      superConstructor = ConstructorMember.from(superConstructor, superType);
       String constructorName = superConstructor.name;
       // skip private
       if (Identifier.isPrivateName(constructorName)) {
@@ -2821,11 +2819,13 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_importLibrary_withExtension() async {
-    String extensionName = (node as SimpleIdentifier).name;
-    await _addFix_importLibrary_withElement(
-        extensionName,
-        const [ElementKind.EXTENSION],
-        const [TopLevelDeclarationKind.extension]);
+    if (node is SimpleIdentifier) {
+      String extensionName = (node as SimpleIdentifier).name;
+      await _addFix_importLibrary_withElement(
+          extensionName,
+          const [ElementKind.EXTENSION],
+          const [TopLevelDeclarationKind.extension]);
+    }
   }
 
   Future<void> _addFix_importLibrary_withFunction() async {

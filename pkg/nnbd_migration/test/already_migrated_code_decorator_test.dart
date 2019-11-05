@@ -113,7 +113,8 @@ class _AlreadyMigratedCodeDecoratorTest {
     var typeFormal = TypeParameterElementImpl.synthetic('T')
       ..bound = typeProvider.numType;
     var decoratedType = decorate(FunctionTypeImpl.synthetic(
-        TypeParameterTypeImpl(typeFormal), [typeFormal], []));
+        TypeParameterTypeImpl(typeFormal), [typeFormal], [],
+        nullabilitySuffix: NullabilitySuffix.star));
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkNum(decoratedType.typeFormalBounds[0], never);
     checkTypeParameter(decoratedType.returnType, never, typeFormal);
@@ -122,34 +123,47 @@ class _AlreadyMigratedCodeDecoratorTest {
   test_decorate_functionType_generic_no_explicit_bound() {
     var typeFormal = TypeParameterElementImpl.synthetic('T');
     var decoratedType = decorate(FunctionTypeImpl.synthetic(
-        TypeParameterTypeImpl(typeFormal), [typeFormal], []));
+        TypeParameterTypeImpl(typeFormal), [typeFormal], [],
+        nullabilitySuffix: NullabilitySuffix.star));
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkObject(decoratedType.typeFormalBounds[0], always);
     checkTypeParameter(decoratedType.returnType, never, typeFormal);
   }
 
   test_decorate_functionType_named_parameter() {
-    checkDynamic(
-        decorate(FunctionTypeImpl.synthetic(typeProvider.voidType, [], [
-      ParameterElementImpl.synthetic(
-          'x', typeProvider.dynamicType, ParameterKind.NAMED)
-    ])).namedParameters['x']);
+    checkDynamic(decorate(FunctionTypeImpl.synthetic(
+            typeProvider.voidType,
+            [],
+            [
+              ParameterElementImpl.synthetic(
+                  'x', typeProvider.dynamicType, ParameterKind.NAMED)
+            ],
+            nullabilitySuffix: NullabilitySuffix.star))
+        .namedParameters['x']);
   }
 
   test_decorate_functionType_ordinary_parameter() {
-    checkDynamic(
-        decorate(FunctionTypeImpl.synthetic(typeProvider.voidType, [], [
-      ParameterElementImpl.synthetic(
-          'x', typeProvider.dynamicType, ParameterKind.REQUIRED)
-    ])).positionalParameters[0]);
+    checkDynamic(decorate(FunctionTypeImpl.synthetic(
+            typeProvider.voidType,
+            [],
+            [
+              ParameterElementImpl.synthetic(
+                  'x', typeProvider.dynamicType, ParameterKind.REQUIRED)
+            ],
+            nullabilitySuffix: NullabilitySuffix.star))
+        .positionalParameters[0]);
   }
 
   test_decorate_functionType_positional_parameter() {
-    checkDynamic(
-        decorate(FunctionTypeImpl.synthetic(typeProvider.voidType, [], [
-      ParameterElementImpl.synthetic(
-          'x', typeProvider.dynamicType, ParameterKind.POSITIONAL)
-    ])).positionalParameters[0]);
+    checkDynamic(decorate(FunctionTypeImpl.synthetic(
+            typeProvider.voidType,
+            [],
+            [
+              ParameterElementImpl.synthetic(
+                  'x', typeProvider.dynamicType, ParameterKind.POSITIONAL)
+            ],
+            nullabilitySuffix: NullabilitySuffix.star))
+        .positionalParameters[0]);
   }
 
   test_decorate_functionType_question() {
@@ -161,9 +175,10 @@ class _AlreadyMigratedCodeDecoratorTest {
   }
 
   test_decorate_functionType_returnType() {
-    checkDynamic(
-        decorate(FunctionTypeImpl.synthetic(typeProvider.dynamicType, [], []))
-            .returnType);
+    checkDynamic(decorate(FunctionTypeImpl.synthetic(
+            typeProvider.dynamicType, [], [],
+            nullabilitySuffix: NullabilitySuffix.star))
+        .returnType);
   }
 
   test_decorate_functionType_star() {

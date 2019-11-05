@@ -4,8 +4,9 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-fragmentation_test: Slow # GC heavy
-io/process_sync_test: Slow # Spawns synchronously subprocesses in sequence.
+fragmentation_test: Pass, Slow # GC heavy
+fragmentation_typed_data_test: Pass, Slow # GC heavy
+io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
 [ $compiler == dartkb ]
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
@@ -85,10 +86,10 @@ io/http_outgoing_size_test: Crash
 io/directory_chdir_test: Skip # Timeout
 io/echo_server_stream_test: Slow
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
+# Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+[ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
 io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow
 map_insert_remove_oom_test: Skip # Heap limit too low.

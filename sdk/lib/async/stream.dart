@@ -250,6 +250,8 @@ abstract class Stream<T> {
    * every event.
    *
    * If [computation] is omitted the event values will all be `null`.
+   *
+   * [period] must a non-negative [Duration].
    */
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)]) {

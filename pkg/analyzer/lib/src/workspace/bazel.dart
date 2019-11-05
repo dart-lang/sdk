@@ -277,8 +277,8 @@ class BazelWorkspace extends Workspace {
         return null;
       }
 
-      if (folder.getChildAssumingFile(_buildFileName).exists) {
-        // Found the BUILD file, denoting a Dart package.
+      // Return a Package rooted at [folder].
+      BazelWorkspacePackage packageRootedHere() {
         List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
             ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
         if (uriParts == null || uriParts.isEmpty) {
@@ -288,25 +288,53 @@ class BazelWorkspace extends Workspace {
         }
       }
 
+      // In some distributed build environments, BUILD files are not preserved.
+      // We can still look for a ".packages" file in order to determine a
+      // package's root. A ".packages" file found in [folder]'s sister path
+      // under [bin] denotes a Dart package.
+      //
+      // For example, if this BazelWorkspace's [root] is
+      // "/build/work/abc123/workspace" with a [bin] folder of
+      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
+      // is at "/build/work/abc123/workspace/foo/bar", then we  must look for a
+      // file ending in ".packages" in the folder
+      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/foo/bar".
+
+      // [folder]'s path, relative to [root]. For example, "foo/bar".
+      String relative = context.relative(folder.path, from: root);
+      if (bin != null) {
+        Folder binChild = provider.getFolder(context.join(bin, relative));
+        if (binChild.exists &&
+            binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
+          // [folder]'s sister folder within [bin] contains a ".packages" file.
+          return packageRootedHere();
+        }
+      }
+
+      if (folder.getChildAssumingFile(_buildFileName).exists) {
+        // Found the BUILD file, denoting a Dart package.
+        return packageRootedHere();
+      }
+
       // Go up a folder.
       folder = parent;
     }
   }
 
-  /**
-   * Find the Bazel workspace that contains the given [filePath].
-   *
-   * Return `null` if a workspace marker, such as the `WORKSPACE` file, or
-   * the sibling `READONLY` folder cannot be found.
-   *
-   * Return `null` if the workspace does not have `bazel-genfiles` or
-   * `blaze-genfiles` folders, since we don't know where to search generated
-   * files.
-   *
-   * Return `null` if there is a folder 'foo' with the sibling `READONLY`
-   * folder, but there is corresponding folder 'foo' in `READONLY`, i.e. the
-   * corresponding readonly workspace root.
-   */
+  /// Find the Bazel workspace that contains the given [filePath].
+  ///
+  /// This method walks up the file system from [filePath], looking for various
+  /// "marker" files which indicate a Bazel workspace.
+  ///
+  /// At each folder _f_ with parent _p_, starting with [filePath]:
+  ///
+  /// * If _f_ has a sibling folder named "READONLY", and that folder has a
+  ///   child folder with the same name as _f_, then a BazelWorkspace rooted at
+  ///   _f_ is returned.
+  /// * If _f_ has a child folder named "blaze-out" or "bazel-out", then a
+  ///   BazelWorkspace rooted at _f_ is returned.
+  /// * If _f_ has a child file named "WORKSPACE", then a BazelWorkspace rooted
+  ///   at _f_ is returned.
   static BazelWorkspace find(ResourceProvider provider, String filePath) {
     Resource resource = provider.getResource(filePath);
     if (resource is File && resource.parent != null) {
@@ -327,31 +355,35 @@ class BazelWorkspace extends Workspace {
         String readonlyRoot =
             context.join(readonlyFolder.path, folder.shortName);
         if (provider.getFolder(readonlyRoot).exists) {
-          String symlinkPrefix = _findSymlinkPrefix(provider, root);
-          if (symlinkPrefix != null) {
-            return new BazelWorkspace._(
-                provider,
-                root,
-                readonlyRoot,
-                context.join(root, '$symlinkPrefix-bin'),
-                context.join(root, '$symlinkPrefix-genfiles'));
-          }
+          String binPath = _findBinFolderPath(folder);
+          String symlinkPrefix =
+              _findSymlinkPrefix(provider, root, binPath: binPath);
+          binPath ??= context.join(root, '$symlinkPrefix-bin');
+          return new BazelWorkspace._(provider, root, readonlyRoot, binPath,
+              context.join(root, '$symlinkPrefix-genfiles'));
         }
+      }
+
+      if (_firstExistingFolder(parent, ['blaze-out', 'bazel-out']) != null) {
+        // Found the "out" folder; must be a bazel workspace.
+        String root = parent.path;
+        String binPath = _findBinFolderPath(parent);
+        String symlinkPrefix =
+            _findSymlinkPrefix(provider, root, binPath: binPath);
+        binPath ??= context.join(root, '$symlinkPrefix-bin');
+        return new BazelWorkspace._(provider, root, null /* readonly */,
+            binPath, context.join(root, '$symlinkPrefix-genfiles'));
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
       if (folder.getChildAssumingFile(_WORKSPACE).exists) {
         String root = folder.path;
-        String symlinkPrefix = _findSymlinkPrefix(provider, root);
-        if (symlinkPrefix == null) {
-          return null;
-        }
-        return new BazelWorkspace._(
-            provider,
-            root,
-            null,
-            context.join(root, '$symlinkPrefix-bin'),
-            context.join(root, '$symlinkPrefix-genfiles'));
+        String binPath = _findBinFolderPath(folder);
+        String symlinkPrefix =
+            _findSymlinkPrefix(provider, root, binPath: binPath);
+        binPath ??= context.join(root, '$symlinkPrefix-bin');
+        return new BazelWorkspace._(provider, root, null /* readonly */,
+            binPath, context.join(root, '$symlinkPrefix-genfiles'));
       }
 
       // Go up the folder.
@@ -359,14 +391,57 @@ class BazelWorkspace extends Workspace {
     }
   }
 
-  /**
-   * Return the symlink prefix for folders `X-bin` or `X-genfiles` by probing
-   * the internal `blaze-genfiles` and `bazel-genfiles`. Make a default
-   * assumption according to defaultSymlinkPrefix if neither of the folders
-   * exists.
-   */
-  static String _findSymlinkPrefix(ResourceProvider provider, String root) {
+  /// Return the first folder within [root], chosen from [names], which exists.
+  static Folder _firstExistingFolder(Folder root, List<String> names) => names
+      .map((name) => root.getChildAssumingFolder(name))
+      .firstWhere((folder) => folder.exists, orElse: () => null);
+
+  /// Find the "bin" folder path, by searching for it.
+  ///
+  /// Depending on the environment we're working in (source code tree, build
+  /// environment subtree of sources, local workspace, blaze, bazel), the "bin"
+  /// folder may be available at a symlink found at `$root/blaze-bin/` or
+  /// `$root/bazel-bin/`. If that symlink is not available, then we must search
+  /// the immediate folders found in `$root/blaze-out/` and `$root/bazel-out/`
+  /// for a folder named "bin".
+  ///
+  /// If no "bin" folder is found in any of those locations, `null` is returned.
+  static String _findBinFolderPath(Folder root) {
+    // This is a symlink to the real bin folder, but it is the easiest and
+    // cheapest to search for.
+    Folder symlink = _firstExistingFolder(root, ['blaze-bin', 'bazel-bin']);
+    if (symlink != null) {
+      return symlink.path;
+    }
+
+    Folder out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
+    if (out == null) {
+      return null;
+    }
+
+    for (var child in out.getChildren().whereType<Folder>()) {
+      // Children are folders denoting architectures and build flags, like
+      // 'k8-opt', 'k8-fastbuild', perhaps 'host'.
+      Folder possibleBin = child.getChildAssumingFolder('bin');
+      if (possibleBin.exists) {
+        return possibleBin.path;
+      }
+    }
+    return null;
+  }
+
+  /// Return the symlink prefix, _X_, for folders `X-bin` or `X-genfiles`.
+  ///
+  /// If the workspace's "bin" folder was already found, the symlink prefix is
+  /// determined from [binPath]. Otherwise it is determined by probing the
+  /// internal `blaze-genfiles` and `bazel-genfiles`. Make a default assumption
+  /// according to [defaultSymlinkPrefix] if neither of the folders exists.
+  static String _findSymlinkPrefix(ResourceProvider provider, String root,
+      {String binPath}) {
     path.Context context = provider.pathContext;
+    if (binPath != null) {
+      return context.basename(binPath).startsWith('bazel') ? 'bazel' : 'blaze';
+    }
     if (provider.getFolder(context.join(root, 'blaze-genfiles')).exists) {
       return 'blaze';
     }

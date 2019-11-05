@@ -62,6 +62,7 @@ class FlowGraphDeserializer : ValueObject {
         name_field_(Field::Handle(zone)),
         name_function_(Function::Handle(zone)),
         name_library_(Library::Handle(zone)),
+        type_class_(Class::Handle(zone)),
         type_param_class_(Class::Handle(zone)),
         type_param_function_(Function::Handle(zone)),
         tmp_string_(String::Handle(zone)) {
@@ -289,6 +290,8 @@ class FlowGraphDeserializer : ValueObject {
 
   const Field& MayCloneField(const Field& field) const;
   bool ParseSlot(SExpList* list, const Slot** out);
+  bool ParseRange(SExpList* list, Range* out);
+  bool ParseRangeBoundary(SExpression* sexp, RangeBoundary* out);
 
   bool ParseBlockId(SExpSymbol* sym, intptr_t* out);
   bool ParseSSATemp(SExpSymbol* sym, intptr_t* out);
@@ -414,6 +417,7 @@ class FlowGraphDeserializer : ValueObject {
   Field& name_field_;                  // ParseCanonicalName
   Function& name_function_;            // ParseCanonicalName
   Library& name_library_;              // ParseCanonicalName
+  Class& type_class_;                  // ParseType
   Class& type_param_class_;            // ParseTypeParameter
   Function& type_param_function_;      // ParseTypeParameter
   // Uses of string handles tend to be immediate, so we only need one.

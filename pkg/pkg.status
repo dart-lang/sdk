@@ -186,6 +186,10 @@ crypto/test/base64_test: Slow
 [ $compiler == dart2js && $csp ]
 mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
 
+[ $compiler == dart2js && $host_checked ]
+js_ast/test/printer_callback_test: Slow, Pass
+js_ast/test/string_escape_test: Slow, Pass
+
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
@@ -210,7 +214,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.
-[ $runtime == vm && ($arch == armv5te || $arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $arch == simdbc64) ]
+[ $runtime == vm && ($arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv6) ]
 *: Skip
 
 [ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]

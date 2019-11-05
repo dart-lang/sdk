@@ -4,6 +4,11 @@
 
 library fasta.diet_listener;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Assert, DeclarationKind, MemberKind, Parser, optional;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart'
     show
         AsyncMarker,
@@ -20,11 +25,10 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../../scanner/token.dart' show Token;
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -51,9 +55,6 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../parser.dart'
-    show Assert, DeclarationKind, MemberKind, Parser, optional;
-
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
 
@@ -63,7 +64,8 @@ import '../scope.dart';
 
 import '../source/value_kinds.dart';
 
-import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+import '../type_inference/type_inference_engine.dart'
+    show InferenceDataForTesting, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -668,7 +670,8 @@ class DietListener extends StackListener {
       {bool isDeclarationInstanceMember,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
-      Scope formalParameterScope}) {
+      Scope formalParameterScope,
+      InferenceDataForTesting inferenceDataForTesting}) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     // TODO(johnniwinther): Provide a dummy this on static extension methods
@@ -676,7 +679,7 @@ class DietListener extends StackListener {
     InterfaceType thisType =
         extensionThis == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine?.createLocalTypeInferrer(
-        uri, thisType, libraryBuilder);
+        uri, thisType, libraryBuilder, inferenceDataForTesting);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
@@ -716,7 +719,7 @@ class DietListener extends StackListener {
       ..constantContext = constantContext;
   }
 
-  StackListener createFunctionListener(FunctionBuilder builder) {
+  StackListener createFunctionListener(FunctionBuilderImpl builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -727,7 +730,8 @@ class DietListener extends StackListener {
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
         extensionThis: builder.extensionThis,
         extensionTypeParameters: builder.extensionTypeParameters,
-        formalParameterScope: formalParameterScope);
+        formalParameterScope: formalParameterScope,
+        inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }
 
   void buildRedirectingFactoryMethod(
@@ -757,13 +761,14 @@ class DietListener extends StackListener {
     checkEmpty(token.charOffset);
     if (names == null || currentClassIsParserRecovery) return;
 
-    Builder declaration = lookupBuilder(token, null, names.first);
+    FieldBuilderImpl declaration = lookupBuilder(token, null, names.first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(
         createListener(declaration, memberScope,
             isDeclarationInstanceMember:
-                declaration.isDeclarationInstanceMember),
+                declaration.isDeclarationInstanceMember,
+            inferenceDataForTesting: declaration.dataForTesting?.inferenceData),
         token,
         metadata,
         isTopLevel);
@@ -958,12 +963,14 @@ class DietListener extends StackListener {
       }
 
       if (getOrSet != null && optional("set", getOrSet)) {
-        declaration = currentDeclaration.scope.setters[name];
+        declaration =
+            currentDeclaration.scope.lookupLocalMember(name, setter: true);
       } else {
-        declaration = currentDeclaration.scope.local[name];
+        declaration =
+            currentDeclaration.scope.lookupLocalMember(name, setter: false);
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
-      declaration = libraryBuilder.scope.setters[name];
+      declaration = libraryBuilder.scope.lookupLocalMember(name, setter: true);
     } else {
       declaration = libraryBuilder.scopeBuilder[name];
     }

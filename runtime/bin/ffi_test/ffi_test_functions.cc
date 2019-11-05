@@ -16,6 +16,9 @@
 #include <unistd.h>
 
 // Only OK to use here because this is test code.
+#include <condition_variable>  // NOLINT(build/c++11)
+#include <functional>          // NOLINT(build/c++11)
+#include <mutex>               // NOLINT(build/c++11)
 #include <thread>  // NOLINT(build/c++11)
 #endif
 
@@ -561,7 +564,7 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
-#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_ARCH_DBC)
+#if !defined(HOST_OS_WINDOWS)
 DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
                                            std::condition_variable* var,
                                            std::mutex* mut) {

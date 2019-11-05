@@ -177,26 +177,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     }
   }
 
-#if defined(DEBUG)
-  // Turn on verify_gc_contains if any of the other GC verification flag
-  // is turned on.
-  if (FLAG_verify_before_gc || FLAG_verify_after_gc ||
-      FLAG_verify_on_transition) {
-    FLAG_verify_gc_contains = true;
-  }
-#endif
-
-#if defined(TARGET_ARCH_DBC)
-  // DBC instructions are never executable.
-  FLAG_write_protect_code = false;
-#endif
-
-  if (FLAG_enable_interpreter) {
-#if defined(TARGET_ARCH_DBC)
-    return strdup("--enable-interpreter is not supported with DBC");
-#endif  // defined(TARGET_ARCH_DBC)
-  }
-
   FrameLayout::Init();
 
   set_thread_exit_callback(thread_exit);
@@ -216,6 +196,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
 #endif
   Isolate::InitVM();
+  IsolateGroup::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -248,10 +229,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, "vm-isolate", nullptr, nullptr, nullptr,
-                               nullptr, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+        nullptr, "vm-isolate", nullptr, nullptr, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
+    IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
         Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
     group->set_initial_spawn_successful();
@@ -306,7 +287,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       } else {
         return strdup("Invalid vm isolate snapshot seen");
       }
-      FullSnapshotReader reader(snapshot, instructions_snapshot, NULL, NULL, T);
+      FullSnapshotReader reader(snapshot, instructions_snapshot, T);
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
@@ -399,7 +380,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
 #ifndef DART_PRECOMPILED_RUNTIME
   if (start_kernel_isolate) {
-    KernelIsolate::Run();
+    KernelIsolate::InitializeState();
   }
 #endif  // DART_PRECOMPILED_RUNTIME
 
@@ -581,6 +562,7 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
+  IsolateGroup::Cleanup();
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
@@ -646,8 +628,6 @@ static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
-                                  const uint8_t* shared_data,
-                                  const uint8_t* shared_instructions,
                                   const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_size,
                                   void* isolate_data) {
@@ -692,8 +672,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     if (FLAG_trace_isolates) {
       OS::PrintErr("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    FullSnapshotReader reader(snapshot, snapshot_instructions, shared_data,
-                              shared_instructions, T);
+    FullSnapshotReader reader(snapshot, snapshot_instructions, T);
     const Error& error = Error::Handle(reader.ReadIsolateSnapshot());
     if (!error.IsNull()) {
       return error.raw();
@@ -777,7 +756,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (I->object_store()->megamorphic_miss_code() == Code::null()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   if (I != Dart::vm_isolate()) {
     I->object_store()->set_build_method_extractor_code(
         Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
@@ -868,9 +847,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
                                               : " no-causal_async_stacks");
 
-    buffer.AddString((FLAG_enable_interpreter || FLAG_use_bytecode_compiler)
-                         ? " bytecode"
-                         : " no-bytecode");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
@@ -897,14 +873,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(" x64-sysv");
 #endif
 
-#elif defined(TARGET_ARCH_DBC)
-#if defined(ARCH_IS_32_BIT)
-    buffer.AddString(" dbc32");
-#elif defined(ARCH_IS_64_BIT)
-    buffer.AddString(" dbc64");
-#else
-#error What word size?
-#endif
 #else
 #error What architecture?
 #endif

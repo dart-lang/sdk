@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.3</version>
+  <version>1.27.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -266,10 +266,6 @@
       <field name="pid">
         <ref>int</ref>
         <p>The process id of the analysis server process.</p>
-      </field>
-      <field name="sessionId" optional="true">
-        <ref>String</ref>
-        <p>The session id for this session.</p>
       </field>
     </params>
   </notification>
@@ -2233,6 +2229,13 @@
         <p>
           If a name is specified that does not match the name of a known fix,
           an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+      <field name="port" optional="true">
+        <ref>int</ref>
+        <p>
+          The port to be used to listen for and respond to http requests for
+          preview pages.
         </p>
       </field>
       <field name="outputDir" optional="true">

@@ -7,6 +7,11 @@ library front_end.kernel_generator;
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show messageMissingMain, noLength;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show Component;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -16,10 +21,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../fasta/compiler_context.dart' show CompilerContext;
-
-import '../fasta/fasta_codes.dart' show messageMissingMain, noLength;
-
-import '../fasta/severity.dart' show Severity;
 
 import '../kernel_generator_impl.dart'
     show generateKernel, generateKernelInternal;
@@ -53,7 +54,7 @@ Future<CompilerResult> kernelForProgram(
 
 Future<CompilerResult> kernelForProgramInternal(
     Uri source, CompilerOptions options,
-    {bool retainDataForTesting: false}) async {
+    {bool retainDataForTesting: false, bool requireMain: true}) async {
   ProcessedOptions pOptions =
       new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
@@ -63,7 +64,7 @@ Future<CompilerResult> kernelForProgramInternal(
     Component component = result?.component;
     if (component == null) return null;
 
-    if (component.mainMethod == null) {
+    if (requireMain && component.mainMethod == null) {
       context.options.report(
           messageMissingMain.withLocation(source, -1, noLength),
           Severity.error);

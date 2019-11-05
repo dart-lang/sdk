@@ -22,7 +22,7 @@ class CanonicalTypeKey {
   DISALLOW_ALLOCATION();
 };
 
-// Traits for looking up Canonical Type based on it's hash.
+// Traits for looking up Canonical Type based on its hash.
 class CanonicalTypeTraits {
  public:
   static const char* Name() { return "CanonicalTypeTraits"; }

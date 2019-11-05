@@ -4,11 +4,12 @@
 
 library front_end.compiler_options;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
 import 'package:kernel/ast.dart' as kernel show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
-
-import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'experimental_flags.dart'
     show
@@ -21,7 +22,8 @@ import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
 
-export 'diagnostic_message.dart' show DiagnosticMessage;
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///

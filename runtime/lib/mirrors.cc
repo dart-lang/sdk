@@ -625,11 +625,25 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
+    } else if (cls.IsNeverClass()) {
+      Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, Symbols::Never());
+      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
+    }
+    // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
+    // Null type, which should remain nullable.
+    if (!type.IsNullType()) {
+      const Type& legacy_type =
+          Type::Handle(Type::Cast(type).ToNullability(kLegacy, Heap::kOld));
+      return CreateClassMirror(cls, legacy_type, Bool::False(),
+                               Object::null_instance());
     }
     return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
   } else if (type.IsTypeParameter()) {
-    return CreateTypeVariableMirror(TypeParameter::Cast(type),
-                                    Object::null_instance());
+    // TODO(regis): Until mirrors reflect nullability, force kLegacy.
+    const TypeParameter& legacy_type = TypeParameter::Handle(
+        TypeParameter::Cast(type).ToNullability(kLegacy, Heap::kOld));
+    return CreateTypeVariableMirror(legacy_type, Object::null_instance());
   }
   UNREACHABLE();
   return Instance::null();
@@ -670,7 +684,7 @@ static void VerifyMethodKindShifts() {
   field = cls.LookupField(fname);                                              \
   ASSERT(!field.IsNull());                                                     \
   if (field.IsUninitialized()) {                                               \
-    error ^= field.Initialize();                                               \
+    error ^= field.InitializeStatic();                                         \
     ASSERT(error.IsNull());                                                    \
   }                                                                            \
   value ^= field.StaticValue();                                                \
@@ -1683,10 +1697,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
       return Instance::null();  // No source.
     }
     const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
-    for (intptr_t i = 0; i < scripts.Length(); i++) {
-      script ^= scripts.At(i);
-      if (script.kind() == RawScript::kLibraryTag) break;
-    }
+    ASSERT(scripts.Length() > 0);
+    script ^= scripts.At(scripts.Length() - 1);
     ASSERT(!script.IsNull());
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);

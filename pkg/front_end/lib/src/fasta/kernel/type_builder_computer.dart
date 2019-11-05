@@ -4,6 +4,9 @@
 
 library fasta.type_builder_computer;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+
 import 'package:kernel/ast.dart'
     show
         BottomType,
@@ -16,6 +19,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         Library,
         NamedType,
+        NeverType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -27,14 +31,13 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_builder.dart';
 
 import '../loader.dart' show Loader;
-
-import '../parser.dart' show FormalParameterKind;
 
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader loader;
@@ -66,6 +69,12 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilder visitBottomType(BottomType node) {
     throw "Not implemented";
+  }
+
+  TypeBuilder visitNeverType(NeverType node) {
+    return new NamedTypeBuilder(
+        "Never", new NullabilityBuilder.fromNullability(node.nullability), null)
+      ..bind(new NeverTypeBuilder(node, loader.coreLibrary, -1));
   }
 
   TypeBuilder visitInterfaceType(InterfaceType node) {

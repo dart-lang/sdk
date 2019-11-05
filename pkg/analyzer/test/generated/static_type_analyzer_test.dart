@@ -1379,7 +1379,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.functionExpression2(parameters, body);
     FunctionElementImpl element = new FunctionElementImpl.forNode(null);
     element.parameters = parameterElements;
-    element.type = new FunctionTypeImpl(element);
     (node as FunctionExpressionImpl).declaredElement = element;
     return node;
   }

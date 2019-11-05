@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=variance
 
+import "package:expect/expect.dart";
+
 class Contravariant<in T> {}
 
 class Upper {}
@@ -58,14 +60,23 @@ void testCall(Iterable<Contravariant<Lower>> x) {}
 
 main() {
   A a = new A();
+  Expect.type<Contravariant<Middle>>(a.method1());
+  Expect.type<Contravariant<Lower>>(a.method1());
+  Expect.notType<Contravariant<Upper>>(a.method1());
   a.method2(new Contravariant<Middle>());
   a.method2(new Contravariant<Upper>());
 
   B b = new B();
+  Expect.type<Contravariant<Upper>>(b.method1());
+  Expect.type<Contravariant<Middle>>(b.method1());
+  Expect.type<Contravariant<Lower>>(b.method1());
   b.method2(new Contravariant<Lower>());
   b.method2(new Contravariant<Middle>());
 
   C c = new C();
+  Expect.type<Contravariant<Middle>>(c.method1());
+  Expect.type<Contravariant<Lower>>(c.method1());
+  Expect.notType<Contravariant<Upper>>(c.method1());
   c.method2(new Contravariant<Middle>());
   c.method2(new Contravariant<Upper>());
 
@@ -73,12 +84,19 @@ main() {
   D<Contravariant<Middle>> dMiddle = new D<Contravariant<Middle>>();
 
   E e = new E();
+  Expect.type<D<Contravariant<Upper>>>(e.method1());
+  Expect.type<D<Contravariant<Middle>>>(e.method1());
 
   F f = new F();
+  Expect.type<D<Contravariant<Middle>>>(e.method1());
 
   Iterable<Contravariant<Lower>> iterableLower = [new Contravariant<Lower>()];
   List<Contravariant<Middle>> listMiddle = [new Contravariant<Middle>()];
   iterableLower = listMiddle;
 
   testCall(listMiddle);
+
+  Expect.subtype<Contravariant<Upper>, Contravariant<Middle>>();
+  Expect.subtype<Contravariant<Middle>, Contravariant<Middle>>();
+  Expect.notSubtype<Contravariant<Lower>, Contravariant<Middle>>();
 }

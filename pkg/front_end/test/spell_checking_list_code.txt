@@ -246,6 +246,7 @@ dmitryas
 doc
 docs
 dom
+dont
 doubles
 downcasts
 downloaded
@@ -646,6 +647,8 @@ randomly
 ranges
 ranked
 ratio
+rb
+rc
 re
 reach
 react
@@ -839,6 +842,7 @@ terminator
 tester
 tex
 th
+thought
 ti
 tick
 ticker

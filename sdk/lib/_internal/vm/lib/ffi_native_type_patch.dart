@@ -6,6 +6,7 @@
 // the patches are applied.
 import "dart:_internal" show patch;
 import 'dart:typed_data';
+import 'dart:isolate';
 
 // NativeType is not private, because it is used in type arguments.
 // NativeType is abstract because it not used with const constructors in

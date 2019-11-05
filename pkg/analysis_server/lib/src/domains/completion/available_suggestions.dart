@@ -14,16 +14,17 @@ import 'package:analyzer/src/services/available_declarations.dart';
 /// include different sets, e.g. inside the `lib/` directory of a `Pub` package
 /// only regular dependencies can be referenced, but `test/` can reference
 /// both regular and "dev" dependencies.
-List<protocol.IncludedSuggestionSet> computeIncludedSetList(
+void computeIncludedSetList(
   DeclarationsTracker tracker,
   ResolvedUnitResult resolvedUnit,
+  List<protocol.IncludedSuggestionSet> includedSetList,
+  Set<String> includedElementNames,
 ) {
   var analysisContext = resolvedUnit.session.analysisContext;
   var context = tracker.getContext(analysisContext);
-  if (context == null) return const [];
+  if (context == null) return;
 
   var librariesObject = context.getLibraries(resolvedUnit.path);
-  var includedSetList = <protocol.IncludedSuggestionSet>[];
 
   var importedUriSet = resolvedUnit.libraryElement.importedLibraries
       .map((importedLibrary) => importedLibrary.source.uri)
@@ -51,6 +52,10 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
         displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
       ),
     );
+
+    for (var declaration in library.declarations) {
+      includedElementNames.add(declaration.name);
+    }
   }
 
   for (var library in librariesObject.context) {
@@ -64,8 +69,6 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
   for (var library in librariesObject.sdk) {
     includeLibrary(library, 6, 0, 3);
   }
-
-  return includedSetList;
 }
 
 /// Convert the [LibraryChange] into the corresponding protocol notification.

@@ -216,6 +216,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
+  bool get isAssignable => false;
+
+  @override
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};

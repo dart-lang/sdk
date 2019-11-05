@@ -117,7 +117,6 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::BindStaticCalls() {
-#if !defined(TARGET_ARCH_DBC)
   if (FLAG_precompiled_mode) {
     return;
   }
@@ -173,7 +172,6 @@ void ProgramVisitor::BindStaticCalls() {
 
   BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void ProgramVisitor::ShareMegamorphicBuckets() {
@@ -859,12 +857,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 
     RawInstructions* DedupOneInstructions(const Function& function,
                                           const Code& code) {
-      // Switchable calls rely on a unique PC -> Code mapping atm, so we do not
-      // dedup any instructions for instance methods.
-      if (function.IsDynamicFunction()) {
-        return code.instructions();
-      }
-
       const Code* canonical = canonical_set_.LookupValue(&code);
       if (canonical == nullptr) {
         canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));

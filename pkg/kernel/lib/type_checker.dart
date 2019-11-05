@@ -815,7 +815,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLoadLibrary(LoadLibrary node) {
-    return environment.futureType(const DynamicType());
+    return environment.futureType(const DynamicType(), Nullability.legacy);
   }
 
   @override

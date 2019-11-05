@@ -186,13 +186,17 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       const Field& field,
-      bool is_initialization_store,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     bool is_initialization_store);
+                                     StoreInstanceFieldInstr::Kind kind =
+                                         StoreInstanceFieldInstr::Kind::kOther);
   Fragment LoadStaticField();
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);

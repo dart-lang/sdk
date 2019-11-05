@@ -47,16 +47,17 @@ class PrefixBuilder extends BuilderImpl {
   }
 
   void addToExportScope(String name, Builder member, int charOffset) {
-    Map<String, Builder> map =
-        member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
+    Builder existing =
+        exportScope.lookupLocalMember(name, setter: member.isSetter);
+    Builder result;
     if (existing != null) {
-      map[name] = parent.computeAmbiguousDeclaration(
+      result = parent.computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
     } else {
-      map[name] = member;
+      result = member;
     }
+    exportScope.addLocalMember(name, result, setter: member.isSetter);
   }
 
   @override

@@ -6,7 +6,13 @@ library fasta.source_library_builder;
 
 import 'dart:convert' show jsonEncode;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
+import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
+    show resolveRelativeUri;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -28,6 +34,8 @@ import 'package:kernel/ast.dart'
         MapLiteral,
         Member,
         Name,
+        NeverType,
+        Nullability,
         Procedure,
         ProcedureKind,
         SetLiteral,
@@ -55,10 +63,6 @@ import 'package:kernel/type_algebra.dart' show substitute;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
-
-import '../../scanner/token.dart' show Token;
-
 import '../builder/builder.dart';
 import '../builder/builtin_type_builder.dart';
 import '../builder/class_builder.dart';
@@ -78,6 +82,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
@@ -166,6 +171,8 @@ import '../kernel/kernel_builder.dart'
         compareProcedures,
         toKernelCombinators;
 
+import '../kernel/kernel_shadow_ast.dart';
+
 import '../kernel/metadata_collector.dart';
 
 import '../kernel/type_algorithms.dart'
@@ -174,7 +181,8 @@ import '../kernel/type_algorithms.dart'
         computeVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
-        getNonSimplicityIssuesForTypeVariables;
+        getNonSimplicityIssuesForTypeVariables,
+        pendingVariance;
 
 import '../loader.dart' show Loader;
 
@@ -195,8 +203,6 @@ import '../names.dart' show indexSetName;
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
-
-import '../severity.dart' show Severity;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
@@ -761,7 +767,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     canAddImplementationBuilders = false;
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null ||
           !member.isField ||
@@ -1034,6 +1040,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         switch (name) {
           case "dynamic":
           case "void":
+          case "Never":
             unserializableExports ??= <String, String>{};
             unserializableExports[name] = null;
             break;
@@ -1057,8 +1064,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 library.additionalExports.add(memberLast.typedef.reference);
               } else if (memberLast is ExtensionBuilder) {
                 library.additionalExports.add(memberLast.extension.reference);
+              } else if (memberLast is MemberBuilder) {
+                library.additionalExports.add(memberLast.member.reference);
               } else {
-                library.additionalExports.add(memberLast.target.reference);
+                unhandled('member', 'exportScope', memberLast.charOffset,
+                    memberLast.fileUri);
               }
             }
         }
@@ -1068,17 +1078,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void addToScope(String name, Builder member, int charOffset, bool isImport) {
-    Map<String, Builder> map =
-        member.isSetter ? importScope.setters : importScope.local;
-    Builder existing = map[name];
+    Builder existing =
+        importScope.lookupLocalMember(name, setter: member.isSetter);
     if (existing != null) {
       if (existing != member) {
-        map[name] = computeAmbiguousDeclaration(
-            name, existing, member, charOffset,
-            isImport: isImport);
+        importScope.addLocalMember(
+            name,
+            computeAmbiguousDeclaration(name, existing, member, charOffset,
+                isImport: isImport),
+            setter: member.isSetter);
       }
     } else {
-      map[name] = member;
+      importScope.addLocalMember(name, member, setter: member.isSetter);
     }
     if (member.isExtension) {
       importScope.addExtension(member);
@@ -1152,6 +1163,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+  }
+
+  void addSyntheticDeclarationOfNever() {
+    addBuilder(
+        "Never",
+        new NeverTypeBuilder(
+            const NeverType(Nullability.nonNullable), this, -1),
+        -1);
   }
 
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
@@ -1584,6 +1603,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               }
             }
           }
+          List<TypeVariableBuilder> typeVariables = type.typeVariables;
+          if (typeVariables != null) {
+            for (TypeVariableBuilder variable in typeVariables) {
+              if (usesTypeVariables(variable.bound)) {
+                return true;
+              }
+            }
+          }
           return usesTypeVariables(type.returnType);
         }
         return false;
@@ -1749,7 +1776,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);
-    if (type == null && initializerToken != null) {
+    if (type == null && initializerToken != null && fieldBuilder.next == null) {
+      // Only the first one (the last one in the linked list of next pointers)
+      // are added to the tree, had parent pointers and can infer correctly.
       fieldBuilder.field.type =
           new ImplicitFieldType(fieldBuilder, initializerToken);
       (implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
@@ -1969,9 +1998,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       FunctionTypeBuilder type,
       int charOffset) {
     if (typeVariables != null) {
-      for (int i = 0; i < typeVariables.length; ++i) {
-        TypeVariableBuilder variable = typeVariables[i];
-        variable.variance = computeVariance(variable, type);
+      for (TypeVariableBuilder typeVariable in typeVariables) {
+        typeVariable.variance = pendingVariance;
       }
     }
     TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
@@ -2179,7 +2207,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Uri otherUri;
     Uri preferredUri;
     Uri hiddenUri;
-    if (scope.local[name] == declaration) {
+    if (scope.lookupLocalMember(name, setter: false) == declaration) {
       isLocal = true;
       preferred = declaration;
       hiddenUri = computeLibraryUri(other);
@@ -2348,7 +2376,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
           isExtensionTypeParameter: isExtensionTypeParameter,
-          variableVariance: variable.variance);
+          variableVariance:
+              variable.parameter.isLegacyCovariant ? null : variable.variance);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }
@@ -2368,6 +2397,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeVariableBuilder.finishNullabilities(this, pendingNullabilities);
     pendingNullabilities.clear();
 
+    return count;
+  }
+
+  int computeVariances() {
+    int count = 0;
+    for (Builder declaration in libraryDeclaration.members.values) {
+      if (declaration is TypeAliasBuilder &&
+          declaration.typeVariablesCount > 0) {
+        for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
+          typeParameter.variance =
+              computeVariance(typeParameter, declaration.type, this);
+          ++count;
+        }
+      }
+    }
     return count;
   }
 
@@ -2469,7 +2513,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String name = originDeclarations.name;
       Builder member = originDeclarations.current;
       bool isSetter = member.isSetter;
-      Builder patch = isSetter ? scope.setters[name] : scope.local[name];
+      Builder patch = scope.lookupLocalMember(name, setter: isSetter);
       if (patch != null) {
         // [patch] has the same name as a [member] in [origin] library, so it
         // must be a patch to [member].
@@ -2514,10 +2558,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void injectMemberFromPatch(String name, Builder member) {
     if (member.isSetter) {
-      assert(scope.setters[name] == null);
+      assert(scope.lookupLocalMember(name, setter: true) == null);
       scopeBuilder.addSetter(name, member);
     } else {
-      assert(scope.local[name] == null);
+      assert(scope.lookupLocalMember(name, setter: false) == null);
       scopeBuilder.addMember(name, member);
     }
   }
@@ -2533,8 +2577,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // If this member already exist in the origin library scope, it should
     // have been marked as patch.
-    assert((member.isSetter && scope.setters[name] == null) ||
-        (!member.isSetter && scope.local[name] == null));
+    assert((member.isSetter &&
+            scope.lookupLocalMember(name, setter: true) == null) ||
+        (!member.isSetter &&
+            scope.lookupLocalMember(name, setter: false) == null));
     addToExportScope(name, member);
   }
 
@@ -2866,7 +2912,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
       } else if (declaration is ClassBuilder) {
-        declaration.checkBoundsInOutline(typeEnvironment);
+        declaration.checkTypesInOutline(typeEnvironment);
       }
     }
     inferredTypes.clear();
@@ -2911,9 +2957,9 @@ class TypeParameterScopeBuilder {
 
   final Map<String, Builder> constructors;
 
-  final Map<String, Builder> setters;
+  final Map<String, MemberBuilder> setters;
 
-  final List<ExtensionBuilder> extensions;
+  final Set<ExtensionBuilder> extensions;
 
   final List<UnresolvedType> types = <UnresolvedType>[];
 
@@ -2951,9 +2997,9 @@ class TypeParameterScopeBuilder {
       : this(
             TypeParameterScopeKind.library,
             <String, Builder>{},
-            <String, Builder>{},
+            <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <ExtensionBuilder>[],
+            <ExtensionBuilder>{},
             "<library>",
             -1,
             null);

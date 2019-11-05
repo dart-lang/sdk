@@ -1,0 +1,6 @@
+pkg/front_end/testcases/nnbd/late.dart:29:23: Context: Write to lateFinalVariable@862
+    lateFinalVariable = 0;
+                      ^
+pkg/front_end/testcases/nnbd/late.dart:40:31: Context: Write to lateFinalVariableWithInit@1146
+    lateFinalVariableWithInit = 0;
+                              ^

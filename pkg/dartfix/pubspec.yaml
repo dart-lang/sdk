@@ -1,5 +1,5 @@
 name: dartfix
-version: 0.1.5-dev
+version: 0.1.5
 author: Dart Team <misc@dartlang.org>
 description:
   A tool for migrating Dart source to newer versions of the Dart SDK
@@ -13,9 +13,9 @@ executables:
   dartfix:
 
 dependencies:
-  # pin to an exact version of analysis_server_client because the edit.dartfix protocol
-  # is experimental and will continue to evolve
-  analysis_server_client: 1.1.3
+  # Pin to an exact version of analysis_server_client because the edit.dartfix
+  # protocol is experimental and will continue to evolve.
+  analysis_server_client: 1.1.2
   args: ^1.4.0
   cli_util: ^0.1.3
   path: ^1.6.0

@@ -85,7 +85,7 @@ class DecoratedClassHierarchy {
         // this specific [superclass].
         Map<TypeParameterElement, DecoratedType> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
-          substitution[supertype.typeParameters[i]] =
+          substitution[supertype.element.typeParameters[i]] =
               decoratedSupertype.typeArguments[i];
         }
         // Apply that substitution to the relation between [superclass] and

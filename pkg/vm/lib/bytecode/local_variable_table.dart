@@ -128,7 +128,7 @@ class ContextVariable extends LocalVariableEntry {
 }
 
 /// Keeps information about declared local variables.
-class LocalVariableTable {
+class LocalVariableTable extends BytecodeDeclaration {
   final scopes = <Scope>[];
   final activeScopes = <Scope>[];
   ContextVariable contextVariable;

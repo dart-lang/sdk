@@ -233,6 +233,7 @@ class HGraph {
   HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
+  bool isLazyInitializer = false;
 
   final List<HBasicBlock> blocks = <HBasicBlock>[];
 

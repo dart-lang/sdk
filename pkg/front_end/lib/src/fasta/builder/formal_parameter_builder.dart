@@ -4,21 +4,22 @@
 
 library fasta.formal_parameter_builder;
 
-import 'package:kernel/ast.dart' show VariableDeclaration;
-
-import '../parser.dart' show FormalParameterKind;
-
-import '../parser/formal_parameter_kind.dart'
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show
         isMandatoryFormalParameterKind,
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
+import 'package:kernel/ast.dart' show Expression, VariableDeclaration;
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../modifier.dart';
-
-import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 
@@ -38,10 +39,12 @@ import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
 import 'type_builder.dart';
+import 'variable_builder.dart';
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends ModifierBuilderImpl {
+class FormalParameterBuilder extends ModifierBuilderImpl
+    implements VariableBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder> metadata;
 
@@ -93,10 +96,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
 
   bool get isCovariant => (modifiers & covariantMask) != 0;
 
+  // An initializing formal parameter might be final without its
+  // VariableDeclaration being final. See
+  // [ProcedureBuilder.computeFormalParameterInitializerScope]..
+  bool get isAssignable => variable.isAssignable && !isInitializingFormal;
+
   @override
   String get fullNameForErrors => name;
-
-  VariableDeclaration get target => variable;
 
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
@@ -168,10 +174,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      variable.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
-        ..parent = variable;
-      bodyBuilder.typeInferrer?.inferParameterInitializer(
-          bodyBuilder, variable.initializer, variable.type);
+      Expression initializer =
+          bodyBuilder.parseFieldInitializer(initializerToken);
+      initializer = bodyBuilder.typeInferrer
+          ?.inferParameterInitializer(bodyBuilder, initializer, variable.type);
+      variable.initializer = initializer..parent = variable;
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
         loader.transformPostInference(variable,

@@ -132,11 +132,19 @@ class Symbol : public ZoneAllocated {
 
 class SymbolTable : public Section {
  public:
-  SymbolTable() {
-    section_type = elf::SHT_DYNSYM;
-    section_flags = elf::SHF_ALLOC;
-    segment_type = elf::PT_LOAD;
-    segment_flags = elf::PF_R;
+  explicit SymbolTable(bool dynamic) {
+    if (dynamic) {
+      section_type = elf::SHT_DYNSYM;
+      section_flags = elf::SHF_ALLOC;
+      segment_type = elf::PT_LOAD;
+      segment_flags = elf::PF_R;
+    } else {
+      // No need to load the static symbol table at runtime since it's ignored
+      // by the dynamic linker.
+      section_type = elf::SHT_SYMTAB;
+      memory_offset = 0;
+      section_flags = 0;
+    }
 
     section_entry_size = kElfSymbolTableEntrySize;
     AddSymbol(NULL);
@@ -339,11 +347,17 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream)
   shstrtab_ = new (zone_) StringTable(/* allocate= */ false);
   shstrtab_->section_name = shstrtab_->AddString(".shstrtab");
 
-  symstrtab_ = new (zone_) StringTable(/* allocate= */ true);
-  symstrtab_->section_name = shstrtab_->AddString(".dynstr");
+  dynstrtab_ = new (zone_) StringTable(/* allocate= */ true);
+  dynstrtab_->section_name = shstrtab_->AddString(".dynstr");
 
-  symtab_ = new (zone_) SymbolTable();
-  symtab_->section_name = shstrtab_->AddString(".dynsym");
+  dynsym_ = new (zone_) SymbolTable(/*dynamic=*/true);
+  dynsym_->section_name = shstrtab_->AddString(".dynsym");
+
+  strtab_ = new (zone_) StringTable(/* allocate= */ false);
+  strtab_->section_name = shstrtab_->AddString(".strtab");
+
+  symtab_ = new (zone_) SymbolTable(/*dynamic=*/false);
+  symtab_->section_name = shstrtab_->AddString(".symtab");
 
   // Allocate regular segments after the program table.
   memory_offset_ = kProgramTableSegmentSize;
@@ -366,8 +380,12 @@ void Elf::AddSegment(Section* section) {
   memory_offset_ = Utils::RoundUp(memory_offset_, kPageSize);
 }
 
-intptr_t Elf::NextMemoryOffset() {
+intptr_t Elf::NextMemoryOffset() const {
   return memory_offset_;
+}
+
+intptr_t Elf::NextSectionIndex() const {
+  return sections_.length() + kNumInvalidSections;
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
@@ -378,16 +396,31 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
 
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
-  symbol->name = symstrtab_->AddString(name);
+  symbol->name = dynstrtab_->AddString(name);
   symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
   symbol->offset = image->memory_offset;
   symbol->size = size;
-  symtab_->AddSymbol(symbol);
+  dynsym_->AddSymbol(symbol);
 
   return symbol->offset;
+}
+
+void Elf::AddStaticSymbol(intptr_t section,
+                          const char* name,
+                          size_t memory_offset) {
+  Symbol* symbol = new (zone_) Symbol();
+  symbol->cstr = name;
+  symbol->name = strtab_->AddString(name);
+  symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
+  symbol->section = section;
+  // For shared libraries, this is the offset from the DSO base. For static
+  // libraries, this is section relative.
+  symbol->offset = memory_offset;
+  symbol->size = 0;
+  symtab_->AddSymbol(symbol);
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
@@ -407,14 +440,14 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
 
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
-  symbol->name = symstrtab_->AddString(name);
+  symbol->name = dynstrtab_->AddString(name);
   symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_OBJECT;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
   symbol->offset = image->memory_offset;
   symbol->size = size;
-  symtab_->AddSymbol(symbol);
+  dynsym_->AddSymbol(symbol);
 
   return symbol->offset;
 }
@@ -427,14 +460,14 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
 
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
-  symbol->name = symstrtab_->AddString(name);
+  symbol->name = dynstrtab_->AddString(name);
   symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_OBJECT;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
   symbol->offset = image->memory_offset;
   symbol->size = size;
-  symtab_->AddSymbol(symbol);
+  dynsym_->AddSymbol(symbol);
 
   return symbol->offset;
 }
@@ -447,25 +480,28 @@ void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
 }
 
 void Elf::Finalize() {
-  SymbolHashTable* hash = new (zone_) SymbolHashTable(symstrtab_, symtab_);
+  SymbolHashTable* hash = new (zone_) SymbolHashTable(dynstrtab_, dynsym_);
   hash->section_name = shstrtab_->AddString(".hash");
 
   AddSection(hash);
+  AddSection(dynsym_);
+  AddSection(dynstrtab_);
+  AddSection(strtab_);
   AddSection(symtab_);
-  AddSection(symstrtab_);
 
-  symtab_->section_link = symstrtab_->section_index;
-  hash->section_link = symtab_->section_index;
+  dynsym_->section_link = dynstrtab_->section_index;
+  hash->section_link = dynsym_->section_index;
+  symtab_->section_link = strtab_->section_index;
 
   // Before finalizing the string table's memory size:
   intptr_t name_dynamic = shstrtab_->AddString(".dynamic");
 
   // Finalizes memory size of string and symbol tables.
   AddSegment(hash);
-  AddSegment(symtab_);
-  AddSegment(symstrtab_);
+  AddSegment(dynsym_);
+  AddSegment(dynstrtab_);
 
-  dynamic_ = new (zone_) DynamicTable(symstrtab_, symtab_, hash);
+  dynamic_ = new (zone_) DynamicTable(dynstrtab_, dynsym_, hash);
   dynamic_->section_name = name_dynamic;
   AddSection(dynamic_);
   AddSegment(dynamic_);
@@ -538,7 +574,6 @@ void Elf::WriteHeader() {
 #elif defined(TARGET_ARCH_ARM64)
   WriteHalf(elf::EM_AARCH64);
 #else
-  // E.g., DBC.
   FATAL("Unknown ELF architecture");
 #endif
 

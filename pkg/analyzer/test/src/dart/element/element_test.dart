@@ -1129,13 +1129,6 @@ enum B {B1, B2, B3}
 
 @reflectiveTest
 class FunctionTypeImplTest extends AbstractTypeTest {
-  void test_creation() {
-    expect(
-        new FunctionTypeImpl(
-            new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"))),
-        isNotNull);
-  }
-
   void test_equality_recursive() {
     var s = ElementFactory.genericTypeAliasElement('s');
     var t = ElementFactory.genericTypeAliasElement('t');
@@ -1151,13 +1144,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       functionTypeAliasType(s) == functionTypeAliasType(u),
       new TypeMatcher<bool>(),
     );
-  }
-
-  void test_getElement() {
-    FunctionElementImpl typeElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
-    FunctionTypeImpl type = new FunctionTypeImpl(typeElement);
-    expect(type.element, typeElement);
   }
 
   void test_getNamedParameterTypes_namedParameters() {
@@ -1264,446 +1250,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(types[1], DynamicTypeImpl.instance);
   }
 
-  void test_getReturnType() {
-    DartType expectedReturnType = VoidTypeImpl.instance;
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
-    functionElement.returnType = expectedReturnType;
-    FunctionTypeImpl type = new FunctionTypeImpl(functionElement);
-    DartType returnType = type.returnType;
-    expect(returnType, expectedReturnType);
-  }
-
-  void test_getTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f")));
-    List<DartType> types = type.typeArguments;
-    expect(types, hasLength(0));
-  }
-
-  void test_hashCode_element() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f")));
-    type.hashCode;
-  }
-
-  void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl(null);
-    type.hashCode;
-  }
-
-  void test_hashCode_recursive() {
-    var s = ElementFactory.genericTypeAliasElement('s');
-    var t = ElementFactory.genericTypeAliasElement('t');
-    s.function.returnType = functionTypeAliasType(t);
-    t.function.returnType = functionTypeAliasType(s);
-    // We don't care what the hash code is.  We just need its computation to
-    // terminate.
-    expect(functionTypeAliasType(t).hashCode, new TypeMatcher<int>());
-  }
-
-  void test_isAssignableTo_normalAndPositionalArgs() {
-    // ([a]) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[a]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isFalse);
-    // assignable iff subtype
-    // ignore: deprecated_member_use_from_same_package
-    expect(t.isAssignableTo(s), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(s.isAssignableTo(t), isFalse);
-  }
-
-  void test_isSubtypeOf_baseCase_classFunction() {
-    // () -> void <: Function
-    ClassElementImpl functionElement = ElementFactory.classElement2("Function");
-    InterfaceTypeImpl functionType =
-        new _FunctionTypeImplTest_isSubtypeOf_baseCase_classFunction(
-            functionElement);
-    FunctionType f = ElementFactory.functionElement("f").type;
-    expect(f.isSubtypeOf(functionType), isTrue);
-  }
-
-  void test_isSubtypeOf_baseCase_notFunctionType() {
-    // class C
-    // ! () -> void <: C
-    FunctionType f = ElementFactory.functionElement("f").type;
-    InterfaceType t = interfaceType(class_(name: 'C'));
-    expect(f.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_baseCase_null() {
-    // ! () -> void <: null
-    FunctionType f = ElementFactory.functionElement("f").type;
-    expect(f.isSubtypeOf(null), isFalse);
-  }
-
-  void test_isSubtypeOf_baseCase_self() {
-    // () -> void <: () -> void
-    FunctionType f = ElementFactory.functionElement("f").type;
-    expect(f.isSubtypeOf(f), isTrue);
-  }
-
-  void test_isSubtypeOf_namedParameters_isAssignable() {
-    // B extends A
-    // ({name: A}) -> void <: ({name: B}) -> void
-    // ({name: B}) -> void <: ({name: A}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["name"], <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["name"], <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isTrue);
-  }
-
-  void test_isSubtypeOf_namedParameters_isNotAssignable() {
-    // ! ({name: A}) -> void <: ({name: B}) -> void
-    FunctionType t = ElementFactory.functionElement4("t", null, null,
-        <String>["name"], <ClassElement>[class_(name: 'A')]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s",
-        null,
-        null,
-        <String>["name"],
-        <ClassElement>[ElementFactory.classElement2("B")]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_namedParameters_namesDifferent() {
-    // B extends A
-    // void t({A name}) {}
-    // void s({A diff}) {}
-    // ! t <: s
-    // ! s <: t
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["name"], <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["diff"], <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_namedParameters_orderOfParams() {
-    // B extends A
-    // ({A: A, B: B}) -> void <: ({B: B, A: A}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["A", "B"], <ClassElement>[a, b]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["B", "A"], <ClassElement>[b, a]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-  }
-
-  void test_isSubtypeOf_namedParameters_orderOfParams2() {
-    // B extends A
-    // ! ({B: B}) -> void <: ({B: B, A: A}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["B"], <ClassElement>[b]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["B", "A"], <ClassElement>[b, a]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_namedParameters_orderOfParams3() {
-    // B extends A
-    // ({A: A, B: B}) -> void <: ({A: A}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["A", "B"], <ClassElement>[a, b]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["B"], <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-  }
-
-  void test_isSubtypeOf_namedParameters_sHasMoreParams() {
-    // B extends A
-    // ! ({name: A}) -> void <: ({name: B, name2: B}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["name"], <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["name", "name2"], <ClassElement>[b, b]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_namedParameters_tHasMoreParams() {
-    // B extends A
-    // ({name: A, name2: A}) -> void <: ({name: B}) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t = ElementFactory.functionElement4(
-        "t", null, null, <String>["name", "name2"], <ClassElement>[a, a]).type;
-    FunctionType s = ElementFactory.functionElement4(
-        "s", null, null, <String>["name"], <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-  }
-
-  void test_isSubtypeOf_normalAndPositionalArgs_1() {
-    // ([a]) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[a]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_normalAndPositionalArgs_2() {
-    // (a, [a]) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t = ElementFactory.functionElement6(
-        "t", <ClassElement>[a], <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[a]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_normalAndPositionalArgs_3() {
-    // ([a]) -> void <: () -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement("s").type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_normalAndPositionalArgs_4() {
-    // (a, b, [c, d, e]) -> void <: (a, b, c, [d]) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement2("B");
-    ClassElement c = ElementFactory.classElement2("C");
-    ClassElement d = ElementFactory.classElement2("D");
-    ClassElement e = ElementFactory.classElement2("E");
-    FunctionType t = ElementFactory.functionElement6(
-        "t", <ClassElement>[a, b], <ClassElement>[c, d, e]).type;
-    FunctionType s = ElementFactory.functionElement6(
-        "s", <ClassElement>[a, b, c], <ClassElement>[d]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_normalParameters_isAssignable() {
-    // B extends A
-    // (a) -> void <: (b) -> void
-    // (b) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement5("t", <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isTrue);
-  }
-
-  void test_isSubtypeOf_normalParameters_isNotAssignable() {
-    // ! (a) -> void <: (b) -> void
-    FunctionType t =
-        ElementFactory.functionElement5("t", <ClassElement>[class_(name: 'A')])
-            .type;
-    FunctionType s = ElementFactory.functionElement5(
-        "s", <ClassElement>[ElementFactory.classElement2("B")]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_normalParameters_sHasMoreParams() {
-    // B extends A
-    // ! (a) -> void <: (b, b) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement5("t", <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[b, b]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_normalParameters_tHasMoreParams() {
-    // B extends A
-    // ! (a, a) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement5("t", <ClassElement>[a, a]).type;
-    FunctionType s =
-        ElementFactory.functionElement5("s", <ClassElement>[b]).type;
-    // note, this is a different assertion from the other "tHasMoreParams"
-    // tests, this is intentional as it is a difference of the "normal
-    // parameters"
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_Object() {
-    // () -> void <: Object
-    FunctionType f = ElementFactory.functionElement("f").type;
-    InterfaceType t = typeProvider.objectType;
-    expect(f.isSubtypeOf(t), isTrue);
-  }
-
-  void test_isSubtypeOf_positionalParameters_isAssignable() {
-    // B extends A
-    // ([a]) -> void <: ([b]) -> void
-    // ([b]) -> void <: ([a]) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement6("s", null, <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isTrue);
-  }
-
-  void test_isSubtypeOf_positionalParameters_isNotAssignable() {
-    // ! ([a]) -> void <: ([b]) -> void
-    FunctionType t = ElementFactory.functionElement6(
-        "t", null, <ClassElement>[class_(name: 'A')]).type;
-    FunctionType s = ElementFactory.functionElement6(
-        "s", null, <ClassElement>[ElementFactory.classElement2("B")]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_positionalParameters_sHasMoreParams() {
-    // B extends A
-    // ! ([a]) -> void <: ([b, b]) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s =
-        ElementFactory.functionElement6("s", null, <ClassElement>[b, b]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_positionalParameters_tHasMoreParams() {
-    // B extends A
-    // ([a, a]) -> void <: ([b]) -> void
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a, a]).type;
-    FunctionType s =
-        ElementFactory.functionElement6("s", null, <ClassElement>[b]).type;
-    expect(t.isSubtypeOf(s), isTrue);
-  }
-
-  void test_isSubtypeOf_returnType_sIsVoid() {
-    // () -> void <: void
-    FunctionType t = ElementFactory.functionElement("t").type;
-    FunctionType s = ElementFactory.functionElement("s").type;
-    // function s has the implicit return type of void, we assert it here
-    expect(VoidTypeImpl.instance == s.returnType, isTrue);
-    expect(t.isSubtypeOf(s), isTrue);
-  }
-
-  void test_isSubtypeOf_returnType_tAssignableToS() {
-    // B extends A
-    // () -> A <: () -> B
-    // () -> B <: () -> A
-    ClassElement a = class_(name: 'A');
-    ClassElement b = ElementFactory.classElement('B', interfaceType(a));
-    FunctionType t =
-        ElementFactory.functionElement2("t", interfaceType(a)).type;
-    FunctionType s =
-        ElementFactory.functionElement2("s", interfaceType(b)).type;
-    expect(t.isSubtypeOf(s), isTrue);
-    expect(s.isSubtypeOf(t), isTrue);
-  }
-
-  void test_isSubtypeOf_returnType_tNotAssignableToS() {
-    // ! () -> A <: () -> B
-    FunctionType t = ElementFactory.functionElement2(
-            "t", interfaceType(ElementFactory.classElement2('A')))
-        .type;
-    FunctionType s =
-        ElementFactory.functionElement2("s", interfaceType(class_(name: 'B')))
-            .type;
-    expect(t.isSubtypeOf(s), isFalse);
-  }
-
-  void test_isSubtypeOf_typeParameters_matchesBounds() {
-    TestTypeProvider provider = new TestTypeProvider();
-    InterfaceType boolType = provider.boolType;
-    InterfaceType stringType = provider.stringType;
-    TypeParameterElementImpl parameterB =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("B"));
-    parameterB.bound = boolType;
-    TypeParameterTypeImpl typeB = new TypeParameterTypeImpl(parameterB);
-    TypeParameterElementImpl parameterS =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("S"));
-    parameterS.bound = stringType;
-    TypeParameterTypeImpl typeS = new TypeParameterTypeImpl(parameterS);
-    FunctionElementImpl functionAliasElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("func"));
-    functionAliasElement.parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2("a", typeB),
-      ElementFactory.positionalParameter2("b", typeS)
-    ];
-    functionAliasElement.returnType = stringType;
-    FunctionTypeImpl functionAliasType =
-        new FunctionTypeImpl(functionAliasElement);
-    functionAliasElement.type = functionAliasType;
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
-    functionElement.parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2("c", boolType),
-      ElementFactory.positionalParameter2("d", stringType)
-    ];
-    functionElement.returnType = provider.dynamicType;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
-    expect(functionType.isAssignableTo(functionAliasType), isTrue);
-  }
-
-  void test_isSubtypeOf_wrongFunctionType_normal_named() {
-    // ! (a) -> void <: ({name: A}) -> void
-    // ! ({name: A}) -> void <: (a) -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t =
-        ElementFactory.functionElement5("t", <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement7(
-        "s", null, <String>["name"], <ClassElement>[a]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_isSubtypeOf_wrongFunctionType_optional_named() {
-    // ! ([a]) -> void <: ({name: A}) -> void
-    // ! ({name: A}) -> void <: ([a]) -> void
-    ClassElement a = class_(name: 'A');
-    FunctionType t =
-        ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s = ElementFactory.functionElement7(
-        "s", null, <String>["name"], <ClassElement>[a]).type;
-    expect(t.isSubtypeOf(s), isFalse);
-    expect(s.isSubtypeOf(t), isFalse);
-  }
-
-  void test_newPrune_non_typedef() {
-    // No pruning needs to be done for function types that aren't associated
-    // with typedefs because those types can't be directly referred to by the
-    // user (and hence can't participate in circularities).
-    FunctionElementImpl f = ElementFactory.functionElement('f');
-    FunctionTypeImpl type = f.type;
-    expect(type.newPrune, []);
-  }
-
   void test_resolveToBound() {
     FunctionElementImpl f = ElementFactory.functionElement('f');
     FunctionTypeImpl type = f.type;
@@ -1712,6 +1258,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(type.resolveToBound(null), same(type));
   }
 
+  @deprecated
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType =
@@ -1726,7 +1273,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     ];
     functionElement.returnType = parameterType;
     definingClass.methods = <MethodElement>[functionElement];
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
     FunctionType result = functionType
@@ -1743,6 +1290,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(namedParameters[namedParameterName], argumentType);
   }
 
+  @deprecated
   void test_substitute2_notEqual() {
     DartType returnType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("R")));
@@ -1761,7 +1309,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       ElementFactory.namedParameter2(namedParameterName, namedParameterType)
     ];
     functionElement.returnType = returnType;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
@@ -1802,149 +1350,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       functionTypeAliasType(f).toString(),
       'dynamic Function()',
     );
-  }
-
-  void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() {
-    //     U f<U>() => null;
-    //   }
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-    FunctionElementImpl function = ElementFactory.functionElement('f');
-    function.enclosingElement = method;
-    function.typeParameters = ElementFactory.typeParameters(['U']);
-    function.returnType = typeParameterType(function.typeParameters[0]);
-    function.type = new FunctionTypeImpl(function);
-
-    List<TypeParameterElement> inheritedParameters = <TypeParameterElement>[];
-    inheritedParameters.addAll(method.typeParameters);
-    inheritedParameters.addAll(classElement.typeParameters);
-    expect(function.type.typeArguments,
-        unorderedEquals(_toTypes(inheritedParameters)));
-    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
-    expect(function.type.typeParameters, unorderedEquals(inheritedParameters));
-  }
-
-  void test_typeParameters_genericMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_genericMethod_simpleClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement = class_(name: 'C');
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_genericTopLevelFunction() {
-    //
-    // Object f<T>() => null;
-    //
-    FunctionElementImpl function = ElementFactory.functionElement('f');
-    function.returnType = ElementFactory.objectType;
-    function.typeParameters = ElementFactory.typeParameters(['T']);
-    function.type = new FunctionTypeImpl(function);
-
-    expect(function.type.typeArguments, isEmpty);
-    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
-    expect(function.type.typeParameters, isEmpty);
-  }
-
-  void test_typeParameters_simpleMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.returnType = ElementFactory.objectType;
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_simpleMethod_simpleClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement = class_(name: 'C');
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.returnType = ElementFactory.objectType;
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_withTypeArguments() {
-    ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
-    MethodElementImpl methodElement =
-        new MethodElementImpl.forNode(AstTestFactory.identifier3("m"));
-    enclosingClass.methods = <MethodElement>[methodElement];
-    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
-    DartType expectedType = typeParameterType(enclosingClass.typeParameters[0]);
-    List<DartType> arguments = type.typeArguments;
-    expect(arguments, hasLength(1));
-    expect(arguments[0], expectedType);
-  }
-
-  Iterable<DartType> _toTypes(List<TypeParameterElement> typeParameters) {
-    return typeParameters
-        .map((TypeParameterElement element) => typeParameterType(element));
   }
 }
 
@@ -2082,7 +1487,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
     A.accessors = <PropertyAccessorElement>[getterG];
-    getterG.type = new FunctionTypeImpl(getterG);
     //
     // A<I>
     //
@@ -2181,44 +1585,16 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeB, []);
     classA.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(classA, <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, isEmpty);
-    expect(methodType.typeArguments, [same(typeI)]);
-  }
-
-  void test_getMethod_parameterized_flushCached_whenVersionChanges() {
-    //
-    // class A<E> { E m(E p) {} }
-    //
-    var E = typeParameter('E');
-    var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterType(E);
-    String methodName = "m";
-    MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeE, [typeE]);
-    A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
-    //
-    // A<I>
-    //
-    InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
-    // Methods list is cached.
-    MethodElement method = typeAI.methods.single;
-    expect(typeAI.methods.single, same(method));
-    // Methods list is flushed on version change.
-    A.version++;
-    expect(typeAI.methods.single, isNot(same(method)));
+    expect(methodType.typeArguments, isEmpty);
   }
 
   void test_getMethod_parameterized_usesTypeParameter() {
@@ -2232,18 +1608,16 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, isEmpty);
-    expect(methodType.typeArguments, [same(typeI)]);
+    expect(methodType.typeArguments, isEmpty);
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;
     expect(parameterTypes, hasLength(1));
@@ -2316,8 +1690,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(B);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
     List<InterfaceType> interfaces = typeBI.mixins;
     expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
@@ -2349,13 +1723,12 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
     A.accessors = <PropertyAccessorElement>[setterS];
-    setterS.type = new FunctionTypeImpl(setterS);
     //
     // A<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeAI =
+        new InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
     PropertyAccessorElement setter = typeAI.getSetter(setterName);
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
@@ -2406,8 +1779,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(classB);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(classB, <DartType>[typeI]);
     InterfaceType superclass = typeBI.superclass;
     expect(superclass.element, same(A));
     expect(superclass.typeArguments[0], same(typeI));
@@ -2422,507 +1795,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     ClassElement classA = class_(name: 'A');
     InterfaceType typeA = interfaceType(classA);
     expect(0 == typeA.hashCode, isFalse);
-  }
-
-  void test_isAssignableTo_typeVariables() {
-    //
-    // class A<E> {}
-    // class B<F, G> {
-    //   A<F> af;
-    //   f (A<G> ag) {
-    //     af = ag;
-    //   }
-    // }
-    //
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    ClassElement classB = ElementFactory.classElement2("B", ["F", "G"]);
-    InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);
-    typeAF.typeArguments = <DartType>[
-      typeParameterType(classB.typeParameters[0])
-    ];
-    InterfaceTypeImpl typeAG = new InterfaceTypeImpl(classA);
-    typeAG.typeArguments = <DartType>[
-      typeParameterType(classB.typeParameters[1])
-    ];
-    expect(typeAG.isAssignableTo(typeAF), isFalse);
-  }
-
-  void test_isAssignableTo_void() {
-    InterfaceTypeImpl intType = _typeProvider.intType;
-    expect(VoidTypeImpl.instance.isAssignableTo(intType), isFalse);
-  }
-
-  void test_isDirectSupertypeOf_extends() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isDirectSupertypeOf(typeB), isTrue);
-  }
-
-  void test_isDirectSupertypeOf_false() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB = ElementFactory.classElement2("B");
-    ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classB));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isDirectSupertypeOf(typeC), isFalse);
-  }
-
-  void test_isDirectSupertypeOf_implements() {
-    var classA = class_(name: 'A');
-    var classB = ElementFactory.classElement2("B");
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    classB.interfaces = <InterfaceType>[typeA];
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isDirectSupertypeOf(typeB), isTrue);
-  }
-
-  void test_isDirectSupertypeOf_with() {
-    var classA = class_(name: 'A');
-    var classB = ElementFactory.classElement2("B");
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    classB.mixins = <InterfaceType>[typeA];
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isDirectSupertypeOf(typeB), isTrue);
-  }
-
-  void test_isMoreSpecificThan_bottom() {
-    DartType type = interfaceType(ElementFactory.classElement2('A'));
-    expect(BottomTypeImpl.instance.isMoreSpecificThan(type), isTrue);
-  }
-
-  void test_isMoreSpecificThan_covariance() {
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    ClassElement classI = ElementFactory.classElement2("I");
-    ClassElement classJ =
-        ElementFactory.classElement("J", interfaceType(classI));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
-    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
-    typeAI.typeArguments = <DartType>[interfaceType(classI)];
-    typeAJ.typeArguments = <DartType>[interfaceType(classJ)];
-    expect(typeAJ.isMoreSpecificThan(typeAI), isTrue);
-    expect(typeAI.isMoreSpecificThan(typeAJ), isFalse);
-  }
-
-  void test_isMoreSpecificThan_directSupertype() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeB.isMoreSpecificThan(typeA), isTrue);
-    // the opposite test tests a different branch in isMoreSpecificThan()
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isMoreSpecificThan(typeB), isFalse);
-  }
-
-  void test_isMoreSpecificThan_dynamic() {
-    InterfaceType type = interfaceType(ElementFactory.classElement2('A'));
-    // ignore: deprecated_member_use_from_same_package
-    expect(type.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
-  }
-
-  void test_isMoreSpecificThan_generic() {
-    ClassElement A = class_(
-      name: 'A',
-      typeParameters: [typeParameter('E')],
-    );
-    ClassElement B = class_(name: 'B');
-
-    var AofDynamic = interfaceType(
-      A,
-      typeArguments: [dynamicType],
-    );
-    var AofB = interfaceType(
-      A,
-      typeArguments: [interfaceType(B)],
-    );
-
-    // ignore: deprecated_member_use_from_same_package
-    expect(AofDynamic.isMoreSpecificThan(AofB), isFalse);
-    // ignore: deprecated_member_use_from_same_package
-    expect(AofB.isMoreSpecificThan(AofDynamic), isTrue);
-  }
-
-  void test_isMoreSpecificThan_self() {
-    InterfaceType type = interfaceType(ElementFactory.classElement2('A'));
-    // ignore: deprecated_member_use_from_same_package
-    expect(type.isMoreSpecificThan(type), isTrue);
-  }
-
-  void test_isMoreSpecificThan_transitive_interface() {
-    //
-    //  class A {}
-    //  class B extends A {}
-    //  class C implements B {}
-    //
-    var classA = class_(name: 'A');
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    classC.interfaces = <InterfaceType>[interfaceType(classB)];
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isMoreSpecificThan(typeA), isTrue);
-  }
-
-  void test_isMoreSpecificThan_transitive_mixin() {
-    //
-    //  class A {}
-    //  class B extends A {}
-    //  class C with B {}
-    //
-    var classA = class_(name: 'A');
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    classC.mixins = <InterfaceType>[interfaceType(classB)];
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isMoreSpecificThan(typeA), isTrue);
-  }
-
-  void test_isMoreSpecificThan_transitive_recursive() {
-    //
-    //  class A extends B {}
-    //  class B extends A {}
-    //  class C {}
-    //
-    var classA = class_(name: 'A');
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    classA.supertype = interfaceType(classB);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isMoreSpecificThan(typeC), isFalse);
-  }
-
-  void test_isMoreSpecificThan_transitive_superclass() {
-    //
-    //  class A {}
-    //  class B extends A {}
-    //  class C extends B {}
-    //
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classB));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isMoreSpecificThan(typeA), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeParameterType() {
-    //
-    // class A<E> {}
-    //
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    InterfaceType typeA = interfaceType(classA);
-    TypeParameterType parameterType =
-        typeParameterType(classA.typeParameters[0]);
-    DartType objectType = _typeProvider.objectType;
-    // ignore: deprecated_member_use_from_same_package
-    expect(parameterType.isMoreSpecificThan(objectType), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(parameterType.isMoreSpecificThan(typeA), isFalse);
-  }
-
-  void test_isMoreSpecificThan_typeParameterType_withBound() {
-    //
-    // class A {}
-    // class B<E extends A> {}
-    //
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    var classB = ElementFactory.classElement2("B");
-    TypeParameterElementImpl parameterEA =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    TypeParameterType parameterAEType = new TypeParameterTypeImpl(parameterEA);
-    parameterEA.bound = typeA;
-    classB.typeParameters = <TypeParameterElementImpl>[parameterEA];
-    // ignore: deprecated_member_use_from_same_package
-    expect(parameterAEType.isMoreSpecificThan(typeA), isTrue);
-  }
-
-  void test_isSubtypeOf_directSubtype() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    expect(typeB.isSubtypeOf(typeA), isTrue);
-    expect(typeA.isSubtypeOf(typeB), isFalse);
-  }
-
-  void test_isSubtypeOf_dynamic() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    DartType dynamicType = DynamicTypeImpl.instance;
-    expect(dynamicType.isSubtypeOf(typeA), isTrue);
-    expect(typeA.isSubtypeOf(dynamicType), isTrue);
-  }
-
-  void test_isSubtypeOf_function() {
-    //
-    // void f(String s) {}
-    // class A {
-    //   void call(String s) {}
-    // }
-    //
-    InterfaceType stringType = _typeProvider.stringType;
-    var classA = class_(name: 'A');
-    classA.methods = <MethodElement>[
-      ElementFactory.methodElement("call", VoidTypeImpl.instance, [stringType])
-    ];
-    FunctionType functionType =
-        ElementFactory.functionElement5("f", <ClassElement>[stringType.element])
-            .type;
-    expect(interfaceType(classA).isSubtypeOf(functionType), isTrue);
-  }
-
-  void test_isSubtypeOf_generic() {
-    ClassElement A = ElementFactory.classElement2("A", ["E"]);
-    ClassElement B = ElementFactory.classElement2("B");
-    DartType dynamicType = DynamicTypeImpl.instance;
-    InterfaceType typeAOfDynamic =
-        interfaceType(A, typeArguments: [dynamicType]);
-    InterfaceType typeAOfB =
-        interfaceType(A, typeArguments: [interfaceType(B)]);
-    expect(typeAOfDynamic.isSubtypeOf(typeAOfB), isTrue);
-    expect(typeAOfB.isSubtypeOf(typeAOfDynamic), isTrue);
-  }
-
-  void test_isSubtypeOf_interface() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    InterfaceType typeC = interfaceType(classC);
-    classC.interfaces = <InterfaceType>[typeB];
-    expect(typeC.isSubtypeOf(typeB), isTrue);
-    expect(typeC.isSubtypeOf(typeObject), isTrue);
-    expect(typeC.isSubtypeOf(typeA), isTrue);
-    expect(typeA.isSubtypeOf(typeC), isFalse);
-  }
-
-  void test_isSubtypeOf_mixins() {
-    //
-    // class A {}
-    // class B extends A {}
-    // class C with B {}
-    //
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    InterfaceType typeC = interfaceType(classC);
-    classC.mixins = <InterfaceType>[typeB];
-    expect(typeC.isSubtypeOf(typeB), isTrue);
-    expect(typeC.isSubtypeOf(typeObject), isTrue);
-    expect(typeC.isSubtypeOf(typeA), isTrue);
-    expect(typeA.isSubtypeOf(typeC), isFalse);
-  }
-
-  void test_isSubtypeOf_object() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeObject = classA.supertype;
-    expect(typeA.isSubtypeOf(typeObject), isTrue);
-    expect(typeObject.isSubtypeOf(typeA), isFalse);
-  }
-
-  void test_isSubtypeOf_self() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    expect(typeA.isSubtypeOf(typeA), isTrue);
-  }
-
-  void test_isSubtypeOf_transitive_recursive() {
-    //
-    //  class A extends B {}
-    //  class B extends A {}
-    //  class C {}
-    //
-    var classA = class_(name: 'A');
-    ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    classA.supertype = interfaceType(classB);
-    expect(typeA.isSubtypeOf(typeC), isFalse);
-  }
-
-  void test_isSubtypeOf_transitive_superclass() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classB));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    expect(typeC.isSubtypeOf(typeA), isTrue);
-    expect(typeA.isSubtypeOf(typeC), isFalse);
-  }
-
-  void test_isSubtypeOf_typeArguments() {
-    DartType dynamicType = DynamicTypeImpl.instance;
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    ClassElement classI = ElementFactory.classElement2("I");
-    ClassElement classJ =
-        ElementFactory.classElement("J", interfaceType(classI));
-    ClassElement classK = ElementFactory.classElement2("K");
-    InterfaceType typeA_dynamic =
-        interfaceType(classA, typeArguments: [dynamicType]);
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
-    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
-    InterfaceTypeImpl typeAK = new InterfaceTypeImpl(classA);
-    typeAI.typeArguments = <DartType>[interfaceType(classI)];
-    typeAJ.typeArguments = <DartType>[interfaceType(classJ)];
-    typeAK.typeArguments = <DartType>[interfaceType(classK)];
-    // A<J> <: A<I> since J <: I
-    expect(typeAJ.isSubtypeOf(typeAI), isTrue);
-    expect(typeAI.isSubtypeOf(typeAJ), isFalse);
-    // A<I> <: A<I> since I <: I
-    expect(typeAI.isSubtypeOf(typeAI), isTrue);
-    // A <: A<I> and A <: A<J>
-    expect(typeA_dynamic.isSubtypeOf(typeAI), isTrue);
-    expect(typeA_dynamic.isSubtypeOf(typeAJ), isTrue);
-    // A<I> <: A and A<J> <: A
-    expect(typeAI.isSubtypeOf(typeA_dynamic), isTrue);
-    expect(typeAJ.isSubtypeOf(typeA_dynamic), isTrue);
-    // A<I> !<: A<K> and A<K> !<: A<I>
-    expect(typeAI.isSubtypeOf(typeAK), isFalse);
-    expect(typeAK.isSubtypeOf(typeAI), isFalse);
-  }
-
-  void test_isSubtypeOf_typeParameter() {
-    //
-    // class A<E> {}
-    //
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    InterfaceType typeA = interfaceType(classA);
-    TypeParameterType parameterType =
-        typeParameterType(classA.typeParameters[0]);
-    expect(typeA.isSubtypeOf(parameterType), isFalse);
-  }
-
-  void test_isSupertypeOf_directSupertype() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeB.isSupertypeOf(typeA), isFalse);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeB), isTrue);
-  }
-
-  void test_isSupertypeOf_dynamic() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    DartType dynamicType = DynamicTypeImpl.instance;
-    // ignore: deprecated_member_use_from_same_package
-    expect(dynamicType.isSupertypeOf(typeA), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(dynamicType), isTrue);
-  }
-
-  void test_isSupertypeOf_indirectSupertype() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classB));
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeC = interfaceType(classC);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isSupertypeOf(typeA), isFalse);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeC), isTrue);
-  }
-
-  void test_isSupertypeOf_interface() {
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    InterfaceType typeC = interfaceType(classC);
-    classC.interfaces = <InterfaceType>[typeB];
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeB.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeObject.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isSupertypeOf(typeA), isFalse);
-  }
-
-  void test_isSupertypeOf_mixins() {
-    //
-    // class A {}
-    // class B extends A {}
-    // class C with B {}
-    //
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    var classC = ElementFactory.classElement2("C");
-    InterfaceType typeObject = classA.supertype;
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeB = interfaceType(classB);
-    InterfaceType typeC = interfaceType(classC);
-    classC.mixins = <InterfaceType>[typeB];
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeB.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeObject.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeC), isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeC.isSupertypeOf(typeA), isFalse);
-  }
-
-  void test_isSupertypeOf_object() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    InterfaceType typeObject = classA.supertype;
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeObject), isFalse);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeObject.isSupertypeOf(typeA), isTrue);
-  }
-
-  void test_isSupertypeOf_self() {
-    ClassElement classA = class_(name: 'A');
-    InterfaceType typeA = interfaceType(classA);
-    // ignore: deprecated_member_use_from_same_package
-    expect(typeA.isSupertypeOf(typeA), isTrue);
   }
 
   void test_lookUpGetter_implemented() {
@@ -3099,7 +1971,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
 
     var F = typeParameter('F');
     var B = class_(
@@ -3117,8 +1988,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = new InterfaceTypeImpl(B);
-    typeBI.typeArguments = <DartType>[typeI];
+    InterfaceTypeImpl typeBI =
+        new InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
     MethodElement method = typeBI.lookUpMethod(methodName, library);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -3261,16 +2132,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(type.resolveToBound(null), same(type));
   }
 
-  void test_setTypeArguments() {
-    InterfaceTypeImpl type = interfaceType(ElementFactory.classElement2('A'));
-    List<DartType> typeArguments = <DartType>[
-      interfaceType(class_(name: 'B')),
-      interfaceType(class_(name: 'C'))
-    ];
-    type.typeArguments = typeArguments;
-    expect(type.typeArguments, typeArguments);
-  }
-
+  @deprecated
   void test_substitute_exception() {
     try {
       var classA = class_(name: 'A');
@@ -3284,16 +2146,17 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     }
   }
 
+  @deprecated
   void test_substitute_notEqual() {
     // The [test_substitute_equals] above has a slightly higher level
     // implementation.
     var classA = class_(name: 'A');
     TypeParameterElementImpl parameterElement =
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
     TypeParameterTypeImpl parameter =
         new TypeParameterTypeImpl(parameterElement);
-    type.typeArguments = <DartType>[parameter];
+    InterfaceTypeImpl type =
+        new InterfaceTypeImpl.explicit(classA, <DartType>[parameter]);
     InterfaceType argumentType = interfaceType(class_(name: 'B'));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("F")));
@@ -3434,106 +2297,6 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
     expect(type.element, element);
   }
 
-  void test_isMoreSpecificThan_typeArguments_dynamic() {
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << dynamic
-    expect(type.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_object() {
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << Object
-    expect(type.isMoreSpecificThan(typeProvider.objectType), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_recursive() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl typeParameterU =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("U"));
-    TypeParameterTypeImpl typeParameterTypeU =
-        new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("T"));
-    TypeParameterTypeImpl typeParameterTypeT =
-        new TypeParameterTypeImpl(typeParameterT);
-    typeParameterT.bound = typeParameterTypeU;
-    typeParameterU.bound = typeParameterTypeU;
-    // <T extends U> and <U extends T>
-    // T << S
-    expect(
-        typeParameterTypeT.isMoreSpecificThan(interfaceType(classS)), isFalse);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_self() {
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << E
-    expect(type.isMoreSpecificThan(type), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {
-    //  class A {}
-    //  class B extends A {}
-    //
-    ClassElement classA = class_(name: 'A');
-    ClassElement classB = ElementFactory.classElement(
-      "B",
-      classA.instantiate(
-        typeArguments: [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-    );
-    InterfaceType typeA = classA.instantiate(
-      typeArguments: [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    InterfaceType typeB = interfaceType(classB);
-    TypeParameterElementImpl typeParameterT =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("T"));
-    typeParameterT.bound = typeB;
-    TypeParameterTypeImpl typeParameterTypeT =
-        new TypeParameterTypeImpl(typeParameterT);
-    // <T extends B>
-    // T << A
-    expect(typeParameterTypeT.isMoreSpecificThan(typeA), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl typeParameterU =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("U"));
-    typeParameterU.bound = interfaceType(classS);
-    TypeParameterTypeImpl typeParameterTypeU =
-        new TypeParameterTypeImpl(typeParameterU);
-    TypeParameterElementImpl typeParameterT =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("T"));
-    typeParameterT.bound = typeParameterTypeU;
-    TypeParameterTypeImpl typeParameterTypeT =
-        new TypeParameterTypeImpl(typeParameterT);
-    // <T extends U> and <U extends S>
-    // T << S
-    expect(
-        typeParameterTypeT.isMoreSpecificThan(interfaceType(classS)), isTrue);
-  }
-
-  void test_isMoreSpecificThan_typeArguments_upperBound() {
-    ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl typeParameterT =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("T"));
-    typeParameterT.bound = interfaceType(classS);
-    TypeParameterTypeImpl typeParameterTypeT =
-        new TypeParameterTypeImpl(typeParameterT);
-    // <T extends S>
-    // T << S
-    expect(
-        typeParameterTypeT.isMoreSpecificThan(interfaceType(classS)), isTrue);
-  }
-
   void test_resolveToBound_bound() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element =
@@ -3646,6 +2409,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
         same(VoidTypeImpl.instance));
   }
 
+  @deprecated
   void test_substitute_equal() {
     TypeParameterElementImpl element =
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
@@ -3657,6 +2421,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
         same(argument));
   }
 
+  @deprecated
   void test_substitute_notEqual() {
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E")));
@@ -3676,51 +2441,6 @@ class VoidTypeImplTest extends AbstractTypeTest {
    */
   DartType _voidType = VoidTypeImpl.instance;
 
-  void test_isMoreSpecificThan_void_A() {
-    ClassElement classA = class_(name: 'A');
-    expect(
-      // ignore: deprecated_member_use_from_same_package
-      _voidType.isMoreSpecificThan(
-        classA.instantiate(
-          typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-      ),
-      isFalse,
-    );
-  }
-
-  void test_isMoreSpecificThan_void_dynamic() {
-    // ignore: deprecated_member_use_from_same_package
-    expect(_voidType.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
-  }
-
-  void test_isMoreSpecificThan_void_void() {
-    // ignore: deprecated_member_use_from_same_package
-    expect(_voidType.isMoreSpecificThan(_voidType), isTrue);
-  }
-
-  void test_isSubtypeOf_void_A() {
-    ClassElement classA = class_(name: 'A');
-    expect(
-      _voidType.isSubtypeOf(
-        classA.instantiate(
-          typeArguments: [],
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-      ),
-      isFalse,
-    );
-  }
-
-  void test_isSubtypeOf_void_dynamic() {
-    expect(_voidType.isSubtypeOf(DynamicTypeImpl.instance), isTrue);
-  }
-
-  void test_isSubtypeOf_void_void() {
-    expect(_voidType.isSubtypeOf(_voidType), isTrue);
-  }
-
   void test_isVoid() {
     expect(_voidType.isVoid, isTrue);
   }
@@ -3729,13 +2449,4 @@ class VoidTypeImplTest extends AbstractTypeTest {
     // Returns this.
     expect(_voidType.resolveToBound(null), same(_voidType));
   }
-}
-
-class _FunctionTypeImplTest_isSubtypeOf_baseCase_classFunction
-    extends InterfaceTypeImpl {
-  _FunctionTypeImplTest_isSubtypeOf_baseCase_classFunction(ClassElement arg0)
-      : super(arg0);
-
-  @override
-  bool get isDartCoreFunction => true;
 }

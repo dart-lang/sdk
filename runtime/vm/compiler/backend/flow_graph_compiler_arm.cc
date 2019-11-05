@@ -952,7 +952,9 @@ void FlowGraphCompiler::CompileGraph() {
 
   VisitBlocks();
 
+#if defined(DEBUG)
   __ bkpt(0);
+#endif
 
   if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
@@ -1330,7 +1332,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
 int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
                                                compiler::Label* label,
                                                Register class_id_reg,
-                                               const CidRange& range,
+                                               const CidRangeValue& range,
                                                int bias,
                                                bool jump_on_miss) {
   intptr_t cid_start = range.cid_start;

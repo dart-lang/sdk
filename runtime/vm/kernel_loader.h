@@ -228,6 +228,7 @@ class KernelLoader : public ValueObject {
 
   void ReadObfuscationProhibitions();
 
+ private:
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
   // constructor.
@@ -250,14 +251,6 @@ class KernelLoader : public ValueObject {
                          bool* is_potential_native,
                          bool* has_pragma_annotation);
 
-  const String& DartSymbolPlain(StringIndex index) {
-    return translation_helper_.DartSymbolPlain(index);
-  }
-  const String& DartSymbolObfuscate(StringIndex index) {
-    return translation_helper_.DartSymbolObfuscate(index);
-  }
-
- private:
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset,

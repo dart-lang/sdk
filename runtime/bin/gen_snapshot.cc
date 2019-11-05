@@ -113,10 +113,6 @@ static const char* kSnapshotKindNames[] = {
   V(vm_snapshot_instructions, vm_snapshot_instructions_filename)               \
   V(isolate_snapshot_data, isolate_snapshot_data_filename)                     \
   V(isolate_snapshot_instructions, isolate_snapshot_instructions_filename)     \
-  V(shared_data, shared_data_filename)                                         \
-  V(shared_instructions, shared_instructions_filename)                         \
-  V(shared_blobs, shared_blobs_filename)                                       \
-  V(reused_instructions, reused_instructions_filename)                         \
   V(blobs_container_filename, blobs_container_filename)                        \
   V(assembly, assembly_filename)                                               \
   V(elf, elf_filename)                                                         \
@@ -169,17 +165,6 @@ static void PrintUsage() {
 "--snapshot_kind=core                                                        \n"
 "--vm_snapshot_data=<output-file>                                            \n"
 "--isolate_snapshot_data=<output-file>                                       \n"
-"<dart-kernel-file>                                                          \n"
-"                                                                            \n"
-"To create an AOT application snapshot as blobs suitable for loading with    \n"
-"mmap:                                                                       \n"
-"--snapshot_kind=app-aot-blobs                                               \n"
-"--vm_snapshot_data=<output-file>                                            \n"
-"--vm_snapshot_instructions=<output-file>                                    \n"
-"--isolate_snapshot_data=<output-file>                                       \n"
-"--isolate_snapshot_instructions=<output-file>                               \n"
-"[--obfuscate]                                                               \n"
-"[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
 "To create an AOT application snapshot as assembly suitable for compilation  \n"
@@ -287,14 +272,12 @@ static int ParseArguments(int argc,
     case kAppJIT: {
       if ((load_vm_snapshot_data_filename == NULL) ||
           (isolate_snapshot_data_filename == NULL) ||
-          ((isolate_snapshot_instructions_filename == NULL) &&
-           (reused_instructions_filename == NULL))) {
+          (isolate_snapshot_instructions_filename == NULL)) {
         Syslog::PrintErr(
             "Building an app JIT snapshot requires specifying input files for "
             "--load_vm_snapshot_data and --load_vm_snapshot_instructions, an "
-            " output file for --isolate_snapshot_data, and either an output "
-            "file for --isolate_snapshot_instructions or an input file for "
-            "--reused_instructions.\n\n");
+            " output file for --isolate_snapshot_data, and an output "
+            "file for --isolate_snapshot_instructions.\n\n");
         return -1;
       }
       break;
@@ -582,15 +565,7 @@ static void CreateAndWriteAppSnapshot() {
 static void CreateAndWriteAppJITSnapshot() {
   ASSERT(snapshot_kind == kAppJIT);
   ASSERT(isolate_snapshot_data_filename != NULL);
-  ASSERT((isolate_snapshot_instructions_filename != NULL) ||
-         (reused_instructions_filename != NULL));
-
-  const uint8_t* reused_instructions = NULL;
-  std::unique_ptr<MappedMemory> mapped_reused_instructions;
-  if (reused_instructions_filename != NULL) {
-    mapped_reused_instructions = MapFile(reused_instructions_filename,
-                                         File::kReadOnly, &reused_instructions);
-  }
+  ASSERT(isolate_snapshot_instructions_filename != NULL);
 
   Dart_Handle result;
   uint8_t* isolate_snapshot_data_buffer = NULL;
@@ -601,16 +576,14 @@ static void CreateAndWriteAppJITSnapshot() {
   result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
       &isolate_snapshot_instructions_buffer,
-      &isolate_snapshot_instructions_size, reused_instructions);
+      &isolate_snapshot_instructions_size);
   CHECK_RESULT(result);
 
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
             isolate_snapshot_data_size);
-  if (reused_instructions_filename == NULL) {
-    WriteFile(isolate_snapshot_instructions_filename,
-              isolate_snapshot_instructions_buffer,
-              isolate_snapshot_instructions_size);
-  }
+  WriteFile(isolate_snapshot_instructions_filename,
+            isolate_snapshot_instructions_buffer,
+            isolate_snapshot_instructions_size);
 }
 
 static void StreamingWriteCallback(void* callback_data,
@@ -651,34 +624,12 @@ static void CreateAndWritePrecompiledSnapshot() {
         Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip);
     CHECK_RESULT(result);
   } else if (snapshot_kind == kAppAOTBlobs) {
-    const uint8_t* shared_data = NULL;
-    const uint8_t* shared_instructions = NULL;
-    std::unique_ptr<MappedMemory> mapped_shared_data;
-    std::unique_ptr<MappedMemory> mapped_shared_instructions;
-    if (shared_blobs_filename != NULL) {
-      AppSnapshot* shared_blobs = NULL;
-      Syslog::PrintErr("Shared blobs in gen_snapshot are for testing only.\n");
-      shared_blobs = Snapshot::TryReadAppSnapshot(shared_blobs_filename);
-      if (shared_blobs == NULL) {
-        Syslog::PrintErr("Failed to load: %s\n", shared_blobs_filename);
-        Dart_ExitScope();
-        Dart_ShutdownIsolate();
-        exit(kErrorExitCode);
-      }
-      const uint8_t* ignored;
-      shared_blobs->SetBuffers(&ignored, &ignored, &shared_data,
-                               &shared_instructions);
-    } else {
-      if (shared_data_filename != NULL) {
-        mapped_shared_data =
-            MapFile(shared_data_filename, File::kReadOnly, &shared_data);
-      }
-      if (shared_instructions_filename != NULL) {
-        mapped_shared_instructions =
-            MapFile(shared_instructions_filename, File::kReadOnly,
-                    &shared_instructions);
-      }
-    }
+    Syslog::PrintErr(
+        "WARNING: app-aot-blobs snapshots have been deprecated and support for "
+        "generating them will be removed soon. Please use the app-aot-elf or "
+        "app-aot-assembly snapshot kinds in conjunction with the portable ELF "
+        "loader from //runtime/bin:elf_loader if necessary. See "
+        "http://dartbug.com/38764 for more details.\n");
 
     uint8_t* vm_snapshot_data_buffer = NULL;
     intptr_t vm_snapshot_data_size = 0;
@@ -693,7 +644,7 @@ static void CreateAndWritePrecompiledSnapshot() {
         &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
         &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
         &isolate_snapshot_instructions_buffer,
-        &isolate_snapshot_instructions_size, shared_data, shared_instructions);
+        &isolate_snapshot_instructions_size);
     CHECK_RESULT(result);
 
     if (blobs_container_filename != NULL) {
@@ -761,7 +712,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     loading_kernel_failed = (isolate == nullptr);
   } else {
     isolate = Dart_CreateIsolateGroup(NULL, NULL, isolate_snapshot_data,
-                                      isolate_snapshot_instructions, NULL, NULL,
+                                      isolate_snapshot_instructions,
                                       &isolate_flags, isolate_group_data.get(),
                                       /*isolate_data=*/nullptr, &error);
   }

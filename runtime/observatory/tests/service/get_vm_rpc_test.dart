@@ -24,6 +24,8 @@ var tests = <VMTest>[
     expect(result['startTime'], isPositive);
     expect(result['isolates'].length, isPositive);
     expect(result['isolates'][0]['type'], equals('@Isolate'));
+    expect(result['isolateGroups'].length, isPositive);
+    expect(result['isolateGroups'][0]['type'], equals('@IsolateGroup'));
   },
 ];
 

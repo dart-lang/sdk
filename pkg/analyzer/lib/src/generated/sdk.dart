@@ -329,8 +329,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
    */
   LibraryMap _librariesMap = new LibraryMap();
 
-  SdkLibrariesReader_LibraryBuilder([@deprecated bool useDart2jsPaths]);
-
   /**
    * Return the library map that was populated by visiting the AST structure
    * parsed from the contents of the libraries file.

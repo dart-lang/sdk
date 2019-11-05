@@ -211,6 +211,16 @@ prebuilt_dart_action("dartdevc_sdk") {
     "-o",
     rebase_path("$target_gen_dir/js/legacy/dart_sdk.js"),
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [
+      "--enable-experiment=non-nullable",
+
+      # TODO(38813): Ignore incorrect analyzer errors.
+      "--unsafe-force-compile",
+    ]
+  }
 }
 
 # Builds everything needed to run dartdevc tests using test.dart.
@@ -321,6 +331,19 @@ prebuilt_dart_action("dartdevc_test_pkg") {
     "--output",
     rebase_path("$target_gen_dir"),
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [
+      "--enable-experiment=non-nullable",
+
+      # TODO(rnystrom): Most of the packages used by tests can be cleanly
+      # compiled as opted-in libraries, but js.dart has an optional parameter
+      # of type String with no default value. Changing that would be a breaking
+      # API change. For now, ignore the error.
+      "--unsafe-force-compile",
+    ]
+  }
 }
 
 prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
@@ -349,14 +372,19 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root",
-    rebase_path("../../sdk"),
+    "file:///" + rebase_path(sdk_root),
     "--libraries-file",
-    "file:///" + rebase_path("$sdk_root/lib/libraries.json"),
+    "org-dartlang-sdk:///lib/libraries.json",
     "--output",
     rebase_path(sdk_dill),
     "--source",
     "dart:core",
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
 
 copy("dartdevc_kernel_sdk_libraries_json") {
@@ -424,4 +452,9 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "-o",
     rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }

@@ -74,8 +74,7 @@ class AssignmentCheckerTest extends Object
         ..supertype = _myListOfListSupertype.type as InterfaceType;
     }
     return DecoratedType(
-        InterfaceTypeImpl(_myListOfListClass)
-          ..typeArguments = [elementType.type],
+        InterfaceTypeImpl.explicit(_myListOfListClass, [elementType.type]),
         newNode(),
         typeArguments: [elementType]);
   }
@@ -1202,6 +1201,15 @@ int f(int i, int j) => i ?? j;
     assertEdge(right, expression, guards: [left], hard: false);
   }
 
+  test_binaryExpression_questionQuestion_genericReturnType() async {
+    await analyze('''
+class C<E> {
+  C<E> operator +(C<E> c) => this;
+}
+C<int> f(C<int> i, C<int> j) => i ?? j;
+''');
+  }
+
   test_binaryExpression_right_dynamic() async {
     await analyze('''
 class C {
@@ -1376,6 +1384,15 @@ D f(int/*2*/ i) => D(i);
         hard: true);
     assertUnion(constructorParameterType.node,
         decoratedTypeAnnotation('int/*1*/').node);
+  }
+
+  test_class_metadata() async {
+    await analyze('''
+@deprecated
+class C {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
   }
 
   test_conditionalExpression_condition_check() async {

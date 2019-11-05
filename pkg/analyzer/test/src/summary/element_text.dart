@@ -442,14 +442,6 @@ class _ElementWriter {
       } else {
         buffer.write('<null>');
       }
-    } else {
-      buffer.write('typedef ');
-      writeType2(e.returnType);
-
-      writeName(e);
-
-      writeTypeParameterElements(e.typeParameters);
-      writeParameterElements(e.parameters);
     }
 
     buffer.writeln(';');
@@ -1042,8 +1034,6 @@ class _ElementWriter {
       if (type.element.typeParameters.isNotEmpty) {
         writeList('<', '>', type.typeArguments, ', ', writeType);
       }
-    } else if (type is CircularFunctionTypeImpl) {
-      buffer.write('...');
     } else if (type is FunctionType) {
       writeType2(type.returnType);
       buffer.write('Function');

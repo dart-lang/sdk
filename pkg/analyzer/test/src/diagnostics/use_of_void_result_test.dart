@@ -709,4 +709,20 @@ extension on void {
       error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
     ]);
   }
+
+  test_void() async {
+    await assertErrorsInCode('''
+extension E on String {
+  int get g => 0;
+}
+
+void f() {}
+
+main() {
+  E(f()).g;
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
+    ]);
+  }
 }

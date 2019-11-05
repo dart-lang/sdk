@@ -16,12 +16,12 @@ main(List<String> args) async {
   futures.add(
       run("pkg/front_end/test/explicit_creation_test.dart", [], filter: false));
   futures.add(run(
-    "pkg/front_end/test/fasta/messages_test.dart",
+    "pkg/front_end/test/fasta/messages_suite.dart",
     ["-DfastOnly=true"],
   ));
-  futures.add(run("pkg/front_end/test/spelling_test_not_src_test.dart", []));
-  futures.add(run("pkg/front_end/test/spelling_test_src_test.dart", []));
-  futures.add(run("pkg/front_end/test/lint_test.dart", []));
+  futures.add(run("pkg/front_end/test/spelling_test_not_src_suite.dart", []));
+  futures.add(run("pkg/front_end/test/spelling_test_src_suite.dart", []));
+  futures.add(run("pkg/front_end/test/lint_suite.dart", []));
   futures.add(run("pkg/front_end/test/deps_test.dart", [], filter: false));
   await Future.wait(futures);
   print("\n-----------------------\n");

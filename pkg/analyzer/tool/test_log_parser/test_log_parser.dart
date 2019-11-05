@@ -139,10 +139,6 @@ class TestResult {
             traceLine.contains('DeclarationResolver.applyParameters') ||
             traceLine.contains('ResolutionStorer._store')) {
           return stackTrace[i + 1];
-        } else if (traceLine.contains('_FunctionTypeImplLazy.substitute2') ||
-            traceLine.contains('ElementImpl.encloseElement') ||
-            traceLine.contains('ResolutionStorer._validateLocation')) {
-          return stackTrace[i + 2];
         }
         return traceLine;
       }

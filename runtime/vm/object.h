@@ -433,6 +433,7 @@ class Object {
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
+  V(Type, never_type)                                                          \
   V(AbstractType, null_abstract_type)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
@@ -448,6 +449,7 @@ class Object {
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
+  static RawClass* never_class() { return never_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
@@ -590,7 +592,12 @@ class Object {
   // methods below or their counterparts in RawObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  type LoadPointer(type const* addr) const {
+    return raw()->LoadPointer<type, order>(addr);
+  }
+
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) const {
     raw()->StorePointer<type, order>(addr, value);
   }
@@ -615,27 +622,20 @@ class Object {
     *const_cast<FieldType*>(addr) = value;
   }
 
-  template <typename FieldType, typename ValueType, MemoryOrder order>
+  template <typename FieldType, typename ValueType, std::memory_order order>
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
-
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<FieldType*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      StoreNonPointer<FieldType, ValueType>(addr, value);
-    }
+    reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
+        ->store(value, order);
   }
 
-  template <typename FieldType, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename FieldType,
+            std::memory_order order = std::memory_order_relaxed>
   FieldType LoadNonPointer(const FieldType* addr) const {
-    if (order == MemoryOrder::kAcquire) {
-      return AtomicOperations::LoadAcquire(const_cast<FieldType*>(addr));
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      return *const_cast<FieldType*>(addr);
-    }
+    return reinterpret_cast<std::atomic<FieldType>*>(
+               const_cast<FieldType*>(addr))
+        ->load(order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -721,6 +721,7 @@ class Object {
   static RawClass* class_class_;             // Class of the Class vm object.
   static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
   static RawClass* void_class_;              // Class of the 'void' type.
+  static RawClass* never_class_;             // Class of the 'Never' type.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
@@ -1040,6 +1041,9 @@ class Class : public Object {
 
   // Check if this class represents the 'void' class.
   bool IsVoidClass() const { return id() == kVoidCid; }
+
+  // Check if this class represents the 'Never' class.
+  bool IsNeverClass() const { return id() == kNeverCid; }
 
   // Check if this class represents the 'Object' class.
   bool IsObjectClass() const { return id() == kInstanceCid; }
@@ -1828,7 +1832,7 @@ class ICData : public Object {
 
     // Though we ensure that once the state bits are updated, all other previous
     // writes to the IC are visible as well.
-    StoreNonPointer<uint32_t, uint32_t, MemoryOrder::kRelease>(
+    StoreNonPointer<uint32_t, uint32_t, std::memory_order_release>(
         &raw_ptr()->state_bits_, updated_bits);
   }
 
@@ -2020,7 +2024,8 @@ class ICData : public Object {
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
 
   RawArray* entries() const {
-    return AtomicOperations::LoadAcquire(&raw_ptr()->entries_);
+    return LoadPointer<RawArray*, std::memory_order_acquire>(
+        &raw_ptr()->entries_);
   }
 
  private:
@@ -2049,7 +2054,7 @@ class ICData : public Object {
   bool is_megamorphic() const {
     // Ensure any following load instructions do not get performed before this
     // one.
-    const uint32_t bits = LoadNonPointer<uint32_t, MemoryOrder::kAcquire>(
+    const uint32_t bits = LoadNonPointer<uint32_t, std::memory_order_acquire>(
         &raw_ptr()->state_bits_);
     return MegamorphicBit::decode(bits);
   }
@@ -2125,6 +2130,21 @@ class ICData : public Object {
   friend class SnapshotWriter;
 };
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum Nullability {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
+// Nullability aware subtype checking modes.
+enum NNBDMode {
+  kUnaware,
+  kWeak,
+  kStrong,
+};
+
 // Often used constants for number of free function type parameters.
 enum {
   kNoneFree = 0,
@@ -2164,7 +2184,8 @@ class Function : public Object {
   // owner class of this function, then its signature type is a parameterized
   // function type with uninstantiated type arguments 'T' and 'R' as elements of
   // its type argument vector.
-  RawType* SignatureType() const;
+  // A function type is non-nullable by default.
+  RawType* SignatureType(Nullability nullability = kNonNullable) const;
   RawType* ExistingSignatureType() const;
 
   // Update the signature type (with a canonical version).
@@ -2730,14 +2751,10 @@ class Function : public Object {
     if (IsFfiTrampoline()) {
       return true;
     }
-    // On DBC we use native calls instead of IR for the view factories (see
-    // kernel_to_il.cc)
-#if !defined(TARGET_ARCH_DBC)
     if (IsTypedDataViewFactory() || IsFfiLoad() || IsFfiStore() ||
         IsFfiFromAddress() || IsFfiGetAddress()) {
       return true;
     }
-#endif
     return false;
   }
 
@@ -3407,6 +3424,9 @@ class Field : public Object {
   bool is_extension_member() const {
     return IsExtensionMemberBit::decode(raw_ptr()->kind_bits_);
   }
+  bool needs_load_guard() const {
+    return NeedsLoadGuardBit::decode(raw_ptr()->kind_bits_);
+  }
   bool is_reflectable() const {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
@@ -3693,6 +3713,9 @@ class Field : public Object {
   void set_is_extension_member(bool value) const {
     set_kind_bits(IsExtensionMemberBit::update(value, raw_ptr()->kind_bits_));
   }
+  void set_needs_load_guard(bool value) const {
+    set_kind_bits(NeedsLoadGuardBit::update(value, raw_ptr()->kind_bits_));
+  }
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
@@ -3744,7 +3767,9 @@ class Field : public Object {
   bool IsUninitialized() const;
 
   // Run initializer and set field value.
-  DART_WARN_UNUSED_RESULT RawError* Initialize() const;
+  DART_WARN_UNUSED_RESULT RawError* InitializeInstance(
+      const Instance& instance) const;
+  DART_WARN_UNUSED_RESULT RawError* InitializeStatic() const;
 
   // Run initializer only.
   DART_WARN_UNUSED_RESULT RawObject* EvaluateInitializer() const;
@@ -3805,6 +3830,7 @@ class Field : public Object {
     kGenericCovariantImplBit,
     kIsLateBit,
     kIsExtensionMemberBit,
+    kNeedsLoadGuardBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -3828,6 +3854,8 @@ class Field : public Object {
   class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
   class IsExtensionMemberBit
       : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
+  class NeedsLoadGuardBit
+      : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3887,11 +3915,6 @@ class Script : public Object {
   void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
 
-  RawScript::Kind kind() const {
-    return RawScript::KindBits::decode(raw_ptr()->kind_and_tags_);
-  }
-
-  const char* GetKindAsCString() const;
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
@@ -3956,14 +3979,11 @@ class Script : public Object {
     return RoundedAllocationSize(sizeof(RawScript));
   }
 
-  static RawScript* New(const String& url,
-                        const String& source,
-                        RawScript::Kind kind);
+  static RawScript* New(const String& url, const String& source);
 
   static RawScript* New(const String& url,
                         const String& resolved_url,
-                        const String& source,
-                        RawScript::Kind kind);
+                        const String& source);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
@@ -3976,8 +3996,7 @@ class Script : public Object {
  private:
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
-  void set_kind(RawScript::Kind value) const;
-  void set_kind_and_tags(uint8_t value) const;
+  void set_flags(uint8_t value) const;
   void set_load_timestamp(int64_t value) const;
   RawArray* debug_positions() const;
 
@@ -4793,11 +4812,6 @@ class Instructions : public Object {
   static const intptr_t kPolymorphicEntryOffsetJIT = 48;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
   static const intptr_t kPolymorphicEntryOffsetAOT = 28;
-#elif defined(TARGET_ARCH_DBC)
-  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
-  static const intptr_t kPolymorphicEntryOffsetJIT = 0;
-  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -4842,7 +4856,7 @@ class Instructions : public Object {
 
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(RawInstructions) + sizeof(RawObject) +
-                    (2 * OS::kMaxPreferredCodeAlignment)));
+                    (2 * kMaxObjectAlignment)));
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawInstructions) ==
@@ -4851,18 +4865,11 @@ class Instructions : public Object {
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    intptr_t instructions_size =
-        Utils::RoundUp(size, OS::PreferredCodeAlignment());
-    intptr_t result = instructions_size + HeaderSize();
-    ASSERT(result % OS::PreferredCodeAlignment() == 0);
-    return result;
+    return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
   }
 
   static intptr_t HeaderSize() {
-    const intptr_t alignment = OS::PreferredCodeAlignment();
-    const intptr_t aligned_size =
-        Utils::RoundUp(sizeof(RawInstructions), alignment);
-    return aligned_size;
+    return Utils::RoundUp(sizeof(RawInstructions), kWordSize);
   }
 
   static RawInstructions* FromPayloadStart(uword payload_start) {
@@ -4880,19 +4887,8 @@ class Instructions : public Object {
     return memcmp(a->ptr(), b->ptr(), InstanceSize(Size(a))) == 0;
   }
 
-  CodeStatistics* stats() const {
-#if defined(DART_PRECOMPILER)
-    return raw_ptr()->stats_;
-#else
-    return nullptr;
-#endif
-  }
-
-  void set_stats(CodeStatistics* stats) const {
-#if defined(DART_PRECOMPILER)
-    StoreNonPointer(&raw_ptr()->stats_, stats);
-#endif
-  }
+  CodeStatistics* stats() const;
+  void set_stats(CodeStatistics* stats) const;
 
   uword unchecked_entrypoint_pc_offset() const {
     return raw_ptr()->unchecked_entrypoint_pc_offset_;
@@ -6799,6 +6795,13 @@ class AbstractType : public Instance {
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual void SetIsBeingFinalized() const;
+
+  virtual Nullability nullability() const;
+  virtual bool IsUndetermined() const { return nullability() == kUndetermined; }
+  virtual bool IsNullable() const { return nullability() == kNullable; }
+  virtual bool IsNonNullable() const { return nullability() == kNonNullable; }
+  virtual bool IsLegacy() const { return nullability() == kLegacy; }
+
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
@@ -6911,12 +6914,15 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
 
+  // Check if this type represents the 'Never' type.
+  bool IsNeverType() const;
+
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const;
 
-  // Check if this type represents a top type, i.e. 'dynamic', 'Object', or
-  // 'void' type.
-  bool IsTopType() const;
+  // Check if this type represents a top type.
+  // TODO(regis): Remove default kUnaware mode as implementation progresses.
+  bool IsTopType(NNBDMode mode = kUnaware) const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -7024,6 +7030,15 @@ class Type : public AbstractType {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
   }
+  virtual Nullability nullability() const {
+    return static_cast<Nullability>(raw_ptr()->nullability_);
+  }
+  void set_nullability(Nullability value) const {
+    ASSERT(!IsCanonical());
+    ASSERT(value != kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, value);
+  }
+  RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   void set_type_class(const Class& value) const;
@@ -7073,6 +7088,9 @@ class Type : public AbstractType {
 
   // The 'void' type.
   static RawType* VoidType();
+
+  // The 'Never' type.
+  static RawType* NeverType();
 
   // The 'Object' type.
   static RawType* ObjectType();
@@ -7155,6 +7173,11 @@ class TypeRef : public AbstractType {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return ref_type.IsNull() || ref_type.IsBeingFinalized();
   }
+  virtual Nullability nullability() const {
+    const AbstractType& ref_type = AbstractType::Handle(type());
+    ASSERT(!ref_type.IsNull());
+    return ref_type.nullability();
+  }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -7231,6 +7254,11 @@ class TypeParameter : public AbstractType {
     return RawTypeParameter::GenericCovariantImplBit::decode(raw_ptr()->flags_);
   }
   void SetGenericCovariantImpl(bool value) const;
+  virtual Nullability nullability() const {
+    return static_cast<Nullability>(raw_ptr()->nullability_);
+  }
+  void set_nullability(Nullability value) const;
+  RawTypeParameter* ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
   classid_t parameterized_class_id() const;
@@ -8425,12 +8453,13 @@ class Array : public Instance {
 
   // Access to the array with acquire release semantics.
   RawObject* AtAcquire(intptr_t index) const {
-    return AtomicOperations::LoadAcquire(ObjectAddr(index));
+    return LoadPointer<RawObject*, std::memory_order_acquire>(
+        ObjectAddr(index));
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer<RawObject*, MemoryOrder::kRelease>(ObjectAddr(index),
-                                                         value.raw());
+    StoreArrayPointer<RawObject*, std::memory_order_release>(ObjectAddr(index),
+                                                             value.raw());
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -8537,7 +8566,7 @@ class Array : public Instance {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StoreArrayPointer(type const* addr, type value) const {
     raw()->StoreArrayPointer<type, order>(addr, value);
   }

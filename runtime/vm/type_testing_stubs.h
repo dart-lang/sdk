@@ -51,7 +51,7 @@ class TypeTestingStubGenerator {
   RawCode* OptimizedCodeForType(const AbstractType& type);
 
  private:
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   RawCode* BuildCodeForType(const Type& type);
   static void BuildOptimizedTypeTestStub(compiler::Assembler* assembler,
@@ -116,7 +116,7 @@ class TypeTestingStubGenerator {
       compiler::Label* check_failed);
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
 
   TypeTestingStubNamer namer_;
   ObjectStore* object_store_;

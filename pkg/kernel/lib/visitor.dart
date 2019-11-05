@@ -279,6 +279,7 @@ class DartTypeVisitor<R> {
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
+  R visitNeverType(NeverType node) => defaultDartType(node);
 }
 
 class DartTypeVisitor1<R, T> {
@@ -293,6 +294,7 @@ class DartTypeVisitor1<R, T> {
   R visitTypeParameterType(TypeParameterType node, T arg) =>
       defaultDartType(node, arg);
   R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
+  R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -521,6 +523,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitFunctionType(FunctionType node) => defaultDartType(node);
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
+  R visitNeverType(NeverType node) => defaultDartType(node);
 
   // Constants
   R defaultConstant(Constant node) => defaultNode(node);

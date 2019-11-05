@@ -4,16 +4,9 @@
 
 library fasta.field_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Expression,
-        Field,
-        InvalidType,
-        Member,
-        Name,
-        NullLiteral;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+
+import 'package:kernel/ast.dart' hide MapEntry, Variance;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -29,8 +22,6 @@ import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
 import '../problems.dart' show internalProblem;
-
-import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 
@@ -135,6 +126,18 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
     return type == null && (hasInitializer || isClassInstanceMember);
   }
 
+  @override
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) {
+        return !hasInitializer;
+      }
+      return false;
+    }
+    return true;
+  }
+
   Field build(SourceLibraryBuilder libraryBuilder) {
     field
       ..isCovariant = isCovariant
@@ -207,10 +210,8 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
-      initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
-        ..parent = field;
-      bodyBuilder.typeInferrer
-          ?.inferFieldInitializer(bodyBuilder, field.type, field.initializer);
+      initializer = bodyBuilder.typeInferrer?.inferFieldInitializer(bodyBuilder,
+          field.type, bodyBuilder.parseFieldInitializer(constInitializerToken));
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
         loader.transformPostInference(field, bodyBuilder.transformSetLiterals,
@@ -246,8 +247,8 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
     }
     type.isStarted = true;
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
-        .createTopLevelTypeInferrer(
-            fileUri, field.enclosingClass?.thisType, library);
+        .createTopLevelTypeInferrer(fileUri, field.enclosingClass?.thisType,
+            library, dataForTesting?.inferenceData);
     BodyBuilder bodyBuilder =
         library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =

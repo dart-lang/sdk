@@ -8,7 +8,12 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
+import '../../base/common.dart';
+
+import '../kernel/class_hierarchy_builder.dart';
 import '../problems.dart' show unsupported;
+import '../type_inference/type_inference_engine.dart'
+    show InferenceDataForTesting;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -17,8 +22,6 @@ import 'extension_builder.dart';
 import 'library_builder.dart';
 import 'modifier_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart';
-
 abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   void set parent(Builder value);
 
@@ -26,9 +29,6 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
 
   /// The [Member] built by this builder;
   Member get member;
-
-  // TODO(johnniwinther): Deprecate this.
-  Member get target;
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   Member get extensionTearOff;
@@ -57,7 +57,12 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   String get name;
 
-  MemberBuilderImpl(this.parent, int charOffset) : super(parent, charOffset);
+  MemberDataForTesting dataForTesting;
+
+  MemberBuilderImpl(this.parent, int charOffset)
+      : dataForTesting =
+            retainDataForTesting ? new MemberDataForTesting() : null,
+        super(parent, charOffset);
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -99,10 +104,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     }
   }
 
-  // TODO(johnniwinther): Deprecate this.
-  @override
-  Member get target => member;
-
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
   Member get extensionTearOff =>
@@ -132,4 +133,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+}
+
+class MemberDataForTesting {
+  final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
+
+  MemberBuilder patchForTesting;
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.developer;
 
 /// Service protocol is the protocol that a client like the Observatory
@@ -60,6 +58,7 @@ class Service {
   /// enable (true) or disable (false) the web server servicing requests.
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable: false}) async {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
@@ -79,6 +78,7 @@ class Service {
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
   static String getIsolateID(Isolate isolate) {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIDFromSendPort(isolate.controlPort);
   }

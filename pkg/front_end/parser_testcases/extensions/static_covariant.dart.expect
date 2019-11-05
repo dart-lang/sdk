@@ -1,3 +1,9 @@
+Problems reported:
+
+parser_test/extensions/static_covariant:6:19: Can't have modifier 'covariant' in an extension.
+  static addChild(covariant A child) {}
+                  ^^^^^^^^^
+
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -51,7 +57,7 @@ beginCompilationUnit(class)
               beginMetadataStar(covariant)
               endMetadataStar(0)
               handleRecoverableError(Message[ExtraneousModifierInExtension, Can't have modifier 'covariant' in an extension., Try removing 'covariant'., {token: covariant}], covariant, covariant)
-              beginFormalParameter(covariant, MemberKind.ExtensionStaticMethod, null, null, null)
+              beginFormalParameter(covariant, MemberKind.ExtensionStaticMethod, null, covariant, null)
                 handleIdentifier(A, typeReference)
                 handleNoTypeArguments(child)
                 handleType(A, null)

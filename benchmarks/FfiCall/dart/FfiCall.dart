@@ -605,8 +605,6 @@ Pointer<Uint8> doCall20PointerUint8(
 //  * CPU: Intel(R) Xeon(R) Gold 6154
 //    * Architecture: x64
 //      * 200 - 1100 us
-//    * Architecture: SimDBC64
-//      * 2800 - 110000 us
 const N = 1000;
 
 class Uint8x01 extends BenchmarkBase {

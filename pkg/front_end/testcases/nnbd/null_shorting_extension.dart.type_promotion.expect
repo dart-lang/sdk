@@ -1,0 +1,93 @@
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:35:5: Context: Write to c@681
+  c = c?.field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:40:5: Context: Write to c@681
+  c = c?.field.field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:43:5: Context: Write to c@681
+  c = c?.field = new Class().field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:45:5: Context: Write to c@681
+  c = c?.field = new Class().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:47:5: Context: Write to c@681
+  c = c?.field = new Class().method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:54:5: Context: Write to c@681
+  c = c?.field.field.field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:57:5: Context: Write to c@681
+  c = c?.field = new Class().field.field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:59:5: Context: Write to c@681
+  c = c?.field = new Class().field.field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:61:5: Context: Write to c@681
+  c = c?.field = new Class().field.method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:67:5: Context: Write to c@681
+  c = c?.field.field = new Class().field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:69:5: Context: Write to c@681
+  c = c?.field.field = new Class().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:71:5: Context: Write to c@681
+  c = c?.field.field = new Class().method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:73:5: Context: Write to c@681
+  c = c?.field = new Class().field = new Class().field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:75:5: Context: Write to c@681
+  c = c?.field = new Class().field = new Class().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:77:5: Context: Write to c@681
+  c = c?.field = new Class().field = new Class().method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:79:5: Context: Write to c@681
+  c = c?.method().field = new Class().field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:81:5: Context: Write to c@681
+  c = c?.method().field = new Class().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:83:5: Context: Write to c@681
+  c = c?.method().field = new Class().method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:87:5: Context: Write to c@681
+  c = c?.field.method().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:90:5: Context: Write to c@681
+  c = c?.field = new Class().method().field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:92:5: Context: Write to c@681
+  c = c?.field = new Class().method().field = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:94:5: Context: Write to c@681
+  c = c?.field = new Class().method().method();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:107:5: Context: Write to c@681
+  c = c?.field[c] = new Class();
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:110:5: Context: Write to c@681
+  c = c?.field[c] += 0;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:114:5: Context: Write to c@681
+  c = c?.field[c]++;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:116:5: Context: Write to c@681
+  c = ++c?.field[c];
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:123:5: Context: Write to c@681
+  c = c?.field += 0;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:125:5: Context: Write to c@681
+  c = c?.field.field += 0;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:129:5: Context: Write to c@681
+  c = c?.field++;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:131:5: Context: Write to c@681
+  c = ++c?.field;
+    ^
+pkg/front_end/testcases/nnbd/null_shorting_extension.dart:136:5: Context: Write to c@681
+  c = c?.field ??= c;
+    ^

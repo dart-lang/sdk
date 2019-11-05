@@ -441,7 +441,6 @@ ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
   for (intptr_t i = count - 1; i >= 0; --i) {
     ASSERT(!IsStackEmpty());
     Definition* arg_def = B->stack_->definition();
-    ASSERT(!arg_def->HasSSATemp());
     ASSERT(arg_def->temp_index() >= i);
 
     PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
@@ -1066,13 +1065,9 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   // A DebugStepCheck is performed as part of the calling stub.
 
-  const UnlinkedCall& selector =
-      UnlinkedCall::Cast(ConstantAt(DecodeOperandD()).value());
-
+  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
   const ArgumentsDescriptor arg_desc(
-      Array::Handle(Z, selector.args_descriptor()));
-
-  const String& name = String::ZoneHandle(Z, selector.target_name());
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value()));
 
   Token::Kind token_kind;
   intptr_t checked_argument_count;
@@ -1218,13 +1213,15 @@ void BytecodeFlowGraphBuilder::BuildStoreFieldTOS() {
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Stores to _Closure fields are lower-level.
-    code_ += B->StoreInstanceField(position_, ClosureSlotByField(field));
+    code_ +=
+        B->StoreInstanceField(position_, ClosureSlotByField(field),
+                              StoreInstanceFieldInstr::Kind::kInitializing);
   } else {
     // The rest of the StoreFieldTOS are for field initializers.
     // TODO(alexmarkov): Consider adding a flag to StoreFieldTOS or even
     // adding a separate bytecode instruction.
-    code_ += B->StoreInstanceFieldGuarded(field,
-                                          /* is_initialization_store = */ true);
+    code_ += B->StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
   }
 }
 
@@ -1251,7 +1248,8 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 void BytecodeFlowGraphBuilder::BuildStoreContextParent() {
   LoadStackSlots(2);
 
-  code_ += B->StoreInstanceField(position_, Slot::Context_parent());
+  code_ += B->StoreInstanceField(position_, Slot::Context_parent(),
+                                 StoreInstanceFieldInstr::Kind::kInitializing);
 }
 
 void BytecodeFlowGraphBuilder::BuildLoadContextParent() {
@@ -1329,18 +1327,6 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     return;
   }
   PushConstant(operand);
-  code_ += B->LoadStaticField();
-}
-
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-              "Cleanup PushStatic bytecode instruction");
-void BytecodeFlowGraphBuilder::BuildPushStatic() {
-  // Note: Field object is both pushed into the stack and
-  // available in constant pool entry D.
-  // TODO(alexmarkov): clean this up. If we stop pushing field object
-  // explicitly, we might need the following code to get it from constant
-  // pool: PushConstant(ConstantAt(DecodeOperandD()));
-
   code_ += B->LoadStaticField();
 }
 
@@ -1424,7 +1410,7 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   code_ <<= instr;
 }
 
-void BytecodeFlowGraphBuilder::BuildCheckReceiverForNull() {
+void BytecodeFlowGraphBuilder::BuildNullCheck() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -1932,9 +1918,6 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
 //             static tearoff
 // <type args> => [NativeSignatureType]
 void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
   const TypeArguments& type_args =
       TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
   ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
@@ -1956,7 +1939,6 @@ void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
                                   native_sig, target, exceptional_return));
   code_ += B->Constant(result);
   code_ += B->DropTempsPreserveTop(3);
-#endif
 }
 
 void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {

@@ -13,8 +13,6 @@
 #include "vm/constants_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/constants_arm64.h"
-#elif defined(TARGET_ARCH_DBC)
-#include "vm/constants_dbc.h"
 #else
 #error Unknown architecture.
 #endif
@@ -41,8 +39,6 @@ using namespace arch_x64;  // NOLINT
 using namespace arch_arm;  // NOLINT
 #elif defined(TARGET_ARCH_ARM64)
 using namespace arch_arm64;  // NOLINT
-#elif defined(TARGET_ARCH_DBC)
-// DBC is defined in namespace dart already.
 #else
 #error Unknown architecture.
 #endif
@@ -85,8 +81,6 @@ class RegisterNames {
 #endif  // !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
 };
 
-#if !defined(TARGET_ARCH_DBC)
-
 static constexpr bool IsArgumentRegister(Register reg) {
   return ((1 << reg) & CallingConventions::kArgumentRegisters) != 0;
 }
@@ -98,8 +92,6 @@ static constexpr bool IsFpuArgumentRegister(FpuRegister reg) {
 static constexpr bool IsCalleeSavedRegister(Register reg) {
   return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
 }
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace dart
 

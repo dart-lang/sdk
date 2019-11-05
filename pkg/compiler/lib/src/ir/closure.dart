@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
 
 /// Collection of scope data collected for a single member.
 class ClosureScopeModel {
@@ -414,4 +415,7 @@ class TypeVariableTypeWithContext implements ir.Node {
   String toString() =>
       'TypeVariableTypeWithContext(type=$type,context=$context,'
       'kind=$kind,typeDeclaration=$typeDeclaration)';
+
+  @override
+  String leakingDebugToString() => ir.debugNodeToString(this);
 }

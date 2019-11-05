@@ -95,9 +95,6 @@ class Thread;
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_LIST(V)
-#else
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, write_barrier_code_, StubCode::WriteBarrier().raw(), NULL)       \
   V(RawCode*, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),  \
@@ -133,8 +130,6 @@ class Thread;
   V(RawCode*, call_native_through_safepoint_stub_,                             \
     StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
-#endif
-
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
@@ -152,9 +147,6 @@ class Thread;
   ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
          Thread::bool_false_offset());
 
-#if defined(TARGET_ARCH_DBC)
-#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
-#else
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, write_barrier_entry_point_, StubCode::WriteBarrier().EntryPoint(),  \
     0)                                                                         \
@@ -178,7 +170,6 @@ class Thread;
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
-#endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
@@ -269,8 +260,9 @@ class Thread : public ThreadState {
   void SetStackLimit(uword value);
   void ClearStackLimit();
 
-  // Access to the current stack limit for generated code.  This may be
-  // overwritten with a special value to trigger interrupts.
+  // Access to the current stack limit for generated code. Either the true OS
+  // thread's stack limit minus some headroom, or a special value to trigger
+  // interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -278,7 +270,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this isolate.
+  // The true stack limit for this OS thread.
+  static intptr_t saved_stack_limit_offset() {
+    return OFFSET_OF(Thread, saved_stack_limit_);
+  }
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
 #if defined(USING_SAFE_STACK)
@@ -290,11 +285,6 @@ class Thread : public ThreadState {
   static uword saved_shadow_call_stack_offset() {
     return OFFSET_OF(Thread, saved_shadow_call_stack_);
   }
-
-#if defined(TARGET_ARCH_DBC)
-  // Access to the current stack limit for DBC interpreter.
-  uword stack_limit() const { return stack_limit_; }
-#endif
 
   // Stack overflow flags
   enum {
@@ -314,13 +304,11 @@ class Thread : public ThreadState {
     return ++stack_overflow_count_;
   }
 
-#if !defined(TARGET_ARCH_DBC)
   static uword stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
     return fpu_regs
                ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
                : stack_overflow_shared_without_fpu_regs_entry_point_offset();
   }
-#endif
 
   static intptr_t safepoint_state_offset() {
     return OFFSET_OF(Thread, safepoint_state_);
@@ -670,13 +658,13 @@ class Thread : public ThreadState {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static bool IsAtSafepoint(uint32_t state) {
+  static bool IsAtSafepoint(uword state) {
     return AtSafepointField::decode(state);
   }
   bool IsAtSafepoint() const {
     return AtSafepointField::decode(safepoint_state_);
   }
-  static uint32_t SetAtSafepoint(bool value, uint32_t state) {
+  static uword SetAtSafepoint(bool value, uword state) {
     return AtSafepointField::update(value, state);
   }
   void SetAtSafepoint(bool value) {
@@ -686,21 +674,20 @@ class Thread : public ThreadState {
   bool IsSafepointRequested() const {
     return SafepointRequestedField::decode(safepoint_state_);
   }
-  static uint32_t SetSafepointRequested(bool value, uint32_t state) {
+  static uword SetSafepointRequested(bool value, uword state) {
     return SafepointRequestedField::update(value, state);
   }
-  uint32_t SetSafepointRequested(bool value) {
+  uword SetSafepointRequested(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
-    uint32_t old_state;
-    uint32_t new_state;
-    do {
-      old_state = safepoint_state_;
-      new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state,
-                                                  new_state) != old_state);
-    return old_state;
+    if (value) {
+      return safepoint_state_.fetch_or(SafepointRequestedField::encode(true),
+                                       std::memory_order_relaxed);
+    } else {
+      return safepoint_state_.fetch_and(~SafepointRequestedField::encode(true),
+                                        std::memory_order_relaxed);
+    }
   }
-  static bool IsBlockedForSafepoint(uint32_t state) {
+  static bool IsBlockedForSafepoint(uword state) {
     return BlockedForSafepointField::decode(state);
   }
   bool IsBlockedForSafepoint() const {
@@ -714,7 +701,7 @@ class Thread : public ThreadState {
   bool BypassSafepoints() const {
     return BypassSafepointsField::decode(safepoint_state_);
   }
-  static uint32_t SetBypassSafepoints(bool value, uint32_t state) {
+  static uword SetBypassSafepoints(bool value, uword state) {
     return BypassSafepointsField::update(value, state);
   }
 
@@ -744,12 +731,10 @@ class Thread : public ThreadState {
   static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
 
   bool TryEnterSafepoint() {
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, 0, new_state) !=
-        0) {
-      return false;
-    }
-    return true;
+    uword old_state = 0;
+    uword new_state = SetAtSafepoint(true, 0);
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_acq_rel);
   }
 
   void EnterSafepoint() {
@@ -764,12 +749,10 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepoint() {
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state, 0) !=
-        old_state) {
-      return false;
-    }
-    return true;
+    uword old_state = SetAtSafepoint(true, 0);
+    uword new_state = 0;
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_acq_rel);
   }
 
   void ExitSafepoint() {
@@ -853,6 +836,7 @@ class Thread : public ThreadState {
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
+  uword saved_stack_limit_;
   uword stack_overflow_flags_;
   uword write_barrier_mask_;
   Isolate* isolate_;
@@ -897,7 +881,7 @@ class Thread : public ThreadState {
   uword resume_pc_;
   uword saved_shadow_call_stack_ = 0;
   uword execution_state_;
-  uword safepoint_state_;
+  std::atomic<uword> safepoint_state_;
   RawGrowableObjectArray* ffi_callback_code_;
 
   // ---- End accessed from generated code. ----
@@ -918,7 +902,6 @@ class Thread : public ThreadState {
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
-  uword saved_stack_limit_;
   intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
@@ -951,10 +934,10 @@ class Thread : public ThreadState {
 #endif  // defined(DEBUG)
 
   // Generated code assumes that AtSafepointField is the LSB.
-  class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
-  class BypassSafepointsField : public BitField<uint32_t, bool, 3, 1> {};
+  class AtSafepointField : public BitField<uword, bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<uword, bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<uword, bool, 2, 1> {};
+  class BypassSafepointsField : public BitField<uword, bool, 3, 1> {};
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;

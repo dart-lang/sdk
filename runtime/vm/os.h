@@ -67,14 +67,6 @@ class OS {
   // the platform doesn't care. Guaranteed to be a power of two.
   static intptr_t ActivationFrameAlignment();
 
-  // This constant is guaranteed to be greater or equal to the
-  // preferred code alignment on all platforms.
-  static const int kMaxPreferredCodeAlignment = 32;
-
-  // Returns the preferred code alignment or zero if
-  // the platform doesn't care. Guaranteed to be a power of two.
-  static intptr_t PreferredCodeAlignment();
-
   // Returns number of available processor cores.
   static int NumberOfAvailableProcessors();
 

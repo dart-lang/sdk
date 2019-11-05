@@ -105,7 +105,6 @@ test:file:///home/test/lib
 
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    AnalysisEngine.instance.logger = null;
   }
 
   void _addTestPackageDependency(String name, String rootPath) {

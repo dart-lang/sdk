@@ -14,7 +14,6 @@ import 'utils.dart';
 
 const _defaultTestSelectors = [
   'samples',
-  'standalone',
   'standalone_2',
   'corelib_2',
   'language_2',
@@ -142,9 +141,8 @@ none:             No runtime, compile only.''',
 Allowed values are:
 all
 ia32, x64
-arm, armv6, armv5te, arm64,
-simarm, simarmv6, simarmv5te, simarm64,
-simdbc, simdbc64, arm_x64''',
+arm, armv6, arm64,
+simarm, simarmv6, simarm64, arm_x64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),
         defaultsTo: Architecture.x64.name,
@@ -688,7 +686,7 @@ compiler.''',
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64,simdbc64";
+        architectures = "ia32,x64,simarm,simarm64";
       }
 
       for (var architectureName in architectures.split(",")) {
@@ -745,8 +743,6 @@ compiler.''',
                 reportInJson: data["report_in_json"] as bool,
                 resetBrowser: data["reset_browser_configuration"] as bool,
                 skipCompilation: data["skip_compilation"] as bool,
-                useKernelBytecode:
-                    innerConfiguration.compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeResults: data["write_results"] as bool,
                 writeLogs: data["write_logs"] as bool,

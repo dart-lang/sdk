@@ -60,8 +60,6 @@ class InstanceMorpher : public ZoneAllocated {
   // Called on each instance that needs to be morphed.
   RawInstance* Morph(const Instance& instance) const;
 
-  void RunNewFieldInitializers() const;
-
   // Adds an object to be morphed.
   void AddObject(RawObject* object) const;
 
@@ -145,7 +143,9 @@ class IsolateReloadContext {
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
 
-  bool UseSavedClassTableForGC() const { return saved_class_table_ != nullptr; }
+  bool UseSavedClassTableForGC() const {
+    return saved_class_table_.load(std::memory_order_relaxed) != nullptr;
+  }
 
   bool reload_skipped() const { return reload_skipped_; }
   bool reload_aborted() const { return reload_aborted_; }
@@ -248,8 +248,6 @@ class IsolateReloadContext {
 
   void MorphInstancesAndApplyNewClassTable();
 
-  void RunNewFieldInitializers();
-
   bool ValidateReload();
 
   void Rollback();
@@ -285,7 +283,7 @@ class IsolateReloadContext {
   JSONStream* js_;
 
   intptr_t saved_num_cids_;
-  ClassAndSize* saved_class_table_;
+  std::atomic<ClassAndSize*> saved_class_table_;
   intptr_t num_saved_libs_;
   intptr_t num_received_libs_;
   intptr_t bytes_received_libs_;

@@ -203,6 +203,7 @@ class JSONStream : ValueObject {
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
+  void PrintValue(IsolateGroup* isolate, bool ref = true);
   void PrintValue(ThreadRegistry* reg);
   void PrintValue(Thread* thread);
   void PrintValue(const TimelineEvent* timeline_event);
@@ -437,6 +438,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(Isolate* isolate, bool ref = true) const {
     stream_->PrintValue(isolate, ref);
+  }
+  void AddValue(IsolateGroup* isolate_group, bool ref = true) const {
+    stream_->PrintValue(isolate_group, ref);
   }
   void AddValue(ThreadRegistry* reg) const { stream_->PrintValue(reg); }
   void AddValue(Thread* thread) const { stream_->PrintValue(thread); }

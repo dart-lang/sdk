@@ -714,7 +714,7 @@ class NativeBehavior {
       String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return const DynamicType();
+      return DynamicType();
     }
     int index = typeString.indexOf('<');
     var type = lookupType(typeString, required: index == -1);
@@ -727,7 +727,7 @@ class NativeBehavior {
         return type;
       }
     }
-    return const DynamicType();
+    return DynamicType();
   }
 }
 

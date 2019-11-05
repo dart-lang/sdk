@@ -4,11 +4,10 @@
 
 library fasta.quote;
 
-import 'problems.dart' show unhandled;
+import 'package:_fe_analyzer_shared/src/parser/listener.dart'
+    show UnescapeErrorListener;
 
-import 'fasta_codes.dart' as fasta;
-
-import 'scanner/characters.dart'
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show
         $BACKSLASH,
         $BS,
@@ -30,6 +29,10 @@ import 'scanner/characters.dart'
         $x,
         hexDigitValue,
         isHexDigit;
+
+import 'problems.dart' show unhandled;
+
+import 'fasta_codes.dart' as fasta;
 
 enum Quote {
   Single,
@@ -136,12 +139,14 @@ String unescapeLastStringPart(String last, Quote quote, Object location,
 String unescapeString(
     String string, Object location, UnescapeErrorListener listener) {
   Quote quote = analyzeQuote(string);
+  int startIndex = firstQuoteLength(string, quote);
+  int endIndex = string.length - lastQuoteLength(quote);
+  if (startIndex > endIndex) {
+    // An error has already been signaled.
+    return "";
+  }
   return unescape(
-      string.substring(firstQuoteLength(string, quote),
-          string.length - lastQuoteLength(quote)),
-      quote,
-      location,
-      listener);
+      string.substring(startIndex, endIndex), quote, location, listener);
 }
 
 String unescape(String string, Quote quote, Object location,
@@ -294,9 +299,4 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
     result[resultOffset++] = code;
   }
   return new String.fromCharCodes(result, 0, resultOffset);
-}
-
-abstract class UnescapeErrorListener {
-  void handleUnescapeError(
-      fasta.Message message, covariant location, int offset, int length);
 }

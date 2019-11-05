@@ -936,8 +936,6 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-
       GenericTypeAliasElement typedefElement;
       List<DartType> typedefTypeArguments = const <DartType>[];
       if (linkedType.functionTypedef != 0) {
@@ -947,10 +945,16 @@ class LinkedUnitContext {
             linkedType.functionTypedefTypeArguments.map(readType).toList();
       }
 
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+
       return FunctionTypeImpl.synthetic(
-              returnType, typeParameters, formalParameters,
-              element: typedefElement, typeArguments: typedefTypeArguments)
-          .withNullability(nullabilitySuffix);
+        returnType,
+        typeParameters,
+        formalParameters,
+        element: typedefElement,
+        typeArguments: typedefTypeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
@@ -970,7 +974,10 @@ class LinkedUnitContext {
         element = bundleContext.elementOfIndex(index);
       }
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return TypeParameterTypeImpl(element).withNullability(nullabilitySuffix);
+      return TypeParameterTypeImpl(
+        element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {

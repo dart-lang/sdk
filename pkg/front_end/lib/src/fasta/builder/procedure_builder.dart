@@ -9,8 +9,6 @@ import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/type_algebra.dart';
 
-import '../../base/common.dart';
-
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -66,9 +64,6 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   final ProcedureKind kind;
 
   @override
-  ProcedureBuilder patchForTesting;
-
-  @override
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   @override
@@ -116,6 +111,9 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
+
+  @override
+  ProcedureBuilder get patchForTesting => dataForTesting?.patchForTesting;
 
   @override
   AsyncMarker get asyncModifier => actualAsyncModifier;
@@ -399,9 +397,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     if (patch is ProcedureBuilderImpl) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        if (retainDataForTesting) {
-          patchForTesting = patch;
-        }
+        dataForTesting?.patchForTesting = patch;
       }
     } else {
       reportPatchMismatch(patch);

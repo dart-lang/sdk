@@ -5,7 +5,7 @@
 library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, Nullability, TypeParameter, TypeParameterType, Variance;
+    show DartType, Nullability, TypeParameter, TypeParameterType;
 
 import '../fasta_codes.dart'
     show
@@ -13,11 +13,8 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
-import '../problems.dart' show unsupported;
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'builder.dart';
 import 'class_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
@@ -38,9 +35,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound,
-      this.isExtensionTypeParameter: false,
-      int variableVariance: Variance.covariant})
+      {this.bound, this.isExtensionTypeParameter: false, int variableVariance})
       : actualParameter = new TypeParameter(name, null)
           ..fileOffset = charOffset
           ..variance = variableVariance,
@@ -73,14 +68,6 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   /// The [TypeParameter] built by this builder.
   TypeParameter get parameter => origin.actualParameter;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // uses until Builder.target is fully retired.
-  UnrelatedTarget get target => unsupported(
-      "TypeVariableBuilder.target is deprecated. "
-      "Use TypeVariableBuilder.parameter instead.",
-      charOffset,
-      fileUri);
 
   int get variance => parameter.variance;
 
@@ -201,7 +188,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
           if (current.parameter.bound is TypeParameterType) {
             next = current.parameter.bound;
             if (next.typeParameterTypeNullability == marker) {
-              next.typeParameterTypeNullability = Nullability.neither;
+              next.typeParameterTypeNullability = Nullability.undetermined;
               libraryBuilder.addProblem(
                   templateCycleInTypeVariables.withArguments(
                       next.parameter.name, current.parameter.name),

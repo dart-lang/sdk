@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
 
 #include "platform/assert.h"
 #include "vm/globals.h"

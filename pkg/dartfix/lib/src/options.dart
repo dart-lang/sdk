@@ -99,11 +99,13 @@ class Options {
           defaultsTo: false,
           negatable: false)
       ..addOption(_serverSnapshot,
-          help: 'Path to the analysis server snapshot file.', valueHelp: 'path')
+          help: 'Path to the analysis server snapshot file.',
+          valueHelp: 'path',
+          hide: true)
       ..addFlag(_verboseOption,
           abbr: 'v',
-          defaultsTo: false,
           help: 'Verbose output.',
+          defaultsTo: false,
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',

@@ -107,7 +107,7 @@ class InterfaceFinder {
         cids_(cids) {}
 
   void FindAllInterfaces(const Class& klass) {
-    // The class is implementing it's own interface.
+    // The class is implementing its own interface.
     cids_->Add(klass.id());
 
     ScopedHandle<Array> array(&array_handles_);
@@ -123,8 +123,7 @@ class InterfaceFinder {
         break;
       }
 
-      // The class is implementing it's directly declared implemented
-      // interfaces.
+      // The class is implementing its directly declared implemented interfaces.
       *array = klass.interfaces();
       if (!array->IsNull()) {
         for (intptr_t i = 0; i < array->Length(); ++i) {
@@ -134,7 +133,7 @@ class InterfaceFinder {
         }
       }
 
-      // The class is implementing it's super type's interfaces.
+      // The class is implementing its super type's interfaces.
       *type = current_class->super_type();
       if (type->IsNull()) break;
       *current_class = class_table_->At(type->type_class_id());
@@ -1253,7 +1252,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     // performing a reload.
     if (!FLAG_precompiled_mode) {
       if (field.IsUninitialized()) {
-        error = field.Initialize();
+        error = field.InitializeStatic();
         if (!error.IsNull()) {
           ReportError(error);
         }

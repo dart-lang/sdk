@@ -46,11 +46,7 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
                              const char* name) {
-#if defined(TARGET_ARCH_DBC)
-  bool executable = false;
-#else
-  bool executable = type == kExecutable;
-#endif
+  const bool executable = type == kExecutable;
 
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
       size_in_words << kWordSizeLog2, kPageSize, executable, name);
@@ -464,8 +460,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
-    AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                  (size >> kWordSizeLog2));
+    usage_.used_in_words += (size >> kWordSizeLog2);
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
     intptr_t free_size = page->object_end() - free_start;
@@ -498,8 +493,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
       // usage_ is updated by the call above.
     } else {
-      AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                    (size >> kWordSizeLog2));
+      usage_.used_in_words += (size >> kWordSizeLog2);
     }
   } else {
     // Large page allocation.
@@ -517,8 +511,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       if (page != NULL) {
         result = page->object_start();
         // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                      (size >> kWordSizeLog2));
+        usage_.used_in_words += (size >> kWordSizeLog2);
       }
     }
   }
@@ -542,7 +535,7 @@ bool PageSpace::CurrentThreadOwnsDataLock() {
 
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words += size_in_words;
   NOT_IN_PRODUCT(
       heap_->isolate()->shared_class_table()->UpdateAllocatedExternalOld(cid,
                                                                          size));
@@ -550,12 +543,12 @@ void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
 
 void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words += size_in_words;
 }
 
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::DecrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words -= size_in_words;
 }
 
 // Provides exclusive access to all pages, and ensures they are walkable.
@@ -1322,6 +1315,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // memory->end()).
   uword offset = HeapPage::ObjectStartOffset();
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
+  ASSERT(Utils::IsAligned(pointer, kObjectAlignment));
   size += offset;
 
   VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
@@ -1334,7 +1328,6 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->forwarding_page_ = NULL;
   page->card_table_ = NULL;
   if (is_executable) {
-    ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
   } else {
     page->type_ = HeapPage::kData;

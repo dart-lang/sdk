@@ -137,6 +137,9 @@ void InstanceMorpher::ComputeMapping() {
     if (new_field) {
       const Field& field = Field::Handle(to_field.raw());
       new_fields_->Add(&field);
+
+      field.set_needs_load_guard(true);
+      field.set_is_unboxing_candidate(false);
     }
   }
 }
@@ -151,61 +154,15 @@ RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
         Object::Handle(instance.RawGetFieldAtOffset(from_offset));
     result.RawSetFieldAtOffset(to_offset, value);
   }
-  // Convert the instance into a filler object.
-  Become::MakeDummyObject(instance);
-  return result.raw();
-}
-
-void InstanceMorpher::RunNewFieldInitializers() const {
-  if ((new_fields_->length() == 0) || (after_->length() == 0)) {
-    return;
-  }
-
-  TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& init_func = Function::Handle(zone);
-  Object& result = Object::Handle(zone);
-  // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->has_initializer()) {
-      if (field->is_declared_in_bytecode() && (field->bytecode_offset() == 0)) {
-        FATAL1(
-            "Missing field initializer for '%s'. Reload requires bytecode "
-            "to be generated with 'instance-field-initializers'",
-            field->ToCString());
-      }
-      init_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
-      const Array& args = Array::Handle(zone, Array::New(1));
-      for (intptr_t j = 0; j < after_->length(); j++) {
-        const Instance* instance = after_->At(j);
-        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                  after_->length());
-        // Run the function and assign the field.
-        args.SetAt(0, *instance);
-        result = DartEntry::InvokeFunction(init_func, args);
-        if (result.IsError()) {
-          // TODO(johnmccutchan): Report this error in the reload response?
-          OS::PrintErr(
-              "RELOAD: Running initializer for new field `%s` resulted in "
-              "an error: %s\n",
-              field->ToCString(), Error::Cast(result).ToErrorCString());
-          continue;
-        }
-        instance->RawSetFieldAtOffset(field->Offset(), result);
-      }
-    } else {
-      result = field->saved_initial_value();
-      for (intptr_t j = 0; j < after_->length(); j++) {
-        const Instance* instance = after_->At(j);
-        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                  after_->length());
-        instance->RawSetFieldAtOffset(field->Offset(), result);
-      }
-    }
+    ASSERT(field->needs_load_guard());
+    result.RawSetFieldAtOffset(field->Offset(), Object::sentinel());
   }
+  // Convert the instance into a filler object.
+  Become::MakeDummyObject(instance);
+  return result.raw();
 }
 
 void InstanceMorpher::CreateMorphedCopies() const {
@@ -451,7 +408,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       reload_finalized_(false),
       js_(js),
       saved_num_cids_(-1),
-      saved_class_table_(NULL),
+      saved_class_table_(nullptr),
       num_saved_libs_(-1),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),
@@ -478,7 +435,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
 
 IsolateReloadContext::~IsolateReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
-  ASSERT(saved_class_table_ == NULL);
+  ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
 }
 
 void IsolateReloadContext::ReportError(const Error& error) {
@@ -977,7 +934,7 @@ void IsolateReloadContext::CheckpointClasses() {
     NoSafepointScope no_safepoint_scope(Thread::Current());
 
     // The saved_class_table_ is now source of truth for GC.
-    AtomicOperations::StoreRelease(&saved_class_table_, saved_class_table);
+    saved_class_table_.store(saved_class_table, std::memory_order_release);
 
     // We can therefore wipe out all of the old entries (if that table is used
     // for GC during the hot-reload we have a bug).
@@ -1142,7 +1099,7 @@ void IsolateReloadContext::Checkpoint() {
 void IsolateReloadContext::RollbackClasses() {
   TIR_Print("---- ROLLING BACK CLASS TABLE\n");
   ASSERT(saved_num_cids_ > 0);
-  ASSERT(saved_class_table_ != NULL);
+  ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
 
   DiscardSavedClassTable(/*is_rollback=*/true);
 }
@@ -1378,9 +1335,6 @@ void IsolateReloadContext::Commit() {
                 saved_libs.Length(), libs.Length());
     }
   }
-
-  // Run the initializers for new instance fields.
-  RunNewFieldInitializers();
 }
 
 bool IsolateReloadContext::IsDirty(const Library& lib) {
@@ -1514,7 +1468,8 @@ void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   ASSERT(HasNoTasks(I->heap()));
 #if defined(DEBUG)
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
-    saved_class_table_[i] = ClassAndSize(nullptr, -1);
+    saved_class_table_.load(std::memory_order_relaxed)[i] =
+        ClassAndSize(nullptr, -1);
   }
 #endif
 
@@ -1525,13 +1480,6 @@ void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   Become::ElementsForwardIdentity(before, after);
   // The heap now contains only instances with the new size. Ordinary GC is safe
   // again.
-}
-
-void IsolateReloadContext::RunNewFieldInitializers() {
-  // Run new field initializers on all instances.
-  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-    instance_morphers_.At(i)->RunNewFieldInitializers();
-  }
 }
 
 bool IsolateReloadContext::ValidateReload() {
@@ -1585,7 +1533,7 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   ClassAndSize* class_table =
-      AtomicOperations::LoadAcquire(&saved_class_table_);
+      saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1597,7 +1545,7 @@ RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
 
 intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
   ClassAndSize* class_table =
-      AtomicOperations::LoadAcquire(&saved_class_table_);
+      saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1608,11 +1556,11 @@ intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
 }
 
 void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  ClassAndSize* local_saved_class_table = saved_class_table_;
+  ClassAndSize* local_saved_class_table =
+      saved_class_table_.load(std::memory_order_relaxed);
   I->class_table()->ResetAfterHotReload(local_saved_class_table,
                                         saved_num_cids_, is_rollback);
-  AtomicOperations::StoreRelease(&saved_class_table_,
-                                 static_cast<ClassAndSize*>(nullptr));
+  saved_class_table_.store(nullptr, std::memory_order_release);
 }
 
 RawLibrary* IsolateReloadContext::saved_root_library() const {
@@ -1634,10 +1582,13 @@ void IsolateReloadContext::set_saved_libraries(
 
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
-  if (saved_class_table_ != NULL) {
+
+  ClassAndSize* saved_class_table =
+      saved_class_table_.load(std::memory_order_relaxed);
+  if (saved_class_table != nullptr) {
     for (intptr_t i = 0; i < saved_num_cids_; i++) {
       visitor->VisitPointer(
-          reinterpret_cast<RawObject**>(&(saved_class_table_[i].class_)));
+          reinterpret_cast<RawObject**>(&(saved_class_table[i].class_)));
     }
   }
 }

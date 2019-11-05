@@ -383,7 +383,6 @@ class Forest {
       int fileOffset,
       List<VariableDeclaration> variables,
       Expression condition,
-      Statement conditionStatement,
       List<Expression> updaters,
       Statement body) {
     assert(fileOffset != null);
@@ -476,22 +475,16 @@ class Forest {
 
   bool isThrow(Object o) => o is Throw;
 
-  /// Return a representation of a try statement at the given [fileOffset].
-  /// The statement is introduced by the given [body]. If catch clauses were
-  /// included, then the [catchClauses] will represent them, otherwise it will
-  /// be `null`. Similarly, if a finally block was included, then the
-  /// [finallyBlock] will be non-`null`, otherwise both will be `null`.
-  Statement createTryStatement(int fileOffset, Statement body,
-      List<Catch> catchClauses, Statement finallyBlock) {
+  TryCatch createTryCatch(
+      int fileOffset, Statement tryBlock, List<Catch> catchBlocks) {
     assert(fileOffset != null);
-    Statement result = body;
-    if (catchClauses != null) {
-      result = new TryCatch(result, catchClauses)..fileOffset = fileOffset;
-    }
-    if (finallyBlock != null) {
-      result = new TryFinally(result, finallyBlock)..fileOffset = fileOffset;
-    }
-    return result;
+    return new TryCatch(tryBlock, catchBlocks)..fileOffset = fileOffset;
+  }
+
+  TryFinally createTryFinally(
+      int fileOffset, Statement tryBlock, Statement finallyBlock) {
+    assert(fileOffset != null);
+    return new TryFinally(tryBlock, finallyBlock)..fileOffset = fileOffset;
   }
 
   _VariablesDeclaration variablesDeclaration(
@@ -663,6 +656,13 @@ class Forest {
   NullCheck createNullCheck(int fileOffset, Expression expression) {
     assert(fileOffset != null);
     return new NullCheck(expression)..fileOffset = fileOffset;
+  }
+
+  PropertyGet createPropertyGet(int fileOffset, Expression receiver, Name name,
+      {Member interfaceTarget}) {
+    assert(fileOffset != null);
+    return new PropertyGet(receiver, name, interfaceTarget)
+      ..fileOffset = fileOffset;
   }
 
   PropertySet createPropertySet(

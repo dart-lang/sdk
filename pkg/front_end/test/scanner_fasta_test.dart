@@ -1,18 +1,21 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'dart:convert';
 
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    as usedForFuzzTesting;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
+    as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/scanner.dart' as usedForFuzzTesting;
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart' as fasta;
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

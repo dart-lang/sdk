@@ -10,6 +10,7 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -76,9 +77,12 @@ class InfoBuilder {
     return units;
   }
 
-  /// Return details for a fix built from the given [edge], or `null` if the
-  /// edge does not have an origin.
-  String _baseDescriptionForOrigin(AstNode node) {
+  /// Return detail text for a fix built from an edge with [node] as a
+  /// destination.
+  String _baseDescriptionForOrigin(EdgeOriginInfo origin) {
+    AstNode node = origin.node;
+    AstNode parent = node.parent;
+
     if (node is DefaultFormalParameter) {
       Expression defaultValue = node.defaultValue;
       if (defaultValue == null) {
@@ -103,18 +107,18 @@ class InfoBuilder {
       }
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
+    } else if (parent is AsExpression) {
+      return "The value of the expression is nullable";
     }
-    AstNode parent = node.parent;
+    String nullableValue =
+        node is NullLiteral ? "an explicit 'null'" : "a nullable value";
     if (parent is ArgumentList) {
-      if (node is NullLiteral) {
-        return "An explicit 'null' is passed as an argument";
-      }
-      return "A nullable value is explicitly passed as an argument";
+      return capitalize("$nullableValue is passed as an argument");
     }
 
-    /// If the [node] is the return expression for a function body, return the
-    /// function body. Otherwise return `null`.
-    AstNode findFunctionBody() {
+    /// If the [node] is inside the return expression for a function body,
+    /// return the function body. Otherwise return `null`.
+    FunctionBody findFunctionBody() {
       if (parent is ExpressionFunctionBody) {
         return parent;
       } else {
@@ -126,39 +130,56 @@ class InfoBuilder {
       }
     }
 
-    AstNode functionBody = findFunctionBody();
+    /// If the [node] is inside a collection literal, return it. Otherwise
+    /// return `null`.
+    TypedLiteral findCollectionLiteral() {
+      AstNode ancestor = parent;
+      // Walk up collection elements, except for collection literals.
+      while (ancestor is CollectionElement && ancestor is! TypedLiteral) {
+        ancestor = ancestor.parent;
+      }
+      return (ancestor is TypedLiteral) ? ancestor : null;
+    }
+
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
+    FunctionBody functionBody = findFunctionBody();
     if (functionBody != null) {
       AstNode function = functionBody.parent;
       if (function is MethodDeclaration) {
         if (function.isGetter) {
-          return "This getter returns a nullable value";
+          return "This getter returns $nullableValue on line $lineNumber";
         }
-        return "This method returns a nullable value";
+        return "This method returns $nullableValue on line $lineNumber";
       }
-      return "This function returns a nullable value";
+      return "This function returns $nullableValue on line $lineNumber";
+    }
+
+    TypedLiteral collectionLiteral = findCollectionLiteral();
+    if (collectionLiteral != null) {
+      if (collectionLiteral is ListLiteral) {
+        return "This list is initialized with $nullableValue on line "
+            "$lineNumber";
+      } else if (collectionLiteral is SetOrMapLiteral) {
+        var mapOrSet = collectionLiteral.isMap ? 'map' : 'set';
+        return "This $mapOrSet is initialized with $nullableValue on line "
+            "$lineNumber";
+      }
+    } else if (node is InvocationExpression &&
+        origin.kind == EdgeOriginKind.namedParameterNotSupplied) {
+      return "This named parameter was omitted in a call to this function";
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
-        if (node is NullLiteral) {
-          return "This field is initialized to null";
-        }
-        return "This field is initialized to a nullable value";
+        return "This field is initialized to $nullableValue";
       }
-      if (node is NullLiteral) {
-        return "This variable is initialized to null";
-      }
-      return "This variable is initialized to a nullable value";
-    } else if (parent is AsExpression) {
-      return "The value of the expression is nullable";
+      return "This variable is initialized to $nullableValue";
     }
-    if (node is NullLiteral) {
-      return "An explicit 'null' is assigned";
-    }
-    return "A nullable value is assigned";
+    return capitalize("$nullableValue is assigned");
   }
 
-  /// Return details for a fix built from the given [edge], or `null` if the
-  /// edge does not have an origin.
+  /// Return detail text for a fix built from an edge with [node] as a
+  /// destination.
   String _buildDescriptionForDestination(AstNode node) {
     // Other found types:
     // - ConstructorDeclaration
@@ -170,9 +191,9 @@ class InfoBuilder {
   }
 
   /// Return a description of the given [origin].
-  String _buildDescriptionForOrigin(AstNode origin) {
+  String _buildDescriptionForOrigin(EdgeOriginInfo origin) {
     String description = _baseDescriptionForOrigin(origin);
-    if (_inTestCode(origin)) {
+    if (_inTestCode(origin.node)) {
       // TODO(brianwilkerson) Don't add this if the graph node with which the
       //  origin is associated is also in test code.
       description += " in test code";
@@ -198,7 +219,8 @@ class InfoBuilder {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _targetForNode(unit.declaredElement.source.fullName, type);
           return RegionDetail(
-              "The corresponding parameter in the overridden method is nullable",
+              "The corresponding parameter in the overridden method is "
+              "nullable",
               target);
           // TODO(srawlins): Also, this could be where a return type in an
           //  overridden method is made nullable because an overriding method
@@ -208,7 +230,7 @@ class InfoBuilder {
       }
       target = _targetForNode(origin.source.fullName, node);
     }
-    return RegionDetail(_buildDescriptionForOrigin(node), target);
+    return RegionDetail(_buildDescriptionForOrigin(origin), target);
   }
 
   /// Compute the details for the fix with the given [fixInfo].
@@ -272,6 +294,42 @@ class InfoBuilder {
     }).toList();
   }
 
+  /// Compute details about [edgeInfos] which are upstream triggered.
+  List<RegionDetail> _computeUpstreamTriggeredDetails(
+      Iterable<EdgeInfo> edgeInfos) {
+    List<RegionDetail> details = [];
+    for (var edge in edgeInfos) {
+      EdgeOriginInfo origin = info.edgeOrigin[edge];
+      if (origin == null) {
+        // TODO(https://github.com/dart-lang/sdk/issues/39203): I think this
+        //  shouldn't happen? But it does on the path package.
+        continue;
+      }
+      NavigationTarget target =
+          _targetForNode(origin.source.fullName, origin.node);
+      if (origin.kind == EdgeOriginKind.expressionChecks) {
+        details.add(RegionDetail(
+            'This value is unconditionally used in a non-nullable context',
+            target));
+      } else if (origin.kind == EdgeOriginKind.inheritance) {
+        // TODO(srawlins): Figure out why this EdgeOriginKind is used.
+        details.add(RegionDetail('Something about inheritance', target));
+      } else if (origin.kind == EdgeOriginKind.initializerInference) {
+        // TODO(srawlins): Figure out why this EdgeOriginKind is used.
+        details.add(
+            RegionDetail('Something about initializer inheritance', target));
+      } else if (origin.kind == EdgeOriginKind.nonNullAssertion) {
+        details
+            .add(RegionDetail('This value is asserted to be non-null', target));
+      } else if (origin.kind == EdgeOriginKind.nullabilityComment) {
+        details.add(RegionDetail(
+            'This type is annotated with a non-nullability comment ("/*!*/")',
+            target));
+      }
+    }
+    return details;
+  }
+
   /// Return the migration information for the unit associated with the
   /// [result].
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
@@ -281,35 +339,57 @@ class InfoBuilder {
       unitInfo.sources = _computeNavigationSources(result);
     }
     String content = result.content;
+    List<RegionInfo> regions = unitInfo.regions;
+
     // [fileEdit] is null when a file has no edits.
-    if (fileEdit != null) {
-      List<RegionInfo> regions = unitInfo.regions;
-      List<SourceEdit> edits = fileEdit.edits;
-      edits.sort((first, second) => first.offset.compareTo(second.offset));
-      OffsetMapper mapper = OffsetMapper.forEdits(edits);
-      // Apply edits in reverse order and build the regions.
-      for (SourceEdit edit in edits.reversed) {
-        int offset = edit.offset;
-        int length = edit.length;
-        String replacement = edit.replacement;
-        int end = offset + length;
-        // Insert the replacement text without deleting the replaced text.
-        content = content.replaceRange(end, end, replacement);
-        FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
-        if (fixInfo != null) {
-          String explanation = '${fixInfo.fix.description.appliedMessage}.';
-          List<RegionDetail> details = _computeDetails(fixInfo);
-          if (length > 0) {
-            regions.add(
-                RegionInfo(mapper.map(offset), length, explanation, details));
-          }
-          regions.add(RegionInfo(
-              mapper.map(end), replacement.length, explanation, details));
+    List<SourceEdit> edits = fileEdit == null ? [] : List.of(fileEdit.edits);
+    edits.sort((first, second) => first.offset.compareTo(second.offset));
+    OffsetMapper mapper = OffsetMapper.forEdits(edits);
+
+    // Apply edits in reverse order and build the regions.
+    for (SourceEdit edit in edits.reversed) {
+      int offset = edit.offset;
+      int length = edit.length;
+      String replacement = edit.replacement;
+      int end = offset + length;
+      // Insert the replacement text without deleting the replaced text.
+      content = content.replaceRange(end, end, replacement);
+      FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
+      if (fixInfo != null) {
+        String explanation = '${fixInfo.fix.description.appliedMessage}.';
+        List<RegionDetail> details = _computeDetails(fixInfo);
+        if (length > 0) {
+          regions.add(RegionInfo(mapper.map(offset), length, explanation,
+              details, RegionType.fix));
         }
+        regions.add(RegionInfo(mapper.map(end), replacement.length, explanation,
+            details, RegionType.fix));
       }
-      regions.sort((first, second) => first.offset.compareTo(second.offset));
-      unitInfo.offsetMapper = mapper;
     }
+    Iterable<MapEntry<TypeAnnotation, NullabilityNodeInfo>> nonNullableTypes =
+        sourceInfo.explicitTypeNullability.entries
+            .where((entry) => !entry.value.isNullable);
+    for (MapEntry<TypeAnnotation, NullabilityNodeInfo> nonNullableType
+        in nonNullableTypes) {
+      Iterable<EdgeInfo> upstreamTriggeredEdgeInfos = info.edgeOrigin.keys
+          .where((e) =>
+              e.sourceNode == nonNullableType.value &&
+              e.isUpstreamTriggered &&
+              !e.destinationNode.isNullable);
+      if (upstreamTriggeredEdgeInfos.isNotEmpty) {
+        List<RegionDetail> details =
+            _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
+        TypeAnnotation node = nonNullableType.key;
+        regions.add(RegionInfo(
+            mapper.map(node.offset),
+            node.length,
+            "This type is not changed; it is determined to be non-nullable",
+            details,
+            RegionType.nonNullableType));
+      }
+    }
+    regions.sort((first, second) => first.offset.compareTo(second.offset));
+    unitInfo.offsetMapper = mapper;
     unitInfo.content = content;
     return unitInfo;
   }

@@ -18,6 +18,15 @@ import 'package:glob/glob.dart';
 
 import 'bots/results.dart';
 
+bool isUnapprovable(Test test) {
+  String name = test.name;
+  return name == "pkg/analyzer/test/generated/parser_fasta_test" ||
+      name == "pkg/compiler/tool/generate_kernel_test" ||
+      name == "pkg/vm/test/kernel_front_end_test" ||
+      ["pkg/kernel/test/", "pkg/front_end/", "pkg/analyzer/test/src/fasta/"]
+          .any((path) => test.name.startsWith(path));
+}
+
 /// Returns whether two decoded JSON objects are identical.
 bool isIdenticalJson(dynamic a, dynamic b) {
   if (a is Map<String, dynamic> && b is Map<String, dynamic>) {
@@ -154,22 +163,6 @@ Future<String> loadLog(String id, String step) async {
   }
 }
 
-/// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name changed
-/// incompatibly, allow both temporarily to reduce the user breakage. Remove
-/// this 2019-03-25.
-Future<String> todoFallbackLoadLog(
-    String id, String primary, String secondary) async {
-  try {
-    return await loadLog(id, primary);
-  } catch (e) {
-    if (e.toString().startsWith("Exception: The log at ") &&
-        e.toString().endsWith(" doesn't exist")) {
-      return await loadLog(id, secondary);
-    }
-    rethrow;
-  }
-}
-
 /// Loads the results from the bot.
 Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     String changeId, Map<String, dynamic> changelistBuild) async {
@@ -182,15 +175,11 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     // The 'latest' file contains the name of the latest build that we
     // should download. When preapproving a changelist, we instead find out
     // which build the commit queue was rebased on.
-    /// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name
-    /// changed incompatibly, allow both temporarily to reduce the user
-    /// breakage. Remove this 2019-03-25.
     final build = (changeId != null
-            ? await todoFallbackLoadLog(
+            ? await loadLog(
                 changelistBuild["id"],
                 "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
-                    "raw_io.output_text_latest_/0",
-                "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
+                "raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
 
@@ -218,7 +207,6 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
       return <Test>[];
     }
 
-    // Load the run.json to find the named configuration.
     final resultsFile = new File("$buildPath/results.json");
     if (!await resultsFile.exists()) {
       print("$bot: No results.json exists");
@@ -618,8 +606,19 @@ ${parser.usage}""");
           ? options["failures-only"]
           : options["successes-only"]))
       .toList();
-  final fixedTests = selectedTests.where((test) => test.matches).toList();
-  final brokenTests = selectedTests.where((test) => !test.matches).toList();
+
+  final fixedTests = [];
+  final brokenTests = [];
+  final blackListedTests = [];
+  for (Test test in selectedTests) {
+    if (isUnapprovable(test) && !test.matches) {
+      blackListedTests.add(test);
+    } else if (test.matches) {
+      fixedTests.add(test);
+    } else {
+      brokenTests.add(test);
+    }
+  }
 
   // Find out which bots have multiple configurations.
   final configurationsForBots = <String, Set<String>>{};
@@ -717,6 +716,16 @@ ${parser.usage}""");
             "${test.expected}");
       }
     }
+    print("");
+  }
+
+  if (blackListedTests.isNotEmpty) {
+    print("Warning: The following failing test(s) cannot be approved:");
+    print("");
+    blackListedTests.forEach((test) => print("  ${test.name}"));
+    print("");
+    print(
+        "Try fixing or reverting the change that caused the failure(s) instead.");
     print("");
   }
 
@@ -922,6 +931,7 @@ ${parser.usage}""");
 
     // Approve the changes in test results.
     for (final test in selectedTests) {
+      if (blackListedTests.contains(test)) continue;
       final newApprovals = newApprovalsForBuilders.putIfAbsent(
           test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
       final approvalData =

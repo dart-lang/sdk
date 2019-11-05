@@ -15,14 +15,10 @@ class Architecture {
   static const x64 = const Architecture._('x64');
   static const arm = const Architecture._('arm');
   static const armv6 = const Architecture._('armv6');
-  static const armv5te = const Architecture._('armv5te');
   static const arm64 = const Architecture._('arm64');
   static const simarm = const Architecture._('simarm');
   static const simarmv6 = const Architecture._('simarmv6');
-  static const simarmv5te = const Architecture._('simarmv5te');
   static const simarm64 = const Architecture._('simarm64');
-  static const simdbc = const Architecture._('simdbc');
-  static const simdbc64 = const Architecture._('simdbc64');
 
   static final List<String> names = _all.keys.toList();
 
@@ -31,14 +27,10 @@ class Architecture {
     x64,
     arm,
     armv6,
-    armv5te,
     arm64,
     simarm,
     simarmv6,
-    simarmv5te,
     simarm64,
-    simdbc,
-    simdbc64
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {

@@ -4,11 +4,9 @@
 
 import 'dart:core' hide MapEntry;
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart' hide Variance;
-
-import '../../base/common.dart';
-
-import '../../scanner/token.dart' show Token;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -105,9 +103,6 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   ConstructorBuilder actualOrigin;
 
   @override
-  ConstructorBuilder patchForTesting;
-
-  @override
   Constructor get actualConstructor => _constructor;
 
   ConstructorBuilderImpl(
@@ -132,6 +127,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
   @override
   ConstructorBuilder get origin => actualOrigin ?? this;
+
+  @override
+  ConstructorBuilder get patchForTesting => dataForTesting?.patchForTesting;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -309,9 +307,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (patch is ConstructorBuilderImpl) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        if (retainDataForTesting) {
-          patchForTesting = patch;
-        }
+        dataForTesting?.patchForTesting = patch;
       }
     } else {
       reportPatchMismatch(patch);

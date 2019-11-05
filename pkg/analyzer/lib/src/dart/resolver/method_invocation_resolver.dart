@@ -121,10 +121,18 @@ class MethodInvocationResolver {
       return;
     }
 
-    ClassElement typeReference = getTypeReference(receiver);
-    if (typeReference != null) {
-      _resolveReceiverTypeLiteral(node, typeReference, nameNode, name);
-      return;
+    if (receiver is Identifier) {
+      var element = receiver.staticElement;
+      if (element is ClassElement) {
+        _resolveReceiverTypeLiteral(node, element, nameNode, name);
+        return;
+      } else if (element is FunctionTypeAliasElement) {
+        _reportUndefinedMethod(
+          node,
+          name,
+          _resolver.typeProvider.typeType.element,
+        );
+      }
     }
 
     DartType receiverType = receiver.staticType;

@@ -87,6 +87,11 @@ abstract class EdgeInfo implements FixReasonInfo {
   /// The [isHard] property is always true for union edges.
   bool get isUnion;
 
+  /// Indicates whether the downstream node of this edge is non-nullable and the
+  /// edge is hard (and thus upstream nullability propagation should try to make
+  /// the source node non-nullable, if possible).
+  bool get isUpstreamTriggered;
+
   /// Information about the graph node that this edge "points away from".
   NullabilityNodeInfo get sourceNode;
 }

@@ -1265,17 +1265,6 @@ abstract class X extends A with U1, U2, M {}
     ]);
   }
 
-  test_isMoreSpecificThan() async {
-    await assertNoErrorsInCode(r'''
-mixin M {}
-''');
-
-    var element = findElement.mixin('M');
-    var type = interfaceType(element);
-    // ignore: deprecated_member_use_from_same_package
-    expect(type.isMoreSpecificThan(intType), isFalse);
-  }
-
   test_lookUpMemberInInterfaces_Object() async {
     await assertNoErrorsInCode(r'''
 class Foo {}

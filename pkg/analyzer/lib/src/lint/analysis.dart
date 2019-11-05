@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -134,8 +135,8 @@ class LintDriver {
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
 
     DartSdk sdk = options.mockSdk ??
-        new FolderBasedDartSdk(resourceProvider,
-            resourceProvider.getFolder(sdkDir), options.strongMode);
+        new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 
@@ -171,7 +172,7 @@ class LintDriver {
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    AnalysisEngine.instance.logger = new StdLogger();
+    AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
 
     SourceFactory sourceFactory =
         new SourceFactory(resolvers, _getPackageConfig());
@@ -252,7 +253,9 @@ class LintDriver {
 
 /// Prints logging information comments to the [outSink] and error messages to
 /// [errorSink].
-class StdLogger extends Logger {
+class StdInstrumentation extends InstrumentationService {
+  StdInstrumentation() : super(null);
+
   @override
   void logError(String message, [exception]) {
     errorSink.writeln(message);
@@ -262,7 +265,13 @@ class StdLogger extends Logger {
   }
 
   @override
-  void logInformation(String message, [exception]) {
+  void logException(dynamic exception, [StackTrace stackTrace]) {
+    errorSink.writeln(exception);
+    errorSink.writeln(stackTrace);
+  }
+
+  @override
+  void logInfo(String message, [exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

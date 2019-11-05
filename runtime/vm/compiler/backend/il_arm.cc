@@ -510,7 +510,9 @@ static void EmitAssertBoolean(Register reg,
   compiler->GenerateRuntimeCall(token_pos, deopt_id,
                                 kNonBoolTypeErrorRuntimeEntry, 1, locs);
   // We should never return here.
+#if defined(DEBUG)
   __ bkpt(0);
+#endif
   __ Bind(&done);
 }
 
@@ -3185,6 +3187,35 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R1, num_context_variables());
   compiler->GenerateCall(token_pos(), StubCode::AllocateContext(),
                          RawPcDescriptors::kOther, locs());
+}
+
+LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  return locs;
+}
+
+void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register instance = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  compiler::Label no_call;
+
+  __ ldr(temp, compiler::FieldAddress(instance, field().Offset()));
+  __ CompareObject(temp, Object::sentinel());
+  __ b(&no_call, NE);
+
+  __ PushObject(Object::null_object());  // Make room for (unused) result.
+  __ Push(instance);
+  __ PushObject(Field::ZoneHandle(field().Original()));
+  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+                                kInitInstanceFieldRuntimeEntry, 2, locs());
+  __ Drop(3);  // Remove arguments and result placeholder.
+  __ Bind(&no_call);
 }
 
 LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,

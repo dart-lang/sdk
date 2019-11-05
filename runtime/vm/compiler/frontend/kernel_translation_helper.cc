@@ -733,6 +733,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
 
   intptr_t pos = 0;
   if (is_method) {
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -847,8 +848,8 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kFunctionNode);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
@@ -987,8 +988,8 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kField);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1025,8 +1026,8 @@ void FieldHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kType:
       helper_->SkipDartType();  // read type.
       if (++next_read_ == field) return;
@@ -1051,8 +1052,8 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kProcedure);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1097,8 +1098,8 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kForwardingStubSuperTarget:
       forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
@@ -1127,8 +1128,8 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kConstructor);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1165,8 +1166,8 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kFunction:
       helper_->SkipFunctionNode();  // read function.
       if (++next_read_ == field) return;
@@ -1194,8 +1195,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kClass);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1232,8 +1233,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kTypeParameters:
       helper_->SkipTypeParametersList();  // read type parameters.
       if (++next_read_ == field) return;
@@ -1244,16 +1245,16 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         helper_->SkipDartType();  // read super class type (part 2).
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kMixinType: {
       Tag type_tag = helper_->ReadTag();  // read mixin type (part 1).
       if (type_tag == kSomething) {
         helper_->SkipDartType();  // read mixin type (part 2).
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kImplementedClasses:
       helper_->SkipListOfDartTypes();  // read implemented_classes.
       if (++next_read_ == field) return;
@@ -1266,8 +1267,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kConstructors: {
       intptr_t list_length =
           helper_->ReadListLength();  // read constructors list length.
@@ -1277,8 +1278,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
             ConstructorHelper::kEnd);  // read constructor.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kProcedures: {
       procedure_count_ = helper_->ReadListLength();  // read procedures #.
       for (intptr_t i = 0; i < procedure_count_; i++) {
@@ -1287,8 +1288,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
             ProcedureHelper::kEnd);  // read procedure.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kClassIndex:
       // Read class index.
       for (intptr_t i = 0; i < procedure_count_; ++i) {
@@ -1343,8 +1344,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
         helper_->SkipBytes(helper_->ReadUInt());  // read strings.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kAnnotations:
       helper_->SkipListOfExpressions();  // read annotations.
       if (++next_read_ == field) return;
@@ -1381,18 +1382,18 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kTargetLibrary: {
       target_library_canonical_name_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kName: {
       name_index_ = helper_->ReadStringReference();
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCombinators: {
       intptr_t count = helper_->ReadListLength();
       for (intptr_t i = 0; i < count; ++i) {
@@ -1402,8 +1403,8 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
         helper_->SkipListOfStrings();
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kEnd:
       return;
   }
@@ -1975,6 +1976,7 @@ void KernelReaderHelper::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kNeverType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -2783,6 +2785,11 @@ void TypeTranslator::BuildTypeInternal() {
     case kBottomType:
       result_ =
           Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
+      // We set the nullability of Null to kNullable, even in legacy mode.
+      ASSERT(result_.IsNullable());
+      break;
+    case kNeverType:
+      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2810,7 +2817,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2825,10 +2832,16 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       // Fast path for non-generic types: retrieve or populate the class's only
       // canonical type, which is its declaration type.
       result_ = klass.DeclarationType();
+      // TODO(regis): Remove this workaround once nullability of Null provided
+      // by CFE is always kNullable.
+      if (!result_.IsNullType()) {
+        result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
+      }
     } else {
       // Note that the type argument vector is not yet extended.
       result_ =
           Type::New(klass, Object::null_type_arguments(), klass.token_pos());
+      Type::Cast(result_).set_nullability(nullability);
     }
     return;
   }
@@ -2838,6 +2851,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
+  Type::Cast(result_).set_nullability(nullability);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -2852,7 +2866,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2935,6 +2949,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   Type& signature_type =
       Type::ZoneHandle(Z, signature_function.SignatureType());
+  signature_type.set_nullability(nullability);
 
   if (finalize_) {
     signature_type ^=
@@ -2948,7 +2963,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  helper_->ReadNullability();                      // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -2958,6 +2973,8 @@ void TypeTranslator::BuildTypeParameterType() {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
     result_ = class_types.TypeAt(parameter_index);
+    result_ =
+        TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
     return;
   }
   parameter_index -= class_types.Length();
@@ -2983,6 +3000,8 @@ void TypeTranslator::BuildTypeParameterType() {
       //
       if (class_types.Length() > parameter_index) {
         result_ = class_types.TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         return;
       }
       parameter_index -= class_types.Length();
@@ -2998,6 +3017,8 @@ void TypeTranslator::BuildTypeParameterType() {
         result_ =
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
                 .TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         if (finalize_) {
           result_ =
               ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3011,6 +3032,8 @@ void TypeTranslator::BuildTypeParameterType() {
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
+      result_ =
+          TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -3166,6 +3189,7 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                      klass.token_pos());
   }
+  // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
   return type;
 }
 
@@ -3216,6 +3240,7 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;

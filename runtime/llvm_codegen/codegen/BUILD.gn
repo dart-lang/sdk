@@ -5,13 +5,9 @@
 import("../../vm/compiler/compiler_sources.gni")
 
 config("config") {
-  include_dirs = [
-    "../../"
-  ]
+  include_dirs = [ "../../" ]
 
-  cflags = [
-    "-Wno-unused-private-field"
-  ]
+  cflags = [ "-Wno-unused-private-field" ]
 }
 
 _lib_llvm_so = "../../../third_party/llvm/lib/libLLVM-9svn.so"
@@ -22,23 +18,27 @@ config("llvm") {
 }
 
 copy("lib_llvm") {
-  sources = [ _lib_llvm_so ]
-  outputs = [ "$root_out_dir/libLLVM-9svn.so" ]
+  sources = [
+    _lib_llvm_so,
+  ]
+  outputs = [
+    "$root_out_dir/libLLVM-9svn.so",
+  ]
   public_configs = [ ":llvm" ]
 }
 
 executable("codegen") {
   sources = [
-    "main.cc",
+    "custom_zone.cc",
+    "custom_zone.h",
     "dart.cc",
-    "dart.h"
+    "dart.h",
+    "main.cc",
   ]
 
   deps = [
     ":lib_llvm",
-    "../..:libdart_nosnapshot_with_precompiler",
-    "../../vm:libdart_vm_nosnapshot_with_precompiler",
-    "../../platform:libdart_platform_nosnapshot_with_precompiler",
+    "../../third_party/double-conversion/src:libdouble_conversion",
   ]
 
   configs += [ ":config" ]

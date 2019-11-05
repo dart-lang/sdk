@@ -75,8 +75,6 @@ static bool vm_run_app_snapshot = false;
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
-static const uint8_t* app_isolate_shared_data = NULL;
-static const uint8_t* app_isolate_shared_instructions = NULL;
 static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = NULL;
@@ -131,12 +129,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   if (Options::depfile() == NULL) {
     return;
   }
-  Loader::ResolveDependenciesAsFilePaths();
-  auto isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_IsolateGroupData(isolate));
-  ASSERT(isolate_group_data != NULL);
-  MallocGrowableArray<char*>* dependencies = isolate_group_data->dependencies();
-  ASSERT(dependencies != NULL);
   File* file =
       File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
@@ -148,11 +140,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
     success &= file->Print("%s: ", Options::snapshot_filename());
   } else {
     success &= file->Print("%s: ", Options::depfile_output_filename());
-  }
-  for (intptr_t i = 0; i < dependencies->length(); i++) {
-    char* dep = dependencies->At(i);
-    success &= file->Print("%s ", dep);
-    free(dep);
   }
   if (kernel_isolate_is_running) {
     Dart_KernelCompilationResult result = Dart_KernelListDependencies();
@@ -171,7 +158,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::depfile());
   }
   file->Release();
-  dependencies->Clear();
 }
 
 static void OnExitHook(int64_t exit_code) {
@@ -408,11 +394,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    if (kernel_buffer == NULL) {
-      result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
-      CHECK_RESULT(result);
-    } else {
-      // Various core-library parts will send requests to the Loader to resolve
+    if (kernel_buffer != NULL) {
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
       // bypasses normal source code loading paths that initialize it.
@@ -421,7 +403,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       CHECK_RESULT(result);
       Loader::InitForSnapshot(resolved_script_uri, isolate_data);
     }
-
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);
@@ -504,8 +485,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions,
-        app_isolate_shared_data, app_isolate_shared_instructions, flags,
+        isolate_snapshot_data, isolate_snapshot_instructions, flags,
         isolate_group_data, isolate_data, error);
   }
   if (isolate == NULL) {
@@ -565,8 +545,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       app_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, app_isolate_shared_data,
-      app_isolate_shared_instructions, flags, isolate_group_data,
+      isolate_snapshot_instructions, flags, isolate_group_data,
       /*isolate_data=*/nullptr, error);
 #else
   // JIT: Service isolate uses the core libraries snapshot.
@@ -579,8 +558,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       core_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, app_isolate_shared_data,
-      app_isolate_shared_instructions, flags, isolate_group_data,
+      isolate_snapshot_instructions, flags, isolate_group_data,
       /*isolate_data=*/nullptr, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
@@ -687,9 +665,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
                                                     kernel_buffer_size);
     }
   }
-  if (is_main_isolate && (Options::depfile() != NULL)) {
-    isolate_group_data->set_dependencies(new MallocGrowableArray<char*>());
-  }
 
   Dart_Isolate isolate = NULL;
 
@@ -720,17 +695,15 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
         flags, isolate_group_data, isolate_data, error);
   } else {
     auto isolate_data = new IsolateData(isolate_group_data);
-    isolate = Dart_CreateIsolateGroup(
-        script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
-        app_isolate_shared_data, app_isolate_shared_instructions, flags,
-        isolate_group_data, isolate_data, error);
+    isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
+                                      isolate_snapshot_instructions, flags,
+                                      isolate_group_data, isolate_data, error);
   }
 #else
   auto isolate_data = new IsolateData(isolate_group_data);
-  isolate = Dart_CreateIsolateGroup(
-      script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
-      app_isolate_shared_data, app_isolate_shared_instructions, flags,
-      isolate_group_data, isolate_data, error);
+  isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
+                                    isolate_snapshot_instructions, flags,
+                                    isolate_group_data, isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Dart_Isolate created_isolate = NULL;
@@ -1143,21 +1116,6 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
-  AppSnapshot* shared_blobs = NULL;
-  if (Options::shared_blobs_filename() != NULL) {
-    Syslog::PrintErr(
-        "Shared blobs in the standalone VM are for testing only.\n");
-    shared_blobs =
-        Snapshot::TryReadAppSnapshot(Options::shared_blobs_filename());
-    if (shared_blobs == NULL) {
-      Syslog::PrintErr("Failed to load: %s\n",
-                       Options::shared_blobs_filename());
-      Platform::Exit(kErrorExitCode);
-    }
-    const uint8_t* ignored;
-    shared_blobs->SetBuffers(&ignored, &ignored, &app_isolate_shared_data,
-                             &app_isolate_shared_instructions);
-  }
   if (app_snapshot == nullptr) {
     app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   }
@@ -1265,7 +1223,6 @@ void main(int argc, char** argv) {
   EventHandler::Stop();
 
   delete app_snapshot;
-  delete shared_blobs;
   free(app_script_uri);
 
   // Free copied argument strings if converted.

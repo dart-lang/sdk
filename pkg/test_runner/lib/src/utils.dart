@@ -439,10 +439,6 @@ class TestUtils {
   /// test outcomes to this file in the '--output-directory'.
   static const resultsFileName = "results.json";
 
-  /// If test.py was invoked with '--write-results' it will write
-  /// data about this run of test.py to this file in the '--output-directory'.
-  static const resultsInstanceFileName = "run.json";
-
   /// If test.py was invoked with '--write-results' and '--write-logs", save
   /// the stdout and stderr to this file in the '--output-directory'.
   static const logsFileName = "logs.json";

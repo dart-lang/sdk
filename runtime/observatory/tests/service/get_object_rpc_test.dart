@@ -895,7 +895,7 @@ var tests = <IsolateTest>[
       }
     }
     if (!use_field_guards) {
-      return; // skip the test if guards are not enabled(like on simdbc64)
+      return; // skip the test if guards are not enabled
     }
 
     // Call eval to get a class id.

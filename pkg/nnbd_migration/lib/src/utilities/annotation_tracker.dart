@@ -12,7 +12,7 @@ import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 /// Mixing in this class should have very low overhead when assertions are
 /// disabled.
 mixin AnnotationTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
-  static _AnnotationTracker _annotationTracker;
+  _AnnotationTracker _annotationTracker;
 
   @override
   T visitAnnotation(Annotation node) {
@@ -27,9 +27,8 @@ mixin AnnotationTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
   T visitCompilationUnit(CompilationUnit node) {
     T result;
     reportExceptionsIfPermissive(node, () {
-      _AnnotationTracker oldAnnotationTracker;
       assert(() {
-        oldAnnotationTracker = _annotationTracker;
+        assert(_annotationTracker == null);
         _annotationTracker = _AnnotationTracker();
         node.accept(_annotationTracker);
         return true;
@@ -39,7 +38,7 @@ mixin AnnotationTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
         assert(_annotationTracker._nodes.isEmpty,
             'Annotation nodes not visited: ${_annotationTracker._nodes}');
       } finally {
-        _annotationTracker = oldAnnotationTracker;
+        _annotationTracker = null;
       }
     });
     return result;

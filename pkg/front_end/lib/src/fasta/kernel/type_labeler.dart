@@ -23,6 +23,7 @@ import 'package:kernel/ast.dart'
         Library,
         ListConstant,
         MapConstant,
+        NeverType,
         NullConstant,
         PartialInstantiationConstant,
         Procedure,
@@ -137,6 +138,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitBottomType(BottomType node) {
     // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
     result.add("bottom-type");
+  }
+
+  void visitNeverType(NeverType node) {
+    // TODO(askesc): Consider throwing internal error if NeverType appears in
+    //  diagnostics.
+    result.add("Never");
   }
 
   void visitDynamicType(DynamicType node) {

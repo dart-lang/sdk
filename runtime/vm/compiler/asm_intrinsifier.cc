@@ -12,8 +12,6 @@
 namespace dart {
 namespace compiler {
 
-#if !defined(TARGET_ARCH_DBC)
-
 void AsmIntrinsifier::String_identityHash(Assembler* assembler,
                                           Label* normal_ir_body) {
   String_getHashCode(assembler, normal_ir_body);
@@ -35,8 +33,6 @@ void AsmIntrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler,
   AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(assembler, normal_ir_body,
                                                 /*sticky=*/true);
 }
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 }  // namespace compiler
 }  // namespace dart

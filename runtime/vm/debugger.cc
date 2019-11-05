@@ -180,9 +180,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&bytecode_));
-#if !defined(TARGET_ARCH_DBC)
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
-#endif
 }
 
 ActivationFrame::ActivationFrame(uword pc,
@@ -1055,7 +1053,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   }
 
   ASSERT(!IsInterpreted());
-  ASSERT(script.kind() == RawScript::kKernelTag);
   const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
@@ -1750,13 +1747,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-#if !defined(TARGET_ARCH_DBC)
-      saved_value_(Code::null())
-#else
-      saved_value_(SimulatorBytecode::kTrap),
-      saved_value_fastsmi_(SimulatorBytecode::kTrap)
-#endif
-{
+      saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
@@ -1775,13 +1766,7 @@ CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(RawPcDescriptors::kAnyKind),
-#if !defined(TARGET_ARCH_DBC)
-      saved_value_(Code::null())
-#else
-      saved_value_(SimulatorBytecode::kTrap),
-      saved_value_fastsmi_(SimulatorBytecode::kTrap)
-#endif
-{
+      saved_value_(Code::null()) {
   ASSERT(!bytecode.IsNull());
   ASSERT(FLAG_enable_interpreter);
   ASSERT(token_pos_.IsReal());
@@ -3077,7 +3062,6 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
     const TokenPosition begin_pos = best_fit_pos;
 
     TokenPosition end_of_line_pos;
-    ASSERT(script.kind() == RawScript::kKernelTag);
     if (best_line == -1) {
       script.GetTokenLocation(begin_pos, &best_line, NULL);
     }
@@ -4393,7 +4377,6 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     }
     ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    ASSERT(script.kind() == RawScript::kKernelTag);
     const auto& yield_positions = GrowableObjectArray::Handle(
         zone, script.GetYieldPositions(top_frame->function()));
     // No yield statements

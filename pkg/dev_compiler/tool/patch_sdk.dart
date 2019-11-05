@@ -9,6 +9,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -35,8 +37,16 @@ void main(List<String> argv) {
   }
 
   var sdk = 'sdk';
+  var useNnbd = false;
   if (argv.length > 3) {
     sdk = argv[3];
+
+    // TODO(38701): While the core libraries have been forked for NNBD, use the
+    // SDK directory name to determine whether to enable the NNBD experiment
+    // when parsing the lib sources. Once the libraries have been unforked, we
+    // should unconditionally enable the experiment flag since then the
+    // canonical SDK libs will use NNBD syntax.
+    useNnbd = sdk.contains("nnbd");
   }
 
   var selfModifyTime = File(self).lastModifiedSync().millisecondsSinceEpoch;
@@ -63,7 +73,7 @@ void main(List<String> argv) {
       File(p.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
-  var sdkLibraries = _getSdkLibraries(libContents);
+  var sdkLibraries = _getSdkLibraries(libContents, useNnbd: useNnbd);
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
@@ -91,7 +101,8 @@ void main(List<String> argv) {
       int inputModifyTime = math.max(selfModifyTime,
           libraryFile.lastModifiedSync().millisecondsSinceEpoch);
       var partFiles = <File>[];
-      for (var part in parseString(content: libraryContents).unit.directives) {
+      for (var part
+          in _parseString(libraryContents, useNnbd: useNnbd).unit.directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
           outPaths.add(p.join(p.dirname(libraryOut), partPath));
@@ -136,7 +147,7 @@ void main(List<String> argv) {
         contents.addAll(partFiles.map((f) => f.readAsStringSync()));
         if (patchExists) {
           var patchContents = patchFile.readAsStringSync();
-          contents = _patchLibrary(contents, patchContents);
+          contents = _patchLibrary(contents, patchContents, useNnbd: useNnbd);
         }
 
         if (contents != null) {
@@ -178,18 +189,19 @@ void _writeSync(String filePath, String contents) {
 /// in the Dart language. Since this feature is only for the convenience of
 /// writing the dart:* libraries, and not a tool given to Dart developers, it
 /// seems like a non-ideal situation. Instead we keep the preprocessing simple.
-List<String> _patchLibrary(List<String> partsContents, String patchContents) {
+List<String> _patchLibrary(List<String> partsContents, String patchContents,
+    {bool useNnbd = false}) {
   var results = <StringEditBuffer>[];
 
   // Parse the patch first. We'll need to extract bits of this as we go through
   // the other files.
-  var patchFinder = PatchFinder.parseAndVisit(patchContents);
+  var patchFinder = PatchFinder.parseAndVisit(patchContents, useNnbd: useNnbd);
 
   // Merge `external` declarations with the corresponding `@patch` code.
   bool failed = false;
   for (var partContent in partsContents) {
     var partEdits = StringEditBuffer(partContent);
-    var partUnit = parseString(content: partContent).unit;
+    var partUnit = _parseString(partContent, useNnbd: useNnbd).unit;
     var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
@@ -314,9 +326,9 @@ class PatchFinder extends GeneralizingAstVisitor {
   final mergeMembers = <String, List<ClassMember>>{};
   final mergeDeclarations = <CompilationUnitMember>[];
 
-  PatchFinder.parseAndVisit(String contents)
+  PatchFinder.parseAndVisit(String contents, {bool useNnbd})
       : contents = contents,
-        unit = parseString(content: contents).unit {
+        unit = _parseString(contents, useNnbd: useNnbd).unit {
     visitCompilationUnit(unit);
   }
 
@@ -478,11 +490,16 @@ class _StringEdit implements Comparable<_StringEdit> {
   }
 }
 
-List<SdkLibrary> _getSdkLibraries(String contents) {
+List<SdkLibrary> _getSdkLibraries(String contents, {bool useNnbd}) {
   // TODO(jmesserly): fix SdkLibrariesReader_LibraryBuilder in Analyzer.
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
   var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
-  parseString(content: contents).unit.accept(libraryBuilder);
+  _parseString(contents, useNnbd: useNnbd).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
+}
+
+ParseStringResult _parseString(String source, {bool useNnbd}) {
+  var features = FeatureSet.fromEnableFlags([if (useNnbd) "non-nullable"]);
+  return parseString(content: source, featureSet: features);
 }

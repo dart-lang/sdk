@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -17,7 +17,6 @@ class DirectiveOrganizer {
   final String initialCode;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
-  final bool removeUnresolved;
   final bool removeUnused;
 
   String code;
@@ -25,7 +24,7 @@ class DirectiveOrganizer {
   bool hasUnresolvedIdentifierError;
 
   DirectiveOrganizer(this.initialCode, this.unit, this.errors,
-      {this.removeUnresolved = true, this.removeUnused = true}) {
+      {this.removeUnused = true}) {
     this.code = initialCode;
     this.endOfLine = getEOL(code);
     this.hasUnresolvedIdentifierError = errors.any((error) {
@@ -47,18 +46,6 @@ class DirectiveOrganizer {
       edits.add(edit);
     }
     return edits;
-  }
-
-  bool _isUnresolvedUri(UriBasedDirective directive) {
-    for (AnalysisError error in errors) {
-      ErrorCode errorCode = error.errorCode;
-      if ((errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
-              errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED) &&
-          directive.uri.offset == error.offset) {
-        return true;
-      }
-    }
-    return false;
   }
 
   bool _isUnusedImport(UriBasedDirective directive) {
@@ -125,9 +112,6 @@ class DirectiveOrganizer {
       for (_DirectiveInfo directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           UriBasedDirective directive = directiveInfo.directive;
-          if (removeUnresolved && _isUnresolvedUri(directive)) {
-            continue;
-          }
           if (removeUnused && _isUnusedImport(directive)) {
             continue;
           }

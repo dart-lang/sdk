@@ -683,8 +683,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
               Advance(2);
               break;
             }
-            FALL_THROUGH;
           }
+            FALL_THROUGH;
           case '0': {
             Advance();
             if (is_unicode() && Next() >= '0' && Next() <= '9') {
@@ -802,8 +802,8 @@ RegExpTree* RegExpParser::ParseDisjunction() {
           ReportError("Nothing to repeat");
           UNREACHABLE();
         }
-        FALL_THROUGH;
       }
+        FALL_THROUGH;
       case '}':
       case ']':
         if (is_unicode()) {

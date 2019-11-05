@@ -284,6 +284,70 @@ main() {
     expect(kToL.isSatisfied, true);
   }
 
+  test_graphEdge_isUpstreamTriggered() async {
+    await analyze('''
+void f(int i, bool b) {
+  assert(i != null);
+  i.isEven; // unconditional
+  g(i);
+  h(i);
+  if (b) {
+    i.isEven; // conditional
+  }
+}
+void g(int/*?*/ j) {}
+void h(int k) {}
+''');
+    var iNode = explicitTypeNullability[findNode.typeAnnotation('int i')];
+    var jNode = explicitTypeNullability[findNode.typeAnnotation('int/*?*/ j')];
+    var kNode = explicitTypeNullability[findNode.typeAnnotation('int k')];
+    var assertNode = findNode.statement('assert');
+    var unconditionalUsageNode = findNode.simple('i.isEven; // unconditional');
+    var conditionalUsageNode = findNode.simple('i.isEven; // conditional');
+    var nonNullEdges = edgeOrigin.entries
+        .where((entry) =>
+            entry.key.sourceNode == iNode && entry.key.destinationNode == never)
+        .toList();
+    var assertEdge = nonNullEdges
+        .where((entry) => entry.value.node == assertNode)
+        .single
+        .key;
+    var unconditionalUsageEdge = edgeOrigin.entries
+        .where((entry) => entry.value.node == unconditionalUsageNode)
+        .single
+        .key;
+    var gCallEdge = edges
+        .where((e) => e.sourceNode == iNode && e.destinationNode == jNode)
+        .single;
+    var hCallEdge = edges
+        .where((e) => e.sourceNode == iNode && e.destinationNode == kNode)
+        .single;
+    var conditionalUsageEdge = edgeOrigin.entries
+        .where((entry) => entry.value.node == conditionalUsageNode)
+        .single
+        .key;
+    // Both assertEdge and unconditionalUsageEdge are upstream triggered because
+    // either of them would have been sufficient to cause i to be marked as
+    // non-nullable, even though only one of them was actually reported to have
+    // done so via propagationStep.
+    expect(propagationSteps.where((s) => s.node == iNode), hasLength(1));
+    expect(assertEdge.isUpstreamTriggered, true);
+    expect(unconditionalUsageEdge.isUpstreamTriggered, true);
+    // conditionalUsageEdge is not upstream triggered because it is a soft edge,
+    // so it would not have caused i to be marked as non-nullable.
+    expect(conditionalUsageEdge.isUpstreamTriggered, false);
+    // Even though gCallEdge is a hard edge, it is not upstream triggered
+    // because its destination node is nullable.
+    expect(gCallEdge.isHard, true);
+    expect(gCallEdge.isUpstreamTriggered, false);
+    // Even though hCallEdge is a hard edge and its destination node is
+    // non-nullable, it is not upstream triggered because k could have been made
+    // nullable without causing any problems, so the presence of this edge would
+    // not have caused i to be marked as non-nullable.
+    expect(hCallEdge.isHard, true);
+    expect(hCallEdge.isUpstreamTriggered, false);
+  }
+
   test_graphEdge_origin() async {
     await analyze('''
 int f(int x) => x;
@@ -817,7 +881,7 @@ List<Object> f(List l) => l;
         hasLength(1));
   }
 
-  test_propagationStep() async {
+  test_propagationStep_downstream() async {
     await analyze('''
 int x = null;
 ''');
@@ -827,6 +891,20 @@ int x = null;
     expect(step.reason, StateChangeReason.downstream);
     expect(step.edge.sourceNode, always);
     expect(step.edge.destinationNode, xNode);
+  }
+
+  test_propagationStep_upstream() async {
+    await analyze('''
+void f(int x) {
+  assert(x != null);
+}
+''');
+    var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
+    var step = propagationSteps.where((s) => s.node == xNode).single;
+    expect(step.newState, NullabilityState.nonNullable);
+    expect(step.reason, StateChangeReason.upstream);
+    expect(step.edge.sourceNode, xNode);
+    expect(step.edge.destinationNode, never);
   }
 
   test_substitutionNode() async {

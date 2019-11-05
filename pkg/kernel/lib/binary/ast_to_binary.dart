@@ -2025,6 +2025,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitNeverType(NeverType node) {
+    writeByte(Tag.NeverType);
+    writeByte(node.nullability.index);
+  }
+
+  @override
   void visitInvalidType(InvalidType node) {
     writeByte(Tag.InvalidType);
   }
@@ -2125,7 +2131,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeByte(node.variance);
+    if (node.isLegacyCovariant) {
+      writeByte(TypeParameter.legacyCovariantSerializationMarker);
+    } else {
+      writeByte(node.variance);
+    }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
     writeOptionalNode(node.defaultType);
@@ -2163,57 +2173,68 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // during serialization is an error.
   @override
   void defaultNode(Node node) {
-    throw new UnsupportedError('serialization of generic Nodes');
+    throw new UnsupportedError(
+        'serialization of generic Node: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultConstant(Constant node) {
-    throw new UnsupportedError('serialization of generic Constants');
+    throw new UnsupportedError(
+        'serialization of generic Constant: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultBasicLiteral(BasicLiteral node) {
-    throw new UnsupportedError('serialization of generic BasicLiterals');
+    throw new UnsupportedError(
+        'serialization of generic BasicLiteral: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultConstantReference(Constant node) {
-    throw new UnsupportedError('serialization of generic Constant references');
+    throw new UnsupportedError('serialization of generic Constant reference: '
+        '${node} (${node.runtimeType})');
   }
 
   @override
   void defaultDartType(DartType node) {
-    throw new UnsupportedError('serialization of generic DartTypes');
+    throw new UnsupportedError(
+        'serialization of generic DartType: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultExpression(Expression node) {
-    throw new UnsupportedError('serialization of generic Expressions');
+    throw new UnsupportedError(
+        'serialization of generic Expression: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultInitializer(Initializer node) {
-    throw new UnsupportedError('serialization of generic Initializers');
+    throw new UnsupportedError(
+        'serialization of generic Initializer: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultMember(Member node) {
-    throw new UnsupportedError('serialization of generic Members');
+    throw new UnsupportedError(
+        'serialization of generic Member: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultMemberReference(Member node) {
-    throw new UnsupportedError('serialization of generic Member references');
+    throw new UnsupportedError('serialization of generic Member reference: '
+        '${node} (${node.runtimeType})');
   }
 
   @override
   void defaultStatement(Statement node) {
-    throw new UnsupportedError('serialization of generic Statements');
+    throw new UnsupportedError(
+        'serialization of generic Statement: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultTreeNode(TreeNode node) {
-    throw new UnsupportedError('serialization of generic TreeNodes');
+    throw new UnsupportedError(
+        'serialization of generic TreeNode: ${node} (${node.runtimeType})');
   }
 
   @override

@@ -88,11 +88,6 @@ class IsolateGroupData {
     resolved_packages_config_ = strdup(packages_config);
   }
 
-  MallocGrowableArray<char*>* dependencies() const { return dependencies_; }
-  void set_dependencies(MallocGrowableArray<char*>* deps) {
-    dependencies_ = deps;
-  }
-
   bool RunFromAppSnapshot() const {
     // If the main isolate is using an app snapshot the [app_snapshot_] pointer
     // will be still nullptr (see main.cc:CreateIsolateGroupAndSetupHelper)
@@ -106,7 +101,6 @@ class IsolateGroupData {
   friend class IsolateData;  // For packages_file_
 
   std::unique_ptr<AppSnapshot> app_snapshot_;
-  MallocGrowableArray<char*>* dependencies_;
   char* resolved_packages_config_;
   std::shared_ptr<uint8_t> kernel_buffer_;
   intptr_t kernel_buffer_size_;

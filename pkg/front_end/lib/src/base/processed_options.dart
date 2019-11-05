@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
@@ -60,8 +62,6 @@ import '../fasta/fasta_codes.dart'
 import '../fasta/messages.dart' show getLocation;
 
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
-
-import '../fasta/severity.dart' show Severity;
 
 import '../fasta/ticker.dart' show Ticker;
 

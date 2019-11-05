@@ -503,11 +503,14 @@ abstract class CommonElements {
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
+  FunctionEntity get rtiAddErasedTypesMethod;
 
   FunctionEntity get generalIsTestImplementation;
   FunctionEntity get generalAsCheckImplementation;
   FunctionEntity get generalTypeCheckImplementation;
 
+  FunctionEntity get specializedIsTop;
+  FunctionEntity get specializedAsTop;
   FunctionEntity get specializedIsBool;
   FunctionEntity get specializedAsBoolNullable;
   FunctionEntity get specializedCheckBoolNullable;
@@ -1935,6 +1938,11 @@ class CommonElementsImpl
   FunctionEntity get rtiAddRulesMethod =>
       _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
 
+  FunctionEntity _rtiAddErasedTypesMethod;
+  @override
+  FunctionEntity get rtiAddErasedTypesMethod => _rtiAddErasedTypesMethod ??=
+      _findClassMember(_rtiUniverseClass, 'addErasedTypes');
+
   FunctionEntity _generalIsTestImplementation;
   @override
   FunctionEntity get generalIsTestImplementation =>
@@ -1952,6 +1960,12 @@ class CommonElementsImpl
   FunctionEntity get generalTypeCheckImplementation =>
       _generalTypeCheckImplementation ??=
           _findRtiFunction('_generalTypeCheckImplementation');
+
+  @override
+  FunctionEntity get specializedIsTop => _findRtiFunction('_isTop');
+
+  @override
+  FunctionEntity get specializedAsTop => _findRtiFunction('_asTop');
 
   @override
   FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');

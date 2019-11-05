@@ -346,13 +346,9 @@ class ExceptionHandlerFinder : public StackResource {
  private:
   template <typename T>
   static T* SlotAt(uword fp, int stack_slot) {
-#if defined(TARGET_ARCH_DBC)
-    return reinterpret_cast<T*>(fp + stack_slot * kWordSize);
-#else
     const intptr_t frame_slot =
         runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
     return reinterpret_cast<T*>(fp + frame_slot * kWordSize);
-#endif
   }
 
   static RawObject** TaggedSlotAt(uword fp, int stack_slot) {
@@ -479,7 +475,6 @@ static void FindErrorHandler(uword* handler_pc,
 static uword RemapExceptionPCForDeopt(Thread* thread,
                                       uword program_counter,
                                       uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -500,12 +495,10 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
       }
     }
   }
-#endif  // !DBC
   return program_counter;
 }
 
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
-#if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
   if (pending_deopts->length() > 0) {
@@ -548,7 +541,6 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     ValidateFrames();
 #endif
   }
-#endif  // !DBC
 }
 
 static void JumpToExceptionHandler(Thread* thread,
@@ -830,11 +822,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   intptr_t column = -1;
   ASSERT(!script.IsNull());
   if (location.IsReal()) {
-    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-      script.GetTokenLocation(location, &line, &column);
-    } else {
-      script.GetTokenLocation(location, &line, NULL);
-    }
+    script.GetTokenLocation(location, &line, &column);
   }
   // Initialize '_url', '_line', and '_column' arguments.
   args.SetAt(0, String::Handle(zone, script.url()));
@@ -869,7 +857,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     if (!src_type.IsNull()) {
       src_type.EnumerateURIs(&uris);
     }
-    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+    if (!dst_type.IsDynamicType() && !dst_type.IsVoidType() &&
+        !dst_type.IsNeverType()) {
       dst_type.EnumerateURIs(&uris);
     }
     const String& formatted_uris =

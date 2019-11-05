@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Nullability;
-
-import "package:front_end/src/fasta/scanner.dart" show scanString, Token;
-
-import "package:front_end/src/fasta/parser/type_info_impl.dart"
+import "package:_fe_analyzer_shared/src/parser/type_info_impl.dart"
     show splitCloser;
 
+import "package:_fe_analyzer_shared/src/scanner/scanner.dart"
+    show scanString, Token;
+
 import "package:front_end/src/fasta/problems.dart";
+
+import 'package:kernel/ast.dart' show Nullability;
 import 'package:kernel/text/text_serialization_verifier.dart';
 
 abstract class ParsedType {

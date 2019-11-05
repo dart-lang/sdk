@@ -13,7 +13,6 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
-import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
@@ -193,6 +192,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     PluginWatcher pluginWatcher =
         new PluginWatcher(resourceProvider, pluginManager);
 
+    defaultContextOptions.enabledExperiments = options.enabledExperiments;
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -240,7 +240,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
@@ -249,10 +248,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
-    Notification notification = new ServerConnectedParams(
-            PROTOCOL_VERSION, io.pid,
-            sessionId: instrumentationService.sessionId)
-        .toNotification();
+    Notification notification =
+        new ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
@@ -751,6 +748,10 @@ class AnalysisServerOptions {
   /// should be accessed via a null-aware operator.
   CrashReportSender crashReportSender;
 
+  /// The list of the names of the experiments that should be enabled by
+  /// default, unless the analysis options file of a context overrides it.
+  List<String> enabledExperiments = const <String>[];
+
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
@@ -894,7 +895,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (result.contextKey != null) {
         message += ' context: ${result.contextKey}';
       }
-      AnalysisEngine.instance.logger.logError(message, result.exception);
+      AnalysisEngine.instance.instrumentationService.logException(
+          new CaughtException.wrapInMessage(message, result.exception));
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

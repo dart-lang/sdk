@@ -26,11 +26,6 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Return the [Extension] built by this builder.
   Extension get extension;
 
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target;
-
   void buildOutlineExpressions(LibraryBuilder library);
 
   /// Looks up extension member by [name] taking privacy into account.
@@ -76,15 +71,6 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     return declaration;
   }
 
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target => unsupported(
-      "ExtensionBuilder.target is deprecated. "
-      "Use ExtensionBuilder.extension instead.",
-      charOffset,
-      fileUri);
-
   @override
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
@@ -108,7 +94,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder lookupLocalMember(String name,
       {bool setter: false, bool required: false}) {
     // TODO(johnniwinther): Support patching on extensions.
-    Builder builder = setter ? scope.setters[name] : scope.local[name];
+    Builder builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

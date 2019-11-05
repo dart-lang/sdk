@@ -2,6 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: ExpectationFileMismatchSerialized
+inference/generic_methods_infer_generic_function_parameter_type2: ExpectationFileMismatchSerialized
+regress/issue_31181: ExpectationFileMismatchSerialized
+regress/issue_31213: ExpectationFileMismatchSerialized
+runtime_checks/contravariant_generic_return_tear_off: ExpectationFileMismatchSerialized
+
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug30695: TypeCheckError

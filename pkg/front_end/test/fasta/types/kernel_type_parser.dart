@@ -13,6 +13,7 @@ import "package:kernel/ast.dart"
         InterfaceType,
         Library,
         NamedType,
+        NeverType,
         Node,
         Nullability,
         Supertype,
@@ -156,6 +157,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new BottomType();
+    } else if (name == "Never") {
+      return new NeverType(interpretParsedNullability(node.parsedNullability));
     }
     TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
@@ -257,7 +260,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
             namedParameters: f.namedParameters,
             typeParameters: f.typeParameters,
             requiredParameterCount: f.requiredParameterCount,
-            typedefType: def.thisType);
+            typedefType: def.thisType,
+            nullability: Nullability.nonNullable);
       }
     }
     return def..type = type;
@@ -336,7 +340,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
-          ..bound = new InterfaceType(objectClass)
+          ..bound = new InterfaceType(
+              objectClass, const <DartType>[], Nullability.nullable)
           ..defaultType = const DynamicType();
       } else {
         DartType type =

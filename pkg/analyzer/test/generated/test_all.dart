@@ -10,11 +10,9 @@ import 'checked_mode_compile_time_error_code_test.dart'
 import 'compile_time_error_code_test.dart' as compile_time_error_code;
 // ignore: deprecated_member_use_from_same_package
 import 'constant_test.dart' as constant_test;
-import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'element_resolver_test.dart' as element_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'error_suppression_test.dart' as error_suppression;
-import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'invalid_code_test.dart' as invalid_code;
 import 'issues_test.dart' as issues;
 import 'java_core_test.dart' as java_core_test;
@@ -42,11 +40,9 @@ main() {
     checked_mode_compile_time_error_code.main();
     compile_time_error_code.main();
     constant_test.main();
-    declaration_resolver_test.main();
     element_resolver_test.main();
     engine_test.main();
     error_suppression.main();
-    inheritance_manager_test.main();
     invalid_code.main();
     issues.main();
     java_core_test.main();

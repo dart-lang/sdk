@@ -88,8 +88,21 @@ class RegionInfo {
   /// Details that further explain why a change was made.
   final List<RegionDetail> details;
 
+  /// Type type of region.
+  final RegionType regionType;
+
   /// Initialize a newly created region.
-  RegionInfo(this.offset, this.length, this.explanation, this.details);
+  RegionInfo(this.offset, this.length, this.explanation, this.details,
+      this.regionType);
+}
+
+/// Different types of regions that are called out.
+enum RegionType {
+  /// This is a region of code that was fixed (changed) in migration.
+  fix,
+
+  /// This is a type that was declared non-nullable in migration.
+  nonNullableType,
 }
 
 /// The migration information associated with a single compilation unit.
@@ -118,4 +131,13 @@ class UnitInfo {
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);
+
+  /// Returns the [regions] that represent a fixed (changed) region of code.
+  List<RegionInfo> get fixRegions =>
+      List.of(regions.where((region) => region.regionType == RegionType.fix));
+
+  /// Returns the [regions] that represent an unchanged type which was
+  /// determined to be non-null.
+  List<RegionInfo> get nonNullableTypeRegions => List.of(regions
+      .where((region) => region.regionType == RegionType.nonNullableType));
 }

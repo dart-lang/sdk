@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         Member,
         Name,
+        Nullability,
         Procedure,
         ProcedureKind,
         Supertype,
@@ -115,6 +116,7 @@ bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
 abstract class ClassMember {
   bool get isStatic;
   bool get isField;
+  bool get isAssignable;
   bool get isSetter;
   bool get isGetter;
   bool get isFinal;
@@ -145,7 +147,7 @@ bool isInheritanceConflict(ClassMember a, ClassMember b) {
 }
 
 bool impliesSetter(ClassMember declaration) {
-  return declaration.isField && !(declaration.isFinal || declaration.isConst);
+  return declaration.isAssignable;
 }
 
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
@@ -1201,12 +1203,12 @@ class ClassHierarchyNodeBuilder {
 
     /// Members (excluding setters) declared in [cls].
     List<ClassMember> localMembers =
-        new List<ClassMember>.from(scope.local.values)
+        new List<ClassMember>.from(scope.localMembers)
           ..sort(compareDeclarations);
 
     /// Setters declared in [cls].
     List<ClassMember> localSetters =
-        new List<ClassMember>.from(scope.setters.values)
+        new List<ClassMember>.from(scope.localSetters)
           ..sort(compareDeclarations);
 
     // Add implied setters from fields in [localMembers].
@@ -2014,8 +2016,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType futureType(DartType type) {
-    return new InterfaceType(hierarchy.futureClass, <DartType>[type]);
+  InterfaceType futureType(DartType type, Nullability nullability) {
+    return new InterfaceType(
+        hierarchy.futureClass, <DartType>[type], nullability);
   }
 
   @override
@@ -2155,10 +2158,10 @@ abstract class DelayedMember implements ClassMember {
 
   bool get isStatic => false;
   bool get isField => false;
-
   bool get isGetter => false;
   bool get isFinal => false;
   bool get isConst => false;
+  bool get isAssignable => false;
   bool get isDuplicate => false;
 
   void addAllDeclarationsTo(List<ClassMember> declarations) {

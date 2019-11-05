@@ -75,7 +75,8 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
     parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
         e.key, e.value.type, ParameterKind.NAMED)));
     return DecoratedType(
-        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters),
+        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters,
+            nullabilitySuffix: NullabilitySuffix.star),
         node ?? newNode(),
         typeFormalBounds: typeFormals
             .map((formal) => _decoratedTypeParameterBounds[formal])
@@ -318,7 +319,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
-  TypeSystem get typeSystem => testAnalysisResult.typeSystem;
+  Dart2TypeSystem get typeSystem =>
+      testAnalysisResult.typeSystem as Dart2TypeSystem;
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);

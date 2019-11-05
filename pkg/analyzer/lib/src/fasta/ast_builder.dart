@@ -2,22 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ExtensionDeclarationImpl,
-        MixinDeclarationImpl;
-import 'package:analyzer/src/fasta/error_converter.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/messages.dart'
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         LocatedMessage,
         Message,
@@ -41,24 +26,41 @@ import 'package:front_end/src/fasta/messages.dart'
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateUnexpectedToken;
-import 'package:front_end/src/fasta/parser.dart'
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
+        BlockKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
         optional,
         Parser;
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show SyntheticStringToken, SyntheticToken;
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show
+        ClassDeclarationImpl,
+        CompilationUnitImpl,
+        ExtensionDeclarationImpl,
+        MixinDeclarationImpl;
+import 'package:analyzer/src/fasta/error_converter.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/quote.dart';
-import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart'
-    show SyntheticStringToken, SyntheticToken;
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
@@ -72,7 +74,6 @@ class AstBuilder extends StackListener {
   ScriptTag scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
-  final localDeclarations = <int, AstNode>{};
 
   @override
   final Uri uri;
@@ -318,7 +319,6 @@ class AstBuilder extends StackListener {
 
     Comment comment = _findComment(metadata, name.beginToken);
     var typeParameter = ast.typeParameter(comment, metadata, name, null, null);
-    localDeclarations[name.offset] = typeParameter;
     push(typeParameter);
   }
 
@@ -604,7 +604,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void endBlock(int count, Token leftBracket, Token rightBracket) {
+  void endBlock(
+      int count, Token leftBracket, Token rightBracket, BlockKind blockKind) {
     assert(optional('{', leftBracket));
     assert(optional('}', rightBracket));
     debugEvent("Block");
@@ -1295,7 +1296,8 @@ class AstBuilder extends StackListener {
             thisKeyword: thisKeyword,
             period: periodAfterThis,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters);
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
       }
     } else {
       TypeAnnotation type = typeOrFunctionTypedParameter;
@@ -1334,7 +1336,6 @@ class AstBuilder extends StackListener {
       parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
           defaultValue.separator, defaultValue.value);
     }
-    localDeclarations[nameToken.offset] = parameter;
     push(parameter);
   }
 
@@ -1696,7 +1697,6 @@ class AstBuilder extends StackListener {
         ast.functionExpression(typeParameters, parameters, body);
     var functionDeclaration = ast.functionDeclaration(
         null, metadata, null, returnType, null, name, functionExpression);
-    localDeclarations[name.offset] = functionDeclaration;
     push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
@@ -2309,11 +2309,9 @@ class AstBuilder extends StackListener {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].identifier;
-        localDeclarations[exception.offset] = exception;
       }
       if (catchParameters.length > 1) {
         stackTrace = catchParameters[1].identifier;
-        localDeclarations[stackTrace.offset] = stackTrace;
       }
     }
     push(ast.catchClause(
@@ -2527,12 +2525,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleForInitializerExpressionStatement(Token token) {
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
     debugEvent("ForInitializerExpressionStatement");
   }
 
   @override
-  void handleForInitializerLocalVariableDeclaration(Token token) {
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     debugEvent("ForInitializerLocalVariableDeclaration");
   }
 
@@ -3554,10 +3552,7 @@ class AstBuilder extends StackListener {
 
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token equals, Expression initializer) {
-    var variableDeclaration =
-        ast.variableDeclaration(name, equals, initializer);
-    localDeclarations[name.offset] = variableDeclaration;
-    return variableDeclaration;
+    return ast.variableDeclaration(name, equals, initializer);
   }
 
   ParameterKind _toAnalyzerParameterKind(

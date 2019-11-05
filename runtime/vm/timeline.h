@@ -15,7 +15,10 @@
 #include "vm/os.h"
 #include "vm/os_thread.h"
 
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(FUCHSIA_SDK)
+#include <lib/trace-engine/context.h>
+#include <lib/trace-engine/instrumentation.h>
+#elif defined(HOST_OS_FUCHSIA)
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>
 #endif
@@ -66,7 +69,7 @@ class TimelineStream {
   const char* fuchsia_name() const { return fuchsia_name_; }
 
   bool enabled() {
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(HOST_OS_FUCHSIA)
 #ifdef PRODUCT
     return trace_is_category_enabled(fuchsia_name_);
 #else
@@ -74,7 +77,7 @@ class TimelineStream {
 #endif  // PRODUCT
 #else
     return enabled_ != 0;
-#endif  // defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#endif  // defined(HOST_OS_FUCHSIA)
   }
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }
@@ -89,7 +92,7 @@ class TimelineStream {
     return OFFSET_OF(TimelineStream, enabled_);
   }
 
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
 #endif
 
@@ -101,7 +104,7 @@ class TimelineStream {
   // 0 or 1. If this becomes a BitField, the generated code must be updated.
   uintptr_t enabled_;
 
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
 #endif
 };
@@ -918,7 +921,7 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   void CompleteEvent(TimelineEvent* event);
 };
 
-#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#if defined(HOST_OS_FUCHSIA)
 // A recorder that sends events to Fuchsia's tracing app.
 class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
  public:

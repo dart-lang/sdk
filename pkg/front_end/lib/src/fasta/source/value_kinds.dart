@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as type
+    show Token;
+
 import 'package:kernel/ast.dart' as type;
 
 import '../builder/builder.dart' as type;
@@ -38,8 +41,6 @@ import '../kernel/expression_generator.dart' as type;
 import '../modifier.dart' as type;
 
 import '../operator.dart' as type;
-
-import '../scanner.dart' as type show Token;
 
 import '../scope.dart' as type;
 

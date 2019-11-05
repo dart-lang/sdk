@@ -11,6 +11,7 @@ const_double_in_int_op_test/ii6: Skip # Triple shift
 extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
 large_class_declaration_test: Slow
 nnbd/*: Skip
+variance/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing variance.
 
 [ $compiler == dartdevk && !$checked ]
 assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.

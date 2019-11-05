@@ -32,7 +32,7 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(TARGET_ARCH_ARM_6) || defined(TARGET_ARCH_ARM_5TE)
+#if defined(TARGET_ARCH_ARM_6)
 DEFINE_FLAG(int,
             profile_period,
             10000,
@@ -68,10 +68,10 @@ DEFINE_FLAG(
 
 #ifndef PRODUCT
 
-bool Profiler::initialized_ = false;
+RelaxedAtomic<bool> Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
-ProfilerCounters Profiler::counters_;
+ProfilerCounters Profiler::counters_ = {};
 
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
@@ -82,11 +82,13 @@ void Profiler::Init() {
   }
   ASSERT(!initialized_);
   SetSamplePeriod(FLAG_profile_period);
-  intptr_t capacity = CalculateSampleBufferCapacity();
-  sample_buffer_ = new SampleBuffer(capacity);
-  Profiler::InitAllocationSampleBuffer();
-  // Zero counters.
-  memset(&counters_, 0, sizeof(counters_));
+  // The profiler may have been shutdown previously, in which case the sample
+  // buffer will have already been initialized.
+  if (sample_buffer_ == NULL) {
+    intptr_t capacity = CalculateSampleBufferCapacity();
+    sample_buffer_ = new SampleBuffer(capacity);
+    Profiler::InitAllocationSampleBuffer();
+  }
   ThreadInterrupter::Init();
   ThreadInterrupter::Startup();
   initialized_ = true;
@@ -112,6 +114,15 @@ void Profiler::Cleanup() {
   delete sample_buffer_;
   sample_buffer_ = NULL;
 #endif
+  initialized_ = false;
+}
+
+void Profiler::UpdateRunningState() {
+  if (!FLAG_profiler && initialized_) {
+    Cleanup();
+  } else if (FLAG_profiler && !initialized_) {
+    Init();
+  }
 }
 
 void Profiler::SetSampleDepth(intptr_t depth) {
@@ -417,11 +428,6 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   return false;
 }
 #elif defined(TARGET_ARCH_ARM64)
-bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
-  return false;
-}
-#elif defined(TARGET_ARCH_DBC)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;
@@ -1016,13 +1022,8 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != NULL);
     Simulator* simulator = isolate->simulator();
-#if defined(TARGET_ARCH_DBC)
-    *stack_lower = simulator->stack_base();
-    *stack_upper = simulator->stack_limit();
-#else
     *stack_lower = simulator->stack_limit();
     *stack_upper = simulator->stack_base();
-#endif  // defined(TARGET_ARCH_DBC)
   }
 #else
   const bool use_simulator_stack_bounds = false;
@@ -1070,7 +1071,7 @@ static Sample* SetupSample(Thread* thread,
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+#if defined(USING_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
@@ -1159,8 +1160,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   if (for_crash) {
     // Allow only one stack trace to prevent recursively printing stack traces
     // if we hit an assert while printing the stack.
-    static uintptr_t started_dump = 0;
-    if (AtomicOperations::FetchAndIncrement(&started_dump) != 0) {
+    static RelaxedAtomic<uintptr_t> started_dump = 0;
+    if (started_dump.fetch_add(1u) != 0) {
       OS::PrintErr("Aborting re-entrant request for stack trace.\n");
       return;
     }
@@ -1364,12 +1365,7 @@ void Profiler::SampleThread(Thread* thread,
 
   if (in_dart_code) {
 // If we're in Dart code, use the Dart stack pointer.
-#if defined(TARGET_ARCH_DBC)
-    simulator = isolate->simulator();
-    sp = simulator->get_sp();
-    fp = simulator->get_fp();
-    pc = simulator->get_pc();
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
     simulator = isolate->simulator();
     sp = simulator->get_register(SPREG);
     fp = simulator->get_register(FPREG);

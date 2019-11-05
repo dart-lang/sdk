@@ -131,6 +131,8 @@ Map<String, Function> _typeFactories = {
   'Instance': Instance.parse,
   '@Isolate': IsolateRef.parse,
   'Isolate': Isolate.parse,
+  '@IsolateGroup': IsolateGroupRef.parse,
+  'IsolateGroup': IsolateGroup.parse,
   'InboundReferences': InboundReferences.parse,
   'InboundReference': InboundReference.parse,
   'InstanceSet': InstanceSet.parse,
@@ -188,7 +190,9 @@ Map<String, List<String>> _methodReturnTypes = {
   'getInboundReferences': const ['InboundReferences', 'Sentinel'],
   'getInstances': const ['InstanceSet'],
   'getIsolate': const ['Isolate', 'Sentinel'],
+  'getIsolateGroup': const ['IsolateGroup', 'Sentinel'],
   'getMemoryUsage': const ['MemoryUsage', 'Sentinel'],
+  'getIsolateGroupMemoryUsage': const ['MemoryUsage', 'Sentinel'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj', 'Sentinel'],
   'getRetainingPath': const ['RetainingPath'],
@@ -506,6 +510,21 @@ abstract class VmServiceInterface {
   /// The return value can be one of [Isolate] or [Sentinel].
   Future<dynamic> getIsolate(String isolateId);
 
+  /// The `getIsolateGroup` RPC is used to lookup an `IsolateGroup` object by
+  /// its `id`.
+  ///
+  /// If `isolateGroupId` refers to an isolate group which has exited, then the
+  /// `Expired` [Sentinel] is returned.
+  ///
+  /// `IsolateGroup` `id` is an opaque identifier that can be fetched from an
+  /// `IsolateGroup`. List of active `IsolateGroup`'s, for example, is available
+  /// on `VM` object.
+  ///
+  /// See [IsolateGroup], [VM].
+  ///
+  /// The return value can be one of [IsolateGroup] or [Sentinel].
+  Future<dynamic> getIsolateGroup(String isolateGroupId);
+
   /// The `getMemoryUsage` RPC is used to lookup an isolate's memory usage
   /// statistics by its `id`.
   ///
@@ -516,6 +535,17 @@ abstract class VmServiceInterface {
   ///
   /// The return value can be one of [MemoryUsage] or [Sentinel].
   Future<dynamic> getMemoryUsage(String isolateId);
+
+  /// The `getIsolateGroupMemoryUsage` RPC is used to lookup an isolate group's
+  /// memory usage statistics by its `id`.
+  ///
+  /// If `isolateGroupId` refers to an isolate group which has exited, then the
+  /// `Expired` [Sentinel] is returned.
+  ///
+  /// See [IsolateGroup].
+  ///
+  /// The return value can be one of [MemoryUsage] or [Sentinel].
+  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId);
 
   /// The `getScripts` RPC is used to retrieve a `ScriptList` containing all
   /// scripts for an isolate based on the isolate's `isolateId`.
@@ -1027,9 +1057,19 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
+        case 'getIsolateGroup':
+          response = await _serviceImplementation.getIsolateGroup(
+            params['isolateGroupId'],
+          );
+          break;
         case 'getMemoryUsage':
           response = await _serviceImplementation.getMemoryUsage(
             params['isolateId'],
+          );
+          break;
+        case 'getIsolateGroupMemoryUsage':
+          response = await _serviceImplementation.getIsolateGroupMemoryUsage(
+            params['isolateGroupId'],
           );
           break;
         case 'getScripts':
@@ -1217,8 +1257,8 @@ class VmServerConnection {
       }
       _responseSink.add({
         'jsonrpc': '2.0',
-        'result': response.toJson(),
         'id': id,
+        'result': response.toJson(),
       });
     } catch (e, st) {
       var error = e is RPCError
@@ -1226,8 +1266,8 @@ class VmServerConnection {
           : {'code': -32603, 'message': '$e\n$st'};
       _responseSink.add({
         'jsonrpc': '2.0',
-        'error': error,
         'id': request['id'],
+        'error': error,
       });
     }
   }
@@ -1469,8 +1509,19 @@ class VmService implements VmServiceInterface {
   }
 
   @override
+  Future<dynamic> getIsolateGroup(String isolateGroupId) {
+    return _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
+  }
+
+  @override
   Future<dynamic> getMemoryUsage(String isolateId) {
     return _call('getMemoryUsage', {'isolateId': isolateId});
+  }
+
+  @override
+  Future<dynamic> getIsolateGroupMemoryUsage(String isolateGroupId) {
+    return _call(
+        'getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
   }
 
   @override
@@ -1699,6 +1750,7 @@ class VmService implements VmServiceInterface {
   void dispose() {
     _streamSub.cancel();
     _completers.values.forEach((c) => c.completeError('disposed'));
+    _completers.clear();
     if (_disposeHandler != null) {
       _disposeHandler();
     }
@@ -4444,6 +4496,105 @@ class Isolate extends Response {
   String toString() => '[Isolate]';
 }
 
+/// `IsolateGroupRef` is a reference to an `IsolateGroup` object.
+class IsolateGroupRef extends Response {
+  static IsolateGroupRef parse(Map<String, dynamic> json) =>
+      json == null ? null : IsolateGroupRef._fromJson(json);
+
+  /// The id which is passed to the getIsolateGroup RPC to load this isolate
+  /// group.
+  String id;
+
+  /// A numeric id for this isolate group, represented as a string. Unique.
+  String number;
+
+  /// A name identifying this isolate group. Not guaranteed to be unique.
+  String name;
+
+  IsolateGroupRef({
+    @required this.id,
+    @required this.number,
+    @required this.name,
+  });
+  IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    id = json['id'];
+    number = json['number'];
+    name = json['name'];
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = '@IsolateGroup';
+    json.addAll({
+      'id': id,
+      'number': number,
+      'name': name,
+    });
+    return json;
+  }
+
+  int get hashCode => id.hashCode;
+
+  operator ==(other) => other is IsolateGroupRef && id == other.id;
+
+  String toString() =>
+      '[IsolateGroupRef type: ${type}, id: ${id}, number: ${number}, name: ${name}]';
+}
+
+/// An `Isolate` object provides information about one isolate in the VM.
+class IsolateGroup extends Response {
+  static IsolateGroup parse(Map<String, dynamic> json) =>
+      json == null ? null : IsolateGroup._fromJson(json);
+
+  /// The id which is passed to the getIsolate RPC to reload this isolate.
+  String id;
+
+  /// A numeric id for this isolate, represented as a string. Unique.
+  String number;
+
+  /// A name identifying this isolate. Not guaranteed to be unique.
+  String name;
+
+  /// A list of all isolates in this isolate group.
+  List<IsolateRef> isolates;
+
+  IsolateGroup({
+    @required this.id,
+    @required this.number,
+    @required this.name,
+    @required this.isolates,
+  });
+  IsolateGroup._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    id = json['id'];
+    number = json['number'];
+    name = json['name'];
+    isolates = List<IsolateRef>.from(
+        createServiceObject(json['isolates'], const ['IsolateRef']));
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'IsolateGroup';
+    json.addAll({
+      'id': id,
+      'number': number,
+      'name': name,
+      'isolates': isolates.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  int get hashCode => id.hashCode;
+
+  operator ==(other) => other is IsolateGroup && id == other.id;
+
+  String toString() => '[IsolateGroup ' //
+      'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
+      'isolates: ${isolates}]';
+}
+
 /// See [getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences parse(Map<String, dynamic> json) =>
@@ -6236,6 +6387,9 @@ class VM extends Response {
   /// A list of isolates running in the VM.
   List<IsolateRef> isolates;
 
+  /// A list of isolate groups running in the VM.
+  List<IsolateGroupRef> isolateGroups;
+
   VM({
     @required this.name,
     @required this.architectureBits,
@@ -6246,6 +6400,7 @@ class VM extends Response {
     @required this.pid,
     @required this.startTime,
     @required this.isolates,
+    @required this.isolateGroups,
   });
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -6258,6 +6413,8 @@ class VM extends Response {
     startTime = json['startTime'];
     isolates = List<IsolateRef>.from(
         createServiceObject(json['isolates'], const ['IsolateRef']));
+    isolateGroups = List<IsolateGroupRef>.from(
+        createServiceObject(json['isolateGroups'], const ['IsolateGroupRef']));
   }
 
   @override
@@ -6274,6 +6431,7 @@ class VM extends Response {
       'pid': pid,
       'startTime': startTime,
       'isolates': isolates.map((f) => f.toJson()).toList(),
+      'isolateGroups': isolateGroups.map((f) => f.toJson()).toList(),
     });
     return json;
   }

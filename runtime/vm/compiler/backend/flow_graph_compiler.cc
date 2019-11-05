@@ -520,8 +520,6 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
-#if !defined(TARGET_ARCH_DBC)
-
 static bool IsPusher(Instruction* instr) {
   if (auto def = instr->AsDefinition()) {
     return def->HasTemp();
@@ -538,14 +536,10 @@ static bool IsPopper(Instruction* instr) {
   return false;
 }
 
-#endif
-
 bool FlowGraphCompiler::IsPeephole(Instruction* instr) const {
-#if !defined(TARGET_ARCH_DBC)
   if (FLAG_enable_peephole && !is_optimizing()) {
     return IsPusher(instr) && IsPopper(instr->next());
   }
-#endif
   return false;
 }
 
@@ -573,7 +567,7 @@ void FlowGraphCompiler::VisitBlocks() {
       continue;
     }
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
     if (!is_optimizing()) {
       FrameStateClear();
     }
@@ -632,7 +626,7 @@ void FlowGraphCompiler::VisitBlocks() {
         EndCodeSourceRange(instr->token_pos());
       }
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
       if (!is_optimizing()) {
         FrameStateUpdateWith(instr);
       }
@@ -640,7 +634,7 @@ void FlowGraphCompiler::VisitBlocks() {
       StatsEnd(instr);
     }
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
     ASSERT(is_optimizing() || FrameStateIsSafeToCall());
 #endif
   }
@@ -860,15 +854,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 // spill_area_size but the second safepoint will truncate the bitmap and
 // append the live registers to it again. The bitmap produced by both calls
 // will be the same.
-#if !defined(TARGET_ARCH_DBC)
     ASSERT(bitmap->Length() <= (spill_area_size + saved_registers_size));
     bitmap->SetLength(spill_area_size);
-#else
-    ASSERT(slow_path_argument_count == 0);
-    if (bitmap->Length() <= (spill_area_size + saved_registers_size)) {
-      bitmap->SetLength(Utils::Maximum(bitmap->Length(), spill_area_size));
-    }
-#endif
 
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
 
@@ -1037,23 +1024,6 @@ compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   deopt_infos_.Add(stub);
   return stub->entry_label();
 }
-
-#if defined(TARGET_ARCH_DBC)
-void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
-                                  ICData::DeoptReasonId reason,
-                                  uint32_t flags) {
-  ASSERT(is_optimizing());
-  ASSERT(!intrinsic_mode());
-  // The pending deoptimization environment may be changed after this deopt is
-  // emitted, so we need to make a copy.
-  Environment* env_copy = pending_deoptimization_env_->DeepCopy(zone());
-  CompilerDeoptInfo* info =
-      new (zone()) CompilerDeoptInfo(deopt_id, reason, flags, env_copy);
-  deopt_infos_.Add(info);
-  assembler()->Deopt(0, /*is_eager =*/1);
-  info->set_pc_offset(assembler()->CodeSize());
-}
-#endif  // defined(TARGET_ARCH_DBC)
 
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
@@ -1238,7 +1208,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
 
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
-        if (field.is_instance() &&
+        if (field.is_instance() && !field.needs_load_guard() &&
             (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
@@ -1268,7 +1238,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         }
         break;
       }
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
       case RawFunction::kMethodExtractor: {
         auto& extracted_method = Function::ZoneHandle(
             parsed_function().function().extracted_method_closure());
@@ -1285,7 +1255,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
         return true;
       }
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
       default:
         break;
     }
@@ -1309,9 +1279,6 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   return complete;
 }
 
-// DBC is very different from other architectures in how it performs instance
-// and static calls because it does not use stubs.
-#if !defined(TARGET_ARCH_DBC)
 void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
                                               intptr_t deopt_id,
                                               const Code& stub,
@@ -1470,7 +1437,6 @@ void FlowGraphCompiler::GenerateListTypeCheck(
   CheckClassIds(class_id_reg, args, is_instance_lbl, &unknown);
   assembler()->Bind(&unknown);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
   if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
@@ -1484,8 +1450,6 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 #endif
 }
 
-#if !defined(TARGET_ARCH_DBC)
-// TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
 bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
@@ -1504,15 +1468,11 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   UNREACHABLE();
   return kNoRegister;
 }
-#endif
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
   instr->InitializeLocationSummary(zone(), false);  // Not optimizing.
 
-// No need to allocate registers based on LocationSummary on DBC as in
-// unoptimized mode it's a stack based bytecode just like IR itself.
-#if !defined(TARGET_ARCH_DBC)
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
@@ -1627,7 +1587,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
     locs->set_out(0, result_location);
   }
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 static uword RegMaskBit(Register reg) {
@@ -1744,7 +1703,6 @@ void ParallelMoveResolver::PerformMove(int index) {
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
-#if !defined(TARGET_ARCH_DBC)
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* const move = moves_[index];
   const Location dst = move->dest();
@@ -1766,7 +1724,6 @@ void ParallelMoveResolver::EmitMove(int index) {
 #endif
   move->Eliminate();
 }
-#endif
 
 bool ParallelMoveResolver::IsScratchLocation(Location loc) {
   for (int i = 0; i < moves_.length(); ++i) {
@@ -2062,9 +2019,6 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   return true;
 }
 
-#if !defined(TARGET_ARCH_DBC)
-// DBC emits calls very differently from other architectures due to its
-// interpreted nature.
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const CallTargets& targets,
     const InstanceCallInstr& original_call,
@@ -2270,7 +2224,7 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
 
   int bias = 0;
   for (intptr_t i = 0; i < cid_ranges.length(); ++i) {
-    const CidRange& range = cid_ranges[i];
+    const CidRangeValue& range = cid_ranges[i];
     RELEASE_ASSERT(!range.IsIllegalRange());
     const bool last_round = i == (cid_ranges.length() - 1);
 
@@ -2380,12 +2334,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 }
 
 #undef __
-#endif
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
-// TODO(vegorov) re-enable frame state tracking on DBC. It is
-// currently disabled because it relies on LocationSummaries and
-// we don't use them during unoptimized compilation on DBC.
+#if defined(DEBUG)
 void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
   ASSERT(!is_optimizing());
 
@@ -2450,9 +2400,8 @@ void FlowGraphCompiler::FrameStateClear() {
   ASSERT(!is_optimizing());
   frame_state_.TruncateTo(0);
 }
-#endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#endif  // defined(DEBUG)
 
-#if !defined(TARGET_ARCH_DBC)
 #define __ compiler->assembler()->
 
 void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -2506,8 +2455,6 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 #undef __
-#endif  //  !defined(TARGET_ARCH_DBC)
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

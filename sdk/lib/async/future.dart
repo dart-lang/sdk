@@ -13,8 +13,6 @@ part of dart.async;
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
 ///
-/// Note: the `FutureOr<T>` type is interpreted as `dynamic` in non strong-mode.
-///
 /// # Examples
 /// ``` dart
 /// // The `Future<T>.then` function takes a callback [f] that returns either
@@ -637,8 +635,6 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
-  // a breaking change.
   Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**

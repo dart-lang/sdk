@@ -6,7 +6,7 @@ import 'dart:math';
 
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -734,7 +734,7 @@ class CorrectionUtils {
     // skip whitespace characters
     while (index < length) {
       int c = _buffer.codeUnitAt(index);
-      if (!isWhitespace(c) || c == 0x0D || c == 0x0A) {
+      if (!isWhitespace(c) || isEOL(c)) {
         break;
       }
       index++;

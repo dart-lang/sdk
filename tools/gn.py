@@ -95,32 +95,21 @@ def ToCommandLine(gn_args):
 
 def HostCpuForArch(arch):
     if arch in [
-            'ia32', 'arm', 'armv6', 'armv5te', 'simarm', 'simarmv6',
-            'simarmv5te', 'simdbc', 'armsimdbc', 'simarm_x64'
+            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64'
     ]:
         return 'x86'
-    if arch in [
-            'x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64', 'arm_x64'
-    ]:
+    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
         return 'x64'
 
 
 # The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-    if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
+    if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
     if arch in ['x64', 'simarm64', 'simarm_x64']:
         return 'x64'
-    if arch == 'simdbc':
-        return 'arm' if target_os == 'android' else 'x86'
-    if arch in ['simdbc64']:
-        return 'arm64' if target_os == 'android' else 'x64'
     if arch == 'arm_x64':
         return 'arm'
-    if arch == 'armsimdbc':
-        return 'arm'
-    if arch == 'armsimdbc64':
-        return 'arm64'
     return arch
 
 
@@ -134,12 +123,8 @@ def DartTargetCpuForArch(arch):
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['armv5te', 'simarmv5te']:
-        return 'armv5te'
     if arch in ['arm64', 'simarm64']:
         return 'arm64'
-    if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
-        return 'dbc'
     return arch
 
 
@@ -233,8 +218,6 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
             gn_args['target_cpu'] = 'arm'
             gn_args['arm_version'] = 6
             gn_args['arm_float_abi'] = floatabi
-        elif gn_args['target_cpu'] == 'armv5te':
-            raise Exception("GN support for armv5te unimplemented")
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -258,11 +241,11 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
-    gn_args['is_asan'] = args.asan and gn_args['is_clang']
-    gn_args['is_lsan'] = args.lsan and gn_args['is_clang']
-    gn_args['is_msan'] = args.msan and gn_args['is_clang']
-    gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
-    gn_args['is_ubsan'] = args.ubsan and gn_args['is_clang']
+    gn_args['is_asan'] = args.asan
+    gn_args['is_lsan'] = args.lsan
+    gn_args['is_msan'] = args.msan
+    gn_args['is_tsan'] = args.tsan
+    gn_args['is_ubsan'] = args.ubsan
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
@@ -315,7 +298,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,simdbc64'
+        args.arch = 'ia32,x64,simarm,simarm64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
@@ -329,9 +312,8 @@ def ProcessOptions(args):
             return False
     for arch in args.arch:
         archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
-            'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
-            'armsimdbc64', 'simarm_x64'
+            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
+            'simarm64', 'arm64', 'simarm_x64'
         ]
         if not arch in archs:
             print("Unknown arch %s" % arch)
@@ -350,8 +332,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
-                    'simdbc64'
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
@@ -389,8 +370,8 @@ def parse_args(args):
         '-a',
         type=str,
         help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,simarmv5te,armv5te,'
-        'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
+        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
+        'simarm64,arm64,simarm_x64]',
         default='x64')
     common_group.add_argument(
         '--mode',
@@ -434,9 +415,14 @@ def parse_args(args):
     other_group.add_argument(
         '--bytecode',
         '-b',
-        help='Include bytecode in the VMs platform dill',
+        help='Use bytecode in Dart VM',
         default=False,
         action="store_true")
+    other_group.add_argument(
+        '--no-bytecode',
+        help='Disable bytecode in Dart VM',
+        dest='bytecode',
+        action="store_false")
     other_group.add_argument(
         '--clang', help='Use Clang', default=True, action='store_true')
     other_group.add_argument(

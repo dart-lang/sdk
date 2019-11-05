@@ -787,6 +787,14 @@ class AstTestFactory {
           index,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
+  static IndexExpression indexExpressionForCascade(Expression array,
+          Expression index, TokenType period, TokenType leftBracket) =>
+      astFactory.indexExpressionForCascade(
+          TokenFactory.tokenFromType(period),
+          TokenFactory.tokenFromType(leftBracket),
+          index,
+          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+
   static InstanceCreationExpression instanceCreationExpression(
           Keyword keyword, ConstructorName name,
           [List<Expression> arguments]) =>

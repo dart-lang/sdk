@@ -7589,6 +7589,21 @@ dynamic Function(num) f;
 ''');
   }
 
+  test_instantiateToBounds_genericFunctionAsBound() async {
+    var library = await checkLibrary('''
+class A<T> {}
+class B<T extends int Function(), U extends A<T>> {}
+B b;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+notSimplyBounded class B<T extends int Function(), U extends A<T>> {
+}
+B<int Function(), A<int Function()>> b;
+''');
+  }
+
   test_instantiateToBounds_genericTypeAlias_simple() async {
     var library = await checkLibrary('''
 typedef F<T extends num> = S Function<S>(T p);
@@ -10048,6 +10063,7 @@ Never d;
         annotateNullability: true);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_legacy() async {
     featureSet = disableNnbd;
     var library = await checkLibrary('''
@@ -10065,6 +10081,7 @@ T f<T>(T t) {}
     expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_migrated() async {
     featureSet = enableNnbd;
     var library = await checkLibrary('''
@@ -10495,8 +10512,8 @@ typedef F = int;
 F f;
 ''');
     checkElementText(library, r'''
-typedef F = <null>;
-dynamic f;
+typedef F = dynamic Function();
+dynamic Function() f;
 ''');
   }
 
@@ -11254,7 +11271,7 @@ const A<int> a;
         type: TypeName
           name: SimpleIdentifier
             staticElement: self::@class::A
-            staticType: A<dynamic>
+            staticType: null
             token: A
           type: A<int>
       staticElement: ConstructorMember

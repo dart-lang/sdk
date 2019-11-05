@@ -131,7 +131,7 @@ class InstrumentationService {
    * Log that the given non-priority [exception] was thrown, with the given
    * [stackTrace].
    */
-  void logException(dynamic exception, StackTrace stackTrace) {
+  void logException(dynamic exception, [StackTrace stackTrace]) {
     if (_instrumentationServer != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
@@ -154,7 +154,8 @@ class InstrumentationService {
   /**
    * Log unstructured text information for debugging purposes.
    */
-  void logInfo(String message) => _log(TAG_INFO, message);
+  void logInfo(String message, [dynamic exception]) =>
+      _log(TAG_INFO, message + (exception == null ? "" : _toString(exception)));
 
   /**
    * Log that a log entry that was written to the analysis engine's log. The log

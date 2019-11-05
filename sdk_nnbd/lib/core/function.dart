@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.core;
 
 /**
@@ -36,8 +34,8 @@ abstract class Function {
    * If [positionalArguments] is null, it's considered an empty list.
    * If [namedArguments] is omitted or null, it is considered an empty map.
    */
-  external static apply(Function function, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]);
+  external static apply(Function function, List<dynamic>? positionalArguments,
+      [Map<Symbol, dynamic>? namedArguments]);
 
   /**
    * Returns a hash code value that is compatible with `operator==`.

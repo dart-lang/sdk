@@ -11,11 +11,7 @@ class Stopwatch {
   static const _maxInt = 0x7FFFFFFFFFFFFFFF;
 
   @patch
-  static void _initTicker() {
-    if (_frequency == null) {
-      _frequency = _computeFrequency();
-    }
-  }
+  static int _initTicker() => _computeFrequency();
 
   // Returns the current clock tick.
   @patch

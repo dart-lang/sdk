@@ -575,7 +575,7 @@ void test(Iterable<num> iter) {
     {
       var node = findNode.simple('w in');
       VariableElement element = node.staticElement;
-      expect(node.staticType, typeProvider.dynamicType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.dynamicType);
 
       var invocation = findNode.methodInvocation('f()) {} // 1');
@@ -585,7 +585,7 @@ void test(Iterable<num> iter) {
     {
       var node = findNode.simple('x in');
       VariableElement element = node.staticElement;
-      expect(node.staticType, typeProvider.numType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
     }
 
@@ -593,7 +593,7 @@ void test(Iterable<num> iter) {
       var node = findNode.simple('y in');
       VariableElement element = node.staticElement;
 
-      expect(node.staticType, typeProvider.numType);
+      expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
 
       var invocation = findNode.methodInvocation('f()) {} // 3');
@@ -684,7 +684,7 @@ void main() {
     await resolveTestCode(code);
     var xNode = findNode.simple('x) {}');
     VariableElement xElement = xNode.staticElement;
-    expect(xNode.staticType, typeProvider.objectType);
+    expect(xNode.staticType, isNull);
     expect(xElement.type, typeProvider.objectType);
   }
 

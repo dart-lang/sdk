@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         NamedType,
+        Nullability,
         Procedure,
         TypeParameter,
         TypeParameterType,
@@ -63,7 +64,7 @@ abstract class TypeConstraintGatherer {
 
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
-  InterfaceType futureType(DartType type);
+  InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
   Map<TypeParameter, TypeConstraint> computeConstraints() {
@@ -280,7 +281,7 @@ abstract class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture = futureType(subtypeArg);
+      InterfaceType subtypeFuture = futureType(subtypeArg, Nullability.legacy);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype);
     }
@@ -296,7 +297,7 @@ abstract class TypeConstraintGatherer {
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
       DartType supertypeArg = supertype.typeArguments[0];
-      DartType supertypeFuture = futureType(supertypeArg);
+      DartType supertypeFuture = futureType(supertypeArg, Nullability.legacy);
 
       // The match against FutureOr<X> succeeds if the match against either
       // Future<X> or X succeeds.  If they both succeed, the one adding new
@@ -453,8 +454,8 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  InterfaceType futureType(DartType type) {
-    return environment.futureType(type);
+  InterfaceType futureType(DartType type, Nullability nullability) {
+    return environment.futureType(type, nullability);
   }
 }
 

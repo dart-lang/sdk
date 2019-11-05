@@ -254,7 +254,7 @@ class ConstantEvaluationEngine {
     } else {
       // Should not happen.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to compute "
               "the value of a node of type ${constant.runtimeType}");
       return;
@@ -354,7 +354,7 @@ class ConstantEvaluationEngine {
         // of the annotation, so there's not a lot of information in this
         // message, but it's better than getting an exception.
         // https://github.com/dart-lang/sdk/issues/26811
-        AnalysisEngine.instance.logger.logInformation(
+        AnalysisEngine.instance.instrumentationService.logInfo(
             'No annotationAst for $constant in ${constant.compilationUnit}');
       } else if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
@@ -368,7 +368,7 @@ class ConstantEvaluationEngine {
     } else {
       // Should not happen.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to compute "
               "the value of a node of type ${constant.runtimeType}");
     }
@@ -819,7 +819,7 @@ class ConstantEvaluationEngine {
       // Should not happen.  Formal parameter defaults and annotations should
       // never appear as part of a cycle because they can't be referred to.
       assert(false);
-      AnalysisEngine.instance.logger
+      AnalysisEngine.instance.instrumentationService
           .logError("Constant value computer trying to report a cycle error "
               "for a node of type ${constant.runtimeType}");
     }
@@ -969,35 +969,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Convenience getter to gain access to the [evaluationEngine]'s type
   /// provider.
   TypeProvider get _typeProvider => evaluationEngine.typeProvider;
-
-  /// Given a [type] that may contain free type variables, evaluate them against
-  /// the current lexical environment and return the substituted type.
-  DartType evaluateType(DartType type) {
-    if (type is TypeParameterType) {
-      return null;
-    }
-    if (type is ParameterizedType) {
-      List<DartType> typeArguments;
-      for (int i = 0; i < type.typeArguments.length; i++) {
-        DartType ta = type.typeArguments[i];
-        DartType t = evaluateType(ta);
-        if (!identical(t, ta)) {
-          if (typeArguments == null) {
-            typeArguments = type.typeArguments.toList(growable: false);
-          }
-          typeArguments[i] = t;
-        }
-      }
-      if (typeArguments == null) return type;
-      return type.substitute2(typeArguments, type.typeArguments);
-    }
-    return type;
-  }
-
-  /// Given a [type], returns the constant value that contains that type value.
-  DartObjectImpl typeConstant(DartType type) {
-    return new DartObjectImpl(_typeProvider.typeType, new TypeState(type));
-  }
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
@@ -1293,7 +1264,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Element prefixElement = prefixNode.staticElement;
     // String.length
     if (prefixElement is! PrefixElement && prefixElement is! ClassElement) {
-      DartObjectImpl prefixResult = node.prefix.accept(this);
+      DartObjectImpl prefixResult = prefixNode.accept(this);
       if (_isStringLength(prefixResult, node.identifier)) {
         return prefixResult.stringLength(_typeProvider);
       }
@@ -1443,16 +1414,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _typeProvider.symbolType, new SymbolState(buffer.toString()));
   }
 
-  DartObjectImpl visitTypeAnnotation(TypeAnnotation node) {
-    DartType type = evaluateType(node.type);
-    if (type == null) {
+  @override
+  DartObjectImpl visitTypeName(TypeName node) {
+    var type = node.type;
+    if (_hasTypeParameterReference(type)) {
       return super.visitTypeName(node);
     }
-    return typeConstant(type);
+    return DartObjectImpl(_typeProvider.typeType, TypeState(type));
   }
-
-  @override
-  DartObjectImpl visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return `true` if the evaluation of one or more of the
@@ -1634,7 +1603,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         TypeState(_typeProvider.dynamicType),
       );
     } else if (variableElement is FunctionTypeAliasElement) {
-      var type = variableElement.instantiate2(
+      var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)
             .toList(),
@@ -1662,7 +1631,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (targetResult == null || targetResult.type != _typeProvider.stringType) {
       return false;
     }
-    return identifier.name == 'length';
+    return identifier.name == 'length' &&
+        identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
   void _reportNotPotentialConstants(AstNode node) {
@@ -1685,6 +1655,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return expressionValue;
     }
     return _typeProvider.nullObject;
+  }
+
+  /// Return `true` if the [type] has a type parameter reference, so is not
+  /// valid in a constant context.
+  static bool _hasTypeParameterReference(DartType type) {
+    if (type is TypeParameterType) {
+      return true;
+    }
+    if (type is ParameterizedType) {
+      return type.typeArguments.any(_hasTypeParameterReference);
+    }
+    return false;
   }
 }
 

@@ -1691,7 +1691,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       TypeInformation mask;
       DartType type = node.guard != null
           ? _elementMap.getDartType(node.guard)
-          : const DynamicType();
+          : DynamicType();
       if (type.isInterfaceType) {
         InterfaceType interfaceType = type;
         mask = _types.nonNullSubtype(interfaceType.element);
@@ -1700,7 +1700,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
-          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType(),
+          _inferrer, _capturedAndBoxed, local, mask, node, DynamicType(),
           isNullable: false /* `throw null` produces a NullThrownError */);
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
@@ -1710,7 +1710,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // Note: stack trace may be null if users omit a stack in
       // `completer.completeError`.
       _state.updateLocal(_inferrer, _capturedAndBoxed, local,
-          _types.dynamicType, node, const DynamicType());
+          _types.dynamicType, node, DynamicType());
     }
     visit(node.body);
     return null;

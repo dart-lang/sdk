@@ -203,9 +203,6 @@ int doLoadInt64Mint(Pointer<Int64> pointer, int length) {
 //    * Architecture: x64
 //      * 48000 - 125000 us (without optimizations)
 //      * 14 - ??? us (expected with optimizations, on par with typed data)
-//    * Architecture: SimDBC64
-//      * 52000 - 130000 us (without optimizations)
-//      * 300 - ??? us (expected with optimizations, on par with typed data)
 const N = 1000;
 
 class PointerInt8 extends BenchmarkBase {

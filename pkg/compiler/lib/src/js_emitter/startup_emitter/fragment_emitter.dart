@@ -599,6 +599,7 @@ class FragmentEmitter {
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
   NativeData get _nativeData => _closedWorld.nativeData;
+  RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
   js.Name _call0Name, _call1Name, _call2Name;
   js.Name get call0Name =>
@@ -1961,20 +1962,29 @@ class FragmentEmitter {
     return js.Block(statements);
   }
 
-  js.Statement emitTypeRules(Fragment fragment) {
-    if (!_options.experimentNewRti) return js.EmptyStatement();
+  js.Block emitTypeRules(Fragment fragment) {
+    if (!_options.experimentNewRti) return js.Block.empty();
 
+    List<js.Statement> statements = [];
     bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
     Ruleset ruleset = Ruleset.empty();
+    Map<ClassEntity, int> erasedTypes = {};
     Iterable<Class> classes =
         fragment.libraries.expand((Library library) => library.classes);
     classes.forEach((Class cls) {
+      ClassEntity element = cls.element;
+      InterfaceType targetType = _elementEnvironment.getThisType(element);
+
+      // TODO(fishythefish): Prune uninstantiated classes.
+      if (_rtiNeed.classHasErasedTypeArguments(element)) {
+        erasedTypes[element] = targetType.typeArguments.length;
+      }
+
       if (cls.classChecksNewRti == null) return;
-      InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
-      bool isInterop = _nativeData.isJsInteropClass(cls.element);
+      bool isInterop = _nativeData.isJsInteropClass(element);
 
       Iterable<TypeCheck> checks = cls.classChecksNewRti.checks;
       Iterable<InterfaceType> supertypes = isInterop
@@ -2009,12 +2019,26 @@ class FragmentEmitter {
       });
     }
 
-    FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;
-    return js.js.statement('#(init.#,JSON.parse(#));', [
-      _emitter.staticFunctionAccess(method),
-      RTI_UNIVERSE,
-      _rulesetEncoder.encodeRuleset(ruleset),
-    ]);
+    if (ruleset.isNotEmpty) {
+      FunctionEntity addRules = _closedWorld.commonElements.rtiAddRulesMethod;
+      statements.add(js.js.statement('#(init.#,JSON.parse(#));', [
+        _emitter.staticFunctionAccess(addRules),
+        RTI_UNIVERSE,
+        _rulesetEncoder.encodeRuleset(ruleset),
+      ]));
+    }
+
+    if (erasedTypes.isNotEmpty) {
+      FunctionEntity addErasedTypes =
+          _closedWorld.commonElements.rtiAddErasedTypesMethod;
+      statements.add(js.js.statement('#(init.#,JSON.parse(#));', [
+        _emitter.staticFunctionAccess(addErasedTypes),
+        RTI_UNIVERSE,
+        _rulesetEncoder.encodeErasedTypes(erasedTypes),
+      ]));
+    }
+
+    return js.Block(statements);
   }
 
   /// Returns an expression that creates the initial Rti Universe.
@@ -2028,6 +2052,7 @@ class FragmentEmitter {
 
     initField(RtiUniverseFieldNames.evalCache, 'new Map()');
     initField(RtiUniverseFieldNames.typeRules, '{}');
+    initField(RtiUniverseFieldNames.erasedTypes, '{}');
     initField(RtiUniverseFieldNames.sharedEmptyArray, '[]');
 
     return js.ObjectInitializer(universeFields);

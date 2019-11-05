@@ -7964,6 +7964,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
+ *   "port": optional int
  *   "outputDir": optional FilePath
  * }
  *
@@ -7979,6 +7980,8 @@ class EditDartfixParams implements RequestParams {
   bool _includeRequiredFixes;
 
   List<String> _excludedFixes;
+
+  int _port;
 
   String _outputDir;
 
@@ -8070,6 +8073,20 @@ class EditDartfixParams implements RequestParams {
   }
 
   /**
+   * The port to be used to listen for and respond to http requests for preview
+   * pages.
+   */
+  int get port => _port;
+
+  /**
+   * The port to be used to listen for and respond to http requests for preview
+   * pages.
+   */
+  void set port(int value) {
+    this._port = value;
+  }
+
+  /**
    * The absolute and normalized path to a directory to which non-nullability
    * migration output will be written. The output is only produced if the
    * non-nullable fix is included. Files in the directory might be overwritten,
@@ -8092,12 +8109,14 @@ class EditDartfixParams implements RequestParams {
       bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes,
+      int port,
       String outputDir}) {
     this.included = included;
     this.includedFixes = includedFixes;
     this.includePedanticFixes = includePedanticFixes;
     this.includeRequiredFixes = includeRequiredFixes;
     this.excludedFixes = excludedFixes;
+    this.port = port;
     this.outputDir = outputDir;
   }
 
@@ -8134,6 +8153,10 @@ class EditDartfixParams implements RequestParams {
         excludedFixes = jsonDecoder.decodeList(jsonPath + ".excludedFixes",
             json["excludedFixes"], jsonDecoder.decodeString);
       }
+      int port;
+      if (json.containsKey("port")) {
+        port = jsonDecoder.decodeInt(jsonPath + ".port", json["port"]);
+      }
       String outputDir;
       if (json.containsKey("outputDir")) {
         outputDir = jsonDecoder.decodeString(
@@ -8144,6 +8167,7 @@ class EditDartfixParams implements RequestParams {
           includePedanticFixes: includePedanticFixes,
           includeRequiredFixes: includeRequiredFixes,
           excludedFixes: excludedFixes,
+          port: port,
           outputDir: outputDir);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix params", json);
@@ -8171,6 +8195,9 @@ class EditDartfixParams implements RequestParams {
     if (excludedFixes != null) {
       result["excludedFixes"] = excludedFixes;
     }
+    if (port != null) {
+      result["port"] = port;
+    }
     if (outputDir != null) {
       result["outputDir"] = outputDir;
     }
@@ -8196,6 +8223,7 @@ class EditDartfixParams implements RequestParams {
           includeRequiredFixes == other.includeRequiredFixes &&
           listEqual(excludedFixes, other.excludedFixes,
               (String a, String b) => a == b) &&
+          port == other.port &&
           outputDir == other.outputDir;
     }
     return false;
@@ -8209,6 +8237,7 @@ class EditDartfixParams implements RequestParams {
     hash = JenkinsSmiHash.combine(hash, includePedanticFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, port.hashCode);
     hash = JenkinsSmiHash.combine(hash, outputDir.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -22377,7 +22406,6 @@ class SearchResultsParams implements HasToJson {
  * {
  *   "version": String
  *   "pid": int
- *   "sessionId": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -22386,8 +22414,6 @@ class ServerConnectedParams implements HasToJson {
   String _version;
 
   int _pid;
-
-  String _sessionId;
 
   /**
    * The version number of the analysis server.
@@ -22415,22 +22441,9 @@ class ServerConnectedParams implements HasToJson {
     this._pid = value;
   }
 
-  /**
-   * The session id for this session.
-   */
-  String get sessionId => _sessionId;
-
-  /**
-   * The session id for this session.
-   */
-  void set sessionId(String value) {
-    this._sessionId = value;
-  }
-
-  ServerConnectedParams(String version, int pid, {String sessionId}) {
+  ServerConnectedParams(String version, int pid) {
     this.version = version;
     this.pid = pid;
-    this.sessionId = sessionId;
   }
 
   factory ServerConnectedParams.fromJson(
@@ -22452,12 +22465,7 @@ class ServerConnectedParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "pid");
       }
-      String sessionId;
-      if (json.containsKey("sessionId")) {
-        sessionId = jsonDecoder.decodeString(
-            jsonPath + ".sessionId", json["sessionId"]);
-      }
-      return new ServerConnectedParams(version, pid, sessionId: sessionId);
+      return new ServerConnectedParams(version, pid);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
@@ -22473,9 +22481,6 @@ class ServerConnectedParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["version"] = version;
     result["pid"] = pid;
-    if (sessionId != null) {
-      result["sessionId"] = sessionId;
-    }
     return result;
   }
 
@@ -22489,9 +22494,7 @@ class ServerConnectedParams implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is ServerConnectedParams) {
-      return version == other.version &&
-          pid == other.pid &&
-          sessionId == other.sessionId;
+      return version == other.version && pid == other.pid;
     }
     return false;
   }
@@ -22501,7 +22504,6 @@ class ServerConnectedParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     hash = JenkinsSmiHash.combine(hash, pid.hashCode);
-    hash = JenkinsSmiHash.combine(hash, sessionId.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

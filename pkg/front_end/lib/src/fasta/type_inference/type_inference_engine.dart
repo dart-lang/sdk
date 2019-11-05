@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+
 import 'package:kernel/ast.dart'
     show
         Constructor,
@@ -13,6 +15,8 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Member,
         NamedType,
+        Nullability,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -21,6 +25,8 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -33,7 +39,7 @@ import '../kernel/kernel_builder.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'type_inferrer.dart' show TypeInferrer;
+import 'type_inferrer.dart';
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
@@ -149,13 +155,13 @@ abstract class TypeInferenceEngine {
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
@@ -213,5 +219,98 @@ abstract class TypeInferenceEngine {
       }
     }
     return member;
+  }
+}
+
+/// Concrete implementation of [TypeInferenceEngine] specialized to work with
+/// kernel objects.
+class TypeInferenceEngineImpl extends TypeInferenceEngine {
+  TypeInferenceEngineImpl(Instrumentation instrumentation)
+      : super(instrumentation);
+
+  @override
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+    if (dataForTesting != null) {
+      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
+          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+    } else {
+      assignedVariables =
+          new AssignedVariables<TreeNode, VariableDeclaration>();
+    }
+    return new TypeInferrerImpl(
+        this, uri, false, thisType, library, assignedVariables, dataForTesting);
+  }
+
+  @override
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+    if (dataForTesting != null) {
+      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
+          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
+    } else {
+      assignedVariables =
+          new AssignedVariables<TreeNode, VariableDeclaration>();
+    }
+    return new TypeInferrerImpl(
+        this, uri, true, thisType, library, assignedVariables, dataForTesting);
+  }
+}
+
+class InferenceDataForTesting {
+  final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
+}
+
+/// The result of performing flow analysis on a unit.
+class FlowAnalysisResult {
+  /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
+  /// for example because a previous statement always exits.
+  final List<TreeNode> unreachableNodes = [];
+
+  /// The list of function bodies that don't complete, for example because
+  /// there is a `return` statement at the end of the function body block.
+  final List<TreeNode> functionBodiesThatDontComplete = [];
+
+  /// The list of [Expression]s representing variable accesses that occur before
+  /// the corresponding variable has been definitely assigned.
+  final List<TreeNode> unassignedNodes = [];
+
+  /// The assigned variables information that computed for the member.
+  AssignedVariablesForTesting<TreeNode, VariableDeclaration> assignedVariables;
+}
+
+/// CFE-specific implementation of [TypeOperations].
+class TypeOperationsCfe
+    implements TypeOperations<VariableDeclaration, DartType> {
+  final TypeEnvironment typeEnvironment;
+
+  TypeOperationsCfe(this.typeEnvironment);
+
+  // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
+  @override
+  bool isSameType(DartType type1, DartType type2) => type1 == type2;
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return typeEnvironment.isSubtypeOf(
+        leftType, rightType, SubtypeCheckMode.withNullabilities);
+  }
+
+  @override
+  DartType promoteToNonNull(DartType type) {
+    return type.withNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType variableType(VariableDeclaration variable) => variable.type;
+
+  @override
+  DartType tryPromoteToType(DartType from, DartType to) {
+    if (from is TypeParameterType) {
+      return new TypeParameterType(from.parameter, to, from.nullability);
+    }
+    return to;
   }
 }

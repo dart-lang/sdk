@@ -7,8 +7,8 @@ library dev_compiler.test.sourcemap.ddc_common;
 import 'dart:io';
 import 'dart:mirrors' show currentMirrorSystem;
 
+import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
-import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';

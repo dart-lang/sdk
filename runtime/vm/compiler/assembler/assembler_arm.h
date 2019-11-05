@@ -504,8 +504,7 @@ class Assembler : public AssemblerBase {
   void ldrsh(Register rd, Address ad, Condition cond = AL);
 
   // ldrd and strd actually support the full range of addressing modes, but
-  // we don't use them, and we need to split them up into two instructions for
-  // ARMv5TE, so we only support the base + offset mode.
+  // we don't use them, so we only support the base + offset mode.
   // rd must be an even register and rd2 must be rd + 1.
   void ldrd(Register rd,
             Register rd2,

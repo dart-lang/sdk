@@ -29,7 +29,8 @@ class KernelIsolate : public AllStatic {
   static const int kListDependenciesTag;
   static const int kNotifyIsolateShutdown;
 
-  static void Run();
+  static void InitializeState();
+  static bool Start();
   static void Shutdown();
 
   static bool NameEquals(const char* name);
@@ -68,6 +69,7 @@ class KernelIsolate : public AllStatic {
   static void NotifyAboutIsolateShutdown(const Isolate* isolate);
 
   static void AddExperimentalFlag(const char* value);
+  static bool GetExperimentalFlag(const char* value);
 
  protected:
   static void InitCallback(Isolate* I);
@@ -83,6 +85,7 @@ class KernelIsolate : public AllStatic {
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
   enum State {
+    kNotStarted,
     kStopped,
     kStarting,
     kStarted,

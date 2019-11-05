@@ -13,3 +13,6 @@ dependencies:
   front_end: ^0.1.6
   kernel: ^0.3.6
   args: ^1.4.4
+
+dev_dependencies:
+  test: any

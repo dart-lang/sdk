@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -44,7 +43,6 @@ class AstResolver {
       _linker.typeProvider,
       errorListener,
       nameScope: _nameScope,
-      localVariableInfo: LocalVariableInfo(),
     );
     node.accept(variableResolverVisitor);
 

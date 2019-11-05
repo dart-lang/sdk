@@ -309,6 +309,21 @@ void useWidget(Widget w) {}
     }
   }
 
+  test_identifyWidgetExpression_parent_conditionalExpression() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(bool condition, Widget w1, Widget w2) {
+  condition ? w1 : w2;
+}
+''');
+    Expression thenWidget = findNodeAtString('w1 :');
+    expect(flutter.identifyWidgetExpression(thenWidget), thenWidget);
+
+    Expression elseWidget = findNodeAtString('w2;');
+    expect(flutter.identifyWidgetExpression(elseWidget), elseWidget);
+  }
+
   test_identifyWidgetExpression_parent_expressionFunctionBody() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

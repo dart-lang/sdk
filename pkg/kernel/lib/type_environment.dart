@@ -34,9 +34,12 @@ abstract class TypeEnvironment extends SubtypeTester {
 
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
+  Class get functionClass => coreTypes.functionClass;
   Class get futureOrClass => coreTypes.futureOrClass;
+  Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
+  InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
   InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
@@ -60,8 +63,10 @@ abstract class TypeEnvironment extends SubtypeTester {
     return new InterfaceType(coreTypes.streamClass, <DartType>[type]);
   }
 
-  InterfaceType futureType(DartType type) {
-    return new InterfaceType(coreTypes.futureClass, <DartType>[type]);
+  InterfaceType futureType(DartType type,
+      [Nullability nullability = Nullability.legacy]) {
+    return new InterfaceType(
+        coreTypes.futureClass, <DartType>[type], nullability);
   }
 
   /// Removes a level of `Future<>` types wrapping a type.
@@ -135,18 +140,19 @@ abstract class TypeEnvironment extends SubtypeTester {
   /// Otherwise `num` is returned.
   DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
     if (type1 == type2) return type1;
-    if (type1 == coreTypes.doubleLegacyRawType ||
-        type2 == coreTypes.doubleLegacyRawType)
-      return coreTypes.doubleLegacyRawType;
-    return coreTypes.numLegacyRawType;
-  }
-}
 
-/// The value enum for internal states of [IsSubtypeOf].
-enum _IsSubtypeOfValues {
-  always,
-  onlyIfIgnoringNullabilities,
-  never,
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      if (type1.classNode == type2.classNode) {
+        return type1;
+      }
+      if (type1.classNode == coreTypes.doubleClass ||
+          type2.classNode == coreTypes.doubleClass) {
+        return coreTypes.doubleRawType(type1.nullability);
+      }
+    }
+
+    return coreTypes.numRawType(type1.nullability);
+  }
 }
 
 /// Result of a nullability-aware subtype check.
@@ -158,27 +164,91 @@ enum _IsSubtypeOfValues {
 /// nullability markers are ignored, it should also fail for those types in
 /// full-NNBD mode.
 class IsSubtypeOf {
-  final _IsSubtypeOfValues _value;
+  /// Internal value constructed via [IsSubtypeOf.never].
+  ///
+  /// The integer values of [_valueNever], [_valueOnlyIfIgnoringNullabilities],
+  /// and [_valueAlways] are important for the implementations of [_joinValues],
+  /// [_all], and [join].  They should be kept in sync.
+  static const int _valueNever = 0;
+
+  /// Internal value constructed via [IsSubtypeOf.onlyIfIgnoringNullabilities].
+  static const int _valueOnlyIfIgnoringNullabilities = 1;
+
+  /// Internal value constructed via [IsSubtypeOf.always].
+  static const int _valueAlways = 3;
+
+  static const List<IsSubtypeOf> _all = const <IsSubtypeOf>[
+    const IsSubtypeOf.never(),
+    const IsSubtypeOf.onlyIfIgnoringNullabilities(),
+    null, // Deliberately left empty because there's no index value for that.
+    const IsSubtypeOf.always()
+  ];
+
+  /// Joins results of subtype checks on parts into the overall result.
+  ///
+  /// Both [value1] and [value2] should be chosen from
+  /// [_valueNever], [_valueOnlyIfIgnoringNullabilities], and [_valueAlways].
+  /// The method produces the result which is one of [_valueNever],
+  /// [_valueOnlyIfIgnoringNullabilities], and [_valueAlways].
+  static int _joinValues(int value1, int value2) => value1 & value2;
+
+  /// The only state of an [IsSubtypeOf] object.
+  final int _value;
+
+  const IsSubtypeOf._internal(int value) : _value = value;
 
   /// Subtype check succeeds in both modes.
-  const IsSubtypeOf.always() : _value = _IsSubtypeOfValues.always;
+  const IsSubtypeOf.always() : this._internal(_valueAlways);
 
   /// Subtype check succeeds only if the nullability markers are ignored.
   ///
   /// This implies that if the nullability markers aren't ignored, the subtype
   /// check fails.
   const IsSubtypeOf.onlyIfIgnoringNullabilities()
-      : _value = _IsSubtypeOfValues.onlyIfIgnoringNullabilities;
+      : this._internal(_valueOnlyIfIgnoringNullabilities);
 
   /// Subtype check fails in both modes.
-  const IsSubtypeOf.never() : _value = _IsSubtypeOfValues.never;
+  const IsSubtypeOf.never() : this._internal(_valueNever);
+
+  /// Checks if two types are in relation based solely on their nullabilities.
+  factory IsSubtypeOf.basedSolelyOnNullabilities(
+      DartType subtype, DartType supertype) {
+    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
+      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+    }
+    return const IsSubtypeOf.always();
+  }
+
+  /// Combines results for the type parts into the overall result for the type.
+  ///
+  /// For example, the result of `A<B1, C1>? <: A<B2, C2>*` can be computed as
+  /// `Rb.join(Rc).join(Rn)` where `Rb` is the result of `B1 <: B2`, `Rc` is the
+  /// result of `C1 <: C2`, and `Rn` is
+  /// `new IsSubtypeOf.basedSolelyOnNullabilities(A<B1, C1>?, A<B2, C2>*)`.
+  IsSubtypeOf join(IsSubtypeOf other) {
+    return _all[_joinValues(_value, other._value)];
+  }
+
+  /// Shorts the computation of [join] if `this` is [IsSubtypeOf.never].
+  ///
+  /// Use this instead of [join] for optimization in case the argument to [join]
+  /// is, for example, a potentially expensive subtype check.  Unlike [join],
+  /// [joinWithSubtypeCheckFor] will immediately return if [this] was
+  /// constructed as [IsSubtypeOf.never] because the right-hand side will not
+  /// change the result anyway.
+  IsSubtypeOf joinWithSubtypeCheckFor(
+      DartType subtype, DartType supertype, SubtypeTester tester) {
+    if (_value == _valueNever) return this;
+    return this
+        .join(tester.performNullabilityAwareSubtypeCheck(subtype, supertype));
+  }
 
   bool isSubtypeWhenIgnoringNullabilities() {
-    return _value != _IsSubtypeOfValues.never;
+    return _value != _valueNever;
   }
 
   bool isSubtypeWhenUsingNullabilities() {
-    return _value == _IsSubtypeOfValues.always;
+    return _value == _valueAlways;
   }
 }
 
@@ -192,10 +262,14 @@ enum SubtypeCheckMode {
 /// This lives in a separate class so it can be tested independently of the SDK.
 abstract class SubtypeTester {
   InterfaceType get objectLegacyRawType;
+  InterfaceType get objectNullableRawType;
   InterfaceType get nullType;
   InterfaceType get functionLegacyRawType;
+  Class get objectClass;
+  Class get functionClass;
   Class get futureOrClass;
-  InterfaceType futureType(DartType type);
+  InterfaceType futureType(DartType type,
+      [Nullability nullability = Nullability.legacy]);
 
   static List<Object> typeChecks;
 
@@ -206,7 +280,8 @@ abstract class SubtypeTester {
   bool isTop(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
-        type == objectLegacyRawType;
+        type == objectLegacyRawType ||
+        type == objectNullableRawType;
   }
 
   /// Can be use to collect type checks. To use:
@@ -214,9 +289,10 @@ abstract class SubtypeTester {
   /// 2. Rename `_collect_isSubtypeOf` to `isSubtypeOf`.
   /// 3. Comment out the call to `_isSubtypeOf` below.
   // ignore:unused_element
-  bool _collect_isSubtypeOf(DartType subtype, DartType supertype) {
+  bool _collect_isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
     bool result = true;
-    // result = _isSubtypeOf(subtype, supertype);
+    //result = _isSubtypeOf(subtype, supertype, mode);
     typeChecks ??= <Object>[];
     typeChecks.add([subtype, supertype, result]);
     return result;
@@ -246,11 +322,26 @@ abstract class SubtypeTester {
     supertype = supertype.unalias;
     if (identical(subtype, supertype)) return const IsSubtypeOf.always();
     if (subtype is BottomType) return const IsSubtypeOf.always();
-    if (subtype == nullType) {
-      // See rule 4 of the subtype rules from the Dart Language Specification.
+    if (subtype is NeverType) {
       return supertype is BottomType
           ? const IsSubtypeOf.never()
-          : const IsSubtypeOf.always();
+          : new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
+    }
+    if (subtype == nullType) {
+      // TODO(dmitryas): Remove InvalidType from subtype relation.
+      if (supertype is InvalidType) {
+        // The return value is supposed to keep the backward compatibility.
+        return const IsSubtypeOf.always();
+      }
+
+      if (supertype.nullability == Nullability.nullable ||
+          supertype.nullability == Nullability.legacy) {
+        return const IsSubtypeOf.always();
+      }
+      // See rule 4 of the subtype rules from the Dart Language Specification.
+      return supertype is BottomType || supertype is NeverType
+          ? const IsSubtypeOf.never()
+          : const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
     if (isTop(supertype)) return const IsSubtypeOf.always();
 
@@ -267,13 +358,15 @@ abstract class SubtypeTester {
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var subtypeFuture = futureType(subtypeArg);
-      return performNullabilityAwareSubtypeCheck(subtypeFuture, supertype)
-                  .isSubtypeWhenIgnoringNullabilities() &&
-              performNullabilityAwareSubtypeCheck(subtypeArg, supertype)
-                  .isSubtypeWhenIgnoringNullabilities()
-          ? const IsSubtypeOf.always()
-          : const IsSubtypeOf.never();
+      return performNullabilityAwareSubtypeCheck(subtypeArg, supertype)
+          .joinWithSubtypeCheckFor(
+              futureType(subtypeArg, Nullability.nonNullable), supertype, this)
+          .join(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
+    }
+
+    if (supertype is InterfaceType && supertype.classNode == objectClass) {
+      assert(supertype.nullability == Nullability.nonNullable);
+      return new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
     }
 
     if (supertype is InterfaceType &&
@@ -281,7 +374,7 @@ abstract class SubtypeTester {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var supertypeArg = supertype.typeArguments[0];
-      var supertypeFuture = futureType(supertypeArg);
+      var supertypeFuture = futureType(supertypeArg, Nullability.legacy);
       return performNullabilityAwareSubtypeCheck(subtype, supertypeFuture)
                   .isSubtypeWhenIgnoringNullabilities() ||
               performNullabilityAwareSubtypeCheck(subtype, supertypeArg)
@@ -293,31 +386,34 @@ abstract class SubtypeTester {
     if (subtype is InterfaceType && supertype is InterfaceType) {
       var upcastType = getTypeAsInstanceOf(subtype, supertype.classNode);
       if (upcastType == null) return const IsSubtypeOf.never();
+      IsSubtypeOf result = const IsSubtypeOf.always();
       for (int i = 0; i < upcastType.typeArguments.length; ++i) {
         // Termination: the 'supertype' parameter decreases in size.
         int variance = upcastType.classNode.typeParameters[i].variance;
         DartType leftType = upcastType.typeArguments[i];
         DartType rightType = supertype.typeArguments[i];
         if (variance == Variance.contravariant) {
-          if (!performNullabilityAwareSubtypeCheck(rightType, leftType)
-              .isSubtypeWhenIgnoringNullabilities()) {
+          result = result
+              .join(performNullabilityAwareSubtypeCheck(rightType, leftType));
+          if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
         } else if (variance == Variance.invariant) {
-          if (!performNullabilityAwareSubtypeCheck(rightType, leftType)
-                  .isSubtypeWhenIgnoringNullabilities() ||
-              !performNullabilityAwareSubtypeCheck(leftType, rightType)
-                  .isSubtypeWhenIgnoringNullabilities()) {
+          result = result.join(
+              performNullabilityAwareMutualSubtypesCheck(leftType, rightType));
+          if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
         } else {
-          if (!performNullabilityAwareSubtypeCheck(leftType, rightType)
-              .isSubtypeWhenIgnoringNullabilities()) {
+          result = result
+              .join(performNullabilityAwareSubtypeCheck(leftType, rightType));
+          if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
         }
       }
-      return const IsSubtypeOf.always();
+      return result
+          .join(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
     }
     if (subtype is TypeParameterType) {
       if (supertype is TypeParameterType &&
@@ -337,15 +433,24 @@ abstract class SubtypeTester {
       // Termination: if there are no cyclically bound type parameters, this
       // recursive call can only occur a finite number of times, before reaching
       // a shrinking recursive call (or terminating).
-      return performNullabilityAwareSubtypeCheck(subtype.bound, supertype);
+      return performNullabilityAwareSubtypeCheck(subtype.bound, supertype)
+          .join(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
     }
     if (subtype is FunctionType) {
-      if (supertype == functionLegacyRawType) return const IsSubtypeOf.always();
+      if (supertype is InterfaceType && supertype.classNode == functionClass) {
+        return new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype);
+      }
       if (supertype is FunctionType) {
         return _performNullabilityAwareFunctionSubtypeCheck(subtype, supertype);
       }
     }
     return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf performNullabilityAwareMutualSubtypesCheck(
+      DartType type1, DartType type2) {
+    return performNullabilityAwareSubtypeCheck(type1, type2)
+        .joinWithSubtypeCheckFor(type2, type1, this);
   }
 
   IsSubtypeOf _performNullabilityAwareFunctionSubtypeCheck(

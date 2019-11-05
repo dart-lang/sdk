@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -36,8 +37,6 @@ main() {
     defineReflectiveTests(GreatestLowerBoundTest);
     defineReflectiveTests(LeastUpperBoundFunctionsTest);
     defineReflectiveTests(LeastUpperBoundTest);
-    defineReflectiveTests(NonNullableSubtypingTest);
-    defineReflectiveTests(SubtypingTest);
     defineReflectiveTests(TypeSystemTest);
   });
 }
@@ -198,12 +197,10 @@ abstract class AbstractTypeSystemTest {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = MethodElementImpl(name, 0)
+    return MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   ParameterElement _requiredParameter(String name, DartType type) {
@@ -211,16 +208,6 @@ abstract class AbstractTypeSystemTest {
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
     return parameter;
-  }
-
-  /// TODO(scheglov) We should do the opposite - build type in the element.
-  /// But build a similar synthetic / structured type.
-  FunctionType _typeOfExecutableElement(ExecutableElement element) {
-    return FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
-    );
   }
 
   TypeParameterElementImpl _typeParameter(String name, {DartType bound}) {
@@ -2693,603 +2680,6 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 }
 
-@reflectiveTest
-class NonNullableSubtypingTest extends SubtypingTestBase {
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
-  void test_dynamicType() {
-    List<DartType> equivalents = <DartType>[
-      voidType,
-      _question(objectType),
-      _star(objectType),
-    ];
-    List<DartType> subtypes = <DartType>[bottomType, nullType, objectType];
-    _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
-  }
-
-  @failingTest
-  void test_futureOr_topTypes() {
-    var objectStar =
-        (objectType as TypeImpl).withNullability(NullabilitySuffix.star);
-    var objectQuestion =
-        (objectType as TypeImpl).withNullability(NullabilitySuffix.question);
-    var futureOrObject = futureOrType(objectType);
-    var futureOrObjectStar = futureOrType(objectStar);
-    var futureOrObjectQuestion = futureOrType(objectQuestion);
-    var futureOrStarObject =
-        (futureOrObject as TypeImpl).withNullability(NullabilitySuffix.star);
-    var futureOrQuestionObject = (futureOrObject as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
-    var futureOrStarObjectStar = (futureOrObjectStar as TypeImpl)
-        .withNullability(NullabilitySuffix.star);
-    var futureOrQuestionObjectStar = (futureOrObjectStar as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
-    var futureOrStarObjectQuestion = (futureOrObjectQuestion as TypeImpl)
-        .withNullability(NullabilitySuffix.star);
-    var futureOrQuestionObjectQuestion = (futureOrObjectQuestion as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
-
-    //FutureOr<Object> <: FutureOr*<Object?>
-    _checkGroups(futureOrObject, equivalents: [
-      objectStar,
-      futureOrObjectStar,
-      futureOrStarObject,
-      futureOrStarObjectStar,
-      objectType
-    ], subtypes: [], supertypes: [
-      objectQuestion,
-      futureOrQuestionObject,
-      futureOrObjectQuestion,
-      futureOrQuestionObject,
-      futureOrQuestionObjectStar,
-      futureOrStarObjectQuestion,
-      futureOrQuestionObjectQuestion,
-    ]);
-  }
-
-  void test_int_nullableTypes() {
-    List<DartType> equivalents = <DartType>[
-      intType,
-      _star(intType),
-    ];
-    List<DartType> subtypes = <DartType>[
-      bottomType,
-    ];
-    List<DartType> supertypes = <DartType>[
-      _question(intType),
-      objectType,
-      _question(objectType),
-    ];
-    List<DartType> unrelated = <DartType>[
-      doubleType,
-      nullType,
-      _star(nullType),
-      _question(nullType),
-      _question(bottomType),
-    ];
-    _checkGroups(intType,
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes);
-  }
-
-  void test_intQuestion_nullableTypes() {
-    List<DartType> equivalents = <DartType>[
-      _question(intType),
-      _star(intType),
-    ];
-    List<DartType> subtypes = <DartType>[
-      intType,
-      nullType,
-      _question(nullType),
-      _star(nullType),
-      bottomType,
-      _question(bottomType),
-      _star(bottomType),
-    ];
-    List<DartType> supertypes = <DartType>[
-      _question(numType),
-      _star(numType),
-      _question(objectType),
-      _star(objectType),
-    ];
-    List<DartType> unrelated = <DartType>[doubleType, numType, objectType];
-    _checkGroups(_question(intType),
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes);
-  }
-
-  void test_intStar_nullableTypes() {
-    List<DartType> equivalents = <DartType>[
-      intType,
-      _question(intType),
-      _star(intType),
-    ];
-    List<DartType> subtypes = <DartType>[
-      nullType,
-      _star(nullType),
-      _question(nullType),
-      bottomType,
-      _star(bottomType),
-      _question(bottomType),
-    ];
-    List<DartType> supertypes = <DartType>[
-      numType,
-      _question(numType),
-      _star(numType),
-      objectType,
-      _question(objectType),
-    ];
-    List<DartType> unrelated = <DartType>[doubleType];
-    _checkGroups(_star(intType),
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes);
-  }
-
-  void test_nullType() {
-    List<DartType> equivalents = <DartType>[
-      nullType,
-      _question(nullType),
-      _star(nullType),
-      _question(bottomType),
-    ];
-    List<DartType> supertypes = <DartType>[
-      _question(intType),
-      _star(intType),
-      _question(objectType),
-      _star(objectType),
-      dynamicType,
-      voidType,
-    ];
-    List<DartType> subtypes = <DartType>[bottomType];
-    List<DartType> unrelated = <DartType>[
-      doubleType,
-      intType,
-      numType,
-      objectType,
-    ];
-
-    for (final formOfNull in equivalents) {
-      _checkGroups(formOfNull,
-          equivalents: equivalents,
-          supertypes: supertypes,
-          unrelated: unrelated,
-          subtypes: subtypes);
-    }
-  }
-
-  void test_objectType() {
-    List<DartType> equivalents = <DartType>[
-      _star(objectType),
-    ];
-    List<DartType> supertypes = <DartType>[
-      _question(objectType),
-      dynamicType,
-      voidType,
-    ];
-    List<DartType> subtypes = <DartType>[bottomType];
-    List<DartType> unrelated = <DartType>[
-      _question(doubleType),
-      _question(numType),
-      _question(intType),
-      nullType,
-    ];
-    _checkGroups(objectType,
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes);
-  }
-
-  DartType _question(DartType dartType) =>
-      (dartType as TypeImpl).withNullability(NullabilitySuffix.question);
-
-  DartType _star(DartType dartType) =>
-      (dartType as TypeImpl).withNullability(NullabilitySuffix.star);
-}
-
-@reflectiveTest
-class SubtypingTest extends SubtypingTestBase {
-  void test_bottom_isBottom() {
-    var A = _class(name: 'A');
-    List<DartType> equivalents = <DartType>[bottomType];
-    List<DartType> supertypes = <DartType>[
-      dynamicType,
-      objectType,
-      intType,
-      doubleType,
-      numType,
-      stringType,
-      functionType,
-      _interfaceType(A),
-    ];
-    _checkGroups(bottomType, equivalents: equivalents, supertypes: supertypes);
-  }
-
-  void test_call_method() {
-    var A = _class(name: 'A', methods: [
-      _method('call', objectType, parameters: [
-        _requiredParameter('_', intType),
-      ]),
-    ]);
-
-    _checkIsNotSubtypeOf(
-      _interfaceType(A),
-      _functionType(required: [intType], returns: objectType),
-    );
-  }
-
-  void test_classes() {
-    var A = _class(name: 'A');
-    var typeA = _interfaceType(A);
-
-    var B = _class(name: 'B', superType: typeA);
-    var typeB = _interfaceType(B);
-
-    var C = _class(name: 'C', superType: typeA);
-    var typeC = _interfaceType(C);
-
-    var D = _class(
-      name: 'D',
-      superType: _interfaceType(B),
-      interfaces: [typeC],
-    );
-    var typeD = _interfaceType(D);
-
-    _checkLattice(typeA, typeB, typeC, typeD);
-  }
-
-  void test_double() {
-    List<DartType> equivalents = <DartType>[doubleType];
-    List<DartType> supertypes = <DartType>[numType];
-    List<DartType> unrelated = <DartType>[intType];
-    _checkGroups(doubleType,
-        equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
-  }
-
-  void test_dynamic_isTop() {
-    var A = _class(name: 'A');
-    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
-    List<DartType> subtypes = <DartType>[
-      intType,
-      doubleType,
-      numType,
-      stringType,
-      functionType,
-      _interfaceType(A),
-      bottomType,
-    ];
-    _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
-  }
-
-  void test_function_subtypes_itself_top_types() {
-    var tops = [dynamicType, objectType, voidType];
-    // Add FutureOr<T> for T := dynamic, object, void
-    tops.addAll(tops.map((t) => futureOrType(t)).toList());
-    // Add FutureOr<FutureOr<T>> for T := dynamic, object, void
-    tops.addAll(tops.skip(3).map((t) => futureOrType(t)).toList());
-
-    // Function should subtype all of those top types.
-    _checkGroups(functionType, supertypes: [
-      dynamicType,
-      objectType,
-      voidType,
-    ]);
-
-    // Create a non-identical but equal copy of Function, and verify subtyping
-    var copyOfFunction = _interfaceType(functionType.element);
-    _checkEquivalent(functionType, copyOfFunction);
-  }
-
-  void test_genericFunction_generic_monomorphic() {
-    var S = _typeParameter('S');
-    var T = _typeParameter('T', bound: _typeParameterType(S));
-    var U = _typeParameter('U', bound: intType);
-    var V = _typeParameter('V', bound: _typeParameterType(U));
-
-    var A = _typeParameter('A');
-    var B = _typeParameter('B', bound: _typeParameterType(A));
-    var C = _typeParameter('C', bound: intType);
-    var D = _typeParameter('D', bound: _typeParameterType(C));
-
-    _checkIsStrictSubtypeOf(
-      _functionType(
-        typeFormals: [S, T],
-        required: [_typeParameterType(S)],
-        returns: _typeParameterType(T),
-      ),
-      _functionType(
-        typeFormals: [A, B],
-        required: [bottomType],
-        returns: dynamicType,
-      ),
-    );
-
-    _checkIsNotSubtypeOf(
-      _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(V),
-      ),
-      _functionType(
-        typeFormals: [C, D],
-        required: [objectType],
-        returns: objectType,
-      ),
-    );
-
-    _checkIsNotSubtypeOf(
-      _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(V),
-      ),
-      _functionType(
-        typeFormals: [C, D],
-        required: [intType],
-        returns: intType,
-      ),
-    );
-  }
-
-  void test_genericFunction_genericDoesNotSubtypeNonGeneric() {
-    var S = _typeParameter('S');
-    var T = _typeParameter('T', bound: _typeParameterType(S));
-    var U = _typeParameter('U', bound: intType);
-    var V = _typeParameter('V', bound: _typeParameterType(U));
-
-    _checkIsNotSubtypeOf(
-      _functionType(
-        typeFormals: [S, T],
-        required: [_typeParameterType(S)],
-        returns: _typeParameterType(T),
-      ),
-      _functionType(required: [dynamicType], returns: dynamicType),
-    );
-
-    _checkIsNotSubtypeOf(
-      _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(V),
-      ),
-      _functionType(required: [objectType], returns: objectType),
-    );
-
-    _checkIsNotSubtypeOf(
-      _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(V),
-      ),
-      _functionType(required: [intType], returns: intType),
-    );
-  }
-
-  void test_genericFunction_simple() {
-    var S = _typeParameter('S');
-    var T = _typeParameter('T');
-
-    _checkEquivalent(
-      _functionType(typeFormals: [T]),
-      _functionType(typeFormals: [S]),
-    );
-
-    _checkEquivalent(
-      _functionType(
-        typeFormals: [T],
-        required: [_typeParameterType(T)],
-        returns: _typeParameterType(T),
-      ),
-      _functionType(
-        typeFormals: [S],
-        required: [_typeParameterType(S)],
-        returns: _typeParameterType(S),
-      ),
-    );
-  }
-
-  void test_genericFunction_simple_bounded() {
-    var S = _typeParameter('S');
-    var T = _typeParameter('T', bound: _typeParameterType(S));
-    var U = _typeParameter('U');
-    var V = _typeParameter('V', bound: _typeParameterType(U));
-
-    _checkEquivalent(
-      _functionType(typeFormals: [S, T]),
-      _functionType(typeFormals: [U, V]),
-    );
-
-    _checkEquivalent(
-      _functionType(
-        typeFormals: [S, T],
-        required: [_typeParameterType(S)],
-        returns: _typeParameterType(T),
-      ),
-      _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(V),
-      ),
-    );
-
-    {
-      var top = _functionType(
-        typeFormals: [S, T],
-        required: [_typeParameterType(T)],
-        returns: _typeParameterType(S),
-      );
-      var left = _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(U)],
-        returns: _typeParameterType(U),
-      );
-      var right = _functionType(
-        typeFormals: [U, V],
-        required: [_typeParameterType(V)],
-        returns: _typeParameterType(V),
-      );
-      var bottom = _functionType(
-        typeFormals: [S, T],
-        required: [_typeParameterType(S)],
-        returns: _typeParameterType(T),
-      );
-      _checkLattice(top, left, right, bottom);
-    }
-  }
-
-  void test_generics() {
-    var LT = _typeParameter('T');
-    var L = _class(name: 'L', typeParameters: [LT]);
-
-    var MT = _typeParameter('T');
-    var M = _class(
-      name: 'M',
-      typeParameters: [MT],
-      interfaces: [
-        _interfaceType(
-          L,
-          typeArguments: [_typeParameterType(MT)],
-        )
-      ],
-    );
-
-    var top = _interfaceType(L, typeArguments: [dynamicType]);
-    var left = _interfaceType(M, typeArguments: [dynamicType]);
-    var right = _interfaceType(L, typeArguments: [intType]);
-    var bottom = _interfaceType(M, typeArguments: [intType]);
-
-    _checkLattice(top, left, right, bottom);
-  }
-
-  void test_int() {
-    List<DartType> equivalents = <DartType>[intType];
-    List<DartType> supertypes = <DartType>[numType];
-    List<DartType> unrelated = <DartType>[doubleType];
-    _checkGroups(intType,
-        equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
-  }
-
-  void test_named_optional() {
-    var r = _functionType(required: [intType], returns: intType);
-    var o = _functionType(optional: [intType], returns: intType);
-    var n = _functionType(named: {'x': intType}, returns: intType);
-
-    var rr = _functionType(
-      required: [intType, intType],
-      returns: intType,
-    );
-    var ro = _functionType(
-      required: [intType],
-      optional: [intType],
-      returns: intType,
-    );
-    var rn = _functionType(
-      required: [intType],
-      named: {'x': intType},
-      returns: intType,
-    );
-    var oo = _functionType(
-      optional: [intType, intType],
-      returns: intType,
-    );
-    var nn = _functionType(
-      named: {'x': intType, 'y': intType},
-      returns: intType,
-    );
-    var nnn = _functionType(
-      named: {'x': intType, 'y': intType, 'z': intType},
-      returns: intType,
-    );
-
-    _checkGroups(r,
-        equivalents: [r],
-        subtypes: [o, ro, rn, oo],
-        unrelated: [n, rr, nn, nnn]);
-    _checkGroups(o,
-        equivalents: [o], subtypes: [oo], unrelated: [n, rr, ro, rn, nn, nnn]);
-    _checkGroups(n,
-        equivalents: [n],
-        subtypes: [nn, nnn],
-        unrelated: [r, o, rr, ro, rn, oo]);
-    _checkGroups(rr,
-        equivalents: [rr],
-        subtypes: [ro, oo],
-        unrelated: [r, o, n, rn, nn, nnn]);
-    _checkGroups(ro,
-        equivalents: [ro], subtypes: [oo], unrelated: [o, n, rn, nn, nnn]);
-    _checkGroups(rn,
-        equivalents: [rn],
-        subtypes: [],
-        unrelated: [o, n, rr, ro, oo, nn, nnn]);
-    _checkGroups(oo,
-        equivalents: [oo], subtypes: [], unrelated: [n, rn, nn, nnn]);
-    _checkGroups(nn,
-        equivalents: [nn], subtypes: [nnn], unrelated: [r, o, rr, ro, rn, oo]);
-    _checkGroups(nnn,
-        equivalents: [nnn], subtypes: [], unrelated: [r, o, rr, ro, rn, oo]);
-  }
-
-  void test_num() {
-    List<DartType> equivalents = <DartType>[numType];
-    List<DartType> supertypes = <DartType>[];
-    List<DartType> unrelated = <DartType>[stringType];
-    List<DartType> subtypes = <DartType>[intType, doubleType];
-    _checkGroups(numType,
-        equivalents: equivalents,
-        supertypes: supertypes,
-        unrelated: unrelated,
-        subtypes: subtypes);
-  }
-
-  void test_simple_function() {
-    var top = _functionType(required: [intType], returns: objectType);
-    var left = _functionType(required: [intType], returns: intType);
-    var right = _functionType(required: [objectType], returns: objectType);
-    var bottom = _functionType(required: [objectType], returns: intType);
-
-    _checkLattice(top, left, right, bottom);
-  }
-
-  /// Regression test for https://github.com/dart-lang/sdk/issues/25069
-  void test_simple_function_void() {
-    var functionType = _functionType(required: [intType], returns: objectType);
-    _checkIsNotSubtypeOf(voidType, functionType);
-  }
-
-  void test_void_functions() {
-    var top = _functionType(required: [intType], returns: voidType);
-    var bottom = _functionType(required: [objectType], returns: intType);
-
-    _checkIsStrictSubtypeOf(bottom, top);
-  }
-
-  void test_void_isTop() {
-    var A = _class(name: 'A');
-    List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
-    List<DartType> subtypes = <DartType>[
-      intType,
-      doubleType,
-      numType,
-      stringType,
-      functionType,
-      _interfaceType(A),
-      bottomType
-    ];
-    _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
-  }
-}
-
 class SubtypingTestBase extends AbstractTypeSystemTest {
   void _checkEquivalent(DartType type1, DartType type2) {
     _checkIsSubtypeOf(type1, type2);
@@ -3324,8 +2714,10 @@ class SubtypingTestBase extends AbstractTypeSystemTest {
   }
 
   void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
+    var strType1 = _toStringWithNullability(type1);
+    var strType2 = _toStringWithNullability(type2);
     expect(typeSystem.isSubtypeOf(type1, type2), false,
-        reason: '$type1 was not supposed to be a subtype of $type2');
+        reason: '$strType1 was not supposed to be a subtype of $strType2');
   }
 
   void _checkIsStrictSubtypeOf(DartType type1, DartType type2) {
@@ -3361,6 +2753,10 @@ class SubtypingTestBase extends AbstractTypeSystemTest {
   void _checkUnrelated(DartType type1, DartType type2) {
     _checkIsNotSubtypeOf(type1, type2);
     _checkIsNotSubtypeOf(type2, type1);
+  }
+
+  static String _toStringWithNullability(DartType type) {
+    return (type as TypeImpl).toString(withNullability: true);
   }
 }
 
@@ -4044,56 +3440,94 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_promoteToNonNull_typeParameter_noneBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: noneType),
-      ),
-      typeParameterTypeNone(bound: noneType),
+    var element = _typeParameter('T', bound: noneType);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    expect(typeSystem.promoteToNonNull(type), same(type));
+  }
+
+  test_promoteToNonNull_typeParameter_noneBound_question() {
+    var element = _typeParameter('T', bound: stringClassTypeNone);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_nullBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: null),
-      ),
-      typeParameterTypeNone(bound: objectClassTypeNone),
+    var element = _typeParameter('T', bound: null);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: objectClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_question() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeQuestion(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_star() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeStar(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_starBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: stringClassTypeStar),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeStar);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -4126,5 +3560,24 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       element,
       nullabilitySuffix: NullabilitySuffix.star,
     );
+  }
+
+  /// If [expectedBound] is `null`, the element of [actual] must be the same
+  /// as the [baseElement].  Otherwise the element of [actual] must be a
+  /// [TypeParameterMember] with the [baseElement] and the [expectedBound].
+  void _assertPromotedTypeParameterType(
+    TypeParameterTypeImpl actual, {
+    @required TypeParameterElement baseElement,
+    TypeImpl expectedBound,
+    @required NullabilitySuffix expectedNullabilitySuffix,
+  }) {
+    if (expectedBound != null) {
+      var actualMember = actual.element as TypeParameterMember;
+      expect(actualMember.baseElement, same(baseElement));
+      expect(actualMember.bound, expectedBound);
+    } else {
+      expect(actual.element, same(baseElement));
+    }
+    expect(actual.nullabilitySuffix, expectedNullabilitySuffix);
   }
 }

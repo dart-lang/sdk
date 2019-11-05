@@ -15,21 +15,6 @@ main() {
 
 @reflectiveTest
 class MustBeASubtypeTest extends DriverResolutionTest {
-  test_asFunction() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-typedef TPrime = int Function(int);
-typedef F = String Function(String);
-class C {
-  void f(Pointer<NativeFunction<TPrime>> p) {
-    p.asFunction<F>();
-  }
-}
-''', [
-      error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 165, 1),
-    ]);
-  }
-
   test_fromFunction_firstArgument() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -78,16 +63,17 @@ void g() {
 ''');
   }
 
-  test_lookupFunction() async {
+  test_lookupFunction_F() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-typedef S = int Function(int);
-typedef F = String Function(String);
-void f(DynamicLibrary lib) {
-  lib.lookupFunction<S, F>('g');
+typedef T = Int8 Function(Int8);
+class C<F extends int Function(int)> {
+  void f(DynamicLibrary lib, NativeFunction x) {
+    lib.lookupFunction<T, F>('g');
+  }
 }
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 137, 1),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1),
     ]);
   }
 }

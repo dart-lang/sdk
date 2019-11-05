@@ -6,6 +6,7 @@
 // the patches are applied.
 import "dart:_internal" show patch;
 import 'dart:typed_data';
+import 'dart:isolate';
 
 DynamicLibrary _open(String name) native "Ffi_dl_open";
 DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";

@@ -158,10 +158,9 @@ MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.constructors.local[memberName];
-    } else if (member is Procedure && member.isSetter) {
-      memberBuilder = classBuilder.scope.setters[memberName];
     } else {
-      memberBuilder = classBuilder.scope.local[memberName];
+      memberBuilder = classBuilder.scope.lookupLocalMember(memberName,
+          setter: member is Procedure && member.isSetter);
     }
   }
   if (memberBuilder == null && required) {
@@ -196,11 +195,12 @@ MemberBuilder lookupMemberBuilder(
         required: required);
   } else {
     TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
-        compilerResult, member.enclosingLibrary);
+        compilerResult, member.enclosingLibrary,
+        required: required);
     if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.members[member.name.name];
-    } else {
       memberBuilder = libraryBuilder.setters[member.name.name];
+    } else {
+      memberBuilder = libraryBuilder.members[member.name.name];
     }
   }
   if (memberBuilder == null && required) {
@@ -222,11 +222,8 @@ MemberBuilder lookupExtensionMemberBuilder(
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder memberBuilder;
   if (extensionBuilder != null) {
-    if (isSetter) {
-      memberBuilder = extensionBuilder.scope.setters[memberName];
-    } else {
-      memberBuilder = extensionBuilder.scope.local[memberName];
-    }
+    memberBuilder =
+        extensionBuilder.scope.lookupLocalMember(memberName, setter: isSetter);
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -236,17 +233,17 @@ MemberBuilder lookupExtensionMemberBuilder(
 
 /// Returns a textual representation of the constant [node] to be used in
 /// testing.
-String constantToText(Constant node) {
+String constantToText(Constant node, {bool isNonNullableByDefault: false}) {
   StringBuffer sb = new StringBuffer();
-  new ConstantToTextVisitor(sb).visit(node);
+  new ConstantToTextVisitor(sb, isNonNullableByDefault).visit(node);
   return sb.toString();
 }
 
 /// Returns a textual representation of the type [node] to be used in
 /// testing.
-String typeToText(DartType node) {
+String typeToText(DartType node, {bool isNonNullableByDefault: false}) {
   StringBuffer sb = new StringBuffer();
-  new DartTypeToTextVisitor(sb).visit(node);
+  new DartTypeToTextVisitor(sb, isNonNullableByDefault).visit(node);
   return sb.toString();
 }
 
@@ -254,7 +251,8 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   final StringBuffer sb;
   final DartTypeToTextVisitor typeToText;
 
-  ConstantToTextVisitor(this.sb) : typeToText = new DartTypeToTextVisitor(sb);
+  ConstantToTextVisitor(this.sb, bool isNonNullableByDefault)
+      : typeToText = new DartTypeToTextVisitor(sb, isNonNullableByDefault);
 
   void visit(Constant node) => node.accept(this);
 
@@ -377,8 +375,9 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
 class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   final StringBuffer sb;
+  final bool isNonNullableByDefault;
 
-  DartTypeToTextVisitor(this.sb);
+  DartTypeToTextVisitor(this.sb, this.isNonNullableByDefault);
 
   void visit(DartType node) => node.accept(this);
 
@@ -410,6 +409,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write('<bottom>');
   }
 
+  void visitNeverType(NeverType node) {
+    sb.write('Never');
+  }
+
   void visitInterfaceType(InterfaceType node) {
     sb.write(node.classNode.name);
     if (node.typeArguments.isNotEmpty) {
@@ -418,7 +421,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('>');
     }
     if (!isNull(node)) {
-      sb.write(nullabilityToText(node.nullability));
+      sb.write(nullabilityToText(node.nullability,
+          isNonNullableByDefault: isNonNullableByDefault));
     }
   }
 
@@ -450,14 +454,16 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('}');
     }
     sb.write(')');
-    sb.write(nullabilityToText(node.nullability));
+    sb.write(nullabilityToText(node.nullability,
+        isNonNullableByDefault: isNonNullableByDefault));
     sb.write('->');
     visit(node.returnType);
   }
 
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
-    sb.write(nullabilityToText(node.nullability));
+    sb.write(nullabilityToText(node.nullability,
+        isNonNullableByDefault: isNonNullableByDefault));
     if (node.promotedBound != null) {
       sb.write(' extends ');
       visit(node.promotedBound);
@@ -471,7 +477,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       visitList(node.typeArguments);
       sb.write('>');
     }
-    sb.write(nullabilityToText(node.nullability));
+    sb.write(nullabilityToText(node.nullability,
+        isNonNullableByDefault: isNonNullableByDefault));
   }
 }
 
@@ -581,16 +588,18 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
 }
 
 /// Returns a textual representation of [nullability] to be used in testing.
-String nullabilityToText(Nullability nullability) {
+String nullabilityToText(Nullability nullability,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
   switch (nullability) {
     case Nullability.nonNullable:
-      return '!';
+      return isNonNullableByDefault ? '' : '!';
     case Nullability.nullable:
       return '?';
-    case Nullability.neither:
+    case Nullability.undetermined:
       return '%';
     case Nullability.legacy:
-      return '';
+      return isNonNullableByDefault ? '*' : '';
   }
   throw new UnsupportedError('Unexpected nullability: $nullability.');
 }

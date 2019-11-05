@@ -426,7 +426,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
                             lib_id.ToCString(), encoded_uri, load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
-  jsobj.AddProperty("_kind", GetKindAsCString());
+  jsobj.AddProperty("_kind", "kernel");
   if (ref) {
     return;
   }

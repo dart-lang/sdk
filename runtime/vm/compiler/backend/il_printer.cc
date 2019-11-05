@@ -614,7 +614,13 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s = ", slot().Name());
   value()->PrintTo(f);
-  if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
+
+  // Here, we just print the value of the enum field. We would prefer to get
+  // the final decision on whether a store barrier will be emitted by calling
+  // ShouldEmitStoreBarrier(), but that can change parts of the flow graph.
+  if (emit_store_barrier_ == kNoStoreBarrier) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {

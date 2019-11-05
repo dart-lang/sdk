@@ -335,6 +335,9 @@ class _TypeContainedInOutputUnitVisitor
   bool visitDynamicType(DynamicType type, OutputUnit argument) => true;
 
   @override
+  bool visitErasedType(ErasedType type, OutputUnit argument) => true;
+
+  @override
   bool visitAnyType(AnyType type, OutputUnit argument) => true;
 
   @override

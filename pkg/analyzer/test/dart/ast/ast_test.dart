@@ -293,7 +293,15 @@ class IndexExpressionTest {
     expect(expression.inSetterContext(), isFalse);
   }
 
-  void test_inSetterContext_postfix() {
+  void test_inSetterContext_postfix_bang() {
+    IndexExpression expression = AstTestFactory.indexExpression(
+        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+    // a[b]!
+    AstTestFactory.postfixExpression(expression, TokenType.BANG);
+    expect(expression.inSetterContext(), isFalse);
+  }
+
+  void test_inSetterContext_postfix_plusPlus() {
     IndexExpression expression = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
     AstTestFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
@@ -323,6 +331,32 @@ class IndexExpressionTest {
     // ++a[b]
     AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     expect(expression.inSetterContext(), isTrue);
+  }
+
+  void test_isNullAware_cascade_false() {
+    final expression = AstTestFactory.indexExpressionForCascade(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.PERIOD_PERIOD,
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_cascade_true() {
+    final expression = AstTestFactory.indexExpressionForCascade(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.QUESTION_PERIOD_PERIOD,
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isTrue);
+  }
+
+  void test_isNullAware_false() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_regularIndex() {
@@ -386,6 +420,16 @@ class MethodInvocationTest extends ParserTestCase {
     final invocation = AstTestFactory.methodInvocation3(
         AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD_PERIOD);
     expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_cascade_true() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(),
+        'foo',
+        null,
+        [],
+        TokenType.QUESTION_PERIOD_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularInvocation() {
@@ -762,6 +806,12 @@ class PropertyAccessTest extends ParserTestCase {
     expect(invocation.isNullAware, isFalse);
   }
 
+  void test_isNullAware_cascade_true() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD_PERIOD);
+    expect(invocation.isNullAware, isTrue);
+  }
+
   void test_isNullAware_regularPropertyAccess() {
     final invocation = AstTestFactory.propertyAccess2(
         AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD);
@@ -842,6 +892,7 @@ class SimpleIdentifierTest extends ParserTestCase {
             wrapper == _WrapperKind.PROPERTY_LEFT ||
             assignment == _AssignmentKind.BINARY ||
             assignment == _AssignmentKind.COMPOUND_RIGHT ||
+            assignment == _AssignmentKind.POSTFIX_BANG ||
             assignment == _AssignmentKind.PREFIX_NOT ||
             assignment == _AssignmentKind.SIMPLE_RIGHT ||
             assignment == _AssignmentKind.NONE) {
@@ -943,6 +994,8 @@ class SimpleIdentifierTest extends ParserTestCase {
       } else if (assignment == _AssignmentKind.COMPOUND_RIGHT) {
         AstTestFactory.assignmentExpression(
             AstTestFactory.identifier3("_"), TokenType.PLUS_EQ, expression);
+      } else if (assignment == _AssignmentKind.POSTFIX_BANG) {
+        AstTestFactory.postfixExpression(expression, TokenType.BANG);
       } else if (assignment == _AssignmentKind.POSTFIX_INC) {
         AstTestFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
       } else if (assignment == _AssignmentKind.PREFIX_DEC) {
@@ -1430,30 +1483,34 @@ class _AssignmentKind {
   static const _AssignmentKind COMPOUND_RIGHT =
       const _AssignmentKind('COMPOUND_RIGHT', 2);
 
-  static const _AssignmentKind POSTFIX_INC =
+  static const _AssignmentKind POSTFIX_BANG =
       const _AssignmentKind('POSTFIX_INC', 3);
 
+  static const _AssignmentKind POSTFIX_INC =
+      const _AssignmentKind('POSTFIX_INC', 4);
+
   static const _AssignmentKind PREFIX_DEC =
-      const _AssignmentKind('PREFIX_DEC', 4);
+      const _AssignmentKind('PREFIX_DEC', 5);
 
   static const _AssignmentKind PREFIX_INC =
-      const _AssignmentKind('PREFIX_INC', 5);
+      const _AssignmentKind('PREFIX_INC', 6);
 
   static const _AssignmentKind PREFIX_NOT =
-      const _AssignmentKind('PREFIX_NOT', 6);
+      const _AssignmentKind('PREFIX_NOT', 7);
 
   static const _AssignmentKind SIMPLE_LEFT =
-      const _AssignmentKind('SIMPLE_LEFT', 7);
+      const _AssignmentKind('SIMPLE_LEFT', 8);
 
   static const _AssignmentKind SIMPLE_RIGHT =
-      const _AssignmentKind('SIMPLE_RIGHT', 8);
+      const _AssignmentKind('SIMPLE_RIGHT', 9);
 
-  static const _AssignmentKind NONE = const _AssignmentKind('NONE', 9);
+  static const _AssignmentKind NONE = const _AssignmentKind('NONE', 10);
 
   static const List<_AssignmentKind> values = const [
     BINARY,
     COMPOUND_LEFT,
     COMPOUND_RIGHT,
+    POSTFIX_BANG,
     POSTFIX_INC,
     PREFIX_DEC,
     PREFIX_INC,

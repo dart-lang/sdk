@@ -4,7 +4,6 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-convert/streamed_conversion_json_utf8_decode_test: Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 
 [ $compiler == dartkb ]
@@ -13,9 +12,6 @@ isolate/isolate_complex_messages_test: Crash # runtime/vm/object.cc: 17395: erro
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
-
-[ $arch == simdbc64 && $hot_reload_rollback ]
-convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 
 [ $arch == x64 && $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.

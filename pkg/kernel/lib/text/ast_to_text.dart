@@ -466,6 +466,10 @@ class Printer extends Visitor<Null> {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name);
+      } else if (node is Extension) {
+        Library nodeLibrary = node.enclosingLibrary;
+        String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
+        write(prefix + '::' + node.name);
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -2063,7 +2067,7 @@ class Printer extends Visitor<Null> {
           state = WORD; // Disallow a word immediately after the '?'.
         }
         break;
-      case Nullability.neither:
+      case Nullability.undetermined:
         writeSymbol('%');
         if (!inComment) {
           state = WORD; // Disallow a word immediately after the '%'.
@@ -2079,7 +2083,7 @@ class Printer extends Visitor<Null> {
 
   void writeDartTypeNullability(DartType type, {bool inComment = false}) {
     if (type is InvalidType) {
-      writeNullability(Nullability.neither);
+      writeNullability(Nullability.undetermined);
     } else {
       writeNullability(type.nullability, inComment: inComment);
     }
@@ -2095,6 +2099,11 @@ class Printer extends Visitor<Null> {
 
   visitVoidType(VoidType node) {
     writeWord('void');
+  }
+
+  visitNeverType(NeverType node) {
+    write('Never');
+    writeNullability(node.nullability);
   }
 
   visitInterfaceType(InterfaceType node) {

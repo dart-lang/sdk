@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
 
@@ -42,7 +39,7 @@ var tests = <IsolateTest>[
     expect(snapshotGraph.name, "main");
     expect(snapshotGraph.flags, isNotNull);
     expect(snapshotGraph.objects, isNotNull);
-    expect(snapshotGraph.objects.length > 0, isTrue);
+    expect(snapshotGraph.objects, isNotEmpty);
 
     int actualShallowSize = 0;
     int actualRefCount = 0;
@@ -61,7 +58,7 @@ var tests = <IsolateTest>[
     expect(snapshotGraph.referenceCount >= actualRefCount, isTrue);
 
     int actualExternalSize = 0;
-    expect(snapshotGraph.externalProperties.length > 0, isTrue);
+    expect(snapshotGraph.externalProperties, isNotEmpty);
     snapshotGraph.externalProperties.forEach((HeapSnapshotExternalProperty e) {
       actualExternalSize += e.externalSize;
       expect(e.object >= 0, isTrue);
@@ -69,7 +66,7 @@ var tests = <IsolateTest>[
     });
     expect(snapshotGraph.externalSize, actualExternalSize);
 
-    expect(snapshotGraph.classes.length > 0, isTrue);
+    expect(snapshotGraph.classes, isNotEmpty);
     snapshotGraph.classes.forEach((HeapSnapshotClass c) {
       expect(c.name, isNotNull);
       expect(c.libraryName, isNotNull);

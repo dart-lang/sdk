@@ -121,8 +121,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
 #endif
@@ -138,7 +137,6 @@ void NativeEntry::NoScopeNativeCallWrapper(Dart_NativeArguments args,
 void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
     Dart_NativeFunction func) {
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -152,14 +150,12 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     }
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-  VERIFY_ON_TRANSITION;
 }
 
 uword NativeEntry::AutoScopeNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::AutoScopeNativeCallWrapper);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
 #endif
@@ -175,7 +171,6 @@ void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
 void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeArguments args,
     Dart_NativeFunction func) {
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -198,7 +193,6 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     DEOPTIMIZE_ALOT;
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-  VERIFY_ON_TRANSITION;
 }
 
 static NativeFunction ResolveNativeFunction(Zone* zone,
@@ -226,8 +220,7 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
 
 uword NativeEntry::LinkNativeCallEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  // DBC does not use redirections unlike other simulators.
+#if defined(USING_SIMULATOR)
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
@@ -236,7 +229,6 @@ uword NativeEntry::LinkNativeCallEntry() {
 
 void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   CHECK_STACK_ALIGNMENT;
-  VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
@@ -275,7 +267,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                               &is_bootstrap_native, &is_auto_scope);
     ASSERT(target_function != NULL);
 
-#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+#if defined(DEBUG)
     NativeFunction current_function = NULL;
     if (caller_frame->is_interpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -309,18 +301,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #endif
 
     NativeFunction patch_target_function = target_function;
-#if defined(TARGET_ARCH_DBC)
-    NativeFunctionWrapper trampoline;
-    if (is_bootstrap_native) {
-      trampoline = &BootstrapNativeCallWrapper;
-    } else if (is_auto_scope) {
-      trampoline = &AutoScopeNativeCallWrapper;
-    } else {
-      trampoline = &NoScopeNativeCallWrapper;
-    }
-    CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
-                                   patch_target_function, trampoline);
-#else
     if (caller_frame->is_interpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(FLAG_enable_interpreter);
@@ -355,14 +335,12 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                      patch_target_function, trampoline);
     }
-#endif  // defined TARGET_ARCH_DBC
 
     if (FLAG_trace_natives) {
       THR_Print("    -> %p (%s)\n", target_function,
                 is_bootstrap_native ? "bootstrap" : "non-bootstrap");
     }
   }
-  VERIFY_ON_TRANSITION;
 
   // Tail-call resolved target.
   if (is_bootstrap_native) {

@@ -79,7 +79,9 @@ class JSSyntaxRegExp implements RegExp {
   bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
   bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
   bool get _isUnicode => JS("bool", "#.unicode", _nativeRegExp);
-  bool get _isDotAll => JS("bool", "#.dotAll", _nativeRegExp);
+  // The "dotAll" property is not available on all browsers, but our internals
+  // currently assume this is non-null.  Coerce to false if not present.
+  bool get _isDotAll => JS("bool", "#.dotAll == true", _nativeRegExp);
 
   static makeNative(@nullCheck String source, bool multiLine,
       bool caseSensitive, bool unicode, bool dotAll, bool global) {

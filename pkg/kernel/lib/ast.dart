@@ -97,6 +97,12 @@ abstract class Node {
   /// (possibly synthesized) name, whereas other AST nodes return the complete
   /// textual representation of their subtree.
   String toString() => debugNodeToString(this);
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// Note that this adds some nodes to a static map to ensure consistent
+  /// naming, but that it thus also leaks memory.
+  String leakingDebugToString() => debugNodeToString(this);
 }
 
 /// A mutable AST node with a parent pointer.
@@ -190,7 +196,7 @@ abstract class FileUriNode extends TreeNode {
   Uri get fileUri;
 }
 
-abstract class Annotatable {
+abstract class Annotatable extends TreeNode {
   List<Expression> get annotations;
   void addAnnotation(Expression node);
 }
@@ -312,7 +318,7 @@ class Library extends NamedNode
 
   // TODO(jensj): Do we have a better option than this?
   static int defaultLanguageVersionMajor = 2;
-  static int defaultLanguageVersionMinor = 6;
+  static int defaultLanguageVersionMinor = 7;
 
   int _languageVersionMajor;
   int _languageVersionMinor;
@@ -980,7 +986,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Internal. Should *ONLY* be used from within kernel.
   ///
   /// If non-null, the function that will have to be called to fill-out the
-  /// content of this class. Note that this should not be called directly though.
+  /// content of this class. Note that this should not be called directly
+  /// though.
   void Function() lazyBuilder;
 
   /// Makes sure the class is loaded, i.e. the fields, procedures etc have been
@@ -1646,7 +1653,7 @@ class Field extends Member {
   bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
   bool get hasGetter => true;
-  bool get hasSetter => isMutable;
+  bool get hasSetter => isMutable || isLate && initializer == null;
 
   bool get isExternal => false;
   void set isExternal(bool value) {
@@ -1674,7 +1681,7 @@ class Field extends Member {
   }
 
   DartType get getterType => type;
-  DartType get setterType => isMutable ? type : const BottomType();
+  DartType get setterType => hasSetter ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
@@ -4375,7 +4382,7 @@ class LoadLibrary extends Expression {
   LoadLibrary(this.import);
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.futureType(const DynamicType());
+    return types.futureType(const DynamicType(), Nullability.legacy);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLoadLibrary(this);
@@ -5159,6 +5166,19 @@ class VariableDeclaration extends Statement {
   /// positional parameters and local variables.
   bool get isRequired => flags & FlagRequired != 0;
 
+  /// Whether the variable is assignable.
+  ///
+  /// This is `true` if the variable is neither constant nor final, or if it
+  /// is late final without an initializer.
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return initializer == null;
+      return false;
+    }
+    return true;
+  }
+
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
@@ -5300,6 +5320,12 @@ abstract class Name implements Node {
   visitChildren(Visitor v) {
     // DESIGN TODO: Should we visit the library as a library reference?
   }
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// Note that this adds some nodes to a static map to ensure consistent
+  /// naming, but that it thus also leaks memory.
+  String leakingDebugToString() => debugNodeToString(this);
 }
 
 class _PrivateName extends Name {
@@ -5338,19 +5364,7 @@ class _PublicName extends Name {
 
 /// Represents nullability of a type.
 enum Nullability {
-  /// Nullable types are marked with the '?' modifier.
-  ///
-  /// Null, dynamic, and void are nullable by default.
-  nullable,
-
-  /// Non-nullable types are types that aren't marked with the '?' modifier.
-  ///
-  /// Note that Null, dynamic, and void that are nullable by default.  Note also
-  /// that some types denoted by a type parameter without the '?' modifier can
-  /// be something else rather than non-nullable.
-  nonNullable,
-
-  /// Non-legacy types that are neither nullable, nor non-nullable.
+  /// Non-legacy types not known to be nullable or non-nullable statically.
   ///
   /// An example of such type is type T in the example below.  Note that both
   /// int and int? can be passed in for T, so an attempt to assign null to x is
@@ -5362,7 +5376,19 @@ enum Nullability {
   ///       Object y = x;  // Compile-time error.
   ///     }
   ///   }
-  neither,
+  undetermined,
+
+  /// Nullable types are marked with the '?' modifier.
+  ///
+  /// Null, dynamic, and void are nullable by default.
+  nullable,
+
+  /// Non-nullable types are types that aren't marked with the '?' modifier.
+  ///
+  /// Note that Null, dynamic, and void that are nullable by default.  Note also
+  /// that some types denoted by a type parameter without the '?' modifier can
+  /// be something else rather than non-nullable.
+  nonNullable,
 
   /// Types in opt-out libraries are 'legacy' types.
   ///
@@ -5406,6 +5432,24 @@ abstract class DartType extends Node {
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
   DartType withNullability(Nullability nullability);
+
+  /// Checks if the type is potentially nullable.
+  ///
+  /// A type is potentially nullable if it's nullable or if it's nullability is
+  /// undetermined at compile time.
+  bool get isPotentiallyNullable {
+    return nullability == Nullability.nullable ||
+        nullability == Nullability.undetermined;
+  }
+
+  /// Checks if the type is potentially non-nullable.
+  ///
+  /// A type is potentially non-nullable if it's nullable or if it's nullability
+  /// is undetermined at compile time.
+  bool get isPotentiallyNonNullable {
+    return nullability == Nullability.nonNullable ||
+        nullability == Nullability.undetermined;
+  }
 }
 
 /// The type arising from invalid type annotations.
@@ -5461,6 +5505,29 @@ class VoidType extends DartType {
   Nullability get nullability => Nullability.nullable;
 
   VoidType withNullability(Nullability nullability) => this;
+}
+
+class NeverType extends DartType {
+  final Nullability nullability;
+
+  const NeverType(this.nullability);
+
+  int get hashCode {
+    return 485786 ^ ((0x33333333 >> nullability.index) ^ 0x33333333);
+  }
+
+  R accept<R>(DartTypeVisitor<R> v) => v.visitNeverType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitNeverType(this, arg);
+  visitChildren(Visitor v) {}
+
+  bool operator ==(Object other) {
+    return other is NeverType && nullability == other.nullability;
+  }
+
+  NeverType withNullability(Nullability nullability) {
+    return this.nullability == nullability ? this : new NeverType(nullability);
+  }
 }
 
 class BottomType extends DartType {
@@ -5522,6 +5589,7 @@ class InterfaceType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
+      if (nullability != other.nullability) return false;
       if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
@@ -5538,6 +5606,8 @@ class InterfaceType extends DartType {
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
   }
 
@@ -5591,6 +5661,7 @@ class FunctionType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is FunctionType) {
+      if (nullability != other.nullability) return false;
       if (typeParameters.length != other.typeParameters.length ||
           requiredParameterCount != other.requiredParameterCount ||
           positionalParameters.length != other.positionalParameters.length ||
@@ -5675,6 +5746,7 @@ class FunctionType extends DartType {
       // Remove the type parameters from the scope again.
       _temporaryHashCodeTable.remove(typeParameters[i]);
     }
+    hash = 0x3fffffff & (hash * 31 + nullability.index);
     return hash;
   }
 
@@ -5720,9 +5792,10 @@ class TypedefType extends DartType {
   }
 
   DartType get unaliasOnce {
-    return Substitution.fromTypedefType(this)
-        .substituteType(typedefNode.type)
-        .withNullability(nullability);
+    DartType result =
+        Substitution.fromTypedefType(this).substituteType(typedefNode.type);
+    return result.withNullability(
+        combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
   DartType get unalias {
@@ -5732,6 +5805,7 @@ class TypedefType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is TypedefType) {
+      if (nullability != other.nullability) return false;
       if (typedefReference != other.typedefReference ||
           typeArguments.length != other.typeArguments.length) {
         return false;
@@ -5749,6 +5823,8 @@ class TypedefType extends DartType {
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
   }
 
@@ -5839,10 +5915,17 @@ class TypeParameterType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) {
-    return other is TypeParameterType && parameter == other.parameter;
+    return other is TypeParameterType &&
+        parameter == other.parameter &&
+        nullability == other.nullability;
   }
 
-  int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+  int get hashCode {
+    int hash = _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
 
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
@@ -5853,10 +5936,10 @@ class TypeParameterType extends DartType {
   /// nullability of [promotedBound] if it's present.
   ///
   /// For example, in the following program [typeParameterTypeNullability] of
-  /// both `x` and `y` is [Nullability.neither], because it's copied from that
-  /// of `bar` and T has a nullable type as its bound.  However, despite
-  /// [nullability] of `x` is [Nullability.neither], [nullability] of `y` is
-  /// [Nullability.nonNullable] because of its [promotedBound].
+  /// both `x` and `y` is [Nullability.undetermined], because it's copied from
+  /// that of `bar` and T has a nullable type as its bound.  However, despite
+  /// [nullability] of `x` is [Nullability.undetermined], [nullability] of `y`
+  /// is [Nullability.nonNullable] because of its [promotedBound].
   ///
   ///     class A<T extends Object?> {
   ///       foo(T bar) {
@@ -5891,19 +5974,19 @@ class TypeParameterType extends DartType {
   /// is changing or is being set for the first time, and the update on some
   /// type-parameter types is required.
   static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
-    // If the bound is nullable or 'neither', both nullable and non-nullable
-    // types can be passed in for the type parameter, making the corresponding
-    // type parameter types 'neither.'  Otherwise, the nullability matches that
-    // of the bound.
+    // If the bound is nullable or 'undetermined', both nullable and
+    // non-nullable types can be passed in for the type parameter, making the
+    // corresponding type parameter types 'undetermined.'  Otherwise, the
+    // nullability matches that of the bound.
     DartType bound = typeParameter.bound;
     if (bound == null) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
     Nullability boundNullability =
-        bound is InvalidType ? Nullability.neither : bound.nullability;
+        bound is InvalidType ? Nullability.undetermined : bound.nullability;
     return boundNullability == Nullability.nullable ||
-            boundNullability == Nullability.neither
-        ? Nullability.neither
+            boundNullability == Nullability.undetermined
+        ? Nullability.undetermined
         : boundNullability;
   }
 
@@ -5940,7 +6023,7 @@ class TypeParameterType extends DartType {
     //
     // In the table, LHS corresponds to lhsNullability in the code below; RHS
     // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
-    // nonNullable, nullable, legacy, and neither values of the Nullability
+    // nonNullable, nullable, legacy, and undetermined values of the Nullability
     // enum.
     //
     // Whenever there's N/A in the table, it means that the corresponding
@@ -5965,8 +6048,8 @@ class TypeParameterType extends DartType {
       return Nullability.nonNullable;
     }
 
-    // If the nullability of LHS is 'neither,' the nullability of the
-    // intersection is also 'neither' if RHS is 'neither' or nullable.
+    // If the nullability of LHS is 'undetermined', the nullability of the
+    // intersection is also 'undetermined' if RHS is 'undetermined' or nullable.
     //
     // Consider the following example:
     //
@@ -5982,9 +6065,9 @@ class TypeParameterType extends DartType {
     //         }
     //       }
     //     }
-    if (lhsNullability == Nullability.neither ||
-        promotedBound.nullability == Nullability.neither) {
-      return Nullability.neither;
+    if (lhsNullability == Nullability.undetermined ||
+        promotedBound.nullability == Nullability.undetermined) {
+      return Nullability.undetermined;
     }
 
     return Nullability.legacy;
@@ -6082,6 +6165,19 @@ class Variance {
       return unrelated;
     }
   }
+
+  // Returns the keyword lexeme associated with the variance given.
+  static String keywordString(int variance) {
+    switch (variance) {
+      case Variance.contravariant:
+        return 'in';
+      case Variance.invariant:
+        return 'inout';
+      case Variance.covariant:
+      default:
+        return 'out';
+    }
+  }
 }
 
 /// Declaration of a type variable.
@@ -6118,10 +6214,20 @@ class TypeParameter extends TreeNode {
   DartType defaultType;
 
   /// Describes variance of the type parameter w.r.t. declaration on which it is
-  /// defined.  It's always [Variance.covariant] for classes, and for typedefs
-  /// it's the variance of the type parameters in the type term on the r.h.s. of
-  /// the typedef.
-  int variance = Variance.covariant;
+  /// defined. For classes, if variance is not explicitly set, the type
+  /// parameter has legacy covariance defined by [isLegacyCovariant] which
+  /// on the lattice is equivalent to [Variance.covariant]. For typedefs, it's
+  /// the variance of the type parameters in the type term on the r.h.s. of the
+  /// typedef.
+  int _variance;
+
+  int get variance => _variance ?? Variance.covariant;
+
+  void set variance(int newVariance) => _variance = newVariance;
+
+  bool get isLegacyCovariant => _variance == null;
+
+  static const int legacyCovariantSerializationMarker = 4;
 
   TypeParameter([this.name, this.bound, this.defaultType]);
 

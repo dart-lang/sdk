@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -41,6 +42,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
@@ -321,8 +323,19 @@ class LibraryAnalyzer {
 
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
-    var context = LinterContextImpl(allUnits, currentUnit, _declaredVariables,
-        _typeProvider, _typeSystem, _inheritance, _analysisOptions);
+
+    final workspacePackage = _getPackage(currentUnit.unit);
+
+    var context = LinterContextImpl(
+      allUnits,
+      currentUnit,
+      _declaredVariables,
+      _typeProvider,
+      _typeSystem,
+      _inheritance,
+      _analysisOptions,
+      workspacePackage,
+    );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       if (linter is NodeLintRule) {
@@ -444,6 +457,23 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return new ErrorReporter(listener, file.source);
     });
+  }
+
+  WorkspacePackage _getPackage(CompilationUnit unit) {
+    final libraryPath = _library.source.fullName;
+    Workspace workspace =
+        unit.declaredElement.session?.analysisContext?.workspace;
+
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          _resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace = ContextBuilder.createWorkspace(
+          _resourceProvider, libraryPath, builder);
+    }
+    return workspace?.findPackageFor(libraryPath);
   }
 
   /**
@@ -672,8 +702,8 @@ class LibraryAnalyzer {
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
       flowAnalysisHelper =
           FlowAnalysisHelper(_context.typeSystem, _testingData != null);
-      _testingData?.recordFlowAnalysisResult(
-          file.uri, flowAnalysisHelper.result);
+      _testingData?.recordFlowAnalysisDataForTesting(
+          file.uri, flowAnalysisHelper.dataForTesting);
     }
 
     unit.accept(new ResolverVisitor(

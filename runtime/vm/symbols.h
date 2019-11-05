@@ -207,6 +207,7 @@ class ObjectPointerVisitor;
   V(MoveNext, "moveNext")                                                      \
   V(Namespace, "Namespace")                                                    \
   V(Native, "native")                                                          \
+  V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(NotInitialized, "<not initialized>")                                       \

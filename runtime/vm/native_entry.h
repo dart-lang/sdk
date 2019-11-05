@@ -40,7 +40,6 @@ class String;
                                     Zone* zone, NativeArguments* arguments);   \
   void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
     CHECK_STACK_ALIGNMENT;                                                     \
-    VERIFY_ON_TRANSITION;                                                      \
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
     /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
     MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
@@ -65,7 +64,6 @@ class String;
       }                                                                        \
       DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
-    VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments)

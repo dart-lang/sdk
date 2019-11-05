@@ -5,13 +5,10 @@
 [ $compiler == spec_parser ]
 built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
 closure_type_test: Pass # Marked as RuntimeError for all in language_2.status.
-conditional_import_string_test: Fail # Uses conditional import.
-conditional_import_test: Fail # Uses conditional import.
 const_native_factory_test: Skip # Uses `native`.
 deep_nesting_expression_test: Skip # JVM stack overflow.
 deep_nesting_statement_test: Skip # JVM stack overflow.
 double_invalid_test: Skip # Contains illegaly formatted double.
-extension_methods: Skip # Not yet supported.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
 inst_field_initializer1_negative_test: Skip # Negative, not syntax.
 instance_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
@@ -62,5 +59,6 @@ string_unicode4_negative_test: Skip # Negative, not syntax.
 switch1_negative_test: Fail # Negative, `default` clause not last.
 test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
+variance: Skip # Not yet supported.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.

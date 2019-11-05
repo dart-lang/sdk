@@ -5,7 +5,6 @@
 @deprecated
 library analyzer.test.constant_test;
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -478,11 +477,7 @@ class C {
   Future<void> _assertValueString(String expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value;
-    expect(value, isNotNull);
-    ParameterizedType type = value.type;
-    expect(type, isNotNull);
-    expect(type.name, "String");
-    expect(value.toStringValue(), expectedValue);
+    assertElementTypeString(value.type, 'String');
   }
 
   Future<EvaluationResult> _getExpressionValue(String expressionCode,

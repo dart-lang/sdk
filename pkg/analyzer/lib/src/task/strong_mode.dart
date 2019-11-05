@@ -4,8 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,19 +13,6 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
-
-/**
- * Sets the type of the field. The types in implicit accessors are updated
- * implicitly, and the types of explicit accessors should be updated separately.
- */
-void setFieldType(VariableElement field, DartType newType) {
-  (field as VariableElementImpl).type = newType;
-}
-
-/**
- * A function that returns `true` if the given [element] passes the filter.
- */
-typedef bool VariableFilter(VariableElement element);
 
 /**
  * An object used to infer the type of instance fields and the return types of
@@ -258,7 +243,7 @@ class InstanceMemberInferrer {
         parameter.inheritsCovariant = typeResult.isCovariant;
       }
     }
-    setFieldType(element.variable, typeResult.type);
+    (element.variable as FieldElementImpl).type = typeResult.type;
   }
 
   /**
@@ -396,7 +381,7 @@ class InstanceMemberInferrer {
    * If the given [field] represents a non-synthetic instance field for
    * which no type was provided, infer the type of the field.
    */
-  void _inferField(FieldElement field) {
+  void _inferField(FieldElementImpl field) {
     if (field.isSynthetic || field.isStatic) {
       return;
     }
@@ -404,7 +389,7 @@ class InstanceMemberInferrer {
     _FieldOverrideInferenceResult typeResult =
         _computeFieldOverrideType(field.getter);
     if (typeResult.isError) {
-      if (field is FieldElementImpl && field.linkedNode != null) {
+      if (field.linkedNode != null) {
         LazyAst.setTypeInferenceError(
           field.linkedNode,
           TopLevelInferenceErrorBuilder(
@@ -429,7 +414,7 @@ class InstanceMemberInferrer {
         newType = typeProvider.dynamicType;
       }
 
-      setFieldType(field, newType);
+      field.type = newType;
     }
 
     if (field.setter != null) {
@@ -533,47 +518,6 @@ class InstanceMemberInferrer {
     }
     if (newType != null) {
       (element.variable as VariableElementImpl).type = newType;
-    }
-  }
-}
-
-/**
- * A visitor that will gather all of the variables referenced within a given
- * AST structure. The collection can be restricted to contain only those
- * variables that pass a specified filter.
- */
-class VariableGatherer extends RecursiveAstVisitor {
-  /**
-   * The filter used to limit which variables are gathered, or `null` if no
-   * filtering is to be performed.
-   */
-  final VariableFilter filter;
-
-  /**
-   * The variables that were found.
-   */
-  final Set<VariableElement> results = new HashSet<VariableElement>();
-
-  /**
-   * Initialize a newly created gatherer to gather all of the variables that
-   * pass the given [filter] (or all variables if no filter is provided).
-   */
-  VariableGatherer([this.filter]);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.inDeclarationContext()) {
-      Element nonAccessor(Element element) {
-        if (element is PropertyAccessorElement && element.isSynthetic) {
-          return element.variable;
-        }
-        return element;
-      }
-
-      Element element = nonAccessor(node.staticElement);
-      if (element is VariableElement && (filter == null || filter(element))) {
-        results.add(element);
-      }
     }
   }
 }

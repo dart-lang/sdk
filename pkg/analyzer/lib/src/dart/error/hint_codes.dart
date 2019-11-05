@@ -242,10 +242,10 @@ class HintCode extends AnalyzerErrorCode {
    * When "strict-inference" is enabled, collection literal types must be
    * inferred via the context type, or have type arguments.
    */
-  static const HintCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL = HintCode(
-      'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
-      "The type argument(s) of '{0}' can't be inferred.",
-      correction: "Use explicit type argument(s) for '{0}'.");
+  static const HintCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL =
+      const HintCode('INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
+          "The type argument(s) of '{0}' can't be inferred.",
+          correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
    * When "strict-inference" is enabled, recursive local functions, top-level
@@ -254,17 +254,17 @@ class HintCode extends AnalyzerErrorCode {
    *
    * https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
    */
-  static const HintCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE = HintCode(
-      'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
-      "The return type of '{0}' cannot be inferred.",
-      correction: "Declare the return type of '{0}'.");
+  static const HintCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE =
+      const HintCode('INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
+          "The return type of '{0}' cannot be inferred.",
+          correction: "Declare the return type of '{0}'.");
 
   /**
    * When "strict-inference" is enabled, types in instance creation
    * (constructor calls) must be inferred via the context type, or have type
    * arguments.
    */
-  static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
+  static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = const HintCode(
       'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
       "The type argument(s) of '{0}' can't be inferred.",
       correction: "Use explicit type argument(s) for '{0}'.");
@@ -355,6 +355,32 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_LITERAL_ANNOTATION',
       "Only const constructors can have the `@literal` annotation.",
       hasPublishedDocs: true);
+
+  /**
+   * This hint is generated anywhere where `@nonVirtual` annotates something
+   * other than a non-abstract instance member in a class or mixin.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_NON_VIRTUAL_ANNOTATION = const HintCode(
+      'INVALID_NON_VIRTUAL_ANNOTATION',
+      "The member '{0}' can't be '@nonVirtual' because it isn't a concrete "
+          "instance member.",
+      correction: "Try removing @nonVirtual.");
+
+  /**
+   * This hint is generated anywhere where an instance member annotated with
+   * `@nonVirtual` is overridden in a subclass.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
+  static const HintCode INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER = const HintCode(
+      'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+      "The member '{0}' is declared non-virtual in '{1}' and can't be "
+          "overridden in subclasses.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a named
@@ -561,7 +587,7 @@ class HintCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // [!int!] f(int x) {
+  // int [!f!](int x) {
   //   if (x < 0) {
   //     return 0;
   //   }
@@ -1364,7 +1390,7 @@ class HintCode extends AnalyzerErrorCode {
    * When "strict-raw-types" is enabled, raw types must be inferred via the
    * context type, or have type arguments.
    */
-  static const HintCode STRICT_RAW_TYPE = HintCode('STRICT_RAW_TYPE',
+  static const HintCode STRICT_RAW_TYPE = const HintCode('STRICT_RAW_TYPE',
       "The generic type '{0}' should have explicit type arguments but doesn't.",
       correction: "Use explicit type arguments for '{0}'.");
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -353,7 +353,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var positionalParameters = const <DecoratedType>[];
     var namedParameters = const <String, DecoratedType>{};
     var typeFormalBounds = const <DecoratedType>[];
-    if (type is InterfaceType && type.typeParameters.isNotEmpty) {
+    if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
       if (node is TypeName) {
         if (node.typeArguments == null) {
           typeArguments = type.typeArguments

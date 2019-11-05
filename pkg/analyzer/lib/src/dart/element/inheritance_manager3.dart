@@ -29,7 +29,7 @@ class Conflict {
 }
 
 /// Manages knowledge about interface types and their members.
-class InheritanceManager3 extends InheritanceManagerBase {
+class InheritanceManager3 {
   static final _noSuchMethodName = Name(null, 'noSuchMethod');
 
   final TypeSystem _typeSystem;
@@ -42,9 +42,6 @@ class InheritanceManager3 extends InheritanceManagerBase {
   final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
   InheritanceManager3(this._typeSystem);
-
-  @override
-  InheritanceManager3 get asInheritanceManager3 => this;
 
   /// Return the most specific signature of the member with the given [name]
   /// that the [type] inherits from the mixins, superclasses, or interfaces;
@@ -236,7 +233,12 @@ class InheritanceManager3 extends InheritanceManagerBase {
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
-      return superImplemented.last[name];
+      if (superImplemented.isNotEmpty) {
+        return superImplemented.last[name];
+      } else {
+        assert(type.element.name == 'Object');
+        return null;
+      }
     }
     if (concrete) {
       return interface.implemented[name];
@@ -425,14 +427,6 @@ class InheritanceManager3 extends InheritanceManagerBase {
         enclosing.supertype == null &&
         !enclosing.isMixin;
   }
-}
-
-/// A temporary bridge between the old and the new versions of inheritance
-/// managers. Clients may not reference, extend, implement, or mix-in this
-/// class. It will be removed in the next major version of analyser, together
-/// with "InheritanceManager2".
-abstract class InheritanceManagerBase {
-  InheritanceManager3 get asInheritanceManager3;
 }
 
 /// The instance interface of an [InterfaceType].

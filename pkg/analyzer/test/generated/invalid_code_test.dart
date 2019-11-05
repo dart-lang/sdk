@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,9 +56,12 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var function = findElement.genericTypeAlias('F').function;
+    var alias = findElement.genericTypeAlias('F');
     assertElementTypeString(
-      function.type,
+      alias.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
       'void Function(bool, int Function(double))',
     );
   }
@@ -122,9 +126,12 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var function = findElement.genericTypeAlias('F').function;
+    var alias = findElement.genericTypeAlias('F');
     assertElementTypeString(
-      function.type,
+      alias.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
       'void Function(int, dynamic)',
     );
   }

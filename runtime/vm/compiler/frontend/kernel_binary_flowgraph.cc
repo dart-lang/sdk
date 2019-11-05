@@ -187,7 +187,8 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   if (only_for_side_effects) {
     instructions += Drop();
   } else {
-    instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
+    instructions += flow_graph_builder_->StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
   }
   return instructions;
 }
@@ -674,7 +675,8 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
-            Slot::GetContextVariableSlotFor(thread(), *variable));
+            Slot::GetContextVariableSlotFor(thread(), *variable),
+            StoreInstanceFieldInstr::Kind::kInitializing);
         body += NullConstant();
         body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
@@ -991,13 +993,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
 
   if (function.is_declared_in_bytecode()) {
-    if (!(FLAG_use_bytecode_compiler || FLAG_enable_interpreter)) {
-      FATAL1(
-          "Cannot run bytecode function %s: specify --enable-interpreter or "
-          "--use-bytecode-compiler",
-          function.ToFullyQualifiedCString());
-    }
-
     bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
 
     switch (function.kind()) {
@@ -2211,14 +2206,12 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   // True if callee can skip argument type checks.
   bool is_unchecked_call = inferred_type.IsSkipCheck();
-#ifndef TARGET_ARCH_DBC
   if (call_site_attributes.receiver_type != nullptr &&
       call_site_attributes.receiver_type->HasTypeClass() &&
       !Class::Handle(call_site_attributes.receiver_type->type_class())
            .IsGeneric()) {
     is_unchecked_call = true;
   }
-#endif
 
   Fragment instructions(MakeTemp());
   LocalVariable* variable = MakeTemporary();
@@ -3323,9 +3316,11 @@ Fragment StreamingFlowGraphBuilder::BuildNullCheck(TokenPosition* p) {
   if (p != nullptr) *p = position;
 
   TokenPosition operand_position = TokenPosition::kNoSource;
-  Fragment instructions =
-      BuildExpression(&operand_position);  // read expression.
-  // TODO(37479): Implement null-check semantics.
+  Fragment instructions = BuildExpression(&operand_position);
+  LocalVariable* expr_temp = MakeTemporary();
+  instructions += CheckNull(position, expr_temp, String::null_string(),
+                            /* clear_the_temp = */ false);
+
   return instructions;
 }
 
@@ -3933,7 +3928,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(type_args_vec);
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments());
+      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
   instructions += Drop();  // Drop type args.
 
   // Copy over the target function.
@@ -3942,7 +3938,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions +=
       flow_graph_builder_->LoadNativeField(Slot::Closure_function());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function());
+      TokenPosition::kNoSource, Slot::Closure_function(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the instantiator type arguments.
   instructions += LoadLocal(new_closure);
@@ -3950,7 +3947,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_instantiator_type_arguments());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments());
+      TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the function type arguments.
   instructions += LoadLocal(new_closure);
@@ -3958,14 +3956,16 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_function_type_arguments());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function_type_arguments());
+      TokenPosition::kNoSource, Slot::Closure_function_type_arguments(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the context.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
   instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_context());
+      TokenPosition::kNoSource, Slot::Closure_context(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
@@ -5087,7 +5087,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     instructions += LoadLocal(closure);
     instructions += LoadInstantiatorTypeArguments();
     instructions += flow_graph_builder_->StoreInstanceField(
-        TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments());
+        TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
   // TODO(30455): We only need to save these if the closure uses any captured
@@ -5095,23 +5096,31 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   instructions += LoadLocal(closure);
   instructions += LoadFunctionTypeArguments();
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function_type_arguments());
+      TokenPosition::kNoSource, Slot::Closure_function_type_arguments(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
-  instructions += LoadLocal(closure);
-  instructions += Constant(Object::empty_type_arguments());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments());
+  if (function.IsGeneric()) {
+    // Only generic functions need to have properly initialized
+    // delayed_type_arguments.
+    instructions += LoadLocal(closure);
+    instructions += Constant(Object::empty_type_arguments());
+    instructions += flow_graph_builder_->StoreInstanceField(
+        TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
+  }
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
   instructions += Constant(function);
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function());
+      TokenPosition::kNoSource, Slot::Closure_function(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   instructions += LoadLocal(closure);
   instructions += LoadLocal(parsed_function()->current_context_var());
   instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_context());
+      TokenPosition::kNoSource, Slot::Closure_context(),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   return instructions;
 }
@@ -5136,9 +5145,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
@@ -5191,7 +5197,6 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
                                   native_sig, target, exceptional_return));
   code += Constant(result);
   return code;
-#endif
 }
 
 }  // namespace kernel

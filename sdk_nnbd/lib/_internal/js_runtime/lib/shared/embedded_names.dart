@@ -267,6 +267,9 @@ enum JsGetName {
   /// Prefix used for generated type argument substitutions on classes.
   OPERATOR_AS_PREFIX,
 
+  /// Prefix used for generated type test property on classes.
+  OPERATOR_IS_PREFIX,
+
   /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
 
@@ -453,5 +456,6 @@ enum JsBuiltin {
 class RtiUniverseFieldNames {
   static String evalCache = 'eC';
   static String typeRules = 'tR';
+  static String erasedTypes = 'eT';
   static String sharedEmptyArray = 'sEA';
 }

@@ -36,7 +36,7 @@ int f() {
 import 'dart:async';
 Future<int> f() async {}
 ''', [
-      error(HintCode.MISSING_RETURN, 21, 11),
+      error(HintCode.MISSING_RETURN, 33, 1),
     ]);
   }
 
@@ -81,7 +81,7 @@ class A {
     await assertErrorsInCode(r'''
 int f() {}
 ''', [
-      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.MISSING_RETURN, 4, 1),
     ]);
   }
 
@@ -166,7 +166,21 @@ class A {
   int m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 12, 3),
+      error(HintCode.MISSING_RETURN, 16, 1),
+    ]);
+  }
+
+  test_method_annotation() async {
+    await assertErrorsInCode(r'''
+abstract class A {
+  int m();
+}
+@override
+class B extends A {
+  m() {}
+}
+''', [
+      error(HintCode.MISSING_RETURN, 64, 1),
     ]);
   }
 
@@ -186,7 +200,7 @@ class A {
   FutureOr<int> m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 33, 13),
+      error(HintCode.MISSING_RETURN, 47, 1),
     ]);
   }
 
@@ -199,7 +213,7 @@ class B extends A {
   m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 54, 6),
+      error(HintCode.MISSING_RETURN, 54, 1),
     ]);
   }
 

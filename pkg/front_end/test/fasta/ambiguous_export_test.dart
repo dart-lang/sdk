@@ -32,7 +32,8 @@ main() async {
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
       await target.loader.buildOutline(builder);
       builder.markAsReadyToFinalizeExports();
-      var mainExport = builder.exportScope.local["main"];
+      var mainExport =
+          builder.exportScope.lookupLocalMember("main", setter: false);
       Expect.isTrue(mainExport is InvalidTypeDeclarationBuilder);
     });
   });

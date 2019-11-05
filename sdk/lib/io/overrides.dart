@@ -87,6 +87,11 @@ abstract class IOOverrides {
               {dynamic sourceAddress})
           socketStartConnect,
 
+      // ServerSocket
+      Future<ServerSocket> Function(dynamic, int,
+              {int backlog, bool v6Only, bool shared})
+          serverSocketBind,
+
       // Optional Zone parameters
       ZoneSpecification zoneSpecification,
       Function onError}) {
@@ -120,6 +125,9 @@ abstract class IOOverrides {
       // Socket
       socketConnect,
       socketStartConnect,
+
+      // ServerSocket
+      serverSocketBind,
     );
     return _asyncRunZoned<R>(body,
         zoneValues: {_ioOverridesToken: overrides},
@@ -274,6 +282,19 @@ abstract class IOOverrides {
       {sourceAddress}) {
     return Socket._startConnect(host, port, sourceAddress: sourceAddress);
   }
+
+  // ServerSocket
+
+  /// Asynchronously returns a [ServerSocket] that connects to the given address
+  /// and port when successful.
+  ///
+  /// When this override is installed, this functions overrides the behavior of
+  /// `ServerSocket.bind(...)`.
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    return ServerSocket._bind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
+  }
 }
 
 class _IOOverridesScope extends IOOverrides {
@@ -311,6 +332,10 @@ class _IOOverridesScope extends IOOverrides {
   Future<ConnectionTask<Socket>> Function(dynamic, int, {dynamic sourceAddress})
       _socketStartConnect;
 
+  // ServerSocket
+  Future<ServerSocket> Function(dynamic, int,
+      {int backlog, bool v6Only, bool shared}) _serverSocketBind;
+
   _IOOverridesScope(
     // Directory
     this._createDirectory,
@@ -341,6 +366,9 @@ class _IOOverridesScope extends IOOverrides {
     // Socket
     this._socketConnect,
     this._socketStartConnect,
+
+    // ServerSocket
+    this._serverSocketBind,
   );
 
   // Directory
@@ -477,5 +505,21 @@ class _IOOverridesScope extends IOOverrides {
           sourceAddress: sourceAddress);
     }
     return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
+  }
+
+  // ServerSocket
+  @override
+  Future<ServerSocket> serverSocketBind(address, int port,
+      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    if (_serverSocketBind != null) {
+      return _serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    if (_previous != null) {
+      return _previous.serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared);
+    }
+    return super.serverSocketBind(address, port,
+        backlog: backlog, v6Only: v6Only, shared: shared);
   }
 }

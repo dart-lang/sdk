@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -333,6 +333,8 @@ class Flutter {
         }
 
         if (parent is ArgumentList ||
+            parent is ConditionalExpression && parent.thenExpression == node ||
+            parent is ConditionalExpression && parent.elseExpression == node ||
             parent is ExpressionFunctionBody && parent.expression == node ||
             parent is ForElement && parent.body == node ||
             parent is IfElement && parent.thenElement == node ||

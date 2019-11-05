@@ -935,7 +935,9 @@ void FlowGraphCompiler::CompileGraph() {
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
+#if defined(DEBUG)
   __ int3();
+#endif
 
   if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
@@ -1302,7 +1304,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
 int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
                                                compiler::Label* label,
                                                Register class_id_reg,
-                                               const CidRange& range,
+                                               const CidRangeValue& range,
                                                int bias,
                                                bool jump_on_miss) {
   // Note of WARNING: Due to smaller instruction encoding we use the 32-bit

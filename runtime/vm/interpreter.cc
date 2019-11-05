@@ -356,10 +356,6 @@ void LookupCache::Insert(intptr_t receiver_cid,
 
 Interpreter::Interpreter()
     : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL), lookup_cache_() {
-#if defined(TARGET_ARCH_DBC)
-  FATAL("Interpreter is not supported when targeting DBC\n");
-#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-
   // Setup interpreter support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -603,10 +599,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   {
     InterpreterSetjmpBuffer buffer(this);
     if (!setjmp(buffer.buffer_)) {
-#if defined(TARGET_ARCH_DBC)
-      USE(entrypoint);
-      UNIMPLEMENTED();
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
       // We need to beware that bouncing between the interpreter and the
       // simulator may exhaust the C stack before exhausting either the
       // interpreter or simulator stacks.
@@ -1978,9 +1971,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawUnlinkedCall* selector = RAW_CAST(UnlinkedCall, LOAD_CONSTANT(kidx));
-      RawString* target_name = selector->ptr()->target_name_;
-      argdesc_ = selector->ptr()->args_descriptor_;
+      RawString* target_name = RAW_CAST(String, LOAD_CONSTANT(kidx));
+      argdesc_ = RAW_CAST(Array, LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -2251,16 +2243,6 @@ SwitchDispatch:
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
-    DISPATCH();
-  }
-
-  {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-                  "Cleanup PushStatic bytecode instruction");
-    BYTECODE(PushStatic, D);
-    RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    // Note: field is also on the stack, hence no increment.
-    *SP = field->ptr()->value_.static_value_;
     DISPATCH();
   }
 
@@ -2698,7 +2680,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CheckReceiverForNull, D);
+    BYTECODE(NullCheck, D);
     SP -= 1;
 
     if (UNLIKELY(SP[0] == null_value)) {
@@ -3071,6 +3053,22 @@ SwitchDispatch:
     RawObject* value =
         reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
 
+    if (UNLIKELY(value == Object::sentinel().raw())) {
+      SP[1] = 0;  // Result slot.
+      SP[2] = instance;
+      SP[3] = field;
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(
+          DRT_InitInstanceField,
+          NativeArguments(thread, 2, /* argv */ SP + 2, /* ret val */ SP + 1));
+
+      function = FrameFunction(FP);
+      instance = reinterpret_cast<RawInstance*>(SP[2]);
+      field = reinterpret_cast<RawField*>(SP[3]);
+      offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+      value = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    }
+
     *++SP = value;
 
     const bool unboxing =
@@ -3132,6 +3130,7 @@ SwitchDispatch:
     // Perform type test of value if field type is not one of dynamic, object,
     // or void, and if the value is not null.
     RawObject* null_value = Object::null();
+    // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
     if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
         value != null_value) {
       RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;

@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $arch == simdbc || $arch == simdbc64 ]
-*: Skip # SIMDBC will be deleted soon.
-
 [ $builder_tag == asan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 

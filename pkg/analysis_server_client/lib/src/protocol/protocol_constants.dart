@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.27.3';
+const String PROTOCOL_VERSION = '1.27.4';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -173,6 +173,7 @@ const String EDIT_REQUEST_DARTFIX_INCLUDE_PEDANTIC_FIXES =
 const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
     'includeRequiredFixes';
 const String EDIT_REQUEST_DARTFIX_OUTPUT_DIR = 'outputDir';
+const String EDIT_REQUEST_DARTFIX_PORT = 'port';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';
@@ -336,7 +337,6 @@ const String SEARCH_RESPONSE_GET_TYPE_HIERARCHY_HIERARCHY_ITEMS =
     'hierarchyItems';
 const String SERVER_NOTIFICATION_CONNECTED = 'server.connected';
 const String SERVER_NOTIFICATION_CONNECTED_PID = 'pid';
-const String SERVER_NOTIFICATION_CONNECTED_SESSION_ID = 'sessionId';
 const String SERVER_NOTIFICATION_CONNECTED_VERSION = 'version';
 const String SERVER_NOTIFICATION_ERROR = 'server.error';
 const String SERVER_NOTIFICATION_ERROR_IS_FATAL = 'isFatal';

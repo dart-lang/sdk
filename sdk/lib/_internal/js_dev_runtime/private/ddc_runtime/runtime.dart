@@ -181,12 +181,20 @@ final List<Object> _cacheMaps = JS('!', '[]');
 @notNull
 final List<void Function()> _resetFields = JS('', '[]');
 
+/// A counter to track each time [hotRestart] is invoked. This is used to ensure
+/// that pending callbacks that were created on a previous iteration (e.g. a
+/// timer callback or a DOM callback) will not execute when they get invoked.
+// TODO(sigmund): consider whether we should track and cancel callbacks to
+// reduce memory leaks.
+int hotRestartIteration = 0;
+
 /// Clears out runtime state in `dartdevc` so we can hot-restart.
 ///
 /// This should be called when the user requests a hot-restart, when the UI is
 /// handling that user action.
 void hotRestart() {
-  // TODO(jmesserly): we need to prevent all pending callbacks from firing.
+  // TODO(sigmund): prevent DOM callbacks from firing.
+  hotRestartIteration++;
   for (var f in _resetFields) f();
   _resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);

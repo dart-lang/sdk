@@ -104,8 +104,7 @@ class DeclaredVariablesTest {
     expect(result.type, typeProvider.nullType);
   }
 
-  void _assertUnknownDartObject(
-      ParameterizedType expectedType, DartObject result) {
+  void _assertUnknownDartObject(DartType expectedType, DartObject result) {
     expect((result as DartObjectImpl).isUnknown, isTrue);
     expect(result.type, expectedType);
   }

@@ -4,6 +4,9 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
 import 'package:kernel/class_hierarchy.dart';
 
 import 'package:kernel/kernel.dart' show Component;
@@ -11,8 +14,6 @@ import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
-import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -33,10 +34,13 @@ import 'modular_incremental_compilation.dart' as modular
 
 import 'util.dart' show equalLists, equalMaps;
 
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
+
+export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
-
-export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
@@ -58,8 +62,6 @@ export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody;
-
-export '../fasta/severity.dart' show Severity;
 
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;

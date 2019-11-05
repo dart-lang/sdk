@@ -2,21 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
-import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
-import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-import '../api_prototype/terminal_color_support.dart'
-    show printDiagnosticMessage;
-import '../base/common.dart';
-import '../fasta/messages.dart' show FormattedMessage;
-import '../fasta/severity.dart' show Severity;
-import '../kernel_generator_impl.dart' show InternalCompilerResult;
-import 'compiler_common.dart' show compileScript, toTestUri;
-import 'id.dart'
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
-import 'id_extractor.dart' show DataExtractor;
-import 'id_testing.dart'
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show
         CompiledData,
         DataInterpreter,
@@ -26,6 +15,17 @@ import 'id_testing.dart'
         cfeMarker,
         cfeWithNnbdMarker,
         checkCode;
+import 'package:kernel/ast.dart';
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+import '../base/common.dart';
+import '../fasta/messages.dart' show FormattedMessage;
+import '../kernel_generator_impl.dart' show InternalCompilerResult;
+import 'compiler_common.dart' show compileScript, toTestUri;
+import 'id_extractor.dart' show DataExtractor;
 import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;
@@ -258,7 +258,8 @@ Future<bool> runTestForConfig<T>(
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
-      retainDataForTesting: true);
+      retainDataForTesting: true,
+      requireMain: false);
 
   Component component = compilerResult.component;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};

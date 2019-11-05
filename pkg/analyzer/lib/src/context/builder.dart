@@ -406,8 +406,10 @@ class ContextBuilder {
     SdkDescription description =
         new SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-          resourceProvider, resourceProvider.getFolder(sdkPath), true);
+      var sdk = FolderBasedDartSdk(
+        resourceProvider,
+        resourceProvider.getFolder(sdkPath),
+      );
       sdk.analysisOptions = analysisOptions;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;

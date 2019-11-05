@@ -283,7 +283,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // The function will not be optimized any longer. This situation can occur
     // mostly with small optimization counter thresholds.
     function.SetIsOptimizable(false);
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -305,7 +305,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     }
     delete[] filter;
     if (!found) {
-      function.SetUsageCounter(INT_MIN);
+      function.SetUsageCounter(INT32_MIN);
       return false;
     }
   }
@@ -315,7 +315,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     if (FLAG_trace_failed_optimization_attempts) {
       THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
     return false;
   }
   return true;
@@ -381,7 +381,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -486,7 +486,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     function.SetWasCompiled(true);
     if (function.IsOptimizable() && (function.usage_counter() < 0)) {
       // While doing compilation in background, usage counter is set
-      // to INT_MIN. Reset counter so that function can be optimized further.
+      // to INT32_MIN. Reset counter so that function can be optimized further.
       function.SetUsageCounter(0);
     }
   }
@@ -877,8 +877,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(
         /* precompiler = */ NULL, thread, thread->zone(), function);

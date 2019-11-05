@@ -557,6 +557,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       fieldFormalParameter_typeParameters: node.typeParameters?.accept(this),
     );
     _storeNormalFormalParameter(builder, node, node.keyword);
+    builder.flags |= AstBinaryFlags.encode(hasQuestion: node.question != null);
     return builder;
   }
 

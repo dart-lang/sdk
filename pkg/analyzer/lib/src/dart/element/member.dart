@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -64,10 +63,6 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
-
-  @deprecated
-  @override
-  ConstructorDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -191,7 +186,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(
+    return TypeParameterMember.from(
       baseElement.typeParameters,
       _substitution,
     );
@@ -303,14 +298,6 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
-  @deprecated
-  @override
-  bool get isVirtual => baseElement.isVirtual;
-
-  @deprecated
-  @override
-  DartType get propagatedType => null;
-
   @override
   PropertyAccessorElement get setter {
     var baseSetter = baseElement.setter;
@@ -322,10 +309,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
-
-  @deprecated
-  @override
-  VariableDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() => '$type $displayName';
@@ -418,6 +401,9 @@ abstract class Member implements Element {
   bool get hasMustCallSuper => _baseElement.hasMustCallSuper;
 
   @override
+  bool get hasNonVirtual => _baseElement.hasNonVirtual;
+
+  @override
   bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
 
   @override
@@ -442,37 +428,13 @@ abstract class Member implements Element {
   int get id => _baseElement.id;
 
   @override
-  bool get isAlwaysThrows => _baseElement.hasAlwaysThrows;
-
-  @override
-  bool get isDeprecated => _baseElement.hasDeprecated;
-
-  @override
-  bool get isFactory => _baseElement.hasFactory;
-
-  @override
-  bool get isJS => _baseElement.hasJS;
-
-  @override
-  bool get isOverride => _baseElement.hasOverride;
-
-  @override
   bool get isPrivate => _baseElement.isPrivate;
-
-  @override
-  bool get isProtected => _baseElement.hasProtected;
 
   @override
   bool get isPublic => _baseElement.isPublic;
 
   @override
-  bool get isRequired => _baseElement.hasRequired;
-
-  @override
   bool get isSynthetic => _baseElement.isSynthetic;
-
-  @override
-  bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
   ElementKind get kind => _baseElement.kind;
@@ -508,17 +470,6 @@ abstract class Member implements Element {
    * The substitution for type parameters referenced in the base element.
    */
   MapSubstitution get substitution => _substitution;
-
-  @deprecated
-  @override
-  CompilationUnit get unit => _baseElement.unit;
-
-  @override
-  String computeDocumentationComment() => documentationComment;
-
-  @deprecated
-  @override
-  AstNode computeNode() => _baseElement.computeNode();
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) =>
@@ -572,10 +523,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
-
-  @deprecated
-  @override
-  MethodDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -722,21 +669,14 @@ class ParameterMember extends VariableMember
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(
+    return TypeParameterMember.from(
       baseElement.typeParameters,
       _substitution,
     );
   }
 
   @override
-  SourceRange get visibleRange => baseElement.visibleRange;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
-
-  @deprecated
-  @override
-  FormalParameter computeNode() => baseElement.computeNode();
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
@@ -923,7 +863,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
 
   @override
   bool operator ==(Object other) =>
-      other is TypeParameterMember && baseElement == other.baseElement;
+      other is TypeParameterMember &&
+      other.baseElement == baseElement &&
+      other._bound == _bound;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -951,23 +893,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     return buffer.toString();
   }
 
-  /**
-   * If the given [parameter]'s type is different when any type parameters from
-   * the defining type's declaration are replaced with the actual type
-   * arguments from the [definingType], create a parameter member representing
-   * the given parameter. Return the member that was created, or the base
-   * parameter if no member was created.
-   */
   static List<TypeParameterElement> from(
-      List<TypeParameterElement> formals, FunctionType definingType) {
-    var substitution = Substitution.fromPairs(
-      definingType.typeParameters,
-      definingType.typeArguments,
-    );
-    return from2(formals, substitution);
-  }
-
-  static List<TypeParameterElement> from2(
     List<TypeParameterElement> elements,
     MapSubstitution substitution,
   ) {
@@ -981,7 +907,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     var newTypes = List<TypeParameterType>(elements.length);
     for (int i = 0; i < newElements.length; i++) {
       var element = elements[i];
-      var bound = element?.bound;
+      var bound = element.bound;
       if (bound != null) {
         bound = substitution.substituteType(bound);
         element = TypeParameterMember(element, substitution, bound);
@@ -992,14 +918,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
       );
     }
 
-    // Recursive bounds are allowed too, so make sure these are updated
-    // to refer to any new TypeParameterMember we just made, rather than
-    // the original type parameter
+    // Update bounds to reference new TypeParameterMember(s).
     var substitution2 = Substitution.fromPairs(elements, newTypes);
     for (var newElement in newElements) {
       if (newElement is TypeParameterMember) {
-        // TODO(jmesserly): this is required so substituting for the
-        // type formal will work. Investigate if there's a better solution.
         newElement._bound = substitution2.substituteType(newElement.bound);
       }
     }
@@ -1061,16 +983,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isLate => baseElement.isLate;
-
-  @override
-  @deprecated
-  bool get isPotentiallyMutatedInClosure =>
-      baseElement.isPotentiallyMutatedInClosure;
-
-  @override
-  @deprecated
-  bool get isPotentiallyMutatedInScope =>
-      baseElement.isPotentiallyMutatedInScope;
 
   @override
   bool get isStatic => baseElement.isStatic;

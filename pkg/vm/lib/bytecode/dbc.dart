@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 23;
+const int currentBytecodeFormatVersion = 25;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -258,8 +258,8 @@ enum Opcode {
 
   // Null operations.
   kEqualsNull,
-  kCheckReceiverForNull,
-  kCheckReceiverForNull_Wide,
+  kNullCheck,
+  kNullCheck_Wide,
 
   // Int operations.
   kNegateInt,
@@ -468,7 +468,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kEqualsNull: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCheckReceiverForNull: const Format(
+  Opcode.kNullCheck: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kNegateInt: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
@@ -534,7 +534,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 
-// Should match constant in runtime/vm/stack_frame_dbc.h.
+// Should match constant in runtime/vm/stack_frame_kbc.h.
 const int kParamEndSlotFromFp = 4;
 
 enum SpecialIndex {

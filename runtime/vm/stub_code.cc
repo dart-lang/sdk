@@ -103,7 +103,6 @@ bool StubCode::HasBeenInitialized() {
 }
 
 bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter) {
@@ -124,33 +123,16 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   uword entry = StubCode::InvokeDartCode().EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
-#else
-  if (FLAG_enable_interpreter) {
-    FATAL(
-        "Simultaneous usage of DBC simulator "
-        "and interpreter not yet supported.");
-  }
-  // On DBC we use a special marker PC to signify entry frame because there is
-  // no such thing as invocation stub.
-  return (pc & 2) != 0;
-#endif
 }
 
 bool StubCode::InJumpToFrameStub(uword pc) {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToFrame().EntryPoint();
   uword size = StubCode::JumpToFrameSize();
   return (pc >= entry) && (pc < (entry + size));
-#else
-  // This stub does not exist on DBC.
-  return false;
-#endif
 }
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-// These stubs are not used by DBC.
-#if !defined(TARGET_ARCH_DBC)
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
@@ -231,12 +213,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
-#endif  // !DBC
-  UNIMPLEMENTED();
-  return Code::null();
 }
 
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
 RawCode* StubCode::GetBuildMethodExtractorStub(
     compiler::ObjectPoolBuilder* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -283,11 +262,9 @@ RawCode* StubCode::GetBuildMethodExtractorStub(
   return nullptr;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
-#endif  // !defined(TARGET_ARCH_DBC)
+#endif  // !defined(TARGET_ARCH_IA32)
 
 const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
-// These stubs are not used by DBC.
-#if !defined(TARGET_ARCH_DBC)
   switch (num_args_tested) {
     case 0:
       return ZeroArgsUnoptimizedStaticCall();
@@ -299,9 +276,6 @@ const Code& StubCode::UnoptimizedStaticCallEntry(intptr_t num_args_tested) {
       UNIMPLEMENTED();
       return Code::Handle();
   }
-#else
-  return Code::Handle();
-#endif
 }
 
 const char* StubCode::NameOfStub(uword entry_point) {

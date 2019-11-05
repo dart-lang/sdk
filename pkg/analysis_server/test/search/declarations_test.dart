@@ -57,8 +57,18 @@ class C {
     assertHas('f', ElementKind.FIELD, className: 'C');
     assertHas('named', ElementKind.CONSTRUCTOR, className: 'C');
     assertHas('g', ElementKind.GETTER, className: 'C');
-    assertHas('s', ElementKind.SETTER, className: 'C');
-    assertHas('m', ElementKind.METHOD, className: 'C');
+
+    {
+      var declaration = assertHas('s', ElementKind.SETTER, className: 'C');
+      expect(declaration.codeOffset, 59);
+      expect(declaration.codeLength, 16);
+    }
+
+    {
+      var declaration = assertHas('m', ElementKind.METHOD, className: 'C');
+      expect(declaration.codeOffset, 78);
+      expect(declaration.codeLength, 11);
+    }
   }
 
   test_enum() async {

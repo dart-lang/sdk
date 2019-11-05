@@ -18,6 +18,8 @@ library front_end.tool.perf;
 import 'dart:async';
 import 'dart:io' show Directory, File, Platform, exit;
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
@@ -30,8 +32,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:package_config/discovery.dart';
 import 'package:path/path.dart' as path;
 

@@ -99,7 +99,8 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                NativeArguments arguments);                     \
   void DRT_##name(NativeArguments arguments) {                                 \
     CHECK_STACK_ALIGNMENT;                                                     \
-    VERIFY_ON_TRANSITION;                                                      \
+    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
+    MSAN_UNPOISON(&arguments, sizeof(arguments));                              \
     ASSERT(arguments.ArgCount() == argument_count);                            \
     TRACE_RUNTIME_CALL("%s", "" #name);                                        \
     {                                                                          \
@@ -111,7 +112,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
       HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
-    VERIFY_ON_TRANSITION;                                                      \
   }                                                                            \
   static void DRT_Helper##name(Isolate* isolate, Thread* thread, Zone* zone,   \
                                NativeArguments arguments)

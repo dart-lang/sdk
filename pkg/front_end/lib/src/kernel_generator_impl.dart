@@ -7,7 +7,8 @@ library front_end.kernel_generator_impl;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'base/processed_options.dart' show ProcessedOptions;
@@ -20,6 +21,8 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 
+import 'fasta/kernel/kernel_api.dart';
+
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -27,8 +30,6 @@ import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'fasta/loader.dart' show Loader;
-
-import 'fasta/severity.dart' show Severity;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 

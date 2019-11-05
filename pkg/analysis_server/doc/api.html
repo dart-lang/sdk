@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.27.3
+  1.27.4
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -432,7 +432,6 @@ a:focus, a:hover {
   "params": {
     "<b>version</b>": String
     "<b>pid</b>": int
-    "<b>sessionId</b>": <span style="color:#999999">optional</span> String
   }
 }</pre></div>
     <p>
@@ -452,9 +451,6 @@ a:focus, a:hover {
       </dd><dt class="field"><b>pid: int</b></dt><dd>
         
         <p>The process id of the analysis server process.</p>
-      </dd><dt class="field"><b>sessionId: String<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>The session id for this session.</p>
       </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {

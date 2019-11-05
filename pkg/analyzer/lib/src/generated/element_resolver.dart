@@ -259,7 +259,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         if (library == null) {
           // TODO(brianwilkerson) We need to understand how the library could
           // ever be null.
-          AnalysisEngine.instance.logger
+          AnalysisEngine.instance.instrumentationService
               .logError("Found element with null library: ${element.name}");
         } else if (library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error.
@@ -490,7 +490,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     bool isInSetterContext = node.inSetterContext();
     if (isInGetterContext && isInSetterContext) {
       node.staticElement = result.setter;
-      node.auxiliaryElements = AuxiliaryElements(result.getter, null);
+      node.auxiliaryElements = AuxiliaryElements(result.getter);
     } else if (isInGetterContext) {
       node.staticElement = result.getter;
     } else if (isInSetterContext) {
@@ -656,10 +656,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
-        operatorType == TokenType.PLUS_PLUS ||
-        operatorType == TokenType.MINUS_MINUS) {
+        operatorType.isIncrementOperator) {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
+      if (operand is ExtensionOverride) {
+        ExtensionElement element = operand.extensionName.staticElement;
+        MethodElement member = element.getMethod(methodName);
+        if (member == null) {
+          _resolver.errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+              node.operator,
+              [methodName, element.name]);
+        }
+        node.staticElement = member;
+        return;
+      }
       DartType staticType = _getStaticType(operand, read: true);
       var result = _newPropertyResolver()
           .resolve(operand, staticType, methodName, operand);
@@ -716,7 +727,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
                 propertyName,
                 [memberName, element.name]);
           }
-          propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
+          propertyName.auxiliaryElements = AuxiliaryElements(getter);
         }
       } else if (propertyName.inGetterContext()) {
         member = result.getter;
@@ -861,7 +872,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       propertyResolver.resolve(null, enclosingType, node.name, node);
       node.auxiliaryElements = AuxiliaryElements(
         propertyResolver.result.getter,
-        null,
       );
     }
     //
@@ -1128,7 +1138,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       parameters = (parameterizableType as FunctionType)?.typeFormals;
     }
 
-    if (parameterizableType is ParameterizedType) {
+    if (parameterizableType is FunctionType) {
       NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         _resolver.errorReporter.reportErrorForNode(
@@ -1766,8 +1776,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         var setter = result.setter;
         if (setter != null) {
           propertyName.staticElement = setter;
-          propertyName.auxiliaryElements =
-              AuxiliaryElements(result.getter, null);
+          propertyName.auxiliaryElements = AuxiliaryElements(result.getter);
         } else {
           var getter = result.getter;
           propertyName.staticElement = getter;
@@ -1966,9 +1975,6 @@ class SyntheticIdentifier extends IdentifierImpl {
   Token get beginToken => null;
 
   @override
-  Element get bestElement => null;
-
-  @override
   Iterable<SyntacticEntity> get childEntities {
     // Should never be called, since a SyntheticIdentifier never appears in the
     // AST--it is just used for lookup.
@@ -1987,10 +1993,6 @@ class SyntheticIdentifier extends IdentifierImpl {
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  @deprecated
-  @override
-  Element get propagatedElement => null;
 
   @override
   Element get staticElement => null;

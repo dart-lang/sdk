@@ -510,6 +510,8 @@ C f(int i) => C(i);
 
 _'{0}' is deprecated and shouldn't be used._
 
+_'{0}' is deprecated and shouldn't be used. {1}._
+
 #### Description
 
 The analyzer produces this diagnostic when a deprecated library or class
@@ -534,6 +536,8 @@ should indicate what code to use in place of the deprecated code.
 ### deprecated_member_use_from_same_package
 
 _'{0}' is deprecated and shouldn't be used._
+
+_'{0}' is deprecated and shouldn't be used. {1}._
 
 #### Description
 
@@ -1416,7 +1420,7 @@ analyzer produces this diagnostic when it finds an implicit return.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-[!int!] f(int x) {
+int [!f!](int x) {
   if (x < 0) {
     return 0;
   }

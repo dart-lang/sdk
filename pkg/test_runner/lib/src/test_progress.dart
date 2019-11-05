@@ -707,8 +707,6 @@ String _buildSummaryEnd(Formatter formatter, int failedTests) {
 
 /// Writes a results.json file with a line for each test.
 /// Each line is a json map with the test name and result and expected result.
-/// Also writes a run.json file with a json map containing the configuration
-/// and the start time and duration of the run.
 class ResultWriter extends EventListener {
   final TestConfiguration _configuration;
   final List<Map> _results = [];
@@ -767,7 +765,6 @@ class ResultWriter extends EventListener {
   void allDone() {
     writeOutputFile(_results, TestUtils.resultsFileName);
     writeOutputFile(_logs, TestUtils.logsFileName);
-    writeRunFile();
   }
 
   void writeOutputFile(List<Map> results, String fileName) {
@@ -775,20 +772,5 @@ class ResultWriter extends EventListener {
     final path = Uri.directory(_outputDirectory).resolve(fileName);
     File.fromUri(path)
         .writeAsStringSync(newlineTerminated(results.map(jsonEncode)));
-  }
-
-  void writeRunFile() {
-    _startStopwatch.stop();
-    if (_outputDirectory == null) return;
-    var suites = _configuration.selectors.keys.toList();
-    var run = {
-      "start_time": _startTime.millisecondsSinceEpoch ~/ 1000,
-      "duration": _startStopwatch.elapsed.inSeconds,
-      "configuration": _configuration.configuration.name,
-      "suites": suites
-    };
-    final path = Uri.directory(_outputDirectory)
-        .resolve(TestUtils.resultsInstanceFileName);
-    File.fromUri(path).writeAsStringSync(jsonEncode(run) + '\n');
   }
 }

@@ -280,7 +280,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         data.rawType = new InterfaceType(
             cls,
             new List<DartType>.filled(
-                node.typeParameters.length, const DynamicType()));
+                node.typeParameters.length, DynamicType()));
       }
     }
   }
@@ -293,8 +293,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         _ensureThisAndRawType(cls, data);
         data.jsInteropType = data.thisType;
       } else {
-        data.jsInteropType = InterfaceType(cls,
-            List<DartType>.filled(node.typeParameters.length, const AnyType()));
+        data.jsInteropType = InterfaceType(
+            cls, List<DartType>.filled(node.typeParameters.length, AnyType()));
       }
     }
   }
@@ -483,7 +483,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.parent is ir.Constructor) {
       // The return type on generative constructors is `void`, but we need
       // `dynamic` type to match the element model.
-      returnType = const DynamicType();
+      returnType = DynamicType();
     } else {
       returnType = getDartType(node.returnType);
     }
@@ -1186,8 +1186,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     IndexedTypedef typedef = createTypedef(library, node.name);
     TypedefType typedefType = new TypedefType(
         typedef,
-        new List<DartType>.filled(
-            node.typeParameters.length, const DynamicType()),
+        new List<DartType>.filled(node.typeParameters.length, DynamicType()),
         getDartType(node.type));
     return typedefs.register(
         typedef, new KTypedefData(node, typedef, typedefType));
@@ -1647,7 +1646,7 @@ class KernelElementEnvironment extends ElementEnvironment
   KernelElementEnvironment(this.elementMap);
 
   @override
-  DartType get dynamicType => const DynamicType();
+  DartType get dynamicType => DynamicType();
 
   @override
   LibraryEntity get mainLibrary => elementMap._mainLibrary;

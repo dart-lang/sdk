@@ -62,7 +62,6 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
     if (cl.verbose) enableVerboseOutput();
     for (Chain suite in testRoot.toolChains) {
       if (me == suite.source) {
-        print("Running suite ${suite.name}...");
         ChainContext context = await f(suite, cl.environment);
         await context.run(suite, new Set<String>.from(cl.selectors),
             shards: shards, shard: shard, logger: logger);

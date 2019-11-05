@@ -10,7 +10,9 @@ import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 
-import 'package:front_end/src/fasta/resolve_input_uri.dart';
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show isWindows, relativizeUri;
+
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
@@ -47,8 +49,6 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
-import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:front_end/src/kernel_generator_impl.dart'
     show generateKernelInternal;

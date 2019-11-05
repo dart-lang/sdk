@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -124,16 +124,9 @@ class AnalysisEngine {
   /// The unique instance of this class.
   static final AnalysisEngine instance = new AnalysisEngine._();
 
-  /// The logger that should receive information about errors within the analysis
-  /// engine.
-  Logger _logger = Logger.NULL;
-
   /// The instrumentation service that is to be used by this analysis engine.
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
-
-  /// The partition manager being used to manage the shared partitions.
-  final PartitionManager partitionManager = new PartitionManager();
 
   AnalysisEngine._();
 
@@ -151,20 +144,9 @@ class AnalysisEngine {
     }
   }
 
-  /// Return the logger that should receive information about errors within the
-  /// analysis engine.
-  Logger get logger => _logger;
-
-  /// Set the logger that should receive information about errors within the
-  /// analysis engine to the given [logger].
-  void set logger(Logger logger) {
-    this._logger = logger ?? Logger.NULL;
-  }
-
   /// Clear any caches holding on to analysis results so that a full re-analysis
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
-    partitionManager.clearCache();
     // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
   }
@@ -873,35 +855,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 abstract class InternalAnalysisContext implements AnalysisContext {
   /// Sets the [TypeProvider] for this context.
   void set typeProvider(TypeProvider typeProvider);
-}
-
-/// An object that can be used to receive information about errors within the
-/// analysis engine. Implementations usually write this information to a file,
-/// but can also record the information for later use (such as during testing) or
-/// even ignore the information.
-abstract class Logger {
-  /// A logger that ignores all logging.
-  static final Logger NULL = new NullLogger();
-
-  /// Log the given message as an error. The [message] is expected to be an
-  /// explanation of why the error occurred or what it means. The [exception] is
-  /// expected to be the reason for the error. At least one argument must be
-  /// provided.
-  void logError(String message, [CaughtException exception]);
-
-  /// Log the given informational message. The [message] is expected to be an
-  /// explanation of why the error occurred or what it means. The [exception] is
-  /// expected to be the reason for the error.
-  void logInformation(String message, [CaughtException exception]);
-}
-
-/// An implementation of [Logger] that does nothing.
-class NullLogger implements Logger {
-  @override
-  void logError(String message, [CaughtException exception]) {}
-
-  @override
-  void logInformation(String message, [CaughtException exception]) {}
 }
 
 /// Container with global [AnalysisContext] performance statistics.

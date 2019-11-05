@@ -41,14 +41,6 @@ class ScopedIsolateStackLimits : public ValueObject {
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
       : thread_(thread) {
     ASSERT(thread != NULL);
-    // Set the thread's stack_base based on the current
-    // stack pointer, we keep refining this value as we
-    // see higher stack pointers (Note: we assume the stack
-    // grows from high to low addresses).
-    OSThread* os_thread = thread->os_thread();
-    ASSERT(os_thread != NULL);
-    os_thread->RefineStackBoundsFromSP(current_sp);
-
     // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
@@ -167,20 +159,15 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-// Now Call the invoke stub which will invoke the dart function.
-#if !defined(TARGET_ARCH_DBC)
+  // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint =
       reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
-#endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
-#if defined(TARGET_ARCH_DBC)
-  return Simulator::Current()->Call(code, arguments_descriptor, arguments,
-                                    thread);
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint), reinterpret_cast<intptr_t>(&code),
       reinterpret_cast<intptr_t>(&arguments_descriptor),

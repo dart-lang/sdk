@@ -250,7 +250,7 @@ class ParameterStubGenerator {
     type.forEachTypeVariable(variables.add);
     assert(variables.isNotEmpty);
     return type.subst(
-        List.filled(variables.length, const AnyType()), variables.toList());
+        List.filled(variables.length, AnyType()), variables.toList());
   }
 
   // We fill the lists depending on possible/invoked selectors. For example,

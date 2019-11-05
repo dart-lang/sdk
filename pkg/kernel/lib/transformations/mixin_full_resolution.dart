@@ -200,6 +200,7 @@ class MixinFullResolution {
             dst.namedParameters[j].flags = src.namedParameters[j].flags;
           }
 
+          originalProcedure.canonicalName?.unbind();
           class_.procedures[i] = clone;
           continue outer;
         }

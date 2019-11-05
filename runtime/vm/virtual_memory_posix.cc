@@ -169,10 +169,6 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
                                               const char* name) {
-#if defined(TARGET_ARCH_DBC)
-  RELEASE_ASSERT(!is_executable);
-#endif
-
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect.
@@ -265,9 +261,6 @@ void VirtualMemory::FreeSubSegment(void* address,
 }
 
 void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
-#if defined(TARGET_ARCH_DBC)
-  RELEASE_ASSERT((mode != kReadExecute) && (mode != kReadWriteExecute));
-#endif
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT((thread == nullptr) || thread->IsMutatorThread() ||

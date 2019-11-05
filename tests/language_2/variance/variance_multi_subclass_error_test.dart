@@ -18,54 +18,54 @@ class MultiThree<in T, out U, inout V> {}
 class A<in T, out U, inout V> extends Covariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'Covariant'.
 
 class B<in T> extends MultiThree<T, T, T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiThree'.
+// [cfe] Can't use 'in' type variable 'T' in an 'inout' position in supertype 'MultiThree'.
 
 class C<in T, out U, inout V> extends MultiTwo<U, T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiTwo'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'U' in supertype 'MultiTwo'.
+// [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.
 
 class D<in T, out U, inout V> extends MultiThree<V, U, T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiThree'.
+// [cfe] Can't use 'in' type variable 'T' in an 'inout' position in supertype 'MultiThree'.
 
 class E<in T, out U, inout V> extends MultiThree<Covariant<U>, Covariant<T>, Covariant<U>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiThree'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiThree'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'U' in supertype 'MultiThree'.
+// [cfe] Can't use 'out' type variable 'U' in an 'inout' position in supertype 'MultiThree'.
 
 class F<in T, out U, inout V> extends MultiTwo<Contravariant<T>, Contravariant<U>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiTwo'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'U' in supertype 'MultiTwo'.
+// [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.
 
 class G<in T, out U, inout V> extends MultiThree<CovFunction<U>, CovFunction<T>, CovFunction<U>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiThree'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiThree'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'U' in supertype 'MultiThree'.
+// [cfe] Can't use 'out' type variable 'U' in an 'inout' position in supertype 'MultiThree'.
 
 class H<in T, out U, inout V> extends MultiTwo<ContraFunction<T>, ContraFunction<U>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MultiTwo'.
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'U' in supertype 'MultiTwo'.
+// [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.

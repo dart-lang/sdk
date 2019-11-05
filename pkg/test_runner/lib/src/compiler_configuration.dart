@@ -85,8 +85,7 @@ abstract class CompilerConfiguration {
 
       case Compiler.dartk:
       case Compiler.dartkb:
-        if (configuration.architecture == Architecture.simdbc64 ||
-            configuration.architecture == Architecture.simarm ||
+        if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
@@ -1101,11 +1100,7 @@ abstract class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      if (_configuration.useKernelBytecode) ...[
-        '--gen-bytecode',
-        '--drop-ast',
-        '--bytecode-options=source-positions${_isProduct ? '' : ',local-var-info,debugger-stops'}'
-      ]
+      ..._configuration.genKernelOptions,
     ];
 
     var batchArgs = [if (useAbiVersion != null) useAbiVersion];

@@ -212,18 +212,20 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ PushRegisters(all_registers);
 
-  __ mov(CALLEE_SAVED_TEMP, SP);
+  __ mov(CALLEE_SAVED_TEMP, CSP);
+  __ mov(CALLEE_SAVED_TEMP2, SP);
   __ ReserveAlignedFrameSpace(0);
-
   __ mov(CSP, SP);
+
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ mov(SP, CALLEE_SAVED_TEMP);
+
+  __ mov(SP, CALLEE_SAVED_TEMP2);
+  __ mov(CSP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
 
-  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -234,9 +236,9 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ PushRegisters(all_registers);
 
-  __ mov(CALLEE_SAVED_TEMP, SP);
+  __ mov(CALLEE_SAVED_TEMP, CSP);
+  __ mov(CALLEE_SAVED_TEMP2, SP);
   __ ReserveAlignedFrameSpace(0);
-
   __ mov(CSP, SP);
 
   // Set the execution state to VM while waiting for the safepoint to end.
@@ -247,12 +249,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ mov(SP, CALLEE_SAVED_TEMP);
+
+  __ mov(SP, CALLEE_SAVED_TEMP2);
+  __ mov(CSP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
 
-  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -272,6 +275,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   __ mov(R19, LR);
   __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
                                  /*enter_safepoint=*/true);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
@@ -286,7 +290,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 #endif
 
   __ blr(R8);
+
   __ mov(SP, CSP);
+  __ mov(CSP, R25);
+
   __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
   __ ret(R19);
 }
@@ -385,12 +392,12 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ LoadFieldFromOffset(R9, R9,
                          compiler::target::GrowableObjectArray::data_offset());
   __ ldr(R9, __ ElementAddressForRegIndex(
-                 /*is_load=*/true,
                  /*external=*/false,
                  /*array_cid=*/kArrayCid,
                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
                  /*array=*/R9,
-                 /*index=*/R8));
+                 /*index=*/R8,
+                 /*temp=*/TMP));
   __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
 
   // Clobbers all volatile registers, including the callback ID in R8.
@@ -1313,9 +1320,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack.
-  __ SetupDartSP();
+  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
+  // use to access the stack (SP/R15) and set the C stack pointer to near the
+  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
+  // from over-writing Dart frames.
+  __ mov(SP, CSP);
+  __ SetupCSPFromThread(R3);
   __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
@@ -1430,7 +1440,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
 
 #if defined(TARGET_OS_FUCHSIA)
-  __ mov (R3, THR);
+  __ mov(R3, THR);
 #endif
 
   __ PopNativeCalleeSavedRegisters();  // Clobbers THR
@@ -1460,9 +1470,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
-  // to access the stack.
-  __ SetupDartSP();
+  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
+  // use to access the stack (SP/R15) and set the C stack pointer to near the
+  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
+  // from over-writing Dart frames.
+  __ mov(SP, CSP);
+  __ SetupCSPFromThread(R3);
   __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
@@ -1569,7 +1582,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
 #if defined(TARGET_OS_FUCHSIA)
-  __ mov (R3, THR);
+  __ mov(R3, THR);
 #endif
 
   __ PopNativeCalleeSavedRegisters();  // Clobbers THR
@@ -3143,6 +3156,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(SP, R1);  // Stack pointer.
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(THR, R3);
+  __ SetupCSPFromThread(THR);
 #if defined(TARGET_OS_FUCHSIA)
   __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)

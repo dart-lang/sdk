@@ -386,9 +386,9 @@ class DateTime {
 @patch
 class Stopwatch {
   @patch
-  static void _initTicker() {
+  static int _initTicker() {
     Primitives.initTicker();
-    _frequency = Primitives.timerFrequency;
+    return Primitives.timerFrequency;
   }
 
   @patch

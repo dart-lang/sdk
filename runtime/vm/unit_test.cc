@@ -114,9 +114,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   Isolate::FlagsInitialize(&api_flags);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
-                                      NULL, NULL, &api_flags, group_data,
-                                      isolate_data, &err);
+    isolate =
+        Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
+                                &api_flags, group_data, isolate_data, &err);
   } else {
     isolate = Dart_CreateIsolateGroupFromKernel(name, NULL, data_buffer, len,
                                                 &api_flags, group_data,
@@ -359,11 +359,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
-  if (tag == Dart_kScriptTag) {
-    // Reload request.
-    UNREACHABLE();
-    return Dart_Null();
-  }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
   }
@@ -428,14 +423,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   // Do sync loading since unit_test doesn't support async.
   Dart_Handle source = DartUtils::ReadStringFromFile(resolved_url_chars);
   EXPECT_VALID(source);
-  if (tag == Dart_kImportTag) {
-    UNREACHABLE();
-    return Dart_Null();
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    UNREACHABLE();
-    return Dart_Null();
-  }
+  UNREACHABLE();
+  return Dart_Null();
 }
 
 static intptr_t BuildSourceFilesArray(
@@ -707,11 +696,10 @@ void AssemblerTest::Assemble() {
       String::ZoneHandle(Symbols::New(Thread::Current(), name_));
 
   // We make a dummy script so that exception objects can be composed for
-  // assembler instructions that do runtime calls, in particular on DBC.
+  // assembler instructions that do runtime calls.
   const char* kDummyScript = "assembler_test_dummy_function() {}";
   const Script& script = Script::Handle(
-      Script::New(function_name, String::Handle(String::New(kDummyScript)),
-                  RawScript::kSourceTag));
+      Script::New(function_name, String::Handle(String::New(kDummyScript))));
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));

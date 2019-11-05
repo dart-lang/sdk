@@ -1,0 +1,3 @@
+main() async {
+  await for () {}
+}

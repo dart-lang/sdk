@@ -10,6 +10,8 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show Directory, File, Platform;
 
+import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
         CompilerOptions,
@@ -101,6 +103,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "ExpectationFileMismatchSerialized",
+    "group": "Fail"
+  },
+  {
     "name": "ExpectationFileMissing",
     "group": "Fail"
   },
@@ -183,7 +189,11 @@ class FastaContext extends ChainContext with MatchContext {
         ] {
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
-          fullCompile ? ".strong.expect" : ".outline.expect"));
+          fullCompile ? ".strong.expect" : ".outline.expect",
+          serializeFirst: true));
+      steps.add(new MatchExpectation(
+          fullCompile ? ".strong.expect" : ".outline.expect",
+          serializeFirst: false));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
@@ -193,9 +203,16 @@ class FastaContext extends ChainContext with MatchContext {
     if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(fullCompile
-            ? ".strong.transformed.expect"
-            : ".outline.transformed.expect"));
+        steps.add(new MatchExpectation(
+            fullCompile
+                ? ".strong.transformed.expect"
+                : ".outline.transformed.expect",
+            serializeFirst: true));
+        steps.add(new MatchExpectation(
+            fullCompile
+                ? ".strong.transformed.expect"
+                : ".outline.transformed.expect",
+            serializeFirst: false));
       }
       steps.add(const EnsureNoErrors());
       if (!skipVm) {
@@ -393,7 +410,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
       // platforms and independent of stdin/stderr.
-      CompilerContext.current.disableColors();
+      colors.enableColors = false;
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(

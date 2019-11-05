@@ -25,13 +25,6 @@ class Loader {
 
   static Dart_Handle ReloadNativeExtensions();
 
-  // Loads contents of the specified url.
-  static Dart_Handle LoadUrlContents(Dart_Handle url,
-                                     uint8_t** payload,
-                                     intptr_t* payload_length);
-
-  static void ResolveDependenciesAsFilePaths();
-
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
@@ -95,39 +88,17 @@ class Loader {
   // Send a request from the tag handler to the service isolate.
   void SendRequest(intptr_t tag, Dart_Handle url, Dart_Handle library_url);
 
-  static Dart_Handle SendAndProcessReply(intptr_t tag,
-                                         Dart_Handle url,
-                                         uint8_t** payload,
-                                         intptr_t* payload_length);
-
-  static Dart_Handle ResolveAsFilePath(Dart_Handle url,
-                                       uint8_t** payload,
-                                       intptr_t* payload_length);
-
   /// Queue |message| and notify the loader that a message is available.
   void QueueMessage(Dart_CObject* message);
 
   /// Blocks the caller until the loader is finished.
   void BlockUntilComplete(ProcessResult process_result);
 
-  /// Saves a script dependency when applicable.
-  static void AddDependencyLocked(Loader* loader, const char* resolved_uri);
-
   /// Returns false if |result| is an error and the loader should quit.
   static bool ProcessResultLocked(Loader* loader, IOResult* result);
 
-  /// Returns false if |result| is an error and the loader should quit.
-  static bool ProcessPayloadResultLocked(Loader* loader, IOResult* result);
-
   /// Returns false if an error occurred and the loader should quit.
   bool ProcessQueueLocked(ProcessResult process_result);
-
-  // Special inner tag handler for dart: uris.
-  static Dart_Handle DartColonLibraryTagHandler(Dart_LibraryTag tag,
-                                                Dart_Handle library,
-                                                Dart_Handle url,
-                                                const char* library_url_string,
-                                                const char* url_string);
 
   // We use one native message handler callback for N loaders. The native
   // message handler callback provides us with the Dart_Port which we use as a

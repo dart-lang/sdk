@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -22,7 +22,7 @@ import '../helpers/shared_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script
-        .resolve('../../../../pkg/front_end/test/constants/data'));
+        .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
     await checkTests(dataDir, new ConstantDataComputer(),
         args: args,
         testedConfigs: [sharedConfig],

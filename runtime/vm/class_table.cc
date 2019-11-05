@@ -44,6 +44,7 @@ SharedClassTable::SharedClassTable()
         vm_shared_class_table->SizeAt(kForwardingCorpse);
     table_[kDynamicCid] = vm_shared_class_table->SizeAt(kDynamicCid);
     table_[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
+    table_[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
   }
 #ifndef PRODUCT
   class_heap_stats_table_ = static_cast<ClassHeapStats*>(
@@ -90,6 +91,7 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
+    table_[kNeverCid] = vm_class_table->At(kNeverCid);
   }
 }
 
@@ -252,9 +254,12 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   memmove(new_table, table_, top_ * sizeof(intptr_t));
   memset(new_table + top_, 0, (new_capacity - top_) * sizeof(intptr_t));
 #ifndef PRODUCT
-  auto new_stats_table = static_cast<ClassHeapStats*>(
-      realloc(class_heap_stats_table_,
-              new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+  auto new_stats_table = reinterpret_cast<ClassHeapStats*>(
+      malloc(new_capacity * sizeof(ClassHeapStats)));
+  for (intptr_t i = 0; i < capacity_; i++) {
+    new_stats_table[i] = class_heap_stats_table_[i];
+  }
+  free(class_heap_stats_table_);
 #endif
   for (intptr_t i = capacity_; i < new_capacity; i++) {
     new_table[i] = 0;

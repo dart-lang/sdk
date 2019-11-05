@@ -613,7 +613,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Set up logging.
     if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
+      AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
     }
 
     // Save stats from previous context before clobbering it.
@@ -770,7 +770,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         String dartSdkPath = options.dartSdkPath;
         FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath), true);
+            resourceProvider, resourceProvider.getFolder(dartSdkPath));
         dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);

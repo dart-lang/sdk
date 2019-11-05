@@ -10842,13 +10842,12 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
-  bool operator ==(other) {
-    if (other is! Rectangle) return false;
-    return left == other.left &&
-        top == other.top &&
-        width == other.width &&
-        height == other.height;
-  }
+  bool operator ==(other) =>
+      other is Rectangle &&
+      left == other.left &&
+      top == other.top &&
+      width == other.width &&
+      height == other.height;
 
   int get hashCode => _JenkinsSmiHash.hash4(
       left.hashCode, top.hashCode, width.hashCode, height.hashCode);
@@ -32939,13 +32938,12 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
-  bool operator ==(other) {
-    if (other is! Rectangle) return false;
-    return left == other.left &&
-        top == other.top &&
-        width == other.width &&
-        height == other.height;
-  }
+  bool operator ==(other) =>
+      other is Rectangle &&
+      left == other.left &&
+      top == other.top &&
+      width == other.width &&
+      height == other.height;
 
   int get hashCode => _JenkinsSmiHash.hash4(
       left.hashCode, top.hashCode, width.hashCode, height.hashCode);
@@ -34970,8 +34968,8 @@ abstract class CssRect implements Rectangle<num> {
   }
 
   // TODO(jacobr): these methods are duplicated from _RectangleBase in dart:math
-  // Ideally we would provide a RectangleMixin class that provides this implementation.
-  // In an ideal world we would exp
+  // Ideally we would provide a RectangleMixin class that provides this
+  // implementation. In an ideal world we would exp
   /** The x-coordinate of the right edge. */
   num get right => left + width;
   /** The y-coordinate of the bottom edge. */
@@ -34981,13 +34979,12 @@ abstract class CssRect implements Rectangle<num> {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
-  bool operator ==(other) {
-    if (other is! Rectangle) return false;
-    return left == other.left &&
-        top == other.top &&
-        right == other.right &&
-        bottom == other.bottom;
-  }
+  bool operator ==(other) =>
+      other is Rectangle &&
+      left == other.left &&
+      top == other.top &&
+      right == other.right &&
+      bottom == other.bottom;
 
   int get hashCode => _JenkinsSmiHash.hash4(
       left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);

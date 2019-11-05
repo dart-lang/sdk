@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/messages.dart' show MessageCode;
-import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/parser/forwarding_listener.dart';
-import 'package:front_end/src/scanner/token.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show MessageCode;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 
 /**
@@ -58,8 +58,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginBlock(Token token) {
-    super.beginBlock(token);
+  void beginBlock(Token token, BlockKind blockKind) {
+    super.beginBlock(token, blockKind);
     begin('Block');
   }
 
@@ -569,9 +569,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endBlock(int count, Token beginToken, Token endToken) {
+  void endBlock(
+      int count, Token beginToken, Token endToken, BlockKind blockKind) {
     end('Block');
-    super.endBlock(count, beginToken, endToken);
+    super.endBlock(count, beginToken, endToken, blockKind);
   }
 
   @override

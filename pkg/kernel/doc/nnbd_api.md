@@ -2,11 +2,17 @@
 
 Author: The Dart CFE team.
 
-Status: Draft
+Status: Living document.
 
 
 
 ## CHANGELOG
+
+2019.10.18:
+- Added information about `NeverType`.
+
+2019.10.17:
+- Renamed `Nullability.neither` to `Nullability.undetermined`.
 
 2019.10.15:
 - Added information about implementing the subtype relation.
@@ -21,7 +27,7 @@ Status: Draft
 
 ## Summary
 
-The sections below describe the encoding of the nullability property on types in the Kernel ASTs produced by the CFE.  Details are discussed, such as the use of `Nullability.neither`, and computation of the nullability property for the results of type substitution and type intersection is described.  The encoding for late fields and variables and required named parameters is described.  Finally, the list of the updates to the public interface of the CFE is given along with some recommendations on updating the client code.
+The sections below describe the encoding of the nullability property on types in the Kernel ASTs produced by the CFE.  Details are discussed, such as the use of `Nullability.undetermined`, and computation of the nullability property for the results of type substitution and type intersection is described.  The encoding for late fields and variables and required named parameters is described.  Finally, the list of the updates to the public interface of the CFE is given along with some recommendations on updating the client code.
 
 This is a living document describing the changes in the output and in the public interface of the CFE related to the NNBD Dart language feature.  It is being updated as more changes are made.
 
@@ -73,7 +79,7 @@ The CFE combines various bits of information available at compile time, such as 
 
 - **Nullable** types.  Mainly, these are the types that are marked with `?` by the programmer.  They can also be inferred from other nullable types or synthesized according to the language specification.  For example, if the programmer omits the type bound on a type variable in an opted-in library, the CFE should synthesize `Object?` for the bound.
 - **Non-nullable** types.  This is the default category of types.  If a type is declared without any modifiers in an opted-in library, in most cases it would be non-nullable.
-- Types in opted-in libraries that are potentially nullable or potentially non-nullable, but **neither** can be said about them at compile time.  An example of such type is a type-parameter type with the nullable bound.  At run time both nullable and non-nullable types can be passed for that type parameter, so it's impossible to say anything about the nullability of such type at compile time.
+- Types in opted-in libraries that are potentially nullable or potentially non-nullable, but neither can be said about them at compile time are of **undetermined** nullability.  An example of such type is a type-parameter type with the nullable bound.  At run time both nullable and non-nullable types can be passed for that type parameter, so it's impossible to say anything about the nullability of such type at compile time.
 - **Legacy** types.  These are the types originating from the opted-out libraries.
 
 Every `DartType` subclass implements the `nullability` getter.  The return value of the getter is described by the following [`enum`](https://github.com/dart-lang/sdk/blob/0a4d47de3cb8cd398c5a2c669953129cdb11ec9a/pkg/kernel/lib/ast.dart#L4803):
@@ -82,19 +88,19 @@ Every `DartType` subclass implements the `nullability` getter.  The return value
 enum Nullability {
   nullable,
   nonNullable,
-  neither,
+  undetermined,
   legacy
 }
 ```
 
-In the textual representation of Kernel that is commonly used in `.expect` files `Nullability.nullable` is printed out as `?`, `Nullability.nonNullable` is printed as an empty sequence of characters, `Nullability.neither` is printed as `%`, and `Nullability.legacy` is printed as `*`.
+In the textual representation of Kernel that is commonly used in `.expect` files `Nullability.nullable` is printed out as `?`, `Nullability.nonNullable` is printed as an empty sequence of characters, `Nullability.undetermined` is printed as `%`, and `Nullability.legacy` is printed as `*`.
 
 *TODO: Add an example of a .expect file.*
 
 
-####The 'neither' Nullability
+#### The 'undetermined' Nullability
 
-`Nullability.neither` marks all types that can't be put into any other three categories at compile time and that should be categorized at run time.  The primary use case for `Nullability.neither` are type-parameter types with nullable bounds.  Consider the following Dart program:
+`Nullability.undetermined` marks all types that can't be put into any other three categories at compile time and that should be categorized at run time.  The primary use case for `Nullability.undetermined` are type-parameter types with nullable bounds.  Consider the following Dart program:
 
 ```dart
 // The enclosing library is opted in.
@@ -113,7 +119,7 @@ class A<T extends Object?> {
 
 At compile time nothing can be said about the nullability of `T` because it is possible that at run time either a nullable or non-nullable type will be passed for it.  We have to be restrictive and prohibit both assignments of `null` to variables of type `T` and assignments of expression values of type `T` to variables of non-nullable types.  However, there are cases when the error can be caught only at run time when the nullability of the type passed for `T` is known.  An example of that is an invocation of a function stored in a variable of type `dynamic`.
 
-A type-parameter type also has `Nullability.neither` if its bound have `Nullability.neither`.  In the following example types `T`, `S`, and `V` are of `neither` nullability:
+A type-parameter type also has `Nullability.undetermined` if its bound have `Nullability.undetermined`.  In the following example types `T`, `S`, and `V` are of `undetermined` nullability:
 
 ```dart
 class B<T extends S, S extends V, V extends Object?> {
@@ -123,7 +129,7 @@ class B<T extends S, S extends V, V extends Object?> {
 }
 ```
 
-Additionally, if the nullability of a type depends on the nullability of an `InvalidType`, the former is set to `Nullability.neither` for recovery purposes.  An example of such dependency is the nullability of a type-parameter type with an `InvalidType` as the bound of its type parameter.  Note that the `.nullability` getter of `InvalidType` throws when accessed in order to make sure all such dependencies are treated explicitly.
+Additionally, if the nullability of a type depends on the nullability of an `InvalidType`, the former is set to `Nullability.undetermined` for recovery purposes.  An example of such dependency is the nullability of a type-parameter type with an `InvalidType` as the bound of its type parameter.  Note that the `.nullability` getter of `InvalidType` throws when accessed in order to make sure all such dependencies are treated explicitly.
 
 
 #### Type Substitution and Nullability
@@ -139,7 +145,7 @@ In the following table the rows correspond to the possible nullability attribute
 | * | * | ? | * | * |
 | % | N/A | ? | * | % |
 
-In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.neither`.
+In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.undetermined`.
 
 Type-parameter types are assigned their nullabilities as follows:
 
@@ -165,7 +171,7 @@ class A<X extends Object, Y extends Object?, Z extends Y> {
 class A<X extends int, Y extends dynamic> { foo(X x, Y y) {} }
 ```
 
-- If a type parameter has a nullable bound or a bound that has `Nullability.neither`, and a type-parameter type referring that type parameter isn't marked with `?`, then that type-parameter type has `Nullability.neither`.  In the following example `X`, `Y`, and `Z` have `Nullability.neither` when used as types:
+- If a type parameter has a nullable bound or a bound that has `Nullability.undetermined`, and a type-parameter type referring that type parameter isn't marked with `?`, then that type-parameter type has `Nullability.undetermined`.  In the following example `X`, `Y`, and `Z` have `Nullability.undetermined` when used as types:
 
 ```dart
 // Note that 'Object?' is provided for the omitted bounds in opted-in libraries.
@@ -186,7 +192,7 @@ static method foo() → (core::String?) → core::int?
   return null;
 ```
 
-Note that `X` has `Nullability.neither` when used as a type in the right-hand side of the `typedef` declaration.  The return type of `foo` is `int? Function(String?)`, which is the result of substituting `X` with `int?` and `Y` with `String` in `X% Function(Y?)`.
+Note that `X` has `Nullability.undetermined` when used as a type in the right-hand side of the `typedef` declaration.  The return type of `foo` is `int? Function(String?)`, which is the result of substituting `X` with `int?` and `Y` with `String` in `X% Function(Y?)`.
 
 Obtaining the type for a type check, such as the is-check in the body of `foo` in the program fragment below, is an example where type substitution is needed at run time. 
 
@@ -196,7 +202,7 @@ class A<X> {
 }
 ```
 
-The elements of the table that are marked with N/A correspond to cases that should be rejected by a type check.  The case for type argument having `Nullability.nullable` and the type parameter having `Nullability.nonNullable` should result in a type error because a nullable type can't be a subtype of a non-nullable type.  Similar is true for the argument that have `Nullability.neither` and the type parameter that have `Nullability.nonNullable` because at run time `Nullability.neither` can be replaced with `Nullability.nullable`.
+The elements of the table that are marked with N/A correspond to cases that should be rejected by a type check.  The case for type argument having `Nullability.nullable` and the type parameter having `Nullability.nonNullable` should result in a type error because a nullable type can't be a subtype of a non-nullable type.  Similar is true for the argument that have `Nullability.undetermined` and the type parameter that have `Nullability.nonNullable` because at run time `Nullability.undetermined` can be replaced with `Nullability.nullable`.
 
 The substitution routines in `pkg/kernel/lib/type_algebra.dart` follow the nullability computation rules described above.
 
@@ -214,7 +220,7 @@ In the following table the rows correspond to the possible nullability attribute
 | * | N/A | N/A | * | N/A |
 | % | ! | % | N/A | % |
 
-In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.neither`.
+In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.undetermined`.
 
 The table elements marked with N/A represent combinations that can't be a part of a well-formed CFE output.  Some of them are due to the restriction on the intersection type that the RHS of the intersection should be a subtype of the bound of the type variable, and some others are due to the restriction that a nullable type is never promoted to an intersection type.
 
@@ -230,7 +236,7 @@ class A<T extends num?> {
 }
 ```
 
-The type of the variable `t` in the example is promoted from `T` to `T & int?` because the RHS of the intersection, namely `int?`, is a subtype of the bound of `T`, which is `num?`.  In Kernel `T` has `Nullability.neither` because the bound of `T` is nullable, and the intersection type with the nullabilities of all its parts looks like `T% & int?`.  The following is the textual representation of the program from the example above compiled by the CFE.
+The type of the variable `t` in the example is promoted from `T` to `T & int?` because the RHS of the intersection, namely `int?`, is a subtype of the bound of `T`, which is `num?`.  In Kernel `T` has `Nullability.undetermined` because the bound of `T` is nullable, and the intersection type with the nullabilities of all its parts looks like `T% & int?`.  The following is the textual representation of the program from the example above compiled by the CFE.
 
 ```kernel
 library;
@@ -295,6 +301,11 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 - `SubtypeTester.isSubtypeOf` is updated to receive additional parameter, a `SubtypeCheckMode`.
 - `IsSubtypeOf` class is added.  It represents a result of a nullability-aware type check.  Objects of `IsSubtypeOf` can further be queried for whether the checked types are in the subtype relation when the nullability modifiers are taken into account (using `IsSubtypeOf.isSubtypeWhenUsingNullabilities`) or when the modifiers are ignored (using `IsSubtypeOf.isSubtypeWhenIgnoringNullabilities`).
 - `SubtypeTester.performNullabilityAwareSubtypeCheck` method is added.  It takes two types as input and produces a result of type `IsSubtypeOf`.  Using `SubtypeTester.performNullabilityAwareSubtypeCheck` is recommended for performance considerations if a call site needs to differentiate between NNBD and pre-NNBD cases.
+
+#### Type Never
+
+* A new subclass of `DartType` called `NeverType` is added to represent type `Never`.  It is a subtype of all Dart types.  It's different from `BottomType` already present in Kernel; the latter is reserved for other purposes with the addition to the subtyping rules that `BottomType` is a subtype of `NeverType`.
+* `DartTypeVisitor` and `DartTypeVisitor1` visitors are updated to include `visitNeverType` methods.  All implementations of the interfaces of `DartTypeVisitor` and `DartTypeVisitor1` are updated to include implementations of `visitNeverType`.
 
 #### isRequired and isLate flags
 
@@ -370,6 +381,10 @@ To save some computations, a single invocation of `performNullabilityAwareSubtyp
 #### Computing TypeParameterType.nullability
 
 As described in section **Nullability of Intersection Types**, objects of `TypeParameterType` implement `.nullability` as a getter, not a field, and the overall nullability value for the type is not serialized in the binary format.  The back ends that implement their own deserialization may need to compute the nullability for `TypeParameterType`s.
+
+#### Implementing visitNeverType
+
+Following the introduction of `NeverType`, all implementors of `DartTypeVisitor` and `DartTypeVisitor1` should implement their new methods, `visitNeverType`.  Reasonable implementations are provided in the CL adding `NeverType`, and they might need to be revisited.
 
 #### Type equality
 

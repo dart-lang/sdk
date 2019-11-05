@@ -7,7 +7,8 @@
  */
 import 'package:analyzer/error/error.dart';
 
-export 'package:front_end/src/scanner/errors.dart' show ScannerErrorCode;
+export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show ScannerErrorCode;
 
 part 'syntactic_errors.g.dart';
 

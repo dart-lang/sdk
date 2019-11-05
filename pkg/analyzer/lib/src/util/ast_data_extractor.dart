@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart'
+    show ActualData, DataRegistry, Id, IdKind, MemberId, NodeId;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:front_end/src/testing/id.dart'
-    show ActualData, DataRegistry, Id, IdKind, MemberId, NodeId;
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
@@ -24,7 +24,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
 
-  void computeForExpression(Expression node, NodeId id) {
+  void computeForCollectionElement(CollectionElement node, NodeId id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
     registerValue(uri, node.offset, id, value, node);
@@ -55,6 +55,10 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
         memberName += '=';
       }
       return MemberId.internal(memberName);
+    } else if (element.enclosingElement is ClassElement) {
+      var memberName = element.name;
+      var className = element.enclosingElement.name;
+      return MemberId.internal(memberName, className: className);
     }
     throw UnimplementedError(
         'TODO(paulberry): $element (${element.runtimeType})');
@@ -79,9 +83,15 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitExpression(Expression node) {
-    computeForExpression(node, computeDefaultNodeId(node));
-    super.visitExpression(node);
+  visitCollectionElement(CollectionElement node) {
+    computeForCollectionElement(node, computeDefaultNodeId(node));
+    super.visitCollectionElement(node);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    return super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -93,9 +103,29 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    return super.visitMethodDeclaration(node);
+  }
+
+  @override
   visitStatement(Statement node) {
-    computeForStatement(node, createStatementId(node));
+    computeForStatement(
+        node,
+        node is ExpressionStatement
+            ? createStatementId(node)
+            : computeDefaultNodeId(node));
     super.visitStatement(node);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (node.parent.parent is TopLevelVariableDeclaration) {
+      computeForMember(node, createMemberId(node));
+    } else if (node.parent.parent is FieldDeclaration) {
+      computeForMember(node, createMemberId(node));
+    }
+    return super.visitVariableDeclaration(node);
   }
 
   int _nodeOffset(AstNode node) {

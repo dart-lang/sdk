@@ -151,7 +151,7 @@ String _getParametersString(engine.Element element) {
     }
     parameters = element.parameters.toList();
   } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters.toList();
+    parameters = element.function.parameters.toList();
   } else {
     return null;
   }

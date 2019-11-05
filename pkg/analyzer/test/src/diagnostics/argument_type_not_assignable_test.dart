@@ -134,6 +134,28 @@ class B extends A {
     ]);
   }
 
+  test_for_element_type_inferred_from_rewritten_node() async {
+    // See https://github.com/dart-lang/sdk/issues/39171
+    await assertNoErrorsInCode('''
+void f<T>(Iterable<T> Function() g, int Function(T) h) {
+  [for (var x in g()) if (x is String) h(x)];
+}
+''');
+  }
+
+  test_for_statement_type_inferred_from_rewritten_node() async {
+    // See https://github.com/dart-lang/sdk/issues/39171
+    await assertNoErrorsInCode('''
+void f<T>(Iterable<T> Function() g, void Function(T) h) {
+  for (var x in g()) {
+    if (x is String) {
+      h(x);
+    }
+  }
+}
+''');
+  }
+
   test_functionExpressionInvocation_required() async {
     await assertErrorsInCode('''
 main() {

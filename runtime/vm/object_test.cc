@@ -2262,8 +2262,7 @@ ISOLATE_UNIT_TEST_CASE(Script) {
   const char* source_chars = "This will not compile.";
   const String& url = String::Handle(String::New(url_chars));
   const String& source = String::Handle(String::New(source_chars));
-  const Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
+  const Script& script = Script::Handle(Script::New(url, source));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
   String& str = String::Handle(script.url());

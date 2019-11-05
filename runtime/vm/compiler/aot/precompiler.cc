@@ -100,8 +100,7 @@ DEFINE_FLAG(bool,
 
 Precompiler* Precompiler::singleton_ = nullptr;
 
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
@@ -1574,8 +1573,9 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     const AbstractType& type = types.At(i);
 
     if (type.InVMIsolateHeap()) {
-      // The only important types in the vm isolate are "dynamic"/"void", which
-      // will get their optimized top-type testing stub installed at creation.
+      // The only important types in the vm isolate are
+      // "dynamic"/"void"/"Never", which will get their optimized
+      // testing stub installed at creation.
       continue;
     }
 
@@ -2055,7 +2055,7 @@ void Precompiler::BindStaticCalls() {
 
 void Precompiler::DedupUnlinkedCalls() {
   ASSERT(!I->compilation_allowed());
-#if !defined(TARGET_ARCH_DBC)
+
   class UnlinkedCallDeduper {
    public:
     explicit UnlinkedCallDeduper(Zone* zone)
@@ -2139,7 +2139,6 @@ void Precompiler::DedupUnlinkedCalls() {
       visitor.Visit(current);
     }
   }
-#endif
 }
 
 void Precompiler::Obfuscate() {
@@ -2246,7 +2245,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.set_usage_counter(INT_MIN);
+    function.set_usage_counter(INT32_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -2274,13 +2273,12 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(FLAG_precompiled_mode);
-  const Function& function = parsed_function()->function();
-  if (optimized() && !function.IsOptimizable()) {
+  if (optimized() && !parsed_function()->function().IsOptimizable()) {
     // All functions compiled by precompiler must be optimizable.
     UNREACHABLE();
     return false;
   }
-  bool is_compiled = false;
+  volatile bool is_compiled = false;
   Zone* const zone = thread()->zone();
   HANDLESCOPE(thread());
 
@@ -2301,6 +2299,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
+      const Function& function = parsed_function()->function();
 
       CompilerState compiler_state(thread());
 
@@ -2314,7 +2313,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
 
       if (optimized()) {
-        flow_graph->PopulateWithICData(parsed_function()->function());
+        flow_graph->PopulateWithICData(function);
       }
 
       const bool print_flow_graph =
@@ -2962,8 +2961,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
   return result;
 }
 
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-        // !defined(TARGET_ARCH_IA32)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
 

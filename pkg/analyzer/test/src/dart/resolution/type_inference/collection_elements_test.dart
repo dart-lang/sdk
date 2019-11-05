@@ -26,7 +26,6 @@ class ForElementWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -39,7 +38,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
   }
 
-  @failingTest
   test_list_awaitForIn_int_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -51,7 +49,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_list_for_downward() async {
     await resolveTestCode('''
 void f() {
@@ -63,7 +60,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_list_forIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() {
@@ -76,7 +72,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
   }
 
-  @failingTest
   test_list_forIn_int_downward() async {
     await resolveTestCode('''
 void f() {
@@ -89,7 +84,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_map_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -102,7 +96,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
   }
 
-  @failingTest
   test_map_awaitForIn_int_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -114,7 +107,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_map_for_downward() async {
     await resolveTestCode('''
 void f() {
@@ -126,7 +118,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_map_forIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() {
@@ -139,7 +130,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
   }
 
-  @failingTest
   test_map_forIn_int_downward() async {
     await resolveTestCode('''
 void f() {
@@ -152,7 +142,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_set_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -165,7 +154,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
   }
 
-  @failingTest
   test_set_awaitForIn_int_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -177,7 +165,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_set_for_downward() async {
     await resolveTestCode('''
 void f() {
@@ -189,7 +176,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_set_forIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() {
@@ -202,7 +188,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
   }
 
-  @failingTest
   test_set_forIn_int_downward() async {
     await resolveTestCode('''
 void f() {
@@ -226,7 +211,6 @@ class IfElementWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_downward() async {
     await resolveTestCode('''
 void f() {
@@ -238,7 +222,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_map_downward() async {
     await resolveTestCode('''
 void f() {
@@ -250,7 +233,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_set_downward() async {
     await resolveTestCode('''
 void f() {
@@ -273,7 +255,6 @@ class SpreadElementWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_list_downward() async {
     await resolveTestCode('''
 void f() {
@@ -286,7 +267,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
 
-  @failingTest
   test_map_downward() async {
     await resolveTestCode('''
 void f() {
@@ -299,7 +279,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Map<String, int> Function()');
   }
 
-  @failingTest
   test_set_downward() async {
     await resolveTestCode('''
 void f() {

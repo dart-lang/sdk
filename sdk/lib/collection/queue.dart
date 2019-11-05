@@ -30,7 +30,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
-  ///     new Queue<SubType>.from(superSet.whereType<SubType>());
+  ///     new Queue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
   factory Queue.from(Iterable elements) = ListQueue<E>.from;
 

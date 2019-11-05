@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -87,32 +85,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeSystem get typeSystem {
     return _typeSystem ??= Dart2TypeSystem(typeProvider);
   }
-
-  /**
-   * Create an analysis cache based on the given source [factory].
-   */
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    throw UnimplementedError();
-  }
-}
-
-/**
- * An object that manages the partitions that can be shared between analysis
- * contexts.
- */
-class PartitionManager {
-  /**
-   * Clear any cached data being maintained by this manager.
-   */
-  void clearCache() {}
-
-  /**
-   * Return the partition being used for the given [sdk], creating the partition
-   * if necessary.
-   */
-  SdkCachePartition forSdk(DartSdk sdk) {
-    throw UnimplementedError();
-  }
 }
 
 /**
@@ -133,10 +105,5 @@ class SdkAnalysisContext extends AnalysisContextImpl {
   @override
   void set analysisOptions(AnalysisOptions options) {
     throw new StateError('AnalysisOptions of SDK context cannot be changed.');
-  }
-
-  @override
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    throw UnimplementedError();
   }
 }

@@ -358,7 +358,7 @@ class FindElement {
     }
 
     for (var function in unitElement.functionTypeAliases) {
-      findIn(function.parameters);
+      findIn(function.function.parameters);
     }
 
     for (var extension_ in unitElement.extensions) {

@@ -47,6 +47,7 @@ class AstBinaryFlags {
 
   static final _hasQuestion = _checkBit(
     1,
+    FieldFormalParameter,
     GenericFunctionType,
     TypeName,
   );

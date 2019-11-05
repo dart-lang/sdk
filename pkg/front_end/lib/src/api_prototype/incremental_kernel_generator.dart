@@ -4,6 +4,9 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/scanner/string_scanner.dart'
+    show StringScanner;
+
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -18,8 +21,6 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
 import '../fasta/incremental_serializer.dart' show IncrementalSerializer;
-
-import '../fasta/scanner/string_scanner.dart' show StringScanner;
 
 import 'compiler_options.dart' show CompilerOptions;
 

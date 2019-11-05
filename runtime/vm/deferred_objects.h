@@ -219,11 +219,7 @@ class DeferredObject {
   void Create();
 
   RawObject* GetArg(intptr_t index) const {
-#if !defined(TARGET_ARCH_DBC)
     return args_[index];
-#else
-    return args_[-index];
-#endif
   }
 
   RawObject* GetClass() const { return GetArg(kClassIndex); }

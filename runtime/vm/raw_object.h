@@ -62,12 +62,6 @@ enum TypedDataElementType {
 #undef V
 };
 
-enum class MemoryOrder {
-  kRelaxed,
-  kRelease,
-  kAcquire,
-};
-
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(SnapshotWriter* writer, intptr_t object_id,                     \
                Snapshot::Kind kind, bool as_reference);                        \
@@ -539,14 +533,16 @@ class RawObject {
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  type LoadPointer(type const* addr) {
+    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->load(order);
+  }
+
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) {
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      *const_cast<type*>(addr) = value;
-    }
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->store(value, order);
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -588,14 +584,10 @@ class RawObject {
     }
   }
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StoreArrayPointer(type const* addr, type value) {
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      *const_cast<type*>(addr) = value;
-    }
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->store(value, order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -1147,17 +1139,8 @@ class RawField : public RawObject {
 
 class RawScript : public RawObject {
  public:
-  enum Kind {
-    kScriptTag = 0,
-    kLibraryTag,
-    kSourceTag,
-    kEvaluateTag,
-    kKernelTag,
-  };
   enum {
-    kKindPos = 0,
-    kKindSize = 3,
-    kLazyLookupSourceAndLineStartsPos = kKindPos + kKindSize,
+    kLazyLookupSourceAndLineStartsPos = 0,
     kLazyLookupSourceAndLineStartsSize = 1,
   };
 
@@ -1193,13 +1176,12 @@ class RawScript : public RawObject {
   int32_t line_offset_;
   int32_t col_offset_;
 
-  using KindBits = BitField<uint8_t, Kind, kKindPos, kKindSize>;
   using LazyLookupSourceAndLineStartsBit =
       BitField<uint8_t,
                bool,
                kLazyLookupSourceAndLineStartsPos,
                kLazyLookupSourceAndLineStartsSize>;
-  uint8_t kind_and_tags_;
+  uint8_t flags_;
 
   intptr_t kernel_script_index_;
   int64_t load_timestamp_;
@@ -1481,15 +1463,6 @@ class RawInstructions : public RawObject {
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
   uint32_t unchecked_entrypoint_pc_offset_;
-
-  // There is a gap between size_and_flags_ and the entry point
-  // because we align entry point by 4 words on all platforms.
-  // This allows us to have a free field here without affecting
-  // the aligned size of the Instructions object header.
-  // This also means that entry point offset is the same
-  // whether this field is included or excluded.
-  // TODO(37103): This field should be removed.
-  CodeStatistics* stats_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -2027,6 +2000,7 @@ class RawType : public RawAbstractType {
   VISIT_TO(RawObject*, signature_)
   TokenPosition token_pos_;
   int8_t type_state_;
+  int8_t nullability_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2067,6 +2041,7 @@ class RawTypeParameter : public RawAbstractType {
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;
+  int8_t nullability_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 

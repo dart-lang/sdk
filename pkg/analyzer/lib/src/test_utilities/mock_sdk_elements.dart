@@ -34,6 +34,7 @@ class _MockSdkElementsBuilder {
   final NullabilitySuffix nullabilitySuffix;
 
   ClassElementImpl _boolElement;
+  ClassElementImpl _comparableElement;
   ClassElementImpl _completerElement;
   ClassElementImpl _deprecatedElement;
   ClassElementImpl _doubleElement;
@@ -91,6 +92,20 @@ class _MockSdkElementsBuilder {
 
   InterfaceType get boolType {
     return _boolType ??= _interfaceType(boolElement);
+  }
+
+  ClassElementImpl get comparableElement {
+    if (_comparableElement != null) return _comparableElement;
+
+    var tElement = _typeParameter('T');
+    _comparableElement = _class(
+      name: 'Comparable',
+      isAbstract: true,
+      typeParameters: [tElement],
+    );
+    _comparableElement.supertype = objectType;
+
+    return _comparableElement;
   }
 
   ClassElementImpl get completerElement {
@@ -460,6 +475,12 @@ class _MockSdkElementsBuilder {
 
     _numElement = _class(name: 'num', isAbstract: true);
     _numElement.supertype = objectType;
+    _numElement.interfaces = [
+      _interfaceType(
+        comparableElement,
+        typeArguments: [numType],
+      ),
+    ];
 
     _numElement.methods = [
       _method('+', numType, parameters: [
@@ -825,6 +846,7 @@ class _MockSdkElementsBuilder {
 
     coreUnit.types = <ClassElement>[
       boolElement,
+      comparableElement,
       deprecatedElement,
       doubleElement,
       functionElement,
@@ -939,12 +961,10 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = FunctionElementImpl(name, 0)
+    return FunctionElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   FunctionType _functionType({
@@ -952,7 +972,12 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeFormals,
+      parameters,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   PropertyAccessorElement _getter(
@@ -971,7 +996,6 @@ class _MockSdkElementsBuilder {
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
-    getter.type = _typeOfExecutableElement(getter);
     getter.variable = field;
 
     field.getter = getter;
@@ -995,12 +1019,10 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    var element = MethodElementImpl(name, 0)
+    return MethodElementImpl(name, 0)
       ..parameters = parameters
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    element.type = _typeOfExecutableElement(element);
-    return element;
   }
 
   ParameterElement _namedParameter(String name, DartType type,
@@ -1046,16 +1068,6 @@ class _MockSdkElementsBuilder {
   }) {
     return ElementFactory.topLevelVariableElement3(
         name, isConst, isFinal, type);
-  }
-
-  /// TODO(scheglov) We should do the opposite - build type in the element.
-  /// But build a similar synthetic / structured type.
-  FunctionType _typeOfExecutableElement(ExecutableElement element) {
-    return FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
-    );
   }
 
   TypeParameterElementImpl _typeParameter(String name) {

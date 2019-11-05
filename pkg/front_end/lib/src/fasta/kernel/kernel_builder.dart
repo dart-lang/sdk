@@ -19,7 +19,7 @@ export 'class_hierarchy_builder.dart'
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 
-export 'kernel_variable_builder.dart' show VariableBuilder;
+export 'kernel_variable_builder.dart' show VariableBuilderImpl;
 
 export 'load_library_builder.dart' show LoadLibraryBuilder;
 

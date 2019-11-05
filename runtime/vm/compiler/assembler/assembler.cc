@@ -244,12 +244,10 @@ bool AssemblerBase::EmittingComments() {
   return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
 
-#if !defined(TARGET_ARCH_DBC)
 void Assembler::Stop(const char* message) {
   Comment("Stop: %s", message);
   Breakpoint();
 }
-#endif
 
 intptr_t ObjIndexPair::Hashcode(Key key) {
   if (key.type() != ObjectPoolBuilderEntry::kTaggedObject) {

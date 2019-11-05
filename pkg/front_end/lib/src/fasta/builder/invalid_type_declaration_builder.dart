@@ -26,9 +26,6 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
       {this.context, this.suppressMessage: true})
       : super(null, 0, name, null, message.charOffset, message.uri);
 
-  @override
-  InvalidType get target => const InvalidType();
-
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(library, null, null);

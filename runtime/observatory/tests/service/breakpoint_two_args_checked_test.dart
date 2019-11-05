@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--verbose_debug
 
-// This test is mostly interesting for DBC, which needs to patch two bytecodes
+// This test was mostly interesting for DBC, which needed to patch two bytecodes
 // to create a breakpoint for fast Smi ops.
 
 import 'package:observatory/service_io.dart';

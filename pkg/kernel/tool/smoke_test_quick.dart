@@ -11,7 +11,7 @@ String get dartVm => Platform.executable;
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = new List<Future>();
-  futures.add(run("pkg/front_end/test/old_dill_test.dart", ["--checkDill"]));
+  futures.add(run("pkg/front_end/test/old_dill_suite.dart", ["--checkDill"]));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");

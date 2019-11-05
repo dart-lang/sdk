@@ -216,8 +216,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
-      SharedCompilerOptions options) {
-    var coreTypes = CoreTypes(component);
+      SharedCompilerOptions options,
+      {CoreTypes coreTypes}) {
+    coreTypes ??= CoreTypes(component);
     var types = TypeSchemaEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
     var nativeTypes = NativeTypeSet(coreTypes, constants);
@@ -589,6 +590,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(formals.isNotEmpty);
     var name = getTopLevelName(c);
     var jsFormals = _emitTypeFormals(formals);
+
+    // Checks for explicitly set variance to avoid emitting legacy covariance
+    // Variance annotations are not necessary when variance experiment flag is
+    // not enabled or when no type parameters have explicitly defined
+    // variances.
+    var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
+    if (!hasOnlyLegacyCovariance) {
+      var varianceList = formals.map(_emitVariance);
+      var varianceStatement = runtimeStatement(
+          'setGenericArgVariances(#, [#])', [className, varianceList]);
+      body = js_ast.Statement.from([body, varianceStatement]);
+    }
+
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
       jsFormals,
       _typeTable.discharge(formals),
@@ -607,6 +621,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
         [genericName, genericCall, _emitTopLevelName(c), genericName]);
+  }
+
+  js_ast.Expression _emitVariance(TypeParameter typeParameter) {
+    switch (typeParameter.variance) {
+      case Variance.contravariant:
+        return runtimeCall('Variance.contravariant');
+      case Variance.invariant:
+        return runtimeCall('Variance.invariant');
+      case Variance.unrelated:
+        return runtimeCall('Variance.unrelated');
+      case Variance.covariant:
+      default:
+        return runtimeCall('Variance.covariant');
+    }
   }
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
@@ -2573,6 +2601,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitBottomType(BottomType type) => runtimeCall('bottom');
 
   @override
+  js_ast.Expression visitNeverType(NeverType type) => runtimeCall('Never');
+
+  @override
   js_ast.Expression visitInterfaceType(InterfaceType type) {
     var c = type.classNode;
     _declareBeforeUse(c);
@@ -2645,22 +2676,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ?.skip(type.requiredParameterCount)
         ?.toList();
 
-    var namedTypes = type.namedParameters;
-    var rt = _emitType(type.returnType);
-    var ra = _emitTypeNames(requiredTypes, requiredParams, member);
+    var namedTypes = <NamedType>[];
+    var requiredNamedTypes = <NamedType>[];
+    type.namedParameters.forEach((param) => param.isRequired
+        ? requiredNamedTypes.add(param)
+        : namedTypes.add(param));
+    var allNamedTypes = type.namedParameters;
+
+    var returnType = _emitType(type.returnType);
+    var requiredArgs = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<js_ast.Expression> typeParts;
-    if (namedTypes.isNotEmpty) {
+    if (allNamedTypes.isNotEmpty) {
       assert(optionalTypes.isEmpty);
-      // TODO(vsm): Pass in annotations here as well.
-      var na = _emitTypeProperties(namedTypes);
-      typeParts = [rt, ra, na];
+      // TODO(vsm): The old pageloader may require annotations here.
+      var namedArgs = _emitTypeProperties(namedTypes);
+      var requiredNamedArgs = _emitTypeProperties(requiredNamedTypes);
+      typeParts = [returnType, requiredArgs, namedArgs, requiredNamedArgs];
     } else if (optionalTypes.isNotEmpty) {
-      assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes, optionalParams, member);
-      typeParts = [rt, ra, oa];
+      assert(allNamedTypes.isEmpty);
+      var optionalArgs = _emitTypeNames(optionalTypes, optionalParams, member);
+      typeParts = [returnType, requiredArgs, optionalArgs];
     } else {
-      typeParts = [rt, ra];
+      typeParts = [returnType, requiredArgs];
     }
 
     var typeFormals = type.typeParameters;
@@ -2769,12 +2807,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return result;
   }
 
+  /// Emits named parameters in the form '{name: type}'.
   js_ast.ObjectInitializer _emitTypeProperties(Iterable<NamedType> types) {
     return js_ast.ObjectInitializer(types
         .map((t) => js_ast.Property(propertyName(t.name), _emitType(t.type)))
         .toList());
   }
 
+  /// Emits a list of types and their metadata annotations to code.
+  ///
+  /// Annotatable contexts include typedefs and method/function declarations.
   js_ast.ArrayInitializer _emitTypeNames(List<DartType> types,
       List<VariableDeclaration> parameters, Member member) {
     var result = <js_ast.Expression>[];
@@ -2835,9 +2877,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitVirtualFieldSymbols(Class c, List<js_ast.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      var symbol = emitClassPrivateNameSymbol(
-          c.enclosingLibrary, getLocalClassName(c), field.name.name);
-      body.add(js.statement('const # = #;', [virtualField, symbol]));
+      // TODO(vsm): Clean up this logic.  See comments on the following method.
+      //
+      // Typically, [emitClassPrivateNameSymbol] creates a new symbol.  If it
+      // is called multiple times, that symbol is cached.  If the former,
+      // assign directly to [virtualField].  If the latter, copy the old
+      // variable to [virtualField].
+      var symbol = emitClassPrivateNameSymbol(c.enclosingLibrary,
+          getLocalClassName(c), field.name.name, virtualField);
+      if (symbol != virtualField) {
+        body.add(js.statement('const # = #;', [virtualField, symbol]));
+      }
     });
   }
 
@@ -4934,7 +4984,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitNullCheck(NullCheck node) {
-    throw UnimplementedError('Unimplemented null check expression: $node');
+    var expr = node.operand;
+    // If the expression is non-nullable already, this is a no-op.
+    return isNullable(expr) ? notNull(expr) : _visitExpression(expr);
   }
 
   @override
@@ -5266,7 +5318,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var finder = YieldFinder();
     jsBlock.accept(finder);
     if (finder.hasYield) {
-      var genFn = js_ast.Fun([], jsBlock, isGenerator: true);
+      js_ast.Expression genFn = js_ast.Fun([], jsBlock, isGenerator: true);
+      if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
       var asyncLibrary = emitLibraryName(_coreTypes.asyncLibrary);
       var returnType = _emitType(node.getStaticType(_types));
       var asyncCall =
