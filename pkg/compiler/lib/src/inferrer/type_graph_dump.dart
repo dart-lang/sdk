@@ -411,6 +411,12 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   @override
+  void visitIndirectDynamicCallSiteTypeInformation(
+      IndirectDynamicCallSiteTypeInformation info) {
+    handleCall(info, 'IndirectDynamicCallSite', {});
+  }
+
+  @override
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
     handleCall(info, 'DynamicCallSite', {'obj': info.receiver});
@@ -424,6 +430,12 @@ class _GraphGenerator extends TypeInformationVisitor {
   @override
   void visitParameterTypeInformation(ParameterTypeInformation info) {
     addNode(info, 'Parameter ${info.debugName}');
+  }
+
+  @override
+  void visitIndirectParameterTypeInformation(
+      IndirectParameterTypeInformation info) {
+    addNode(info, 'IndirectParameter ${info.debugName}');
   }
 
   @override
