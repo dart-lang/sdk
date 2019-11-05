@@ -2,6 +2,43 @@
 (Add new changes here, and they will be copied to the change section for the
  next release)
 
+### Core libraries
+
+#### `dart:io`
+
+* **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
+  tests that wish to mock `ServerSocket.bind`.
+
+### Dart VM
+
+* New fields added to existing instances by a reload will now be initialized
+lazily, as if the field was a late field. This makes the initialization order
+program-defined, whereas previously it was undefined.
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.103`, which includes:
+
+* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
+* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
+  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
+
+#### Pub
+
+* `pub get` generates [`.dart_tools/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
+  in addition to `.packages` to support language versioning.
+
+* `pub publish` now warns about the old flutter plugin registration format.
+
+* `pub publish` now warns about the `author` field in pubspec.yaml being.
+  obsolete.
+
+* Show a proper error message when `git` is not installed.
+
+## 2.6.0 - 2019-11-05
+
 ### Language
 
 *   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
@@ -77,11 +114,6 @@ main() { foo(() {}); }
 * Default values of parameters of abstract methods are no longer available
   via `dart:mirrors`.
 
-#### `dart:io`
-
-* **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
-  tests that wish to mock `ServerSocket.bind`.
-
 #### `dart:developer`
 
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for
@@ -91,9 +123,6 @@ main() { foo(() {}); }
 
 * Added a new tool for AOT compiling Dart programs to native, self-contained
 executables. See https://dart.dev/tools/dart2native for additional details.
-* New fields added to existing instances by a reload will now be initialized
-lazily, as if the field was a late field. This makes the initialization order
-program-defined, whereas previously it was undefined.
 
 ### Foreign Function Interface (`dart:ffi`)
 
@@ -113,7 +142,7 @@ program-defined, whereas previously it was undefined.
     instead.
 *   Faster memory load and stores.
 *   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
-*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
+*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
 
 ### Dart for the Web
 
@@ -124,26 +153,15 @@ program-defined, whereas previously it was undefined.
 
 ### Tools
 
-#### Pub
-
-* `pub get` generates [`.dart_tools/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
-  in addition to `.packages` to support language versioning.
-
-* `pub publish` now warns about the old flutter plugin registration format.
-
-* `pub publish` now warns about the `author` field in pubspec.yaml being
-  obsolete.
-
-* Show a proper error message when `git` is not installed.
-
 #### Linter
 
-The Linter was updated to `0.1.103`, which includes:
+The Linter was updated to `0.1.101`, which includes:
 
-* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
-* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
-  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
-
+* fixed `diagnostic_describe_all_properties` to flag properties in `Diagnosticable`s with no debug methods defined
+* fixed `noSuchMethod` exception in `camel_case_extensions` when analyzing unnamed extensions
+* fixed `avoid_print` to catch tear-off usage
+* new lint: `avoid_web_libraries_in_flutter` (experimental)
+* (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
 
 ## 2.5.1 - 2019-09-27
 
