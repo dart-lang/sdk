@@ -223,6 +223,17 @@ abstract class InferrerEngine {
   /// [NativeBehavior].
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
 
+  /// For a given selector, return a shared dynamic call site that will be used
+  /// to combine the results of multiple dynamic calls in the program via
+  /// [IndirectDynamicCallSiteTypeInformation].
+  ///
+  /// This is used only for scalability reasons: if there are too many targets
+  /// and call sites, we may have a quadratic number of edges in the graph, so
+  /// we add a level of indirection to merge the information and keep the graph
+  /// smaller.
+  DynamicCallSiteTypeInformation typeOfSharedDynamicCall(
+      Selector selector, CallStructure structure);
+
   bool returnsListElementType(Selector selector, AbstractValue mask);
 
   bool returnsMapValueType(Selector selector, AbstractValue mask);
@@ -397,10 +408,13 @@ class InferrerEngineImpl extends InferrerEngine {
   void updateSelectorInMember(MemberEntity owner, CallType callType,
       ir.Node node, Selector selector, AbstractValue mask) {
     KernelGlobalTypeInferenceElementData data = dataOfMember(owner);
-    assert(validCallType(callType, node));
+    assert(validCallType(callType, node, selector));
     switch (callType) {
       case CallType.access:
         data.setTypeMask(node, mask);
+        break;
+      case CallType.indirectAccess:
+        // indirect access is not diretly recorded in the result data.
         break;
       case CallType.forIn:
         if (selector == Selectors.iterator) {
@@ -1142,19 +1156,40 @@ class InferrerEngineImpl extends InferrerEngine {
       updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
-    CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
-        abstractValueDomain,
-        types.currentMember,
-        callType,
-        node,
-        caller,
-        selector,
-        mask,
-        receiverType,
-        arguments,
-        inLoop,
-        isConditional);
+    CallSiteTypeInformation info;
 
+    // We force using indirection for `==` because it is a very common dynamic
+    // call site on many apps.
+    // TODO(sigmund): it would be even better if we could automatically detect
+    // when dynamic calls are growing too big and add the indirection at that
+    // point.
+    if (selector.name == '==') {
+      info = new IndirectDynamicCallSiteTypeInformation(
+          abstractValueDomain,
+          types.currentMember,
+          node,
+          typeOfSharedDynamicCall(selector, CallStructure.ONE_ARG),
+          caller,
+          selector,
+          mask,
+          receiverType,
+          arguments,
+          inLoop,
+          isConditional);
+    } else {
+      info = new DynamicCallSiteTypeInformation(
+          abstractValueDomain,
+          types.currentMember,
+          callType,
+          node,
+          caller,
+          selector,
+          mask,
+          receiverType,
+          arguments,
+          inLoop,
+          isConditional);
+    }
     info.addToGraph(this);
     types.allocatedCalls.add(info);
     return info;
@@ -1280,6 +1315,48 @@ class InferrerEngineImpl extends InferrerEngine {
     } else {
       return returnTypeOfMember(element);
     }
+  }
+
+  /// Indirect calls share the same dynamic call site information node. This
+  /// cache holds that shared dynamic call node for a given selector.
+  Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
+
+  @override
+  DynamicCallSiteTypeInformation typeOfSharedDynamicCall(
+      Selector selector, CallStructure structure) {
+    DynamicCallSiteTypeInformation info = _sharedCalls[selector];
+    if (info != null) return info;
+
+    TypeInformation receiverType =
+        new IndirectParameterTypeInformation(abstractValueDomain, 'receiver');
+    List<TypeInformation> positional = [];
+    for (int i = 0; i < structure.positionalArgumentCount; i++) {
+      positional
+          .add(new IndirectParameterTypeInformation(abstractValueDomain, '$i'));
+    }
+    Map<String, TypeInformation> named = {};
+    if (structure.namedArgumentCount > 0) {
+      for (var name in structure.namedArguments) {
+        named[name] =
+            new IndirectParameterTypeInformation(abstractValueDomain, name);
+      }
+    }
+
+    info = _sharedCalls[selector] = new DynamicCallSiteTypeInformation(
+        abstractValueDomain,
+        null,
+        CallType.indirectAccess,
+        null,
+        null,
+        selector,
+        null,
+        receiverType,
+        ArgumentsTypes(positional, named),
+        false,
+        false);
+    info.addToGraph(this);
+    types.allocatedCalls.add(info);
+    return info;
   }
 
   @override
