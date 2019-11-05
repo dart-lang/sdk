@@ -217,8 +217,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 }
 
 class HGraph {
-  // TODO(johnniwinther): Maybe this should be [MemberLike].
-  Entity element; // Used for debug printing.
+  MemberEntity element; // Used for debug printing.
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;

@@ -3379,6 +3379,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression value = pop();
     String relation = negative ? '!=' : '==';
 
+    js.Expression handleNegative(js.Expression test) =>
+        negative ? js.Prefix('!', test) : test;
+
     js.Expression typeof(String type) =>
         js.Binary(relation, js.Prefix('typeof', value), js.string(type));
 
@@ -3387,14 +3390,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
       js.Expression test =
           js.Call(_emitter.staticFunctionAccess(helper), [value]);
-      if (negative) {
-        test = js.Prefix('!', test);
-      }
-      return test;
+      return handleNegative(test);
     }
 
     js.Expression test;
     switch (node.specialization) {
+      case IsTestSpecialization.null_:
+        // This case should be lowered to [HIdentity] during optimization.
+        test = js.Binary(relation, value, js.LiteralNull());
+        break;
+
       case IsTestSpecialization.string:
         test = typeof("string");
         break;
@@ -3410,6 +3415,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case IsTestSpecialization.int:
         test = isTest(_commonElements.specializedIsInt);
         break;
+
+      case IsTestSpecialization.arrayTop:
+        test = handleNegative(js.js('Array.isArray(#)', [value]));
+        break;
+
+      case IsTestSpecialization.instanceof:
+        InterfaceType type = node.dartType;
+        _registry.registerTypeUse(TypeUse.instanceConstructor(type));
+        test = handleNegative(js.js('# instanceof #',
+            [value, _emitter.constructorAccess(type.element)]));
     }
     push(test.withSourceInformation(node.sourceInformation));
   }

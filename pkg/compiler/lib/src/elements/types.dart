@@ -35,6 +35,9 @@ abstract class DartType {
   /// is the function type `(String) -> int`.
   DartType get unaliased => this;
 
+  /// Is `true` if this type is a top type.
+  bool get isTop => false;
+
   /// Is `true` if this type has no non-dynamic type arguments.
   bool get treatAsRaw => true;
 
@@ -181,6 +184,9 @@ class InterfaceType extends DartType {
       : assert(typeArguments.every((e) => e != null));
 
   @override
+  bool get isTop => isObject;
+
+  @override
   bool get isInterfaceType => true;
 
   @override
@@ -247,6 +253,9 @@ class TypedefType extends DartType {
   final FunctionType unaliased;
 
   TypedefType(this.element, this.typeArguments, this.unaliased);
+
+  @override
+  bool get isTop => unaliased.isTop;
 
   @override
   bool get isTypedef => true;
@@ -401,6 +410,9 @@ class VoidType extends DartType {
   factory VoidType() => const VoidType._();
 
   @override
+  bool get isTop => true;
+
+  @override
   bool get isVoid => true;
 
   @override
@@ -420,6 +432,9 @@ class DynamicType extends DartType {
   const DynamicType._();
 
   factory DynamicType() => const DynamicType._();
+
+  @override
+  bool get isTop => true;
 
   @override
   bool get isDynamic => true;
@@ -444,6 +459,9 @@ class ErasedType extends DartType {
   const ErasedType._();
 
   factory ErasedType() => const ErasedType._();
+
+  @override
+  bool get isTop => true;
 
   @override
   bool get treatAsDynamic => true;
@@ -478,6 +496,9 @@ class AnyType extends DartType {
   const AnyType._();
 
   factory AnyType() => const AnyType._();
+
+  @override
+  bool get isTop => true;
 
   @override
   bool get isAny => true;
@@ -622,6 +643,9 @@ class FutureOrType extends DartType {
   final DartType typeArgument;
 
   FutureOrType(this.typeArgument);
+
+  @override
+  bool get isTop => typeArgument.isTop;
 
   @override
   bool get isFutureOr => true;

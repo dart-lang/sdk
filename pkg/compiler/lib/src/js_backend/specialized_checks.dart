@@ -3,21 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart' show JCommonElements;
+import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/interceptor_data.dart' show InterceptorData;
+import '../ssa/nodes.dart' show HGraph;
+import '../universe/class_hierarchy.dart' show ClassHierarchy;
+import '../world.dart' show JClosedWorld;
 
 enum IsTestSpecialization {
+  null_,
   string,
   bool,
   num,
   int,
+  arrayTop,
+  instanceof,
 }
 
 class SpecializedChecks {
   static IsTestSpecialization findIsTestSpecialization(
-      DartType dartType, JCommonElements commonElements) {
-    if (dartType is InterfaceType && dartType.typeArguments.isEmpty) {
+      DartType dartType, HGraph graph, JClosedWorld closedWorld) {
+    if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
+      JCommonElements commonElements = closedWorld.commonElements;
+
+      if (element == commonElements.nullClass ||
+          element == commonElements.jsNullClass) {
+        return IsTestSpecialization.null_;
+      }
 
       if (element == commonElements.jsStringClass ||
           element == commonElements.stringClass) {
@@ -42,6 +56,22 @@ class SpecializedChecks {
           element == commonElements.jsUInt31Class ||
           element == commonElements.jsPositiveIntClass) {
         return IsTestSpecialization.int;
+      }
+
+      if (element == commonElements.jsArrayClass &&
+          dartType.typeArguments.single.isTop) {
+        return IsTestSpecialization.arrayTop;
+      }
+
+      ClassHierarchy classHierarchy = closedWorld.classHierarchy;
+      InterceptorData interceptorData = closedWorld.interceptorData;
+      OutputUnitData outputUnitData = closedWorld.outputUnitData;
+
+      if (classHierarchy.hasOnlySubclasses(element) &&
+          !interceptorData.isInterceptedClass(element) &&
+          outputUnitData.hasOnlyNonDeferredImportPathsToClass(
+              graph.element, element)) {
+        return IsTestSpecialization.instanceof;
       }
     }
     return null;

@@ -2042,6 +2042,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
+    if (node.dartType.isTop) {
+      return _graph.addConstantBool(true, _closedWorld);
+    }
+
     AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
     HInstruction checkedInput = node.checkedInput;
     AbstractValue inputType = checkedInput.instructionType;
@@ -2065,7 +2069,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       DartType dartType = recipe.type;
       IsTestSpecialization specialization =
           SpecializedChecks.findIsTestSpecialization(
-              dartType, _closedWorld.commonElements);
+              dartType, _graph, _closedWorld);
+
+      if (specialization == IsTestSpecialization.null_) {
+        return HIdentity(checkedInput, _graph.addConstantNull(_closedWorld),
+            null, _abstractValueDomain.boolType);
+      }
+
       if (specialization != null) {
         AbstractValueWithPrecision checkedType = _abstractValueDomain
             .createFromStaticType(dartType, nullable: false);
@@ -2073,6 +2083,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             checkedInput, _abstractValueDomain.boolType);
       }
     }
+
+    // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
 
     return node;
   }
