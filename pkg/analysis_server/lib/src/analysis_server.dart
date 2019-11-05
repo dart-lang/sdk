@@ -432,17 +432,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
 
-    // send to crash reporting
-    if (options.crashReportSender != null) {
-      options.crashReportSender
-          .sendReport(exception,
-              stackTrace: stackTrace is StackTrace ? stackTrace : null)
-          .catchError((_) {
-        // Catch and ignore any exceptions when reporting exceptions (network
-        // errors or other).
-      });
-    }
-
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;

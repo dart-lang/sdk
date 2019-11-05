@@ -36,7 +36,6 @@ import 'package:args/args.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
-import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
 /// Commandline argument parser. (Copied from analyzer/lib/options.dart)
@@ -422,10 +421,6 @@ class Driver implements ServerStarter {
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
-
-    // TODO(devoncarew): Replace with the real crash product ID.
-    analysisServerOptions.crashReportSender =
-        new CrashReportSender('Dart_analysis_server', analytics);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
