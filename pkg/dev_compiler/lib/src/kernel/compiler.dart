@@ -288,8 +288,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    // ignore: DEPRECATED_MEMBER_USE
-    var libraries = component.libraries.where((l) => !l.isExternal);
+    var libraries = component.libraries;
 
     // Initialize our library variables.
     var items = startModule(libraries);

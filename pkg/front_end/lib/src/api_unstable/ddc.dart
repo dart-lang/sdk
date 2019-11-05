@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 import 'package:kernel/class_hierarchy.dart';
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -71,11 +71,30 @@ export 'compiler_state.dart'
 
 class DdcResult {
   final Component component;
+  final Component sdkSummary;
   final List<Component> inputSummaries;
   final ClassHierarchy classHierarchy;
 
-  DdcResult(this.component, this.inputSummaries, this.classHierarchy)
+  DdcResult(
+      this.component, this.sdkSummary, this.inputSummaries, this.classHierarchy)
       : assert(classHierarchy != null);
+
+  Set<Library> computeLibrariesFromDill() {
+    Set<Library> librariesFromDill = new Set<Library>();
+
+    for (Component c in inputSummaries) {
+      for (Library lib in c.libraries) {
+        librariesFromDill.add(lib);
+      }
+    }
+    if (sdkSummary != null) {
+      for (Library lib in sdkSummary.libraries) {
+        librariesFromDill.add(lib);
+      }
+    }
+
+    return librariesFromDill;
+  }
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -190,7 +209,9 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
   Component component = compilerResult?.component;
   if (component == null) return null;
 
-  // This should be cached.
+  // These should be cached.
+  Component sdkSummary = await processedOpts.loadSdkSummary(null);
   List<Component> summaries = await processedOpts.loadInputSummaries(null);
-  return new DdcResult(component, summaries, compilerResult.classHierarchy);
+  return new DdcResult(
+      component, sdkSummary, summaries, compilerResult.classHierarchy);
 }
