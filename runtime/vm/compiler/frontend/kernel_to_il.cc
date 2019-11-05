@@ -411,6 +411,52 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
+Fragment FlowGraphBuilder::LoadLateField(const Field& field,
+                                         LocalVariable* instance) {
+  Fragment instructions;
+  TargetEntryInstr *is_uninitialized, *is_initialized;
+
+  // Check whether the field has been initialized already.
+  instructions += LoadLocal(instance);
+  instructions += LoadField(field);
+  LocalVariable* temp = MakeTemporary();
+  instructions += LoadLocal(temp);
+  instructions += Constant(Object::sentinel());
+  instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  if (field.has_initializer()) {
+    // If the field isn't initialized, call the initializer and set the field.
+    Function& init_function =
+        Function::ZoneHandle(Z, field.EnsureInitializerFunction());
+    Fragment initialize(is_uninitialized);
+    initialize += LoadLocal(instance);  // For the store.
+    initialize += LoadLocal(instance);  // For the init call.
+    initialize += PushArgument();
+    initialize += StaticCall(TokenPosition::kNoSource, init_function,
+                             /* argument_count = */ 1, ICData::kStatic);
+    initialize += StoreLocal(TokenPosition::kNoSource, temp);
+    initialize += StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
+    initialize += Goto(join);
+  } else {
+    // TODO(liama): Throw a LateInitializationError.
+    UNIMPLEMENTED();
+  }
+
+  {
+    // Already initialized, so there's nothing to do.
+    Fragment already_initialized(is_initialized);
+    already_initialized += Goto(join);
+  }
+
+  // Now that the field has been initialized, load it.
+  instructions = Fragment(instructions.entry, join);
+
+  return instructions;
+}
+
 Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
   ASSERT(field.is_instance());
   ASSERT(field.needs_load_guard());
@@ -2505,8 +2551,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       // TODO(rmacnak): Type check.
     }
 #endif
-    body += LoadLocal(parsed_function_->ParameterVariable(0));
-    body += LoadField(field);
+    if (field.is_late()) {
+      body += LoadLateField(field, parsed_function_->ParameterVariable(0));
+    } else {
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += LoadField(field);
+    }
   } else if (field.is_const()) {
     // If the parser needs to know the value of an uninitialized constant field
     // it will set the value to the transition sentinel (used to detect circular

@@ -1993,6 +1993,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     const bool is_static = (flags & kIsStaticFlag) != 0;
     const bool is_final = (flags & kIsFinalFlag) != 0;
     const bool is_const = (flags & kIsConstFlag) != 0;
+    const bool is_late = (flags & kIsLateFlag) != 0;
     const bool has_initializer = (flags & kHasInitializerFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
@@ -2080,10 +2081,10 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if ((flags & kHasSetterFlag) != 0) {
-      ASSERT((!is_static) && (!is_final) && (!is_const));
+      ASSERT(is_late || ((!is_static) && (!is_final)));
+      ASSERT(!is_const);
       name ^= ReadObject();
-      function = Function::New(name, RawFunction::kImplicitSetter,
-                               false,  // is_static
+      function = Function::New(name, RawFunction::kImplicitSetter, is_static,
                                false,  // is_const
                                false,  // is_abstract
                                false,  // is_external

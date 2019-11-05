@@ -2239,6 +2239,20 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(InitLateField, D);
+    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+
+    instance->StorePointer(
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+        Object::RawCast(Object::sentinel().raw()), thread);
+
+    SP -= 1;  // Drop instance.
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);

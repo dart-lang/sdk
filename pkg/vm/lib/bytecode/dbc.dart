@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 25;
+const int currentBytecodeFormatVersion = 26;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -181,9 +181,11 @@ enum Opcode {
   kStoreIndexedTOS,
   kUnused20,
 
+  // Late fields and variables.
+  kInitLateField,
+  kInitLateField_Wide,
+
   // Static fields.
-  kUnused40,
-  kUnused41,
   kStoreStaticTOS,
   kStoreStaticTOS_Wide,
 
@@ -412,6 +414,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreIndexedTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kInitLateField: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kLoadStatic: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreStaticTOS: const Format(

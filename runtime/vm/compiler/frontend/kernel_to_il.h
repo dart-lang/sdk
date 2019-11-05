@@ -132,6 +132,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment LoadLateField(const Field& field, LocalVariable* instance);
   Fragment InitInstanceField(const Field& field);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);

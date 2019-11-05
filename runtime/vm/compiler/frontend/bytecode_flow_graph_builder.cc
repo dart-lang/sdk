@@ -1313,6 +1313,23 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildInitLateField() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  LoadStackSlots(1);
+  Operand cp_index = DecodeOperandD();
+
+  const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
+  ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
+         field.Offset());
+
+  code_ += B->Constant(Object::sentinel());
+  code_ += B->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());
