@@ -1605,7 +1605,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   CHECK_ISOLATE(T->isolate());
   API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
-  T->isolate()->NotifyIdle(deadline);
+  T->isolate()->idle_time_handler()->NotifyIdle(deadline);
 }
 
 DART_EXPORT void Dart_NotifyLowMemory() {

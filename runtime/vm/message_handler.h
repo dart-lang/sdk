@@ -260,7 +260,6 @@ class MessageHandler {
   bool task_running_;
   bool delete_me_;
   ThreadPool* pool_;
-  int64_t idle_start_time_;
   StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;
