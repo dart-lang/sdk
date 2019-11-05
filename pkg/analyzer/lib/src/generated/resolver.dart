@@ -6905,7 +6905,16 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    Element element = identifier.staticElement;
+    // This is the same logic used in [checkForDeprecatedMemberUseAtIdentifier]
+    // to avoid reporting an error twice for named constructors.
+    AstNode parent = identifier.parent;
+    if (parent is ConstructorName && identical(identifier, parent.name)) {
+      return;
+    }
+    AstNode grandparent = parent?.parent;
+    Element element = grandparent is ConstructorName
+        ? grandparent.staticElement
+        : identifier.staticElement;
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }
