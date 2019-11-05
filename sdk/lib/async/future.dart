@@ -635,7 +635,7 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  Future<T> catchError(void onError(Object error, StackTrace stackTrace),
+  Future<T> catchError(void onError(Object error, [StackTrace stackTrace]),
       {bool test(Object error)});
 
   /**
