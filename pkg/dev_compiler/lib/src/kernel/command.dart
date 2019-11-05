@@ -315,8 +315,18 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
     Component incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
-    result = fe.DdcResult(incrementalComponent, cachedSdkInput.component,
-        doneInputSummaries, incrementalCompiler.userCode.loader.hierarchy);
+    result = fe.DdcResult(incrementalComponent, doneInputSummaries,
+        incrementalCompiler.userCode.loader.hierarchy);
+
+    // Workaround for DDC relying on isExternal being set to true.
+    for (var lib in cachedSdkInput.component.libraries) {
+      lib.isExternal = true;
+    }
+    for (Component c in doneInputSummaries) {
+      for (Library lib in c.libraries) {
+        lib.isExternal = true;
+      }
+    }
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -367,15 +377,8 @@ Future<CompilerResult> _compile(List<String> args,
 
   var compiler = ProgramCompiler(component, result.classHierarchy, options);
 
-  Set<Library> librariesFromDill = result.computeLibrariesFromDill();
-  Component compiledLibraries =
-      Component(nameRoot: component.root, uriToSource: component.uriToSource);
-  for (Library lib in component.libraries) {
-    if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
-  }
-
   var jsModule = compiler.emitModule(
-      compiledLibraries, result.inputSummaries, inputSummaries, summaryModules);
+      component, result.inputSummaries, inputSummaries, summaryModules);
 
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
@@ -531,7 +534,7 @@ final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
-    if (library.importUri.scheme == 'dart') continue;
+    if (library.isExternal || library.importUri.scheme == 'dart') continue;
     for (var dep in library.dependencies) {
       var uri = dep.targetLibrary.importUri;
       if (uri.scheme == 'dart' && uri.path == 'mirrors') {

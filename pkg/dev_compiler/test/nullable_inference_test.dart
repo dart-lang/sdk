@@ -489,9 +489,9 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
-  var result = await kernelCompile(code);
-  var collector = NotNullCollector(result.librariesFromDill);
-  result.component.accept(collector);
+  var component = await kernelCompile(code);
+  var collector = NotNullCollector();
+  component.accept(collector);
   var actualNotNull = collector.notNullExpressions
       // ConstantExpressions print the table offset - we want to compare
       // against the underlying constant value instead.
@@ -517,18 +517,14 @@ Future expectNotNull(String code, String expectedNotNull) async {
 
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
-  var result = (await kernelCompile(code));
-  result.component.accept(ExpectAllNotNull(result.librariesFromDill));
+  (await kernelCompile(code)).accept(ExpectAllNotNull());
 }
 
 bool useAnnotations = false;
 NullableInference inference;
 
 class _TestRecursiveVisitor extends RecursiveVisitor<void> {
-  final Set<Library> librariesFromDill;
   int _functionNesting = 0;
-
-  _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
   visitComponent(Component node) {
@@ -547,7 +543,8 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitLibrary(Library node) {
-    if (librariesFromDill.contains(node) ||
+    // ignore: DEPRECATED_MEMBER_USE
+    if (node.isExternal ||
         node.importUri.scheme == 'package' &&
             node.importUri.pathSegments[0] == 'meta') {
       return;
@@ -568,8 +565,6 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 class NotNullCollector extends _TestRecursiveVisitor {
   final notNullExpressions = <Expression>[];
 
-  NotNullCollector(Set<Library> librariesFromDill) : super(librariesFromDill);
-
   @override
   defaultExpression(Expression node) {
     if (!inference.isNullable(node)) {
@@ -580,8 +575,6 @@ class NotNullCollector extends _TestRecursiveVisitor {
 }
 
 class ExpectAllNotNull extends _TestRecursiveVisitor {
-  ExpectAllNotNull(Set<Library> librariesFromDill) : super(librariesFromDill);
-
   @override
   defaultExpression(Expression node) {
     expect(inference.isNullable(node), false,
@@ -593,14 +586,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
 fe.InitializedCompilerState _compilerState;
 final _fileSystem = fe.MemoryFileSystem(Uri.file('/memory/'));
 
-class CompileResult {
-  final Component component;
-  final Set<Library> librariesFromDill;
-
-  CompileResult(this.component, this.librariesFromDill);
-}
-
-Future<CompileResult> kernelCompile(String code) async {
+Future<Component> kernelCompile(String code) async {
   var succeeded = true;
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
@@ -640,7 +626,5 @@ const nullCheck = const _NullCheck();
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
-
-  Set<Library> librariesFromDill = result.computeLibrariesFromDill();
-  return CompileResult(result.component, librariesFromDill);
+  return result.component;
 }
