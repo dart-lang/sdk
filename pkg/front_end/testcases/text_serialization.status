@@ -6,7 +6,6 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
-all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
@@ -69,6 +68,7 @@ general/DeltaBlue: TextSerializationFailure # Was: Pass
 general/abstract_members: TypeCheckError
 general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 general/accessors: TextSerializationFailure # Was: RuntimeError
+general/all_variances: TextSerializationFailure
 general/ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
 general/annotation_eof: TextSerializationFailure # Was: Pass
 general/annotation_on_enum_values: TextSerializationFailure # Was: Pass
@@ -235,6 +235,7 @@ general/native_as_name: TextSerializationFailure # Was: Pass
 general/nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
 general/nested_property_set: TextSerializationFailure
 general/nested_variable_set: TextSerializationFailure
+general/nested_variance: TextSerializationFailure
 general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
 general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 general/non_covariant_checks: TextSerializationFailure
@@ -885,7 +886,6 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
-nested_variance_test: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
