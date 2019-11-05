@@ -5909,13 +5909,15 @@ class TypeParameterType extends DartType {
   bool operator ==(Object other) {
     return other is TypeParameterType &&
         parameter == other.parameter &&
-        nullability == other.nullability;
+        nullability == other.nullability &&
+        promotedBound == other.promotedBound;
   }
 
   int get hashCode {
     int hash = _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ promotedBound.hashCode));
     return hash;
   }
 
