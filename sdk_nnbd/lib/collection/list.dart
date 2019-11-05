@@ -102,7 +102,7 @@ abstract class ListMixin<E> implements List<E> {
     return this[0];
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (this[i] == element) return true;
@@ -269,7 +269,7 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         this._closeGap(i, i + 1);
@@ -456,7 +456,7 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  int indexOf(Object element, [int start = 0]) {
+  int indexOf(E element, [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
       if (this[i] == element) return i;
@@ -472,7 +472,7 @@ abstract class ListMixin<E> implements List<E> {
     return -1;
   }
 
-  int lastIndexOf(Object element, [int? start]) {
+  int lastIndexOf(E element, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
 
     // TODO(38493): The previous line should promote.

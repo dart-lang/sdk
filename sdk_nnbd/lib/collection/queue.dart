@@ -89,7 +89,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   ///
   /// Returns `true` if a value was removed, or `false` if the queue
   /// contained no element equal to [value].
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /// Adds all elements of [iterable] at the end of the queue. The
   /// length of the queue is extended by the length of [iterable].
