@@ -308,12 +308,10 @@ Future<KernelCompilationResults> compileToKernel(
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
-    await _runGlobalTransformations(
-        source,
-        options,
+    await runGlobalTransformations(
+        options.target,
         component,
         useGlobalTypeFlowAnalysis,
-        environmentDefines,
         enableAsserts,
         useProtobufTreeShaker,
         errorDetector);
@@ -363,12 +361,10 @@ void setVMEnvironmentDefines(
   options.environmentDefines = environmentDefines;
 }
 
-Future _runGlobalTransformations(
-    Uri source,
-    CompilerOptions compilerOptions,
+Future runGlobalTransformations(
+    Target target,
     Component component,
     bool useGlobalTypeFlowAnalysis,
-    Map<String, String> environmentDefines,
     bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
@@ -389,8 +385,7 @@ Future _runGlobalTransformations(
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -404,8 +399,7 @@ Future _runGlobalTransformations(
     protobuf_tree_shaker.removeUnusedProtoReferences(
         component, coreTypes, null);
 
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
