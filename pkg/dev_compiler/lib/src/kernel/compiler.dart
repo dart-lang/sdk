@@ -1190,7 +1190,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!_options.emitMetadata && member.isStatic) continue;
 
       var name = member.name.name;
-      var reifiedType = _getMemberRuntimeType(member, c) as FunctionType;
+      var reifiedType = _memberRuntimeType(member, c) as FunctionType;
 
       // Don't add redundant signatures for inherited methods whose signature
       // did not change.  If we are not overriding, or if the thing we are
@@ -1203,7 +1203,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           : null;
 
       var needsSignature = memberOverride == null ||
-          reifiedType != _getMemberRuntimeType(memberOverride, c);
+          reifiedType != _memberRuntimeType(memberOverride, c);
 
       if (needsSignature) {
         js_ast.Expression type;
@@ -1282,7 +1282,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitFieldSignature(Field field, Class fromClass) {
-    var type = _getTypeFromClass(field.type, field.enclosingClass, fromClass);
+    var type = _typeFromClass(field.type, field.enclosingClass, fromClass);
     var args = [_emitType(type)];
     var annotations = field.annotations;
     if (_options.emitMetadata &&
@@ -1298,7 +1298,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         field.isFinal ? 'finalFieldType(#)' : 'fieldType(#)', [args]);
   }
 
-  DartType _getMemberRuntimeType(Member member, Class fromClass) {
+  DartType _memberRuntimeType(Member member, Class fromClass) {
     var f = member.function;
     if (f == null) {
       return (member as Field).type;
@@ -1322,11 +1322,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           typeParameters: f.thisFunctionType.typeParameters,
           requiredParameterCount: f.requiredParameterCount);
     }
-    return _getTypeFromClass(result, member.enclosingClass, fromClass)
+    return _typeFromClass(result, member.enclosingClass, fromClass)
         as FunctionType;
   }
 
-  DartType _getTypeFromClass(DartType type, Class superclass, Class subclass) {
+  DartType _typeFromClass(DartType type, Class superclass, Class subclass) {
     if (identical(superclass, subclass)) return type;
     return Substitution.fromSupertype(
             _hierarchy.getClassAsInstanceOf(subclass, superclass))
@@ -1734,7 +1734,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (superMember == null) return const [];
 
     substituteType(DartType t) {
-      return _getTypeFromClass(t, superMember.enclosingClass, enclosingClass);
+      return _typeFromClass(t, superMember.enclosingClass, enclosingClass);
     }
 
     var name = _declareMemberName(member);
@@ -2340,7 +2340,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return false;
   }
 
-  String _getJSNameWithoutGlobal(NamedNode n) {
+  String _jsNameWithoutGlobal(NamedNode n) {
     if (!usesJSInterop(n)) return null;
     var libraryJSName = _annotationName(getLibrary(n), isPublicJSAnnotation);
     var jsName = _annotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
@@ -2348,7 +2348,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.PropertyAccess _emitJSInterop(NamedNode n) {
-    var jsName = _getJSNameWithoutGlobal(n);
+    var jsName = _jsNameWithoutGlobal(n);
     if (jsName == null) return null;
     return _emitJSInteropForGlobal(jsName);
   }
@@ -2515,7 +2515,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return runtimeCall(
           'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
     }
-    var jsName = _getJSNameWithoutGlobal(c);
+    var jsName = _jsNameWithoutGlobal(c);
     if (jsName != null) {
       return runtimeCall('lazyJSType(() => #, #)',
           [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
@@ -2859,8 +2859,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         gen = js.call('() => #(#)', [gen, mutatedParams]);
       }
 
-      var returnType =
-          _getExpectedReturnType(function, _coreTypes.iterableClass);
+      var returnType = _expectedReturnType(function, _coreTypes.iterableClass);
       var syncIterable =
           _emitType(InterfaceType(_syncIterableClass, [returnType]));
       return js.call('new #.new(#)', [syncIterable, gen]);
@@ -2876,7 +2875,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // _AsyncStarImpl has an example of the generated code.
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
-      var returnType = _getExpectedReturnType(function, _coreTypes.streamClass);
+      var returnType = _expectedReturnType(function, _coreTypes.streamClass);
       var asyncStarImpl = InterfaceType(_asyncStarImplClass, [returnType]);
       return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
     }
@@ -2901,7 +2900,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Gets the expected return type of a `sync*` or `async*` body.
-  DartType _getExpectedReturnType(FunctionNode f, Class expected) {
+  DartType _expectedReturnType(FunctionNode f, Class expected) {
     var type = f.thisFunctionType.returnType;
     if (type is InterfaceType) {
       var match = _hierarchy.getTypeAsInstanceOf(type, expected);
@@ -3149,7 +3148,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// This is the most common kind of marking, and is used for most expressions
   /// and statements.
-  SourceLocation _nodeStart(TreeNode node) => _getLocation(node.fileOffset);
+  SourceLocation _nodeStart(TreeNode node) =>
+      _toSourceLocation(node.fileOffset);
 
   /// Gets the end position of [node] for use in source mapping.
   ///
@@ -3160,7 +3160,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// has already been emitted. For example, `foo.bar` we only need to mark the
   /// end of `.bar` to ensure `foo.bar` has a hover tooltip.
   NodeEnd _nodeEnd(int endOffset) {
-    var loc = _getLocation(endOffset);
+    var loc = _toSourceLocation(endOffset);
     return loc != null ? NodeEnd(loc) : null;
   }
 
@@ -3169,12 +3169,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   //
   // TODO(jmesserly): we need a lot more nodes to support hover.
   NodeSpan _variableSpan(int offset, int nameLength) {
-    var start = _getLocation(offset);
-    var end = _getLocation(offset + nameLength);
+    var start = _toSourceLocation(offset);
+    var end = _toSourceLocation(offset + nameLength);
     return start != null && end != null ? NodeSpan(start, end) : null;
   }
 
-  SourceLocation _getLocation(int offset) {
+  SourceLocation _toSourceLocation(int offset) {
     if (offset == -1) return null;
     var fileUri = _currentUri;
     if (fileUri == null) return null;
@@ -3200,8 +3200,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// source code.
   HoverComment _hoverComment(
       js_ast.Expression expr, int offset, int nameLength) {
-    var start = _getLocation(offset);
-    var end = _getLocation(offset + nameLength);
+    var start = _toSourceLocation(offset);
+    var end = _toSourceLocation(offset + nameLength);
     return start != null && end != null ? HoverComment(expr, start, end) : null;
   }
 
@@ -3270,7 +3270,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         .enclosingComponent.uriToSource[node.location.file].source
         .sublist(node.conditionStartOffset, node.conditionEndOffset);
     var conditionSource = utf8.decode(encodedConditionSource);
-    var location = _getLocation(node.conditionStartOffset);
+    var location = _toSourceLocation(node.conditionStartOffset);
     return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
       runtimeModule,
@@ -4056,7 +4056,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target is Field || target is Procedure && target.isAccessor) {
       var fromType = target.getterType;
       if (fromType is InterfaceType) {
-        var callName = _getImplicitCallTarget(fromType);
+        var callName = _implicitCallTarget(fromType);
         if (callName != null) {
           return js.call('#.#.#(#)', [jsReceiver, jsName, callName, args]);
         }
@@ -4106,7 +4106,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool _isDirectCallable(DartType t) =>
       t is FunctionType || (t is InterfaceType && usesJSInterop(t.classNode));
 
-  js_ast.Expression _getImplicitCallTarget(InterfaceType from) {
+  js_ast.Expression _implicitCallTarget(InterfaceType from) {
     var c = from.classNode;
     var member = _hierarchy.getInterfaceMember(c, Name("call"));
     if (member is Procedure && !member.isAccessor && !usesJSInterop(c)) {
