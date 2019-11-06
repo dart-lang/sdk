@@ -4104,7 +4104,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isDirectCallable(DartType t) =>
-      t is FunctionType || t is InterfaceType && usesJSInterop(t.classNode);
+      t is FunctionType || (t is InterfaceType && usesJSInterop(t.classNode));
 
   js_ast.Expression _getImplicitCallTarget(InterfaceType from) {
     var c = from.classNode;
