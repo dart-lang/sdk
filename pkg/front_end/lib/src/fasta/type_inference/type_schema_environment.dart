@@ -246,7 +246,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
 
       TypeConstraint constraint = constraints[typeParam];
-      if (downwardsInferPhase) {
+      if (downwardsInferPhase || !typeParam.isLegacyCovariant) {
         inferredTypes[i] =
             _inferTypeParameterFromContext(constraint, extendsConstraint);
       } else {

@@ -125,6 +125,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
     freshTypeParameter.defaultType = typeParameter.defaultType != null
         ? substitute(typeParameter.defaultType, map)
         : null;
+    freshTypeParameter.variance =
+        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     if (typeParameter.annotations.isNotEmpty) {
       // Annotations can't refer to type parameters, so the cloner shouldn't
       // perform the substitution.
