@@ -2611,7 +2611,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       const String& getter_name = H.DartGetterName(target);
       const Function& getter =
           Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
-      if (getter.IsNull() || !field.has_initializer()) {
+      if (getter.IsNull() || !field.has_nontrivial_initializer()) {
         Fragment instructions = Constant(field);
         return instructions + LoadStaticField();
       } else {

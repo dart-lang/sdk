@@ -1336,7 +1336,7 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   // All constant expressions (including access to const fields) are evaluated
   // in bytecode. However, values of injected cid fields are only available in
   // the VM. In such case, evaluate const fields with known value here.
-  if (field.is_const() && !field.has_initializer()) {
+  if (field.is_const() && !field.has_nontrivial_initializer()) {
     const auto& value = Object::ZoneHandle(Z, field.StaticValue());
     ASSERT((value.raw() != Object::sentinel().raw()) &&
            (value.raw() != Object::transition_sentinel().raw()));

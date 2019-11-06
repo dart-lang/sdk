@@ -3452,7 +3452,7 @@ bool Debugger::FindBestFit(const Script& script,
           // the breakpoint in.
           continue;
         }
-        if (!field.has_initializer()) {
+        if (!field.has_nontrivial_initializer()) {
           continue;
         }
         start = field.token_pos();

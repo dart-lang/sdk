@@ -3616,6 +3616,17 @@ class Field : public Object {
 
   RawString* InitializingExpression() const;
 
+  bool has_nontrivial_initializer() const {
+    return HasNontrivialInitializerBit::decode(raw_ptr()->kind_bits_);
+  }
+  // Called by parser after allocating field.
+  void set_has_nontrivial_initializer(bool has_nontrivial_initializer) const {
+    ASSERT(IsOriginal());
+    ASSERT(Thread::Current()->IsMutatorThread());
+    set_kind_bits(HasNontrivialInitializerBit::update(
+        has_nontrivial_initializer, raw_ptr()->kind_bits_));
+  }
+
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
@@ -3625,6 +3636,10 @@ class Field : public Object {
     ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(
         HasInitializerBit::update(has_initializer, raw_ptr()->kind_bits_));
+  }
+
+  bool has_trivial_initializer() const {
+    return has_initializer() && !has_nontrivial_initializer();
   }
 
   StaticTypeExactnessState static_type_exactness_state() const {
@@ -3820,7 +3835,7 @@ class Field : public Object {
     kConstBit = 0,
     kStaticBit,
     kFinalBit,
-    kHasInitializerBit,
+    kHasNontrivialInitializerBit,
     kUnboxingCandidateBit,
     kReflectableBit,
     kDoubleInitializedBit,
@@ -3831,12 +3846,13 @@ class Field : public Object {
     kIsLateBit,
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
+    kHasInitializerBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
   class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
-  class HasInitializerBit
-      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+  class HasNontrivialInitializerBit
+      : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
   class UnboxingCandidateBit
       : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
@@ -3856,6 +3872,8 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
   class NeedsLoadGuardBit
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
+  class HasInitializerBit
+      : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.

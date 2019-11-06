@@ -373,7 +373,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             if (temp_field.is_declared_in_bytecode()) {
               token_positions.Add(temp_field.token_pos().value());
               token_positions.Add(temp_field.end_token_pos().value());
-              if (temp_field.is_static() && temp_field.has_initializer()) {
+              if (temp_field.is_static() &&
+                  temp_field.has_nontrivial_initializer()) {
                 temp_function = temp_field.EnsureInitializerFunction();
                 CollectBytecodeFunctionTokenPositions(temp_function,
                                                       &token_positions);
@@ -454,7 +455,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (field.is_declared_in_bytecode()) {
           token_positions.Add(field.token_pos().value());
           token_positions.Add(field.end_token_pos().value());
-          if (field.is_static() && field.has_initializer()) {
+          if (field.is_static() && field.has_nontrivial_initializer()) {
             temp_function = field.EnsureInitializerFunction();
             CollectBytecodeFunctionTokenPositions(temp_function,
                                                   &token_positions);

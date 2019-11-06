@@ -919,7 +919,7 @@ void Precompiler::AddField(const Field& field) {
       AddConstObject(Instance::Cast(value));
     }
 
-    if (field.has_initializer()) {
+    if (field.has_nontrivial_initializer()) {
       // Should not be in the middle of initialization while precompiling.
       ASSERT(value.raw() != Object::transition_sentinel().raw());
 

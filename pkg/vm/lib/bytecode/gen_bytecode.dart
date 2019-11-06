@@ -575,10 +575,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         value = _getConstant(field.initializer);
       }
     } else {
-      flags |= FieldDeclaration.hasInitializerFlag;
+      flags |= FieldDeclaration.hasNontrivialInitializerFlag;
     }
     if (initializer != null) {
       flags |= FieldDeclaration.hasInitializerCodeFlag;
+    }
+    if (field.initializer != null) {
+      flags |= FieldDeclaration.hasInitializerFlag;
     }
     final name = objectTable.getNameHandle(
         field.name.library, objectTable.mangleMemberName(field, false, false));
@@ -1195,6 +1198,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genLateFieldInitializer(Field field) {
     assert(!field.isStatic);
+
+    if (field.initializer != null && _hasTrivialInitializer(field)) {
+      _genFieldInitializer(field, field.initializer);
+      return;
+    }
 
     _genPushReceiver();
 

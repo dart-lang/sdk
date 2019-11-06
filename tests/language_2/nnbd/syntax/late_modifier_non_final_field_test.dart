@@ -13,6 +13,8 @@ int init() {
 
 class A {
   late int? fieldWithInit = init();
+  late int fieldWithTrivialInit = 123;
+  late int? fieldWithNullInit = null;
 }
 
 main() {
@@ -20,12 +22,20 @@ main() {
   var a = A();
   Expect.equals(0, initCalls);
   Expect.equals(123, a.fieldWithInit);
+  Expect.equals(123, a.fieldWithTrivialInit);
+  Expect.equals(null, a.fieldWithNullInit);
   Expect.equals(1, initCalls);
   Expect.equals(123, a.fieldWithInit);
+  Expect.equals(123, a.fieldWithTrivialInit);
+  Expect.equals(null, a.fieldWithNullInit);
   Expect.equals(1, initCalls);
   a.fieldWithInit = 456;
+  a.fieldWithTrivialInit = 456;
+  a.fieldWithNullInit = 456;
   Expect.equals(1, initCalls);
   Expect.equals(456, a.fieldWithInit);
+  Expect.equals(456, a.fieldWithTrivialInit);
+  Expect.equals(456, a.fieldWithNullInit);
   Expect.equals(1, initCalls);
   initCalls = 0;
 

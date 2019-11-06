@@ -956,11 +956,11 @@ void KernelLoader::CheckForInitializer(const Field& field) {
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
     if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
-      field.set_has_initializer(true);
+      field.set_has_nontrivial_initializer(true);
       return;
     }
   }
-  field.set_has_initializer(false);
+  field.set_has_nontrivial_initializer(false);
 }
 
 RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {

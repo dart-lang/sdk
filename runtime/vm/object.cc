@@ -8698,6 +8698,7 @@ void Field::InitializeNew(const Field& result,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
+  result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
@@ -8950,7 +8951,7 @@ bool Field::IsUninitialized() const {
 }
 
 RawFunction* Field::EnsureInitializerFunction() const {
-  ASSERT(has_initializer());
+  ASSERT(has_nontrivial_initializer());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -8979,7 +8980,7 @@ RawError* Field::InitializeInstance(const Instance& instance) const {
   ASSERT(is_instance());
   ASSERT(instance.GetField(*this) == Object::sentinel().raw());
   Object& value = Object::Handle();
-  if (has_initializer()) {
+  if (has_nontrivial_initializer()) {
     const Function& initializer = Function::Handle(EnsureInitializerFunction());
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, instance);

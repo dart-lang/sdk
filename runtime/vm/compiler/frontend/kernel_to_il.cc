@@ -427,6 +427,10 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
   JoinEntryInstr* join = BuildJoinEntry();
 
   if (field.has_initializer()) {
+    // has_nontrivial_initializer is required for EnsureInitializerFunction. The
+    // trivial initializer case is treated as a normal field.
+    ASSERT(field.has_nontrivial_initializer());
+
     // If the field isn't initialized, call the initializer and set the field.
     Function& init_function =
         Function::ZoneHandle(Z, field.EnsureInitializerFunction());
@@ -2551,7 +2555,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       // TODO(rmacnak): Type check.
     }
 #endif
-    if (field.is_late()) {
+    if (field.is_late() && !field.has_trivial_initializer()) {
       body += LoadLateField(field, parsed_function_->ParameterVariable(0));
     } else {
       body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2569,7 +2573,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   } else {
     // The field always has an initializer because static fields without
     // initializers are initialized eagerly and do not have implicit getters.
-    ASSERT(field.has_initializer());
+    ASSERT(field.has_nontrivial_initializer());
     body += Constant(field);
     body += InitStaticField(field);
     body += Constant(field);

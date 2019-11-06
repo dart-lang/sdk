@@ -847,7 +847,7 @@ ClosureCode {
 Class 'B', script = '#lib'
     extends dart:core::Object
 
-Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable
+Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable
@@ -1556,7 +1556,7 @@ ClosureCode {
 Class 'E', script = '#lib', abstract
     extends dart:core::Object
 
-Field 'foo1', type = FunctionType (dart:core::int, dart:core::int) -> dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
+Field 'foo1', type = FunctionType (dart:core::int, dart:core::int) -> dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable

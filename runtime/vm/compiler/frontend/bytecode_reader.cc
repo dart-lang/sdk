@@ -1956,7 +1956,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
                                                  bool discard_fields) {
   // Field flags, must be in sync with FieldDeclaration constants in
   // pkg/vm/lib/bytecode/declarations.dart.
-  const int kHasInitializerFlag = 1 << 0;
+  const int kHasNontrivialInitializerFlag = 1 << 0;
   const int kHasGetterFlag = 1 << 1;
   const int kHasSetterFlag = 1 << 2;
   const int kIsReflectableFlag = 1 << 3;
@@ -1973,6 +1973,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasAttributesFlag = 1 << 14;
   const int kIsLateFlag = 1 << 15;
   const int kIsExtensionMemberFlag = 1 << 16;
+  const int kHasInitializerFlag = 1 << 17;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1994,9 +1995,11 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     const bool is_final = (flags & kIsFinalFlag) != 0;
     const bool is_const = (flags & kIsConstFlag) != 0;
     const bool is_late = (flags & kIsLateFlag) != 0;
-    const bool has_initializer = (flags & kHasInitializerFlag) != 0;
+    const bool has_nontrivial_initializer =
+        (flags & kHasNontrivialInitializerFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
+    const bool has_initializer = (flags & kHasInitializerFlag) != 0;
 
     name ^= ReadObject();
     type ^= ReadObject();
@@ -2024,11 +2027,12 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_covariant((flags & kIsCovariantFlag) != 0);
     field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
                                         0);
-    field.set_has_initializer(has_initializer);
+    field.set_has_nontrivial_initializer(has_nontrivial_initializer);
     field.set_is_late((flags & kIsLateFlag) != 0);
     field.set_is_extension_member(is_extension_member);
+    field.set_has_initializer(has_initializer);
 
-    if (!has_initializer) {
+    if (!has_nontrivial_initializer) {
       value ^= ReadObject();
       if (is_static) {
         field.SetStaticValue(value, true);
@@ -2073,7 +2077,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_accessor_field(field);
       function.set_is_declared_in_bytecode(true);
       function.set_is_extension_member(is_extension_member);
-      if (is_const && has_initializer) {
+      if (is_const && has_nontrivial_initializer) {
         function.set_bytecode_offset(field.bytecode_offset());
       }
       H.SetupFieldAccessorFunction(cls, function, type);
@@ -3671,7 +3675,7 @@ bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
 
   const auto& field = Field::Handle(zone, function.accessor_field());
   return field.is_declared_in_bytecode() && field.is_const() &&
-         field.has_initializer();
+         field.has_nontrivial_initializer();
 }
 
 }  // namespace kernel

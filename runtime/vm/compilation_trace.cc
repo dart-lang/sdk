@@ -336,7 +336,7 @@ RawObject* CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   }
 
   if (!field_.IsNull() && field_.is_static() && !field_.is_const() &&
-      field_.has_initializer()) {
+      field_.has_nontrivial_initializer()) {
     processed = true;
     function_ = field_.EnsureInitializerFunction();
     error_ = CompileFunction(function_);
