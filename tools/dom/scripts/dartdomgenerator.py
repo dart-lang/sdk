@@ -191,15 +191,16 @@ def GenerateFromDatabase(common_database,
     monitored.FinishMonitoring(dart2js_output_dir, _logger)
 
 
-def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
+def GenerateSingleFile(library_path, output_dir, generated_output_dir=None, prefix=None):
     library_dir = os.path.dirname(library_path)
     library_filename = os.path.basename(library_path)
     copy_dart_script = os.path.relpath('../../copy_dart.py', library_dir)
     output_dir = os.path.relpath(output_dir, library_dir)
     if not os.path.exists(library_dir):
         os.makedirs(library_dir)
+    prefix_arg = 'export DART_HTML_PREFIX="' + prefix + '";' if prefix else ""
     command = ' '.join([
-        'cd', library_dir, ';', copy_dart_script, output_dir, library_filename
+        prefix_arg, 'cd', library_dir, ';', copy_dart_script, output_dir, library_filename
     ])
     subprocess.call([command], shell=True)
     prebuilt_dartfmt = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dartfmt')
@@ -340,11 +341,18 @@ def main():
         _logger.info('Generating dart2js single files.')
 
         for library_name in HTML_LIBRARY_NAMES:
+            source = os.path.join(dart2js_output_dir,
+                                  '%s_dart2js.dart' % library_name)
             GenerateSingleFile(
-                os.path.join(dart2js_output_dir,
-                             '%s_dart2js.dart' % library_name),
-                os.path.join('..', '..', '..', 'sdk', 'lib', library_name,
-                             'dart2js'))
+                source,
+                os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dart2js'))
+            # TODO(Issue 38701): We won't need two copies once the NNBD SDK is
+            # unforked.
+            GenerateSingleFile(
+                source,
+                os.path.join('..', '..', '..', 'sdk_nnbd', 'lib', library_name, 'dart2js'),
+                None,
+                '// @dart = 2.5')
 
     print '\nGenerating single file %s seconds' % round(
         time.time() - file_generation_start_time, 2)
