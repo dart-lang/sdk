@@ -1587,21 +1587,21 @@ class ExtensionInstanceAccessGenerator extends Generator {
     if (getterBuilder != null) {
       if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.member;
+        readTarget = getterBuilder.readTarget;
       } else if (getterBuilder.isRegularMethod) {
         assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.extensionTearOff;
-        invokeTarget = getterBuilder.procedure;
+        readTarget = getterBuilder.readTarget;
+        invokeTarget = getterBuilder.invokeTarget;
       } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
-        invokeTarget = getterBuilder.member;
+        invokeTarget = getterBuilder.invokeTarget;
       }
     }
     Procedure writeTarget;
     if (setterBuilder != null) {
       if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
-        writeTarget = setterBuilder.member;
+        writeTarget = setterBuilder.writeTarget;
         targetName ??= setterBuilder.name;
       } else {
         return unhandled(
@@ -1898,16 +1898,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       } else if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
-        readTarget = memberBuilder.member;
+        readTarget = memberBuilder.readTarget;
       } else if (getterBuilder.isRegularMethod) {
         assert(!getterBuilder.isStatic);
         MemberBuilder procedureBuilder = getterBuilder;
-        readTarget = procedureBuilder.extensionTearOff;
-        invokeTarget = procedureBuilder.procedure;
+        readTarget = procedureBuilder.readTarget;
+        invokeTarget = procedureBuilder.invokeTarget;
       } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
-        invokeTarget = memberBuilder.member;
+        invokeTarget = memberBuilder.invokeTarget;
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -1924,7 +1924,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       } else if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         MemberBuilder memberBuilder = setterBuilder;
-        writeTarget = memberBuilder.member;
+        writeTarget = memberBuilder.writeTarget;
       } else {
         return unhandled(
             "${setterBuilder.runtimeType}",

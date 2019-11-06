@@ -837,8 +837,10 @@ class TypeInferrerImpl implements TypeInferrer {
                         !thisBuilder.isField &&
                         !thisBuilder.isStatic
                     ? new ObjectAccessTarget.extensionMember(
-                        thisBuilder.procedure,
-                        thisBuilder.extensionTearOff,
+                        setter
+                            ? thisBuilder.writeTarget
+                            : thisBuilder.invokeTarget,
+                        thisBuilder.readTarget,
                         thisBuilder.kind,
                         inferredTypeArguments)
                     : const ObjectAccessTarget.missing(),

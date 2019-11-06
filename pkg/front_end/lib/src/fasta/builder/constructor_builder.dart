@@ -123,6 +123,15 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => constructor;
+
+  @override
   ConstructorBuilder get origin => actualOrigin ?? this;
 
   @override

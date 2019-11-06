@@ -137,6 +137,15 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
   }
 
   @override
+  Member get readTarget => field;
+
+  @override
+  Member get writeTarget => isAssignable ? field : null;
+
+  @override
+  Member get invokeTarget => field;
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);

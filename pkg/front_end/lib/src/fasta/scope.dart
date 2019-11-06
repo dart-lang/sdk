@@ -597,30 +597,38 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
       String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
+  @override
   Member get member => null;
+
+  @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => null;
 
   bool get isNative => false;
 
   @override
   bool get isAssignable => false;
 
+  @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 
+  @override
   void set parent(Builder value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
 
+  @override
   LibraryBuilder get library {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  Member get extensionTearOff => null;
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  Procedure get procedure => null;
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  @override
   ProcedureKind get kind => null;
 
   @override

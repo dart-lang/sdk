@@ -16,7 +16,7 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
 
-import '../problems.dart' show unexpected;
+import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -37,6 +37,10 @@ abstract class ProcedureBuilder implements FunctionBuilder {
   ProcedureBuilder get patchForTesting;
 
   AsyncMarker actualAsyncModifier;
+
+  Procedure get procedure;
+
+  ProcedureKind get kind;
 
   Procedure get actualProcedure;
 
@@ -108,6 +112,49 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
               ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
+
+  @override
+  Member get readTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+        return extensionTearOff ?? procedure;
+      case ProcedureKind.Getter:
+        return procedure;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return procedure;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return procedure;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
@@ -384,7 +431,6 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get procedure => isPatch ? origin.procedure : _procedure;
 
-  @override
   Procedure get extensionTearOff {
     if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
