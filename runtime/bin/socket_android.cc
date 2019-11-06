@@ -23,6 +23,10 @@ Socket::Socket(intptr_t fd)
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(NULL) {}
 
+void Socket::CloseFd() {
+  SetClosedFd();
+}
+
 void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }

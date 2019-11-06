@@ -196,10 +196,10 @@ void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
                                process_stderr->fd(), exit_event->fd(), &result);
   // Process::Wait() closes the file handles, so blow away the fds in the
   // Sockets so that they don't get picked up by the finalizer on _NativeSocket.
-  process_stdin->SetClosedFd();
-  process_stdout->SetClosedFd();
-  process_stderr->SetClosedFd();
-  exit_event->SetClosedFd();
+  process_stdin->CloseFd();
+  process_stdout->CloseFd();
+  process_stderr->CloseFd();
+  exit_event->CloseFd();
   if (success) {
     Dart_Handle out = result.stdout_data();
     ThrowIfError(out);

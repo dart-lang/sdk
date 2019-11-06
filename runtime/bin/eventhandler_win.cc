@@ -1071,9 +1071,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         if (registry->CloseSafe(socket)) {
           ASSERT(listen_socket->Mask() == 0);
           listen_socket->Close();
-          socket->SetClosedFd();
+          socket->CloseFd();
         }
-
+        socket->SetClosedFd();
         DartUtils::PostInt32(msg->dart_port, 1 << kDestroyedEvent);
       } else {
         UNREACHABLE();
@@ -1151,7 +1151,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       } else if (IS_COMMAND(msg->data, kCloseCommand)) {
         handle->SetPortAndMask(msg->dart_port, 0);
         handle->Close();
-        socket->SetClosedFd();
+        socket->CloseFd();
       } else {
         UNREACHABLE();
       }

@@ -126,17 +126,16 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
         }
 
         // This socket creation is the exact same as the one which originally
-        // created the socket. We therefore increment the refcount and reuse
-        // the file descriptor.
+        // created the socket. Feed same fd and store it into native field
+        // of dart socket_object. Sockets here will share same fd but contain a
+        // different port() through EventHandler_SendData.
+        Socket* socketfd = new Socket(os_socket->fd);
         os_socket->ref_count++;
-
-        // The same Socket is used by a second Dart _NativeSocket object.
-        // It Retains a reference.
-        os_socket->socketfd->Retain();
         // We set as a side-effect the file descriptor on the dart
         // socket_object.
-        Socket::ReuseSocketIdNativeField(socket_object, os_socket->socketfd,
+        Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                          Socket::kFinalizerListening);
+        InsertByFd(socketfd, os_socket);
         return Dart_True();
       }
     }
@@ -194,36 +193,33 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 }
 
 bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
-                                           bool update_hash_maps) {
+                                           Socket* socket) {
   ASSERT(!mutex_.TryLock());
   ASSERT(os_socket != NULL);
   ASSERT(os_socket->ref_count > 0);
   os_socket->ref_count--;
+  RemoveByFd(socket);
   if (os_socket->ref_count > 0) {
     return false;
   }
-  if (update_hash_maps) {
-    // We free the OS socket by removing it from two datastructures.
-    RemoveByFd(os_socket->socketfd);
 
-    OSSocket* prev = NULL;
-    OSSocket* current = LookupByPort(os_socket->port);
-    while (current != os_socket) {
-      ASSERT(current != NULL);
-      prev = current;
-      current = current->next;
-    }
+  OSSocket* prev = NULL;
+  OSSocket* current = LookupByPort(os_socket->port);
+  while (current != os_socket) {
+    ASSERT(current != NULL);
+    prev = current;
+    current = current->next;
+  }
 
-    if ((prev == NULL) && (current->next == NULL)) {
-      // Remove last element from the list.
-      RemoveByPort(os_socket->port);
-    } else if (prev == NULL) {
-      // Remove first element of the list.
-      InsertByPort(os_socket->port, current->next);
-    } else {
-      // Remove element from the list which is not the first one.
-      prev->next = os_socket->next;
-    }
+  if ((prev == NULL) && (current->next == NULL)) {
+    // Remove last element from the list.
+    RemoveByPort(os_socket->port);
+  } else if (prev == NULL) {
+    // Remove first element of the list.
+    InsertByPort(os_socket->port, current->next);
+  } else {
+    // Remove element from the list which is not the first one.
+    prev->next = os_socket->next;
   }
 
   ASSERT(os_socket->ref_count == 0);
@@ -233,10 +229,11 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
 
 void ListeningSocketRegistry::CloseAllSafe() {
   MutexLocker ml(&mutex_);
-
   for (SimpleHashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
        cursor = sockets_by_fd_.Next(cursor)) {
-    CloseOneSafe(reinterpret_cast<OSSocket*>(cursor->value), false);
+    OSSocket* os_socket = reinterpret_cast<OSSocket*>(cursor->value);
+    ASSERT(os_socket != NULL);
+    delete os_socket;
   }
 }
 
@@ -244,7 +241,7 @@ bool ListeningSocketRegistry::CloseSafe(Socket* socketfd) {
   ASSERT(!mutex_.TryLock());
   OSSocket* os_socket = LookupByFd(socketfd);
   if (os_socket != NULL) {
-    return CloseOneSafe(os_socket, true);
+    return CloseOneSafe(os_socket, socketfd);
   } else {
     // A finalizer may direct the event handler to close a listening socket
     // that it has never seen before. In this case, we return true to direct
@@ -1060,7 +1057,7 @@ static void StdioSocketFinalizer(void* isolate_data,
                                  void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
-    socket->SetClosedFd();
+    socket->CloseFd();
   }
   socket->Release();
 }
