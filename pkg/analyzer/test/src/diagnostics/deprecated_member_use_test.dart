@@ -518,7 +518,7 @@ export 'package:foo/foo.dart';
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
   }
 
-  test_fieldGet_constructor() async {
+  test_fieldGet_implicitGetter() async {
     resetWithFooLibrary(r'''
 class A {
   @Deprecated('0.9')
@@ -534,7 +534,7 @@ void main() { var b = A().bob; }
         sourceName: '/pkg1/lib/lib1.dart');
   }
 
-  test_fieldSet_constructor() async {
+  test_fieldSet_implicitSetter() async {
     resetWithFooLibrary(r'''
 class A {
   @Deprecated('0.9')
