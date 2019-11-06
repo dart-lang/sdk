@@ -880,156 +880,42 @@ class CodeGenerator extends Object
       if (prop != null) markSubtypeOf(prop);
     }
 
-    if (classElem.library.isDartCore) {
-      if (classElem == objectClass) {
-        // Everything is an Object.
-        body.add(js.statement(
-            '#.is = function is_Object(o) { return true; }', [className]));
-        body.add(js.statement(
-            '#.as = function as_Object(o) { return o; }', [className]));
-        body.add(js.statement(
-            '#._check = function check_Object(o) { return o; }', [className]));
-        return null;
-      }
-      if (classElem == stringClass) {
-        body.add(js.statement(
-            '#.is = function is_String(o) { return typeof o == "string"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == functionClass) {
-        body.add(js.statement(
-            '#.is = function is_Function(o) { return typeof o == "function"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_Function(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_Function(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == intClass) {
-        body.add(js.statement(
-            '#.is = function is_int(o) {'
-            '  return typeof o == "number" && Math.floor(o) == o;'
-            '}',
-            className));
-        body.add(js.statement(
-            '#.as = function as_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == nullClass) {
-        body.add(js.statement(
-            '#.is = function is_Null(o) { return o == null; }', className));
-        body.add(js.statement(
-            '#.as = function as_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == numClass || classElem == doubleClass) {
-        body.add(js.statement(
-            '#.is = function is_num(o) { return typeof o == "number"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == boolClass) {
-        body.add(js.statement(
-            '#.is = function is_bool(o) { return o === true || o === false; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
+    if (classElem.library.isDartCore &&
+        (classElem == objectClass ||
+            classElem == stringClass ||
+            classElem == functionClass ||
+            classElem == intClass ||
+            classElem == nullClass ||
+            classElem == numClass ||
+            classElem == doubleClass ||
+            classElem == boolClass)) {
+      // Custom type tests for these types are in the patch files.
+      return null;
     }
-    if (classElem.library.isDartAsync) {
-      if (classElem == types.futureOrElement) {
-        var typeParamT =
-            getLegacyTypeParameterType(classElem.typeParameters[0]);
-        var typeT = _emitType(typeParamT);
-        var futureOfT = _emitType(types.futureType2(typeParamT));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        body.add(js.statement('''
-            #._check = function check_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      }
+    if (classElem.library.isDartAsync && classElem == types.futureOrElement) {
+      var typeParamT = getLegacyTypeParameterType(classElem.typeParameters[0]);
+      var typeT = _emitType(typeParamT);
+      var futureOfT = _emitType(types.futureType2(typeParamT));
+      body.add(js.statement('''
+          #.is = function is_FutureOr(o) {
+            return #.is(o) || #.is(o);
+          }
+          ''', [className, typeT, futureOfT]));
+      // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+      // _ignoreTypeFailure logic.
+      body.add(js.statement('''
+          #.as = function as_FutureOr(o) {
+            if (o == null || #.is(o) || #.is(o)) return o;
+            return #.as(o, this, false);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      body.add(js.statement('''
+          #._check = function check_FutureOr(o) {
+            if (o == null || #.is(o) || #.is(o)) return o;
+            return #.as(o, this, true);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      return null;
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));
@@ -6185,10 +6071,16 @@ class CodeGenerator extends Object
   /// available. If the element is `external`, the element is used to statically
   /// resolve the JS interop/dart:html static member. Otherwise it is ignored.
   js_ast.Expression _emitStaticMemberName(String name, [Element element]) {
-    if (element != null && _isExternal(element)) {
-      var newName = getAnnotationName(element, isJSName) ??
-          _getJSInteropStaticMemberName(element);
-      if (newName != null) return js.escapedString(newName, "'");
+    if (element != null) {
+      if (_isExternal(element)) {
+        var newName = getAnnotationName(element, isJSName) ??
+            _getJSInteropStaticMemberName(element);
+        if (newName != null) return js.escapedString(newName, "'");
+      }
+      // Allow the Dart SDK to assign names to statics with the @JSExportName
+      // annotation.
+      var exportName = getJSExportName(element);
+      if (exportName != null) return propertyName(exportName);
     }
 
     switch (name) {

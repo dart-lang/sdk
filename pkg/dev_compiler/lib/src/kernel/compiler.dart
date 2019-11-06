@@ -968,159 +968,45 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (prop != null) markSubtypeOf(prop);
     }
 
-    // TODO(jmesserly): share these hand coded type checks with the old back
-    // end, perhaps by factoring them into a common file, or move them to be
-    // static methdos in the SDK. (Or wait until we delete the old back end.)
-    if (c.enclosingLibrary == _coreTypes.coreLibrary) {
-      if (c == _coreTypes.objectClass) {
-        // Everything is an Object.
-        body.add(js.statement(
-            '#.is = function is_Object(o) { return true; }', [className]));
-        body.add(js.statement(
-            '#.as = function as_Object(o) { return o; }', [className]));
-        body.add(js.statement(
-            '#._check = function check_Object(o) { return o; }', [className]));
-        return null;
-      }
-      if (c == _coreTypes.stringClass) {
-        body.add(js.statement(
-            '#.is = function is_String(o) { return typeof o == "string"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (c == _coreTypes.functionClass) {
-        body.add(js.statement(
-            '#.is = function is_Function(o) { return typeof o == "function"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_Function(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_String(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (c == _coreTypes.intClass) {
-        body.add(js.statement(
-            '#.is = function is_int(o) {'
-            '  return typeof o == "number" && Math.floor(o) == o;'
-            '}',
-            className));
-        body.add(js.statement(
-            '#.as = function as_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (c == _coreTypes.nullClass) {
-        body.add(js.statement(
-            '#.is = function is_Null(o) { return o == null; }', className));
-        body.add(js.statement(
-            '#.as = function as_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (c == _coreTypes.numClass || c == _coreTypes.doubleClass) {
-        body.add(js.statement(
-            '#.is = function is_num(o) { return typeof o == "number"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (c == _coreTypes.boolClass) {
-        body.add(js.statement(
-            '#.is = function is_bool(o) { return o === true || o === false; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
+    if (c.enclosingLibrary == _coreTypes.coreLibrary &&
+        (c == _coreTypes.objectClass ||
+            c == _coreTypes.stringClass ||
+            c == _coreTypes.functionClass ||
+            c == _coreTypes.intClass ||
+            c == _coreTypes.nullClass ||
+            c == _coreTypes.numClass ||
+            c == _coreTypes.doubleClass ||
+            c == _coreTypes.boolClass)) {
+      // Custom type tests for these types are in the patch files.
+      return null;
     }
-    if (c.enclosingLibrary == _coreTypes.asyncLibrary) {
-      if (c == _coreTypes.futureOrClass) {
-        var typeParam = TypeParameterType(c.typeParameters[0]);
-        var typeT = visitTypeParameterType(typeParam);
-        var futureOfT = visitInterfaceType(
-            InterfaceType(_coreTypes.futureClass, [typeParam]));
-        body.add(js.statement('''
-            #.is = function is_FutureOr(o) {
-              return #.is(o) || #.is(o);
-            }
-            ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
-        body.add(js.statement('''
-            #.as = function as_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        body.add(js.statement('''
-            #._check = function check_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
-            }
-            ''', [className, typeT, futureOfT, runtimeModule]));
-        return null;
-      }
+
+    if (c.enclosingLibrary == _coreTypes.asyncLibrary &&
+        c == _coreTypes.futureOrClass) {
+      var typeParam = TypeParameterType(c.typeParameters[0]);
+      var typeT = visitTypeParameterType(typeParam);
+      var futureOfT = visitInterfaceType(
+          InterfaceType(_coreTypes.futureClass, [typeParam]));
+      body.add(js.statement('''
+          #.is = function is_FutureOr(o) {
+            return #.is(o) || #.is(o);
+          }
+          ''', [className, typeT, futureOfT]));
+      // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+      // _ignoreTypeFailure logic.
+      body.add(js.statement('''
+          #.as = function as_FutureOr(o) {
+            if (o == null || #.is(o) || #.is(o)) return o;
+            return #.as(o, this, false);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      body.add(js.statement('''
+          #._check = function check_FutureOr(o) {
+            if (o == null || #.is(o) || #.is(o)) return o;
+            return #.as(o, this, true);
+          }
+          ''', [className, typeT, futureOfT, runtimeModule]));
+      return null;
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));
@@ -2352,8 +2238,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (member != null) {
       var jsName = _emitJSInteropStaticMemberName(member);
       if (jsName != null) return jsName;
-    }
 
+      // Allow the Dart SDK to assign names to statics with the @JSExportName
+      // annotation.
+      var exportName = _jsExportName(member);
+      if (exportName != null) return propertyName(exportName);
+    }
     switch (name) {
       // Reserved for the compiler to do `x as T`.
       case 'as':

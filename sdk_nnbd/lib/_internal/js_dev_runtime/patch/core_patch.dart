@@ -20,7 +20,7 @@ import 'dart:_js_helper'
         quoteStringForRegExp,
         undefined;
 import 'dart:_runtime' as dart;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:collection' show UnmodifiableMapView;
 import 'dart:convert' show Encoding, utf8;
@@ -63,12 +63,39 @@ class Object {
 
   @patch
   Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
+
+  // Everything is an Object.
+  @JSExportName('is')
+  static bool _is_Object(Object o) => true;
+
+  @JSExportName('as')
+  static Object _as_Object(Object o) => o;
+
+  @JSExportName('_check')
+  static Object _check_Object(Object o) => o;
 }
 
 @patch
 class Null {
   @patch
   int get hashCode => super.hashCode;
+
+  @JSExportName('is')
+  static bool _is_Null(Object o) => o == null;
+
+  @JSExportName('as')
+  static Object _as_Null(Object o) {
+    // Avoid extra function call to core.Null.is() by manually inlining.
+    if (o == null) return o;
+    return dart.cast(o, dart.unwrapType(Null), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_Null(Object o) {
+    // Avoid extra function call to core.Null.is() by manually inlining.
+    if (o == null) return o;
+    return dart.cast(o, dart.unwrapType(Null), true);
+  }
 }
 
 // Patch for Function implementation.
@@ -96,6 +123,24 @@ class Function {
       result[_symbolToString(symbol)] = value;
     });
     return result;
+  }
+
+  @JSExportName('is')
+  static bool _is_Function(Object o) =>
+      JS<bool>('!', 'typeof $o == "function"');
+
+  @JSExportName('as')
+  static Object _as_Function(Object o) {
+    // Avoid extra function call to core.Function.is() by manually inlining.
+    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(Function), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_Function(Object o) {
+    // Avoid extra function call to core.Function.is() by manually inlining.
+    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(Function), true);
   }
 }
 
@@ -157,6 +202,31 @@ class int {
     throw UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
   }
+
+  @JSExportName('is')
+  static bool _is_int(Object o) {
+    return JS<bool>('!', 'typeof $o == "number" && Math.floor($o) == $o');
+  }
+
+  @JSExportName('as')
+  static Object _as_int(Object o) {
+    // Avoid extra function call to core.int.is() by manually inlining.
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
+        o == null) {
+      return o;
+    }
+    return dart.cast(o, dart.unwrapType(int), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_int(Object o) {
+    // Avoid extra function call to core.int.is() by manually inlining.
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
+        o == null) {
+      return o;
+    }
+    return dart.cast(o, dart.unwrapType(int), true);
+  }
 }
 
 @patch
@@ -170,6 +240,47 @@ class double {
   @patch
   static double? tryParse(String source) {
     return Primitives.parseDouble(source, _kNull);
+  }
+
+  @JSExportName('is')
+  static bool _is_double(o) {
+    return JS<bool>('!', 'typeof $o == "number"');
+  }
+
+  @JSExportName('as')
+  static Object _as_double(o) {
+    // Avoid extra function call to core.double.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(double), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_double(o) {
+    // Avoid extra function call to core.double.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(double), true);
+  }
+}
+
+@patch
+abstract class num implements Comparable<num> {
+  @JSExportName('is')
+  static bool _is_num(o) {
+    return JS<bool>('!', 'typeof $o == "number"');
+  }
+
+  @JSExportName('as')
+  static Object _as_num(o) {
+    // Avoid extra function call to core.num.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(num), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_num(o) {
+    // Avoid extra function call to core.num.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(num), true);
   }
 }
 
@@ -532,6 +643,25 @@ class String {
     }
     return Primitives.stringFromCharCodes(list);
   }
+
+  @JSExportName('is')
+  static bool _is_String(Object o) {
+    return JS<bool>('!', 'typeof $o == "string"');
+  }
+
+  @JSExportName('as')
+  static Object _as_String(Object o) {
+    // Avoid extra function call to core.String.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(String), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_String(Object o) {
+    // Avoid extra function call to core.String.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(String), true);
+  }
 }
 
 @patch
@@ -545,6 +675,24 @@ class bool {
 
   @patch
   int get hashCode => super.hashCode;
+
+  @JSExportName('is')
+  static bool _is_bool(Object o) =>
+      JS<bool>('!', '$o === true || $o === false');
+
+  @JSExportName('as')
+  static Object _as_bool(Object o) {
+    // Avoid extra function call to core.bool.is() by manually inlining.
+    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(bool), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_bool(Object o) {
+    // Avoid extra function call to core.bool.is() by manually inlining.
+    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(bool), true);
+  }
 }
 
 @patch
