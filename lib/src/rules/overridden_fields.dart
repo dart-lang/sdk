@@ -163,8 +163,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     InterfaceType interface =
         interfaces.firstWhere(containsOverriddenMember, orElse: () => null);
-    return interface == null
-        ? null
-        : interface.accessors.firstWhere(isOverriddenMember);
+    return interface?.accessors?.firstWhere(isOverriddenMember);
   }
 }

@@ -28,7 +28,8 @@ main() {
 void defineLinterEngineTests() {
   group('engine', () {
     group('reporter', () {
-      _test(String label, String expected, report(PrintingReporter r)) {
+      _test(
+          String label, String expected, Function(PrintingReporter r) report) {
         test(label, () {
           String msg;
           PrintingReporter reporter = PrintingReporter((m) => msg = m);

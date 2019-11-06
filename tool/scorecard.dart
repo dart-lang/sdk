@@ -174,7 +174,7 @@ class ScoreCard {
     scores.add(score);
   }
 
-  void forEach(void f(LintScore element)) {
+  void forEach(void Function(LintScore element) f) {
     scores.forEach(f);
   }
 
@@ -273,7 +273,7 @@ class ScoreCard {
     return scorecard;
   }
 
-  void removeWhere(bool test(LintScore element)) {
+  void removeWhere(bool Function(LintScore element) test) {
     scores.removeWhere(test);
   }
 }

@@ -128,7 +128,7 @@ class _ContradictionReportRule extends LintRule {
   _ContradictionReportRule(ContradictoryComparisons comparisons)
       : super(
             name: 'invariant_booleans',
-            description: _desc + ' verify: ${comparisons.first}.',
+            description: '$_desc verify: ${comparisons.first}.',
             details: _details,
             group: Group.errors);
 }

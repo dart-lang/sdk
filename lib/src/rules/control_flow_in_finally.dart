@@ -128,7 +128,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
 
   AstNode _findEnablerNode(
       AstNode ancestor,
-      bool finallyBlockAncestorPredicate(AstNode n),
+      bool Function(AstNode n) finallyBlockAncestorPredicate,
       AstNode node,
       TryStatement tryStatement) {
     AstNode enablerNode;

@@ -89,9 +89,10 @@ linter:
 #    - prefer_generic_function_type_aliases # under review (see #1068)
     - prefer_initializing_formals
     - prefer_inlined_adds
-#    - prefer_interpolation_to_compose_strings
+    - prefer_interpolation_to_compose_strings
 #    - prefer_iterable_whereType (included in pedantic)
 #    - prefer_mixin
+    - prefer_null_aware_operators
     - prefer_relative_imports
     - prefer_single_quotes
     - prefer_spread_collections
@@ -114,7 +115,8 @@ linter:
     - unnecessary_parenthesis
     - unnecessary_statements
     - unnecessary_this
+    - use_function_type_syntax_for_parameters
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable
-#    - void_checks # under review (see #1068)
+    - void_checks # under review (see #1068)
