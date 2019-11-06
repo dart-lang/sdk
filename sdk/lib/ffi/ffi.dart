@@ -5,8 +5,7 @@
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
- * **NOTE**: Dart:FFI is in technical preview. The overall feature is incomplete,
- * may contain issues, and breaking API changes are still expected.
+ * **NOTE**: Dart:FFI is in beta, and breaking API changes might still happen.
  *
  * For further details, please see: https://dart.dev/server/c-interop
  *
