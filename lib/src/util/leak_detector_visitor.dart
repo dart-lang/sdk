@@ -149,12 +149,12 @@ bool _isInvocationThroughCascadeExpression(
 
 bool _isSimpleIdentifierElementEqualToVariable(
         AstNode n, VariableDeclaration variable) =>
-    (n is SimpleIdentifier &&
-        // Assignment to VariableDeclaration as variable.
-        (n.staticElement == variable.name.staticElement ||
-            (n.staticElement is PropertyAccessorElement &&
-                (n.staticElement as PropertyAccessorElement).variable ==
-                    variable.name.staticElement)));
+    n is SimpleIdentifier &&
+    // Assignment to VariableDeclaration as variable.
+    (n.staticElement == variable.name.staticElement ||
+        (n.staticElement is PropertyAccessorElement &&
+            (n.staticElement as PropertyAccessorElement).variable ==
+                variable.name.staticElement));
 
 typedef bool DartTypePredicate(DartType type);
 

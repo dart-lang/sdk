@@ -33,6 +33,7 @@ linter:
 #    - avoid_private_typedef_functions # under review (see #1068)
 #    - avoid_renaming_method_parameters # under review (see #1068)
     - avoid_returning_null
+    - avoid_returning_null_for_future
     - avoid_returning_this
     - avoid_setters_without_getters
 #    - avoid_single_cascade_in_expression_statements # under review (see #1068)
@@ -110,8 +111,8 @@ linter:
 #    - unnecessary_new (included in pedantic)
     - unnecessary_null_aware_assignments
     - unnecessary_overrides
-#    - unnecessary_parenthesis # under review (see #1068)
-#    - unnecessary_statements # under review (see #1068)
+    - unnecessary_parenthesis
+    - unnecessary_statements
     - unnecessary_this
     - use_setters_to_change_properties
     - use_string_buffers
