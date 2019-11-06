@@ -70,6 +70,26 @@ f() {
     ]);
   }
 
+  @soloTest
+  test_override_undefined_hasGetterAndNonExtensionSetter() async {
+    await assertErrorsInCode('''
+class C {
+  int get id => 0;
+  void set id(int v) {}
+}
+
+extension Ext on C {
+  int get id => 1;
+}
+
+f(C c) {
+  Ext(c).id++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 117, 2),
+    ]);
+  }
+
   test_static_undefined() async {
     await assertErrorsInCode('''
 extension E on int {}
