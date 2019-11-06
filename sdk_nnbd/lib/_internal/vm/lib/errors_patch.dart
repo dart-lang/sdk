@@ -590,3 +590,17 @@ class _DuplicatedFieldInitializerError extends Error {
 
   toString() => "Error: field '$_name' is already initialized.";
 }
+
+class _LateInitializationError extends Error
+    implements LateInitializationError {
+  _LateInitializationError(this._name);
+
+  @pragma("vm:entry-point")
+  static void _throwNew(String name) {
+    throw _LateInitializationError(name);
+  }
+
+  String toString() => "LateInitializationError: $_name";
+
+  final String _name;
+}

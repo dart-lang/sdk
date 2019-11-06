@@ -156,6 +156,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
+  Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
 
   Fragment EvaluateAssertion();

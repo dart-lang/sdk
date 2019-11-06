@@ -15,6 +15,7 @@ class A {
   late int? fieldWithInit = init();
   late int fieldWithTrivialInit = 123;
   late int? fieldWithNullInit = null;
+  late int fieldWithNoInit;
 }
 
 main() {
@@ -24,18 +25,24 @@ main() {
   Expect.equals(123, a.fieldWithInit);
   Expect.equals(123, a.fieldWithTrivialInit);
   Expect.equals(null, a.fieldWithNullInit);
+  Expect.throws(
+      () => a.fieldWithNoInit, (error) => error is LateInitializationError);
   Expect.equals(1, initCalls);
   Expect.equals(123, a.fieldWithInit);
   Expect.equals(123, a.fieldWithTrivialInit);
   Expect.equals(null, a.fieldWithNullInit);
+  Expect.throws(
+      () => a.fieldWithNoInit, (error) => error is LateInitializationError);
   Expect.equals(1, initCalls);
   a.fieldWithInit = 456;
   a.fieldWithTrivialInit = 456;
   a.fieldWithNullInit = 456;
+  a.fieldWithNoInit = 456;
   Expect.equals(1, initCalls);
   Expect.equals(456, a.fieldWithInit);
   Expect.equals(456, a.fieldWithTrivialInit);
   Expect.equals(456, a.fieldWithNullInit);
+  Expect.equals(456, a.fieldWithNoInit);
   Expect.equals(1, initCalls);
   initCalls = 0;
 

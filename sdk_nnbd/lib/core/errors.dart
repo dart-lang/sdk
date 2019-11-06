@@ -590,3 +590,8 @@ class CyclicInitializationError extends Error {
         : "Reading static variable '$variableName' during its initialization";
   }
 }
+
+/**
+ * Error thrown when a late field is set or get when it shouldn't be.
+ */
+class LateInitializationError extends Error {}

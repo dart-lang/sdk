@@ -415,6 +415,7 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
                                          LocalVariable* instance) {
   Fragment instructions;
   TargetEntryInstr *is_uninitialized, *is_initialized;
+  const TokenPosition position = field.token_pos();
 
   // Check whether the field has been initialized already.
   instructions += LoadLocal(instance);
@@ -438,15 +439,18 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     initialize += LoadLocal(instance);  // For the store.
     initialize += LoadLocal(instance);  // For the init call.
     initialize += PushArgument();
-    initialize += StaticCall(TokenPosition::kNoSource, init_function,
+    initialize += StaticCall(position, init_function,
                              /* argument_count = */ 1, ICData::kStatic);
-    initialize += StoreLocal(TokenPosition::kNoSource, temp);
+    initialize += StoreLocal(position, temp);
     initialize += StoreInstanceFieldGuarded(
         field, StoreInstanceFieldInstr::Kind::kInitializing);
     initialize += Goto(join);
   } else {
-    // TODO(liama): Throw a LateInitializationError.
-    UNIMPLEMENTED();
+    // The field has no initializer, so throw a LateInitializationError.
+    Fragment initialize(is_uninitialized);
+    initialize += ThrowLateInitializationError(
+        position, String::ZoneHandle(Z, field.name()));
+    initialize += Goto(join);
   }
 
   {
@@ -457,6 +461,30 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
 
   // Now that the field has been initialized, load it.
   instructions = Fragment(instructions.entry, join);
+
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
+                                                        const String& name) {
+  const Class& klass = Class::ZoneHandle(
+      Z, Library::LookupCoreClass(Symbols::LateInitializationError()));
+  ASSERT(!klass.IsNull());
+
+  const Function& throw_new =
+      Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
+                                  H.DartSymbolObfuscate("_throwNew")));
+  ASSERT(!throw_new.IsNull());
+
+  Fragment instructions;
+
+  // Call _LateInitializationError._throwNew.
+  instructions += Constant(name);
+  instructions += PushArgument();  // name
+
+  instructions += StaticCall(position, throw_new,
+                             /* argument_count = */ 1, ICData::kStatic);
+  instructions += Drop();
 
   return instructions;
 }
