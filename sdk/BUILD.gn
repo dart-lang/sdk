@@ -322,17 +322,49 @@ if (target_cpu == "x64") {
       dest = "$root_out_dir/dart-sdk/bin/model"
       ignore_patterns = "{}"
     },
-    {
-      target = "copy_libtensorflowlite_c"
-      visibility = [ ":create_common_sdk" ]
-      deps = [
-        ":copy_libraries",
-      ]
-      source = "../third_party/pkg/tflite_native/lib/src/blobs"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots"
-      ignore_patterns = "{}"
-    },
   ]
+  if (is_linux) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.dll,*mac64.so"
+      },
+    ]
+  }
+  if (is_mac) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.dll,*linux64.so"
+      },
+    ]
+  }
+  if (is_win) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.so"
+      },
+    ]
+  }
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
