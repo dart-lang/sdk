@@ -156,7 +156,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitCompilationUnit(CompilationUnit node) {
-    _graph.migrating(source);
+    _graph.migrating(node.declaredElement.library.source);
     return super.visitCompilationUnit(node);
   }
 
