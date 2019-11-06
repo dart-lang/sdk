@@ -16,9 +16,15 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
-main() async {
+main(List<String> args) async {
+  if (args.length > 1) {
+    throw 'invalid args. Specify *one* argument to get exceptions of interest.';
+  }
+
+  warnOnNoAssertions();
+  String categoryOfInterest = args.isEmpty ? null : args.single;
   var rootUri = Platform.script.resolve('../../..');
-  var listener = _Listener();
+  var listener = _Listener(categoryOfInterest);
   for (var testPath in [
     'third_party/pkg/charcode',
     'third_party/pkg/collection',
@@ -72,18 +78,38 @@ main() async {
   for (var entry in sortedExceptions) {
     print('  ${entry.key} (x${entry.value.length})');
   }
+
+  if (categoryOfInterest == null) {
+    print('\n(Note: to show stack traces & nodes for a particular failure,'
+        ' rerun with a search string as an argument.)');
+  }
 }
 
-/// Set this to a non-null value to cause any exception to be printed in full
-/// if its category contains the string.
-const String categoryOfInterest = null;
+void warnOnNoAssertions() {
+  try {
+    assert(false);
+  } catch (e) {
+    return;
+  }
 
-/// Set this to `true` to cause just the exception nodes to be printed when
-/// `categoryOfInterest` is non-null.  Set this to `false` to cause the full
-/// stack trace to be printed.
-const bool printExceptionNodeOnly = false;
+  print('''
+!!!
+!!! Warning! You didn't --enable-asserts!
+!!!
+''');
+}
 
 class _Listener implements NullabilityMigrationListener {
+  /// Set this to `true` to cause just the exception nodes to be printed when
+  /// `_Listener.categoryOfInterest` is non-null.  Set this to `false` to cause
+  /// the full stack trace to be printed.
+  /// TODO(mfairhurst): make this a cli flag?
+  static const bool printExceptionNodeOnly = false;
+
+  /// Set this to a non-null value to cause any exception to be printed in full
+  /// if its category contains the string.
+  final String categoryOfInterest;
+
   final groupedExceptions = <String, List<String>>{};
 
   int numExceptions = 0;
@@ -97,6 +123,8 @@ class _Listener implements NullabilityMigrationListener {
   int numRequiredAnnotationsAdded = 0;
 
   int numDeadCodeSegmentsFound = 0;
+
+  _Listener(this.categoryOfInterest);
 
   @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
