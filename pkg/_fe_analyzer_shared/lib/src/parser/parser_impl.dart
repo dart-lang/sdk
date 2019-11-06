@@ -3402,6 +3402,9 @@ class Parser {
         // TODO(danrubel): report invalid constructor name
         // Currently multiple listeners report this error, but that logic should
         // be removed and the error reported here instead.
+        if (isOperator) {
+          isConstructor = false;
+        }
       }
       if (getOrSet != null) {
         // Recovery
