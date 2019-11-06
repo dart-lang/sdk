@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/library_builder.dart';
 
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
@@ -63,6 +64,12 @@ class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   bool get isAssignable => member is Field && member.hasSetter;
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    throw new UnsupportedError('DillMemberBuilder.buildMembers');
+  }
 }
 
 int computeModifiers(Member member) {

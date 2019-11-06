@@ -103,8 +103,6 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   bool get isNative;
 
-  FunctionNode buildFunction(LibraryBuilder library);
-
   /// Returns the [index]th parameter of this function.
   ///
   /// The index is the syntactical index, including both positional and named
@@ -127,8 +125,6 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// Returns a list of synthetic type parameters added to extension instance
   /// members.
   List<TypeParameter> get extensionTypeParameters;
-
-  Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader);
 
@@ -339,7 +335,6 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  @override
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
@@ -496,6 +491,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       }
     }
   }
+
+  Member build(SourceLibraryBuilder library);
 
   @override
   void becomeNative(Loader loader) {

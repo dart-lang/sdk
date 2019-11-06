@@ -2060,23 +2060,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
-    Class cls;
-    Extension extension;
-    Member member;
-    Typedef typedef;
+    String findDuplicateSuffix(Builder declaration) {
+      if (declaration.next != null) {
+        int count = 0;
+        Builder current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        return "#$count";
+      }
+      return "";
+    }
+
     if (declaration is SourceClassBuilder) {
-      cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(this, coreLibrary);
+      if (!declaration.isPatch) {
+        cls.name += findDuplicateSuffix(declaration);
+        library.addClass(cls);
+      }
     } else if (declaration is SourceExtensionBuilder) {
-      extension = declaration.build(this, coreLibrary,
-          addMembersToLibrary: declaration.next == null);
-    } else if (declaration is FieldBuilder) {
-      member = declaration.build(this)..isStatic = true;
-    } else if (declaration is ProcedureBuilder) {
-      member = declaration.build(this)..isStatic = true;
+      Extension extension = declaration.build(this, coreLibrary,
+          addMembersToLibrary: !declaration.isDuplicate);
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addExtension(extension);
+      }
+    } else if (declaration is MemberBuilderImpl) {
+      declaration.buildMembers(this,
+          (Member member, BuiltMemberKind memberKind) {
+        if (member is Field) {
+          member.isStatic = true;
+        } else if (member is Procedure) {
+          member.isStatic = true;
+        }
+        if (!declaration.isPatch && !declaration.isDuplicate) {
+          library.addMember(member);
+        }
+      });
     } else if (declaration is TypeAliasBuilder) {
-      typedef = declaration.build(this);
+      Typedef typedef = declaration.build(this);
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addTypedef(typedef);
+      }
     } else if (declaration is EnumBuilder) {
-      cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(this, coreLibrary);
+      if (!declaration.isPatch) {
+        cls.name += findDuplicateSuffix(declaration);
+        library.addClass(cls);
+      }
     } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
       return;
@@ -2087,38 +2118,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       unhandled("${declaration.runtimeType}", "buildBuilder",
           declaration.charOffset, declaration.fileUri);
       return;
-    }
-    if (declaration.isPatch) {
-      // The kernel node of a patch is shared with the origin declaration. We
-      // have two builders: the origin, and the patch, but only one kernel node
-      // (which corresponds to the final output). Consequently, the node
-      // shouldn't be added to its apparent kernel parent as this would create
-      // a duplicate entry in the parent's list of children/members.
-      return;
-    }
-    if (cls != null) {
-      if (declaration.next != null) {
-        int count = 0;
-        Builder current = declaration.next;
-        while (current != null) {
-          count++;
-          current = current.next;
-        }
-        cls.name += "#$count";
-      }
-      library.addClass(cls);
-    } else if (extension != null) {
-      if (declaration.next == null) {
-        library.addExtension(extension);
-      }
-    } else if (member != null) {
-      if (declaration.next == null) {
-        library.addMember(member);
-      }
-    } else if (typedef != null) {
-      if (declaration.next == null) {
-        library.addTypedef(typedef);
-      }
     }
   }
 

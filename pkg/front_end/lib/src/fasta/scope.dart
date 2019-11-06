@@ -257,7 +257,7 @@ class Scope extends MutableScope {
     _local.forEach(f);
   }
 
-  void forEachLocalSetter(void Function(String name, Builder member) f) {
+  void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     _setters.forEach(f);
   }
 
@@ -623,15 +623,18 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind => null;
 
+  @override
   void buildOutlineExpressions(LibraryBuilder library) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }
 
+  @override
   void inferType() {
     throw new UnsupportedError('AmbiguousMemberBuilder.inferType');
   }
 
+  @override
   void inferCopiedType(covariant Object other) {
     throw new UnsupportedError('AmbiguousMemberBuilder.inferCopiedType');
   }

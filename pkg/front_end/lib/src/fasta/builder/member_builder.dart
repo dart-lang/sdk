@@ -120,6 +120,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   void buildOutlineExpressions(LibraryBuilder library) {}
 
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+
   @override
   String get fullNameForErrors => name;
 
@@ -133,6 +136,19 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+}
+
+enum BuiltMemberKind {
+  Constructor,
+  RedirectingFactory,
+  Field,
+  Method,
+  ExtensionField,
+  ExtensionMethod,
+  ExtensionGetter,
+  ExtensionSetter,
+  ExtensionOperator,
+  ExtensionTearOff,
 }
 
 class MemberDataForTesting {

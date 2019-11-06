@@ -66,8 +66,6 @@ abstract class FieldBuilder implements MemberBuilder {
 
   bool get isEligibleForInference;
 
-  Field build(SourceLibraryBuilder libraryBuilder);
-
   DartType get builtType;
 }
 
@@ -136,6 +134,17 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
       return false;
     }
     return true;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(
+        member,
+        isExtensionMember
+            ? BuiltMemberKind.ExtensionField
+            : BuiltMemberKind.Field);
   }
 
   Field build(SourceLibraryBuilder libraryBuilder) {

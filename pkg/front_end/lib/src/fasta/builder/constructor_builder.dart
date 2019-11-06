@@ -35,6 +35,7 @@ import 'class_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -63,10 +64,6 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   bool get isRedirectingGenerativeConstructor;
 
   bool get isEligibleForTopLevelInference;
-
-  Constructor build(SourceLibraryBuilder libraryBuilder);
-
-  FunctionNode buildFunction(LibraryBuilder library);
 
   /// The [Constructor] built by this builder.
   Constructor get constructor;
@@ -159,6 +156,13 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       }
     }
     return false;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(member, BuiltMemberKind.Constructor);
   }
 
   @override

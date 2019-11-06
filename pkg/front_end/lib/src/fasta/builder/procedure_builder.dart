@@ -25,7 +25,9 @@ import 'constructor_reference_builder.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'library_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -49,8 +51,6 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   /// Returns `true` if this procedure is declared in an extension declaration.
   bool get isExtensionMethod;
-
-  Procedure build(SourceLibraryBuilder libraryBuilder);
 }
 
 class ProcedureBuilderImpl extends FunctionBuilderImpl
@@ -152,6 +152,36 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   bool get isExtensionMethod {
     return parent is ExtensionBuilder;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    if (isExtensionMethod) {
+      switch (kind) {
+        case ProcedureKind.Method:
+          f(member, BuiltMemberKind.ExtensionMethod);
+          break;
+        case ProcedureKind.Getter:
+          f(member, BuiltMemberKind.ExtensionGetter);
+          break;
+        case ProcedureKind.Setter:
+          f(member, BuiltMemberKind.ExtensionSetter);
+          break;
+        case ProcedureKind.Operator:
+          f(member, BuiltMemberKind.ExtensionOperator);
+          break;
+        case ProcedureKind.Factory:
+          throw new UnsupportedError(
+              'Unexpected extension method kind ${kind}');
+      }
+      if (extensionTearOff != null) {
+        f(extensionTearOff, BuiltMemberKind.ExtensionTearOff);
+      }
+    } else {
+      f(member, BuiltMemberKind.Method);
+    }
   }
 
   @override
@@ -472,6 +502,13 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       }
       actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(member, BuiltMemberKind.RedirectingFactory);
   }
 
   @override
