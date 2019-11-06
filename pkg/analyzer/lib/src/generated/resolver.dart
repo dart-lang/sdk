@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -2697,9 +2698,6 @@ class ResolverVisitor extends ScopedVisitor {
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
-  InterfaceType _iterableForSetMapDisambiguationCached;
-  InterfaceType _mapForSetMapDisambiguationCached;
-
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -2790,31 +2788,6 @@ class ResolverVisitor extends ScopedVisitor {
     return _nonNullableEnabled
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
-  }
-
-  InterfaceType get _iterableForSetMapDisambiguation {
-    return _iterableForSetMapDisambiguationCached ??=
-        typeProvider.iterableElement.instantiate(
-      typeArguments: [
-        typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get _mapForSetMapDisambiguation {
-    return _mapForSetMapDisambiguationCached ??=
-        typeProvider.mapElement.instantiate(
-      typeArguments: [
-        typeProvider.dynamicType,
-        typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
   }
 
   /**
@@ -4509,9 +4482,9 @@ class ResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
       bool isIterable = typeSystem.isSubtypeOf(
-          unwrappedContextType, _iterableForSetMapDisambiguation);
+          unwrappedContextType, typeProvider.iterableForSetMapDisambiguation);
       bool isMap = typeSystem.isSubtypeOf(
-          unwrappedContextType, _mapForSetMapDisambiguation);
+          unwrappedContextType, typeProvider.mapForSetMapDisambiguation);
       if (isIterable && !isMap) {
         return _LiteralResolution(
             _LiteralResolutionKind.set, unwrappedContextType);
@@ -4834,7 +4807,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   final Source source;
 
   /// The object used to access the types from the core library.
-  final TypeProvider typeProvider;
+  final TypeProviderImpl typeProvider;
 
   /// The error reporter that will be informed of any errors that are found
   /// during resolution.
@@ -6380,12 +6353,12 @@ abstract class TypeProvider {
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
-  @Deprecated('Use nonSubtypableClasses instead.')
-  List<InterfaceType> get nonSubtypableTypes;
+  Set<ClassElement> get nonSubtypableClasses;
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
-  Set<ClassElement> get nonSubtypableClasses;
+  @Deprecated('Use nonSubtypableClasses instead.')
+  List<InterfaceType> get nonSubtypableTypes;
 
   /// Return the element representing the built-in class 'null'.
   ClassElement get nullElement;

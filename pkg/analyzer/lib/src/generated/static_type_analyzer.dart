@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -47,7 +48,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The object providing access to the types defined by the language.
    */
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
 
   /**
    * The type system in use for static type analysis.
@@ -70,9 +71,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   DartType thisType;
 
-  InterfaceType _iterableForSetMapDisambiguationCached;
-  InterfaceType _mapForSetMapDisambiguationCached;
-
   /**
    * The object providing promoted or declared types of variables.
    */
@@ -94,31 +92,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
-  }
-
-  InterfaceType get _iterableForSetMapDisambiguation {
-    return _iterableForSetMapDisambiguationCached ??=
-        _typeProvider.iterableElement.instantiate(
-      typeArguments: [
-        _typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get _mapForSetMapDisambiguation {
-    return _mapForSetMapDisambiguationCached ??=
-        _typeProvider.mapElement.instantiate(
-      typeArguments: [
-        _typeProvider.dynamicType,
-        _typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
   }
 
   NullabilitySuffix get _noneOrStarSuffix {
@@ -1636,7 +1609,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       bool isNull = expressionType.isDartCoreNull;
       if (!isNull && expressionType is InterfaceType) {
         if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.iterableObjectType)) {
+            expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableElement);
           return _InferredCollectionElementTypeInformation(
@@ -1644,7 +1617,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.mapObjectObjectType)) {
+            expressionType, _typeProvider.mapForSetMapDisambiguation)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapElement);
           List<DartType> typeArguments = mapType.typeArguments;
@@ -1999,9 +1972,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     bool contextProvidesAmbiguityResolutionClues =
         contextType != null && contextType is! UnknownInferredType;
     bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _iterableForSetMapDisambiguation);
+        _typeSystem.isSubtypeOf(
+            contextType, _typeProvider.iterableForSetMapDisambiguation);
     bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _mapForSetMapDisambiguation);
+        _typeSystem.isSubtypeOf(
+            contextType, _typeProvider.mapForSetMapDisambiguation);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
     } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {

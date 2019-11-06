@@ -55,6 +55,7 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement _mapElement;
   ClassElement _nullElement;
   ClassElement _numElement;
+  ClassElement _objectElement;
   ClassElement _setElement;
   ClassElement _streamElement;
   ClassElement _stringElement;
@@ -87,6 +88,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _stringType;
   InterfaceType _symbolType;
   InterfaceType _typeType;
+
+  InterfaceType _iterableForSetMapDisambiguation;
+  InterfaceType _mapForSetMapDisambiguation;
 
   Set<ClassElement> _nonSubtypableClasses;
 
@@ -221,6 +225,25 @@ class TypeProviderImpl extends TypeProviderBase {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
+  /// Return the type that should be used during disambiguation between `Set`
+  /// and `Map` literals. If NNBD enabled, use `Iterable<Object?, Object?>`,
+  /// otherwise use `Iterable<Object*, Object*>*`.
+  InterfaceType get iterableForSetMapDisambiguation {
+    if (_iterableForSetMapDisambiguation == null) {
+      var objectType = objectElement.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: _questionOrStarSuffix,
+      );
+      _iterableForSetMapDisambiguation = iterableElement.instantiate(
+        typeArguments: [
+          objectType,
+        ],
+        nullabilitySuffix: _questionOrStarSuffix,
+      );
+    }
+    return _iterableForSetMapDisambiguation;
+  }
+
   @override
   InterfaceType get iterableObjectType {
     _iterableObjectType ??= InterfaceTypeImpl.explicit(
@@ -251,6 +274,26 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get mapElement {
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
+  }
+
+  /// Return the type that should be used during disambiguation between `Set`
+  /// and `Map` literals. If NNBD enabled, use `Map<Object?, Object?>`,
+  /// otherwise use `Map<Object*, Object*>*`.
+  InterfaceType get mapForSetMapDisambiguation {
+    if (_mapForSetMapDisambiguation == null) {
+      var objectType = objectElement.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: _questionOrStarSuffix,
+      );
+      _mapForSetMapDisambiguation = mapElement.instantiate(
+        typeArguments: [
+          objectType,
+          objectType,
+        ],
+        nullabilitySuffix: _questionOrStarSuffix,
+      );
+    }
+    return _mapForSetMapDisambiguation;
   }
 
   @override
@@ -311,6 +354,10 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get numType {
     _numType ??= _getType(_coreLibrary, "num");
     return _numType;
+  }
+
+  ClassElement get objectElement {
+    return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
 
   @override
@@ -386,6 +433,12 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   VoidType get voidType => VoidTypeImpl.instance;
+
+  NullabilitySuffix get _questionOrStarSuffix {
+    return _nullabilitySuffix == NullabilitySuffix.none
+        ? NullabilitySuffix.question
+        : NullabilitySuffix.star;
+  }
 
   @override
   InterfaceType futureOrType2(DartType valueType) {
