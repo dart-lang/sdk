@@ -2140,6 +2140,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     }
     return other is TypeParameterTypeImpl &&
         other.element == element &&
+        other.bound == bound &&
         other.nullabilitySuffix == nullabilitySuffix;
   }
 

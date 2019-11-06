@@ -4877,19 +4877,6 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-  }
-
-  TypeParameterTypeImpl typeParameterTypeQuestion(
-      TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.question);
-  }
-
-  TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
-  }
-
   void _defineType(String str, DartType type) {
     for (var key in _types.keys) {
       if (key == 'Never' || _typeStr(type) == 'Never') {

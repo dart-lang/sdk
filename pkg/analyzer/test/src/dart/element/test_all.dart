@@ -10,6 +10,7 @@ import 'inheritance_manager3_test.dart' as inheritance_manager3;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'subtype_test.dart' as subtype;
 import 'type_algebra_test.dart' as type_algebra;
+import 'type_parameter_element_test.dart' as type_parameter_element;
 
 /// Utility for manually running all tests.
 main() {
@@ -20,5 +21,6 @@ main() {
     least_upper_bound_helper.main();
     subtype.main();
     type_algebra.main();
+    type_parameter_element.main();
   }, name: 'element');
 }

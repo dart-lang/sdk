@@ -7549,11 +7549,17 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
       return true;
     }
-    return object is TypeParameterElementImpl && object.location == location;
+    if (other is TypeParameterElement) {
+      if (other.enclosingElement == null || enclosingElement == null) {
+        return identical(other, this);
+      }
+      return other.location == location;
+    }
+    return false;
   }
 
   @override

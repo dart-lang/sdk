@@ -862,10 +862,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   TypeParameterType get type => _type;
 
   @override
-  bool operator ==(Object other) =>
-      other is TypeParameterMember &&
-      other.baseElement == baseElement &&
-      other._bound == _bound;
+  bool operator ==(Object other) {
+    return baseElement == other;
+  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>

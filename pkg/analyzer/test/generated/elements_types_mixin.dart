@@ -190,4 +190,17 @@ mixin ElementsTypesMixin {
       nullabilitySuffix: nullabilitySuffix,
     );
   }
+
+  TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+  }
+
+  TypeParameterTypeImpl typeParameterTypeQuestion(
+      TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.question);
+  }
+
+  TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
+  }
 }
