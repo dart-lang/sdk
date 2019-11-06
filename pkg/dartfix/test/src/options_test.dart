@@ -29,8 +29,9 @@ main() {
     bool showHelp = false,
     String normalOut,
     bool pedanticFixes = false,
+    String previewDir,
+    String previewPort,
     bool requiredFixes = false,
-    String outputDir,
     bool overwrite = false,
     String serverSnapshot,
     List<String> targetSuffixes,
@@ -55,8 +56,9 @@ main() {
     }
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
+    expect(options.previewDir, previewDir);
+    expect(options.previewPort, previewPort);
     expect(options.requiredFixes, requiredFixes);
-    expect(options.outputDir, outputDir);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
     expect(options.showHelp, showHelp);
@@ -117,16 +119,20 @@ main() {
         errorOut: 'Expected directory, but found', exitCode: 21);
   });
 
-  test('outputDir', () {
-    parse(['--outputDir=bar', 'foo'], outputDir: 'bar');
-  });
-
   test('overwrite', () {
     parse(['--overwrite', 'foo'], overwrite: true, targetSuffixes: ['foo']);
   });
 
   test('pedantic fixes', () {
     parse(['--pedantic', 'foo'], pedanticFixes: true);
+  });
+
+  test('previewDir', () {
+    parse(['--preview-dir=bar', 'foo'], previewDir: 'bar');
+  });
+
+  test('previewPort', () {
+    parse(['--preview-port=8080', 'foo'], previewPort: '8080');
   });
 
   test('required fixes', () {

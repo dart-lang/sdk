@@ -128,13 +128,21 @@ class Driver {
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
     }
-    String dir = options.outputDir;
-    if (dir != null) {
-      if (!path.isAbsolute(dir)) {
-        dir = path.absolute(dir);
+    String previewDir = options.previewDir;
+    if (previewDir != null) {
+      if (!path.isAbsolute(previewDir)) {
+        previewDir = path.absolute(previewDir);
       }
-      dir = path.canonicalize(dir);
-      params.outputDir = dir;
+      previewDir = path.canonicalize(previewDir);
+      params.outputDir = previewDir;
+    }
+    String previewPort = options.previewPort;
+    if (previewPort != null) {
+      try {
+        params.port = int.parse(previewPort);
+      } on FormatException {
+        logger.stderr('Invalid port number: ignored');
+      }
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
