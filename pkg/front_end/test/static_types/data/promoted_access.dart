@@ -8,8 +8,8 @@
 class Class<T> {
   method(T o) {
     if (/*cfe|dart2js.T*/ /*cfe:nnbd.T%*/ o is Class) {
-      /*cfe|dart2js.T extends Class<dynamic>*/
-      /*cfe:nnbd.T! extends Class<dynamic>!*/
+      /*cfe|dart2js.T & Class<dynamic>*/
+      /*cfe:nnbd.T! & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
     }
   }
@@ -17,8 +17,8 @@ class Class<T> {
 
 method<T>(T o) {
   if (/*cfe|dart2js.T*/ /*cfe:nnbd.T%*/ o is Class) {
-    /*cfe|dart2js.T extends Class<dynamic>*/
-    /*cfe:nnbd.T! extends Class<dynamic>!*/
+    /*cfe|dart2js.T & Class<dynamic>*/
+    /*cfe:nnbd.T! & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
   }
 }

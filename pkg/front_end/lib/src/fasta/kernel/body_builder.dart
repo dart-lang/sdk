@@ -874,9 +874,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-
-    typeInferrer?.inferFunctionBody(
-        this, _computeReturnTypeContext(member), asyncModifier, body);
+    typeInferrer?.inferFunctionBody(this, _computeReturnTypeContext(member),
+        asyncModifier, builder.member.function, body);
     if (body != null) {
       libraryBuilder.loader.transformPostInference(
           body, transformSetLiterals, transformCollections);
@@ -1258,7 +1257,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, const DynamicType(), AsyncMarker.Sync, null, fakeReturn);
 
     return fakeReturn.expression;
   }
@@ -4251,6 +4250,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
+        // This is matched by the call to [beginNode] in [enterFunction].
+        typeInferrer?.assignedVariables
+            ?.endNode(variable.initializer, isClosure: true);
         Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
@@ -4280,9 +4282,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         } else {
           push(declaration);
         }
+        // This is matched by the call to [beginNode] in [enterFunction].
+        typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
       }
-      // This is matched by the call to [beginNode] in [enterFunction].
-      typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
     } else {
       return unhandled("${declaration.runtimeType}", "pushNamedFunction",
           token.charOffset, uri);

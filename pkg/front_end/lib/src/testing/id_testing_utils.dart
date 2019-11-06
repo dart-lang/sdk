@@ -465,7 +465,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write(nullabilityToText(node.nullability,
         isNonNullableByDefault: isNonNullableByDefault));
     if (node.promotedBound != null) {
-      sb.write(' extends ');
+      sb.write(' & ');
       visit(node.promotedBound);
     }
   }

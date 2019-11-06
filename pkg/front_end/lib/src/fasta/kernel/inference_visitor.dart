@@ -239,6 +239,7 @@ class InferenceVisitor
         node.operand, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
     node.operand = operandResult.expression..parent = node;
+    inferrer.flowAnalysis.asExpression_end(node.operand, node.type);
     return new ExpressionInferenceResult(node.type, node);
   }
 
@@ -249,9 +250,9 @@ class InferenceVisitor
 
   @override
   void visitAssertStatement(AssertStatement node) {
+    inferrer.flowAnalysis.assert_begin();
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
-    inferrer.flowAnalysis.assert_begin();
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
         node.condition, expectedType, !inferrer.isTopLevel,
         isVoidAllowed: true);
@@ -301,7 +302,8 @@ class InferenceVisitor
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    // No inference needs to be done.
+    // TODO(johnniwinther): Refactor break/continue encoding.
+    inferrer.flowAnalysis.handleBreak(node.target);
   }
 
   ExpressionInferenceResult visitCascade(Cascade node, DartType typeContext) {
@@ -988,6 +990,7 @@ class InferenceVisitor
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    inferrer.flowAnalysis.functionExpression_begin(node);
     inferrer.inferMetadataKeepingHelper(
         node.variable, node.variable.annotations);
     DartType returnContext =
@@ -995,13 +998,16 @@ class InferenceVisitor
     DartType inferredType =
         visitFunctionNode(node.function, null, returnContext, node.fileOffset);
     node.variable.type = inferredType;
+    inferrer.flowAnalysis.functionExpression_end();
   }
 
   @override
   ExpressionInferenceResult visitFunctionExpression(
       FunctionExpression node, DartType typeContext) {
+    inferrer.flowAnalysis.functionExpression_begin(node);
     DartType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
+    inferrer.flowAnalysis.functionExpression_end();
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -1032,6 +1038,7 @@ class InferenceVisitor
             lhsResult.inferredType, equalsName, node.fileOffset)
         .member;
 
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(node.left);
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     ExpressionInferenceResult rhsResult;
@@ -1043,6 +1050,8 @@ class InferenceVisitor
       rhsResult = inferrer.inferExpression(node.right, typeContext, true,
           isVoidAllowed: true);
     }
+    inferrer.flowAnalysis.ifNullExpression_end();
+
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
@@ -1154,6 +1163,8 @@ class InferenceVisitor
         node.operand, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: false);
     node.operand = operandResult.expression..parent = node;
+    inferrer.flowAnalysis
+        .isExpression_end(node, node.operand, /*isNot:*/ false, node.type);
     return new ExpressionInferenceResult(
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), node);
   }
@@ -1490,13 +1501,17 @@ class InferenceVisitor
     ExpressionInferenceResult leftResult = inferrer.inferExpression(
         node.left, boolType, !inferrer.isTopLevel,
         isVoidAllowed: false);
+    Expression left = inferrer.ensureAssignableResult(boolType, leftResult);
+    node.left = left..parent = node;
+    inferrer.flowAnalysis
+        .logicalBinaryOp_rightBegin(node.left, isAnd: node.operator == '&&');
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         node.right, boolType, !inferrer.isTopLevel,
         isVoidAllowed: false);
-    Expression left = inferrer.ensureAssignableResult(boolType, leftResult);
-    node.left = left..parent = node;
     Expression right = inferrer.ensureAssignableResult(boolType, rightResult);
     node.right = right..parent = node;
+    inferrer.flowAnalysis
+        .logicalBinaryOp_end(node, node.right, isAnd: node.operator == '&&');
     return new ExpressionInferenceResult(boolType, node);
   }
 
@@ -2168,6 +2183,7 @@ class InferenceVisitor
         boolType, operandResult,
         fileOffset: node.fileOffset);
     node.operand = operand..parent = node;
+    inferrer.flowAnalysis.logicalNot_end(node, node.operand);
     return new ExpressionInferenceResult(boolType, node);
   }
 
@@ -2181,6 +2197,7 @@ class InferenceVisitor
     node.operand = operandResult.expression..parent = node;
     // TODO(johnniwinther): Check that the inferred type is potentially
     //  nullable.
+    inferrer.flowAnalysis.nonNullAssert_end(node.operand);
     // TODO(johnniwinther): Return `NonNull(inferredType)`.
     return new ExpressionInferenceResult(operandResult.inferredType, node);
   }
@@ -3090,18 +3107,45 @@ class InferenceVisitor
   /// the already inferred type of the [left] expression. The inferred type of
   /// [right] is computed by this method. If [isNot] is `true` the result is
   /// negated to perform a != operation.
-  // TODO(johnniwinther): Extract handle of == from [_computeBinaryExpression].
   ExpressionInferenceResult _computeEqualsExpression(
       int fileOffset, Expression left, DartType leftType, Expression right,
       {bool isNot}) {
     assert(isNot != null);
-    ExpressionInferenceResult equalsResult =
-        _computeBinaryExpression(fileOffset, left, leftType, equalsName, right);
-    if (isNot) {
-      equalsResult = new ExpressionInferenceResult(equalsResult.inferredType,
-          new Not(equalsResult.expression)..fileOffset = fileOffset);
+    inferrer.flowAnalysis.equalityOp_rightBegin(left);
+    ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
+        leftType, equalsName, fileOffset,
+        includeExtensionMethods: true);
+
+    bool typeNeeded = !inferrer.isTopLevel;
+    ExpressionInferenceResult rightResult = inferrer.inferExpression(
+        right, const UnknownType(), typeNeeded,
+        isVoidAllowed: false);
+    right = rightResult.expression;
+
+    assert(equalsTarget.isInstanceMember);
+    if (inferrer.instrumentation != null && leftType == const DynamicType()) {
+      inferrer.instrumentation.record(
+          inferrer.uriForInstrumentation,
+          fileOffset,
+          'target',
+          new InstrumentationValueForMember(equalsTarget.member));
     }
-    return equalsResult;
+
+    Expression equals = new MethodInvocation(
+        left,
+        equalsName,
+        new Arguments(<Expression>[
+          right,
+        ])
+          ..fileOffset = fileOffset,
+        equalsTarget.member)
+      ..fileOffset = fileOffset;
+    if (isNot) {
+      equals = new Not(equals)..fileOffset = fileOffset;
+    }
+    inferrer.flowAnalysis.equalityOp_end(equals, right, notEqual: isNot);
+    return new ExpressionInferenceResult(
+        inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), equals);
   }
 
   /// Creates a binary expression of the binary operator with [binaryName] using
@@ -3112,6 +3156,8 @@ class InferenceVisitor
   /// [right] is computed by this method.
   ExpressionInferenceResult _computeBinaryExpression(int fileOffset,
       Expression left, DartType leftType, Name binaryName, Expression right) {
+    assert(binaryName != equalsName);
+
     ObjectAccessTarget binaryTarget = inferrer.findInterfaceMember(
         leftType, binaryName, fileOffset,
         includeExtensionMethods: true);
@@ -3145,8 +3191,6 @@ class InferenceVisitor
     if (isOverloadedArithmeticOperatorAndType) {
       binaryType = inferrer.typeSchemaEnvironment
           .getTypeOfOverloadedArithmetic(leftType, rightResult.inferredType);
-    } else if (binaryName == equalsName) {
-      binaryType = inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     }
 
     Expression binary;
@@ -4081,6 +4125,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitNullLiteral(
       NullLiteral node, DartType typeContext) {
+    inferrer.flowAnalysis.nullLiteral(node);
     return new ExpressionInferenceResult(inferrer.coreTypes.nullType, node);
   }
 
@@ -4608,6 +4653,12 @@ class InferenceVisitor
   }
 
   void visitCatch(Catch node) {
+    if (node.exception != null) {
+      inferrer.flowAnalysis.initialize(node.exception);
+    }
+    if (node.stackTrace != null) {
+      inferrer.flowAnalysis.initialize(node.stackTrace);
+    }
     inferrer.inferStatement(node.body);
   }
 
@@ -4654,6 +4705,7 @@ class InferenceVisitor
     Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
         fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
     node.value = rhs..parent = node;
+    inferrer.flowAnalysis.write(node.variable, rhsResult.inferredType);
     return new ExpressionInferenceResult(rhsResult.inferredType, node);
   }
 
@@ -4669,6 +4721,7 @@ class InferenceVisitor
           isVoidAllowed: true);
       inferredType =
           inferrer.inferDeclarationType(initializerResult.inferredType);
+      inferrer.flowAnalysis.initialize(node);
     } else {
       inferredType = const DynamicType();
     }
@@ -4700,11 +4753,20 @@ class InferenceVisitor
   ExpressionInferenceResult visitVariableGet(
       covariant VariableGetImpl node, DartType typeContext) {
     VariableDeclarationImpl variable = node.variable;
-    bool mutatedInClosure = variable._mutatedInClosure;
-    DartType declaredOrInferredType = variable.type;
+    bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
+    if (isUnassigned) {
+      inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
+    }
 
-    DartType promotedType = inferrer.typePromoter
-        .computePromotedType(node._fact, node._scope, mutatedInClosure);
+    DartType promotedType;
+    DartType declaredOrInferredType = variable.type;
+    if (inferrer.isNonNullableByDefault) {
+      promotedType = inferrer.flowAnalysis.variableRead(node, variable);
+    } else {
+      bool mutatedInClosure = variable._mutatedInClosure;
+      promotedType = inferrer.typePromoter
+          .computePromotedType(node._fact, node._scope, mutatedInClosure);
+    }
     if (promotedType != null) {
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,

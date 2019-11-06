@@ -26,14 +26,8 @@ main(List<String> args) async {
             experimentalFlags: const {ExperimentalFlag.nonNullable: true})
       ]),
       skipList: [
-        // TODO(dmitryas): Run all nullability tests.
-        'assign.dart',
-        'if.dart',
-        'is.dart',
-        'logical.dart',
+        // TODO(johnniwinther): Run all nullability tests.
         'null_aware_access.dart',
-        'null_check.dart',
-        'potentially_mutated_in_closure.dart',
         'try_finally.dart',
         'while.dart',
       ]);

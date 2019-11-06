@@ -409,7 +409,7 @@ abstract class TypeInferrer {
 
   /// Performs type inference on the given function body.
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body);
+      AsyncMarker asyncMarker, FunctionNode function, Statement body);
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(InferenceHelper helper, Initializer initializer);
@@ -1482,10 +1482,18 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {
+      AsyncMarker asyncMarker, FunctionNode function, Statement body) {
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
+    if (function != null) {
+      for (VariableDeclaration parameter in function.positionalParameters) {
+        flowAnalysis.initialize(parameter);
+      }
+      for (VariableDeclaration parameter in function.namedParameters) {
+        flowAnalysis.initialize(parameter);
+      }
+    }
     inferStatement(body);
     closureContext = null;
     this.helper = null;
@@ -1846,6 +1854,7 @@ class TypeInferrerImpl implements TypeInferrer {
           function.positionalParameters;
       for (int i = 0; i < positionalParameters.length; i++) {
         VariableDeclaration parameter = positionalParameters[i];
+        flowAnalysis.initialize(parameter);
         inferMetadataKeepingHelper(parameter, parameter.annotations);
         if (parameter.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -1855,6 +1864,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
       }
       for (VariableDeclaration parameter in function.namedParameters) {
+        flowAnalysis.initialize(parameter);
         inferMetadataKeepingHelper(parameter, parameter.annotations);
         ExpressionInferenceResult initializerResult =
             inferExpression(parameter.initializer, parameter.type, !isTopLevel);
@@ -2582,6 +2592,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Expression createMissingBinary(int fileOffset, Expression left,
       DartType leftType, Name binaryName, Expression right) {
+    assert(binaryName != equalsName);
     if (isTopLevel) {
       return engine.forest.createMethodInvocation(fileOffset, left, binaryName,
           engine.forest.createArguments(fileOffset, <Expression>[right]));

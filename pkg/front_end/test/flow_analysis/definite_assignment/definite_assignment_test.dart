@@ -30,19 +30,11 @@ main(List<String> args) async {
             experimentalFlags: const {ExperimentalFlag.nonNullable: true})
       ]),
       skipList: [
-        // TODO(dmitryas): Run all definite assignment tests.
-        'assert.dart',
-        'assignment.dart',
-        'binary_expression.dart',
-        'conditional_expression.dart',
+        // TODO(johnniwinther): Update break/continue handling to support these:
         'do.dart',
         'for.dart',
         'for_each.dart',
-        'function_expression.dart',
-        'if.dart',
-        'initialization.dart',
         'switch.dart',
-        'try.dart',
         'while.dart',
       ]);
 }
@@ -76,7 +68,7 @@ class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
   @override
   String computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
-      if (_flowResult.unassignedNodes.contains(node.variable)) {
+      if (_flowResult.unassignedNodes.contains(node)) {
         return 'unassigned';
       }
     }

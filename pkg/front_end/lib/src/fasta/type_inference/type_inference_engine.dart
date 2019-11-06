@@ -307,10 +307,15 @@ class TypeOperationsCfe
   DartType variableType(VariableDeclaration variable) => variable.type;
 
   @override
-  DartType tryPromoteToType(DartType from, DartType to) {
-    if (from is TypeParameterType) {
-      return new TypeParameterType(from.parameter, to, from.nullability);
+  DartType tryPromoteToType(DartType to, DartType from) {
+    if (isSubtypeOf(to, from)) {
+      return to;
     }
-    return to;
+    if (from is TypeParameterType) {
+      if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
+        return new TypeParameterType(from.parameter, to, from.nullability);
+      }
+    }
+    return from;
   }
 }
