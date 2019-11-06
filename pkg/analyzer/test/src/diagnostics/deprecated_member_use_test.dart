@@ -518,6 +518,38 @@ export 'package:foo/foo.dart';
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
   }
 
+  test_fieldGet_constructor() async {
+    resetWithFooLibrary(r'''
+class A {
+  @Deprecated('0.9')
+  bool bob = true;
+}
+''');
+
+    newPubPackage('/pkg1');
+    await assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+void main() { var b = A().bob; }
+''', [HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE],
+        sourceName: '/pkg1/lib/lib1.dart');
+  }
+
+  test_fieldSet_constructor() async {
+    resetWithFooLibrary(r'''
+class A {
+  @Deprecated('0.9')
+  bool bob = true;
+}
+''');
+
+    newPubPackage('/pkg1');
+    await assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+void main() { A().bob = false; }
+''', [HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE],
+        sourceName: '/pkg1/lib/lib1.dart');
+  }
+
   test_gnWorkspace() async {
     resetWithFooLibrary(r'''
 @deprecated
@@ -602,7 +634,7 @@ void main() => A().m();
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
   }
 
-  test_methodInvocation_contructor() async {
+  test_methodInvocation_constructor() async {
     resetWithFooLibrary(r'''
 class A {
   @Deprecated('0.9')
@@ -633,5 +665,21 @@ f(A a) {}
 ''', // This is a cross-package deprecated member usage.
         [HintCode.DEPRECATED_MEMBER_USE],
         sourceName: '/workspace/package/lib/lib1.dart');
+  }
+
+  test_setterInvocation_constructor() async {
+    resetWithFooLibrary(r'''
+class A {
+  @Deprecated('0.9')
+  set bob(bool b) { }
+}
+''');
+
+    newPubPackage('/pkg1');
+    await assertErrorsInCode(r'''
+import 'package:foo/foo.dart';
+void main() { A().bob = false; }
+''', [HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE],
+        sourceName: '/pkg1/lib/lib1.dart');
   }
 }

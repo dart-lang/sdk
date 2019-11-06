@@ -1360,6 +1360,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
   static String _deprecatedMessage(Element element) {
+    // Implicit getters/setters.
+    if (element.isSynthetic && element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
     ElementAnnotationImpl annotation = element.metadata.firstWhere(
       (e) => e.isDeprecated,
       orElse: () => null,
