@@ -46,14 +46,14 @@ main(List<String> args) async {
     await Future.wait(<Future>[
       run(genSnapshot, <String>[
         '--use-bare-instructions',
-        '--snapshot-kind=app-aot-blobs',
-        '--blobs_container_filename=$scriptBareSnapshot',
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$scriptBareSnapshot',
         scriptDill,
       ]),
       run(genSnapshot, <String>[
         '--no-use-bare-instructions',
-        '--snapshot-kind=app-aot-blobs',
-        '--blobs_container_filename=$scriptNonBareSnapshot',
+        '--snapshot-kind=app-aot-elf',
+        '--elf=$scriptNonBareSnapshot',
         scriptDill,
       ]),
     ]);

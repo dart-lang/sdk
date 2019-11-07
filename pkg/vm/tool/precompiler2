@@ -17,7 +17,7 @@ set -e
 OPTIONS=()
 GEN_KERNEL_OPTIONS=()
 PACKAGES=
-BUILD_ELF=0
+BUILD_ASM=0
 
 ARGV=()
 for arg in "$@"; do
@@ -36,8 +36,8 @@ for arg in "$@"; do
     -D* )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;
-    --build-elf)
-    BUILD_ELF=1
+    --build-assembly)
+    BUILD_ASM=1
     ;;
     --*)
     OPTIONS+=("$arg")
@@ -56,12 +56,12 @@ fi
 SOURCE_FILE="${ARGV[0]}"
 SNAPSHOT_FILE="${ARGV[1]}"
 
-if [ $BUILD_ELF -eq 1 ]; then
+if [ $BUILD_ASM -eq 1 ]; then
   GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-assembly"
   GEN_SNAPSHOT_FILENAME="--assembly=${SNAPSHOT_FILE}.S"
 else
-  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-blobs"
-  GEN_SNAPSHOT_FILENAME="--blobs_container_filename=${SNAPSHOT_FILE}"
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-elf"
+  GEN_SNAPSHOT_FILENAME="--elf=${SNAPSHOT_FILE}"
 fi
 
 function follow_links() {
@@ -109,6 +109,6 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
      "$SNAPSHOT_FILE.dill"
 
 # Step 3: Assemble the assembly file into an ELF object.
-if [ $BUILD_ELF -eq 1 ]; then
+if [ $BUILD_ASM -eq 1 ]; then
     gcc -shared -o "$SNAPSHOT_FILE" "${SNAPSHOT_FILE}.S"
 fi
