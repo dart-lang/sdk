@@ -508,45 +508,28 @@ abstract class BoundTestBase extends AbstractTypeSystemTest {
       DartType type1, DartType type2, DartType expectedResult) {
     var glb = typeSystem.getGreatestLowerBound(type1, type2);
     expect(glb, expectedResult);
+
     // Check that the result is a lower bound.
     expect(typeSystem.isSubtypeOf(glb, type1), true);
     expect(typeSystem.isSubtypeOf(glb, type2), true);
-    // Check for symmetry while we're at it.  Unfortunately,
-    // for function types, the current version of equality
-    // does not respect re-ordering of named parameters, so
-    // for function types we just check if they are mutual subtypes.
-    // https://github.com/dart-lang/sdk/issues/26126
-    // TODO(leafp): Fix this.
+
+    // Check for symmetry while we're at it.
     glb = typeSystem.getGreatestLowerBound(type2, type1);
-    if (glb is FunctionTypeImpl) {
-      expect(typeSystem.isSubtypeOf(glb, expectedResult), true);
-      expect(typeSystem.isSubtypeOf(expectedResult, glb), true);
-    } else {
-      expect(glb, expectedResult);
-    }
+    expect(glb, expectedResult);
   }
 
   void _checkLeastUpperBound(
       DartType type1, DartType type2, DartType expectedResult) {
     var lub = typeSystem.getLeastUpperBound(type1, type2);
     expect(lub, expectedResult);
+
     // Check that the result is an upper bound.
     expect(typeSystem.isSubtypeOf(type1, lub), true);
     expect(typeSystem.isSubtypeOf(type2, lub), true);
 
-    // Check for symmetry while we're at it.  Unfortunately,
-    // for function types, the current version of equality
-    // does not respect re-ordering of named parameters, so
-    // for function types we just check if they are mutual subtypes.
-    // https://github.com/dart-lang/sdk/issues/26126
-    // TODO(leafp): Fix this.
+    // Check for symmetry while we're at it.
     lub = typeSystem.getLeastUpperBound(type2, type1);
-    if (lub is FunctionTypeImpl) {
-      expect(typeSystem.isSubtypeOf(lub, expectedResult), true);
-      expect(typeSystem.isSubtypeOf(expectedResult, lub), true);
-    } else {
-      expect(lub, expectedResult);
-    }
+    expect(lub, expectedResult);
   }
 }
 
