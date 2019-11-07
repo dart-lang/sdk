@@ -58,7 +58,8 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
-        MixinDeclarationImpl;
+        MixinDeclarationImpl,
+        TypeParameterImpl;
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -2141,9 +2142,14 @@ class AstBuilder extends StackListener {
 
     // Peek to leave type parameters on top of stack.
     List<TypeParameter> typeParameters = peek();
-    typeParameters[index]
+    TypeParameter typeParameter = typeParameters[index];
+    typeParameter
       ..extendsKeyword = extendsOrSuper
       ..bound = bound;
+
+    if (typeParameter is TypeParameterImpl) {
+      typeParameter.varianceKeyword = variance;
+    }
   }
 
   @override

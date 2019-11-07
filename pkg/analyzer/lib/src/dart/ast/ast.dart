@@ -9969,10 +9969,16 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 /// A type parameter.
 ///
 ///    typeParameter ::=
-///        [SimpleIdentifier] ('extends' [TypeName])?
+///        typeParameterVariance? [SimpleIdentifier] ('extends' [TypeName])?
+///
+///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// The name of the type parameter.
   SimpleIdentifierImpl _name;
+
+  /// The token representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  Token varianceKeyword;
 
   /// The token representing the 'extends' keyword, or `null` if there is no
   /// explicit upper bound.
