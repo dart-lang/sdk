@@ -1422,35 +1422,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return returnType.type;
   }
 
-  /// If [node] is a null-shorting expression, updates flow analysis as
-  /// appropriate to finish the null shorting, and returns `true`.  Otherwise
-  /// returns `false`.
-  bool _finishNullShorting(Expression node) {
-    bool nullShortingFound = false;
-    while (true) {
-      Expression next;
-      if (node is AssignmentExpression) {
-        next = node.leftHandSide;
-      } else if (node is IndexExpression) {
-        if (node.isNullAware) {
-          nullShortingFound = true;
-          _flowAnalysis?.flow?.nullAwareAccess_end();
-        }
-        next = node.target;
-      } else if (node is PropertyAccess) {
-        if (node.isNullAware) {
-          nullShortingFound = true;
-          _flowAnalysis?.flow?.nullAwareAccess_end();
-        }
-        next = node.target;
-      } else {
-        break;
-      }
-      node = next;
-    }
-    return nullShortingFound;
-  }
-
   /**
    * If the given element name can be mapped to the name of a class defined within the given
    * library, return the type specified by the argument.
@@ -2063,20 +2034,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _nullShortingTermination(Expression node) {
     if (!_nonNullableEnabled) return;
 
-    var parent = node.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
-      return;
-    }
-    if (parent is PropertyAccess) {
-      return;
-    }
-    if (parent is IndexExpression && parent.target == node) {
-      return;
-    }
-
-    if (_finishNullShorting(node)) {
-      var type = node.staticType;
-      node.staticType = _typeSystem.makeNullable(type);
+    if (identical(_resolver.unfinishedNullShorts.last, node)) {
+      do {
+        _resolver.unfinishedNullShorts.removeLast();
+        _flowAnalysis.flow.nullAwareAccess_end();
+      } while (identical(_resolver.unfinishedNullShorts.last, node));
+      node.staticType = _typeSystem.makeNullable(node.staticType);
     }
   }
 

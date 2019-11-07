@@ -2702,6 +2702,13 @@ class ResolverVisitor extends ScopedVisitor {
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
+  /// Stack of expressions which we have not yet finished visiting, that should
+  /// terminate a null-shorting expression.
+  ///
+  /// The stack contains a `null` sentinel as its first entry so that it is
+  /// always safe to use `.last` to examine the top of the stack.
+  final List<Expression> unfinishedNullShorts = [null];
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -3817,8 +3824,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
-    if (node.isNullAware) {
-      _flowAnalysis?.flow?.nullAwareAccess_rightBegin(node.target);
+    if (node.isNullAware && _nonNullableEnabled) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     var method = node.staticElement;
@@ -4014,8 +4022,9 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the property access node.
     //
     node.target?.accept(this);
-    if (node.isNullAware) {
-      _flowAnalysis?.flow?.nullAwareAccess_rightBegin(node.target);
+    if (node.isNullAware && _nonNullableEnabled) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
