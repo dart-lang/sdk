@@ -355,6 +355,7 @@ class BlobImageWriter : public ImageWriter {
                   uint8_t** instructions_blob_buffer,
                   ReAlloc alloc,
                   intptr_t initial_size,
+                  intptr_t bss_base = 0,
                   Elf* elf = nullptr,
                   Dwarf* dwarf = nullptr);
 
@@ -368,8 +369,9 @@ class BlobImageWriter : public ImageWriter {
   intptr_t WriteByteSequence(uword start, uword end);
 
   WriteStream instructions_blob_stream_;
-  Elf* elf_;
-  Dwarf* dwarf_;
+  Elf* const elf_;
+  Dwarf* const dwarf_;
+  const intptr_t bss_base_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };

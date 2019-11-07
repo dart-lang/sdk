@@ -6200,12 +6200,18 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
     dwarf = new (Z) Dwarf(Z, nullptr, elf);
   }
 
+  // Note that the BSS section must come first because it cannot be placed in
+  // between any two non-writable segments, due to a bug in Jelly Bean's ELF
+  // loader. See also Elf::WriteProgramTable().
+  const intptr_t bss_base =
+      elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
+
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, /* initial_size= */ 2 * MB,
-                                  elf, dwarf);
-  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       /* initial_size= */ 2 * MB, elf, dwarf);
+                                  bss_base, elf, dwarf);
+  BlobImageWriter isolate_image_writer(
+      T, &isolate_snapshot_instructions_buffer, ApiReallocate,
+      /* initial_size= */ 2 * MB, bss_base, elf, dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);

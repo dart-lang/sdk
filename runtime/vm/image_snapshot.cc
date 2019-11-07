@@ -833,12 +833,14 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
+                                 intptr_t bss_base,
                                  Elf* elf,
                                  Dwarf* dwarf)
     : ImageWriter(thread->heap()),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
-      dwarf_(dwarf) {
+      dwarf_(dwarf),
+      bss_base_(bss_base) {
 #ifndef DART_PRECOMPILER
   RELEASE_ASSERT(elf_ == nullptr);
   RELEASE_ASSERT(dwarf_ == nullptr);
@@ -859,14 +861,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   if (elf_ != nullptr) {
     segment_base = elf_->NextMemoryOffset();
   }
-
-  // Calculate the start of the BSS section based on the known size of the
-  // text section and page alignment.
-  intptr_t bss_base = 0;
-  if (elf_ != nullptr) {
-    bss_base =
-        Utils::RoundUp(segment_base + instructions_length, Elf::kPageSize);
-  }
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
@@ -874,7 +868,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   instructions_blob_stream_.WriteTargetWord(instructions_length);
 #if defined(DART_PRECOMPILER)
   instructions_blob_stream_.WriteTargetWord(
-      elf_ != nullptr ? bss_base - segment_base : 0);
+      elf_ != nullptr ? bss_base_ - segment_base : 0);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
@@ -1008,8 +1002,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         instructions_blob_stream_.SetPosition(payload_stream_start +
                                               reloc_offset);
 
-        const uword offset =
-            bss_base - (segment_base + payload_stream_start + reloc_offset) +
+        const compiler::target::word offset =
+            bss_base_ - (segment_base + payload_stream_start + reloc_offset) +
             addend;
         instructions_blob_stream_.WriteTargetWord(offset);
       }
@@ -1035,10 +1029,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
-
-    const intptr_t real_bss_base =
-        elf_->AddBSSData("_kDartVMBSSData", sizeof(compiler::target::uword));
-    ASSERT(bss_base == real_bss_base);
   }
 #endif
 }
