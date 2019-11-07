@@ -116,11 +116,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /// Creates a function type that's not associated with any element in the
   /// element tree.
-  FunctionTypeImpl.synthetic(this.returnType, this.typeFormals, this.parameters,
+  FunctionTypeImpl.synthetic(
+      this.returnType, this.typeFormals, List<ParameterElement> parameters,
       {Element element,
       List<DartType> typeArguments,
       @required NullabilitySuffix nullabilitySuffix})
-      : typeArguments = typeArguments ?? const <DartType>[],
+      : parameters = _sortNamedParameters(parameters),
+        typeArguments = typeArguments ?? const <DartType>[],
         nullabilitySuffix = nullabilitySuffix,
         super(element, null);
 
@@ -273,11 +275,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
 
       return returnType == object.returnType &&
-          TypeImpl.equalArrays(
-              normalParameterTypes, object.normalParameterTypes) &&
-          TypeImpl.equalArrays(
-              optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes) &&
+          _equalParameters(parameters, object.parameters) &&
           nullabilitySuffix == object.nullabilitySuffix;
     }
     return false;
@@ -793,29 +791,71 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return variablesFresh;
   }
 
-  /**
-   * Return `true` if all of the name/type pairs in the first map ([firstTypes])
-   * are equal to the corresponding name/type pairs in the second map
-   * ([secondTypes]). The maps are expected to iterate over their entries in the
-   * same order in which those entries were added to the map.
-   */
-  static bool _equals(
-      Map<String, DartType> firstTypes, Map<String, DartType> secondTypes) {
-    if (secondTypes.length != firstTypes.length) {
+  /// Return `true` if given lists of parameters are semantically - have the
+  /// same kinds (required, optional position, named, required named), and
+  /// the same types. Named parameters must also have same names. Named
+  /// parameters must be sorted in the given lists.
+  static bool _equalParameters(
+    List<ParameterElement> firstParameters,
+    List<ParameterElement> secondParameters,
+  ) {
+    if (firstParameters.length != secondParameters.length) {
       return false;
     }
-    Iterator<String> firstKeys = firstTypes.keys.iterator;
-    Iterator<String> secondKeys = secondTypes.keys.iterator;
-    while (firstKeys.moveNext() && secondKeys.moveNext()) {
-      String firstKey = firstKeys.current;
-      String secondKey = secondKeys.current;
-      TypeImpl firstType = firstTypes[firstKey];
-      TypeImpl secondType = secondTypes[secondKey];
-      if (firstKey != secondKey || firstType != secondType) {
+    for (var i = 0; i < firstParameters.length; ++i) {
+      var firstParameter = firstParameters[i];
+      var secondParameter = secondParameters[i];
+      // ignore: deprecated_member_use_from_same_package
+      if (firstParameter.parameterKind != secondParameter.parameterKind) {
+        return false;
+      }
+      if (firstParameter.type != secondParameter.type) {
+        return false;
+      }
+      if (firstParameter.isNamed &&
+          firstParameter.name != secondParameter.name) {
         return false;
       }
     }
     return true;
+  }
+
+  /// If named parameters are already sorted in [parameters], return it.
+  /// Otherwise, return a new list, in which named parameters are sorted.
+  static List<ParameterElement> _sortNamedParameters(
+    List<ParameterElement> parameters,
+  ) {
+    int firstNamedParameterIndex;
+
+    // Check if already sorted.
+    var namedParametersAlreadySorted = true;
+    var lastNamedParameterName = '';
+    for (var i = 0; i < parameters.length; ++i) {
+      var parameter = parameters[i];
+      if (parameter.isNamed) {
+        firstNamedParameterIndex ??= i;
+        var name = parameter.name;
+        if (lastNamedParameterName.compareTo(name) > 0) {
+          namedParametersAlreadySorted = false;
+          break;
+        }
+        lastNamedParameterName = name;
+      }
+    }
+    if (namedParametersAlreadySorted) {
+      return parameters;
+    }
+
+    // Sort named parameters.
+    var namedParameters =
+        parameters.sublist(firstNamedParameterIndex, parameters.length);
+    namedParameters.sort((a, b) => a.name.compareTo(b.name));
+
+    // Combine into a new list, with sorted named parameters.
+    var newParameters = parameters.toList();
+    newParameters.replaceRange(
+        firstNamedParameterIndex, parameters.length, namedParameters);
+    return newParameters;
   }
 }
 

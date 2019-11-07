@@ -111,6 +111,188 @@ class FunctionTypeTest with ElementsTypesMixin {
         nullabilitySuffix: NullabilitySuffix.star,
       );
 
+  test_equality_leftRequired_rightPositional() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        positionalParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_differentName() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'b', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_differentType() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_equal() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, f2);
+  }
+
+  test_equality_namedParameters_extraLeft() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_extraRight() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_required_left() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedRequiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_required_right() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedRequiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_requiredParameters_extraLeft() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        requiredParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_requiredParameters_extraRight() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        requiredParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_new_sortsNamedParameters() {
+    var f = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'c', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.intType),
+      ],
+    );
+    var parameters = f.parameters;
+    expect(parameters, hasLength(3));
+    expect(parameters[0].name, 'a');
+    expect(parameters[1].name, 'b');
+    expect(parameters[2].name, 'c');
+  }
+
   test_synthetic() {
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [],
         nullabilitySuffix: NullabilitySuffix.star);

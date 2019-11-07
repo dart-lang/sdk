@@ -1683,28 +1683,6 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_functionType_65() {
-    isSubtype(
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'c', type: intStar),
-          namedParameter(name: 'b', type: intStar),
-          namedParameter(name: 'a', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'a', type: intStar),
-          namedParameter(name: 'c', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      strT0: 'void Function({c: int*, b: int*, a: int*})*',
-      strT1: 'void Function({a: int*, c: int*})*',
-    );
-  }
-
   test_functionType_66() {
     isSubtype(
       functionTypeStar(
@@ -1727,28 +1705,6 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_functionType_67() {
-    isSubtype(
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'c', type: intStar),
-          namedParameter(name: 'b', type: intStar),
-          namedParameter(name: 'a', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'b', type: intStar),
-          namedParameter(name: 'c', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      strT0: 'void Function({c: int*, b: int*, a: int*})*',
-      strT1: 'void Function({b: int*, c: int*})*',
-    );
-  }
-
   test_functionType_68() {
     isSubtype(
       functionTypeStar(
@@ -1766,27 +1722,6 @@ class SubtypeTest extends _SubtypingTestBase {
         returnType: voidNone,
       ),
       strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({c: int*})*',
-    );
-  }
-
-  test_functionType_69() {
-    isSubtype(
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'c', type: intStar),
-          namedParameter(name: 'b', type: intStar),
-          namedParameter(name: 'a', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      functionTypeStar(
-        parameters: [
-          namedParameter(name: 'c', type: intStar),
-        ],
-        returnType: voidNone,
-      ),
-      strT0: 'void Function({c: int*, b: int*, a: int*})*',
       strT1: 'void Function({c: int*})*',
     );
   }
