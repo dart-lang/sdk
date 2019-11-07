@@ -144,7 +144,7 @@ Future<bool> runTestForConfig<T>(
   if (errors.isNotEmpty) {
     String _formatError(AnalysisError e) {
       var locationInfo = result.unit.lineInfo.getLocation(e.offset);
-      return '$locationInfo: ${e.message}';
+      return '$locationInfo: ${e.errorCode}: ${e.message}';
     }
 
     onFailure('Errors found:\n  ${errors.map(_formatError).join('\n  ')}');
