@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 
-typedef bool AstNodePredicate(AstNode node);
+typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
   static bool extendsClass(DartType type, String className, String library) =>

@@ -159,4 +159,4 @@ String _generateTest(String libName, String className) => '''
 
 ''';
 
-typedef String _Generator(String libName, String className);
+typedef _Generator = String Function(String libName, String className);

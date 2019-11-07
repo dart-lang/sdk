@@ -342,7 +342,7 @@ AstNode _getNodeToAnnotate(Declaration node) {
 
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef bool ElementProcessor(Element element);
+typedef ElementProcessor = bool Function(Element element);
 
 class HasConstErrorListener extends AnalysisErrorListener {
   static const List<CompileTimeErrorCode> errorCodes = [

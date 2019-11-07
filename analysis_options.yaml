@@ -84,9 +84,11 @@ linter:
     - prefer_expression_function_bodies
     - prefer_final_fields
 #    - prefer_final_locals
+    - prefer_for_elements_to_map_fromIterable
     - prefer_foreach
 #    - prefer_function_declarations_over_variables
-#    - prefer_generic_function_type_aliases # under review (see #1068)
+    - prefer_generic_function_type_aliases
+    - prefer_if_null_operators
     - prefer_initializing_formals
     - prefer_inlined_adds
     - prefer_interpolation_to_compose_strings
@@ -97,7 +99,8 @@ linter:
     - prefer_single_quotes
     - prefer_spread_collections
 #    - prefer_typing_uninitialized_variables # under review (see #1068)
-#    - prefer_void_to_null # under review (see #1068)
+    - prefer_void_to_null
+    - provide_deprecation_message
 #    - public_member_api_docs
 #    - sort_constructors_first
 #    - sort_unnamed_constructors_first

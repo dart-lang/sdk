@@ -156,13 +156,13 @@ bool _isSimpleIdentifierElementEqualToVariable(
             (n.staticElement as PropertyAccessorElement).variable ==
                 variable.name.staticElement));
 
-typedef bool DartTypePredicate(DartType type);
+typedef DartTypePredicate = bool Function(DartType type);
 
-typedef bool _Predicate(AstNode node);
+typedef _Predicate = bool Function(AstNode node);
 
-typedef _Predicate _PredicateBuilder(VariableDeclaration v);
+typedef _PredicateBuilder = _Predicate Function(VariableDeclaration v);
 
-typedef void _VisitVariableDeclaration(VariableDeclaration node);
+typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
   static final _variablePredicateBuilders = <_PredicateBuilder>[_hasReturn];

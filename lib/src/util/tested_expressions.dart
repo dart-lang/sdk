@@ -65,7 +65,7 @@ bool _sameOperands(String eLeftOperand, String bcLeftOperand,
   return sameOperandsSameOrder || sameOperandsInverted;
 }
 
-typedef void _RecurseCallback(Expression expression);
+typedef _RecurseCallback = void Function(Expression expression);
 
 class ContradictoryComparisons {
   final Expression first;

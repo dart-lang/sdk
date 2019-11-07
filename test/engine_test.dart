@@ -188,7 +188,7 @@ void defineLinterEngineTests() {
   });
 }
 
-typedef NodeVisitor(node);
+typedef NodeVisitor = void Function(Object node);
 
 class MockLinter extends LintRule {
   final NodeVisitor nodeVisitor;
