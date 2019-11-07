@@ -5,7 +5,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 

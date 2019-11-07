@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,6 @@ class IncludesTypeParametersCovariantlyTest {
   final TypeParameter T = new TypeParameter('T');
   final TypeParameter U = new TypeParameter('U');
   final TypeParameter V = new TypeParameter('V');
-  final Class cls = new Class(name: 'C');
 
   bool check(DartType type, List<TypeParameter> typeParameters) {
     return type.accept(new IncludesTypeParametersNonCovariantly(typeParameters,
@@ -120,6 +119,7 @@ class IncludesTypeParametersCovariantlyTest {
   }
 
   void test_interface_type() {
+    Class cls = new Class(name: 'C', typeParameters: [T, U]);
     expect(
         check(
             new InterfaceType(cls, Nullability.legacy, [tpt(T), tpt(U)]), [T]),
@@ -157,6 +157,28 @@ class IncludesTypeParametersCovariantlyTest {
     expect(checkContravariant(tpt(T), [T, U]), isFalse);
     expect(checkContravariant(tpt(U), [T, U]), isFalse);
     expect(checkContravariant(tpt(V), [T, U]), isFalse);
+
+    // Type parameters with explicit variance do not need contravariant checks
+    // if the variance position is greater or equal to the variance of the
+    // parameter on the [Variance] lattice.
+    expect(check(tpt(T, variance: Variance.covariant), [T, U]), isTrue);
+    expect(check(tpt(T, variance: Variance.contravariant), [T, U]), isFalse);
+    expect(check(tpt(T, variance: Variance.invariant), [T, U]), isFalse);
+    expect(check(tpt(V, variance: Variance.covariant), [T, U]), isFalse);
+    expect(check(tpt(V, variance: Variance.contravariant), [T, U]), isFalse);
+    expect(check(tpt(V, variance: Variance.invariant), [T, U]), isFalse);
+    expect(checkContravariant(tpt(T, variance: Variance.covariant), [T, U]),
+        isFalse);
+    expect(checkContravariant(tpt(T, variance: Variance.contravariant), [T, U]),
+        isTrue);
+    expect(checkContravariant(tpt(T, variance: Variance.invariant), [T, U]),
+        isFalse);
+    expect(checkContravariant(tpt(V, variance: Variance.covariant), [T, U]),
+        isFalse);
+    expect(checkContravariant(tpt(V, variance: Variance.contravariant), [T, U]),
+        isFalse);
+    expect(checkContravariant(tpt(V, variance: Variance.invariant), [T, U]),
+        isFalse);
   }
 
   void test_typedef_type() {
@@ -202,6 +224,7 @@ class IncludesTypeParametersCovariantlyTest {
         isFalse);
   }
 
-  TypeParameterType tpt(TypeParameter param) =>
-      new TypeParameterType(param, Nullability.legacy);
+  TypeParameterType tpt(TypeParameter param, {int variance = null}) =>
+      new TypeParameterType(param, Nullability.legacy)
+        ..parameter.variance = variance;
 }

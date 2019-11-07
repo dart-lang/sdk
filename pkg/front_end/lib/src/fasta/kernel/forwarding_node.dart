@@ -24,6 +24,7 @@ import "package:kernel/ast.dart"
         TypeParameterType,
         VariableDeclaration,
         VariableGet,
+        Variance,
         VoidType;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
@@ -35,7 +36,7 @@ import "../builder/class_builder.dart";
 import "../problems.dart" show unhandled;
 
 import "../type_inference/type_inference_engine.dart"
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 

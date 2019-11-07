@@ -6,7 +6,7 @@ library fasta.field_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' hide MapEntry, Variance;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -30,7 +30,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrerImpl;

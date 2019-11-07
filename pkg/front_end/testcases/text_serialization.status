@@ -1166,3 +1166,4 @@ top_level_variance_test: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
 variance/mixin_type_parameter_modifier: TextSerializationFailure
+variance/generic_covariance_sound_variance: TextSerializationFailure

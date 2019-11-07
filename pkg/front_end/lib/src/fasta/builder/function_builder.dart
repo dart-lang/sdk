@@ -7,7 +7,7 @@ library fasta.procedure_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
@@ -34,7 +34,7 @@ import '../problems.dart' show unexpected;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import 'builder.dart';
 import 'class_builder.dart';
