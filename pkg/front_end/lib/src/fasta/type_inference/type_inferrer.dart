@@ -1446,6 +1446,8 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
       result = expression.acceptInference(visitor, typeContext);
+    } else if (expression is InternalExpression) {
+      result = expression.acceptInference(visitor, typeContext);
     } else {
       result = expression.accept1(visitor, typeContext);
     }
