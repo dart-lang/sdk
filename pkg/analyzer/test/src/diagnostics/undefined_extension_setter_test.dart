@@ -70,7 +70,6 @@ f() {
     ]);
   }
 
-  @soloTest
   test_override_undefined_hasGetterAndNonExtensionSetter() async {
     await assertErrorsInCode('''
 class C {

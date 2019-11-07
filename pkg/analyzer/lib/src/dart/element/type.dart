@@ -445,7 +445,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-    Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
     DartType returnType = this.returnType;
 
     if (returnType == null) {
@@ -492,19 +491,25 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       buffer.write(']');
       needsComma = true;
     }
-    if (namedParameterTypes.isNotEmpty) {
+
+    var namedParameters = parameters.where((e) => e.isNamed).toList();
+    if (namedParameters.isNotEmpty) {
       startOptionalParameters();
       buffer.write('{');
-      namedParameterTypes.forEach((String name, DartType type) {
+      for (var parameter in namedParameters) {
         writeSeparator();
-        buffer.write(name);
+        if (withNullability && parameter.isRequiredNamed) {
+          buffer.write('required ');
+        }
+        buffer.write(parameter.name);
         buffer.write(': ');
-        (type as TypeImpl)
+        (parameter.type as TypeImpl)
             .appendTo(buffer, visitedTypes, withNullability: withNullability);
-      });
+      }
       buffer.write('}');
       needsComma = true;
     }
+
     buffer.write(')');
     if (withNullability) {
       _appendNullability(buffer);
