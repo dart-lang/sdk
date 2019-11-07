@@ -169,6 +169,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return badUsageExitCode;
   }
 
+  if (aot) {
+    if (!linkPlatform) {
+      print('Error: --no-link-platform option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (splitOutputByPackages) {
+      print(
+          'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+  }
+
   final BytecodeOptions bytecodeOptions = new BytecodeOptions(
     enableAsserts: enableAsserts,
     emitSourceFiles: embedSources,

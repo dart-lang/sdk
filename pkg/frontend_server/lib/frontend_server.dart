@@ -360,6 +360,26 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
+    if (options['aot']) {
+      if (!options['link-platform']) {
+        print('Error: --no-link-platform option cannot be used with --aot');
+        return false;
+      }
+      if (options['split-output-by-packages']) {
+        print(
+            'Error: --split-output-by-packages option cannot be used with --aot');
+        return false;
+      }
+      if (options['incremental']) {
+        print('Error: --incremental option cannot be used with --aot');
+        return false;
+      }
+      if (options['import-dill'] != null) {
+        print('Error: --import-dill option cannot be used with --aot');
+        return false;
+      }
+    }
+
     compilerOptions.bytecode = options['gen-bytecode'] ?? options['aot'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
       enableAsserts: options['enable-asserts'],
