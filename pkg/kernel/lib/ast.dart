@@ -3743,7 +3743,11 @@ class InstanceCreation extends Expression {
   final List<Expression> unusedArguments;
 
   InstanceCreation(this.classReference, this.typeArguments, this.fieldValues,
-      this.asserts, this.unusedArguments);
+      this.asserts, this.unusedArguments) {
+    setParents(fieldValues.values.toList(), this);
+    setParents(asserts, this);
+    setParents(unusedArguments, this);
+  }
 
   Class get classNode => classReference.asClass;
 

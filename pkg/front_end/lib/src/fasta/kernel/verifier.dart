@@ -42,9 +42,9 @@ import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
 
 List<LocatedMessage> verifyComponent(Component component,
-    {bool isOutline: false, bool skipPlatform: false}) {
+    {bool isOutline, bool afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, skipPlatform);
+      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
@@ -55,9 +55,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   Uri fileUri;
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, this.skipPlatform) {
-    this.isOutline = isOutline;
-  }
+  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+      : super(isOutline: isOutline, afterConst: afterConst);
 
   Uri checkLocation(TreeNode node, String name, Uri fileUri) {
     if (name == null || name.contains("#")) {

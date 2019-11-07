@@ -146,13 +146,13 @@ main() {
   });
   negativeTest(
       'Interface type arity too low',
-      "Type test_lib::OtherClass* provides 0 type arguments"
+      "Type test_lib::OtherClass* provides 0 type arguments,"
           " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(test.otherClass, [])));
   });
   negativeTest(
       'Interface type arity too high',
-      "Type test_lib::OtherClass<dynamic, dynamic>* provides 2 type arguments"
+      "Type test_lib::OtherClass<dynamic, dynamic>* provides 2 type arguments,"
           " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(
         test.otherClass, [new DynamicType(), new DynamicType()])));
@@ -454,7 +454,7 @@ main() {
   });
   negativeTest(
       'Typedef arity error',
-      "The typedef type test_lib::Foo provides 0 type arguments"
+      "The typedef type test_lib::Foo provides 0 type arguments,"
           " but the typedef declares 1 parameters.", (TestHarness test) {
     var param = test.makeTypeParameter('T');
     var foo =

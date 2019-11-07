@@ -100,7 +100,6 @@ void transformLibraries(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     {bool keepFields: true,
-    bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
     bool enableTripleShift: false,
@@ -109,7 +108,6 @@ void transformLibraries(
       backend,
       environmentDefines,
       keepFields,
-      keepVariables,
       evaluateAnnotations,
       desugarSets,
       enableTripleShift,
@@ -128,7 +126,6 @@ class ConstantsTransformer extends Transformer {
 
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
   final bool keepFields;
-  final bool keepVariables;
   final bool evaluateAnnotations;
   final bool desugarSets;
   final bool enableTripleShift;
@@ -138,7 +135,6 @@ class ConstantsTransformer extends Transformer {
       this.backend,
       Map<String, String> environmentDefines,
       this.keepFields,
-      this.keepVariables,
       this.evaluateAnnotations,
       this.desugarSets,
       this.enableTripleShift,
@@ -269,6 +265,7 @@ class ConstantsTransformer extends Transformer {
 
   @override
   FunctionNode visitFunctionNode(FunctionNode node) {
+    transformList(node.typeParameters, this, node);
     final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
@@ -305,7 +302,7 @@ class ConstantsTransformer extends Transformer {
           ..parent = node;
 
         // If this constant is inlined, remove it.
-        if (!keepVariables && shouldInline(node.initializer)) {
+        if (shouldInline(node.initializer)) {
           if (constant is! UnevaluatedConstant) {
             // If the constant is unevaluated we need to keep the expression,
             // so that, in the case the constant contains error but the local
