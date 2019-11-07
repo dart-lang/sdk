@@ -38,13 +38,7 @@ class InitializedCompilerState {
 class WorkerInputComponent {
   final List<int> digest;
   final Component component;
-  final Set<Uri> externalLibs;
-  WorkerInputComponent(this.digest, this.component)
-      : externalLibs = component.libraries
-            // ignore: DEPRECATED_MEMBER_USE
-            .where((lib) => lib.isExternal)
-            .map((lib) => lib.importUri)
-            .toSet();
+  WorkerInputComponent(this.digest, this.component);
 }
 
 bool digestsEqual(List<int> a, List<int> b) {
