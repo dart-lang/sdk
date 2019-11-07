@@ -411,7 +411,7 @@ class Object {
   int get hashCode => 0;
   Type get runtimeType => null;
 
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   String toString() => 'a string';
   dynamic noSuchMethod(Invocation invocation) => null;

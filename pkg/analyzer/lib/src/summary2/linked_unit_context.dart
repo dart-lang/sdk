@@ -731,6 +731,10 @@ class LinkedUnitContext {
     return LazyVariableDeclaration.hasInitializer(node);
   }
 
+  bool hasOperatorEqualParameterTypeFromObject(MethodDeclaration node) {
+    return LazyAst.hasOperatorEqualParameterTypeFromObject(node);
+  }
+
   bool hasOverrideInferenceDone(AstNode node) {
     // Only nodes in the libraries being linked might be not inferred yet.
     if (_astReader.isLazy) return true;
@@ -997,6 +1001,10 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
+  }
+
+  void setOperatorEqualParameterTypeFromObject(AstNode node, bool value) {
+    LazyAst.setOperatorEqualParameterTypeFromObject(node, value);
   }
 
   void setOverrideInferenceDone(AstNode node) {

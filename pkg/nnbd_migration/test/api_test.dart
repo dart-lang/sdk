@@ -2400,7 +2400,6 @@ test(int?/*?*/ j) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
   test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
 class C {

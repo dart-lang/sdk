@@ -5871,6 +5871,23 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
         first == 0x24);
   }
 
+  /// Return `true` if this method is `operator==`, and there is no explicit
+  /// type specified for its formal parameter, in this method or in any
+  /// overridden methods other than the one declared in `Object`.
+  bool get isOperatorEqualWithParameterTypeFromObject {
+    if (linkedNode != null) {
+      return linkedContext.hasOperatorEqualParameterTypeFromObject(linkedNode);
+    }
+    return false;
+  }
+
+  /// See [isOperatorEqualWithParameterTypeFromObject].
+  set isOperatorEqualWithParameterTypeFromObject(bool value) {
+    if (linkedNode != null) {
+      linkedContext.setOperatorEqualParameterTypeFromObject(linkedNode, value);
+    }
+  }
+
   @override
   bool get isStatic {
     if (linkedNode != null) {

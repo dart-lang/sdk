@@ -3783,9 +3783,9 @@ class LinkedNodeBuilder extends Object
   String _variantField_30;
   LinkedNodeBuilder _variantField_14;
   idl.LinkedNodeKind _kind;
+  bool _variantField_31;
   List<String> _variantField_34;
   String _name;
-  bool _variantField_31;
   idl.UnlinkedTokenType _variantField_35;
   TopLevelInferenceErrorBuilder _variantField_32;
   LinkedNodeTypeBuilder _variantField_23;
@@ -6695,6 +6695,37 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  bool get methodDeclaration_hasOperatorEqualWithParameterTypeFromObject {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_31 ??= false;
+  }
+
+  @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    return _variantField_31 ??= false;
+  }
+
+  set methodDeclaration_hasOperatorEqualWithParameterTypeFromObject(
+      bool value) {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_31 = value;
+  }
+
+  set simplyBoundable_isSimplyBounded(bool value) {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_31 = value;
+  }
+
+  @override
   List<String> get mixinDeclaration_superInvokedNames {
     assert(kind == idl.LinkedNodeKind.mixinDeclaration);
     return _variantField_34 ??= <String>[];
@@ -6725,25 +6756,6 @@ class LinkedNodeBuilder extends Object
 
   set name(String value) {
     this._name = value;
-  }
-
-  @override
-  bool get simplyBoundable_isSimplyBounded {
-    assert(kind == idl.LinkedNodeKind.classDeclaration ||
-        kind == idl.LinkedNodeKind.classTypeAlias ||
-        kind == idl.LinkedNodeKind.functionTypeAlias ||
-        kind == idl.LinkedNodeKind.genericTypeAlias ||
-        kind == idl.LinkedNodeKind.mixinDeclaration);
-    return _variantField_31 ??= false;
-  }
-
-  set simplyBoundable_isSimplyBounded(bool value) {
-    assert(kind == idl.LinkedNodeKind.classDeclaration ||
-        kind == idl.LinkedNodeKind.classTypeAlias ||
-        kind == idl.LinkedNodeKind.functionTypeAlias ||
-        kind == idl.LinkedNodeKind.genericTypeAlias ||
-        kind == idl.LinkedNodeKind.mixinDeclaration);
-    _variantField_31 = value;
   }
 
   @override
@@ -7545,6 +7557,7 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder methodDeclaration_returnType,
     LinkedNodeBuilder methodDeclaration_typeParameters,
     int informativeId,
+    bool methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
   })  : _kind = idl.LinkedNodeKind.methodDeclaration,
         _variantField_24 = actualReturnType,
         _variantField_4 = annotatedNode_metadata,
@@ -7552,7 +7565,9 @@ class LinkedNodeBuilder extends Object
         _variantField_7 = methodDeclaration_formalParameters,
         _variantField_8 = methodDeclaration_returnType,
         _variantField_9 = methodDeclaration_typeParameters,
-        _variantField_36 = informativeId;
+        _variantField_36 = informativeId,
+        _variantField_31 =
+            methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
 
   LinkedNodeBuilder.methodInvocation({
     LinkedNodeTypeBuilder invocationExpression_invokeType,
@@ -7576,8 +7591,8 @@ class LinkedNodeBuilder extends Object
     List<LinkedNodeBuilder> classOrMixinDeclaration_members,
     LinkedNodeBuilder classOrMixinDeclaration_typeParameters,
     int informativeId,
-    List<String> mixinDeclaration_superInvokedNames,
     bool simplyBoundable_isSimplyBounded,
+    List<String> mixinDeclaration_superInvokedNames,
   })  : _kind = idl.LinkedNodeKind.mixinDeclaration,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = mixinDeclaration_onClause,
@@ -7585,8 +7600,8 @@ class LinkedNodeBuilder extends Object
         _variantField_5 = classOrMixinDeclaration_members,
         _variantField_13 = classOrMixinDeclaration_typeParameters,
         _variantField_36 = informativeId,
-        _variantField_34 = mixinDeclaration_superInvokedNames,
-        _variantField_31 = simplyBoundable_isSimplyBounded;
+        _variantField_31 = simplyBoundable_isSimplyBounded,
+        _variantField_34 = mixinDeclaration_superInvokedNames;
 
   LinkedNodeBuilder.namedExpression({
     LinkedNodeBuilder namedExpression_expression,
@@ -9412,6 +9427,9 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualReturnType != null);
       this.actualReturnType?.collectApiSignature(signature);
+      signature.addBool(
+          this.methodDeclaration_hasOperatorEqualWithParameterTypeFromObject ==
+              true);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.methodInvocation) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10200,14 +10218,14 @@ class LinkedNodeBuilder extends Object
     if (_kind != null && _kind != idl.LinkedNodeKind.adjacentStrings) {
       fbBuilder.addUint8(0, _kind.index);
     }
+    if (_variantField_31 == true) {
+      fbBuilder.addBool(31, true);
+    }
     if (offset_variantField_34 != null) {
       fbBuilder.addOffset(34, offset_variantField_34);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(37, offset_name);
-    }
-    if (_variantField_31 == true) {
-      fbBuilder.addBool(31, true);
     }
     if (_variantField_35 != null &&
         _variantField_35 != idl.UnlinkedTokenType.NOTHING) {
@@ -10279,9 +10297,9 @@ class _LinkedNodeImpl extends Object
   String _variantField_30;
   idl.LinkedNode _variantField_14;
   idl.LinkedNodeKind _kind;
+  bool _variantField_31;
   List<String> _variantField_34;
   String _name;
-  bool _variantField_31;
   idl.UnlinkedTokenType _variantField_35;
   idl.TopLevelInferenceError _variantField_32;
   idl.LinkedNodeType _variantField_23;
@@ -12378,6 +12396,26 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get methodDeclaration_hasOperatorEqualWithParameterTypeFromObject {
+    assert(kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_31 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
+    return _variantField_31;
+  }
+
+  @override
+  bool get simplyBoundable_isSimplyBounded {
+    assert(kind == idl.LinkedNodeKind.classDeclaration ||
+        kind == idl.LinkedNodeKind.classTypeAlias ||
+        kind == idl.LinkedNodeKind.functionTypeAlias ||
+        kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_31 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
+    return _variantField_31;
+  }
+
+  @override
   List<String> get mixinDeclaration_superInvokedNames {
     assert(kind == idl.LinkedNodeKind.mixinDeclaration);
     _variantField_34 ??= const fb.ListReader<String>(const fb.StringReader())
@@ -12399,18 +12437,6 @@ class _LinkedNodeImpl extends Object
   String get name {
     _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 37, '');
     return _name;
-  }
-
-  @override
-  bool get simplyBoundable_isSimplyBounded {
-    assert(kind == idl.LinkedNodeKind.classDeclaration ||
-        kind == idl.LinkedNodeKind.classTypeAlias ||
-        kind == idl.LinkedNodeKind.functionTypeAlias ||
-        kind == idl.LinkedNodeKind.genericTypeAlias ||
-        kind == idl.LinkedNodeKind.mixinDeclaration);
-    _variantField_31 ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 31, false);
-    return _variantField_31;
   }
 
   @override
@@ -13271,6 +13297,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["methodDeclaration_typeParameters"] =
             methodDeclaration_typeParameters.toJson();
       if (informativeId != 0) _result["informativeId"] = informativeId;
+      if (methodDeclaration_hasOperatorEqualWithParameterTypeFromObject !=
+          false)
+        _result["methodDeclaration_hasOperatorEqualWithParameterTypeFromObject"] =
+            methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
     }
     if (kind == idl.LinkedNodeKind.methodInvocation) {
       if (invocationExpression_invokeType != null)
@@ -13309,12 +13339,12 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["classOrMixinDeclaration_typeParameters"] =
             classOrMixinDeclaration_typeParameters.toJson();
       if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (mixinDeclaration_superInvokedNames.isNotEmpty)
-        _result["mixinDeclaration_superInvokedNames"] =
-            mixinDeclaration_superInvokedNames;
       if (simplyBoundable_isSimplyBounded != false)
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
+      if (mixinDeclaration_superInvokedNames.isNotEmpty)
+        _result["mixinDeclaration_superInvokedNames"] =
+            mixinDeclaration_superInvokedNames;
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {
       if (namedExpression_expression != null)
@@ -13834,8 +13864,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
-        "name": name,
         "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+        "name": name,
         "unused11": unused11,
       };
     }
@@ -13849,8 +13879,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
-        "name": name,
         "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+        "name": name,
       };
     }
     if (kind == idl.LinkedNodeKind.comment) {
@@ -14253,8 +14283,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
-        "name": name,
         "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+        "name": name,
       };
     }
     if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
@@ -14298,8 +14328,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
-        "name": name,
         "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+        "name": name,
       };
     }
     if (kind == idl.LinkedNodeKind.hideCombinator) {
@@ -14482,6 +14512,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
+        "methodDeclaration_hasOperatorEqualWithParameterTypeFromObject":
+            methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
         "name": name,
       };
     }
@@ -14511,10 +14543,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
         "mixinDeclaration_superInvokedNames":
             mixinDeclaration_superInvokedNames,
         "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {

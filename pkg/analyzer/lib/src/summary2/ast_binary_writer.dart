@@ -945,6 +945,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_returnType: node.returnType?.accept(this),
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
       methodDeclaration_formalParameters: node.parameters?.accept(this),
+      methodDeclaration_hasOperatorEqualWithParameterTypeFromObject:
+          LazyAst.hasOperatorEqualParameterTypeFromObject(node),
     );
     builder.name = node.name.name;
     builder.flags = AstBinaryFlags.encode(

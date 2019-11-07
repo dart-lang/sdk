@@ -1103,11 +1103,11 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
+  variantField_31:bool (id: 31);
+
   variantField_34:[string] (id: 34);
 
   name:string (id: 37);
-
-  variantField_31:bool (id: 31);
 
   variantField_35:UnlinkedTokenType (id: 35);
 

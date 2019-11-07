@@ -1168,6 +1168,10 @@ class AstBinaryReader {
       body,
     );
     LazyMethodDeclaration.setData(node, data);
+    LazyAst.setOperatorEqualParameterTypeFromObject(
+      node,
+      data.methodDeclaration_hasOperatorEqualWithParameterTypeFromObject,
+    );
     return node;
   }
 
