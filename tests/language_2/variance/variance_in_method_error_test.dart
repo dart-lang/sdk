@@ -294,3 +294,15 @@ class B<in T> {
     return null;
   }
 }
+
+class C<T> {
+  void method(T x) {}
+}
+
+class D<in T> extends C<void Function(T)> {
+  @override
+  void method(void Function(T) x) {}
+  //                           ^
+  // [analyzer] unspecified
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+}
