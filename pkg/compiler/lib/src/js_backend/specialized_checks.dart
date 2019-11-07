@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common_elements.dart' show JCommonElements;
+import '../common_elements.dart' show ElementEnvironment, JCommonElements;
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -58,8 +58,15 @@ class SpecializedChecks {
         return IsTestSpecialization.int;
       }
 
-      if (element == commonElements.jsArrayClass &&
-          dartType.typeArguments.single.isTop) {
+      DartTypes dartTypes = closedWorld.dartTypes;
+      ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+      if (!dartTypes.isSubtype(
+          elementEnvironment.getClassInstantiationToBounds(element),
+          dartType)) {
+        return null;
+      }
+
+      if (element == commonElements.jsArrayClass) {
         return IsTestSpecialization.arrayTop;
       }
 

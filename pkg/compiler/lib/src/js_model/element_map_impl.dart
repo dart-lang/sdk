@@ -7,6 +7,8 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/src/bounds_checks.dart' as ir;
+
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -83,6 +85,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   DartTypeConverter _typeConverter;
   JsConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
+  ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
   ConstantValuefier _constantValuefier;
@@ -728,6 +731,20 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
   }
 
+  void _ensureClassInstantiationToBounds(ClassEntity cls, JClassData data) {
+    assert(checkFamily(cls));
+    if (data is JClassDataImpl && data.instantiationToBounds == null) {
+      ir.Class node = data.cls;
+      if (node.typeParameters.isEmpty) {
+        _ensureThisAndRawType(cls, data);
+        data.instantiationToBounds = data.thisType;
+      } else {
+        data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
+            coreTypes.legacyRawType(node), coreTypes.objectClass));
+      }
+    }
+  }
+
   @override
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
@@ -1021,6 +1038,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.rawType;
   }
 
+  InterfaceType _getClassInstantiationToBounds(IndexedClass cls) {
+    assert(checkFamily(cls));
+    JClassData data = classes.getData(cls);
+    _ensureClassInstantiationToBounds(cls, data);
+    return data.instantiationToBounds;
+  }
+
   FunctionType _getFunctionType(IndexedFunction function) {
     assert(checkFamily(function));
     FunctionData data = members.getData(function);
@@ -1178,20 +1202,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.imports[node];
   }
 
-  ir.TypeEnvironment get typeEnvironment {
-    if (_typeEnvironment == null) {
-      _typeEnvironment ??= new ir.TypeEnvironment(
-          new ir.CoreTypes(programEnv.mainComponent), classHierarchy);
-    }
-    return _typeEnvironment;
-  }
+  ir.CoreTypes get coreTypes =>
+      _coreTypes ??= ir.CoreTypes(programEnv.mainComponent);
 
-  ir.ClassHierarchy get classHierarchy {
-    if (_classHierarchy == null) {
-      _classHierarchy ??= new ir.ClassHierarchy(programEnv.mainComponent);
-    }
-    return _classHierarchy;
-  }
+  ir.TypeEnvironment get typeEnvironment =>
+      _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
+
+  ir.ClassHierarchy get classHierarchy =>
+      _classHierarchy ??= ir.ClassHierarchy(programEnv.mainComponent);
 
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
@@ -2210,6 +2228,10 @@ class JsElementEnvironment extends ElementEnvironment
   InterfaceType getRawType(ClassEntity cls) {
     return elementMap._getRawType(cls);
   }
+
+  @override
+  InterfaceType getClassInstantiationToBounds(ClassEntity cls) =>
+      elementMap._getClassInstantiationToBounds(cls);
 
   @override
   bool isGenericClass(ClassEntity cls) {

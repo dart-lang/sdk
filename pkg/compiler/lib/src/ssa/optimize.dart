@@ -2027,7 +2027,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
       }
-      if (dartType is DynamicType) {
+      if (dartType.isTop) {
         return node.checkedInput;
       }
     }
@@ -2042,10 +2042,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    if (node.dartType.isTop) {
-      return _graph.addConstantBool(true, _closedWorld);
-    }
-
     AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
     HInstruction checkedInput = node.checkedInput;
     AbstractValue inputType = checkedInput.instructionType;
@@ -2057,9 +2053,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return _graph.addConstantBool(false, _closedWorld);
     }
 
-    if (!checkedAbstractValue.isPrecise) return node;
-
-    if (isIn.isDefinitelyTrue) {
+    if (checkedAbstractValue.isPrecise && isIn.isDefinitelyTrue) {
       return _graph.addConstantBool(true, _closedWorld);
     }
 
@@ -2067,6 +2061,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
       DartType dartType = recipe.type;
+      if (dartType.isTop) {
+        return _graph.addConstantBool(true, _closedWorld);
+      }
+
       IsTestSpecialization specialization =
           SpecializedChecks.findIsTestSpecialization(
               dartType, _graph, _closedWorld);

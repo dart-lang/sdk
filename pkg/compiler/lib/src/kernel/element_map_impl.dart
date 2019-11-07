@@ -9,6 +9,7 @@ import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
+import 'package:kernel/src/bounds_checks.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -74,6 +75,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   DartTypeConverter _typeConverter;
   KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
+  ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
   Dart2jsConstantEvaluator _constantEvaluator;
@@ -295,6 +297,20 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       } else {
         data.jsInteropType = InterfaceType(
             cls, List<DartType>.filled(node.typeParameters.length, AnyType()));
+      }
+    }
+  }
+
+  void _ensureClassInstantiationToBounds(ClassEntity cls, KClassData data) {
+    assert(checkFamily(cls));
+    if (data is KClassDataImpl && data.instantiationToBounds == null) {
+      ir.Class node = data.node;
+      if (node.typeParameters.isEmpty) {
+        _ensureThisAndRawType(cls, data);
+        data.instantiationToBounds = data.thisType;
+      } else {
+        data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
+            coreTypes.legacyRawType(node), coreTypes.objectClass));
       }
     }
   }
@@ -595,6 +611,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.rawType;
   }
 
+  InterfaceType _getClassInstantiationToBounds(IndexedClass cls) {
+    assert(checkFamily(cls));
+    KClassData data = classes.getData(cls);
+    _ensureClassInstantiationToBounds(cls, data);
+    return data.instantiationToBounds;
+  }
+
   DartType _getFieldType(IndexedField field) {
     assert(checkFamily(field));
     KFieldData data = members.getData(field);
@@ -767,15 +790,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  ir.TypeEnvironment get typeEnvironment {
-    return _typeEnvironment ??= new ir.TypeEnvironment(
-        new ir.CoreTypes(env.mainComponent), classHierarchy);
-  }
+  ir.CoreTypes get coreTypes => _coreTypes ??= ir.CoreTypes(env.mainComponent);
 
   @override
-  ir.ClassHierarchy get classHierarchy {
-    return _classHierarchy ??= new ir.ClassHierarchy(env.mainComponent);
-  }
+  ir.TypeEnvironment get typeEnvironment =>
+      _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
+
+  @override
+  ir.ClassHierarchy get classHierarchy =>
+      _classHierarchy ??= ir.ClassHierarchy(env.mainComponent);
 
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
@@ -1676,6 +1699,10 @@ class KernelElementEnvironment extends ElementEnvironment
   InterfaceType getRawType(ClassEntity cls) {
     return elementMap._getRawType(cls);
   }
+
+  @override
+  InterfaceType getClassInstantiationToBounds(ClassEntity cls) =>
+      elementMap._getClassInstantiationToBounds(cls);
 
   @override
   bool isGenericClass(ClassEntity cls) {
