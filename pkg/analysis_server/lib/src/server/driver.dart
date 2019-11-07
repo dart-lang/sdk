@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
+import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';

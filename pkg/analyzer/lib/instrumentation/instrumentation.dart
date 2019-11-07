@@ -8,4 +8,3 @@ export 'package:analyzer/instrumentation/multicast_service.dart';
 export 'package:analyzer/instrumentation/noop_service.dart';
 export 'package:analyzer/instrumentation/plugin_data.dart';
 export 'package:analyzer/instrumentation/service.dart';
-export 'package:analyzer/instrumentation/crash_reporting.dart';
