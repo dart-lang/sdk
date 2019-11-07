@@ -952,8 +952,8 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     final cached = useCache ? cachedFlattenedTypeArgs[klass] : null;
     if (cached != null) return cached;
 
-    final flattenedTypeArguments = List<DartType>.from(
-        klass.typeParameters.map((t) => new TypeParameterType(t)));
+    final flattenedTypeArguments = List<DartType>.from(klass.typeParameters
+        .map((t) => new TypeParameterType(t, Nullability.legacy)));
 
     for (final Supertype intf in hierarchy.genericSupertypesOf(klass)) {
       int offset = findOverlap(flattenedTypeArguments, intf.typeArguments);
@@ -1528,7 +1528,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     if (field.isStatic) {
       fieldValue.setValue(value, this, /*receiver_type=*/ null);
     } else {
-      final receiver = new Type.cone(new InterfaceType(field.parent));
+      final receiver =
+          new Type.cone(new InterfaceType(field.parent, Nullability.legacy));
       fieldValue.setValue(value, this, receiver);
     }
   }

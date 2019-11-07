@@ -313,7 +313,7 @@ class TypeOperationsCfe
     }
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
-        return new TypeParameterType(from.parameter, to, from.nullability);
+        return new TypeParameterType(from.parameter, from.nullability, to);
       }
     }
     return from;

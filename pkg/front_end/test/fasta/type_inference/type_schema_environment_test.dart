@@ -109,59 +109,65 @@ class TypeSchemaEnvironmentTest {
     var env = _makeEnv();
     // GLB(() -> A, () -> B) = () -> B
     expect(
-        env.getStandardLowerBound(
-            new FunctionType([], A), new FunctionType([], B)),
-        new FunctionType([], B));
+        env.getStandardLowerBound(new FunctionType([], A, Nullability.legacy),
+            new FunctionType([], B, Nullability.legacy)),
+        new FunctionType([], B, Nullability.legacy));
     // GLB(() -> void, (A, B) -> void) = ([A, B]) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType), new FunctionType([A, B], voidType)),
-        new FunctionType([A, B], voidType, requiredParameterCount: 0));
+            new FunctionType([], voidType, Nullability.legacy),
+            new FunctionType([A, B], voidType, Nullability.legacy)),
+        new FunctionType([A, B], voidType, Nullability.legacy,
+            requiredParameterCount: 0));
     expect(
         env.getStandardLowerBound(
-            new FunctionType([A, B], voidType), new FunctionType([], voidType)),
-        new FunctionType([A, B], voidType, requiredParameterCount: 0));
+            new FunctionType([A, B], voidType, Nullability.legacy),
+            new FunctionType([], voidType, Nullability.legacy)),
+        new FunctionType([A, B], voidType, Nullability.legacy,
+            requiredParameterCount: 0));
     // GLB((A) -> void, (B) -> void) = (A) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([A], voidType), new FunctionType([B], voidType)),
-        new FunctionType([A], voidType));
+            new FunctionType([A], voidType, Nullability.legacy),
+            new FunctionType([B], voidType, Nullability.legacy)),
+        new FunctionType([A], voidType, Nullability.legacy));
     expect(
         env.getStandardLowerBound(
-            new FunctionType([B], voidType), new FunctionType([A], voidType)),
-        new FunctionType([A], voidType));
+            new FunctionType([B], voidType, Nullability.legacy),
+            new FunctionType([A], voidType, Nullability.legacy)),
+        new FunctionType([A], voidType, Nullability.legacy));
     // GLB(({a: A}) -> void, ({b: B}) -> void) = ({a: A, b: B}) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('b', B)])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', A), new NamedType('b', B)]));
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('b', B)]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', A), new NamedType('b', B)]));
     // GLB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void)
     //     = ({a: A, b: B, c: A, d: B}) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('c', A)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('b', B),
                   new NamedType('d', B)
                 ])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [
               new NamedType('a', A),
               new NamedType('b', B),
@@ -172,53 +178,54 @@ class TypeSchemaEnvironmentTest {
     //     = ({a: A, b: A}) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('b', B)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', B),
                   new NamedType('b', A)
                 ])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', A), new NamedType('b', A)]));
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', B),
                   new NamedType('b', A)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('b', B)
                 ])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', A), new NamedType('b', A)]));
     // GLB((B, {a: A}) -> void, (B) -> void) = (B, {a: A}) -> void
     expect(
         env.getStandardLowerBound(
-            new FunctionType([B], voidType,
+            new FunctionType([B], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType)),
-        new FunctionType([B], voidType,
+            new FunctionType([B], voidType, Nullability.legacy)),
+        new FunctionType([B], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', A)]));
     // GLB(({a: A}) -> void, (B) -> void) = bottom
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType)),
+            new FunctionType([B], voidType, Nullability.legacy)),
         same(bottomType));
     // GLB(({a: A}) -> void, ([B]) -> void) = bottom
     expect(
         env.getStandardLowerBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, requiredParameterCount: 0)),
+            new FunctionType([B], voidType, Nullability.legacy,
+                requiredParameterCount: 0)),
         same(bottomType));
   }
 
@@ -226,7 +233,10 @@ class TypeSchemaEnvironmentTest {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, A), same(A));
-    expect(env.getStandardLowerBound(new InterfaceType(A.classNode), A), A);
+    expect(
+        env.getStandardLowerBound(
+            new InterfaceType(A.classNode, Nullability.legacy), A),
+        A);
   }
 
   void test_glb_subtype() {
@@ -392,120 +402,129 @@ class TypeSchemaEnvironmentTest {
     var env = _makeEnv();
     // LUB(() -> A, () -> B) = () -> A
     expect(
-        env.getStandardUpperBound(
-            new FunctionType([], A), new FunctionType([], B)),
-        new FunctionType([], A));
+        env.getStandardUpperBound(new FunctionType([], A, Nullability.legacy),
+            new FunctionType([], B, Nullability.legacy)),
+        new FunctionType([], A, Nullability.legacy));
     // LUB(([A]) -> void, (A) -> void) = Function
     expect(
         env.getStandardUpperBound(
-            new FunctionType([A], voidType, requiredParameterCount: 0),
-            new FunctionType([A], voidType)),
+            new FunctionType([A], voidType, Nullability.legacy,
+                requiredParameterCount: 0),
+            new FunctionType([A], voidType, Nullability.legacy)),
         functionType);
     // LUB(() -> void, (A, B) -> void) = Function
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType), new FunctionType([A, B], voidType)),
+            new FunctionType([], voidType, Nullability.legacy),
+            new FunctionType([A, B], voidType, Nullability.legacy)),
         functionType);
     expect(
         env.getStandardUpperBound(
-            new FunctionType([A, B], voidType), new FunctionType([], voidType)),
+            new FunctionType([A, B], voidType, Nullability.legacy),
+            new FunctionType([], voidType, Nullability.legacy)),
         functionType);
     // LUB((A) -> void, (B) -> void) = (B) -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([A], voidType), new FunctionType([B], voidType)),
-        new FunctionType([B], voidType));
+            new FunctionType([A], voidType, Nullability.legacy),
+            new FunctionType([B], voidType, Nullability.legacy)),
+        new FunctionType([B], voidType, Nullability.legacy));
     expect(
         env.getStandardUpperBound(
-            new FunctionType([B], voidType), new FunctionType([A], voidType)),
-        new FunctionType([B], voidType));
+            new FunctionType([B], voidType, Nullability.legacy),
+            new FunctionType([A], voidType, Nullability.legacy)),
+        new FunctionType([B], voidType, Nullability.legacy));
     // LUB(({a: A}) -> void, ({b: B}) -> void) = () -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('b', B)])),
-        new FunctionType([], voidType));
+        new FunctionType([], voidType, Nullability.legacy));
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('b', B)]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)])),
-        new FunctionType([], voidType));
+        new FunctionType([], voidType, Nullability.legacy));
     // LUB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void) = () -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('c', A)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('b', B),
                   new NamedType('d', B)
                 ])),
-        new FunctionType([], voidType));
+        new FunctionType([], voidType, Nullability.legacy));
     // LUB(({a: A, b: B}) -> void, ({a: B, b: A}) -> void)
     //     = ({a: B, b: B}) -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('b', B)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', B),
                   new NamedType('b', A)
                 ])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', B), new NamedType('b', B)]));
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', B),
                   new NamedType('b', A)
                 ]),
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [
                   new NamedType('a', A),
                   new NamedType('b', B)
                 ])),
-        new FunctionType([], voidType,
+        new FunctionType([], voidType, Nullability.legacy,
             namedParameters: [new NamedType('a', B), new NamedType('b', B)]));
     // LUB((B, {a: A}) -> void, (B) -> void) = (B) -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([B], voidType,
+            new FunctionType([B], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType)),
-        new FunctionType([B], voidType));
+            new FunctionType([B], voidType, Nullability.legacy)),
+        new FunctionType([B], voidType, Nullability.legacy));
     // LUB(({a: A}) -> void, (B) -> void) = Function
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType)),
+            new FunctionType([B], voidType, Nullability.legacy)),
         functionType);
     // GLB(({a: A}) -> void, ([B]) -> void) = () -> void
     expect(
         env.getStandardUpperBound(
-            new FunctionType([], voidType,
+            new FunctionType([], voidType, Nullability.legacy,
                 namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, requiredParameterCount: 0)),
-        new FunctionType([], voidType));
+            new FunctionType([B], voidType, Nullability.legacy,
+                requiredParameterCount: 0)),
+        new FunctionType([], voidType, Nullability.legacy));
   }
 
   void test_lub_identical() {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardUpperBound(A, A), same(A));
-    expect(env.getStandardUpperBound(new InterfaceType(A.classNode), A), A);
+    expect(
+        env.getStandardUpperBound(
+            new InterfaceType(A.classNode, Nullability.legacy), A),
+        A);
   }
 
   void test_lub_sameClass() {
@@ -545,9 +564,9 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_lub_typeParameter() {
-    var T = new TypeParameterType(new TypeParameter('T'));
+    var T = new TypeParameterType(new TypeParameter('T'), Nullability.legacy);
     T.parameter.bound = _list(T);
-    var U = new TypeParameterType(new TypeParameter('U'));
+    var U = new TypeParameterType(new TypeParameter('U'), Nullability.legacy);
     U.parameter.bound = _list(bottomType);
     var env = _makeEnv();
     // LUB(T, T) = T
@@ -587,15 +606,17 @@ class TypeSchemaEnvironmentTest {
     // Solve(A<?> <: T <: ?) => A<?>
     expect(
         env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(A.classNode, [unknownType]))),
-        new InterfaceType(A.classNode, [unknownType]));
+            lower: new InterfaceType(
+                A.classNode, Nullability.legacy, [unknownType]))),
+        new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
     // Solve(A<?> <: T <: ?, grounded) => A<Null>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
-                lower: new InterfaceType(A.classNode, [unknownType])),
+                lower: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
             grounded: true),
-        new InterfaceType(A.classNode, [nullType]));
+        new InterfaceType(A.classNode, Nullability.legacy, [nullType]));
     // Solve(? <: T <: A) => A
     expect(env.solveTypeConstraint(_makeConstraint(upper: A)), A);
     // Solve(? <: T <: A, grounded) => A
@@ -604,15 +625,17 @@ class TypeSchemaEnvironmentTest {
     // Solve(? <: T <: A<?>) => A<?>
     expect(
         env.solveTypeConstraint(_makeConstraint(
-            upper: new InterfaceType(A.classNode, [unknownType]))),
-        new InterfaceType(A.classNode, [unknownType]));
+            upper: new InterfaceType(
+                A.classNode, Nullability.legacy, [unknownType]))),
+        new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
     // Solve(? <: T <: A<?>, grounded) => A<dynamic>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
-                upper: new InterfaceType(A.classNode, [unknownType])),
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
             grounded: true),
-        new InterfaceType(A.classNode, [dynamicType]));
+        new InterfaceType(A.classNode, Nullability.legacy, [dynamicType]));
     // Solve(B <: T <: A) => B
     expect(env.solveTypeConstraint(_makeConstraint(lower: B, upper: A)), B);
     // Solve(B <: T <: A, grounded) => B
@@ -623,41 +646,53 @@ class TypeSchemaEnvironmentTest {
     // Solve(B<?> <: T <: A) => A
     expect(
         env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(B.classNode, [unknownType]), upper: A)),
+            lower: new InterfaceType(
+                B.classNode, Nullability.legacy, [unknownType]),
+            upper: A)),
         A);
     // Solve(B<?> <: T <: A, grounded) => A
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
-                lower: new InterfaceType(B.classNode, [unknownType]), upper: A),
+                lower: new InterfaceType(
+                    B.classNode, Nullability.legacy, [unknownType]),
+                upper: A),
             grounded: true),
         A);
     // Solve(B <: T <: A<?>) => B
     expect(
         env.solveTypeConstraint(_makeConstraint(
-            lower: B, upper: new InterfaceType(A.classNode, [unknownType]))),
+            lower: B,
+            upper: new InterfaceType(
+                A.classNode, Nullability.legacy, [unknownType]))),
         B);
     // Solve(B <: T <: A<?>, grounded) => B
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
-                lower: B, upper: new InterfaceType(A.classNode, [unknownType])),
+                lower: B,
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
             grounded: true),
         B);
     // Solve(B<?> <: T <: A<?>) => B<?>
     expect(
         env.solveTypeConstraint(_makeConstraint(
-            lower: new InterfaceType(B.classNode, [unknownType]),
-            upper: new InterfaceType(A.classNode, [unknownType]))),
-        new InterfaceType(B.classNode, [unknownType]));
+            lower: new InterfaceType(
+                B.classNode, Nullability.legacy, [unknownType]),
+            upper: new InterfaceType(
+                A.classNode, Nullability.legacy, [unknownType]))),
+        new InterfaceType(B.classNode, Nullability.legacy, [unknownType]));
     // Solve(B<?> <: T <: A<?>) => B<Null>
     expect(
         env.solveTypeConstraint(
             _makeConstraint(
-                lower: new InterfaceType(B.classNode, [unknownType]),
-                upper: new InterfaceType(A.classNode, [unknownType])),
+                lower: new InterfaceType(
+                    B.classNode, Nullability.legacy, [unknownType]),
+                upper: new InterfaceType(
+                    A.classNode, Nullability.legacy, [unknownType])),
             grounded: true),
-        new InterfaceType(B.classNode, [nullType]));
+        new InterfaceType(B.classNode, Nullability.legacy, [nullType]));
   }
 
   void test_typeConstraint_default() {
@@ -722,10 +757,10 @@ class TypeSchemaEnvironmentTest {
   }
 
   DartType _iterable(DartType elementType) =>
-      new InterfaceType(iterableClass, [elementType]);
+      new InterfaceType(iterableClass, Nullability.legacy, [elementType]);
 
   DartType _list(DartType elementType) =>
-      new InterfaceType(listClass, [elementType]);
+      new InterfaceType(listClass, Nullability.legacy, [elementType]);
 
   TypeConstraint _makeConstraint(
       {DartType lower: const UnknownType(),
@@ -740,5 +775,5 @@ class TypeSchemaEnvironmentTest {
   }
 
   DartType _map(DartType key, DartType value) =>
-      new InterfaceType(mapClass, [key, value]);
+      new InterfaceType(mapClass, Nullability.legacy, [key, value]);
 }

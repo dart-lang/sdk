@@ -2166,7 +2166,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       assert(host.typeParameters.length == targetTypeParameters.length);
       for (int i = 0; i < targetTypeParameters.length; ++i) {
         map[targetTypeParameters[i]] =
-            new TypeParameterType(host.typeParameters[i]);
+            new TypeParameterType(host.typeParameters[i], Nullability.legacy);
       }
     }
     return Substitution.fromMap(map);
@@ -2354,7 +2354,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]
         : typeParam.bound;
-    final DartType type = new TypeParameterType(typeParam);
+    final DartType type = new TypeParameterType(typeParam, Nullability.legacy);
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
     asm.emitPushConstant(cp.addType(bound));

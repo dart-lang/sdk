@@ -517,8 +517,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
-        typeParameters
-            .add(getDartType(new ir.TypeParameterType(typeParameter)));
+        typeParameters.add(getDartType(
+            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy)));
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,

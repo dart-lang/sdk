@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Let,
         MethodInvocation,
         Name,
+        Nullability,
         Procedure,
         SetLiteral,
         StaticInvocation,
@@ -57,7 +58,8 @@ class SetLiteralTransformer extends Transformer {
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
-        type: new InterfaceType(coreTypes.setClass, [node.typeArgument]));
+        type: new InterfaceType(
+            coreTypes.setClass, Nullability.legacy, [node.typeArgument]));
     // Innermost body of let chain: setVar
     Expression setExp = new VariableGet(setVar);
     for (int i = node.expressions.length - 1; i >= 0; i--) {

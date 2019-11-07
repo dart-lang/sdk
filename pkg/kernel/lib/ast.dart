@@ -731,7 +731,8 @@ class Typedef extends NamedNode implements FileUriNode {
   Library get enclosingLibrary => parent;
 
   TypedefType get thisType {
-    return new TypedefType(this, _getAsTypeArguments(typeParameters));
+    return new TypedefType(
+        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
   }
 
   R accept<R>(TreeVisitor<R> v) {
@@ -1230,13 +1231,13 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   InterfaceType _thisType;
   InterfaceType get thisType {
-    return _thisType ??=
-        new InterfaceType(this, _getAsTypeArguments(typeParameters));
+    return _thisType ??= new InterfaceType(
+        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
   }
 
   InterfaceType _bottomType;
   InterfaceType get bottomType {
-    return _bottomType ??= new InterfaceType(this,
+    return _bottomType ??= new InterfaceType(this, Nullability.legacy,
         new List<DartType>.filled(typeParameters.length, const BottomType()));
   }
 
@@ -2476,6 +2477,7 @@ class FunctionNode extends TreeNode {
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
+        Nullability.legacy,
         namedParameters: named,
         typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
@@ -3132,7 +3134,7 @@ class Arguments extends TreeNode {
             .map((p) => new NamedExpression(p.name, new VariableGet(p)))
             .toList(),
         types: function.typeParameters
-            .map((p) => new TypeParameterType(p))
+            .map((p) => new TypeParameterType(p, Nullability.legacy))
             .toList());
   }
 
@@ -3409,7 +3411,7 @@ class ConstructorInvocation extends InvocationExpression {
     return arguments.types.isEmpty
         ? types.coreTypes.legacyRawType(target.enclosingClass)
         : new InterfaceType(
-            target.enclosingClass, arguments.types, Nullability.legacy);
+            target.enclosingClass, Nullability.legacy, arguments.types);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorInvocation(this);
@@ -3435,9 +3437,9 @@ class ConstructorInvocation extends InvocationExpression {
     // empty.
     return arguments.types.isEmpty
         ? new InterfaceType(
-            enclosingClass, const <DartType>[], Nullability.legacy)
+            enclosingClass, Nullability.legacy, const <DartType>[])
         : new InterfaceType(
-            enclosingClass, arguments.types, Nullability.legacy);
+            enclosingClass, Nullability.legacy, arguments.types);
   }
 }
 
@@ -3754,7 +3756,7 @@ class InstanceCreation extends Expression {
   DartType getStaticType(TypeEnvironment types) {
     return typeArguments.isEmpty
         ? types.coreTypes.legacyRawType(classNode)
-        : new InterfaceType(classNode, typeArguments);
+        : new InterfaceType(classNode, Nullability.legacy, typeArguments);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceCreation(this);
@@ -5552,14 +5554,13 @@ class InterfaceType extends DartType {
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode,
-      [List<DartType> typeArguments,
-      Nullability nullability = Nullability.legacy])
-      : this.byReference(getClassReference(classNode),
-            typeArguments ?? _defaultTypeArguments(classNode), nullability);
+  InterfaceType(Class classNode, Nullability nullability,
+      [List<DartType> typeArguments])
+      : this.byReference(getClassReference(classNode), nullability,
+            typeArguments ?? _defaultTypeArguments(classNode));
 
-  InterfaceType.byReference(this.className, this.typeArguments,
-      [this.nullability = Nullability.legacy]);
+  InterfaceType.byReference(
+      this.className, this.nullability, this.typeArguments);
 
   Class get classNode => className.asClass;
 
@@ -5610,7 +5611,7 @@ class InterfaceType extends DartType {
   InterfaceType withNullability(Nullability nullability) {
     return nullability == this.nullability
         ? this
-        : new InterfaceType.byReference(className, typeArguments, nullability);
+        : new InterfaceType.byReference(className, nullability, typeArguments);
   }
 }
 
@@ -5628,10 +5629,10 @@ class FunctionType extends DartType {
   final DartType returnType;
   int _hashCode;
 
-  FunctionType(List<DartType> positionalParameters, this.returnType,
+  FunctionType(
+      List<DartType> positionalParameters, this.returnType, this.nullability,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      this.nullability: Nullability.legacy,
       int requiredParameterCount,
       this.typedefType})
       : this.positionalParameters = positionalParameters,
@@ -5694,7 +5695,8 @@ class FunctionType extends DartType {
   /// type.
   FunctionType get withoutTypeParameters {
     if (typeParameters.isEmpty) return this;
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(
+        positionalParameters, returnType, Nullability.legacy,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
         typedefType: null);
@@ -5748,10 +5750,10 @@ class FunctionType extends DartType {
 
   FunctionType withNullability(Nullability nullability) {
     if (nullability == this.nullability) return this;
-    FunctionType result = FunctionType(positionalParameters, returnType,
+    FunctionType result = FunctionType(
+        positionalParameters, returnType, nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        nullability: nullability,
         requiredParameterCount: requiredParameterCount,
         typedefType: typedefType?.withNullability(nullability));
     if (typeParameters.isEmpty) return result;
@@ -5767,14 +5769,13 @@ class TypedefType extends DartType {
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(Typedef typedefNode,
-      [List<DartType> typeArguments,
-      Nullability nullability = Nullability.legacy])
-      : this.byReference(typedefNode.reference,
-            typeArguments ?? const <DartType>[], nullability);
+  TypedefType(Typedef typedefNode, Nullability nullability,
+      [List<DartType> typeArguments])
+      : this.byReference(typedefNode.reference, nullability,
+            typeArguments ?? const <DartType>[]);
 
-  TypedefType.byReference(this.typedefReference, this.typeArguments,
-      [this.nullability = Nullability.legacy]);
+  TypedefType.byReference(
+      this.typedefReference, this.nullability, this.typeArguments);
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
@@ -5828,7 +5829,7 @@ class TypedefType extends DartType {
     return nullability == this.nullability
         ? this
         : new TypedefType.byReference(
-            typedefReference, typeArguments, nullability);
+            typedefReference, nullability, typeArguments);
   }
 }
 
@@ -5900,9 +5901,8 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter,
-      [this.promotedBound,
-      this.typeParameterTypeNullability = Nullability.legacy]);
+  TypeParameterType(this.parameter, this.typeParameterTypeNullability,
+      [this.promotedBound]);
 
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
@@ -5963,7 +5963,7 @@ class TypeParameterType extends DartType {
     return typeParameterTypeNullability == this.typeParameterTypeNullability
         ? this
         : new TypeParameterType(
-            parameter, promotedBound, typeParameterTypeNullability);
+            parameter, typeParameterTypeNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -6295,7 +6295,7 @@ class Supertype extends Node {
   }
 
   InterfaceType get asInterfaceType {
-    return new InterfaceType(classNode, typeArguments);
+    return new InterfaceType(classNode, Nullability.legacy, typeArguments);
   }
 
   bool operator ==(Object other) {
@@ -6629,7 +6629,7 @@ class InstanceConstant extends Constant {
   }
 
   DartType getType(TypeEnvironment types) =>
-      new InterfaceType(classNode, typeArguments);
+      new InterfaceType(classNode, Nullability.legacy, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -7027,8 +7027,8 @@ void transformList(List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
 
 List<DartType> _getAsTypeArguments(List<TypeParameter> typeParameters) {
   if (typeParameters.isEmpty) return const <DartType>[];
-  return new List<DartType>.generate(
-      typeParameters.length, (i) => new TypeParameterType(typeParameters[i]),
+  return new List<DartType>.generate(typeParameters.length,
+      (i) => new TypeParameterType(typeParameters[i], Nullability.legacy),
       growable: false);
 }
 

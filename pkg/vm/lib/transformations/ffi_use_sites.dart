@@ -79,7 +79,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   visitClass(Class node) {
-    env.thisType = InterfaceType(node);
+    env.thisType = InterfaceType(node, Nullability.legacy);
     try {
       _ensureNotExtendsOrImplementsSealedClass(node);
       return super.visitClass(node);
@@ -125,8 +125,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final Member target = node.target;
     try {
       if (target == fromFunctionMethod) {
-        final DartType nativeType =
-            InterfaceType(nativeFunctionClass, [node.arguments.types[0]]);
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(env);
 
@@ -235,7 +235,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final Arguments args = Arguments([
       node.arguments.positional.single
     ], types: [
-      InterfaceType(nativeFunctionClass, [nativeSignature])
+      InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeSignature])
     ]);
 
     final Expression lookupResult = MethodInvocation(
@@ -260,11 +260,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   // Creating this closure requires a runtime call, so we save the result in a
   // synthetic top-level field to avoid recomputing it.
   Expression _replaceFromFunction(StaticInvocation node) {
-    final nativeFunctionType =
-        InterfaceType(nativeFunctionClass, node.arguments.types);
+    final nativeFunctionType = InterfaceType(
+        nativeFunctionClass, Nullability.legacy, node.arguments.types);
     final Field field = Field(
         Name("_#ffiCallback${callbackCount++}", currentLibrary),
-        type: InterfaceType(pointerClass, [nativeFunctionType]),
+        type: InterfaceType(
+            pointerClass, Nullability.legacy, [nativeFunctionType]),
         initializer: StaticInvocation(
             pointerFromFunctionProcedure,
             Arguments([
@@ -289,8 +290,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       // in 'dynamic_library_patch.dart'. Dynamic invocations of 'asFunction'
       // and 'lookupFunction' are not legal and throw a runtime exception.
       if (target == lookupFunctionMethod) {
-        final DartType nativeType =
-            InterfaceType(nativeFunctionClass, [node.arguments.types[0]]);
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
         _ensureNativeTypeValid(nativeType, node);

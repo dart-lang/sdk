@@ -165,11 +165,11 @@ class DartTypeParser {
         } else if (target is Class) {
           List<DartType> typeArguments = parseOptionalTypeArgumentList();
           Nullability nullability = parseOptionalNullability();
-          return new InterfaceType(target, typeArguments, nullability);
+          return new InterfaceType(target, nullability, typeArguments);
         } else if (target is Typedef) {
           List<DartType> typeArguments = parseOptionalTypeArgumentList();
           Nullability nullability = parseOptionalNullability();
-          return new TypedefType(target, typeArguments, nullability);
+          return new TypedefType(target, nullability, typeArguments);
         } else if (target is TypeParameter) {
           Nullability nullability = parseOptionalNullability();
           DartType promotedBound;
@@ -183,7 +183,7 @@ class DartTypeParser {
             default:
               break;
           }
-          return new TypeParameterType(target, promotedBound, nullability);
+          return new TypeParameterType(target, nullability, promotedBound);
         }
         return fail("Unexpected lookup result for $name: $target");
 
@@ -194,8 +194,8 @@ class DartTypeParser {
         consumeString('=>');
         Nullability nullability = parseOptionalNullability();
         var returnType = parseType();
-        return new FunctionType(parameters, returnType,
-            namedParameters: namedParameters, nullability: nullability);
+        return new FunctionType(parameters, returnType, nullability,
+            namedParameters: namedParameters);
 
       case Token.LeftAngle:
         var typeParameters = parseAndPushTypeParameterList();
@@ -206,10 +206,8 @@ class DartTypeParser {
         Nullability nullability = parseOptionalNullability();
         var returnType = parseType();
         popTypeParameters(typeParameters);
-        return new FunctionType(parameters, returnType,
-            typeParameters: typeParameters,
-            namedParameters: namedParameters,
-            nullability: nullability);
+        return new FunctionType(parameters, returnType, nullability,
+            typeParameters: typeParameters, namedParameters: namedParameters);
 
       default:
         return fail('Unexpected token: $tokenText');
@@ -303,7 +301,8 @@ class DartTypeParser {
       scanToken();
       typeParameter.bound = parseType();
     } else {
-      typeParameter.bound = new InterfaceType(lookupType('Object'));
+      typeParameter.bound =
+          new InterfaceType(lookupType('Object'), Nullability.legacy);
     }
     return typeParameter;
   }
@@ -329,8 +328,8 @@ class LazyTypeEnvironment {
     return name.length == 1
         ? typeParameters.putIfAbsent(
             name,
-            () => new TypeParameter(
-                name, new InterfaceType(lookupClass('Object'))))
+            () => new TypeParameter(name,
+                new InterfaceType(lookupClass('Object'), Nullability.legacy)))
         : lookupClass(name);
   }
 

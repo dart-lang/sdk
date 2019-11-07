@@ -178,8 +178,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       } else if (kernelArguments.length != typeVariables.length) {
         throw "Expected ${typeVariables.length} type arguments: $node";
       }
-      return new InterfaceType(declaration, kernelArguments,
-          interpretParsedNullability(node.parsedNullability));
+      return new InterfaceType(declaration,
+          interpretParsedNullability(node.parsedNullability), kernelArguments);
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
@@ -189,7 +189,6 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
           : TypeParameterType.computeNullabilityFromBound(declaration);
       TypeParameterType type = new TypeParameterType(
           declaration,
-          null,
           interpretParsedNullability(node.parsedNullability,
               ifOmitted: nullability));
       // If the nullability was omitted on the type and can't be computed from
@@ -201,8 +200,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       }
       return type;
     } else if (declaration is Typedef) {
-      return new TypedefType(declaration, kernelArguments,
-          interpretParsedNullability(node.parsedNullability));
+      return new TypedefType(declaration,
+          interpretParsedNullability(node.parsedNullability), kernelArguments);
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }
@@ -256,12 +255,12 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       type = node.type.accept<Node, KernelEnvironment>(this, environment);
       if (type is FunctionType) {
         FunctionType f = type;
-        type = new FunctionType(f.positionalParameters, f.returnType,
+        type = new FunctionType(
+            f.positionalParameters, f.returnType, Nullability.nonNullable,
             namedParameters: f.namedParameters,
             typeParameters: f.typeParameters,
             requiredParameterCount: f.requiredParameterCount,
-            typedefType: def.thisType,
-            nullability: Nullability.nonNullable);
+            typedefType: def.thisType);
       }
     }
     return def..type = type;
@@ -296,10 +295,10 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     }
     namedParameters.sort();
     return new FunctionType(positionalParameters, returnType,
+        interpretParsedNullability(node.parsedNullability),
         namedParameters: namedParameters,
         requiredParameterCount: node.arguments.required.length,
-        typeParameters: parameterEnvironment.parameters,
-        nullability: interpretParsedNullability(node.parsedNullability));
+        typeParameters: parameterEnvironment.parameters);
   }
 
   VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {
@@ -316,7 +315,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     TypeParameterType type =
         node.a.accept<Node, KernelEnvironment>(this, environment);
     DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
-    return new TypeParameterType(type.parameter, bound, type.nullability);
+    return new TypeParameterType(type.parameter, type.nullability, bound);
   }
 
   Supertype toSupertype(InterfaceType type) {
@@ -341,7 +340,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       if (bound == null) {
         typeParameter
           ..bound = new InterfaceType(
-              objectClass, const <DartType>[], Nullability.nullable)
+              objectClass, Nullability.nullable, const <DartType>[])
           ..defaultType = const DynamicType();
       } else {
         DartType type =

@@ -186,7 +186,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 
   SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction)
       : iteratorVariable = new VariableDeclaration(':iterator')
-          ..type = new InterfaceType(helper.syncIteratorClass, [
+          ..type =
+              new InterfaceType(helper.syncIteratorClass, Nullability.legacy, [
             ContinuationRewriterBase.elementTypeFrom(
                 helper.iterableClass, enclosingFunction.returnType)
           ]),
@@ -749,8 +750,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
               helper.streamIteratorConstructor,
               new Arguments(<Expression>[new VariableGet(streamVariable)],
                   types: [valueVariable.type])),
-          type: new InterfaceType(
-              helper.streamIteratorClass, [valueVariable.type]));
+          type: new InterfaceType(helper.streamIteratorClass,
+              Nullability.legacy, [valueVariable.type]));
 
       // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
@@ -914,8 +915,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 
     // _AsyncStarStreamController<T> :controller;
     controllerVariable = new VariableDeclaration(":controller",
-        type: new InterfaceType(
-            helper.asyncStarStreamControllerClass, [elementType]));
+        type: new InterfaceType(helper.asyncStarStreamControllerClass,
+            Nullability.legacy, [elementType]));
     statements.add(controllerVariable);
 
     // dynamic :controller_stream;
@@ -1036,12 +1037,12 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     if (valueType == const DynamicType()) {
       valueType = elementTypeFromReturnType(helper.futureOrClass);
     }
-    final DartType returnType =
-        new InterfaceType(helper.futureOrClass, <DartType>[valueType]);
+    final DartType returnType = new InterfaceType(
+        helper.futureOrClass, Nullability.legacy, <DartType>[valueType]);
     var completerTypeArguments = <DartType>[valueType];
 
-    final completerType = new InterfaceType(
-        helper.asyncAwaitCompleterClass, completerTypeArguments);
+    final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
+        Nullability.legacy, completerTypeArguments);
     // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
     completerVariable = new VariableDeclaration(":async_completer",
         initializer: new ConstructorInvocation(

@@ -418,7 +418,8 @@ abstract class TypeConstraintGatherer {
     for (int i = 0; i < params1.length; ++i) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
       freshTypeVariables.add(pFresh);
-      DartType variableFresh = new TypeParameterType(pFresh);
+      DartType variableFresh =
+          new TypeParameterType(pFresh, Nullability.legacy);
       substitution1[params1[i]] = variableFresh;
       substitution2[params2[i]] = variableFresh;
       DartType bound1 = substitute(params1[i].bound, substitution1);

@@ -159,7 +159,7 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   if (typeParameterCount != 0) {
     List<DartType> types = new List<DartType>(typeParameterCount);
     for (int i = 0; i < typeParameterCount; i++) {
-      types[i] = new TypeParameterType(aTypeParameters[i]);
+      types[i] = new TypeParameterType(aTypeParameters[i], Nullability.legacy);
     }
     substitution = Substitution.fromPairs(bTypeParameters, types);
     for (int i = 0; i < typeParameterCount; i++) {
@@ -299,6 +299,7 @@ class ClassHierarchyBuilder {
         // faster to check for `Null` before calling this method.
         return new InterfaceType(
             superclass,
+            Nullability.legacy,
             new List<DartType>.filled(
                 superclass.typeParameters.length, coreTypes.nullType));
       }
@@ -658,7 +659,8 @@ class ClassHierarchyNodeBuilder {
       }
       List<DartType> types = new List<DartType>(typeParameterCount);
       for (int i = 0; i < typeParameterCount; i++) {
-        types[i] = new TypeParameterType(aTypeParameters[i]);
+        types[i] =
+            new TypeParameterType(aTypeParameters[i], Nullability.legacy);
       }
       substitution = Substitution.fromPairs(bTypeParameters, types);
       for (int i = 0; i < typeParameterCount; i++) {
@@ -2018,7 +2020,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
-        hierarchy.futureClass, <DartType>[type], nullability);
+        hierarchy.futureClass, nullability, <DartType>[type]);
   }
 
   @override

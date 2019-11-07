@@ -345,7 +345,7 @@ class WidgetCreatorTracker {
       _hasCreationLocationClass.enclosingLibrary,
     );
     final Field locationField = new Field(fieldName,
-        type: new InterfaceType(_locationClass),
+        type: new InterfaceType(_locationClass, Nullability.legacy),
         isFinal: true,
         reference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)

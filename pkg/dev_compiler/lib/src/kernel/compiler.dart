@@ -983,10 +983,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (c.enclosingLibrary == _coreTypes.asyncLibrary &&
         c == _coreTypes.futureOrClass) {
-      var typeParam = TypeParameterType(c.typeParameters[0]);
+      var typeParam =
+          TypeParameterType(c.typeParameters[0], Nullability.legacy);
       var typeT = visitTypeParameterType(typeParam);
-      var futureOfT = visitInterfaceType(
-          InterfaceType(_coreTypes.futureClass, [typeParam]));
+      var futureOfT = visitInterfaceType(InterfaceType(
+          _coreTypes.futureClass, Nullability.legacy, [typeParam]));
       body.add(js.statement('''
           #.is = function is_FutureOr(o) {
             return #.is(o) || #.is(o);
@@ -1315,8 +1316,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       // TODO(jmesserly): do covariant type parameter bounds also need to be
       // reified as `Object`?
-      result = FunctionType(
-          f.positionalParameters.map(reifyParameter).toList(), f.returnType,
+      result = FunctionType(f.positionalParameters.map(reifyParameter).toList(),
+          f.returnType, Nullability.legacy,
           namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
             ..sort(),
           typeParameters: f.thisFunctionType.typeParameters,
@@ -2860,8 +2861,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       var returnType = _expectedReturnType(function, _coreTypes.iterableClass);
-      var syncIterable =
-          _emitType(InterfaceType(_syncIterableClass, [returnType]));
+      var syncIterable = _emitType(
+          InterfaceType(_syncIterableClass, Nullability.legacy, [returnType]));
       return js.call('new #.new(#)', [syncIterable, gen]);
     }
 
@@ -2876,7 +2877,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
       var returnType = _expectedReturnType(function, _coreTypes.streamClass);
-      var asyncStarImpl = InterfaceType(_asyncStarImplClass, [returnType]);
+      var asyncStarImpl =
+          InterfaceType(_asyncStarImplClass, Nullability.legacy, [returnType]);
       return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
     }
 
@@ -3058,7 +3060,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     for (var t in typeFormals) {
       if (t.isGenericCovariantImpl && !_types.isTop(t.bound)) {
         body.add(runtimeStatement('checkTypeBound(#, #, #)', [
-          _emitType(TypeParameterType(t)),
+          _emitType(TypeParameterType(t, Nullability.legacy)),
           _emitType(t.bound),
           propertyName(t.name)
         ]));
@@ -4771,7 +4773,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var type = ctorClass.typeParameters.isEmpty
         ? _coreTypes.legacyRawType(ctorClass)
-        : InterfaceType(ctorClass, args.types);
+        : InterfaceType(ctorClass, Nullability.legacy, args.types);
 
     if (isFromEnvironmentInvocation(_coreTypes, node)) {
       var value = _constants.evaluate(node);
@@ -4832,7 +4834,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashMapImplClass : _linkedHashMapImplClass;
-    return _emitType(InterfaceType(c, typeArgs));
+    return _emitType(InterfaceType(c, Nullability.legacy, typeArgs));
   }
 
   js_ast.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
@@ -4840,7 +4842,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashSetImplClass : _linkedHashSetImplClass;
-    return _emitType(InterfaceType(c, typeArgs));
+    return _emitType(InterfaceType(c, Nullability.legacy, typeArgs));
   }
 
   js_ast.Expression _emitObjectLiteral(Arguments node) {
@@ -5061,7 +5063,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = InterfaceType(_jsArrayClass, [itemType]);
+    var arrayType =
+        InterfaceType(_jsArrayClass, Nullability.legacy, [itemType]);
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
@@ -5077,8 +5080,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var setType = visitInterfaceType(
-          InterfaceType(_linkedHashSetClass, [node.typeArgument]));
+      var setType = visitInterfaceType(InterfaceType(
+          _linkedHashSetClass, Nullability.legacy, [node.typeArgument]));
       if (node.expressions.isEmpty) {
         return js.call('#.new()', [setType]);
       }

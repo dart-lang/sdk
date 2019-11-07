@@ -932,8 +932,8 @@ FunctionType wrapFunctionType(
     Tuple2<List<TypeParameter>,
             Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>
         tuple) {
-  return new FunctionType(
-      tuple.second.first + tuple.second.second, tuple.second.fourth,
+  return new FunctionType(tuple.second.first + tuple.second.second,
+      tuple.second.fourth, Nullability.legacy,
       requiredParameterCount: tuple.second.first.length,
       typeParameters: tuple.first,
       namedParameters: tuple.second.third);
@@ -962,7 +962,7 @@ Tuple2<TypeParameter, DartType> unwrapTypeParameterType(
 }
 
 TypeParameterType wrapTypeParameterType(Tuple2<TypeParameter, DartType> tuple) {
-  return new TypeParameterType(tuple.first, tuple.second);
+  return new TypeParameterType(tuple.first, Nullability.legacy, tuple.second);
 }
 
 Case<DartType> dartTypeSerializer =

@@ -1218,6 +1218,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       if (streamType != null) {
         iteratorType = new ir.InterfaceType(
             typeEnvironment.coreTypes.streamIteratorClass,
+            ir.Nullability.legacy,
             streamType.typeArguments);
       }
     } else {

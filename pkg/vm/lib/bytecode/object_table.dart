@@ -2323,8 +2323,8 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
               (Reference fieldRef, Constant value) => new MapEntry(
                   objectTable.getHandle(fieldRef.asField),
                   objectTable.getHandle(value))),
-          objectTable.getHandle(
-              new InterfaceType(node.classNode, node.typeArguments))));
+          objectTable.getHandle(new InterfaceType(
+              node.classNode, Nullability.legacy, node.typeArguments))));
 
   @override
   ObjectHandle visitTearOffConstant(TearOffConstant node) =>

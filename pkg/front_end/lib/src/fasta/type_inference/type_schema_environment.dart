@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         NamedType,
+        Nullability,
         Procedure,
         TypeParameter;
 
@@ -41,6 +42,7 @@ FunctionType substituteTypeParams(
   return new FunctionType(
       type.positionalParameters.map(substitution.substituteType).toList(),
       substitution.substituteType(type.returnType),
+      Nullability.legacy,
       namedParameters: type.namedParameters
           .map((named) => new NamedType(
               named.name, substitution.substituteType(named.type),

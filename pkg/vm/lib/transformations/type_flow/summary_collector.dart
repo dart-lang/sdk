@@ -1556,7 +1556,8 @@ class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
     }
 
     if (createRuntimeType) {
-      return new RuntimeType(new InterfaceType(type.classNode),
+      return new RuntimeType(
+          new InterfaceType(type.classNode, Nullability.legacy),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
       final instantiate =

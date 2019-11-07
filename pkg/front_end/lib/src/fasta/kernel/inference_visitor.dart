@@ -361,7 +361,7 @@ class InferenceVisitor
       ExtensionTearOff node, DartType typeContext) {
     FunctionType calleeType = node.target != null
         ? node.target.function.functionType
-        : new FunctionType([], const DynamicType());
+        : new FunctionType([], const DynamicType(), Nullability.legacy);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     DartType inferredType = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments);
@@ -1129,7 +1129,7 @@ class InferenceVisitor
       ExpressionInferenceResult spreadResult = inferrer.inferExpression(
           element.expression,
           new InterfaceType(inferrer.coreTypes.iterableClass,
-              <DartType>[inferredTypeArgument]),
+              Nullability.legacy, <DartType>[inferredTypeArgument]),
           inferenceNeeded || typeChecksNeeded,
           isVoidAllowed: true);
       element.expression = spreadResult.expression..parent = element;
@@ -1409,8 +1409,8 @@ class InferenceVisitor
             inferredSpreadTypes, inferredConditionTypes);
       }
     }
-    DartType inferredType =
-        new InterfaceType(listClass, [inferredTypeArgument]);
+    DartType inferredType = new InterfaceType(
+        listClass, Nullability.legacy, [inferredTypeArgument]);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
@@ -1564,8 +1564,8 @@ class InferenceVisitor
       mapEntryClass ??=
           inferrer.coreTypes.index.getClass('dart:core', 'MapEntry');
       // TODO(dmitryas):  Handle the case of an ambiguous Set.
-      entry.entryType = new InterfaceType(
-          mapEntryClass, <DartType>[actualKeyType, actualValueType]);
+      entry.entryType = new InterfaceType(mapEntryClass, Nullability.legacy,
+          <DartType>[actualKeyType, actualValueType]);
 
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
@@ -1889,7 +1889,7 @@ class InferenceVisitor
             .getTypeAsInstanceOf(typeContext, inferrer.coreTypes.iterableClass);
       } else if (!typeContextIsIterable && typeContextIsMap) {
         spreadTypeContext = new InterfaceType(inferrer.coreTypes.mapClass,
-            <DartType>[inferredKeyType, inferredValueType]);
+            Nullability.legacy, <DartType>[inferredKeyType, inferredValueType]);
       }
       for (int index = 0; index < node.entries.length; ++index) {
         MapEntry entry = node.entries[index];
@@ -1965,8 +1965,8 @@ class InferenceVisitor
           }
         }
 
-        DartType inferredType =
-            new InterfaceType(inferrer.coreTypes.setClass, inferredTypesForSet);
+        DartType inferredType = new InterfaceType(inferrer.coreTypes.setClass,
+            Nullability.legacy, inferredTypesForSet);
         return new ExpressionInferenceResult(inferredType, setLiteral);
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
@@ -2007,8 +2007,8 @@ class InferenceVisitor
         node.entries[index] = entry..parent = node;
       }
     }
-    DartType inferredType =
-        new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
+    DartType inferredType = new InterfaceType(
+        mapClass, Nullability.legacy, [inferredKeyType, inferredValueType]);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
@@ -4254,7 +4254,8 @@ class InferenceVisitor
     List<DartType> typeArguments =
         new List<DartType>(classTypeParameters.length);
     for (int i = 0; i < typeArguments.length; i++) {
-      typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
+      typeArguments[i] =
+          new TypeParameterType(classTypeParameters[i], Nullability.legacy);
     }
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
     inferrer.inferInvocation(null, node.fileOffset,
@@ -4356,7 +4357,8 @@ class InferenceVisitor
             inferredSpreadTypes, inferredConditionTypes);
       }
     }
-    DartType inferredType = new InterfaceType(setClass, [inferredTypeArgument]);
+    DartType inferredType =
+        new InterfaceType(setClass, Nullability.legacy, [inferredTypeArgument]);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
@@ -4406,7 +4408,7 @@ class InferenceVisitor
       StaticInvocation node, DartType typeContext) {
     FunctionType calleeType = node.target != null
         ? node.target.function.functionType
-        : new FunctionType([], const DynamicType());
+        : new FunctionType([], const DynamicType(), Nullability.legacy);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     DartType inferredType = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments);
@@ -4756,7 +4758,8 @@ class InferenceVisitor
     DartType inferredType = inferrer.typeSchemaEnvironment
         .futureType(const DynamicType(), Nullability.legacy);
     if (node.arguments != null) {
-      FunctionType calleeType = new FunctionType([], inferredType);
+      FunctionType calleeType =
+          new FunctionType([], inferredType, Nullability.legacy);
       inferrer.inferInvocation(
           typeContext, node.fileOffset, calleeType, node.arguments);
     }
@@ -4768,7 +4771,8 @@ class InferenceVisitor
     DartType inferredType = new FunctionType(
         [],
         inferrer.typeSchemaEnvironment
-            .futureType(const DynamicType(), Nullability.legacy));
+            .futureType(const DynamicType(), Nullability.legacy),
+        Nullability.legacy);
     Expression replacement = new StaticGet(node.target)
       ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);

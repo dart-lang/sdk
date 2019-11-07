@@ -93,15 +93,15 @@ main() {
       matches("Type parameter '$tvarRegexp' referenced out of scope,"
           " parent is: 'null'\\."), (TestHarness test) {
     var parameter = test.makeTypeParameter();
-    test.addNode(
-        ListLiteral([], typeArgument: new TypeParameterType(parameter)));
+    test.addNode(ListLiteral([],
+        typeArgument: new TypeParameterType(parameter, Nullability.legacy)));
   });
   negativeTest(
       'Class type parameter from another class',
       "Type parameter 'test_lib::OtherClass::OtherT' referenced out of scope,"
           " parent is: 'test_lib::OtherClass'.", (TestHarness test) {
-    test.addNode(
-        TypeLiteral(new TypeParameterType(test.otherClass.typeParameters[0])));
+    test.addNode(TypeLiteral(new TypeParameterType(
+        test.otherClass.typeParameters[0], Nullability.legacy)));
   });
   negativeTest(
       'Class type parameter in static method',
@@ -110,8 +110,9 @@ main() {
     test.addNode(Procedure(
         new Name('bar'),
         ProcedureKind.Method,
-        new FunctionNode(new ReturnStatement(
-            new TypeLiteral(new TypeParameterType(test.classTypeParameter)))),
+        new FunctionNode(new ReturnStatement(new TypeLiteral(
+            new TypeParameterType(
+                test.classTypeParameter, Nullability.legacy)))),
         isStatic: true));
   });
   negativeTest(
@@ -119,8 +120,8 @@ main() {
       "Type parameter 'test_lib::TestClass::T' referenced from static context,"
           " parent is: 'test_lib::TestClass'.", (TestHarness test) {
     test.addNode(Field(new Name('field'),
-        initializer:
-            new TypeLiteral(new TypeParameterType(test.classTypeParameter)),
+        initializer: new TypeLiteral(
+            new TypeParameterType(test.classTypeParameter, Nullability.legacy)),
         isStatic: true));
   });
   negativeTest(
@@ -140,29 +141,30 @@ main() {
           new Procedure(
               new Name('use'),
               ProcedureKind.Method,
-              new FunctionNode(new ReturnStatement(
-                  new TypeLiteral(new TypeParameterType(parameter)))))
+              new FunctionNode(new ReturnStatement(new TypeLiteral(
+                  new TypeParameterType(parameter, Nullability.legacy)))))
         ]));
   });
   negativeTest(
       'Interface type arity too low',
       "Type test_lib::OtherClass* provides 0 type arguments,"
           " but the class declares 1 parameters.", (TestHarness test) {
-    test.addNode(TypeLiteral(new InterfaceType(test.otherClass, [])));
+    test.addNode(TypeLiteral(
+        new InterfaceType(test.otherClass, Nullability.legacy, [])));
   });
   negativeTest(
       'Interface type arity too high',
       "Type test_lib::OtherClass<dynamic, dynamic>* provides 2 type arguments,"
           " but the class declares 1 parameters.", (TestHarness test) {
-    test.addNode(TypeLiteral(new InterfaceType(
-        test.otherClass, [new DynamicType(), new DynamicType()])));
+    test.addNode(TypeLiteral(new InterfaceType(test.otherClass,
+        Nullability.legacy, [new DynamicType(), new DynamicType()])));
   });
   negativeTest(
       'Dangling interface type',
       matches("Dangling reference to 'null::#class[0-9]+',"
           " parent is: 'null'\\."), (TestHarness test) {
     var orphan = new Class();
-    test.addNode(TypeLiteral(new InterfaceType(orphan)));
+    test.addNode(TypeLiteral(new InterfaceType(orphan, Nullability.legacy)));
   });
   negativeTest('Dangling field get',
       "Dangling reference to 'null::foo', parent is: 'null'.",
@@ -274,18 +276,22 @@ main() {
   });
   positiveTest('Valid typedef Foo = `(C) => void`', (TestHarness test) {
     var typedef_ = new Typedef(
-        'Foo', new FunctionType([test.otherLegacyRawType], const VoidType()));
+        'Foo',
+        new FunctionType(
+            [test.otherLegacyRawType], const VoidType(), Nullability.legacy));
     test.addNode(typedef_);
   });
   positiveTest('Valid typedef Foo = C<dynamic>', (TestHarness test) {
     var typedef_ = new Typedef(
-        'Foo', new InterfaceType(test.otherClass, [const DynamicType()]));
+        'Foo',
+        new InterfaceType(
+            test.otherClass, Nullability.legacy, [const DynamicType()]));
     test.addNode(typedef_);
   });
   positiveTest('Valid typedefs Foo = Bar, Bar = C', (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
-    foo.type = new TypedefType(bar);
+    foo.type = new TypedefType(bar, Nullability.legacy);
     bar.type = test.otherLegacyRawType;
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
@@ -293,16 +299,19 @@ main() {
   positiveTest('Valid typedefs Foo = C<Bar>, Bar = C', (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
-    foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
+    foo.type = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypedefType(bar, Nullability.legacy)]);
     bar.type = test.otherLegacyRawType;
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
   positiveTest('Valid typedef type in field', (TestHarness test) {
     var typedef_ = new Typedef(
-        'Foo', new FunctionType([test.otherLegacyRawType], const VoidType()));
+        'Foo',
+        new FunctionType(
+            [test.otherLegacyRawType], const VoidType(), Nullability.legacy));
     var field = new Field(new Name('field'),
-        type: new TypedefType(typedef_), isStatic: true);
+        type: new TypedefType(typedef_, Nullability.legacy), isStatic: true);
     test.enclosingLibrary.addTypedef(typedef_);
     test.enclosingLibrary.addMember(field);
   });
@@ -311,7 +320,7 @@ main() {
       "The typedef 'typedef Foo = test_lib::Foo;\n'"
           " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
-    typedef_.type = new TypedefType(typedef_);
+    typedef_.type = new TypedefType(typedef_, Nullability.legacy);
     test.addNode(typedef_);
   });
   negativeTest(
@@ -319,8 +328,10 @@ main() {
       "The typedef 'typedef Foo = (test_lib::Foo) →* void;\n'"
           " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
-    typedef_.type =
-        new FunctionType([new TypedefType(typedef_)], const VoidType());
+    typedef_.type = new FunctionType(
+        [new TypedefType(typedef_, Nullability.legacy)],
+        const VoidType(),
+        Nullability.legacy);
     test.addNode(typedef_);
   });
   negativeTest(
@@ -328,7 +339,8 @@ main() {
       "The typedef 'typedef Foo = () →* test_lib::Foo;\n'"
           " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
-    typedef_.type = new FunctionType([], new TypedefType(typedef_));
+    typedef_.type = new FunctionType(
+        [], new TypedefType(typedef_, Nullability.legacy), Nullability.legacy);
     test.addNode(typedef_);
   });
   negativeTest(
@@ -336,8 +348,8 @@ main() {
       "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Foo>*;\n'"
           " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
-    typedef_.type =
-        new InterfaceType(test.otherClass, [new TypedefType(typedef_)]);
+    typedef_.type = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypedefType(typedef_, Nullability.legacy)]);
     test.addNode(typedef_);
   });
   negativeTest(
@@ -346,8 +358,8 @@ main() {
           " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
-    foo.type = new TypedefType(bar);
-    bar.type = new TypedefType(foo);
+    foo.type = new TypedefType(bar, Nullability.legacy);
+    bar.type = new TypedefType(foo, Nullability.legacy);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
@@ -357,8 +369,9 @@ main() {
           " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
-    foo.type = new TypedefType(bar);
-    bar.type = new InterfaceType(test.otherClass, [new TypedefType(foo)]);
+    foo.type = new TypedefType(bar, Nullability.legacy);
+    bar.type = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypedefType(foo, Nullability.legacy)]);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
@@ -368,8 +381,10 @@ main() {
           " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
-    foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
-    bar.type = new InterfaceType(test.otherClass, [new TypedefType(foo)]);
+    foo.type = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypedefType(bar, Nullability.legacy)]);
+    bar.type = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypedefType(foo, Nullability.legacy)]);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
@@ -378,7 +393,8 @@ main() {
     var typedef_ = new Typedef('C0', const DynamicType());
     test.enclosingLibrary.addTypedef(typedef_);
     for (int i = 1; i < 20; ++i) {
-      typedef_ = new Typedef('C$i', new TypedefType(typedef_));
+      typedef_ =
+          new Typedef('C$i', new TypedefType(typedef_, Nullability.legacy));
       test.enclosingLibrary.addTypedef(typedef_);
     }
   });
@@ -390,24 +406,29 @@ main() {
     test.enclosingLibrary.addTypedef(typedef_);
     var first = typedef_;
     for (int i = 1; i < 20; ++i) {
-      typedef_ = new Typedef('C$i', new TypedefType(typedef_));
+      typedef_ =
+          new Typedef('C$i', new TypedefType(typedef_, Nullability.legacy));
       test.enclosingLibrary.addTypedef(typedef_);
     }
-    first.type = new TypedefType(typedef_);
+    first.type = new TypedefType(typedef_, Nullability.legacy);
   });
   positiveTest('Valid typedef Foo<T extends C> = C<T>', (TestHarness test) {
     var param = new TypeParameter('T', test.otherLegacyRawType);
-    var foo = new Typedef('Foo',
-        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+    var foo = new Typedef(
+        'Foo',
+        new InterfaceType(test.otherClass, Nullability.legacy,
+            [new TypeParameterType(param, Nullability.legacy)]),
         typeParameters: [param]);
     test.addNode(foo);
   });
   positiveTest('Valid typedef Foo<T extends C<T>> = C<T>', (TestHarness test) {
     var param = new TypeParameter('T', test.otherLegacyRawType);
-    param.bound =
-        new InterfaceType(test.otherClass, [new TypeParameterType(param)]);
-    var foo = new Typedef('Foo',
-        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+    param.bound = new InterfaceType(test.otherClass, Nullability.legacy,
+        [new TypeParameterType(param, Nullability.legacy)]);
+    var foo = new Typedef(
+        'Foo',
+        new InterfaceType(test.otherClass, Nullability.legacy,
+            [new TypeParameterType(param, Nullability.legacy)]),
         typeParameters: [param]);
     test.addNode(foo);
   });
@@ -417,9 +438,12 @@ main() {
     var foo =
         new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
     var barParam = new TypeParameter('T', null);
-    barParam.bound = new TypedefType(foo, [new TypeParameterType(barParam)]);
-    var bar = new Typedef('Bar',
-        new InterfaceType(test.otherClass, [new TypeParameterType(barParam)]),
+    barParam.bound = new TypedefType(foo, Nullability.legacy,
+        [new TypeParameterType(barParam, Nullability.legacy)]);
+    var bar = new Typedef(
+        'Bar',
+        new InterfaceType(test.otherClass, Nullability.legacy,
+            [new TypeParameterType(barParam, Nullability.legacy)]),
         typeParameters: [barParam]);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
@@ -432,11 +456,15 @@ main() {
     var foo =
         new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
     var barParam = new TypeParameter('T', null);
-    barParam.bound = new TypedefType(foo, [new TypeParameterType(barParam)]);
-    var bar = new Typedef('Bar',
-        new InterfaceType(test.otherClass, [new TypeParameterType(barParam)]),
+    barParam.bound = new TypedefType(foo, Nullability.legacy,
+        [new TypeParameterType(barParam, Nullability.legacy)]);
+    var bar = new Typedef(
+        'Bar',
+        new InterfaceType(test.otherClass, Nullability.legacy,
+            [new TypeParameterType(barParam, Nullability.legacy)]),
         typeParameters: [barParam]);
-    fooParam.bound = new TypedefType(bar, [new TypeParameterType(fooParam)]);
+    fooParam.bound = new TypedefType(bar, Nullability.legacy,
+        [new TypeParameterType(fooParam, Nullability.legacy)]);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
@@ -446,10 +474,13 @@ main() {
           "test_lib::OtherClass<T*>*;\n'"
           " refers to itself", (TestHarness test) {
     var param = new TypeParameter('T', null);
-    var foo = new Typedef('Foo',
-        new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
+    var foo = new Typedef(
+        'Foo',
+        new InterfaceType(test.otherClass, Nullability.legacy,
+            [new TypeParameterType(param, Nullability.legacy)]),
         typeParameters: [param]);
-    param.bound = new TypedefType(foo, [const DynamicType()]);
+    param.bound =
+        new TypedefType(foo, Nullability.legacy, [const DynamicType()]);
     test.addNode(foo);
   });
   negativeTest(
@@ -460,7 +491,7 @@ main() {
     var foo =
         new Typedef('Foo', test.otherLegacyRawType, typeParameters: [param]);
     var field = new Field(new Name('field'),
-        type: new TypedefType(foo, []), isStatic: true);
+        type: new TypedefType(foo, Nullability.legacy, []), isStatic: true);
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addMember(field);
   });
@@ -470,7 +501,7 @@ main() {
           ", parent is: 'null'", (TestHarness test) {
     var foo = new Typedef('Foo', test.otherLegacyRawType, typeParameters: []);
     var field = new Field(new Name('field'),
-        type: new TypedefType(foo, []), isStatic: true);
+        type: new TypedefType(foo, Nullability.legacy, []), isStatic: true);
     test.enclosingLibrary.addMember(field);
   });
   negativeTest('Non-static top-level field',
@@ -563,7 +594,7 @@ class TestHarness {
     stubLibrary.name = 'dart.core';
     objectClass = new Class(name: 'Object');
     objectLegacyRawType =
-        new InterfaceType(objectClass, const <DartType>[], Nullability.legacy);
+        new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
     stubLibrary.addClass(objectClass);
     enclosingLibrary = new Library(Uri.parse('file://test.dart'));
     component.libraries.add(enclosingLibrary..parent = component);
@@ -574,7 +605,7 @@ class TestHarness {
         typeParameters: [classTypeParameter],
         supertype: objectClass.asRawSupertype);
     enclosingLegacyRawType = new InterfaceType(enclosingClass,
-        const <DartType>[const DynamicType()], Nullability.legacy);
+        Nullability.legacy, const <DartType>[const DynamicType()]);
     enclosingLibrary.addClass(enclosingClass);
     enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()));
@@ -584,7 +615,7 @@ class TestHarness {
         typeParameters: [makeTypeParameter('OtherT')],
         supertype: objectClass.asRawSupertype);
     otherLegacyRawType = new InterfaceType(
-        otherClass, const <DartType>[const DynamicType()], Nullability.legacy);
+        otherClass, Nullability.legacy, const <DartType>[const DynamicType()]);
     enclosingLibrary.addClass(otherClass);
   }
 }

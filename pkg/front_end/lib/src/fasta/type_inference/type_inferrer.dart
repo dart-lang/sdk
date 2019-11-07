@@ -435,7 +435,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Marker object to indicate that a function takes an unknown number
   /// of arguments.
   static final FunctionType unknownFunction =
-      new FunctionType(const [], const DynamicType());
+      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   final TypeInferenceEngine engine;
 
@@ -949,6 +949,7 @@ class TypeInferrerImpl implements TypeInferrer {
             return substitution.substituteType(new FunctionType(
                 functionType.positionalParameters.skip(1).toList(),
                 functionType.returnType,
+                Nullability.legacy,
                 namedParameters: functionType.namedParameters,
                 typeParameters: functionType.typeParameters
                     .skip(target.inferredExtensionTypeArguments.length)
@@ -1553,7 +1554,9 @@ class TypeInferrerImpl implements TypeInferrer {
       bool isConst: false,
       bool isImplicitExtensionMember: false}) {
     FunctionType extensionFunctionType = new FunctionType(
-        [calleeType.positionalParameters.first], const DynamicType(),
+        [calleeType.positionalParameters.first],
+        const DynamicType(),
+        Nullability.legacy,
         requiredParameterCount: 1,
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
@@ -1575,7 +1578,9 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeType.typeParameters.skip(extensionTypeParameterCount).toList();
     }
     FunctionType targetFunctionType = new FunctionType(
-        calleeType.positionalParameters.skip(1).toList(), calleeType.returnType,
+        calleeType.positionalParameters.skip(1).toList(),
+        calleeType.returnType,
+        Nullability.legacy,
         requiredParameterCount: calleeType.requiredParameterCount - 1,
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
@@ -1916,7 +1921,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (int i = 0; i < typeContext.typeParameters.length; i++) {
         substitutionMap[typeContext.typeParameters[i]] =
             i < typeParameters.length
-                ? new TypeParameterType(typeParameters[i])
+                ? new TypeParameterType(typeParameters[i], Nullability.legacy)
                 : const DynamicType();
       }
       substitution = Substitution.fromMap(substitutionMap);
@@ -2413,18 +2418,19 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    return new InterfaceType(
-        coreTypes.futureOrClass, <DartType>[type ?? const DynamicType()]);
+    return new InterfaceType(coreTypes.futureOrClass, Nullability.legacy,
+        <DartType>[type ?? const DynamicType()]);
   }
 
   DartType wrapFutureType(DartType type) {
     DartType typeWithoutFutureOr = type ?? const DynamicType();
-    return new InterfaceType(
-        coreTypes.futureClass, <DartType>[typeWithoutFutureOr]);
+    return new InterfaceType(coreTypes.futureClass, Nullability.legacy,
+        <DartType>[typeWithoutFutureOr]);
   }
 
   DartType wrapType(DartType type, Class class_) {
-    return new InterfaceType(class_, <DartType>[type ?? const DynamicType()]);
+    return new InterfaceType(
+        class_, Nullability.legacy, <DartType>[type ?? const DynamicType()]);
   }
 
   Member _getInterfaceMember(
@@ -2753,7 +2759,9 @@ abstract class MixinInferrer {
     // substitute them before calling instantiate to bounds.
     Substitution substitution = Substitution.fromPairs(
         mixinClass.typeParameters,
-        parameters.map((p) => new TypeParameterType(p)).toList());
+        parameters
+            .map((p) => new TypeParameterType(p, Nullability.legacy))
+            .toList());
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }

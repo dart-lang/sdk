@@ -608,7 +608,7 @@ class Forest {
   }
 
   TypeParameterType createTypeParameterType(TypeParameter typeParameter) {
-    return new TypeParameterType(typeParameter);
+    return new TypeParameterType(typeParameter, Nullability.legacy);
   }
 
   FunctionExpression createFunctionExpression(

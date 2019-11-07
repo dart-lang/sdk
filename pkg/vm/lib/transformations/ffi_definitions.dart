@@ -131,8 +131,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   bool _isPointerType(Field field) {
     return env.isSubtypeOf(
         field.type,
-        InterfaceType(pointerClass,
-            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]),
+        InterfaceType(pointerClass, Nullability.legacy, [
+          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
+              Nullability.legacy)
+        ]),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
@@ -163,8 +165,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileUri);
       } else {
         final DartType dartType = f.type;
-        final DartType nativeType =
-            InterfaceType(nativeTypesClasses[nativeTypeAnnos.first.index]);
+        final DartType nativeType = InterfaceType(
+            nativeTypesClasses[nativeTypeAnnos.first.index],
+            Nullability.legacy);
         // TODO(36730): Support structs inside structs.
         final DartType shouldBeDartType =
             convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
@@ -266,12 +269,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Expression _runtimeBranchOnLayout(Map<Abi, int> values) {
     return MethodInvocation(
         ConstantExpression(
-            ListConstant(InterfaceType(intClass), [
+            ListConstant(InterfaceType(intClass, Nullability.legacy), [
               IntConstant(values[Abi.wordSize64]),
               IntConstant(values[Abi.wordSize32Align32]),
               IntConstant(values[Abi.wordSize32Align64])
             ]),
-            InterfaceType(intClass)),
+            InterfaceType(intClass, Nullability.legacy)),
         Name("[]"),
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         listElementAt);
@@ -285,8 +288,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       Field field, NativeType type, Map<Abi, int> offsets) {
     final DartType nativeType = type == NativeType.kPointer
         ? field.type
-        : InterfaceType(nativeTypesClasses[type.index]);
-    final DartType pointerType = InterfaceType(pointerClass, [nativeType]);
+        : InterfaceType(nativeTypesClasses[type.index], Nullability.legacy);
+    final DartType pointerType =
+        InterfaceType(pointerClass, Nullability.legacy, [nativeType]);
     final Name pointerName = Name('#_ptr_${field.name.name}');
 
     // Sample output:
@@ -371,7 +375,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
-        type: InterfaceType(intClass));
+        type: InterfaceType(intClass, Nullability.legacy));
     _makeEntryPoint(sizeOf);
     struct.addMember(sizeOf);
   }
@@ -424,7 +428,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           pragmaName.reference: StringConstant("vm:entry-point"),
           pragmaOptions.reference: NullConstant()
         }),
-        InterfaceType(pragmaClass, [])));
+        InterfaceType(pragmaClass, Nullability.legacy, [])));
   }
 
   NativeType _getFieldType(Class c) {

@@ -271,13 +271,14 @@ abstract class AbstractDataSource extends DataSourceMixin
       case DartTypeNodeKind.typeParameterType:
         ir.TypeParameter typeParameter = readTypeParameterNode();
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
-        return new ir.TypeParameterType(typeParameter, promotedBound);
+        return new ir.TypeParameterType(
+            typeParameter, ir.Nullability.legacy, promotedBound);
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
         return new ir.TypeParameterType(
-            functionTypeVariables[index], promotedBound);
+            functionTypeVariables[index], ir.Nullability.legacy, promotedBound);
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
@@ -308,7 +309,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         }
         ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);
-        return new ir.FunctionType(positionalParameters, returnType,
+        return new ir.FunctionType(
+            positionalParameters, returnType, ir.Nullability.legacy,
             namedParameters: namedParameters,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
@@ -318,7 +320,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Class cls = readClassNode();
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.InterfaceType(cls, typeArguments);
+        return new ir.InterfaceType(cls, ir.Nullability.legacy, typeArguments);
       case DartTypeNodeKind.thisInterfaceType:
         ir.Class cls = readClassNode();
         List<ir.DartType> typeArguments =
@@ -333,7 +335,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Typedef typedef = readTypedefNode();
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.TypedefType(typedef, typeArguments);
+        return new ir.TypedefType(
+            typedef, ir.Nullability.legacy, typeArguments);
       case DartTypeNodeKind.dynamicType:
         return const ir.DynamicType();
     }

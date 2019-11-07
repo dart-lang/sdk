@@ -49,10 +49,11 @@ main() {
   test('factory-constructors', () {
     Class c1 = new Class(name: 'C1');
     Class c2 = new Class(name: 'C2', typeParameters: [new TypeParameter('E')]);
-    InterfaceType t1 = new InterfaceType(c1);
-    InterfaceType t2Raw = new InterfaceType(c2);
-    InterfaceType t2Generic = new InterfaceType(c2, [t1]);
-    FunctionType f1 = new FunctionType([t1], const VoidType());
+    InterfaceType t1 = new InterfaceType(c1, Nullability.legacy);
+    InterfaceType t2Raw = new InterfaceType(c2, Nullability.legacy);
+    InterfaceType t2Generic = new InterfaceType(c2, Nullability.legacy, [t1]);
+    FunctionType f1 =
+        new FunctionType([t1], const VoidType(), Nullability.legacy);
 
     expect(new Type.empty(), equals(const EmptyType()));
 
@@ -85,10 +86,14 @@ main() {
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    InterfaceType t1 = new InterfaceType(new Class(name: 'T1'));
-    InterfaceType t2 = new InterfaceType(new Class(name: 'T2'));
-    InterfaceType t3 = new InterfaceType(new Class(name: 'T3'));
-    InterfaceType t4 = new InterfaceType(new Class(name: 'T4'));
+    InterfaceType t1 =
+        new InterfaceType(new Class(name: 'T1'), Nullability.legacy);
+    InterfaceType t2 =
+        new InterfaceType(new Class(name: 'T2'), Nullability.legacy);
+    InterfaceType t3 =
+        new InterfaceType(new Class(name: 'T3'), Nullability.legacy);
+    InterfaceType t4 =
+        new InterfaceType(new Class(name: 'T4'), Nullability.legacy);
 
     final empty = new EmptyType();
     final any = new AnyType();
@@ -275,12 +280,13 @@ main() {
     final c2 = new Class(name: 'C2');
     final c3 = new Class(name: 'C3');
 
-    final t1a = new InterfaceType(c1);
-    final t1b = new InterfaceType(c1);
-    final t2 = new InterfaceType(c2);
-    final f1a = new FunctionType([t1a], const VoidType());
-    final f1b = new FunctionType([t1b], const VoidType());
-    final f2 = new FunctionType([t1a, t1a], const VoidType());
+    final t1a = new InterfaceType(c1, Nullability.legacy);
+    final t1b = new InterfaceType(c1, Nullability.legacy);
+    final t2 = new InterfaceType(c2, Nullability.legacy);
+    final f1a = new FunctionType([t1a], const VoidType(), Nullability.legacy);
+    final f1b = new FunctionType([t1b], const VoidType(), Nullability.legacy);
+    final f2 =
+        new FunctionType([t1a, t1a], const VoidType(), Nullability.legacy);
 
     final cid1 = const IntClassId(1);
     final cid2 = const IntClassId(2);

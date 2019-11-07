@@ -13,6 +13,7 @@ import "package:kernel/ast.dart"
         Member,
         Name,
         NamedExpression,
+        Nullability,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -269,7 +270,8 @@ class ForwardingNode {
             new NamedExpression(parameter.name, new VariableGet(parameter)))
         .toList();
     List<DartType> typeArguments = function.typeParameters
-        .map<DartType>((typeParameter) => new TypeParameterType(typeParameter))
+        .map<DartType>((typeParameter) =>
+            new TypeParameterType(typeParameter, Nullability.legacy))
         .toList();
     Arguments arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
@@ -319,7 +321,7 @@ class ForwardingNode {
           ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
-            new TypeParameterType(typeParameter);
+            new TypeParameterType(typeParameter, Nullability.legacy);
       }
       substitution = Substitution.combine(
           substitution, Substitution.fromMap(additionalSubstitution));

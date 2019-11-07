@@ -329,10 +329,14 @@ void test() {
           name: "/* T Function<T>(T Function<T>()); */",
           node: new ExpressionStatement(new TypeLiteral(new FunctionType(
               [
-                new FunctionType([], new TypeParameterType(innerParam),
+                new FunctionType(
+                    [],
+                    new TypeParameterType(innerParam, Nullability.legacy),
+                    Nullability.legacy,
                     typeParameters: [innerParam])
               ],
-              new TypeParameterType(outterParam),
+              new TypeParameterType(outterParam, Nullability.legacy),
+              Nullability.legacy,
               typeParameters: [outterParam]))),
           expectation: ""
               "(expr (type (-> (\"T^0\") ((dynamic)) ((dynamic)) "

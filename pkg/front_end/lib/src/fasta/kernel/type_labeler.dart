@@ -25,6 +25,7 @@ import 'package:kernel/ast.dart'
         MapConstant,
         NeverType,
         NullConstant,
+        Nullability,
         PartialInstantiationConstant,
         Procedure,
         SetConstant,
@@ -270,7 +271,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitInstanceConstant(InstanceConstant node) {
-    new InterfaceType(node.classNode, node.typeArguments).accept(this);
+    new InterfaceType(node.classNode, Nullability.legacy, node.typeArguments)
+        .accept(this);
     result.add(" {");
     bool first = true;
     for (Field field in node.classNode.fields) {

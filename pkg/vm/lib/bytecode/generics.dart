@@ -28,7 +28,7 @@ List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
   }
   final types = new List<DartType>(typeParameters.length);
   for (int i = 0; i < typeParameters.length; ++i) {
-    types[i] = new TypeParameterType(typeParameters[i]);
+    types[i] = new TypeParameterType(typeParameters[i], Nullability.legacy);
   }
   return types;
 }

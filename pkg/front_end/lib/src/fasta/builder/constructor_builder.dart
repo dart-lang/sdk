@@ -226,10 +226,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(new TypeParameterType(typeParameter));
+      typeParameterTypes
+          .add(new TypeParameterType(typeParameter, Nullability.legacy));
     }
-    functionNode.returnType =
-        new InterfaceType(enclosingClass, typeParameterTypes);
+    functionNode.returnType = new InterfaceType(
+        enclosingClass, Nullability.legacy, typeParameterTypes);
     return functionNode;
   }
 

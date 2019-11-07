@@ -45,29 +45,34 @@ abstract class TypeEnvironment extends SubtypeTester {
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
   InterfaceType literalListType(DartType elementType) {
-    return new InterfaceType(coreTypes.listClass, <DartType>[elementType]);
+    return new InterfaceType(
+        coreTypes.listClass, Nullability.legacy, <DartType>[elementType]);
   }
 
   InterfaceType literalSetType(DartType elementType) {
-    return new InterfaceType(coreTypes.setClass, <DartType>[elementType]);
+    return new InterfaceType(
+        coreTypes.setClass, Nullability.legacy, <DartType>[elementType]);
   }
 
   InterfaceType literalMapType(DartType key, DartType value) {
-    return new InterfaceType(coreTypes.mapClass, <DartType>[key, value]);
+    return new InterfaceType(
+        coreTypes.mapClass, Nullability.legacy, <DartType>[key, value]);
   }
 
   InterfaceType iterableType(DartType type) {
-    return new InterfaceType(coreTypes.iterableClass, <DartType>[type]);
+    return new InterfaceType(
+        coreTypes.iterableClass, Nullability.legacy, <DartType>[type]);
   }
 
   InterfaceType streamType(DartType type) {
-    return new InterfaceType(coreTypes.streamClass, <DartType>[type]);
+    return new InterfaceType(
+        coreTypes.streamClass, Nullability.legacy, <DartType>[type]);
   }
 
   InterfaceType futureType(DartType type,
       [Nullability nullability = Nullability.legacy]) {
     return new InterfaceType(
-        coreTypes.futureClass, <DartType>[type], nullability);
+        coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
   /// Removes a level of `Future<>` types wrapping a type.
@@ -482,7 +487,7 @@ abstract class SubtypeTester {
           if (supertype.promotedBound != null) {
             return performNullabilityAwareSubtypeCheck(
                     subtype,
-                    new TypeParameterType(supertype.parameter, null,
+                    new TypeParameterType(supertype.parameter,
                         supertype.typeParameterTypeNullability))
                 .andSubtypeCheckFor(subtype, supertype.bound, this);
           } else {
@@ -555,7 +560,8 @@ abstract class SubtypeTester {
       for (int i = 0; i < subtype.typeParameters.length; ++i) {
         var subParameter = subtype.typeParameters[i];
         var superParameter = supertype.typeParameters[i];
-        substitution[subParameter] = new TypeParameterType(superParameter);
+        substitution[subParameter] =
+            new TypeParameterType(superParameter, Nullability.legacy);
       }
       for (int i = 0; i < subtype.typeParameters.length; ++i) {
         var subParameter = subtype.typeParameters[i];

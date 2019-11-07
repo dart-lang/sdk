@@ -278,7 +278,7 @@ class Types implements SubtypeTester {
   InterfaceType futureType(DartType type,
       [Nullability nullability = Nullability.legacy]) {
     return new InterfaceType(
-        hierarchy.coreTypes.futureClass, <DartType>[type], nullability);
+        hierarchy.coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
   @override
@@ -376,8 +376,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     return types
         .performNullabilityAwareSubtypeCheck(arguments.single, t)
         .andSubtypeCheckFor(
-            new InterfaceType(types.hierarchy.futureClass, arguments,
-                Nullability.nonNullable),
+            new InterfaceType(types.hierarchy.futureClass,
+                Nullability.nonNullable, arguments),
             t,
             types)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(futureOr, t));
@@ -440,7 +440,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         TypeParameter tTypeVariable = tTypeVariables[i];
         result = result.and(
             types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound));
-        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable, null,
+        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable,
             TypeParameterType.computeNullabilityFromBound(tTypeVariable)));
       }
       Substitution substitution =
@@ -714,7 +714,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
         .orSubtypeCheckFor(
             s,
             new InterfaceType(
-                types.hierarchy.futureClass, arguments, unitedNullability),
+                types.hierarchy.futureClass, unitedNullability, arguments),
             types);
   }
 
@@ -770,7 +770,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
         .orSubtypeCheckFor(
             s,
             new InterfaceType(
-                types.hierarchy.futureClass, arguments, unitedNullability),
+                types.hierarchy.futureClass, unitedNullability, arguments),
             types);
   }
 

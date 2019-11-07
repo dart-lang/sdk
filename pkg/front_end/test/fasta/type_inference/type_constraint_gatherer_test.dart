@@ -45,8 +45,10 @@ class TypeConstraintGathererTest {
     component = createMockSdkComponent();
     component.libraries.add(testLib..parent = component);
     coreTypes = new CoreTypes(component);
-    T1 = new TypeParameterType(new TypeParameter('T1', objectType));
-    T2 = new TypeParameterType(new TypeParameter('T2', objectType));
+    T1 = new TypeParameterType(
+        new TypeParameter('T1', objectType), Nullability.legacy);
+    T2 = new TypeParameterType(
+        new TypeParameter('T2', objectType), Nullability.legacy);
     classP = _addClass(_class('P'));
     classQ = _addClass(_class('Q'));
   }
@@ -96,76 +98,93 @@ class TypeConstraintGathererTest {
   }
 
   void test_function_generic() {
-    var T = new TypeParameterType(new TypeParameter('T', objectType));
-    var U = new TypeParameterType(new TypeParameter('U', objectType));
+    var T = new TypeParameterType(
+        new TypeParameter('T', objectType), Nullability.legacy);
+    var U = new TypeParameterType(
+        new TypeParameter('U', objectType), Nullability.legacy);
     // <T>() -> dynamic <: () -> dynamic, never
     _checkConstraints(
-        new FunctionType([], dynamicType, typeParameters: [T.parameter]),
-        new FunctionType([], dynamicType),
+        new FunctionType([], dynamicType, Nullability.legacy,
+            typeParameters: [T.parameter]),
+        new FunctionType([], dynamicType, Nullability.legacy),
         null);
     // () -> dynamic <: <T>() -> dynamic, never
-    _checkConstraints(new FunctionType([], dynamicType),
-        new FunctionType([], dynamicType, typeParameters: [T.parameter]), null);
+    _checkConstraints(
+        new FunctionType([], dynamicType, Nullability.legacy),
+        new FunctionType([], dynamicType, Nullability.legacy,
+            typeParameters: [T.parameter]),
+        null);
     // <T>(T) -> T <: <U>(U) -> U, always
-    _checkConstraints(new FunctionType([T], T, typeParameters: [T.parameter]),
-        new FunctionType([U], U, typeParameters: [U.parameter]), []);
+    _checkConstraints(
+        new FunctionType([T], T, Nullability.legacy,
+            typeParameters: [T.parameter]),
+        new FunctionType([U], U, Nullability.legacy,
+            typeParameters: [U.parameter]),
+        []);
   }
 
   void test_function_parameter_mismatch() {
     // (P) -> dynamic <: () -> dynamic, never
-    _checkConstraints(new FunctionType([P], dynamicType),
-        new FunctionType([], dynamicType), null);
+    _checkConstraints(new FunctionType([P], dynamicType, Nullability.legacy),
+        new FunctionType([], dynamicType, Nullability.legacy), null);
     // () -> dynamic <: (P) -> dynamic, never
-    _checkConstraints(new FunctionType([], dynamicType),
-        new FunctionType([P], dynamicType), null);
+    _checkConstraints(new FunctionType([], dynamicType, Nullability.legacy),
+        new FunctionType([P], dynamicType, Nullability.legacy), null);
     // ([P]) -> dynamic <: () -> dynamic, always
     _checkConstraints(
-        new FunctionType([P], dynamicType, requiredParameterCount: 0),
-        new FunctionType([], dynamicType), []);
+        new FunctionType([P], dynamicType, Nullability.legacy,
+            requiredParameterCount: 0),
+        new FunctionType([], dynamicType, Nullability.legacy),
+        []);
     // () -> dynamic <: ([P]) -> dynamic, never
-    _checkConstraints(new FunctionType([], dynamicType),
-        new FunctionType([P], dynamicType, requiredParameterCount: 0), null);
+    _checkConstraints(
+        new FunctionType([], dynamicType, Nullability.legacy),
+        new FunctionType([P], dynamicType, Nullability.legacy,
+            requiredParameterCount: 0),
+        null);
     // ({x: P}) -> dynamic <: () -> dynamic, always
     _checkConstraints(
-        new FunctionType([], dynamicType,
+        new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', P)]),
-        new FunctionType([], dynamicType),
+        new FunctionType([], dynamicType, Nullability.legacy),
         []);
     // () -> dynamic !<: ({x: P}) -> dynamic, never
     _checkConstraints(
-        new FunctionType([], dynamicType),
-        new FunctionType([], dynamicType,
+        new FunctionType([], dynamicType, Nullability.legacy),
+        new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', P)]),
         null);
   }
 
   void test_function_parameter_types() {
     // (T1) -> dynamic <: (Q) -> dynamic, under constraint Q <: T1
-    _checkConstraints(new FunctionType([T1], dynamicType),
-        new FunctionType([Q], dynamicType), ['lib::Q* <: T1']);
+    _checkConstraints(
+        new FunctionType([T1], dynamicType, Nullability.legacy),
+        new FunctionType([Q], dynamicType, Nullability.legacy),
+        ['lib::Q* <: T1']);
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
     _checkConstraints(
-        new FunctionType([], dynamicType,
+        new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', T1)]),
-        new FunctionType([], dynamicType,
+        new FunctionType([], dynamicType, Nullability.legacy,
             namedParameters: [new NamedType('x', Q)]),
         ['lib::Q* <: T1']);
   }
 
   void test_function_return_type() {
     // () -> T1 <: () -> Q, under constraint T1 <: Q
-    _checkConstraints(
-        new FunctionType([], T1), new FunctionType([], Q), ['T1 <: lib::Q*']);
+    _checkConstraints(new FunctionType([], T1, Nullability.legacy),
+        new FunctionType([], Q, Nullability.legacy), ['T1 <: lib::Q*']);
     // () -> P <: () -> void, always
-    _checkConstraints(
-        new FunctionType([], P), new FunctionType([], voidType), []);
+    _checkConstraints(new FunctionType([], P, Nullability.legacy),
+        new FunctionType([], voidType, Nullability.legacy), []);
     // () -> void <: () -> P, never
-    _checkConstraints(
-        new FunctionType([], voidType), new FunctionType([], P), null);
+    _checkConstraints(new FunctionType([], voidType, Nullability.legacy),
+        new FunctionType([], P, Nullability.legacy), null);
   }
 
   void test_function_trivial_cases() {
-    var F = new FunctionType([], dynamicType);
+    var F = new FunctionType([], dynamicType, Nullability.legacy);
     // () -> dynamic <: dynamic, always
     _checkConstraints(F, dynamicType, []);
     // () -> dynamic <: Function, always
@@ -175,7 +194,8 @@ class TypeConstraintGathererTest {
   }
 
   void test_nonInferredParameter_subtype_any() {
-    var U = new TypeParameterType(new TypeParameter('U', _list(P)));
+    var U = new TypeParameterType(
+        new TypeParameter('U', _list(P)), Nullability.legacy);
     _checkConstraints(U, _list(T1), ['lib::P* <: T1']);
   }
 
@@ -250,10 +270,11 @@ class TypeConstraintGathererTest {
   }
 
   DartType _iterable(DartType element) =>
-      new InterfaceType(iterableClass, [element]);
+      new InterfaceType(iterableClass, Nullability.legacy, [element]);
 
-  DartType _list(DartType element) => new InterfaceType(listClass, [element]);
+  DartType _list(DartType element) =>
+      new InterfaceType(listClass, Nullability.legacy, [element]);
 
   DartType _map(DartType key, DartType value) =>
-      new InterfaceType(mapClass, [key, value]);
+      new InterfaceType(mapClass, Nullability.legacy, [key, value]);
 }
