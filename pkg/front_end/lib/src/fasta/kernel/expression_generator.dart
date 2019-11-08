@@ -2806,11 +2806,15 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.wrapInDeferredCheck(
-        suffixGenerator.doInvocation(offset, arguments),
-        prefixGenerator.prefix,
-        token.charOffset);
+  doInvocation(int offset, Arguments arguments) {
+    Object suffix = suffixGenerator.doInvocation(offset, arguments);
+    if (suffix is Expression) {
+      return _helper.wrapInDeferredCheck(
+          suffix, prefixGenerator.prefix, fileOffset);
+    } else {
+      return new DeferredAccessGenerator(
+          _helper, token, prefixGenerator, suffix);
+    }
   }
 
   @override

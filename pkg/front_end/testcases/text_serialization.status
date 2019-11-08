@@ -15,6 +15,7 @@ extensions/compounds: TextSerializationFailure
 extensions/conflict_with_object: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/default_values: TextSerializationFailure
+extensions/deferred_explicit_access: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
 extensions/dynamic_invoke: TextSerializationFailure
