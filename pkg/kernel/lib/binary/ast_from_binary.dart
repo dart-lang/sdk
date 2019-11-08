@@ -2101,6 +2101,11 @@ class BinaryBuilder {
 
   Supertype readSupertype() {
     InterfaceType type = readDartType();
+    assert(
+        type.nullability == _currentLibrary.nonNullable,
+        "In serialized form supertypes should have Nullability.legacy if they "
+        "are in a library that is opted out of the NNBD feature.  If they are "
+        "in an opted-in library, they should have Nullability.nonNullable.");
     return new Supertype.byReference(type.className, type.typeArguments);
   }
 
