@@ -502,11 +502,12 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   closures_->SetAt(closureIndex, closure);
 
   Type& signature_type = Type::Handle(
-      Z, ReadFunctionSignature(
-             closure, (flags & kHasOptionalPositionalParamsFlag) != 0,
-             (flags & kHasOptionalNamedParamsFlag) != 0,
-             (flags & kHasTypeParamsFlag) != 0,
-             /* has_positional_param_names = */ true, kNonNullable));
+      Z, ReadFunctionSignature(closure,
+                               (flags & kHasOptionalPositionalParamsFlag) != 0,
+                               (flags & kHasOptionalNamedParamsFlag) != 0,
+                               (flags & kHasTypeParamsFlag) != 0,
+                               /* has_positional_param_names = */ true,
+                               Nullability::kNonNullable));
 
   closure.SetSignatureType(signature_type);
 
@@ -1508,7 +1509,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const Nullability nullability =
           bytecode_component_->GetVersion() >= 24
               ? static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4)
-              : kLegacy;
+              : Nullability::kLegacy;
       return ReadType(tag, nullability);
     }
     default:

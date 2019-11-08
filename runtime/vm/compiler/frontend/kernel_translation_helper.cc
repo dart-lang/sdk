@@ -2769,7 +2769,7 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kBottomType:
       result_ = Class::Handle(Z, I->object_store()->null_class())
-                    .DeclarationType(kNullable);
+                    .DeclarationType(Nullability::kNullable);
       ASSERT(result_.IsNullable());
       break;
     case kNeverType:
