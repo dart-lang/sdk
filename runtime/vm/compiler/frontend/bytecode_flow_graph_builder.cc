@@ -696,7 +696,6 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
 
   const intptr_t expected_num_type_args = DecodeOperandA().value();
   LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
-  ASSERT(function().IsGeneric());
 
   if (throw_no_such_method_ == nullptr) {
     throw_no_such_method_ = B->BuildThrowNoSuchMethod();

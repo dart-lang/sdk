@@ -69,6 +69,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-5]
@@ -768,6 +769,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
+  CheckFunctionTypeArgs 0, r2
   CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#6
@@ -987,6 +989,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateContext      1, 2
   StoreLocal           r1
@@ -1057,6 +1060,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextParent
@@ -1085,6 +1089,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -1242,6 +1247,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       1, 0
@@ -1258,6 +1264,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-5]
@@ -1360,6 +1367,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   Push                 r0
@@ -1457,6 +1465,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -1515,6 +1524,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateClosure      CP#3
   StoreLocal           r3
@@ -1548,6 +1558,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   PushNull
   ReturnTOS
