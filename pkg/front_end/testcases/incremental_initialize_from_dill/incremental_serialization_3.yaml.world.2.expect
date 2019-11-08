@@ -1,0 +1,48 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "dart:core";
+  import "package:package1/lib1_a.dart";
+
+  static method main() → dynamic {
+    lib::lib1();
+  }
+}
+library from "package:package1/lib1_a.dart" as lib2 {
+additionalExports = (lib::la,
+  lib::lib1)
+
+  import "package:package3/lib3.dart" as lib3;
+  export "package:package1/lib1_b.dart";
+
+  static method lib1a() → dynamic {
+    lib3::lib3();
+  }
+}
+library from "package:package1/lib1_b.dart" as lib {
+
+  import "package:package2/lib2.dart" as lib2;
+
+  static method lib1() → dynamic {
+    return lib::la(null);
+  }
+  static method la(lib22::Foo* f) → dynamic {
+    return 42;
+  }
+}
+library from "package:package2/lib2.dart" as lib22 {
+
+  class Foo extends dart.core::Object {
+    static field dart.core::int* y = 42;
+    synthetic constructor •() → lib22::Foo*
+      : super dart.core::Object::•()
+      ;
+  }
+  static field dart.core::int* f = 42;
+}
+library from "package:package3/lib3.dart" as lib3 {
+
+  static method lib3() → dynamic {
+    dart.core::print("lib3");
+  }
+}
