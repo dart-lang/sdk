@@ -43,12 +43,16 @@ class InfoBuilder {
   /// The listener used to gather the changes to be applied.
   final DartFixListener listener;
 
+  /// A flag indicating whether types that were not changed (because they should
+  /// be non-nullable) should be explained.
+  final bool explainNonNullableTypes;
+
   /// A map from the path of a compilation unit to the information about that
   /// unit.
   final Map<String, UnitInfo> unitMap = {};
 
   /// Initialize a newly created builder.
-  InfoBuilder(this.info, this.listener);
+  InfoBuilder(this.info, this.listener, {this.explainNonNullableTypes = false});
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;
@@ -330,6 +334,34 @@ class InfoBuilder {
     return details;
   }
 
+  /// Explain the type annotations that were not changed because they were
+  /// determined to be non-nullable.
+  void _explainNonNullableTypes(SourceInformation sourceInfo,
+      List<RegionInfo> regions, OffsetMapper mapper) {
+    Iterable<MapEntry<TypeAnnotation, NullabilityNodeInfo>> nonNullableTypes =
+        sourceInfo.explicitTypeNullability.entries
+            .where((entry) => !entry.value.isNullable);
+    for (MapEntry<TypeAnnotation, NullabilityNodeInfo> nonNullableType
+        in nonNullableTypes) {
+      Iterable<EdgeInfo> upstreamTriggeredEdgeInfos = info.edgeOrigin.keys
+          .where((e) =>
+              e.sourceNode == nonNullableType.value &&
+              e.isUpstreamTriggered &&
+              !e.destinationNode.isNullable);
+      if (upstreamTriggeredEdgeInfos.isNotEmpty) {
+        List<RegionDetail> details =
+            _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
+        TypeAnnotation node = nonNullableType.key;
+        regions.add(RegionInfo(
+            mapper.map(node.offset),
+            node.length,
+            "This type is not changed; it is determined to be non-nullable",
+            details,
+            RegionType.nonNullableType));
+      }
+    }
+  }
+
   /// Return the migration information for the unit associated with the
   /// [result].
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
@@ -366,27 +398,8 @@ class InfoBuilder {
             details, RegionType.fix));
       }
     }
-    Iterable<MapEntry<TypeAnnotation, NullabilityNodeInfo>> nonNullableTypes =
-        sourceInfo.explicitTypeNullability.entries
-            .where((entry) => !entry.value.isNullable);
-    for (MapEntry<TypeAnnotation, NullabilityNodeInfo> nonNullableType
-        in nonNullableTypes) {
-      Iterable<EdgeInfo> upstreamTriggeredEdgeInfos = info.edgeOrigin.keys
-          .where((e) =>
-              e.sourceNode == nonNullableType.value &&
-              e.isUpstreamTriggered &&
-              !e.destinationNode.isNullable);
-      if (upstreamTriggeredEdgeInfos.isNotEmpty) {
-        List<RegionDetail> details =
-            _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
-        TypeAnnotation node = nonNullableType.key;
-        regions.add(RegionInfo(
-            mapper.map(node.offset),
-            node.length,
-            "This type is not changed; it is determined to be non-nullable",
-            details,
-            RegionType.nonNullableType));
-      }
+    if (explainNonNullableTypes) {
+      _explainNonNullableTypes(sourceInfo, regions, mapper);
     }
     regions.sort((first, second) => first.offset.compareTo(second.offset));
     unitInfo.offsetMapper = mapper;
