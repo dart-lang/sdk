@@ -3268,10 +3268,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
 
-    var encodedConditionSource = node
-        .enclosingComponent.uriToSource[node.location.file].source
-        .sublist(node.conditionStartOffset, node.conditionEndOffset);
-    var conditionSource = utf8.decode(encodedConditionSource);
+    var encodedSource =
+        node.enclosingComponent.uriToSource[node.location.file].source;
+    var source = utf8.decode(encodedSource, allowMalformed: true);
+    var conditionSource =
+        source.substring(node.conditionStartOffset, node.conditionEndOffset);
     var location = _toSourceLocation(node.conditionStartOffset);
     return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
