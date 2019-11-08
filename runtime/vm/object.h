@@ -837,6 +837,21 @@ typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 // The third string in the triplet is "print" if the triplet should be printed.
 typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum Nullability {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
+// Nullability aware subtype checking modes.
+enum NNBDMode {
+  kUnaware,
+  kWeak,
+  kStrong,
+};
+
 class Class : public Object {
  public:
   enum InvocationDispatcherEntry {
@@ -935,7 +950,11 @@ class Class : public Object {
   // class B<T, S>
   // class C<R> extends B<R, int>
   // C.DeclarationType() --> C [R, int, R]
-  RawType* DeclarationType() const;
+  // The declaration type is legacy by default, but another nullability
+  // variant may be requested. The first requested type gets cached in the class
+  // and subsequent nullability variants get cached in the object store.
+  // TODO(regis): Is this caching still useful or should we eliminate it?
+  RawType* DeclarationType(Nullability nullability = kLegacy) const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(RawClass, declaration_type_);
@@ -2128,21 +2147,6 @@ class ICData : public Object {
   friend class Interpreter;
   friend class Serializer;
   friend class SnapshotWriter;
-};
-
-// Keep in sync with package:kernel/lib/ast.dart
-enum Nullability {
-  kUndetermined = 0,
-  kNullable = 1,
-  kNonNullable = 2,
-  kLegacy = 3,
-};
-
-// Nullability aware subtype checking modes.
-enum NNBDMode {
-  kUnaware,
-  kWeak,
-  kStrong,
 };
 
 // Often used constants for number of free function type parameters.
@@ -7153,11 +7157,13 @@ class Type : public AbstractType {
   static RawType* DartTypeType();
 
   // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(const Class& type_class);
+  static RawType* NewNonParameterizedType(const Class& type_class,
+                                          Nullability nullability = kLegacy);
 
   static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
                       TokenPosition token_pos,
+                      Nullability nullability = kLegacy,
                       Heap::Space space = Heap::kOld);
 
  private:
