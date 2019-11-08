@@ -109,6 +109,18 @@ class Rti {
     rti._precomputed1 = precomputed;
   }
 
+  // Data value used by some tests.
+  @pragma('dart2js:noElision')
+  Object _specializedTestResource;
+
+  static Object _getSpecializedTestResource(Rti rti) {
+    return rti._specializedTestResource;
+  }
+
+  static void _setSpecializedTestResource(Rti rti, Object value) {
+    rti._specializedTestResource = value;
+  }
+
   // The Type object corresponding to this Rti.
   Object _cachedRuntimeType;
   static _Type _getCachedRuntimeType(Rti rti) =>
@@ -549,6 +561,9 @@ _FunctionParameters _instantiateFunctionParameters(universe,
   return result;
 }
 
+bool _isDartObject(object) => _Utils.instanceOf(object,
+    JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
+
 bool _isClosure(object) => _Utils.instanceOf(object,
     JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartClosureConstructor));
 
@@ -597,10 +612,7 @@ Rti instanceType(object) {
   // called, similar to a one-shot interceptor call. This would improve type
   // lookup in ListMixin code as the interceptor is JavaScript 'this'.
 
-  if (_Utils.instanceOf(
-      object,
-      JS_BUILTIN(
-          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
+  if (_isDartObject(object)) {
     return _instanceType(object);
   }
 
@@ -762,6 +774,16 @@ bool _installSpecializedIsTest(object) {
       isFn = RAW_DART_FUNCTION_REF(_isString);
     } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
       isFn = RAW_DART_FUNCTION_REF(_isBool);
+    } else {
+      String name = Rti._getInterfaceName(testRti);
+      var arguments = Rti._getInterfaceTypeArguments(testRti);
+      if (JS(
+          'bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+        String propertyName =
+            '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+        Rti._setSpecializedTestResource(testRti, propertyName);
+        isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
+      }
     }
   }
 
@@ -776,6 +798,24 @@ bool _generalIsTestImplementation(object) {
   Rti testRti = _castToRti(JS('', 'this'));
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
+}
+
+/// Called from generated code.
+bool _isTestViaProperty(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  var tag = Rti._getSpecializedTestResource(testRti);
+
+  // This test is redundant with getInterceptor below, but getInterceptor does
+  // the tests in the wrong order for most tags, so it is usually faster to have
+  // this check.
+  if (_isDartObject(object)) {
+    return JS('bool', '!!#[#]', object, tag);
+  }
+
+  var interceptor = getInterceptor(object);
+  return JS('bool', '!!#[#]', interceptor, tag);
 }
 
 /// Called from generated code.
