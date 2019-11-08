@@ -158,6 +158,19 @@ class NullabilityGraph {
     return _sourcesBeingMigrated.contains(source);
   }
 
+  /// Creates a graph edge that will try to force the given [node] to be
+  /// non-nullable.
+  void makeNonNullable(NullabilityNode node, EdgeOrigin origin) {
+    connect(node, never, origin, hard: true);
+  }
+
+  /// Creates a graph edge that will try to force the given [node] to be
+  /// nullable.
+  void makeNullable(NullabilityNode node, EdgeOrigin origin,
+      {List<NullabilityNode> guards: const []}) {
+    connect(always, node, origin, guards: guards);
+  }
+
   /// Record source as code that is being migrated.
   void migrating(Source source) {
     _sourcesBeingMigrated.add(source);
@@ -447,6 +460,11 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
 
+  /// Creates a [NullabilityNode] representing the nullability of a variable
+  /// whose type comes from an already-migrated library.
+  factory NullabilityNode.forAlreadyMigrated() =>
+      _NullabilityNodeSimple('migrated');
+
   /// Creates a [NullabilityNode] representing the nullability of an expression
   /// which is nullable iff two other nullability nodes are both nullable.
   ///
@@ -493,6 +511,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
   String get debugSuffix => '?($this)';
+
+  Iterable<EdgeInfo> get downstreamEdges => _downstreamEdges;
 
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered "exact nullable".

@@ -41,6 +41,14 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
+    expect(test.externalDecoratedTypeParameterBound,
+        isNot(contains(typeParameter)));
+    test.externalDecoratedTypeParameterBound[typeParameter] = decoratedType;
+  }
+
+  @override
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
     test.fixes[fix] = reasons.toList();
   }
@@ -95,6 +103,9 @@ class _InstrumentationTest extends AbstractContextTest {
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
 
   final Map<Element, DecoratedTypeInfo> externalDecoratedType = {};
+
+  final Map<TypeParameterElement, DecoratedTypeInfo>
+      externalDecoratedTypeParameterBound = {};
 
   final List<EdgeInfo> edges = [];
 
@@ -153,6 +164,40 @@ main() {
             .type
             .toString(),
         'void Function(Object)');
+  }
+
+  test_externalDecoratedTypeParameterBound() async {
+    await analyze('''
+import 'dart:math';
+f(Point<int> x) {}
+''');
+    var pointElement = findNode.simple('Point').staticElement as ClassElement;
+    var pointElementTypeParameter = pointElement.typeParameters[0];
+    expect(
+        externalDecoratedTypeParameterBound[pointElementTypeParameter]
+            .type
+            .toString(),
+        'num');
+  }
+
+  test_externalType_nullability_dynamic_edge() async {
+    await analyze('''
+f(List<int> x) {}
+''');
+    var listElement = findNode.simple('List').staticElement as ClassElement;
+    var listElementTypeParameter = listElement.typeParameters[0];
+    var typeParameterBoundNode =
+        externalDecoratedTypeParameterBound[listElementTypeParameter].node;
+    var edge = edges
+        .where((e) =>
+            e.sourceNode == always &&
+            e.destinationNode == typeParameterBoundNode)
+        .single;
+    var origin = edgeOrigin[edge];
+    expect(origin.kind, EdgeOriginKind.alwaysNullableType);
+    expect(origin.element, same(listElementTypeParameter));
+    expect(origin.source, null);
+    expect(origin.node, null);
   }
 
   test_fix_reason_edge() async {

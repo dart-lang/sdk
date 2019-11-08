@@ -30,6 +30,12 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
+    // TODO(paulberry): make use of this information.
+  }
+
+  @override
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
     _sourceInfo(fix.source).fixes[fix] =
         reasons.where((reason) => reason != null).toList();

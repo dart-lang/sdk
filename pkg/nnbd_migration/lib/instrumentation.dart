@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 
 /// Information exposed to the migration client about the set of nullability
 /// nodes decorating a type in the program being migrated.
@@ -99,20 +100,32 @@ abstract class EdgeInfo implements FixReasonInfo {
 /// Information exposed to the migration client about the location in source
 /// code that led an edge to be introduced into the nullability graph.
 abstract class EdgeOriginInfo {
+  /// If the proximate cause of the edge being introduced into the graph
+  /// corresponds to the type of an element in an already migrated-library, the
+  /// corresponding element; otherwise `null`.
+  ///
+  /// Note that either [node] or [element] will always be non-null.
+  Element get element;
+
   /// The kind of origin represented by this info.
   EdgeOriginKind get kind;
 
-  /// The AST node that led the edge to be introduced into the nullability
-  /// graph.
+  /// If the proximate cause of the edge being introduced into the graph
+  /// corresponds to an AST node in a source file that is being migrated, the
+  /// corresponding AST node; otherwise `null`.
+  ///
+  /// Note that either [node] or [element] will always be non-null.
   AstNode get node;
 
-  /// The source file that [node] appears in.
+  /// If [node] is non-null, the source file that it appears in.  Otherwise
+  /// `null`.
   Source get source;
 }
 
 /// An enumeration of the various kinds of edge origins created by the migration
 /// engine.
 enum EdgeOriginKind {
+  alreadyMigratedType,
   alwaysNullableType,
   compoundAssignment,
   defaultValue,
@@ -152,6 +165,12 @@ abstract class NullabilityMigrationInstrumentation {
   /// being migrated, to report the nullability nodes associated with the type
   /// of the element.
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType);
+
+  /// Called whenever reference is made to an [typeParameter] outside of the
+  /// code being migrated, to report the nullability nodes associated with the
+  /// bound of the type parameter.
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType);
 
   /// Called whenever a fix is decided upon, to report the reasons for the fix.
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons);
