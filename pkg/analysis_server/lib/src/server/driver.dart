@@ -424,8 +424,13 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
+    final shouldSendCallback = () {
+      // TODO(devoncarew): Replace with a real enablement check.
+      return false;
+    };
+
     final crashReportSender =
-        new CrashReportSender('Dart_analysis_server', analytics);
+        new CrashReportSender('Dart_analysis_server', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
