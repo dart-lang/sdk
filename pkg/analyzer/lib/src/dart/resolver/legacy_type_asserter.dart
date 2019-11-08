@@ -74,6 +74,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   @override
   visitExpression(Expression e) {
     _assertLegacyType(e.staticType);
+    _assertLegacyType(e.staticParameterElement?.type);
     super.visitExpression(e);
   }
 
@@ -87,6 +88,13 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   visitFunctionDeclaration(FunctionDeclaration node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  visitInvocationExpression(InvocationExpression node) {
+    _assertLegacyType(node.staticInvokeType);
+    node.typeArgumentTypes?.forEach(_assertLegacyType);
+    return super.visitInvocationExpression(node);
   }
 
   @override
