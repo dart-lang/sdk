@@ -4376,10 +4376,10 @@ class FixProcessor extends BaseProcessor {
     SdkConstraintExtractor extractor = new SdkConstraintExtractor(pubspecFile);
     String text = extractor.constraintText();
     int offset = extractor.constraintOffset();
-    int length = text.length;
     if (text == null || offset < 0) {
       return;
     }
+    int length = text.length;
     String newText;
     int spaceOffset = text.indexOf(' ');
     if (spaceOffset >= 0) {
