@@ -22,26 +22,28 @@ import 'migration_visitor_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AlreadyMigratedCodeDecoratorTest);
+    defineReflectiveTests(_AlreadyMigratedCodeDecoratorTestNormal);
+    defineReflectiveTests(_AlreadyMigratedCodeDecoratorTestProvisional);
   });
 }
 
-@reflectiveTest
-class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
+class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   final TypeProvider typeProvider;
 
   final AlreadyMigratedCodeDecorator decorator;
 
   final NullabilityGraphForTesting graph;
 
+  final NullabilitySuffix suffix;
+
   Element element = _MockElement();
 
-  factory _AlreadyMigratedCodeDecoratorTest() {
-    return _AlreadyMigratedCodeDecoratorTest._(
-        NullabilityGraphForTesting(), TestTypeProvider());
-  }
+  _AlreadyMigratedCodeDecoratorTestBase(NullabilitySuffix nullabilitySuffix)
+      : this._(nullabilitySuffix, NullabilityGraphForTesting(),
+            TestTypeProvider(nullabilitySuffix: nullabilitySuffix));
 
-  _AlreadyMigratedCodeDecoratorTest._(this.graph, this.typeProvider)
+  _AlreadyMigratedCodeDecoratorTestBase._(
+      this.suffix, this.graph, this.typeProvider)
       : decorator = AlreadyMigratedCodeDecorator(graph, typeProvider);
 
   NullabilityNode get always => graph.always;
@@ -140,7 +142,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
       ..bound = typeProvider.numType;
     var decoratedType = decorate(FunctionTypeImpl.synthetic(
         TypeParameterTypeImpl(typeFormal), [typeFormal], [],
-        nullabilitySuffix: NullabilitySuffix.star));
+        nullabilitySuffix: suffix));
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkNum(decoratedType.typeFormalBounds[0], checkExplicitlyNonNullable);
     checkTypeParameter(
@@ -151,7 +153,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
     var typeFormal = TypeParameterElementImpl.synthetic('T');
     var decoratedType = decorate(FunctionTypeImpl.synthetic(
         TypeParameterTypeImpl(typeFormal), [typeFormal], [],
-        nullabilitySuffix: NullabilitySuffix.star));
+        nullabilitySuffix: suffix));
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkObject(decoratedType.typeFormalBounds[0], checkExplicitlyNullable);
     checkTypeParameter(
@@ -166,7 +168,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
               ParameterElementImpl.synthetic(
                   'x', typeProvider.dynamicType, ParameterKind.NAMED)
             ],
-            nullabilitySuffix: NullabilitySuffix.star))
+            nullabilitySuffix: suffix))
         .namedParameters['x']);
   }
 
@@ -178,7 +180,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
               ParameterElementImpl.synthetic(
                   'x', typeProvider.dynamicType, ParameterKind.REQUIRED)
             ],
-            nullabilitySuffix: NullabilitySuffix.star))
+            nullabilitySuffix: suffix))
         .positionalParameters[0]);
   }
 
@@ -190,7 +192,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
               ParameterElementImpl.synthetic(
                   'x', typeProvider.dynamicType, ParameterKind.POSITIONAL)
             ],
-            nullabilitySuffix: NullabilitySuffix.star))
+            nullabilitySuffix: suffix))
         .positionalParameters[0]);
   }
 
@@ -204,14 +206,14 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
   test_decorate_functionType_returnType() {
     checkDynamic(decorate(FunctionTypeImpl.synthetic(
             typeProvider.dynamicType, [], [],
-            nullabilitySuffix: NullabilitySuffix.star))
+            nullabilitySuffix: suffix))
         .returnType);
   }
 
   test_decorate_functionType_star() {
     checkExplicitlyNonNullable(decorate(FunctionTypeImpl.synthetic(
             typeProvider.voidType, [], [],
-            nullabilitySuffix: NullabilitySuffix.star))
+            nullabilitySuffix: suffix))
         .node);
   }
 
@@ -225,7 +227,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
   test_decorate_interfaceType_simple_star() {
     checkInt(
         decorate(InterfaceTypeImpl(typeProvider.intType.element,
-            nullabilitySuffix: NullabilitySuffix.star)),
+            nullabilitySuffix: suffix)),
         checkExplicitlyNonNullable);
   }
 
@@ -246,8 +248,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
   test_decorate_typeParameterType_star() {
     var element = TypeParameterElementImpl.synthetic('T');
     checkTypeParameter(
-        decorate(TypeParameterTypeImpl(element,
-            nullabilitySuffix: NullabilitySuffix.star)),
+        decorate(TypeParameterTypeImpl(element, nullabilitySuffix: suffix)),
         checkExplicitlyNonNullable,
         element);
   }
@@ -275,7 +276,7 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
       name: 'C',
       typeParameters: [t],
       supertype: typeProvider.iterableType2(
-        t.instantiate(nullabilitySuffix: NullabilitySuffix.star),
+        t.instantiate(nullabilitySuffix: suffix),
       ),
     );
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
@@ -319,6 +320,30 @@ class _AlreadyMigratedCodeDecoratorTest extends Object with EdgeTester {
     expect(decoratedSupertypes, hasLength(1));
     checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable);
   }
+}
+
+/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
+/// situation where the already migrated code does not contain star types.  In
+/// the final product, by definition all already-migrated code will be free of
+/// star types.  However, since we do not yet migrate using a fully NNBD-aware
+/// SDK, we need to handle both star and non-star variants on a short term
+/// basis.
+@reflectiveTest
+class _AlreadyMigratedCodeDecoratorTestNormal
+    extends _AlreadyMigratedCodeDecoratorTestBase {
+  _AlreadyMigratedCodeDecoratorTestNormal() : super(NullabilitySuffix.none);
+}
+
+/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
+/// situation where the already migrated code contains star types.  In the final
+/// product, this will never happen.  However, since we do not yet migrate using
+/// a fully NNBD-aware SDK, we need to handle both star and non-star variants on
+/// a short term basis.
+@reflectiveTest
+class _AlreadyMigratedCodeDecoratorTestProvisional
+    extends _AlreadyMigratedCodeDecoratorTestBase {
+  _AlreadyMigratedCodeDecoratorTestProvisional()
+      : super(NullabilitySuffix.star);
 }
 
 class _MockElement implements Element {
