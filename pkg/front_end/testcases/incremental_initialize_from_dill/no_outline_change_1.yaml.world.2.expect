@@ -1,0 +1,45 @@
+main = <No Member>;
+library from "org-dartlang-test:///actualMain.dart" as act {
+
+  import "org-dartlang-test:///main.dart" as m;
+
+  static method main() → dynamic {
+    main::main();
+  }
+}
+library from "org-dartlang-test:///libA.dart" as libA {
+
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///libB.dart";
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → libA::Foo*
+      : super dart.core::Object::•()
+      ;
+  }
+  static method whatever() → dynamic {
+    libB::Bar* bar = new libB::Bar::•(new libA::Foo::•());
+    main::mainHello();
+  }
+}
+library from "org-dartlang-test:///libB.dart" as libB {
+
+  import "org-dartlang-test:///libA.dart";
+
+  class Bar extends dart.core::Object {
+    field libA::Foo* foo;
+    constructor •(libA::Foo* foo) → libB::Bar*
+      : libB::Bar::foo = foo, super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///libA.dart";
+
+  static method main() → dynamic {
+    libA::whatever();
+    main::mainHello();
+  }
+  static method mainHello() → dynamic {}
+}

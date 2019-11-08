@@ -1,0 +1,53 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Test that invalidating a part of a package works.
+
+type: newworld
+worlds:
+  - entry: "package:example/main.dart"
+    sources:
+      pkg/example/main.dart: |
+        part "b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      pkg/example/b.dart: |
+        part of "main.dart";
+        b() {
+          print("b1");
+        }
+      .packages: example:pkg/example
+    expectedLibraryCount: 1
+  - entry: "package:example/main.dart"
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - pkg/example/b.dart
+    expectedInvalidatedUri:
+      - "package:example/b.dart"
+    sources:
+      pkg/example/b.dart: |
+        part of "main.dart";
+        b() {
+          print("b2");
+        }
+      .packages: example:pkg/example
+    expectedLibraryCount: 1
+  - entry: "package:example/main.dart"
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - "package:example/b.dart"
+    expectedInvalidatedUri:
+      - "package:example/b.dart"
+    sources:
+      pkg/example/b.dart: |
+        part of "main.dart";
+        b() {
+          print("b3");
+        }
+      .packages: example:pkg/example
+    expectedLibraryCount: 1
