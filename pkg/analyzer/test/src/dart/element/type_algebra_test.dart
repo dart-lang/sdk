@@ -387,8 +387,9 @@ class _Base with ElementsTypesMixin {
   final bool useNnbd;
 
   _Base({this.useNnbd = false})
-      : typeProvider = TestTypeProvider(null, null,
-            useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
+      : typeProvider = TestTypeProvider(
+            nullabilitySuffix:
+                useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
 
   InterfaceType get boolType => typeProvider.boolType;
 
