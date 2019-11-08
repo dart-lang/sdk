@@ -3708,6 +3708,13 @@ ExplicitExtensionAsExpression:
 ExplicitExtensionAsLvalue:
   template: "Explicit extension application cannot be a target for assignment."
 
+DeferredExtensionImport:
+  template: "Extension '#name' cannot be imported through a deferred import."
+  tip: "Try adding the `hide #name` to the import."
+  script:
+    main.dart: "import 'lib.dart' deferred as prefix;"
+    lib.dart: "extension Extension on void {}"
+
 MultipleVarianceModifiers:
   index: 97
   template: "Each type parameter can have at most one variance modifier."

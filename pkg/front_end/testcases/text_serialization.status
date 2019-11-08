@@ -16,6 +16,7 @@ extensions/conflict_with_object: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/default_values: TextSerializationFailure
 extensions/deferred_explicit_access: TextSerializationFailure
+extensions/deferred_import_hidden: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
 extensions/dynamic_invoke: TextSerializationFailure
@@ -35,6 +36,7 @@ extensions/getter_setter_conflict: TextSerializationFailure
 extensions/if_null: TextSerializationFailure
 extensions/implicit_extension_inference: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
+extensions/import_via_prefix: TextSerializationFailure
 extensions/index: TextSerializationFailure
 extensions/instance_access: TextSerializationFailure
 extensions/instance_access_of_static: TextSerializationFailure

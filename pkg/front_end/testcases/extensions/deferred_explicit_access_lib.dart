@@ -21,3 +21,13 @@ extension Extension on int {
 
   int method() => this + staticField;
 }
+
+int topLevelField = Extension.staticField;
+
+int get topLevelProperty => Extension.staticField;
+
+void set topLevelProperty(int value) {
+  Extension.staticField = value;
+}
+
+topLevelMethod() => Extension.staticField;

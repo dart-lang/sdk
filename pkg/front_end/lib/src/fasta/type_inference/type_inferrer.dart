@@ -785,7 +785,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
       ExtensionAccessCandidate bestSoFar;
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
-      library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
+      library.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
         MemberBuilder thisBuilder =
             extensionBuilder.lookupLocalMemberByName(name, setter: setter);
         MemberBuilder otherBuilder = extensionBuilder
@@ -3015,7 +3015,8 @@ class ExtensionAccessCandidate {
 
   ExtensionAccessCandidate(
       this.onType, this.onTypeInstantiateToBounds, this.target,
-      {this.isPlatform});
+      {this.isPlatform})
+      : assert(isPlatform != null);
 
   bool isMoreSpecificThan(TypeSchemaEnvironment typeSchemaEnvironment,
       ExtensionAccessCandidate other) {

@@ -13,8 +13,8 @@ import 'dart:test' as lib2;
 import 'dart:test' show Extension2;
 
 main() {
-  "".method1();
-  Extension1("").method1();
+  0.method1();
+  Extension1(0).method1();
   "".method2();
   Extension2("").method2();
 }

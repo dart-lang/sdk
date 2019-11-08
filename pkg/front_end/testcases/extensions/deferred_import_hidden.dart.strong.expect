@@ -1,31 +1,21 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/deferred_explicit_access.dart:5:1: Error: Extension 'Extension' cannot be imported through a deferred import.
-// Try adding the `hide Extension` to the import.
-// import 'deferred_explicit_access_lib.dart' deferred as prefix;
-// ^
-//
 import self as self;
 import "deferred_explicit_access_lib.dart" as def;
-import "dart:core" as core;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
 
 static method main() → dynamic async {
   await LoadLibrary(prefix);
-  self::expect(0, let final dynamic #t1 = CheckLibraryIsLoaded(prefix) in def::Extension|staticField);
-  self::expect(0, let final dynamic #t2 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(0));
-  self::expect(42, let final dynamic #t3 = CheckLibraryIsLoaded(prefix) in let final core::int* #t4 = 0 in let final core::int* #t5 = 42 in let final void #t6 = def::Extension|set#property(#t4, #t5) in #t5);
-  self::expect(84, let final dynamic #t7 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(42));
-  self::expect(85, let final dynamic #t8 = CheckLibraryIsLoaded(prefix) in def::Extension|method(43));
-  self::expect(42, let final dynamic #t9 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty);
-  self::expect(87, let final dynamic #t10 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty = 87);
-  self::expect(87, let final dynamic #t11 = CheckLibraryIsLoaded(prefix) in def::Extension|staticMethod());
+  self::expect(0, let final dynamic #t1 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+  self::expect(42, let final dynamic #t2 = CheckLibraryIsLoaded(prefix) in def::topLevelField = 42);
+  self::expect(42, let final dynamic #t3 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+  self::expect(0, let final dynamic #t4 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+  self::expect(87, let final dynamic #t5 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty = 87);
+  self::expect(87, let final dynamic #t6 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+  self::expect(87, let final dynamic #t7 = CheckLibraryIsLoaded(prefix) in def::topLevelMethod());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{core::Object::==}(actual))
+  if(!expected.{dart.core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 

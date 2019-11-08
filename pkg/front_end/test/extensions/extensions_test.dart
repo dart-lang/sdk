@@ -18,7 +18,7 @@ import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
-
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -134,9 +134,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, Library library) {
     Features features = new Features();
-    LibraryBuilder libraryBuilder =
+    SourceLibraryBuilder libraryBuilder =
         lookupLibraryBuilder(compilerResult, library);
-    libraryBuilder.scope.forEachExtension((ExtensionBuilder extension) {
+    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
       LibraryBuilder library = extension.parent;
       String libraryPrefix = '';
       if (library != libraryBuilder) {

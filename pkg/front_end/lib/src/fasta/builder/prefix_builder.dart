@@ -8,9 +8,12 @@ import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 
+import '../fasta_codes.dart';
+
 import '../scope.dart';
 
 import 'builder.dart';
+import 'extension_builder.dart';
 import 'library_builder.dart';
 
 class PrefixBuilder extends BuilderImpl {
@@ -47,6 +50,11 @@ class PrefixBuilder extends BuilderImpl {
   }
 
   void addToExportScope(String name, Builder member, int charOffset) {
+    if (deferred && member is ExtensionBuilder) {
+      parent.addProblem(templateDeferredExtensionImport.withArguments(name),
+          charOffset, noLength, fileUri);
+    }
+
     Builder existing =
         exportScope.lookupLocalMember(name, setter: member.isSetter);
     Builder result;
@@ -58,6 +66,9 @@ class PrefixBuilder extends BuilderImpl {
       result = member;
     }
     exportScope.addLocalMember(name, result, setter: member.isSetter);
+    if (result is ExtensionBuilder) {
+      exportScope.addExtension(result);
+    }
   }
 
   @override

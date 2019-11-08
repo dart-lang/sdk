@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/deferred_explicit_access.dart:5:1: Error: Extension 'Extension' cannot be imported through a deferred import.
-// Try adding the `hide Extension` to the import.
-// import 'deferred_explicit_access_lib.dart' deferred as prefix;
-// ^
-//
 import self as self;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;

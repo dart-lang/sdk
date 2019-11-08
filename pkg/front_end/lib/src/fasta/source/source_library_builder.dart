@@ -318,6 +318,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
 
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder> _prefixBuilders;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtensionInScope].
+  Set<ExtensionBuilder> _extensionsInScope;
+
   SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
       SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
       : this.fromScopes(
@@ -728,6 +735,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // name is unique. Only the first of duplicate extensions is accessible
       // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions.add(declaration);
+    }
+    if (declaration is PrefixBuilder) {
+      _prefixBuilders ??= <PrefixBuilder>[];
+      _prefixBuilders.add(declaration);
     }
     return members[name] = declaration;
   }
@@ -2924,6 +2935,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<FieldBuilder> result = implicitlyTypedFields;
     implicitlyTypedFields = null;
     return result;
+  }
+
+  void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
+    if (_extensionsInScope == null) {
+      _extensionsInScope = <ExtensionBuilder>{};
+      scope.forEachExtension(_extensionsInScope.add);
+      if (_prefixBuilders != null) {
+        for (PrefixBuilder prefix in _prefixBuilders) {
+          prefix.exportScope.forEachExtension(_extensionsInScope.add);
+        }
+      }
+    }
+    _extensionsInScope.forEach(f);
   }
 }
 

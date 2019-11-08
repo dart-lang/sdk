@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/deferred_explicit_access.dart:5:1: Error: Extension 'Extension' cannot be imported through a deferred import.
-// Try adding the `hide Extension` to the import.
-// import 'deferred_explicit_access_lib.dart' deferred as prefix;
-// ^
-//
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -29,14 +21,13 @@ static method main() → dynamic /* originally async */ {
       {
         [yield] let dynamic #t1 = asy::_awaitHelper(LoadLibrary(prefix), :async_op_then, :async_op_error, :async_op) in null;
         :result;
-        self::expect(0, let final core::Object* #t2 = CheckLibraryIsLoaded(prefix) in def::Extension|staticField);
-        self::expect(0, let final core::Object* #t3 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(0));
-        self::expect(42, let final core::Object* #t4 = CheckLibraryIsLoaded(prefix) in let final core::int* #t5 = 0 in let final core::int* #t6 = 42 in let final void #t7 = def::Extension|set#property(#t5, #t6) in #t6);
-        self::expect(84, let final core::Object* #t8 = CheckLibraryIsLoaded(prefix) in def::Extension|get#property(42));
-        self::expect(85, let final core::Object* #t9 = CheckLibraryIsLoaded(prefix) in def::Extension|method(43));
-        self::expect(42, let final core::Object* #t10 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty);
-        self::expect(87, let final core::Object* #t11 = CheckLibraryIsLoaded(prefix) in def::Extension|staticProperty = 87);
-        self::expect(87, let final core::Object* #t12 = CheckLibraryIsLoaded(prefix) in def::Extension|staticMethod());
+        self::expect(0, let final core::Object* #t2 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+        self::expect(42, let final core::Object* #t3 = CheckLibraryIsLoaded(prefix) in def::topLevelField = 42);
+        self::expect(42, let final core::Object* #t4 = CheckLibraryIsLoaded(prefix) in def::topLevelField);
+        self::expect(0, let final core::Object* #t5 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+        self::expect(87, let final core::Object* #t6 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty = 87);
+        self::expect(87, let final core::Object* #t7 = CheckLibraryIsLoaded(prefix) in def::topLevelProperty);
+        self::expect(87, let final core::Object* #t8 = CheckLibraryIsLoaded(prefix) in def::topLevelMethod());
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
