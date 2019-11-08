@@ -51,6 +51,7 @@ import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_paramter;
+import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
     as deprecated_function_class_declaration;
@@ -400,6 +401,7 @@ main() {
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
+    deferred_import_of_extension.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
     deprecated_member_use.main();

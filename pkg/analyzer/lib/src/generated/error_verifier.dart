@@ -946,6 +946,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
+      if (importElement.isDeferred) {
+        _checkForDeferredImportOfExtensions(node, importElement);
+      }
     }
     super.visitImportDirective(node);
   }
@@ -2614,6 +2617,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
         parameter);
+  }
+
+  /**
+   * Report a diagnostic if there are any extensions in the imported library
+   * that are not hidden.
+   */
+  void _checkForDeferredImportOfExtensions(
+      ImportDirective directive, ImportElement importElement) {
+    List<String> shownNames = [];
+    List<String> hiddenNames = [];
+
+    Iterable<String> namesOf(List<SimpleIdentifier> identifiers) =>
+        identifiers.map((identifier) => identifier.name);
+    for (Combinator combinator in directive.combinators) {
+      if (combinator is HideCombinator) {
+        hiddenNames.addAll(namesOf(combinator.hiddenNames));
+      } else if (combinator is ShowCombinator) {
+        shownNames.addAll(namesOf(combinator.shownNames));
+      }
+    }
+    for (Element element in importElement.importedLibrary.topLevelElements) {
+      if (element is ExtensionElement) {
+        String name = element.name;
+        if (name != null &&
+            name.isNotEmpty &&
+            (shownNames.contains(name) ||
+                (shownNames.isEmpty && !hiddenNames.contains(name)))) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, directive.uri);
+          return;
+        }
+      }
+    }
   }
 
   /**
