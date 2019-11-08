@@ -48,12 +48,6 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  NeverTypeImpl get neverNone => NeverTypeImpl.instance;
-
-  NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
-
-  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
-
   DartType get nullType => typeProvider.nullType;
 
   InterfaceType get numType => typeProvider.numType;

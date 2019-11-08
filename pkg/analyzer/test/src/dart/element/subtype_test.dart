@@ -5315,12 +5315,6 @@ class _SubtypingTestBase with ElementsTypesMixin {
     );
   }
 
-  NeverTypeImpl get neverNone => NeverTypeImpl.instance;
-
-  NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
-
-  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
-
   InterfaceType get nullNone {
     var element = typeProvider.nullType.element;
     return element.instantiate(

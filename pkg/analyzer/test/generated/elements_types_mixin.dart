@@ -14,6 +14,12 @@ import 'package:meta/meta.dart';
 mixin ElementsTypesMixin {
   DynamicTypeImpl get dynamicType => typeProvider.dynamicType;
 
+  NeverTypeImpl get neverNone => NeverTypeImpl.instance;
+
+  NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
+
+  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
+
   TypeProvider get typeProvider;
 
   ClassElementImpl class_({
