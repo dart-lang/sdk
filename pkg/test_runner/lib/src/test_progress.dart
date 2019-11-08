@@ -708,15 +708,11 @@ String _buildSummaryEnd(Formatter formatter, int failedTests) {
 /// Writes a results.json file with a line for each test.
 /// Each line is a json map with the test name and result and expected result.
 class ResultWriter extends EventListener {
-  final TestConfiguration _configuration;
   final List<Map> _results = [];
   final List<Map> _logs = [];
   final String _outputDirectory;
-  final Stopwatch _startStopwatch;
-  final DateTime _startTime;
 
-  ResultWriter(this._configuration, this._startTime, this._startStopwatch)
-      : _outputDirectory = _configuration.outputDirectory;
+  ResultWriter(this._outputDirectory);
 
   void allTestsKnown() {
     // Write an empty result log file, that will be overwritten if any tests
@@ -729,10 +725,6 @@ class ResultWriter extends EventListener {
       lines.map((l) => l + '\n').join();
 
   void done(TestCase test) {
-    if (_configuration != test.configuration) {
-      throw Exception("Two configurations in the same run. "
-          "Cannot output results for multiple configurations.");
-    }
     final name = test.displayName;
     final index = name.indexOf('/');
     final suite = name.substring(0, index);
@@ -742,7 +734,7 @@ class ResultWriter extends EventListener {
 
     final record = {
       "name": name,
-      "configuration": _configuration.configuration.name,
+      "configuration": test.configuration.configuration.name,
       "suite": suite,
       "test_name": testName,
       "time_ms": time.inMilliseconds,

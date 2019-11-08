@@ -45,7 +45,6 @@ final TEST_SUITE_DIRECTORIES = [
 
 Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = DateTime.now();
-  var startStopwatch = Stopwatch()..start();
 
   // Extract global options from first configuration.
   var firstConf = configurations[0];
@@ -209,7 +208,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   if (firstConf.writeResults) {
-    eventListener.add(ResultWriter(firstConf, startTime, startStopwatch));
+    eventListener.add(ResultWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {
