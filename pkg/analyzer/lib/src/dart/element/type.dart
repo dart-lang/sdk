@@ -291,14 +291,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         StringBuffer typeParametersBuffer = StringBuffer();
         // To print a type with type variables, first make sure we have unique
         // variable names to print.
-        Set<TypeParameterType> freeVariables = new HashSet<TypeParameterType>();
+        var freeVariables = <TypeParameterElement>{};
         _freeVariablesInFunctionType(this, freeVariables);
 
-        Set<String> namesToAvoid = new HashSet<String>();
-        for (DartType arg in freeVariables) {
-          if (arg is TypeParameterType) {
-            namesToAvoid.add(arg.displayName);
-          }
+        var namesToAvoid = <String>{};
+        for (TypeParameterElement arg in freeVariables) {
+          namesToAvoid.add(arg.displayName);
         }
 
         List<DartType> instantiateTypeArgs = <DartType>[];
@@ -525,35 +523,24 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   void _freeVariablesInFunctionType(
-      FunctionType type, Set<TypeParameterType> free) {
-    // Make some fresh variables to avoid capture.
-    List<DartType> typeArgs = const <DartType>[];
-    if (type.typeFormals.isNotEmpty) {
-      typeArgs = new List<DartType>.from(type.typeFormals.map((e) =>
-          new TypeParameterTypeImpl(new TypeParameterElementImpl(e.name, -1))));
-
-      type = type.instantiate(typeArgs);
-    }
-
-    for (ParameterElement p in type.parameters) {
-      _freeVariablesInType(p.type, free);
+      FunctionType type, Set<TypeParameterElement> free) {
+    for (var parameter in type.parameters) {
+      _freeVariablesInType(parameter.type, free);
     }
     _freeVariablesInType(type.returnType, free);
-
-    // Remove all of our bound variables.
-    free.removeAll(typeArgs);
+    free.removeAll(type.typeFormals);
   }
 
   void _freeVariablesInInterfaceType(
-      InterfaceType type, Set<TypeParameterType> free) {
+      InterfaceType type, Set<TypeParameterElement> free) {
     for (DartType typeArg in type.typeArguments) {
       _freeVariablesInType(typeArg, free);
     }
   }
 
-  void _freeVariablesInType(DartType type, Set<TypeParameterType> free) {
+  void _freeVariablesInType(DartType type, Set<TypeParameterElement> free) {
     if (type is TypeParameterType) {
-      free.add(type);
+      free.add(type.element);
     } else if (type is FunctionType) {
       _freeVariablesInFunctionType(type, free);
     } else if (type is InterfaceType) {
