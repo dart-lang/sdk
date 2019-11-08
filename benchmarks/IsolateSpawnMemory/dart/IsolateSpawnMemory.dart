@@ -33,7 +33,7 @@ class SpawnMemory {
   SpawnMemory(this.name, this.wsUri, this.groupRefId);
 
   Future<void> report() async {
-    const numberOfRuns = 5;
+    const numberOfRuns = 3;
 
     int sumDeltaRssOnStart = 0;
     int sumDeltaRssOnEnd = 0;
