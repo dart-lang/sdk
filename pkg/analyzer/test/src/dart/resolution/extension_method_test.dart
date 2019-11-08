@@ -302,15 +302,13 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'lib.dart' as p;
 
 f(p.C c) {
   c.a;
 }
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
-    ]);
+''');
   }
 }
 

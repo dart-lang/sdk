@@ -410,11 +410,9 @@ class LibraryImportScope extends Scope {
       List<ImportElement> imports = _definingLibrary.imports;
       int count = imports.length;
       for (int i = 0; i < count; i++) {
-        if (imports[i].prefix == null) {
-          for (var element in imports[i].namespace.definedNames.values) {
-            if (element is ExtensionElement && !_extensions.contains(element)) {
-              _extensions.add(element);
-            }
+        for (var element in imports[i].namespace.definedNames.values) {
+          if (element is ExtensionElement && !_extensions.contains(element)) {
+            _extensions.add(element);
           }
         }
       }
