@@ -65,7 +65,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
 import '../common_elements.dart' show CommonElements;
-import '../elements/entities.dart' show FunctionEntity;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
@@ -261,19 +260,20 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   }
 
   void _updateReferences() {
-    js.Expression loadTypeCall(TypeRecipe recipe) {
-      FunctionEntity helperElement = _commonElements.findType;
+    js.Expression helperAccess =
+        _emitter.staticFunctionAccess(_commonElements.findType);
+
+    js.Expression loadTypeCall(TypeRecipe recipe, String helperLocal) {
       js.Expression recipeExpression =
           _recipeEncoder.encodeGroundRecipe(_emitter, recipe);
-      js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      return js.js(r'#(#)', [helper, recipeExpression]);
+      return js.js(r'#(#)', [helperLocal ?? helperAccess, recipeExpression]);
     }
 
     // Emit generate-at-use references.
     for (_ReferenceSet referenceSet in _referencesByRecipe.values) {
       if (referenceSet.generateAtUse) {
         TypeRecipe recipe = referenceSet.recipe;
-        js.Expression reference = loadTypeCall(recipe);
+        js.Expression reference = loadTypeCall(recipe, null);
         for (TypeReference ref in referenceSet._references) {
           ref.value = reference;
         }
@@ -287,23 +287,43 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     // are grouped together.
     referenceSetsUsingProperties.sort((a, b) => a.name.compareTo(b.name));
 
+    // We can generate a literal with calls to H.findType (minified to typically
+    // e.g. H.xy) or cache H.findType in a local in a scope created by an IIFE.
+    // Doing so saves 2-3 bytes per entry, but with an overhead of 30+ bytes for
+    // the IIFE.  So it is smaller to use the IIFE only for over 10 or so types.
+    const minUseIIFE = 10;
+    String helperLocal =
+        referenceSetsUsingProperties.length < minUseIIFE ? null : 'findType';
+
     List<js.Property> properties = [];
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       TypeRecipe recipe = referenceSet.recipe;
       var propertyName = js.string(referenceSet.propertyName);
-      properties.add(js.Property(propertyName, loadTypeCall(recipe)));
+      properties
+          .add(js.Property(propertyName, loadTypeCall(recipe, helperLocal)));
       var access = js.js('#.#', [typesHolderLocalName, propertyName]);
       for (TypeReference ref in referenceSet._references) {
         ref.value = access;
       }
     }
-    var initializer = js.ObjectInitializer(properties, isOneLiner: false);
 
-    var function = js.js(r'function rtii(){return #}', initializer);
-    _resource.value = js.js(r'var # = #()', [
-      js.VariableDeclaration(typesHolderLocalName),
-      js.Parentheses(function)
-    ]);
+    if (properties.isEmpty) {
+      // We don't have a deferred statement sequence. "0;" is the smallest we
+      // can do with an expression statement.
+      // TODO(sra): Add deferred expression statement sequences.
+      _resource.value = js.js('0');
+    } else {
+      js.Expression initializer =
+          js.ObjectInitializer(properties, isOneLiner: false);
+      if (helperLocal != null) {
+        // A named IIFE helps attribute startup time in profiling.
+        var function = js.js(r'function rtii(){var # = #; return #}',
+            [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
+        initializer = js.js('#()', js.Parentheses(function));
+      }
+      _resource.value = js.js(r'var # = #',
+          [js.VariableDeclaration(typesHolderLocalName), initializer]);
+    }
   }
 
   // This is a top-level local name in the generated JavaScript top-level
