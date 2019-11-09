@@ -2042,18 +2042,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
-    HInstruction checkedInput = node.checkedInput;
-    AbstractValue inputType = checkedInput.instructionType;
-
-    AbstractBool isIn = _abstractValueDomain.isIn(
-        inputType, checkedAbstractValue.abstractValue);
-
-    if (isIn.isDefinitelyFalse) {
+    AbstractBool result = node.evaluate(_closedWorld);
+    if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
-
-    if (checkedAbstractValue.isPrecise && isIn.isDefinitelyTrue) {
+    if (result.isDefinitelyTrue) {
       return _graph.addConstantBool(true, _closedWorld);
     }
 
@@ -2070,15 +2063,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
               dartType, _graph, _closedWorld);
 
       if (specialization == IsTestSpecialization.null_) {
-        return HIdentity(checkedInput, _graph.addConstantNull(_closedWorld),
-            null, _abstractValueDomain.boolType);
+        return HIdentity(
+            node.checkedInput,
+            _graph.addConstantNull(_closedWorld),
+            null,
+            _abstractValueDomain.boolType);
       }
 
       if (specialization != null) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(dartType, nullable: false);
+        AbstractValueWithPrecision checkedType =
+            _abstractValueDomain.createFromStaticType(dartType,
+                nullable: _abstractValueDomain
+                    .isNull(node.checkedAbstractValue.abstractValue)
+                    .isPotentiallyTrue);
         return HIsTestSimple(dartType, checkedType, specialization,
-            checkedInput, _abstractValueDomain.boolType);
+            node.checkedInput, _abstractValueDomain.boolType);
       }
     }
 
@@ -2089,23 +2088,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
-    HInstruction checkedInput = node.checkedInput;
-    AbstractValue inputType = checkedInput.instructionType;
-
-    AbstractBool isIn = _abstractValueDomain.isIn(
-        inputType, checkedAbstractValue.abstractValue);
-
-    if (isIn.isDefinitelyFalse) {
+    AbstractBool result = node.evaluate(_closedWorld);
+    if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
-
-    if (!checkedAbstractValue.isPrecise) return node;
-
-    if (isIn.isDefinitelyTrue) {
+    if (result.isDefinitelyTrue) {
       return _graph.addConstantBool(true, _closedWorld);
     }
-
     return node;
   }
 

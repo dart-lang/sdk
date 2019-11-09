@@ -6,6 +6,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
 import '../common.dart';
+import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
@@ -4367,6 +4368,9 @@ class HIsTest extends HInstruction {
   HInstruction get typeInput => inputs[0];
   HInstruction get checkedInput => inputs[1];
 
+  AbstractBool evaluate(JClosedWorld closedWorld) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld);
+
   @override
   accept(HVisitor visitor) => visitor.visitIsTest(this);
 
@@ -4398,6 +4402,9 @@ class HIsTestSimple extends HInstruction {
 
   HInstruction get checkedInput => inputs[0];
 
+  AbstractBool evaluate(JClosedWorld closedWorld) =>
+      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld);
+
   @override
   accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
 
@@ -4412,6 +4419,75 @@ class HIsTestSimple extends HInstruction {
 
   @override
   String toString() => 'HIsTestSimple()';
+}
+
+AbstractBool _isTestResult(HInstruction expression, DartType dartType,
+    AbstractValueWithPrecision checkedAbstractValue, JClosedWorld closedWorld) {
+  AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+  AbstractValue subsetType = expression.instructionType;
+  AbstractValue supersetType = checkedAbstractValue.abstractValue;
+  if (checkedAbstractValue.isPrecise &&
+      abstractValueDomain.isIn(subsetType, supersetType).isDefinitelyTrue) {
+    return AbstractBool.True;
+  }
+
+  // TODO(39287): Let the abstract value domain fully handle this.
+  // Currently, the abstract value domain cannot (soundly) state that an is-test
+  // is definitely false, so we reuse some of the case-by-case logic from the
+  // old [HIs] optimization.
+  if (dartType.isTop) return AbstractBool.True;
+  if (dartType is! InterfaceType) return AbstractBool.Maybe;
+  InterfaceType type = dartType;
+  ClassEntity element = type.element;
+  if (type.typeArguments.isNotEmpty) return AbstractBool.Maybe;
+  JCommonElements commonElements = closedWorld.commonElements;
+  if (expression.isInteger(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.intClass ||
+        element == commonElements.numClass ||
+        commonElements.isNumberOrStringSupertype(element)) {
+      return AbstractBool.True;
+    }
+    if (element == commonElements.doubleClass) {
+      // We let the JS semantics decide for that check. Currently the code we
+      // emit will always return true.
+      return AbstractBool.Maybe;
+    }
+    return AbstractBool.False;
+  }
+  if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.doubleClass ||
+        element == commonElements.numClass ||
+        commonElements.isNumberOrStringSupertype(element)) {
+      return AbstractBool.True;
+    }
+    if (element == commonElements.intClass) {
+      // We let the JS semantics decide for that check. Currently the code we
+      // emit will return true for a double that can be represented as a 31-bit
+      // integer and for -0.0.
+      return AbstractBool.Maybe;
+    }
+    return AbstractBool.False;
+  }
+  if (expression.isNumber(abstractValueDomain).isDefinitelyTrue) {
+    if (element == commonElements.numClass) {
+      return AbstractBool.True;
+    }
+    // We cannot just return false, because the expression may be of type int or
+    // double.
+    return AbstractBool.Maybe;
+  }
+  if (expression.isPrimitiveNumber(abstractValueDomain).isPotentiallyTrue &&
+      element == commonElements.intClass) {
+    // We let the JS semantics decide for that check.
+    return AbstractBool.Maybe;
+  }
+  // We need the raw check because we don't have the notion of generics in the
+  // backend. For example, `this` in a class `A<T>` is currently always
+  // considered to have the raw type.
+  if (type.treatAsRaw) {
+    return abstractValueDomain.isInstanceOf(subsetType, element);
+  }
+  return AbstractBool.Maybe;
 }
 
 /// Type cast or type check using Rti form of type expression.
