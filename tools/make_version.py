@@ -5,6 +5,8 @@
 #
 # This python script creates a version string in a C++ file.
 
+from __future__ import print_function
+
 import hashlib
 import os
 import sys
@@ -14,7 +16,7 @@ import utils
 
 
 def debugLog(message):
-    print >> sys.stderr, message
+    print(message, file=sys.stderr)
     sys.stderr.flush()
 
 
@@ -77,7 +79,7 @@ def MakeSnapshotHashString():
     for vmfilename in VM_SNAPSHOT_FILES:
         vmfilepath = os.path.join(utils.DART_DIR, 'runtime', 'vm', vmfilename)
         with open(vmfilepath) as vmfile:
-            vmhash.update(vmfile.read())
+            vmhash.update(vmfile.read().encode('utf-8'))
     return vmhash.hexdigest()
 
 
@@ -97,7 +99,7 @@ def MakeFile(quiet,
     version_time = utils.GetGitTimestamp()
     if no_git_hash or version_time == None:
         version_time = "Unknown timestamp"
-    version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}", version_time)
+    version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}", version_time.decode("utf-8"))
     abi_version = utils.GetAbiVersion(version_file)
     version_cc_text = version_cc_text.replace("{{ABI_VERSION}}", abi_version)
     oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion(

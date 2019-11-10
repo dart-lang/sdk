@@ -98,7 +98,7 @@ def WriteCCFile(
         line = '   '
         lineCounter = 0
         for byte in tar_archive:
-            line += r" %d," % ord(byte)
+            line += r" %d," % (byte if isinstance(byte, int) else ord(byte))
             lineCounter += 1
             if lineCounter == 10:
                 out.write(line + '\n')
@@ -180,7 +180,7 @@ def Main(args):
         else:
             return MakeCCFile(options)
 
-    except Exception, inst:
+    except Exception as inst:
         sys.stderr.write('create_archive.py exception\n')
         sys.stderr.write(str(inst))
         sys.stderr.write('\n')
