@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,14 +22,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// nodes, have legacy types, and asserts that the legacy types are deep legacy
 /// types.
 class LegacyTypeAsserter extends GeneralizingAstVisitor {
-  // TODO(mfairhurst): remove custom equality/hashCode once both use nullability
-  Set<DartType> visitedTypes = LinkedHashSet<DartType>(
-      equals: (a, b) =>
-          a == b &&
-          (a as TypeImpl).nullabilitySuffix ==
-              (b as TypeImpl).nullabilitySuffix,
-      hashCode: (a) =>
-          a.hashCode * 11 + (a as TypeImpl).nullabilitySuffix.hashCode);
+  Set<DartType> _visitedTypes = {};
 
   LegacyTypeAsserter({bool requireIsDebug = true}) {
     if (requireIsDebug) {
@@ -72,10 +63,10 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExpression(Expression e) {
-    _assertLegacyType(e.staticType);
-    _assertLegacyType(e.staticParameterElement?.type);
-    super.visitExpression(e);
+  visitExpression(Expression node) {
+    _assertLegacyType(node.staticType);
+    _assertLegacyType(node.staticParameterElement?.type);
+    super.visitExpression(node);
   }
 
   @override
@@ -133,11 +124,9 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
       return;
     }
 
-    if (visitedTypes.contains(type)) {
+    if (!_visitedTypes.add(type)) {
       return;
     }
-
-    visitedTypes.add(type);
 
     if (type is TypeParameterType) {
       _assertLegacyType(type.bound);
