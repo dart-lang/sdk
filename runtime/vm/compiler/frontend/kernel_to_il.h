@@ -390,7 +390,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   friend class BreakableBlock;
   friend class CatchBlock;
-  friend class ConstantEvaluator;
   friend class ProgramState;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;
