@@ -1,9 +1,18 @@
+## 2.6.1 - 2019-11-11
+
+This is a patch release that reduces dart2js memory usage (issue [27883][]),
+improves stability on arm64 (issue [39090][]) and updates the Dart FFI
+documentation.
+
+[27883]: https://github.com/dart-lang/sdk/issues/27883
+[39090]: https://github.com/dart-lang/sdk/issues/39090
+
 ## 2.6.0 - 2019-11-05
 
 ### Language
 
-*   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
-    specially declared static functions to be invoked
+*   **[IN PREVIEW]** [Static extension members][]: A new language feature
+    allowing specially declared static functions to be invoked
     like instance members on expressions of appropriate static types
     is available in preview.
 
