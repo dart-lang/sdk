@@ -431,11 +431,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kStaticInvocation:
+    case kConstStaticInvocation:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kConstructorInvocation:
+    case kConstConstructorInvocation:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
       CalculateArgumentsFingerprint();      // read arguments.
@@ -462,6 +464,15 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                           // read position.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
@@ -472,6 +483,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadFlags());            // read flags.
       CalculateExpressionFingerprint();  // read operand.
       CalculateDartTypeFingerprint();    // read type.
+      return;
+    case kSymbolLiteral:
+      CalculateStringReferenceFingerprint();  // read index into string table.
       return;
     case kTypeLiteral:
       CalculateDartTypeFingerprint();  // read type.
@@ -486,16 +500,19 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kListLiteral:
+    case kConstListLiteral:
       ReadPosition();                           // read position.
       CalculateDartTypeFingerprint();           // read type.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
     case kSetLiteral:
+    case kConstSetLiteral:
       // Set literals are currently desugared in the frontend and will not
       // reach the VM. See http://dartbug.com/35124 for discussion.
       UNREACHABLE();
       return;
-    case kMapLiteral: {
+    case kMapLiteral:
+    case kConstMapLiteral: {
       ReadPosition();                           // read position.
       CalculateDartTypeFingerprint();           // read type.
       CalculateDartTypeFingerprint();           // read value type.
@@ -558,22 +575,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
-    case kConstStaticInvocation:
-    case kConstConstructorInvocation:
-    case kConstListLiteral:
-    case kConstSetLiteral:
-    case kConstMapLiteral:
-    case kSymbolLiteral:
-      // Const invocations and const literals are removed by the
-      // constant evaluator.
-    case kListConcatenation:
-    case kSetConcatenation:
-    case kMapConcatenation:
-    case kInstanceCreation:
-    case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are internal to the front end and
-      // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();

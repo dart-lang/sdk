@@ -750,11 +750,13 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipCanonicalNameReference();
       return;
     case kStaticInvocation:
+    case kConstStaticInvocation:
       helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read procedure_reference.
       VisitArguments();                      // read arguments.
       return;
     case kConstructorInvocation:
+    case kConstConstructorInvocation:
       helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                      // read arguments.
@@ -788,6 +790,15 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
@@ -798,6 +809,9 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadFlags();     // read flags.
       VisitExpression();       // read operand.
       VisitDartType();         // read type.
+      return;
+    case kSymbolLiteral:
+      helper_.SkipStringReference();  // read index into string table.
       return;
     case kTypeLiteral:
       VisitDartType();  // read type.
@@ -812,7 +826,8 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read expression.
       return;
-    case kListLiteral: {
+    case kListLiteral:
+    case kConstListLiteral: {
       helper_.ReadPosition();                           // read position.
       VisitDartType();                                  // read type.
       intptr_t list_length = helper_.ReadListLength();  // read list length.
@@ -821,13 +836,15 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
-    case kSetLiteral: {
+    case kSetLiteral:
+    case kConstSetLiteral: {
       // Set literals are currently desugared in the frontend and will not
       // reach the VM. See http://dartbug.com/35124 for discussion.
       UNREACHABLE();
       return;
     }
-    case kMapLiteral: {
+    case kMapLiteral:
+    case kConstMapLiteral: {
       helper_.ReadPosition();                           // read position.
       VisitDartType();                                  // read key type.
       VisitDartType();                                  // read value type.
@@ -913,22 +930,6 @@ void ScopeBuilder::VisitExpression() {
     case kCheckLibraryIsLoaded:
       helper_.ReadUInt();  // library index
       break;
-    case kConstStaticInvocation:
-    case kConstConstructorInvocation:
-    case kConstListLiteral:
-    case kConstSetLiteral:
-    case kConstMapLiteral:
-    case kSymbolLiteral:
-      // Const invocations and const literals are removed by the
-      // constant evaluator.
-    case kListConcatenation:
-    case kSetConcatenation:
-    case kMapConcatenation:
-    case kInstanceCreation:
-    case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are internal to the front end and
-      // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();

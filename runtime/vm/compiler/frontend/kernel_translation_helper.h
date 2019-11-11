@@ -1125,7 +1125,7 @@ class KernelReaderHelper {
   friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
-  friend class ConstantReader;
+  friend class ConstantEvaluator;
   friend class ConstantHelper;
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
