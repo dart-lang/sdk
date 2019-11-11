@@ -862,6 +862,7 @@ true
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--unsafe-package-serialization',
+        '--no-incremental-serialization',
       ];
 
       final StreamController<List<int>> inputStreamController =
@@ -906,12 +907,13 @@ true
             Component component = loadComponentFromBinary(dillFile.path);
 
             // Contains (at least) the 2 files we want.
-            component.libraries
+            expect(
+                component.libraries
                     .where((l) =>
                         l.importUri.toString() == "package:pkgB/a.dart" ||
-                        l.fileUri.toString().contains(fileB.path))
-                    .length ==
-                2;
+                        l.fileUri == fileB.uri)
+                    .length,
+                2);
 
             // Verifiable (together with the platform file).
             component =
@@ -1015,17 +1017,132 @@ true
             Component component = loadComponentFromBinary(dillFile.path);
 
             // Contains (at least) the 2 files we want.
-            component.libraries
+            expect(
+                component.libraries
                     .where((l) =>
                         l.importUri.toString() == "package:pkgB/a.dart" ||
-                        l.fileUri.toString().contains(fileB.path))
-                    .length ==
-                2;
+                        l.fileUri == fileB.uri)
+                    .length,
+                2);
 
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             verifyComponent(component);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
+    test('incremental-serialization with reject', () async {
+      // Basically a reproduction of
+      // https://github.com/flutter/flutter/issues/44384.
+      var file = new File('${tempDir.path}/pkgA/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA:.");
+      file = new File('${tempDir.path}/pkgA/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA() {}");
+
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--incremental-serialization',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = new StreamController<Result>();
+      final outputParser = new OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 1 procedure.
+            expect(libs.first.procedures.length, 1);
+
+            file.writeAsStringSync("pkgA() {} pkgA_2() {}");
+
+            count += 1;
+            inputStreamController.add('reject\n'.codeUnits);
+            inputStreamController.add('reset\n'.codeUnits);
+            inputStreamController.add('recompile ${file.path} abc\n'
+                    '${file.path}\n'
+                    'abc\n'
+                .codeUnits);
+            break;
+          case 1:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 2 procedure.
+            expect(libs.first.procedures.length, 2);
+
+            file.writeAsStringSync("pkgA() {} pkgA_2() {} pkgA_3() {}");
+
+            count += 1;
+            inputStreamController.add('accept\n'.codeUnits);
+            inputStreamController.add('reset\n'.codeUnits);
+            inputStreamController.add('recompile ${file.path} abc\n'
+                    '${file.path}\n'
+                    'abc\n'
+                .codeUnits);
+            break;
+          case 2:
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            inputStreamController.add('quit\n'.codeUnits);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 3 procedures.
+            expect(libs.first.procedures.length, 3);
         }
       });
       expect(await result, 0);
