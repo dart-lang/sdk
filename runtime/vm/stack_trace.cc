@@ -4,13 +4,15 @@
 
 #include "vm/stack_trace.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
 // Count the number of frames that are on the stack.
 intptr_t StackTraceUtils::CountFrames(Thread* thread,
                                       int skip_frames,
-                                      const Function& async_function) {
+                                      const Function& async_function,
+                                      bool* sync_async_end) {
   Zone* zone = thread->zone();
   intptr_t frame_count = 0;
   StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
@@ -20,8 +22,12 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
   Bytecode& bytecode = Bytecode::Handle(zone);
+  String& function_name = String::Handle(zone);
   const bool async_function_is_null = async_function.IsNull();
-  for (; frame != NULL; frame = frames.NextFrame()) {
+  intptr_t sync_async_gap_frames = -1;
+  ASSERT(async_function_is_null || sync_async_end != NULL);
+  for (; frame != NULL && sync_async_gap_frames != 0;
+       frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
@@ -39,14 +45,24 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
       code = frame->LookupDartCode();
       function = code.function();
     }
-    frame_count++;
+    if (sync_async_gap_frames > 0) {
+      function_name = function.QualifiedScrubbedName();
+      if (!CheckAndSkipAsync(sync_async_gap_frames, function_name)) {
+        *sync_async_end = false;
+        return frame_count;
+      }
+      --sync_async_gap_frames;
+    } else {
+      frame_count++;
+    }
     if (!async_function_is_null &&
         (async_function.raw() == function.parent_function())) {
-      return frame_count;
+      sync_async_gap_frames = kSyncAsyncFrameGap;
     }
   }
-  // We hit the sentinel.
-  ASSERT(async_function_is_null);
+  if (!async_function_is_null) {
+    *sync_async_end = sync_async_gap_frames == 0;
+  }
   return frame_count;
 }
 

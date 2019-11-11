@@ -9659,6 +9659,23 @@ class StackTrace : public Instance {
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
 
+  bool skip_sync_start_in_parent_stack() const;
+  void set_skip_sync_start_in_parent_stack(bool value) const;
+
+  // The number of frames that should be cut off the top of an async stack trace
+  // if it's appended to a synchronous stack trace along a sync-async call.
+  //
+  // Without cropping, the border would look like:
+  //
+  // <async function>
+  // ---------------------------
+  // <asynchronous gap marker>
+  // <async function>
+  //
+  // Since it's not actually an async call, we crop off the last two
+  // frames when concatenating the sync and async stacktraces.
+  static constexpr intptr_t kSyncAsyncCroppedFrames = 2;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStackTrace));
   }
@@ -9669,6 +9686,7 @@ class StackTrace : public Instance {
   static RawStackTrace* New(const Array& code_array,
                             const Array& pc_offset_array,
                             const StackTrace& async_link,
+                            bool skip_sync_start_in_parent_stack,
                             Heap::Space space = Heap::kNew);
 
  private:

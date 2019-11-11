@@ -124,11 +124,8 @@ Future<void> noYields3() async {
 Map<int, String> noYieldsMapCausal = {
   0: '#0      throwSync ',
   1: '#1      noYields3 ',
-  2: '<asynchronous suspension>',
-  3: '#2      noYields2 ',
-  4: '<asynchronous suspension>',
-  5: '#3      noYields ',
-  4: '<asynchronous suspension>',
+  2: '#2      noYields2 ',
+  3: '#3      noYields ',
   // Callers, like doTest and main ..
 };
 
@@ -168,11 +165,9 @@ Map<int, String> mixedYieldsMapCausal = {
   0: '#0      throwAsync ',
   1: '<asynchronous suspension>',
   2: '#1      mixedYields3 ',
-  3: '<asynchronous suspension>',
-  4: '#2      mixedYields2 ',
-  5: '<asynchronous suspension>',
-  6: '#3      mixedYields ',
-  7: '<asynchronous suspension>',
+  3: '#2      mixedYields2 ',
+  4: '<asynchronous suspension>',
+  5: '#3      mixedYields ',
   // Callers, like doTest and main ..
 };
 
@@ -207,7 +202,6 @@ Map<int, String> syncSuffixMapCausal = {
   3: '#2      syncSuffix2 ',
   4: '<asynchronous suspension>',
   5: '#3      syncSuffix ',
-  6: '<asynchronous suspension>',
   // Callers, like doTest and main ..
 };
 
