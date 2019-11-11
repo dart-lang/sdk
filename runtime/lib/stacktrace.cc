@@ -23,7 +23,7 @@ static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
 
   // Determine how big the stack trace is.
   const intptr_t stack_trace_length =
-      StackTraceUtils::CountFrames(thread, skip_frames, null_function, nullptr);
+      StackTraceUtils::CountFrames(thread, skip_frames, null_function);
 
   // Allocate once.
   const Array& code_array =
@@ -64,9 +64,8 @@ static RawStackTrace* CurrentStackTrace(
 
   // Determine the size of the stack trace.
   const intptr_t extra_frames = for_async_function ? 1 : 0;
-  bool sync_async_end = false;
-  const intptr_t synchronous_stack_trace_length = StackTraceUtils::CountFrames(
-      thread, skip_frames, async_function, &sync_async_end);
+  const intptr_t synchronous_stack_trace_length =
+      StackTraceUtils::CountFrames(thread, skip_frames, async_function);
 
   const intptr_t capacity = synchronous_stack_trace_length +
                             extra_frames;  // For the asynchronous gap.
@@ -95,11 +94,7 @@ static RawStackTrace* CurrentStackTrace(
 
   ASSERT(write_cursor == capacity);
 
-  const StackTrace& result = StackTrace::Handle(
-      zone, StackTrace::New(code_array, pc_offset_array, async_stack_trace,
-                            sync_async_end));
-
-  return result.raw();
+  return StackTrace::New(code_array, pc_offset_array, async_stack_trace);
 }
 
 RawStackTrace* GetStackTraceForException() {

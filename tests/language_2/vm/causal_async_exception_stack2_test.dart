@@ -29,8 +29,11 @@ test1() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'foo3',
+          '<asynchronous suspension>',
           'foo2',
+          '<asynchronous suspension>',
           'foo',
+          '<asynchronous suspension>',
           'test1',
         ]),
         isTrue);
@@ -44,8 +47,11 @@ test1() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'bar3',
+          '<asynchronous suspension>',
           'bar2',
+          '<asynchronous suspension>',
           'bar',
+          '<asynchronous suspension>',
           'test1',
         ]),
         isTrue);
@@ -66,8 +72,11 @@ test2() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'foo3',
+          '<asynchronous suspension>',
           'foo2',
+          '<asynchronous suspension>',
           'foo',
+          '<asynchronous suspension>',
           'test2',
         ]),
         isTrue);
@@ -81,8 +90,11 @@ test2() async {
     expect(
         h.stringContainsInOrder(st.toString(), [
           'bar3',
+          '<asynchronous suspension>',
           'bar2',
+          '<asynchronous suspension>',
           'bar',
+          '<asynchronous suspension>',
           'test2',
         ]),
         isTrue);

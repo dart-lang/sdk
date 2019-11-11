@@ -2519,10 +2519,6 @@ class RawStackTrace : public RawInstance {
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
-  // Whether the link between the stack and the async-link represents a
-  // synchronous start to an asynchronous function. In this case, we omit the
-  // <asynchronous suspension> marker when concatenating the stacks.
-  bool skip_sync_start_in_parent_stack;
 };
 
 // VM type for capturing JS regular expressions.

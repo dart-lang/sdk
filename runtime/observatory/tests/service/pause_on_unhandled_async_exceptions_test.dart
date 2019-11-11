@@ -9,7 +9,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 35;
+const LINE_A = 34;
 
 class Foo {}
 
@@ -19,7 +19,6 @@ doThrow() {
 }
 
 asyncThrower() async {
-  await 0; // force async gap
   doThrow();
 }
 

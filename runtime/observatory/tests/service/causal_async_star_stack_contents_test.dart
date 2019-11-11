@@ -10,12 +10,11 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 28;
-const LINE_B = 20;
-const LINE_C = 22;
+const LINE_A = 26;
+const LINE_B = 19;
+const LINE_C = 21;
 
 foobar() async* {
-  await 0; // force async gap
   debugger();
   yield 1; // LINE_B.
   debugger();
@@ -23,7 +22,6 @@ foobar() async* {
 }
 
 helper() async {
-  await 0; // force async gap
   debugger();
   print('helper'); // LINE_A.
   await for (var i in foobar()) {
@@ -78,13 +76,12 @@ var tests = <IsolateTest>[
     expect(asyncStack[2].toString(), contains('helper'));
     expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[4].toString(), contains('testMain'));
-    // Line 22.
-    expect(
-        await asyncStack[0].location.toUserString(), contains('.dart:$LINE_C'));
-    // Line 29.
-    expect(await asyncStack[2].location.toUserString(), contains('.dart:29'));
-    // Line 35.
-    expect(await asyncStack[4].location.toUserString(), contains('.dart:35'));
+    // Line 21.
+    expect(await asyncStack[0].location.toUserString(), contains('.dart:21'));
+    // Line 27.
+    expect(await asyncStack[2].location.toUserString(), contains('.dart:27'));
+    // Line 30.
+    expect(await asyncStack[4].location.toUserString(), contains('.dart:33'));
   },
 ];
 
