@@ -1,3 +1,0 @@
-pkg/front_end/testcases/extensions/null_aware.dart:31:5: Context: Write to c@530
-  c = new Class();
-    ^

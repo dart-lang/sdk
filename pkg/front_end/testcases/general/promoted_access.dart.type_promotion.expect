@@ -1,6 +1,0 @@
-pkg/front_end/testcases/general/promoted_access.dart:3:11: Context: Possible promotion of o@28
-    if (o is Class) {
-          ^^
-pkg/front_end/testcases/general/promoted_access.dart:10:9: Context: Possible promotion of o@28
-  if (o is Class) {
-        ^^

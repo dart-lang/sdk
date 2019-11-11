@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/type_promotion_simple.dart:10:9: Context: Possible promotion of n@279
-  if (n is int) {
-        ^^

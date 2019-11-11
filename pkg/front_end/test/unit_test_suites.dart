@@ -24,8 +24,6 @@ import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
 import 'fasta/text_serialization_suite.dart' as text_serialization
     show createContext;
-import 'fasta/type_promotion_look_ahead_suite.dart' as type_promotion
-    show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_load_from_dill_suite.dart' as incremental_load
@@ -209,8 +207,6 @@ final List<Suite> suites = [
       path: "fasta/strong_tester.dart", shardCount: 4, shard: 2),
   const Suite("fasta/strong4", strong.createContext, "../../testing.json",
       path: "fasta/strong_tester.dart", shardCount: 4, shard: 3),
-  const Suite("fasta/type_promotion_look_ahead", type_promotion.createContext,
-      "../../testing.json"),
   const Suite("incremental_bulk_compiler_smoke",
       incremental_bulk_compiler.createContext, "../testing.json"),
   const Suite("incremental_load_from_dill", incremental_load.createContext,
