@@ -1964,7 +1964,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.localVariableTable
             .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
       }
-      if (locals.hasReceiver) {
+      if (locals.hasReceiver &&
+          (!isClosure || locals.isCaptured(locals.receiverVar))) {
         _declareLocalVariable(locals.receiverVar, function.fileOffset);
       }
       for (var v in function.positionalParameters) {
