@@ -196,6 +196,9 @@ class SharedCompilerOptions {
     // that build systems do not depend on passing windows-style paths here.
     return p.toUri(moduleName).toString();
   }
+
+  // TODO(nshahan) Cleanup when NNBD graduates experimental status.
+  bool get nonNullableEnabled => experiments['non-nullable'] ?? false;
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],

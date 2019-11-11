@@ -983,31 +983,67 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (c.enclosingLibrary == _coreTypes.asyncLibrary &&
         c == _coreTypes.futureOrClass) {
-      var typeParam =
-          TypeParameterType(c.typeParameters[0], Nullability.legacy);
-      var typeT = visitTypeParameterType(typeParam);
-      var futureOfT = visitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, Nullability.legacy, [typeParam]));
-      body.add(js.statement('''
-          #.is = function is_FutureOr(o) {
-            return #.is(o) || #.is(o);
-          }
-          ''', [className, typeT, futureOfT]));
-      // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-      // _ignoreTypeFailure logic.
-      body.add(js.statement('''
-          #.as = function as_FutureOr(o) {
-            if (o == null || #.is(o) || #.is(o)) return o;
-            return #.as(o, this, false);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
-      body.add(js.statement('''
-          #._check = function check_FutureOr(o) {
-            if (o == null || #.is(o) || #.is(o)) return o;
-            return #.as(o, this, true);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
-      return null;
+      // These methods are difficult to place in the runtime or patch files.
+      // * They need to be callable from the class but they can't be static
+      //   methods on the FutureOr class in Dart because they reference the
+      //   generic type parameter.
+      // * There isn't an obvious place in dart:_runtime were we could place a
+      //   method that adds these type tests (similar to addTypeTests()) because
+      //   in the bootstrap ordering the Future class hasn't been defined yet.
+      if (_options.nonNullableEnabled) {
+        // TODO(nshahan) Update FutureOr type tests for NNBD
+        var typeParam =
+            TypeParameterType(c.typeParameters[0], Nullability.legacy);
+        var typeT = visitTypeParameterType(typeParam);
+        var futureOfT = visitInterfaceType(InterfaceType(
+            _coreTypes.futureClass, Nullability.legacy, [typeParam]));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOfT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        return null;
+      } else {
+        var typeParam =
+            TypeParameterType(c.typeParameters[0], Nullability.legacy);
+        var typeT = visitTypeParameterType(typeParam);
+        var futureOfT = visitInterfaceType(InterfaceType(
+            _coreTypes.futureClass, Nullability.legacy, [typeParam]));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOfT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        return null;
+      }
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));

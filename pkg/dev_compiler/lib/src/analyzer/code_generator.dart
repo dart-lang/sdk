@@ -893,29 +893,65 @@ class CodeGenerator extends Object
       return null;
     }
     if (classElem.library.isDartAsync && classElem == types.futureOrElement) {
-      var typeParamT = getLegacyTypeParameterType(classElem.typeParameters[0]);
-      var typeT = _emitType(typeParamT);
-      var futureOfT = _emitType(types.futureType2(typeParamT));
-      body.add(js.statement('''
-          #.is = function is_FutureOr(o) {
-            return #.is(o) || #.is(o);
-          }
-          ''', [className, typeT, futureOfT]));
-      // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-      // _ignoreTypeFailure logic.
-      body.add(js.statement('''
-          #.as = function as_FutureOr(o) {
-            if (o == null || #.is(o) || #.is(o)) return o;
-            return #.as(o, this, false);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
-      body.add(js.statement('''
-          #._check = function check_FutureOr(o) {
-            if (o == null || #.is(o) || #.is(o)) return o;
-            return #.as(o, this, true);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
-      return null;
+      // These methods are difficult to place in the runtime or patch files.
+      // * They need to be callable from the class but they can't be static
+      //   methods on the FutureOr class in Dart because they reference the
+      //   generic type parameter.
+      // * There isn't an obvious place in dart:_runtime were we could place a
+      //   method that adds these type tests (similar to addTypeTests()) because
+      //   in the bootstrap ordering the Future class hasn't been defined yet.
+      if (options.nonNullableEnabled) {
+        // TODO(nshahan) Update FutureOr type tests for NNBD.
+        var typeParamT =
+            getLegacyTypeParameterType(classElem.typeParameters[0]);
+        var typeT = _emitType(typeParamT);
+        var futureOfT = _emitType(types.futureType2(typeParamT));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOfT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        return null;
+      } else {
+        var typeParamT =
+            getLegacyTypeParameterType(classElem.typeParameters[0]);
+        var typeT = _emitType(typeParamT);
+        var futureOfT = _emitType(types.futureType2(typeParamT));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOfT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        return null;
+      }
     }
 
     body.add(runtimeStatement('addTypeTests(#)', [className]));
