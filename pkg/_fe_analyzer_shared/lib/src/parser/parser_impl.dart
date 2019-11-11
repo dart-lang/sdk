@@ -4346,6 +4346,10 @@ class Parser {
         token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;
         listener.endBinaryExpression(period);
+      } else if (optional('!', next)) {
+        listener.handleNonNullAssertExpression(next);
+        token = next;
+        next = token.next;
       }
       TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
       if (typeArg != noTypeParamOrArg) {

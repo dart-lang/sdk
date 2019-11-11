@@ -892,6 +892,8 @@ instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was:
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
+nnbd/issue_39286: TextSerializationFailure
+nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
