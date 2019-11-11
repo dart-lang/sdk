@@ -910,9 +910,8 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check if the return type uses a class type parameter contravariantly.
       bool needsCheck = false;
       for (var typeParameter in classElement.typeParameters) {
-        var variance = computeVariance(typeParameter, rawReturnType);
-        if (variance == Variance.contravariant ||
-            variance == Variance.invariant) {
+        var variance = Variance(typeParameter, rawReturnType);
+        if (variance.isContravariant || variance.isInvariant) {
           needsCheck = true;
           break;
         }

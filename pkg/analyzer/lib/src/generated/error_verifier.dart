@@ -5304,9 +5304,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     void checkOne(DartType superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass.typeParameters) {
-          var variance = computeVariance(typeParameter, superInterface);
-          if (variance == Variance.contravariant ||
-              variance == Variance.invariant) {
+          var variance = Variance(typeParameter, superInterface);
+          if (variance.isContravariant || variance.isInvariant) {
             _errorReporter.reportErrorForElement(
               CompileTimeErrorCode
                   .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
