@@ -139,6 +139,7 @@ import 'rules/unawaited_futures.dart';
 import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
 import 'rules/unnecessary_const.dart';
+import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
 import 'rules/unnecessary_lambdas.dart';
 import 'rules/unnecessary_new.dart';
@@ -298,6 +299,7 @@ void registerLintRules() {
     ..register(UnnecessaryAwaitInReturn())
     ..register(UnnecessaryBraceInStringInterps())
     ..register(UnnecessaryConst())
+    ..register(UnnecessaryFinal())
     ..register(UnnecessaryNew())
     ..register(UnnecessaryNullAwareAssignments())
     ..register(UnnecessaryNullInIfNullOperators())

@@ -136,6 +136,7 @@ linter:
     - unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
     - unnecessary_const
+    - unnecessary_final
     - unnecessary_getters_setters
     - unnecessary_lambdas
     - unnecessary_new
