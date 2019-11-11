@@ -2427,12 +2427,12 @@ class SubtypeTest extends _SubtypingTestBase {
   test_futureOr_21() {
     isSubtype(
       functionTypeStar(
-        parameters: [],
+        parameters: const [],
         returnType: stringStar,
       ),
       futureOrStar(
         functionTypeStar(
-          parameters: [],
+          parameters: const [],
           returnType: voidNone,
         ),
       ),
@@ -2444,12 +2444,12 @@ class SubtypeTest extends _SubtypingTestBase {
   test_futureOr_22() {
     isNotSubtype(
       functionTypeStar(
-        parameters: [],
+        parameters: const [],
         returnType: voidNone,
       ),
       futureOrStar(
         functionTypeStar(
-          parameters: [],
+          parameters: const [],
           returnType: stringStar,
         ),
       ),

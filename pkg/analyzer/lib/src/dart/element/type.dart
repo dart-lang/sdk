@@ -114,8 +114,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  /// Creates a function type that's not associated with any element in the
-  /// element tree.
+  FunctionTypeImpl({
+    @required List<TypeParameterElement> typeFormals,
+    @required List<ParameterElement> parameters,
+    @required DartType returnType,
+    @required NullabilitySuffix nullabilitySuffix,
+    Element element,
+    List<DartType> typeArguments,
+  })  : typeFormals = typeFormals,
+        parameters = _sortNamedParameters(parameters),
+        returnType = returnType,
+        nullabilitySuffix = nullabilitySuffix,
+        typeArguments = typeArguments ?? const <DartType>[],
+        super(element, null);
+
+  @deprecated
   FunctionTypeImpl.synthetic(
       this.returnType, this.typeFormals, List<ParameterElement> parameters,
       {Element element,
@@ -375,9 +388,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         ..isExplicitlyCovariant = p.isCovariant;
     }
 
-    return FunctionTypeImpl.synthetic(substitution.substituteType(returnType),
-        const [], _transformOrShare(parameters, transformParameter),
-        nullabilitySuffix: nullabilitySuffix);
+    return FunctionTypeImpl(
+      returnType: substitution.substituteType(returnType),
+      typeFormals: const [],
+      parameters: _transformOrShare(parameters, transformParameter),
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   @override
@@ -402,8 +418,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         identical(parameters, this.parameters)) {
       return this;
     }
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
-        nullabilitySuffix: nullabilitySuffix);
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   @override
@@ -431,10 +451,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
-        element: element,
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix);
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: nullabilitySuffix,
+      element: element,
+      typeArguments: typeArguments,
+    );
   }
 
   void _appendToWithTypeParameters(StringBuffer buffer,

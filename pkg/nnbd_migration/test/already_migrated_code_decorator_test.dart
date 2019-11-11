@@ -140,9 +140,14 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   test_decorate_functionType_generic_bounded() {
     var typeFormal = TypeParameterElementImpl.synthetic('T')
       ..bound = typeProvider.numType;
-    var decoratedType = decorate(FunctionTypeImpl.synthetic(
-        TypeParameterTypeImpl(typeFormal), [typeFormal], [],
-        nullabilitySuffix: suffix));
+    var decoratedType = decorate(
+      FunctionTypeImpl(
+        typeFormals: [typeFormal],
+        parameters: const [],
+        returnType: TypeParameterTypeImpl(typeFormal),
+        nullabilitySuffix: suffix,
+      ),
+    );
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkNum(decoratedType.typeFormalBounds[0], checkExplicitlyNonNullable);
     checkTypeParameter(
@@ -151,9 +156,14 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
 
   test_decorate_functionType_generic_no_explicit_bound() {
     var typeFormal = TypeParameterElementImpl.synthetic('T');
-    var decoratedType = decorate(FunctionTypeImpl.synthetic(
-        TypeParameterTypeImpl(typeFormal), [typeFormal], [],
-        nullabilitySuffix: suffix));
+    var decoratedType = decorate(
+      FunctionTypeImpl(
+        typeFormals: [typeFormal],
+        parameters: const [],
+        returnType: TypeParameterTypeImpl(typeFormal),
+        nullabilitySuffix: suffix,
+      ),
+    );
     expect(decoratedType.typeFormalBounds, hasLength(1));
     checkObject(decoratedType.typeFormalBounds[0], checkExplicitlyNullable);
     checkTypeParameter(
@@ -161,60 +171,99 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   test_decorate_functionType_named_parameter() {
-    checkDynamic(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.voidType,
-            [],
-            [
-              ParameterElementImpl.synthetic(
-                  'x', typeProvider.dynamicType, ParameterKind.NAMED)
-            ],
-            nullabilitySuffix: suffix))
-        .namedParameters['x']);
+    checkDynamic(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: [
+            ParameterElementImpl.synthetic(
+              'x',
+              typeProvider.dynamicType,
+              ParameterKind.NAMED,
+            )
+          ],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: suffix,
+        ),
+      ).namedParameters['x'],
+    );
   }
 
   test_decorate_functionType_ordinary_parameter() {
-    checkDynamic(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.voidType,
-            [],
-            [
-              ParameterElementImpl.synthetic(
-                  'x', typeProvider.dynamicType, ParameterKind.REQUIRED)
-            ],
-            nullabilitySuffix: suffix))
-        .positionalParameters[0]);
+    checkDynamic(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: [
+            ParameterElementImpl.synthetic(
+              'x',
+              typeProvider.dynamicType,
+              ParameterKind.REQUIRED,
+            )
+          ],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: suffix,
+        ),
+      ).positionalParameters[0],
+    );
   }
 
   test_decorate_functionType_positional_parameter() {
-    checkDynamic(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.voidType,
-            [],
-            [
-              ParameterElementImpl.synthetic(
-                  'x', typeProvider.dynamicType, ParameterKind.POSITIONAL)
-            ],
-            nullabilitySuffix: suffix))
-        .positionalParameters[0]);
+    checkDynamic(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: [
+            ParameterElementImpl.synthetic(
+              'x',
+              typeProvider.dynamicType,
+              ParameterKind.POSITIONAL,
+            )
+          ],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: suffix,
+        ),
+      ).positionalParameters[0],
+    );
   }
 
   test_decorate_functionType_question() {
-    checkExplicitlyNullable(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.voidType, [], [],
-            nullabilitySuffix: NullabilitySuffix.question))
-        .node);
+    checkExplicitlyNullable(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: NullabilitySuffix.question,
+        ),
+      ).node,
+    );
   }
 
   test_decorate_functionType_returnType() {
-    checkDynamic(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.dynamicType, [], [],
-            nullabilitySuffix: suffix))
-        .returnType);
+    checkDynamic(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: typeProvider.dynamicType,
+          nullabilitySuffix: suffix,
+        ),
+      ).returnType,
+    );
   }
 
   test_decorate_functionType_star() {
-    checkExplicitlyNonNullable(decorate(FunctionTypeImpl.synthetic(
-            typeProvider.voidType, [], [],
-            nullabilitySuffix: suffix))
-        .node);
+    checkExplicitlyNonNullable(
+      decorate(
+        FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: typeProvider.voidType,
+          nullabilitySuffix: suffix,
+        ),
+      ).node,
+    );
   }
 
   test_decorate_interfaceType_simple_question() {

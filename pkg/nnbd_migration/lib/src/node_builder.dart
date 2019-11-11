@@ -126,7 +126,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _createDecoratedTypeForClass(classElement, node);
         var functionType = DecoratedType(constructorElement.type, _graph.never,
             returnType: decoratedReturnType,
-            positionalParameters: [],
+            positionalParameters: const [],
             namedParameters: {});
         _variables.recordDecoratedElementType(constructorElement, functionType);
       }

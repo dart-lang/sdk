@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/nullability_state.dart';
-import 'package:nnbd_migration/src/decorated_type.dart';
 
 /// Information exposed to the migration client about the set of nullability
 /// nodes decorating a type in the program being migrated.

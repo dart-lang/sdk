@@ -75,10 +75,10 @@ FunctionType replaceTypeParameters(
     )..isExplicitlyCovariant = p.isCovariant;
   }
 
-  return FunctionTypeImpl.synthetic(
-    substitution.substituteType(type.returnType),
-    newTypeParameters,
-    type.parameters.map(transformParameter).toList(),
+  return FunctionTypeImpl(
+    typeFormals: newTypeParameters,
+    parameters: type.parameters.map(transformParameter).toList(),
+    returnType: substitution.substituteType(type.returnType),
     nullabilitySuffix: type.nullabilitySuffix,
   );
 }
@@ -109,10 +109,9 @@ class FreshTypeParameters {
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
-    return new FunctionTypeImpl.synthetic(
-      substitute(type.returnType),
-      freshTypeParameters,
-      type.parameters.map((parameter) {
+    return new FunctionTypeImpl(
+      typeFormals: freshTypeParameters,
+      parameters: type.parameters.map((parameter) {
         return ParameterElementImpl.synthetic(
           parameter.name,
           substitute(parameter.type),
@@ -120,6 +119,7 @@ class FreshTypeParameters {
           parameter.parameterKind,
         );
       }).toList(),
+      returnType: substitute(type.returnType),
       nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
     );
   }
@@ -415,13 +415,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
       element: type.element,
       typeArguments: typeArguments,
-      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
     );
   }
 

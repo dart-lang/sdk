@@ -972,10 +972,10 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

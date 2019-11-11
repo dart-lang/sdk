@@ -367,12 +367,15 @@ class DecoratedType implements DecoratedTypeInfo {
                 typeFormalSubstitution),
             parameterKind));
       }
-      return FunctionTypeImpl.synthetic(
-          type_algebra.substitute(
-              returnType.toFinalType(typeProvider), typeFormalSubstitution),
-          newTypeFormals,
-          parameters,
-          nullabilitySuffix: nullabilitySuffix);
+      return FunctionTypeImpl(
+        typeFormals: newTypeFormals,
+        parameters: parameters,
+        returnType: type_algebra.substitute(
+          returnType.toFinalType(typeProvider),
+          typeFormalSubstitution,
+        ),
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl.explicit(type.element,
           [for (var arg in typeArguments) arg.toFinalType(typeProvider)],

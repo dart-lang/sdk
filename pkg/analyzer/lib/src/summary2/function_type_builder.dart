@@ -73,10 +73,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     var builtReturnType = _buildType(returnType);
-    _type = FunctionTypeImpl.synthetic(
-      builtReturnType,
-      typeFormals,
-      parameters,
+    _type = FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: builtReturnType,
       nullabilitySuffix: nullabilitySuffix,
     );
 

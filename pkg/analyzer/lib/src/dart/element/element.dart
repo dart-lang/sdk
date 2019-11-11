@@ -2156,12 +2156,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   FunctionType get type {
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type ??= FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type ??= FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -3739,12 +3739,12 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type = FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type = FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -4583,12 +4583,12 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type = FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type = FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -4900,13 +4900,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     var type = substitution.substituteType(function.type) as FunctionType;
-    return FunctionTypeImpl.synthetic(
-      type.returnType,
-      type.typeFormals,
-      type.parameters,
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: type.parameters,
+      returnType: type.returnType,
+      nullabilitySuffix: nullabilitySuffix,
       element: this,
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -6430,8 +6430,12 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
         if (linkedContext.hasInitializer(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)
             ..isSynthetic = true
-            .._type = FunctionTypeImpl.synthetic(type, [], [],
-                nullabilitySuffix: NullabilitySuffix.star)
+            .._type = FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: const [],
+              returnType: type,
+              nullabilitySuffix: NullabilitySuffix.star,
+            )
             ..enclosingElement = this;
         }
       }
@@ -7175,12 +7179,12 @@ class PropertyAccessorElementImpl_ImplicitGetter
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    var type = FunctionTypeImpl.synthetic(
-      returnType,
-      const <TypeParameterElement>[],
-      const <ParameterElement>[],
-      element: this,
+    var type = FunctionTypeImpl(
+      typeFormals: const <TypeParameterElement>[],
+      parameters: const <ParameterElement>[],
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
 
     // Don't cache, because types change during top-level inference.
@@ -7234,12 +7238,12 @@ class PropertyAccessorElementImpl_ImplicitSetter
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    var type = FunctionTypeImpl.synthetic(
-      returnType,
-      const <TypeParameterElement>[],
-      parameters,
-      element: this,
+    var type = FunctionTypeImpl(
+      typeFormals: const <TypeParameterElement>[],
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
 
     // Don't cache, because types change during top-level inference.

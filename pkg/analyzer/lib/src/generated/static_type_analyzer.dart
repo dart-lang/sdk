@@ -2178,10 +2178,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return constructor.type;
     }
 
-    return FunctionTypeImpl.synthetic(
-      constructor.returnType,
-      typeParameters,
-      constructor.parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: constructor.parameters,
+      returnType: constructor.returnType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }

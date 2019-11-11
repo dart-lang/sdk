@@ -953,13 +953,13 @@ class LinkedUnitContext {
 
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
 
-      return FunctionTypeImpl.synthetic(
-        returnType,
-        typeParameters,
-        formalParameters,
+      return FunctionTypeImpl(
+        typeFormals: typeParameters,
+        parameters: formalParameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
         element: typedefElement,
         typeArguments: typedefTypeArguments,
-        nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);

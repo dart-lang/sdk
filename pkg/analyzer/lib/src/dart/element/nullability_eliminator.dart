@@ -46,13 +46,13 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      type.typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.star,
       element: type.element,
       typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -133,10 +133,10 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
     }
 
     FunctionType newType = replaceTypeParameters(type, freshElements);
-    return FunctionTypeImpl.synthetic(
-      newType.returnType,
-      freshElements,
-      newType.parameters,
+    return FunctionTypeImpl(
+      typeFormals: freshElements,
+      parameters: newType.parameters,
+      returnType: newType.returnType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }

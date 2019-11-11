@@ -55,11 +55,10 @@ class TypeAliasSelfReferenceFinder {
     }
     node.functionType.returnType = null;
     node.functionType.parameters.parameters.clear();
-    (node.functionType as GenericFunctionTypeImpl).type =
-        FunctionTypeImpl.synthetic(
-      DynamicTypeImpl.instance,
-      [],
-      [],
+    (node.functionType as GenericFunctionTypeImpl).type = FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: _unitNullability,
     );
   }

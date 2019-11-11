@@ -1222,10 +1222,10 @@ class Dart2TypeSystem extends TypeSystem {
         return type;
       }
 
-      return new FunctionTypeImpl.synthetic(
-        newReturnType,
-        type.typeFormals,
-        newParameters,
+      return new FunctionTypeImpl(
+        typeFormals: type.typeFormals,
+        parameters: newParameters,
+        returnType: newReturnType,
         nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
       );
     }
@@ -1365,10 +1365,10 @@ class GenericInferrer {
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
-    var inferFnType = FunctionTypeImpl.synthetic(
-      fnType.returnType,
-      const [],
-      fnType.parameters,
+    var inferFnType = FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: fnType.parameters,
+      returnType: fnType.returnType,
       nullabilitySuffix: (fnType as TypeImpl).nullabilitySuffix,
     );
     tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
@@ -2912,10 +2912,10 @@ abstract class TypeSystem implements public.TypeSystem {
     // Calculate the LUB of the return type.
     DartType returnType = getLeastUpperBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: (f as TypeImpl).nullabilitySuffix,
     );
   }

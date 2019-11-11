@@ -46,10 +46,10 @@ mixin ElementsTypesMixin {
     @required DartType returnType,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

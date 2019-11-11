@@ -2092,10 +2092,10 @@ class FixProcessor extends BaseProcessor {
       // should be parameter of function type
       DartType parameterType = parameterElement.type;
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
-        parameterType = FunctionTypeImpl.synthetic(
-          typeProvider.dynamicType,
-          [],
-          [],
+        parameterType = FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: typeProvider.dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }

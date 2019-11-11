@@ -635,10 +635,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             node.returnType?.accept(this);
             if (_elementWalker == null) {
-              element.type = FunctionTypeImpl.synthetic(
-                node.returnType?.type ?? _dynamicType,
-                element.typeParameters,
-                element.parameters,
+              element.type = FunctionTypeImpl(
+                typeFormals: element.typeParameters,
+                parameters: element.parameters,
+                returnType: node.returnType?.type ?? _dynamicType,
                 nullabilitySuffix: _getNullability(node.question != null),
               );
             }
@@ -673,10 +673,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       });
     });
 
-    var type = FunctionTypeImpl.synthetic(
-      element.returnType,
-      element.typeParameters,
-      element.parameters,
+    var type = FunctionTypeImpl(
+      typeFormals: element.typeParameters,
+      parameters: element.parameters,
+      returnType: element.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
     element.type = type;
