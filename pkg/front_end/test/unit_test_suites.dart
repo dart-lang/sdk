@@ -40,9 +40,11 @@ import 'spelling_test_src_suite.dart' as spelling_src show createContext;
 class Options {
   final String configurationName;
   final bool verbose;
+  final bool printFailureLog;
   final Uri outputDirectory;
 
-  Options(this.configurationName, this.verbose, this.outputDirectory);
+  Options(this.configurationName, this.verbose, this.printFailureLog,
+      this.outputDirectory);
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
@@ -52,12 +54,14 @@ class Options {
       ..addOption("output-directory",
           help: "directory to which results.json and logs.json are written")
       ..addFlag("verbose",
-          abbr: "v", help: "print additional information", defaultsTo: false);
+          abbr: "v", help: "print additional information", defaultsTo: false)
+      ..addFlag("print",
+          abbr: "p", help: "print failure logs", defaultsTo: false);
     var parsedArguments = parser.parse(args);
     String outputPath = parsedArguments["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
     return Options(parsedArguments["named-configuration"],
-        parsedArguments["verbose"], outputDirectory);
+        parsedArguments["verbose"], parsedArguments["print"], outputDirectory);
   }
 }
 
@@ -65,6 +69,7 @@ class ResultLogger implements Logger {
   final String suiteName;
   final String prefix;
   final bool verbose;
+  final bool printFailureLog;
   final SendPort resultsPort;
   final SendPort logsPort;
   final Map<String, Stopwatch> stopwatches = {};
@@ -72,7 +77,7 @@ class ResultLogger implements Logger {
   final Set<String> seenTests = {};
 
   ResultLogger(this.suiteName, this.prefix, this.resultsPort, this.logsPort,
-      this.verbose, this.configurationName);
+      this.verbose, this.printFailureLog, this.configurationName);
 
   String getTestName(TestDescription description) {
     return "$prefix/${description.shortName}";
@@ -131,6 +136,10 @@ class ResultLogger implements Logger {
         "result": outcome,
         "log": failureLog,
       }));
+      if (printFailureLog) {
+        print('FAILED: $testName: $outcome');
+        print(failureLog);
+      }
     }
     if (verbose) {
       String result = matchedExpectations ? "PASS" : "FAIL";
@@ -222,9 +231,10 @@ class SuiteConfiguration {
   final SendPort resultsPort;
   final SendPort logsPort;
   final bool verbose;
+  final bool printFailureLog;
   final String configurationName;
   const SuiteConfiguration(this.name, this.resultsPort, this.logsPort,
-      this.verbose, this.configurationName);
+      this.verbose, this.printFailureLog, this.configurationName);
 }
 
 void runSuite(SuiteConfiguration configuration) {
@@ -238,6 +248,7 @@ void runSuite(SuiteConfiguration configuration) {
       configuration.resultsPort,
       configuration.logsPort,
       configuration.verbose,
+      configuration.printFailureLog,
       configuration.configurationName);
   runMe(<String>[], suite.createContext,
       me: suiteUri,
@@ -270,6 +281,7 @@ main([List<String> arguments = const <String>[]]) async {
         resultsPort.sendPort,
         logsPort.sendPort,
         options.verbose,
+        options.printFailureLog,
         options.configurationName);
     Future future = Future<bool>(() async {
       Stopwatch stopwatch = Stopwatch()..start();
