@@ -36,14 +36,7 @@ void _printDartStackTrace() {
 // in the middle of a GC or interested in stub frames.
 DART_EXPORT
 void _printStackTrace() {
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
-                            Thread::Current(),
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  while (frame != nullptr) {
-    OS::PrintErr("%s\n", frame->ToCString());
-    frame = frames.NextFrame();
-  }
+  StackFrame::DumpCurrentTrace();
 }
 
 // Like _printDartStackTrace, but works when stopped in generated code.
