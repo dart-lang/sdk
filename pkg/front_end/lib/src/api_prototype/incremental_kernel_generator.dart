@@ -50,7 +50,8 @@ abstract class IncrementalKernelGenerator {
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         component,
-        outlineOnly);
+        outlineOnly,
+        incrementalSerializer);
   }
 
   /// Returns a component whose libraries are the recompiled libraries,
