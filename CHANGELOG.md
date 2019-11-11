@@ -27,7 +27,7 @@ The Linter was updated to `0.1.103`, which includes:
 
 #### Pub
 
-* `pub get` generates [`.dart_tools/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
+* `pub get` generates [`.dart_tool/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
   in addition to `.packages` to support language versioning.
 
 * `pub publish` now warns about the old flutter plugin registration format.
