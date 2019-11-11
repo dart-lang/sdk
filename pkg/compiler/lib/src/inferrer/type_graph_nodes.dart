@@ -377,6 +377,10 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   // cleanup has been called.
   bool _isCalledOnce = null;
 
+  /// Whether this member is invoked via indirect dynamic calls. In that case
+  /// the exact number of call sites cannot be computed precisely.
+  bool _calledIndirectly = false;
+
   /// This map contains the callers of [element]. It stores all unique call
   /// sites to enable counting the global number of call sites of [element].
   ///
@@ -427,6 +431,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   }
 
   bool _computeIsCalledOnce() {
+    if (_calledIndirectly) return false;
     if (_callers == null) return false;
     int count = 0;
     for (var set in _callers.values) {
@@ -872,15 +877,40 @@ class ParameterTypeInformation extends ElementTypeInformation {
   }
 }
 
+/// A synthetic parameter used to model the entry points to a
+/// [IndirectDynamicCallSiteTypeInformation].
+class IndirectParameterTypeInformation extends TypeInformation {
+  final String debugName;
+
+  IndirectParameterTypeInformation(
+      AbstractValueDomain abstractValueDomain, this.debugName)
+      : super(abstractValueDomain.emptyType, null);
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) =>
+      inferrer.types.computeTypeMask(assignments);
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitIndirectParameterTypeInformation(this);
+  }
+
+  @override
+  String toString() => 'IndirectParameter $debugName $type';
+}
+
 enum CallType {
   access,
+  indirectAccess,
   forIn,
 }
 
-bool validCallType(CallType callType, Object call) {
+bool validCallType(CallType callType, Object call, Selector selector) {
   switch (callType) {
     case CallType.access:
       return call is ir.Node;
+    case CallType.indirectAccess:
+      return call == null && selector.name == '==';
     case CallType.forIn:
       return call is ir.ForInStatement;
   }
@@ -914,7 +944,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.arguments,
       this.inLoop)
       : super.noAssignments(abstractValueDomain.emptyType, context) {
-    assert(_call is ir.Node);
+    assert(_call is ir.Node || (_call == null && selector.name == '=='));
   }
 
   @override
@@ -1011,6 +1041,109 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   }
 }
 
+/// A call modeled with a level of indirection.
+///
+/// This kind of call is artificial and only exists to address scalability
+/// limitations of the inference algorithm. Any virtual, interface, or dynamic
+/// call is normally modeled via [DynamicCallSiteTypeInformation]. The main
+/// scalability concern of those calls is that we may get a quadratic number of
+/// edges to model all the argument and return values (an edge per dynamic call
+/// and target pair). Adding a level of indirection helps in that all these
+/// calls are funneled through a single [DynamicCallSiteTypeInformation] node,
+/// this in turn reduces the edges to be linear (an edge per indiret call to the
+/// dynamic call node, and an edge from the call to each target).
+class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
+  final DynamicCallSiteTypeInformation dynamicCall;
+  final bool isConditional;
+  final TypeInformation receiver;
+
+  IndirectDynamicCallSiteTypeInformation(
+      AbstractValueDomain abstractValueDomain,
+      MemberTypeInformation context,
+      Object call,
+      this.dynamicCall,
+      MemberEntity enclosing,
+      Selector selector,
+      AbstractValue mask,
+      this.receiver,
+      ArgumentsTypes arguments,
+      bool inLoop,
+      this.isConditional)
+      : super(abstractValueDomain, context, call, enclosing, selector, mask,
+            arguments, inLoop);
+
+  @override
+  void addToGraph(InferrerEngine inferrer) {
+    receiver.addUser(this);
+    dynamicCall.receiver.addAssignment(receiver);
+    List<TypeInformation> positional = arguments.positional;
+    for (int i = 0; i < positional.length; i++) {
+      positional[i].addUser(this);
+      dynamicCall.arguments.positional[i].addAssignment(positional[i]);
+    }
+    arguments.named.forEach((name, namedInfo) {
+      dynamicCall.arguments.named[name].addAssignment(namedInfo);
+    });
+    dynamicCall.addUser(this);
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    AbstractValue typeMask = _computeTypedSelector(inferrer);
+    inferrer.updateSelectorInMember(
+        caller, CallType.access, _call, selector, typeMask);
+
+    AbstractValue result = dynamicCall.computeType(inferrer);
+    AbstractValueDomain abstractValueDomain =
+        inferrer.closedWorld.abstractValueDomain;
+    if (isConditional &&
+        abstractValueDomain.isNull(receiver.type).isPotentiallyTrue) {
+      // Conditional calls like `a?.b` may be null if the receiver is null.
+      result = abstractValueDomain.includeNull(result);
+    }
+    return result;
+  }
+
+  AbstractValue _computeTypedSelector(InferrerEngine inferrer) {
+    AbstractValue receiverType = receiver.type;
+    if (mask == receiverType) return mask;
+    return receiverType == inferrer.abstractValueDomain.dynamicType
+        ? null
+        : receiverType;
+  }
+
+  @override
+  void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
+    if (!abandonInferencing) {
+      inferrer.updateSelectorInMember(
+          caller, CallType.access, _call, selector, mask);
+    }
+    super.giveUp(inferrer, clearAssignments: clearAssignments);
+  }
+
+  @override
+  Iterable<MemberEntity> get callees => dynamicCall.callees;
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitIndirectDynamicCallSiteTypeInformation(this);
+  }
+
+  @override
+  bool hasStableType(InferrerEngine inferrer) =>
+      dynamicCall.hasStableType(inferrer);
+
+  @override
+  void removeAndClearReferences(InferrerEngine inferrer) {
+    dynamicCall.removeUser(this);
+    receiver.removeUser(this);
+    if (arguments != null) {
+      arguments.forEach((info) => info.removeUser(this));
+    }
+    super.removeAndClearReferences(inferrer);
+  }
+}
+
 class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
@@ -1034,7 +1167,21 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       this.isConditional)
       : super(abstractValueDomain, context, call, enclosing, selector, mask,
             arguments, inLoop) {
-    assert(validCallType(_callType, _call));
+    assert(validCallType(_callType, _call, selector));
+  }
+
+  void _addCall(MemberTypeInformation callee) {
+    if (_callType == CallType.indirectAccess) {
+      callee._calledIndirectly = true;
+    } else {
+      callee.addCall(caller, _call);
+    }
+  }
+
+  void _removeCall(MemberTypeInformation callee) {
+    if (_callType != CallType.indirectAccess) {
+      callee.removeCall(caller, _call);
+    }
   }
 
   @override
@@ -1051,7 +1198,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     for (MemberEntity element in _concreteTargets) {
       MemberTypeInformation callee =
           inferrer.types.getInferredTypeOfMember(element);
-      callee.addCall(caller, _call);
+      _addCall(callee);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
           this, element, arguments, selector, typeMask,
@@ -1072,7 +1219,6 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
 
   AbstractValue computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
-
     if (mask != receiverType) {
       return receiverType == inferrer.abstractValueDomain.dynamicType
           ? null
@@ -1216,7 +1362,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.addCall(caller, _call);
+        _addCall(callee);
         callee.addUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -1229,7 +1375,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           .forEach((MemberEntity element) {
         MemberTypeInformation callee =
             inferrer.types.getInferredTypeOfMember(element);
-        callee.removeCall(caller, _call);
+        _removeCall(callee);
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, selector, typeMask,
@@ -2111,8 +2257,12 @@ abstract class TypeInformationVisitor<T> {
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);
+  T visitIndirectDynamicCallSiteTypeInformation(
+      IndirectDynamicCallSiteTypeInformation info);
   T visitMemberTypeInformation(MemberTypeInformation info);
   T visitParameterTypeInformation(ParameterTypeInformation info);
+  T visitIndirectParameterTypeInformation(
+      IndirectParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
   T visitYieldTypeInformation(YieldTypeInformation info);

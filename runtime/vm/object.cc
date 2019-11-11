@@ -2306,12 +2306,16 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
-  if (raw_obj->IsOldObject() && thread->is_marking()) {
+  if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
     // Black allocation. Prevents a data race between the mutator and concurrent
     // marker on ARM and ARM64 (the marker may observe a publishing store of
     // this object before the stores that initialize its slots), and helps the
     // collection to finish sooner.
     raw_obj->SetMarkBitUnsynchronized();
+    // Setting the mark bit must not be ordered after a publishing store of this
+    // object. Adding a barrier here is cheaper than making every store into the
+    // heap a store-release.
+    std::atomic_thread_fence(std::memory_order_release);
     heap->old_space()->AllocateBlack(size);
   }
   return raw_obj;
