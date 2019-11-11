@@ -39,7 +39,7 @@ external bool debugger({bool when = true, String? message});
 /// Send a reference to [object] to any attached debuggers.
 ///
 /// Debuggers may open an inspector on the object. Returns the argument.
-external Object inspect(Object? object);
+external Object? inspect(Object? object);
 
 /// Emit a log event.
 ///
