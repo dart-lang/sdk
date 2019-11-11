@@ -501,6 +501,13 @@ abstract class Element implements AnalysisTarget {
   /// Return the analysis context in which this element is defined.
   AnalysisContext get context;
 
+  /// Return the declaration of this element. If the element is a view on an
+  /// element, e.g. a method from an interface type, with substituted type
+  /// parameters, return the corresponding element from the class, without any
+  /// substitutions. If this element is already a declaration (or a synthetic
+  /// element, e.g. a synthetic property accessor), return itself.
+  Element get declaration;
+
   /// Return the display name of this element, or `null` if this element does
   /// not have a name.
   ///

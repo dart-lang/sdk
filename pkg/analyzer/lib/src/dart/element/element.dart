@@ -2687,6 +2687,9 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  Element get declaration => this;
+
+  @override
   String get displayName => _name;
 
   @override
@@ -6171,6 +6174,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /// the given non-empty [conflictingElements].
   MultiplyDefinedElementImpl(
       this.context, this.session, this.name, this.conflictingElements);
+
+  @override
+  Element get declaration => null;
 
   @override
   String get displayName => name;

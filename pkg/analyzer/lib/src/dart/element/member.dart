@@ -371,6 +371,9 @@ abstract class Member implements Element {
   AnalysisContext get context => _baseElement.context;
 
   @override
+  Element get declaration => _baseElement;
+
+  @override
   String get displayName => _baseElement.displayName;
 
   @override
