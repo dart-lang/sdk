@@ -4518,7 +4518,15 @@ class EmptyStatement extends Statement {
 class AssertStatement extends Statement {
   Expression condition;
   Expression message; // May be null.
+
+  /// Character offset in the source where the assertion condition begins.
+  ///
+  /// Note: This is not the offset into the UTF8 encoded `List<int>` source.
   int conditionStartOffset;
+
+  /// Character offset in the source where the assertion condition ends.
+  ///
+  /// Note: This is not the offset into the UTF8 encoded `List<int>` source.
   int conditionEndOffset;
 
   AssertStatement(this.condition,
@@ -7051,6 +7059,7 @@ class _ChildReplacer extends Transformer {
 class Source {
   final List<int> lineStarts;
 
+  /// A UTF8 encoding of the original source file.
   final List<int> source;
 
   final Uri importUri;
