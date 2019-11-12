@@ -2212,13 +2212,11 @@ void KernelReaderHelper::SkipExpression() {
       SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
-    case kConstStaticInvocation:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read procedure_reference.
       SkipArguments();               // read arguments.
       return;
     case kConstructorInvocation:
-    case kConstConstructorInvocation:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
@@ -2245,15 +2243,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();           // read position.
       SkipListOfExpressions();  // read list of expressions.
       return;
-    case kListConcatenation:
-    case kSetConcatenation:
-    case kMapConcatenation:
-    case kInstanceCreation:
-    case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are removed by the constant evaluator.
-      UNREACHABLE();
-      break;
     case kIsExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
@@ -2264,9 +2253,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
-      return;
-    case kSymbolLiteral:
-      SkipStringReference();  // read index into string table.
       return;
     case kTypeLiteral:
       SkipDartType();  // read type.
@@ -2281,19 +2267,16 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read expression.
       return;
     case kListLiteral:
-    case kConstListLiteral:
       ReadPosition();           // read position.
       SkipDartType();           // read type.
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kSetLiteral:
-    case kConstSetLiteral:
       // Set literals are currently desugared in the frontend and will not
       // reach the VM. See http://dartbug.com/35124 for discussion.
       UNREACHABLE();
       return;
-    case kMapLiteral:
-    case kConstMapLiteral: {
+    case kMapLiteral: {
       ReadPosition();                           // read position.
       SkipDartType();                           // read key type.
       SkipDartType();                           // read value type.
@@ -2352,6 +2335,22 @@ void KernelReaderHelper::SkipExpression() {
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kConstStaticInvocation:
+    case kConstConstructorInvocation:
+    case kConstListLiteral:
+    case kConstSetLiteral:
+    case kConstMapLiteral:
+    case kSymbolLiteral:
+      // Const invocations and const literals are removed by the
+      // constant evaluator.
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are internal to the front end and
+      // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();

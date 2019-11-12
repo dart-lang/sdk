@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "vm/compiler/frontend/constant_evaluator.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
@@ -500,8 +500,7 @@ void KernelLoader::AnnotateNativeProcedures() {
   if (length == 0) return;
 
   // Prepare lazy constant reading.
-  ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                       &active_class_);
+  ConstantReader constant_reader(&helper_, &active_class_);
 
   // Obtain `dart:_internal::ExternalName.name`.
   EnsureExternalClassIsLookedUp();
@@ -532,10 +531,9 @@ void KernelLoader::AnnotateNativeProcedures() {
         // We have a candidate. Let's look if it's an instance of the
         // ExternalName class.
         const intptr_t constant_table_offset = helper_.ReadUInt();
-        if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                  external_name_class_)) {
-          constant = constant_evaluator.EvaluateConstantExpression(
-              constant_table_offset);
+        if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                               external_name_class_)) {
+          constant = constant_reader.ReadConstant(constant_table_offset);
           ASSERT(constant.clazz() == external_name_class_.raw());
           // We found the annotation, let's flag the function as native and
           // set the native name!
@@ -619,8 +617,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
   }
 
   // Prepare lazy constant reading.
-  ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                       &active_class_);
+  ConstantReader constant_reader(&helper_, &active_class_);
 
   // Obtain `dart:_internal::ExternalName.name`.
   EnsureExternalClassIsLookedUp();
@@ -665,10 +662,9 @@ void KernelLoader::LoadNativeExtensionLibraries() {
           // We have a candidate. Let's look if it's an instance of the
           // ExternalName class.
           const intptr_t constant_table_offset = helper_.ReadUInt();
-          if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                    external_name_class_)) {
-            constant = constant_evaluator.EvaluateConstantExpression(
-                constant_table_offset);
+          if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                                 external_name_class_)) {
+            constant = constant_reader.ReadConstant(constant_table_offset);
             ASSERT(constant.clazz() == external_name_class_.raw());
             uri_path ^= constant.GetField(external_name_field_);
           }
@@ -1823,8 +1819,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         const dart::Class& toplevel_class =
             Class::Handle(Z, library.toplevel_class());
         ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
-        ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                             &active_class_);
+        ConstantReader constant_reader(&helper_, &active_class_);
 
         helper_.ReadByte();  // Skip the tag.
 
@@ -1841,14 +1836,13 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         const intptr_t constant_table_offset = helper_.ReadUInt();
         // We have a candidate. Let's look if it's an instance of the
         // ExternalName or Pragma class.
-        if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                  external_name_class_)) {
-          constant = constant_evaluator.EvaluateConstantExpression(
-              constant_table_offset);
+        if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                               external_name_class_)) {
+          constant = constant_reader.ReadConstant(constant_table_offset);
           ASSERT(constant.clazz() == external_name_class_.raw());
           *native_name ^= constant.GetField(external_name_field_);
-        } else if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                         pragma_class_)) {
+        } else if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                                      pragma_class_)) {
           *has_pragma_annotation = true;
         }
       }

@@ -8,7 +8,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/frontend/constant_evaluator.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/scope_builder.h"
@@ -37,10 +37,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
         type_translator_(this, active_class_, /* finalize= */ true),
-        constant_evaluator_(this,
-                            &type_translator_,
-                            active_class_,
-                            flow_graph_builder),
+        constant_reader_(this, active_class_),
         bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
@@ -299,8 +296,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildMethodInvocation(TokenPosition* position);
   Fragment BuildDirectMethodInvocation(TokenPosition* position);
   Fragment BuildSuperMethodInvocation(TokenPosition* position);
-  Fragment BuildStaticInvocation(bool is_const, TokenPosition* position);
-  Fragment BuildConstructorInvocation(bool is_const, TokenPosition* position);
+  Fragment BuildStaticInvocation(TokenPosition* position);
+  Fragment BuildConstructorInvocation(TokenPosition* position);
   Fragment BuildNot(TokenPosition* position);
   Fragment BuildNullCheck(TokenPosition* position);
   Fragment BuildLogicalExpression(TokenPosition* position);
@@ -310,13 +307,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildStringConcatenation(TokenPosition* position);
   Fragment BuildIsExpression(TokenPosition* position);
   Fragment BuildAsExpression(TokenPosition* position);
-  Fragment BuildSymbolLiteral(TokenPosition* position);
   Fragment BuildTypeLiteral(TokenPosition* position);
   Fragment BuildThisExpression(TokenPosition* position);
   Fragment BuildRethrow(TokenPosition* position);
   Fragment BuildThrow(TokenPosition* position);
-  Fragment BuildListLiteral(bool is_const, TokenPosition* position);
-  Fragment BuildMapLiteral(bool is_const, TokenPosition* position);
+  Fragment BuildListLiteral(TokenPosition* position);
+  Fragment BuildMapLiteral(TokenPosition* position);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
   Fragment BuildBlockExpression();
@@ -365,7 +361,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;
-  ConstantEvaluator constant_evaluator_;
+  ConstantReader constant_reader_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
