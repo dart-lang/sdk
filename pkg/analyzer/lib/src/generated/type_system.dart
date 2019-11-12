@@ -2131,13 +2131,17 @@ class InterfaceLeastUpperBoundHelper {
   /// causing pain in real code.  The current algorithm is:
   /// 1. If either of the types is a supertype of the other, return it.
   ///    This is in fact the best result in this case.
-  /// 2. If the two types have the same class element, then take the
-  ///    pointwise least upper bound of the type arguments.  This is again
-  ///    the best result, except that the recursive calls may not return
-  ///    the true least upper bounds.  The result is guaranteed to be a
-  ///    well-formed type under the assumption that the input types were
-  ///    well-formed (and assuming that the recursive calls return
-  ///    well-formed types).
+  /// 2. If the two types have the same class element and are implicitly or
+  ///    explicitly covariant, then take the pointwise least upper bound of
+  ///    the type arguments. This is again the best result, except that the
+  ///    recursive calls may not return the true least upper bounds. The
+  ///    result is guaranteed to be a well-formed type under the assumption
+  ///    that the input types were well-formed (and assuming that the
+  ///    recursive calls return well-formed types).
+  ///    If the variance of the type parameter is contravariant, we take the
+  ///    greatest lower bound of the type arguments. If the variance of the
+  ///    type parameter is invariant, we verify if the type arguments satisfy
+  ///    subtyping in both directions, then choose a bound.
   /// 3. Otherwise return the spec-defined least upper bound.  This will
   ///    be an upper bound, might (or might not) be least, and might
   ///    (or might not) be a well-formed type.
@@ -2163,11 +2167,42 @@ class InterfaceLeastUpperBoundHelper {
     if (type1.element == type2.element) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-
+      var params = type1.element.typeParameters;
       assert(args1.length == args2.length);
+      assert(args1.length == params.length);
+
       var args = List<DartType>(args1.length);
       for (int i = 0; i < args1.length; i++) {
-        args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+        // TODO (kallentu) : Clean up TypeParameterElementImpl checks and
+        // casting once variance is added to the interface.
+        TypeParameterElement parameter = params[i];
+        Variance parameterVariance = Variance.covariant;
+        if (parameter is TypeParameterElementImpl) {
+          parameterVariance = parameter.variance;
+        }
+
+        if (parameterVariance.isContravariant) {
+          if (typeSystem is Dart2TypeSystem) {
+            args[i] = (typeSystem as Dart2TypeSystem)
+                .getGreatestLowerBound(args1[i], args2[i]);
+          } else {
+            args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+          }
+        } else if (parameterVariance.isInvariant) {
+          if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
+              !typeSystem.isSubtypeOf(args2[i], args1[i])) {
+            // No bound will be valid, find bound at the interface level.
+            return _computeLeastUpperBound(
+              InstantiatedClass.of(type1),
+              InstantiatedClass.of(type2),
+            ).withNullability(nullability);
+          }
+          // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
+          //  parameters.
+          args[i] = args1[i];
+        } else {
+          args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+        }
       }
 
       return new InterfaceTypeImpl.explicit(
