@@ -19,7 +19,9 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -254,10 +256,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       }
       return null;
     }, onError: (exception, stackTrace) {
-      server.sendServerErrorNotification(
-          'Failed to handle completion domain request: ${request.toJson()}',
-          exception,
-          stackTrace);
+      AnalysisEngine.instance.instrumentationService.logException(
+          CaughtException.withMessage(
+              'Failed to handle completion domain request: ${request.toJson()}',
+              exception,
+              stackTrace));
     });
   }
 

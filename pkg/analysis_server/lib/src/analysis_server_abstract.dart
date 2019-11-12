@@ -295,6 +295,14 @@ abstract class AbstractAnalysisServer {
     analysisDriverScheduler.notify(null);
   }
 
+  /// Sends an error notification to the user.
+  void sendServerErrorNotification(
+    String message,
+    dynamic exception,
+    /*StackTrace*/ stackTrace, {
+    bool fatal = false,
+  });
+
   void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
     declarationsTracker?.discardContext(driver.analysisContext);
     declarationsTracker?.addContext(driver.analysisContext);

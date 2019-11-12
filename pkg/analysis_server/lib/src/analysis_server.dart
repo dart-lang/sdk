@@ -41,6 +41,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -354,11 +355,9 @@ class AnalysisServer extends AbstractAnalysisServer {
         channel.sendResponse(new Response.unknownRequest(request));
       });
     }, onError: (exception, stackTrace) {
-      sendServerErrorNotification(
-          'Failed to handle request: ${request.toJson()}',
-          exception,
-          stackTrace,
-          fatal: true);
+      AnalysisEngine.instance.instrumentationService.logException(
+          FatalException('Failed to handle request: ${request.toJson()}',
+              exception, stackTrace));
     });
   }
 
@@ -410,6 +409,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   /// Sends a `server.error` notification.
+  @override
   void sendServerErrorNotification(
     String message,
     dynamic exception,

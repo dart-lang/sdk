@@ -6,6 +6,8 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 void sendFlutterNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
@@ -29,8 +31,9 @@ void _sendNotification(AnalysisServer server, f()) {
     try {
       f();
     } catch (exception, stackTrace) {
-      server.sendServerErrorNotification(
-          'Failed to send notification', exception, stackTrace);
+      AnalysisEngine.instance.instrumentationService.logException(
+          CaughtException.withMessage(
+              'Failed to send notification', exception, stackTrace));
     }
   });
 }
