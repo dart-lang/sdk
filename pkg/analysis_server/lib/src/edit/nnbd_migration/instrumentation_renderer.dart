@@ -185,7 +185,7 @@ h2 {
   </head>
   <body>
     <h1>Non-nullable fix instrumentation report</h1>
-    <p><em>Well-written introduction to this report.</em></p>
+    <p>Migrated files:</p>
     <div class="navigation">
       {{# links }}
         {{# isLink }}<a href="{{ href }}">{{ name }}</a>{{/ isLink }}
@@ -423,13 +423,17 @@ class MigrationInfo {
   /// The information about the compilation units that are are migrated.
   final Set<UnitInfo> units;
 
+  /// A map from file paths to the unit infos created for those files. The units
+  /// in this map is a strict superset of the [units] that were migrated.
+  final Map<String, UnitInfo> unitMap;
+
   /// The resource provider's path context.
   final path.Context pathContext;
 
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  MigrationInfo(this.units, this.pathContext, this.includedRoot);
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.js script, relative to [unitInfo].
   String highlightJsPath(UnitInfo unitInfo) {

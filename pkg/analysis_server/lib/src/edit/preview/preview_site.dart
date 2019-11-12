@@ -5,14 +5,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/preview/dart_file_page.dart';
 import 'package:analysis_server/src/edit/preview/exception_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_css_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_js_page.dart';
+import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
-import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 /// The site used to serve pages for the preview tool.
 class PreviewSite extends Site implements AbstractGetHandler {
@@ -23,13 +26,40 @@ class PreviewSite extends Site implements AbstractGetHandler {
   /// The path of the JS page used to associate highlighting within a Dart file.
   static const highlightJSPagePath = '/js/highlight.pack.js';
 
+  /// The information about the migration that will be used to serve up pages.
+  final MigrationInfo migrationInfo;
+
+  /// The path mapper used to map paths from the unit infos to the paths being
+  /// served.
+  final PathMapper pathMapper;
+
   /// A table mapping the paths of files to the information about the
   /// compilation units at those paths.
-  final Map<String, UnitInfo> unitInfoMap;
+  final Map<String, UnitInfo> unitInfoMap = {};
 
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
-  PreviewSite(this.unitInfoMap) : super('NNBD Migration Preview');
+  PreviewSite(this.migrationInfo, this.pathMapper)
+      : super('NNBD Migration Preview') {
+    Set<UnitInfo> unitInfos = migrationInfo.units;
+    ResourceProvider provider = pathMapper.provider;
+    for (UnitInfo unit in unitInfos) {
+      unitInfoMap[unit.path] = unit;
+    }
+    for (UnitInfo unit in migrationInfo.unitMap.values) {
+      if (!unitInfos.contains(unit)) {
+        if (unit.content == null) {
+          try {
+            unit.content = provider.getFile(unit.path).readAsStringSync();
+          } catch (_) {
+            // If we can't read the content of the file, then skip it.
+            continue;
+          }
+        }
+        unitInfoMap[unit.path] = unit;
+      }
+    }
+  }
 
   @override
   Page createExceptionPage(String message, StackTrace trace) {
@@ -79,5 +109,23 @@ class PreviewSite extends Site implements AbstractGetHandler {
         response.close();
       }
     }
+  }
+
+  @override
+  Future<void> respond(HttpRequest request, Page page,
+      [int code = HttpStatus.ok]) async {
+    HttpResponse response = request.response;
+    response.statusCode = code;
+    if (page is HighlightCssPage) {
+      response.headers.contentType =
+          ContentType('text', 'css', charset: 'utf-8');
+    } else if (page is HighlightJSPage) {
+      response.headers.contentType =
+          ContentType('application', 'javascript', charset: 'utf-8');
+    } else {
+      response.headers.contentType = ContentType.html;
+    }
+    response.write(await page.generate(request.uri.queryParameters));
+    response.close();
   }
 }

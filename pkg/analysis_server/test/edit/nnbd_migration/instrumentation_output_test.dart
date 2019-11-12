@@ -26,7 +26,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     String packageRoot = resourceProvider.convertPath('/package');
     String outputDir = resourceProvider.convertPath('/output');
     MigrationInfo migrationInfo = MigrationInfo(
-        libraryInfo.units, resourceProvider.pathContext, packageRoot);
+        libraryInfo.units, {}, resourceProvider.pathContext, packageRoot);
     List<String> contents = [];
     for (UnitInfo unitInfo in libraryInfo.units) {
       contents.add(InstrumentationRenderer(unitInfo, migrationInfo,

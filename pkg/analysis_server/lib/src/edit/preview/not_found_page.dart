@@ -15,7 +15,7 @@ class NotFoundPage extends PreviewPage {
   @override
   void generateBody(Map<String, String> params) {
     buf.write('''
-<h1>404 Not found/h1>
+<h1>404 Not found</h1>
 <p>
 '$path' not found.
 </p>
