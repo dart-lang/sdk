@@ -2029,7 +2029,11 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     if (!has_nontrivial_initializer) {
       value ^= ReadObject();
       if (is_static) {
-        field.SetStaticValue(value, true);
+        if (field.is_late() && !has_initializer) {
+          field.SetStaticValue(Object::sentinel(), true);
+        } else {
+          field.SetStaticValue(value, true);
+        }
       } else {
         field.set_saved_initial_value(value);
         // Null-initialized instance fields are tracked separately for each

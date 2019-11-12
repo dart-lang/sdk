@@ -587,7 +587,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         field.name.library, objectTable.mangleMemberName(field, false, false));
     ObjectHandle getterName;
     ObjectHandle setterName;
-    if (_needsGetter(field, initializer)) {
+    if (_needsGetter(field)) {
       flags |= FieldDeclaration.hasGetterFlag;
       getterName = objectTable.getNameHandle(
           field.name.library, objectTable.mangleMemberName(field, true, false));
@@ -958,13 +958,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           options.emitInstanceFieldInitializers) &&
       !_hasTrivialInitializer(field);
 
-  bool _needsGetter(Field field, Code initializer) {
+  bool _needsGetter(Field field) {
     // All instance fields need a getter.
     if (!field.isStatic) return true;
 
-    // Static fields only need a getter if they have a non-trivial initializer,
+    // Static fields also need a getter if they have a non-trivial initializer,
     // because it needs to be initialized lazily.
-    return initializer != null;
+    if (!_hasTrivialInitializer(field)) return true;
+
+    // Static late fields with no initializer also need a getter, to check if
+    // it's been initialized.
+    return field.isLate && field.initializer == null;
   }
 
   bool _needsSetter(Field field) {
@@ -3588,7 +3592,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (target is Field) {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
-      } else if (_hasTrivialInitializer(target)) {
+      } else if (!_needsGetter(target)) {
         asm.emitLoadStatic(cp.addStaticField(target));
       } else {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
