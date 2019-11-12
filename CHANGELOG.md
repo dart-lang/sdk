@@ -2,6 +2,35 @@
 (Add new changes here, and they will be copied to the change section for the
  next release)
 
+### Language
+
+* **Breaking Change**: [Static extension members][] are accessible when
+imported with a prefix (issue [671][]). In the extension method **preview**
+launch, importing a library with a prefix hid all extension members in
+addition to hiding the extension name, thereby making them inaccessible
+in the importing library except via the explicit override syntax. Based
+on user feedback, we have changed this to make extensions methods accessible
+even when imported with a prefix.
+
+    ```dart
+      // "thing.dart"
+      class Thing {
+      }
+      extension Show on Thing {
+        void show() {
+          print("This is a thing");
+        }
+     }
+     // "client.dart"
+     import "thing.dart" as p;
+     void test() {
+       p.Thing().show(); // Previously an error, now resolves to Show.show
+     }
+    ```
+
+[Static extension members]: https://github.com/dart-lang/language/blob/master/accepted/2.6/static-extension-members/feature-specification.md
+[671]: https://github.com/dart-lang/language/issues/671
+
 ### Core libraries
 
 #### `dart:io`
