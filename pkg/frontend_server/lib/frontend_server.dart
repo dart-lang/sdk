@@ -28,7 +28,9 @@ import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
-import 'package:vm/binary_cache.dart' show BinaryCache, Range;
+import 'package:vm/metadata/binary_cache.dart'
+    show BinaryCacheMetadataRepository;
+
 import 'package:vm/bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
@@ -281,8 +283,6 @@ class FrontendCompiler implements CompilerInterface {
   String _kernelBinaryFilenameIncremental;
   String _kernelBinaryFilenameFull;
   String _initializeFromDill;
-  String _bytecodeDillPath;
-  String _bytecodeCachePath;
 
   Set<Uri> previouslyReportedDependencies = Set<Uri>();
 
@@ -404,14 +404,12 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
-    _bytecodeCachePath = _initializeFromDill + ".cache";
-    if (compilerOptions.bytecode) {
+    if (compilerOptions.bytecode && _initializeFromDill != null) {
       // If we are generating bytecode, put bytecode only (not AST) in
       // [_kernelBinaryFilename], which the user of this tool will eventually
       // feed to Flutter engine or flutter_tester. Use a separate file to cache
       // the AST result to initialize the incremental compiler for the next
       // invocation of this tool.
-      _bytecodeDillPath = _initializeFromDill;
       _initializeFromDill += ".ast";
     }
 
@@ -558,19 +556,14 @@ class FrontendCompiler implements CompilerInterface {
       {bool filterExternal: false,
       IncrementalSerializer incrementalSerializer}) async {
     final Component component = results.component;
+    // Remove the cache that came either from this function or from
+    // initializing from a kernel file.
+    component.metadata.remove(BinaryCacheMetadataRepository.repositoryTag);
 
     if (_compilerOptions.bytecode) {
-      BinaryCache inputCache;
-      if (_options['incremental']) {
-        inputCache = new BinaryCache();
-        await inputCache.read(_bytecodeCachePath, _bytecodeDillPath);
-      }
-      BinaryCache outputCache = new BinaryCache();
-
       {
         // Generate bytecode as the output proper.
         final IOSink sink = File(filename).openWrite();
-        int offset = 0;
         await runWithFrontEndCompilerContext(
             _mainSource, _compilerOptions, component, () async {
           if (_options['incremental']) {
@@ -578,18 +571,10 @@ class FrontendCompiler implements CompilerInterface {
             // the VM expects 'main' to be the first sub-component.
             await forEachPackage(component,
                 (String package, List<Library> libraries) async {
-              offset = _writePackage(
-                  results,
-                  package,
-                  libraries,
-                  sink,
-                  offset,
-                  inputCache,
-                  outputCache,
-                  incrementalSerializer?.invalidatedUris);
+              _writePackage(results, package, libraries, sink);
             }, mainFirst: true);
           } else {
-            _writePackage(results, 'main', component.libraries, sink, 0);
+            _writePackage(results, 'main', component.libraries, sink);
           }
         });
         await sink.close();
@@ -600,6 +585,15 @@ class FrontendCompiler implements CompilerInterface {
         // of [filename] so that a later invocation of frontend_server will the
         // same arguments will use this to initialize its incremental kernel
         // compiler.
+        final repository = BinaryCacheMetadataRepository();
+        component.addMetadataRepository(repository);
+        for (var lib in component.libraries) {
+          var bytes = BinaryCacheMetadataRepository.lookup(lib);
+          if (bytes != null) {
+            repository.mapping[lib] = bytes;
+          }
+        }
+
         final file = new File(_initializeFromDill);
         await file.create(recursive: true);
         final IOSink sink = file.openWrite();
@@ -613,18 +607,9 @@ class FrontendCompiler implements CompilerInterface {
 
         sortComponent(component);
 
-        if (incrementalSerializer != null) {
-          incrementalSerializer.writePackagesToSinkAndTrimComponent(
-              component, sink);
-        } else if (unsafePackageSerialization == true) {
-          writePackagesToSinkAndTrimComponent(component, sink);
-        }
-
         printer.writeComponentFile(component);
         await sink.close();
       }
-
-      await outputCache.write(_bytecodeCachePath);
     } else {
       // Generate AST as the output proper.
       final IOSink sink = File(filename).openWrite();
@@ -647,9 +632,6 @@ class FrontendCompiler implements CompilerInterface {
 
       printer.writeComponentFile(component);
       await sink.close();
-
-      // Reset cache if not generating bytecode.
-      await new File(_bytecodeCachePath).writeAsString('');
     }
 
     if (_options['split-output-by-packages']) {
@@ -732,33 +714,18 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  int _writePackage(KernelCompilationResults result, String package,
-      List<Library> libraries, IOSink sink, int offset,
-      [BinaryCache inputCache,
-      BinaryCache outputCache,
-      Set<Uri> invalidatedUris]) {
+  void _writePackage(KernelCompilationResults result, String package,
+      List<Library> libraries, IOSink sink) {
     final canCache = libraries.isNotEmpty &&
         _compilerOptions.bytecode &&
         errors.isEmpty &&
         package != "main";
 
-    if (canCache && invalidatedUris != null) {
-      final range = inputCache?.get(package);
-      if (range != null) {
-        bool invalidated = false;
-        for (var lib in libraries) {
-          if (invalidatedUris.contains(lib.fileUri)) {
-            invalidated = true;
-            break;
-          }
-        }
-
-        if (!invalidated) {
-          final cachedBytes = inputCache.getBytes(range);
-          sink.add(cachedBytes);
-          outputCache.add(package, Range(offset, cachedBytes.length));
-          return offset + cachedBytes.length;
-        }
+    if (canCache) {
+      var cachedBytes = BinaryCacheMetadataRepository.lookup(libraries.first);
+      if (cachedBytes != null) {
+        sink.add(cachedBytes);
+        return;
       }
     }
 
@@ -783,9 +750,8 @@ class FrontendCompiler implements CompilerInterface {
     final bytes = byteSink.builder.takeBytes();
     sink.add(bytes);
     if (canCache) {
-      outputCache.add(package, Range(offset, bytes.length));
+      BinaryCacheMetadataRepository.insert(libraries.first, bytes);
     }
-    return offset + bytes.length;
   }
 
   @override
