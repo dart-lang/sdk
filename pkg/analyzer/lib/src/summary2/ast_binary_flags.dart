@@ -407,7 +407,7 @@ class AstBinaryFlags {
   }
 
   static bool hasQuestion(int flags) {
-    return (flags & _isStringInterpolationIdentifier) != 0;
+    return (flags & _hasQuestion) != 0;
   }
 
   static bool hasSeparatorColon(int flags) {
