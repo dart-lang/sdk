@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -891,6 +892,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     TypeParameterElementImpl element = node.declaredElement;
+
+    // TODO (kallentu) : Clean up TypeParameterImpl checks and casting once
+    //  variance is added to the interface.
+    if (node is TypeParameterImpl && node.varianceKeyword != null) {
+      element.variance =
+          Variance.fromKeywordString(node.varianceKeyword.lexeme);
+    }
 
     node.metadata?.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);

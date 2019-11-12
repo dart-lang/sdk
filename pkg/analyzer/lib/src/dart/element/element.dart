@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
@@ -7472,6 +7473,10 @@ class TypeParameterElementImpl extends ElementImpl
   /// if this parameter does not have an explicit bound.
   DartType _bound;
 
+  /// The value representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  Variance _variance;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
@@ -7574,6 +7579,12 @@ class TypeParameterElementImpl extends ElementImpl
   void set type(TypeParameterType type) {
     _type = type;
   }
+
+  Variance get variance => _variance ?? Variance.covariant;
+
+  void set variance(Variance newVariance) => _variance = newVariance;
+
+  bool get isLegacyCovariant => _variance == null;
 
   @override
   bool operator ==(Object other) {

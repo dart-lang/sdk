@@ -40,16 +40,17 @@ class B extends A {
 class C extends A {
   @override
   Invariant<Lower> method1() {
-  //               ^
-  // [analyzer] unspecified
+  //               ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   // [cfe] The return type of the method 'C.method1' is 'Invariant<Lower>', which does not match the return type, 'Invariant<Middle>', of the overridden method, 'A.method1'.
     return new Invariant<Lower>();
   }
 
   @override
   void method2(Invariant<Upper> x) {}
+  //   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   //                            ^
-  // [analyzer] unspecified
   // [cfe] The parameter 'x' of the method 'C.method2' has type 'Invariant<Upper>', which does not match the corresponding type, 'Invariant<Middle>', in the overridden method, 'A.method2'.
 }
 
@@ -69,13 +70,15 @@ class E {
   }
 
   D<Invariant<Lower>> method2() {
+  //^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                         ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D' in the return type.
     return D<Invariant<Lower>>();
     //     ^
-    // [analyzer] unspecified
     // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
+    //       ^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }
 
@@ -92,12 +95,14 @@ main() {
   //                                 ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   D<Invariant<Lower>> dLower = new D<Invariant<Lower>>();
+  //^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                  ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
   //                               ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Invariant<Lower>' doesn't conform to the bound 'Invariant<Middle>' of the type variable 'T' on 'D'.
+  //                                 ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
   Iterable<Invariant<Lower>> iterableLower = [new Invariant<Lower>()];
   List<Invariant<Middle>> listMiddle = [new Invariant<Middle>()];
@@ -109,8 +114,8 @@ main() {
   Iterable<Invariant<Middle>> iterableMiddle = [new Invariant<Middle>()];
   List<Invariant<Lower>> listLower = [new Invariant<Lower>()];
   iterableMiddle = listLower;
-  //               ^
-  // [analyzer] unspecified
+  //               ^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'List<Invariant<Lower>>' can't be assigned to a variable of type 'Iterable<Invariant<Middle>>'.
 
   testCall<Lower>(listMiddle);
@@ -119,7 +124,7 @@ main() {
   // [cfe] The argument type 'List<Invariant<Middle>>' can't be assigned to the parameter type 'Iterable<Invariant<Lower>>'.
 
   testCall<Middle>(listLower);
-  //               ^
-  // [analyzer] unspecified
+  //               ^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'List<Invariant<Lower>>' can't be assigned to the parameter type 'Iterable<Invariant<Middle>>'.
 }

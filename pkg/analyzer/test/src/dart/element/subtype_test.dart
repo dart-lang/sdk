@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2843,6 +2844,85 @@ class SubtypeTest extends _SubtypingTestBase {
       strT0: 'List<T>, T extends Object?, T & int?',
       strT1: 'List<T>, T extends Object?',
     );
+  }
+
+  test_interfaceType_covariant_01() {
+    var T = typeParameter('T', variance: Variance.covariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var A_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+  }
+
+  test_interfaceType_covariant_02() {
+    var T = typeParameter('T', variance: Variance.covariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+  }
+
+  test_interfaceType_contravariant_01() {
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var A_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+  }
+
+  test_interfaceType_contravariant_02() {
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+  }
+
+  test_interfaceType_invariant() {
+    var T = typeParameter('T', variance: Variance.invariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var A_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
   test_multi_function_nonGeneric_oneArgument() {

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -1107,14 +1108,35 @@ class Dart2TypeSystem extends TypeSystem {
     if (i1Element == i2.element) {
       List<DartType> tArgs1 = i1.typeArguments;
       List<DartType> tArgs2 = i2.typeArguments;
+      List<TypeParameterElement> tParams = i1Element.typeParameters;
 
       assert(tArgs1.length == tArgs2.length);
+      assert(tParams.length == tArgs1.length);
 
       for (int i = 0; i < tArgs1.length; i++) {
         DartType t1 = tArgs1[i];
         DartType t2 = tArgs2[i];
-        if (!isSubtypeOf(t1, t2)) {
-          return false;
+
+        // TODO (kallentu) : Clean up TypeParameterElementImpl checks and
+        // casting once variance is added to the interface.
+        TypeParameterElement parameterElement = tParams[i];
+        Variance variance = Variance.covariant;
+        if (parameterElement is TypeParameterElementImpl) {
+          variance = parameterElement.variance;
+        }
+
+        if (variance.isContravariant) {
+          if (!isSubtypeOf(t2, t1)) {
+            return false;
+          }
+        } else if (variance.isInvariant) {
+          if (!isSubtypeOf(t1, t2) || !isSubtypeOf(t2, t1)) {
+            return false;
+          }
+        } else {
+          if (!isSubtypeOf(t1, t2)) {
+            return false;
+          }
         }
       }
       return true;

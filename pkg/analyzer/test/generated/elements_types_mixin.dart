@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -191,9 +192,11 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  TypeParameterElementImpl typeParameter(String name, {DartType bound}) {
+  TypeParameterElementImpl typeParameter(String name,
+      {DartType bound, Variance variance}) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound;
+    element.variance = variance;
     return element;
   }
 

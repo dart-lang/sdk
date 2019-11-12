@@ -8,17 +8,17 @@ import 'package:analyzer/dart/element/type.dart';
 /// The variance of a type parameter `X` in a type `T`.
 class Variance {
   /// Used when `X` does not occur free in `T`.
-  static const Variance _unrelated = Variance._(0);
+  static const Variance unrelated = Variance._(0);
 
   /// Used when `X` occurs free in `T`, and `U <: V` implies `[U/X]T <: [V/X]T`.
-  static const Variance _covariant = Variance._(1);
+  static const Variance covariant = Variance._(1);
 
   /// Used when `X` occurs free in `T`, and `U <: V` implies `[V/X]T <: [U/X]T`.
-  static const Variance _contravariant = Variance._(2);
+  static const Variance contravariant = Variance._(2);
 
   /// Used when there exists a pair `U` and `V` such that `U <: V`, but
   /// `[U/X]T` and `[V/X]T` are incomparable.
-  static const Variance _invariant = Variance._(3);
+  static const Variance invariant = Variance._(3);
 
   /// The encoding associated with the variance.
   final int _encoding;
@@ -27,12 +27,12 @@ class Variance {
   factory Variance(TypeParameterElement typeParameter, DartType type) {
     if (type is TypeParameterType) {
       if (type.element == typeParameter) {
-        return _covariant;
+        return covariant;
       } else {
-        return _unrelated;
+        return unrelated;
       }
     } else if (type is InterfaceType) {
-      var result = _unrelated;
+      var result = unrelated;
       for (var argument in type.typeArguments) {
         result = result.meet(
           Variance(typeParameter, argument),
@@ -49,20 +49,20 @@ class Variance {
         // occurs in the bound.
         var bound = parameter.bound;
         if (bound != null && !Variance(typeParameter, bound).isUnrelated) {
-          result = _invariant;
+          result = invariant;
         }
       }
 
       for (var parameter in type.parameters) {
         result = result.meet(
-          _contravariant.combine(
+          contravariant.combine(
             Variance(typeParameter, parameter.type),
           ),
         );
       }
       return result;
     }
-    return _unrelated;
+    return unrelated;
   }
 
   /// Initialize a newly created variance to have the given [encoding].
@@ -72,32 +72,47 @@ class Variance {
   factory Variance._fromEncoding(int encoding) {
     switch (encoding) {
       case 0:
-        return _unrelated;
+        return unrelated;
       case 1:
-        return _covariant;
+        return covariant;
       case 2:
-        return _contravariant;
+        return contravariant;
       case 3:
-        return _invariant;
+        return invariant;
     }
     throw new ArgumentError('Invalid encoding for variance: $encoding');
   }
 
+  /// Return the variance associated with the string representation of variance.
+  factory Variance.fromKeywordString(String varianceString) {
+    if (varianceString == "in") {
+      return contravariant;
+    } else if (varianceString == "inout") {
+      return invariant;
+    } else if (varianceString == "out") {
+      return covariant;
+    } else if (varianceString == "unrelated") {
+      return unrelated;
+    }
+    throw new ArgumentError(
+        'Invalid keyword string for variance: $varianceString');
+  }
+
   /// Return `true` if this represents the case when `X` occurs free in `T`, and
   /// `U <: V` implies `[V/X]T <: [U/X]T`.
-  bool get isContravariant => this == _contravariant;
+  bool get isContravariant => this == contravariant;
 
   /// Return `true` if this represents the case when `X` occurs free in `T`, and
   /// `U <: V` implies `[U/X]T <: [V/X]T`.
-  bool get isCovariant => this == _covariant;
+  bool get isCovariant => this == covariant;
 
   /// Return `true` if this represents the case when there exists a pair `U` and
   /// `V` such that `U <: V`, but `[U/X]T` and `[V/X]T` are incomparable.
-  bool get isInvariant => this == _invariant;
+  bool get isInvariant => this == invariant;
 
   /// Return `true` if this represents the case when `X` does not occur free in
   /// `T`.
-  bool get isUnrelated => this == _unrelated;
+  bool get isUnrelated => this == unrelated;
 
   /// Combines variances of `X` in `T` and `Y` in `S` into variance of `X` in
   /// `[Y/T]S`.
@@ -131,9 +146,9 @@ class Variance {
   /// then variance of `X` in `List<X>` is covariant, variance of `Y` in
   /// `G<Y>` is invariant, so variance of `X` in `G<List<X>>` is invariant.
   Variance combine(Variance other) {
-    if (isUnrelated || other.isUnrelated) return _unrelated;
-    if (isInvariant || other.isInvariant) return _invariant;
-    return this == other ? _covariant : _contravariant;
+    if (isUnrelated || other.isUnrelated) return unrelated;
+    if (isInvariant || other.isInvariant) return invariant;
+    return this == other ? covariant : contravariant;
   }
 
   /// Variance values form a lattice where unrelated is the top, invariant
