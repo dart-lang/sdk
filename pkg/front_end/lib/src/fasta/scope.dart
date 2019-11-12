@@ -467,6 +467,12 @@ abstract class LazyScope extends Scope {
     ensureScope();
     return super._setters;
   }
+
+  @override
+  Set<ExtensionBuilder> get _extensions {
+    ensureScope();
+    return super._extensions;
+  }
 }
 
 class ScopeBuilder {
