@@ -4590,7 +4590,7 @@ class ResolverVisitor extends ScopedVisitor {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = originalElement.baseElement;
+      var rawElement = originalElement.declaration;
 
       FunctionType constructorType =
           StaticTypeAnalyzer.constructorToGenericFunctionType(rawElement);

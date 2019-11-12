@@ -207,7 +207,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType getOrComputeElementType(Element element,
       {DecoratedType targetType}) {
     Map<TypeParameterElement, DecoratedType> substitution;
-    Element baseElement = element is Member ? element.baseElement : element;
+    Element baseElement = element.declaration;
     if (targetType != null) {
       var classElement = baseElement.enclosingElement as ClassElement;
       if (classElement.typeParameters.isNotEmpty) {
@@ -1706,10 +1706,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   void _handleConstructorRedirection(
       FormalParameterList parameters, ConstructorName redirectedConstructor) {
-    var callee = redirectedConstructor.staticElement;
-    if (callee is ConstructorMember) {
-      callee = (callee as ConstructorMember).baseElement;
-    }
+    var callee = redirectedConstructor.staticElement.declaration;
     var redirectedClass = callee.enclosingElement;
     var calleeType = _variables.decoratedElementType(callee);
     var typeArguments = redirectedConstructor.type.typeArguments;
@@ -1755,10 +1752,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 classElement.thisType,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
             const <ExecutableElement>[]) {
-          if (overriddenElement is ExecutableMember) {
-            var member = overriddenElement as ExecutableMember;
-            overriddenElement = member.baseElement;
-          }
+          overriddenElement = overriddenElement.declaration;
           var overriddenClass =
               overriddenElement.enclosingElement as ClassElement;
           var decoratedOverriddenFunctionType =

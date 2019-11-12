@@ -1730,7 +1730,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // Get back to the uninstantiated generic constructor.
     // TODO(jmesserly): should we store this earlier in resolution?
     // Or look it up, instead of jumping backwards through the Member?
-    var rawElement = (originalElement as ConstructorMember).baseElement;
+    var rawElement = originalElement.declaration;
 
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 

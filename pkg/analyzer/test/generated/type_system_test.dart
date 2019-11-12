@@ -4084,7 +4084,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }) {
     if (expectedBound != null) {
       var actualMember = actual.element as TypeParameterMember;
-      expect(actualMember.baseElement, same(baseElement));
+      expect(actualMember.declaration, same(baseElement));
       expect(actualMember.bound, expectedBound);
     } else {
       expect(actual.element, same(baseElement));

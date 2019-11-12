@@ -16,7 +16,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -5773,12 +5772,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * indirectly.
    */
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    ConstructorElement nonMember(ConstructorElement constructor) {
-      return constructor is ConstructorMember
-          ? constructor.baseElement
-          : constructor;
-    }
-
     Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
     while (current != null) {
@@ -5786,7 +5779,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return identical(current, constructor);
       }
       constructors.add(current);
-      current = nonMember(current.redirectedConstructor);
+      current = current.redirectedConstructor?.declaration;
     }
     return false;
   }

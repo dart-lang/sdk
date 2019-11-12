@@ -132,7 +132,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     Element expectedBase,
     Map<String, String> expectedSubstitution,
   ) {
-    expect(actual.baseElement, same(expectedBase));
+    expect(actual.declaration, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(
       (k, v) => MapEntry(k.name, '$v'),
@@ -2188,7 +2188,7 @@ main() {
     MethodMember actualElement = indexExpression.staticElement;
     MethodMember expectedElement = listIntType.getMethod('[]');
     expect(actualElement.name, '[]');
-    expect(actualElement.baseElement, same(expectedElement.baseElement));
+    expect(actualElement.declaration, same(expectedElement.declaration));
     expect(actualElement.returnType, intType);
     expect(actualElement.parameters[0].type, intType);
   }
@@ -8700,18 +8700,7 @@ main() {
       expect(actual.type, memberType);
     }
 
-    ParameterElement base = actual;
-    if (actual is ParameterMember) {
-      base = actual.baseElement;
-      // Unwrap ParameterMember one more time.
-      // By some reason we wrap in twice.
-      if (base is ParameterMember) {
-        ParameterMember member = base;
-        base = member.baseElement;
-      }
-    }
-    ParameterElement baseActual = base;
-    expect(baseActual, same(expected));
+    expect(actual.declaration, same(expected));
 
     if (argument is NamedExpression) {
       SimpleIdentifier name = argument.name.label;

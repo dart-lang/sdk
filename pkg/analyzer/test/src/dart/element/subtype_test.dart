@@ -281,7 +281,7 @@ class SubtypeTest extends _SubtypingTestBase {
       DartTypeVisitor.visit(type, typeParameterCollector);
       for (var typeParameter in typeParameterCollector.typeParameters) {
         if (typeParameter is TypeParameterMember) {
-          var base = typeParameter.baseElement;
+          var base = typeParameter.declaration;
           var baseBound = base.bound as TypeImpl;
           if (baseBound != null) {
             var baseBoundStr = baseBound.toString(withNullability: true);

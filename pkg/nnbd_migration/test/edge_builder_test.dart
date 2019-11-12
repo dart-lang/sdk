@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -3157,10 +3156,9 @@ void f(List<int> x, int i) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_list_t =
         decoratedTypeAnnotation('List<int>').typeArguments[0].node;
-    var addMethod = findNode.methodInvocation('x.add').methodName.staticElement
-        as MethodMember;
+    var addMethod = findNode.methodInvocation('x.add').methodName.staticElement;
     var nullable_t = variables
-        .decoratedElementType(addMethod.baseElement)
+        .decoratedElementType(addMethod.declaration)
         .positionalParameters[0]
         .node;
     assertEdge(nullable_t, never, hard: true);

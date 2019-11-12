@@ -268,7 +268,7 @@ class ConstantEvaluationEngine {
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
     if (constant is ConstructorElement) {
-      constant = getConstructorImpl(constant);
+      constant = (constant as ConstructorElement).declaration;
     }
     if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
@@ -281,7 +281,7 @@ class ConstantEvaluationEngine {
             getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
           ConstructorElement redirectedConstructorBase =
-              getConstructorImpl(redirectedConstructor);
+              redirectedConstructor?.declaration;
           callback(redirectedConstructorBase);
           return;
         } else if (constant.isFactory) {
@@ -314,7 +314,7 @@ class ConstantEvaluationEngine {
               (constant.returnType as InterfaceType).superclass;
           if (superclass != null && !superclass.isObject) {
             ConstructorElement unnamedConstructor =
-                getConstructorImpl(superclass.element.unnamedConstructor);
+                superclass.element.unnamedConstructor?.declaration;
             if (unnamedConstructor != null) {
               callback(unnamedConstructor);
             }
@@ -422,7 +422,7 @@ class ConstantEvaluationEngine {
       return null;
     }
 
-    if (!getConstructorImpl(constructor).isCycleFree) {
+    if (!(constructor.declaration as ConstructorElementImpl).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
       // in this case, as well as other cases involving constant expression
@@ -519,7 +519,7 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    ConstructorElementImpl constructorBase = getConstructorImpl(constructor);
+    ConstructorElementImpl constructorBase = constructor.declaration;
     validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
@@ -581,10 +581,7 @@ class ConstantEvaluationEngine {
 
     for (int i = 0; i < parameterCount; i++) {
       ParameterElement parameter = parameters[i];
-      ParameterElement baseParameter = parameter;
-      while (baseParameter is ParameterMember) {
-        baseParameter = (baseParameter as ParameterMember).baseElement;
-      }
+      ParameterElement baseParameter = parameter.declaration;
       DartObjectImpl argumentValue;
       AstNode errorTarget;
       if (baseParameter.isNamed) {
@@ -779,10 +776,10 @@ class ConstantEvaluationEngine {
       if (redirectedConstructor == null) {
         break;
       } else {
-        ConstructorElement constructorBase = getConstructorImpl(constructor);
+        ConstructorElement constructorBase = constructor?.declaration;
         constructorsVisited.add(constructorBase);
         ConstructorElement redirectedConstructorBase =
-            getConstructorImpl(redirectedConstructor);
+            redirectedConstructor?.declaration;
         if (constructorsVisited.contains(redirectedConstructorBase)) {
           // Cycle in redirecting factory constructors--this is not allowed
           // and is checked elsewhere--see

@@ -1999,6 +1999,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  ConstructorElement get declaration => this;
+
+  @override
   String get displayName {
     if (linkedNode != null) {
       return reference.name;
@@ -4334,6 +4337,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  FieldElement get declaration => this;
+
+  @override
   bool get isCovariant {
     if (linkedNode != null) {
       return linkedContext.isExplicitlyCovariant(linkedNode);
@@ -4460,6 +4466,9 @@ class FunctionElementImpl extends ExecutableElementImpl
     this.returnType = returnType;
     this.parameters = parameters;
   }
+
+  @override
+  ExecutableElement get declaration => this;
 
   @override
   String get displayName {
@@ -5849,6 +5858,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  MethodElement get declaration => this;
+
+  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -6562,6 +6574,9 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  ParameterElement get declaration => this;
+
+  @override
   String get defaultValueCode {
     if (linkedNode != null) {
       return linkedContext.getDefaultValueCode(linkedNode);
@@ -7070,6 +7085,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return variable.setter;
   }
 
+  @override
+  PropertyAccessorElement get declaration => this;
+
   /// Set whether this accessor is a getter.
   void set getter(bool isGetter) {
     setModifier(Modifier.GETTER, isGetter);
@@ -7526,6 +7544,9 @@ class TypeParameterElementImpl extends ElementImpl
     return super.codeOffset;
   }
 
+  @override
+  TypeParameterElement get declaration => this;
+
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
@@ -7745,6 +7766,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
+
+  @override
+  VariableElement get declaration => this;
 
   @override
   String get displayName => name;

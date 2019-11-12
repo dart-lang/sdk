@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -24,14 +23,6 @@ main() {
 DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
 VoidTypeImpl get voidType => VoidTypeImpl.instance;
-
-Element getBaseElement(Element e) {
-  if (e is Member) {
-    return e.baseElement;
-  } else {
-    return e;
-  }
-}
 
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {

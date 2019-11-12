@@ -1689,7 +1689,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     } else if (element is Member) {
       _sink.writeln(_nameOfMemberClass(element));
       _withIndent(() {
-        _writeElement('base', element.baseElement);
+        _writeElement('base', element.declaration);
         _writelnWithIndent('substitution: ${element.substitution.map}');
       });
     } else {

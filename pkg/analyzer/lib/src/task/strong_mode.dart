@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
@@ -472,9 +471,7 @@ class InstanceMemberInferrer {
     }
 
     for (MethodElement overridden in overriddenElements) {
-      if (overridden is MethodMember) {
-        overridden = (overridden as MethodMember).baseElement;
-      }
+      overridden = overridden.declaration;
 
       // Skip Object itself.
       var enclosingElement = overridden.enclosingElement;
