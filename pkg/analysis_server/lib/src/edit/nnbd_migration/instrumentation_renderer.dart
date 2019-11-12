@@ -265,34 +265,42 @@ class InstrumentationRenderer {
     // Compute insertions for navigation targets.
     //
     for (NavigationTarget region in unitInfo.targets) {
-      int openOffset = mapper.map(region.offset);
-      String openInsertion = openInsertions[openOffset] ?? '';
-      openInsertion = '<a id="o${region.offset}">$openInsertion';
-      openInsertions[openOffset] = openInsertion;
+      int regionLength = region.length;
+      if (regionLength > 0) {
+        int openOffset = mapper.map(region.offset);
+        String openInsertion = openInsertions[openOffset] ?? '';
+        openInsertion = '<a id="o${region.offset}">$openInsertion';
+        openInsertions[openOffset] = openInsertion;
 
-      int closeOffset = openOffset + region.length;
-      String closeInsertion = closeInsertions[closeOffset] ?? '';
-      closeInsertion = '$closeInsertion</a>';
-      closeInsertions[closeOffset] = closeInsertion;
+        int closeOffset = openOffset + regionLength;
+        String closeInsertion = closeInsertions[closeOffset] ?? '';
+        closeInsertion = '$closeInsertion</a>';
+        closeInsertions[closeOffset] = closeInsertion;
+      }
     }
     //
     // Compute insertions for navigation sources, but skip the sources that
     // point at themselves.
     //
     for (NavigationSource region in unitInfo.sources ?? <NavigationSource>[]) {
-      int openOffset = mapper.map(region.offset);
-      NavigationTarget target = region.target;
-      if (target.filePath != unitInfo.path || region.offset != target.offset) {
-        String openInsertion = openInsertions[openOffset] ?? '';
-        String htmlPath = pathContext.relative(pathMapper.map(target.filePath),
-            from: unitDir);
-        openInsertion = '<a href="$htmlPath#o${target.offset}">$openInsertion';
-        openInsertions[openOffset] = openInsertion;
+      int regionLength = region.length;
+      if (regionLength > 0) {
+        int openOffset = mapper.map(region.offset);
+        NavigationTarget target = region.target;
+        if (target.filePath != unitInfo.path ||
+            region.offset != target.offset) {
+          String openInsertion = openInsertions[openOffset] ?? '';
+          String htmlPath = pathContext
+              .relative(pathMapper.map(target.filePath), from: unitDir);
+          openInsertion =
+              '<a href="$htmlPath#o${target.offset}">$openInsertion';
+          openInsertions[openOffset] = openInsertion;
 
-        int closeOffset = openOffset + region.length;
-        String closeInsertion = closeInsertions[closeOffset] ?? '';
-        closeInsertion = '$closeInsertion</a>';
-        closeInsertions[closeOffset] = closeInsertion;
+          int closeOffset = openOffset + regionLength;
+          String closeInsertion = closeInsertions[closeOffset] ?? '';
+          closeInsertion = '$closeInsertion</a>';
+          closeInsertions[closeOffset] = closeInsertion;
+        }
       }
     }
     //
