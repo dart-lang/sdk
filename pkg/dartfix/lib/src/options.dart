@@ -18,6 +18,7 @@ const pedanticOption = 'pedantic';
 const previewDirOption = 'preview-dir';
 const previewPortOption = 'preview-port';
 const requiredOption = 'required';
+const sdkOption = 'sdk';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
@@ -58,7 +59,7 @@ class Options {
         previewDir = results[previewDirOption] as String,
         previewPort = results[previewPortOption] as String,
         requiredFixes = results[requiredOption] as bool,
-        sdkPath = _getSdkPath(),
+        sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
@@ -102,6 +103,10 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
+      ..addOption(sdkOption,
+          help: 'Path to the SDK to analyze against.',
+          valueHelp: 'path',
+          hide: true)
       ..addOption(_serverSnapshot,
           help: 'Path to the analysis server snapshot file.',
           valueHelp: 'path',
