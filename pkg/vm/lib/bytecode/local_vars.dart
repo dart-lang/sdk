@@ -638,6 +638,14 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _useVariable(_currentFrame.factoryTypeArgsVar);
       }
     }
+
+    // Erase promoted bound in type parameter types as it makes no
+    // difference at run time, but types which are different only in
+    // promoted bounds are not equal when compared using DartType.operator==,
+    // which prevents reusing of type arguments.
+    // See dartbug.com/39240 for context.
+    node.promotedBound = null;
+
     node.visitChildren(this);
   }
 
