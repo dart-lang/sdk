@@ -182,18 +182,6 @@ class InfoBuilder {
     return capitalize("$nullableValue is assigned");
   }
 
-  /// Return detail text for a fix built from an edge with [node] as a
-  /// destination.
-  String _buildDescriptionForDestination(AstNode node) {
-    // Other found types:
-    // - ConstructorDeclaration
-    if (node.parent is FormalParameterList) {
-      return "A nullable value can't be passed as an argument";
-    } else {
-      return "A nullable value can't be used here";
-    }
-  }
-
   /// Return a description of the given [origin].
   String _buildDescriptionForOrigin(EdgeOriginInfo origin) {
     String description = _baseDescriptionForOrigin(origin);
@@ -257,8 +245,7 @@ class InfoBuilder {
         NullabilityNodeInfo destination = reason.destinationNode;
         var nodeInfo = info.nodeInfoFor(destination);
         if (nodeInfo != null) {
-          details.add(RegionDetail(
-              _buildDescriptionForDestination(nodeInfo.astNode),
+          details.add(RegionDetail(nodeInfo.descriptionForDestination,
               _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
         } else {
           details.add(RegionDetail('node with no info ($destination)', null));
