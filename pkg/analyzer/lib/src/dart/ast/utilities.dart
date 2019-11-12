@@ -2475,9 +2475,9 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
       buffer.write(currentNode.runtimeType);
       currentNode = currentNode.parent;
     }
+    // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        new CaughtException.withMessage(
-            buffer.toString(), exception, stackTrace));
+        new SilentException(buffer.toString(), exception, stackTrace));
   }
 }
 
@@ -2531,8 +2531,9 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     try {
       node.accept(this);
     } catch (exception, stackTrace) {
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          new SilentException(
               "Unable to locate element at offset ($_startOffset - $_endOffset)",
               exception,
               stackTrace));
@@ -2571,8 +2572,9 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          new SilentException(
               "Exception caught while traversing an AST structure.",
               exception,
               stackTrace));
@@ -2631,8 +2633,9 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     try {
       node.accept(this);
     } catch (exception, stackTrace) {
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          new SilentException(
               "Unable to locate element at offset ($_startOffset - $_endOffset)",
               exception,
               stackTrace));
@@ -2671,8 +2674,9 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          new SilentException(
               "Exception caught while traversing an AST structure.",
               exception,
               stackTrace));

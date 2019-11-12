@@ -648,8 +648,9 @@ class AssignmentExpressionImpl extends ExpressionImpl
       } else {
         message = "The right-hand size is null";
       }
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException(new AnalysisException(message), null),
+          new SilentException(message, new AnalysisException(message), null),
           StackTrace.current);
     }
     _leftHandSide = _becomeParentOf(leftHandSide);

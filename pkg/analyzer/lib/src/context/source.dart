@@ -110,8 +110,9 @@ class SourceFactoryImpl implements SourceFactory {
         return _internalResolveUri(null, uri);
       }
     } catch (exception, stackTrace) {
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          new SilentException(
               "Could not resolve URI: $absoluteUri", exception, stackTrace));
     }
     return null;
@@ -123,8 +124,9 @@ class SourceFactoryImpl implements SourceFactory {
       try {
         return _internalResolveUri(null, absoluteUri);
       } on AnalysisException catch (exception, stackTrace) {
+        // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            new CaughtException.withMessage(
+            new SilentException(
                 "Could not resolve URI: $absoluteUri", exception, stackTrace));
       }
     }
@@ -144,8 +146,9 @@ class SourceFactoryImpl implements SourceFactory {
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService
-          .logException(new CaughtException.withMessage(
+          .logException(new SilentException(
               "Could not resolve URI ($containedUri) "
               "relative to source ($containingFullName)",
               exception,
