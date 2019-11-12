@@ -458,7 +458,10 @@ int x = null;
     expect(always.isNullable, true);
     var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
     var edge = edges.where((e) => e.destinationNode == xNode).single;
-    expect(edge.sourceNode, always);
+    var edgeSource = edge.sourceNode;
+    var upstreamEdge =
+        edges.where((e) => e.destinationNode == edgeSource).single;
+    expect(upstreamEdge.sourceNode, always);
   }
 
   test_immutableNode_never() async {
@@ -774,7 +777,7 @@ List<int> f() => g(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -801,7 +804,7 @@ List<int> f(C c) => c.g(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -826,7 +829,7 @@ C<int> f() => C(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -847,7 +850,7 @@ List<int> f() => [null];
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitListLiteralElementNode),
         hasLength(1));
     expect(
@@ -881,7 +884,7 @@ Map<int, String> f() => {1: null};
         hasLength(1));
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitMapLiteralValueNode),
         hasLength(1));
     expect(
@@ -901,7 +904,7 @@ Set<int> f() => {null};
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitSetLiteralElementNode),
         hasLength(1));
     expect(
@@ -934,7 +937,7 @@ int x = null;
     var step = propagationSteps.where((s) => s.node == xNode).single;
     expect(step.newState, NullabilityState.ordinaryNullable);
     expect(step.reason, StateChangeReason.downstream);
-    expect(step.edge.sourceNode, always);
+    expect(_isPointedToByAlways(step.edge.sourceNode), true);
     expect(step.edge.destinationNode, xNode);
   }
 
@@ -968,5 +971,10 @@ voig g(C<int> x, int y) {
         explicitTypeNullability[findNode.typeAnnotation('int>')]);
     expect(sNode.outerNode,
         explicitTypeNullability[findNode.typeAnnotation('T t')]);
+  }
+
+  bool _isPointedToByAlways(NullabilityNodeInfo node) {
+    return edges
+        .any((e) => e.sourceNode == always && e.destinationNode == node);
   }
 }

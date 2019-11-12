@@ -128,9 +128,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// For convenience, a [DecoratedType] representing non-nullable `Type`.
   final DecoratedType _nonNullableTypeType;
 
-  /// For convenience, a [DecoratedType] representing `Null`.
-  final DecoratedType _nullType;
-
   /// For convenience, a [DecoratedType] representing `dynamic`.
   final DecoratedType _dynamicType;
 
@@ -203,7 +200,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
             DecoratedType(typeProvider.typeType, _graph.never),
-        _nullType = DecoratedType(typeProvider.nullType, _graph.always),
         _dynamicType = DecoratedType(typeProvider.dynamicType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
@@ -970,7 +966,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
     _flowAnalysis.nullLiteral(node);
-    return _nullType;
+    var decoratedType =
+        DecoratedType.forImplicitType(typeProvider, node.staticType, _graph);
+    _graph.makeNullable(
+        decoratedType.node, AlwaysNullableTypeOrigin(source, node));
+    return decoratedType;
   }
 
   @override
@@ -1094,8 +1094,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Expression returnValue = node.expression;
     final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
     if (returnValue == null) {
+      var implicitNullType = DecoratedType.forImplicitType(
+          typeProvider, typeProvider.nullType, _graph);
+      _graph.makeNullable(
+          implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
       _checkAssignment(null,
-          source: isAsync ? _futureOf(_nullType) : _nullType,
+          source: isAsync ? _futureOf(implicitNullType) : implicitNullType,
           destination: returnType,
           hard: false);
     } else {

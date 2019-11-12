@@ -148,6 +148,17 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
 
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
+  /// Gets the set of all nodes pointed to by always, plus always itself.
+  Set<NullabilityNode> get alwaysPlus {
+    var result = <NullabilityNode>{graph.always};
+    for (var edge in getEdges(graph.always, anyNode)) {
+      if (edge.guards.isEmpty) {
+        result.add(edge.destinationNode);
+      }
+    }
+    return result;
+  }
+
   /// Returns a [NodeMatcher] that matches any node whatsoever.
   AnyNodeMatcher get anyNode => AnyNodeMatcher();
 

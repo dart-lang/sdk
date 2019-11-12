@@ -342,11 +342,12 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     assertEdge(node, right, hard: false);
   }
 
-  void assertLUB(
-      NullabilityNode node, NullabilityNode left, NullabilityNode right) {
+  void assertLUB(NullabilityNode node, Object left, Object right) {
     var conditionalNode = node as NullabilityNodeForLUB;
-    expect(conditionalNode.left, same(left));
-    expect(conditionalNode.right, same(right));
+    var leftMatcher = NodeMatcher(left);
+    var rightMatcher = NodeMatcher(right);
+    expect(leftMatcher.matches(conditionalNode.left), true);
+    expect(rightMatcher.matches(conditionalNode.right), true);
   }
 
   /// Checks that there are no nullability nodes upstream from [node] that could
@@ -568,7 +569,8 @@ main() {
 }
 ''');
     // TODO(paulberry): edge should be hard.
-    assertEdge(always, decoratedTypeAnnotation('List').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('List').node,
+        hard: false);
   }
 
   test_assign_type_parameter_to_bound() async {
@@ -1566,7 +1568,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertLUB(nullable_conditional, always, nullable_i);
+    assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -1593,7 +1595,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertLUB(nullable_conditional, nullable_i, always);
+    assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
 
   test_constructor_default_parameter_value_bool() async {
@@ -2063,7 +2065,8 @@ void f({int i = 1}) {}
 void f({int i = null}) {}
 ''');
 
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_functionDeclaration_parameter_named_no_default() async {
@@ -2097,7 +2100,8 @@ void f([int i = 1]) {}
 void f([int i = null]) {}
 ''');
 
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -2198,8 +2202,10 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'),
-        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
+    assertNullCheck(
+        checkExpression('null'),
+        assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+            hard: false));
   }
 
   test_functionInvocation_return() async {
@@ -2932,7 +2938,7 @@ List<String> f() {
     final returnTypeEdge = returnTypeEdges.single;
 
     final listArgType = returnTypeEdge.sourceNode;
-    assertEdge(always, listArgType, hard: false);
+    assertEdge(inSet(alwaysPlus), listArgType, hard: false);
   }
 
   test_listLiteral_typeArgument_noNullableElements() async {
@@ -2955,7 +2961,8 @@ List<String> f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
-    assertEdge(always, decoratedTypeAnnotation('String>[').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('String>[').node,
+        hard: false);
   }
 
   test_localVariable_type_inferred() async {
@@ -3615,8 +3622,10 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('(null)'),
-        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
+    assertNullCheck(
+        checkExpression('(null)'),
+        assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+            hard: false));
   }
 
   test_part_metadata() async {
@@ -4065,7 +4074,8 @@ void test() {
     // i1.toDouble() cannot be a hard edge or i2 will fail assignment
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: false);
     // i2 gets a soft edge to always due to null assignment
-    assertEdge(always, decoratedTypeAnnotation('int i').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int i').node,
+        hard: false);
   }
 
   test_postDominators_questionQuestionOperator() async {
@@ -4769,7 +4779,8 @@ int f() {
 }
 ''');
 
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_return_null() async {
@@ -4779,8 +4790,10 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'),
-        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
+    assertNullCheck(
+        checkExpression('null'),
+        assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+            hard: false));
   }
 
   test_return_null_generic() async {
@@ -4792,9 +4805,9 @@ class C<T> {
 }
 ''');
     var tNode = decoratedTypeAnnotation('T f').node;
-    assertEdge(always, tNode, hard: false);
-    assertNullCheck(
-        checkExpression('null'), assertEdge(always, tNode, hard: false));
+    assertEdge(inSet(alwaysPlus), tNode, hard: false);
+    assertNullCheck(checkExpression('null'),
+        assertEdge(inSet(alwaysPlus), tNode, hard: false));
   }
 
   test_setOrMapLiteral_map_noTypeArgument_noNullableKeysAndValues() async {
@@ -4825,7 +4838,8 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).sourceNode,
+    assertEdge(
+        inSet(alwaysPlus), assertEdge(anyNode, keyNode, hard: false).sourceNode,
         hard: false);
     assertNoUpstreamNullability(
         assertEdge(anyNode, valueNode, hard: false).sourceNode);
@@ -4842,9 +4856,11 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).sourceNode,
+    assertEdge(
+        inSet(alwaysPlus), assertEdge(anyNode, keyNode, hard: false).sourceNode,
         hard: false);
-    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
+    assertEdge(inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 
@@ -4861,7 +4877,8 @@ Map<String, int> f() {
     assertNoUpstreamNullability(mapNode);
     assertNoUpstreamNullability(
         assertEdge(anyNode, keyNode, hard: false).sourceNode);
-    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
+    assertEdge(inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 
@@ -4891,7 +4908,7 @@ Map<String, int> f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
-    assertEdge(always, decoratedTypeAnnotation('String, int>{').node,
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('String, int>{').node,
         hard: false);
     assertNoUpstreamNullability(decoratedTypeAnnotation('int>{').node);
   }
@@ -4903,9 +4920,10 @@ Map<String, int> f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
-    assertEdge(always, decoratedTypeAnnotation('String, int>{').node,
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('String, int>{').node,
         hard: false);
-    assertEdge(always, decoratedTypeAnnotation('int>{').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int>{').node,
+        hard: false);
   }
 
   test_setOrMapLiteral_map_typeArguments_nullableValue() async {
@@ -4916,7 +4934,8 @@ Map<String, int> f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
     assertNoUpstreamNullability(decoratedTypeAnnotation('String, int>{').node);
-    assertEdge(always, decoratedTypeAnnotation('int>{').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int>{').node,
+        hard: false);
   }
 
   test_setOrMapLiteral_set_noTypeArgument_noNullableElements() async {
@@ -4943,7 +4962,8 @@ Set<String> f() {
     var setNode = decoratedTypeAnnotation('Set').node;
 
     assertNoUpstreamNullability(setNode);
-    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
+    assertEdge(inSet(alwaysPlus),
+        assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 
@@ -4967,7 +4987,8 @@ Set<String> f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
-    assertEdge(always, decoratedTypeAnnotation('String>{').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('String>{').node,
+        hard: false);
   }
 
   test_simpleIdentifier_function() async {
@@ -5041,7 +5062,8 @@ main() {}
     await analyze('''
 int f() => null;
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_spread_element_list() async {
@@ -5237,7 +5259,7 @@ void set x(int value) {}
 main() { x = null; }
 ''');
     var setXType = decoratedTypeAnnotation('int value');
-    assertEdge(always, setXType.node, hard: false);
+    assertEdge(inSet(alwaysPlus), setXType.node, hard: false);
   }
 
   test_topLevelVar_metadata() async {
