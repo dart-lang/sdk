@@ -296,7 +296,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expectedSubstitution,
   ) {
     Member actual = getNodeElement(node);
+    assertMember2(actual, expectedBase, expectedSubstitution);
+  }
 
+  void assertMember2(
+    Element actualElement,
+    Element expectedBase,
+    Map<String, String> expectedSubstitution,
+  ) {
+    var actual = actualElement as Member;
     expect(actual.baseElement, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(

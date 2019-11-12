@@ -56,8 +56,28 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   ConstructorElement get redirectedConstructor {
-    var definingType = _substitution.substituteType(enclosingElement.thisType);
-    return from(baseElement.redirectedConstructor, definingType);
+    var element = baseElement.redirectedConstructor;
+    if (element == null) {
+      return null;
+    }
+
+    ConstructorElement declaration;
+    MapSubstitution substitution;
+    if (element is ConstructorMember) {
+      declaration = element._baseElement;
+      var map = <TypeParameterElement, DartType>{};
+      var elementMap = element._substitution.map;
+      for (var typeParameter in elementMap.keys) {
+        var type = elementMap[typeParameter];
+        map[typeParameter] = _substitution.substituteType(type);
+      }
+      substitution = Substitution.fromMap(map);
+    } else {
+      declaration = element;
+      substitution = _substitution;
+    }
+
+    return ConstructorMember(declaration, substitution);
   }
 
   @override
@@ -360,7 +380,11 @@ abstract class Member implements Element {
    * Initialize a newly created element to represent a member, based on the
    * [baseElement], and applied [_substitution].
    */
-  Member(this._baseElement, this._substitution);
+  Member(this._baseElement, this._substitution) {
+    if (_baseElement is Member) {
+      throw StateError('Members must be created from a declarations.');
+    }
+  }
 
   /**
    * Return the element on which the parameterized element was created.
