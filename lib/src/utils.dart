@@ -4,8 +4,6 @@
 
 import 'ast.dart';
 
-const _dot = '\.';
-
 final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
 final _lowerCamelCase = RegExp(
@@ -13,8 +11,9 @@ final _lowerCamelCase = RegExp(
 
 final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 
+@Deprecated('Prefer: ascii_utils.isValidFileName')
 final _lowerCaseUnderScoreWithDots =
-    RegExp(r'^[a-z][_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
+    RegExp(r'^(_)?[_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
 
 final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
 
@@ -45,16 +44,11 @@ bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
 
 /// Returns `true` if this [id] is `lower_camel_case_with_underscores_or.dots`.
 bool isLowerCaseUnderScoreWithDots(String id) =>
+    // ignore: deprecated_member_use_from_same_package
     _lowerCaseUnderScoreWithDots.hasMatch(id);
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
-
-/// Returns true if this is a non-prefixed `.dart extension file.
-/// * `foo.dart` => true
-/// * `foo.css.dart => false
-bool isStrictDartFileName(String fileName) =>
-    isDartFileName(fileName) && _dot.allMatches(fileName).length == 1;
 
 /// Returns `true` if the given code unit [c] is upper case.
 bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;

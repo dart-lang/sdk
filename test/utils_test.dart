@@ -17,14 +17,6 @@ main() {
     ], isDartFileName, isFalse);
   });
 
-  group('isStrictDartFileName', () {
-    testEach(['foo.dart', 'a-b.dart'], isStrictDartFileName, isTrue);
-    testEach([
-      'a-b.css.dart',
-      'foo',
-    ], isStrictDartFileName, isFalse);
-  });
-
   group('pubspec', () {
     testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
     testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);
@@ -126,7 +118,7 @@ main() {
     testEach(bad, isLowerCaseUnderScore, isFalse);
   });
 
-  group('qualified lower_case_underscores', () {
+  group('isLowerCaseUnderScoreWithDots', () {
     var good = [
       'bwu_server.shared.datastore.some_file',
       'foo_bar.baz',
@@ -140,11 +132,27 @@ main() {
       'pointycastle.impl.ec_domain_parameters.gostr3410_2001_cryptopro_a',
       'a.b',
       'a.b.c',
-      'p2.src.acme'
+      'p2.src.acme',
+      //https://github.com/dart-lang/linter/issues/1803
+      '_',
+      '_f',
+      '__f',
+      '___f',
+      '_file.dart',
     ];
     testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
 
-    var bad = ['Foo', 'fooBar.', '.foo_Bar', '_f', 'F_B', 'JS', 'JSON'];
+    var bad = [
+      'Foo',
+      'fooBar.',
+      '.foo_Bar',
+      '_.',
+      '.',
+      'F_B',
+      'JS',
+      'JSON',
+    ];
+
     testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
   });
 

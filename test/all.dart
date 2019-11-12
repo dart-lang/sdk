@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/lint/io.dart';
 
+import 'ascii_utils_test.dart' as ascii_utils;
 import 'ast_test.dart' as ast_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
@@ -19,6 +20,7 @@ main() {
   // Redirect output.
   outSink = MockIOSink();
 
+  ascii_utils.main();
   ast_test.main();
   engine_test.main();
   formatter_test.main();
