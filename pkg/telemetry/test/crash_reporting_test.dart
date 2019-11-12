@@ -38,6 +38,6 @@ void main() {
       String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String')); // error.runtimeType
       expect(body, contains('test-error'));
-    }, skip: CRASH_REPORTING_DISABLED);
+    });
   });
 }

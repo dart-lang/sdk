@@ -8,8 +8,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:stack_trace/stack_trace.dart';
 
-// Reporting disabled until we're set up on the backend.
-const bool CRASH_REPORTING_DISABLED = true;
+import 'src/utils.dart';
 
 /// Tells crash backend that this is a Dart error (as opposed to, say, Java).
 const String _dartTypeId = 'DartError';
@@ -37,21 +36,37 @@ class CrashReportSender {
   static final Uri _baseUri = new Uri(
       scheme: 'https', host: _crashServerHost, path: _crashEndpointPath);
 
+  static const int _maxReportsToSend = 1000;
+
   final String crashProductId;
   final EnablementCallback shouldSend;
   final http.Client _httpClient;
 
-  /// Create a new [CrashReportSender], using the data from the given
-  /// [Analytics] instance.
-  CrashReportSender(this.crashProductId, this.shouldSend,
-      {http.Client httpClient})
-      : _httpClient = httpClient ?? new http.Client();
+  final ThrottlingBucket _throttle = ThrottlingBucket(10, Duration(minutes: 1));
+  int _reportsSend = 0;
+
+  /// Create a new [CrashReportSender].
+  CrashReportSender(
+    this.crashProductId,
+    this.shouldSend, {
+    http.Client httpClient,
+  }) : _httpClient = httpClient ?? new http.Client();
 
   /// Sends one crash report.
   ///
   /// The report is populated from data in [error] and [stackTrace].
   Future sendReport(dynamic error, {StackTrace stackTrace}) async {
-    if (!shouldSend() || CRASH_REPORTING_DISABLED) {
+    if (!shouldSend()) {
+      return;
+    }
+
+    // Check if we've sent too many reports recently.
+    if (!_throttle.removeDrop()) {
+      return;
+    }
+
+    // Don't send too many total reports to crash reporting.
+    if (_reportsSend >= _maxReportsToSend) {
       return;
     }
 

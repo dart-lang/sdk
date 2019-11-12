@@ -13,14 +13,19 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
 
   @override
   void logException(dynamic exception, [StackTrace stackTrace]) {
-    reporter.sendReport(exception,
-        stackTrace: stackTrace ?? StackTrace.current);
+    reporter
+        .sendReport(exception, stackTrace: stackTrace ?? StackTrace.current)
+        .catchError((error) {
+      // We silently ignore errors sending crash reports (network issues, ...).
+    });
   }
 
   @override
   void logPluginException(
       PluginData plugin, dynamic exception, StackTrace stackTrace) {
     // TODO(mfairhurst): send plugin information too.
-    reporter.sendReport(exception, stackTrace: stackTrace);
+    reporter.sendReport(exception, stackTrace: stackTrace).catchError((error) {
+      // We silently ignore errors sending crash reports (network issues, ...).
+    });
   }
 }
