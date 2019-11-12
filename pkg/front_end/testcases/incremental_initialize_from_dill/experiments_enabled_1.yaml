@@ -1,0 +1,21 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with an experiment enabled (actually, two experiments
+# in this case).
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: triple-shift,non-nullable
+    sources:
+      main.dart: |
+        main() {
+          dynamic x;
+          print(x >>> 2);
+          Class? c = new Class();
+          print(c!);
+        }
+        class Class {}
+    expectedLibraryCount: 1

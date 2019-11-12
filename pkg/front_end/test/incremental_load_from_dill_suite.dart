@@ -14,7 +14,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -413,6 +414,12 @@ Future<Null> newWorldTest(
       options.sdkRoot = null;
       options.sdkSummary = sdkSummary;
       options.omitPlatform = omitPlatform != false;
+      if (world["experiments"] != null) {
+        Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+            parseExperimentalArguments([world["experiments"]]),
+            onError: (e) => throw "Error on parsing experiments flags: $e");
+        options.experimentalFlags = experimentalFlags;
+      }
     }
     if (packagesUri != null) {
       options.packagesFileUri = packagesUri;
