@@ -2250,6 +2250,9 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
   bool visitTypedefType(TypedefType node) {
     return node.unalias.accept(this);
   }
+
+  @override
+  bool visitNeverType(NeverType node) => true;
 }
 
 bool _isFormalParameter(VariableDeclaration variable) {
