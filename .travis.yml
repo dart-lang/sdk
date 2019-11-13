@@ -9,11 +9,6 @@ env:
   - LINTER_BOT=pana_baseline
   - LINTER_BOT=release
 
-os:
-  - linux
-  - osx
-  - windows  
-
 # Only building master means that we don't run two builds for each pull request.
 branches:
   only: [master]
