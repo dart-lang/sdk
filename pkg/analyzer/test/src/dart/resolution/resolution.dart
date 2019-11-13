@@ -154,9 +154,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementTypeString(DartType type, String expected) {
-    TypeImpl typeImpl = type;
-    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
-        expected);
+    expect(typeString(type), expected);
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {

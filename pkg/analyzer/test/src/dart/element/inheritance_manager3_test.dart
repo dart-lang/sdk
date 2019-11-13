@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -15,21 +17,12 @@ import '../resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritanceManager3Test);
+    defineReflectiveTests(InheritanceManager3WithNnbdTest);
   });
 }
 
 @reflectiveTest
-class InheritanceManager3Test extends DriverResolutionTest {
-  InheritanceManager3 manager;
-
-  @override
-  Future<void> resolveTestFile() async {
-    await super.resolveTestFile();
-    manager = new InheritanceManager3(
-      result.unit.declaredElement.context.typeSystem,
-    );
-  }
-
+class InheritanceManager3Test extends _InheritanceManager3Base {
   test_getInherited_closestSuper() async {
     await resolveTestCode('''
 class A {
@@ -1048,12 +1041,92 @@ class B extends A {
       expected: 'A.foo: void Function()',
     );
   }
+}
+
+@reflectiveTest
+class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_getMember_optOut_inheritsOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+// @dart = 2.6
+import 'a.dart';
+class B extends A {
+  int bar(int a) => 0;
+}
+''');
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int Function(int, int?)',
+    );
+    _assertGetMember(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+
+  test_getMember_optOut_passOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.6
+import 'a.dart';
+class B extends A {
+  int bar(int a) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'b.dart';
+class C extends B {}
+''');
+    _assertGetMember(
+      className: 'C',
+      name: 'foo',
+      expected: 'A.foo: int Function(int, int?)',
+    );
+    _assertGetMember(
+      className: 'C',
+      name: 'bar',
+      expected: 'B.bar: int* Function(int*)*',
+    );
+  }
+}
+
+class _InheritanceManager3Base extends DriverResolutionTest {
+  InheritanceManager3 manager;
+
+  @override
+  Future<void> resolveTestFile() async {
+    await super.resolveTestFile();
+    manager = new InheritanceManager3(
+      result.unit.declaredElement.context.typeSystem,
+    );
+  }
 
   void _assertExecutable(ExecutableElement element, String expected) {
     if (expected != null) {
-      var type = element.type;
       var enclosingElement = element.enclosingElement;
-      var actual = '${enclosingElement.name}.${element.name}: $type';
+
+      var type = element.type;
+      var typeStr = typeString(type);
+
+      var actual = '${enclosingElement.name}.${element.name}: $typeStr';
       expect(actual, expected);
     } else {
       expect(element, isNull);
