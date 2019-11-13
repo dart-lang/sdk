@@ -1,3 +1,9 @@
+# 0.1.104
+
+* updated `unnecessary_overrides` to allow overrides when annotations (besides `@override` are specified)
+* updated `file_names` to allow names w/ leading `_`'s (and improved performance)
+* new lint: `unnecessary_final`
+
 # 0.1.103
 
 * updated `prefer_relative_imports` to use a faster and more robust way to check for self-package references
