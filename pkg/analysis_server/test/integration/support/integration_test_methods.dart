@@ -2674,6 +2674,9 @@ abstract class IntegrationTestMixin {
    *   argument is removed. If the property isRequired is true,
    *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
    *
+   *   If the expression is not a syntactically valid Dart code, then
+   *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+   *
    * Returns
    *
    * change: SourceChange

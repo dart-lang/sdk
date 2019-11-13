@@ -3245,6 +3245,11 @@
           true, <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</tt> error
           is generated.
         </p>
+        <p>
+          If the <tt>expression</tt> is not a syntactically valid Dart code,
+          then <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</tt>
+          is reported.
+        </p>
       </field>
     </params>
     <result>
@@ -4898,6 +4903,12 @@
         <code>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</code>
         <p>
           The given location does not have a supported widget.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</code>
+        <p>
+          The given property expression is invalid, e.g. has a syntax error.
         </p>
       </value>
       <value>

@@ -842,7 +842,9 @@ public interface AnalysisServer {
    * @param value The new value to set for the property. If absent, indicates that the property
    *         should be removed. If the property corresponds to an optional parameter, the
    *         corresponding named argument is removed. If the property isRequired is true,
-   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated. If the expression is
+   *         not a syntactically valid Dart code, then
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   public void flutter_setWidgetPropertyValue(int id, FlutterWidgetPropertyValue value, SetWidgetPropertyValueConsumer consumer);
 
