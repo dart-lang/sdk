@@ -92,8 +92,8 @@ class NonNullableFix extends FixCodeTask {
     }
     if (port != null) {
       OverlayResourceProvider provider = listener.server.resourceProvider;
-      InfoBuilder infoBuilder =
-          InfoBuilder(instrumentationListener.data, listener);
+      InfoBuilder infoBuilder = InfoBuilder(
+          provider, includedRoot, instrumentationListener.data, listener);
       Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
       var pathContext = provider.pathContext;
       MigrationInfo migrationInfo = MigrationInfo(
@@ -250,8 +250,8 @@ analyzer:
     // Remove any previously generated output.
     folder.getChildren().forEach((resource) => resource.delete());
     // Gather the data needed in order to produce the output.
-    InfoBuilder infoBuilder =
-        InfoBuilder(instrumentationListener.data, listener);
+    InfoBuilder infoBuilder = InfoBuilder(
+        provider, includedRoot, instrumentationListener.data, listener);
     Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo = MigrationInfo(

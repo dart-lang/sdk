@@ -73,8 +73,8 @@ class InfoBuilderTest extends AbstractAnalysisTest {
   /// in [infos].
   Future<void> buildInfo() async {
     // Compute the analysis results.
-    server.setAnalysisRoots(
-        '0', [resourceProvider.pathContext.dirname(testFile)], [], {});
+    String includedRoot = resourceProvider.pathContext.dirname(testFile);
+    server.setAnalysisRoots('0', [includedRoot], [], {});
     ResolvedUnitResult result = await server
         .getAnalysisDriver(testFile)
         .currentSession
@@ -91,8 +91,9 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
-    InfoBuilder builder =
-        InfoBuilder(info, listener, explainNonNullableTypes: true);
+    InfoBuilder builder = InfoBuilder(
+        resourceProvider, includedRoot, info, listener,
+        explainNonNullableTypes: true);
     infos = (await builder.explainMigration()).toList();
   }
 
