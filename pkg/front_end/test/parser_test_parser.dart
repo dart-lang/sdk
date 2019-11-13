@@ -32,7 +32,7 @@ class TestParser extends Parser {
       // Find first one that's not any of the blacklisted ones.
       String line = traceLines[i];
       if (line.contains("parser_test_listener.dart:") ||
-          line.contains("parser_test.dart:") ||
+          line.contains("parser_suite.dart:") ||
           line.contains("parser_test_parser.dart:") ||
           line == "<asynchronous suspension>") continue;
       return line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
