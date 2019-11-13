@@ -2742,6 +2742,7 @@ class PropertyGet extends Expression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
   }
 
@@ -2790,6 +2791,7 @@ class PropertySet extends Expression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     value?.accept(v);
   }
@@ -2989,6 +2991,7 @@ class SuperPropertyGet extends Expression {
       v.visitSuperPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
   }
 
@@ -3027,6 +3030,7 @@ class SuperPropertySet extends Expression {
       v.visitSuperPropertySet(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     value?.accept(v);
   }
@@ -3258,6 +3262,7 @@ class MethodInvocation extends InvocationExpression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     arguments?.accept(v);
   }
@@ -3314,6 +3319,7 @@ class SuperMethodInvocation extends InvocationExpression {
       v.visitSuperMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     arguments?.accept(v);
   }

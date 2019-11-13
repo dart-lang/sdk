@@ -220,6 +220,9 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow
 [ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]
 front_end/test/whole_program_test: SkipByDesign
 
+[ $mode == debug || $runtime != vm || $system == android ]
+vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir
+
 [ $mode != release || $runtime != vm ]
 front_end/test/fasta/*: Skip
 front_end/tool/_fasta/*: Skip

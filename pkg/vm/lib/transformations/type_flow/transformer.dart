@@ -653,7 +653,7 @@ class _TreeShakerPass1 extends Transformer {
         if (shaker.isFieldInitializerReachable(node)) {
           node.transformChildren(this);
         } else {
-          node.initializer = _makeUnreachableCall([]);
+          node.initializer = _makeUnreachableCall([])..parent = node;
         }
       }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {
