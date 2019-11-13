@@ -37,12 +37,13 @@ class A extends B {
 }
 ```
 
-It's valid to override method for the following cases:
+It's valid to override a member in the following cases:
 
 * if a type (return type or a parameter type) is not the exactly the same as the
 super method,
-* if `covariant` keyword is added to one of the parameter,
-* if documentation comments are present on the method.
+* if the `covariant` keyword is added to one of the parameters,
+* if documentation comments are present on the member,
+* if the member has annotations other than `@override`.
 
 `noSuchMethod` is a special method and is not checked by this rule.
 
@@ -106,7 +107,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
     inheritedMethod = getInheritedElement(node);
     declaration = node;
-    if (inheritedMethod != null && _haveSameDeclaration()) {
+    if (inheritedMethod != null && !_addsMetadata() && _haveSameDeclaration()) {
       node.body.accept(this);
     }
   }
@@ -124,6 +125,15 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   @override
   visitSuperExpression(SuperExpression node) {
     rule.reportLint(declaration.name);
+  }
+
+  bool _addsMetadata() {
+    for (var annotation in declaration.declaredElement.metadata) {
+      if (!annotation.isOverride) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _haveSameDeclaration() {

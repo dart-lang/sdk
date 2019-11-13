@@ -4,6 +4,12 @@
 
 // test w/ `pub run test -N unnecessary_overrides`
 
+class _MyAnnotation {
+  const _MyAnnotation();
+}
+
+const _MyAnnotation myAnnotation = _MyAnnotation();
+
 class Base {
   int get x => 0;
   set x(other) {}
@@ -15,6 +21,8 @@ class Base {
   int m3({int a, int b}) => 0;
   int operator +(other) => 0;
   Base operator ~()=> null;
+  @override
+  int get hashCode => 13;
 }
 
 class Parent extends Base {
@@ -46,6 +54,10 @@ class Parent extends Base {
 
   @override
   Base operator ~()=> ~super; // LINT
+
+  @override
+  @myAnnotation
+  int get hashCode => super.hashCode; // OK
 }
 
 class Okay extends Parent {
