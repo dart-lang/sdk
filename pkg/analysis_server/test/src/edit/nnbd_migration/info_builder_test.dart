@@ -158,6 +158,34 @@ int? f([num? a]) {
         details: ["The value of the expression is nullable"]);
   }
 
+  test_dynamicValueIsUsed() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+bool f(int i) {
+  if (i == null) return true;
+  else return false;
+}
+void g() {
+  dynamic i;
+  f(i);
+}
+''', migratedContent: '''
+bool f(int? i) {
+  if (i == null) return true;
+  else return false;
+}
+void g() {
+  dynamic i;
+  f(i);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 10, details: [
+      "A dynamic value, which is nullable is passed as an argument"
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 97, length: 1);
+  }
+
   test_expressionFunctionReturnTarget() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() => 1 == 2 ? "Hello" : null;

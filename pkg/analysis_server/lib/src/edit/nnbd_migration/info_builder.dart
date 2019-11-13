@@ -114,8 +114,16 @@ class InfoBuilder {
     } else if (parent is AsExpression) {
       return "The value of the expression is nullable";
     }
-    String nullableValue =
-        node is NullLiteral ? "an explicit 'null'" : "a nullable value";
+
+    // Text indicating the type of nullable value found.
+    String nullableValue;
+    if (node is NullLiteral) {
+      nullableValue = "an explicit 'null'";
+    } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
+      nullableValue = "a dynamic value, which is nullable";
+    } else {
+      nullableValue = "a nullable value";
+    }
     if (parent is ArgumentList) {
       return capitalize("$nullableValue is passed as an argument");
     }
