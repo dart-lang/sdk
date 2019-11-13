@@ -562,6 +562,7 @@ int g() => 1;
         hasLength(1));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39370')
   test_implicitReturnType_functionTypeAlias() async {
     await analyze('''
 typedef F();

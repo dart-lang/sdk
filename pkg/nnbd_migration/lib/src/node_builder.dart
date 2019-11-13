@@ -63,9 +63,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final TypeProvider _typeProvider;
 
-  /// For convenience, a [DecoratedType] representing `dynamic`.
-  final DecoratedType _dynamicType;
-
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _nonNullableObjectType;
 
@@ -75,8 +72,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
       this._typeProvider,
       {this.instrumentation})
-      : _dynamicType = DecoratedType(_typeProvider.dynamicType, _graph.always),
-        _nonNullableObjectType =
+      : _nonNullableObjectType =
             DecoratedType(_typeProvider.objectType, _graph.never),
         _nonNullableStackTraceType =
             DecoratedType(_typeProvider.stackTraceType, _graph.never);
@@ -87,7 +83,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
       if (exceptionType == null) {
-        exceptionType = _dynamicType;
+        exceptionType = DecoratedType.forImplicitType(
+            _typeProvider, _typeProvider.dynamicType, _graph);
         instrumentation?.implicitType(
             source, node.exceptionParameter, exceptionType);
       }
@@ -341,8 +338,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var type = node.type;
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
-      _graph.connect(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node));
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables.recordDecoratedTypeAnnotation(
           source, node, decoratedType, null);
@@ -457,8 +452,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       decoratedBound = bound.accept(this);
     } else {
       var nullabilityNode = NullabilityNode.forInferredType();
-      _graph.union(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
     _typeFormalBounds?.add(decoratedBound);

@@ -1508,7 +1508,7 @@ void f(bool b, void Function() x, void Function() y) {
     var yType = decoratedGenericFunctionTypeAnnotation('void Function() y');
     var resultType = decoratedExpressionType('(b ?');
     assertLUB(resultType.node, xType.node, yType.node);
-    expect(resultType.returnType.node, same(always));
+    expect(resultType.returnType.node.isImmutable, false);
   }
 
   test_conditionalExpression_general() async {
