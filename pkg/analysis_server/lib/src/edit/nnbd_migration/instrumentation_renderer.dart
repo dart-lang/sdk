@@ -269,12 +269,12 @@ class InstrumentationRenderer {
       if (regionLength > 0) {
         int openOffset = mapper.map(region.offset);
         String openInsertion = openInsertions[openOffset] ?? '';
-        openInsertion = '<a id="o${region.offset}">$openInsertion';
+        openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
 
         int closeOffset = openOffset + regionLength;
         String closeInsertion = closeInsertions[closeOffset] ?? '';
-        closeInsertion = '$closeInsertion</a>';
+        closeInsertion = '$closeInsertion</span>';
         closeInsertions[closeOffset] = closeInsertion;
       }
     }
