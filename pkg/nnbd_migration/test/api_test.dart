@@ -1665,6 +1665,31 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39376')
+  test_infer_required() async {
+    var content = '''
+void _f(bool b, {int x}) {
+  if (b) {
+    print(x + 1);
+  }
+}
+main() {
+  _f(true, x: 1);
+}
+''';
+    var expected = '''
+void _f(bool b, {required int x}) {
+  if (b) {
+    print(x + 1);
+  }
+}
+main() {
+  _f(true, x: 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_inferred_method_parameter_type_non_nullable() async {
     var content = '''
 class B {
