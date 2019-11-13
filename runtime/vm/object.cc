@@ -4351,16 +4351,11 @@ RawType* Class::DeclarationType(Nullability nullability) const {
   if (!type.IsNull()) {
     return type.ToNullability(nullability, Heap::kOld);
   }
-  // TODO(regis): We should pass nullabiity to Type::New to avoid having to
-  // clone the type to the desired nullability. This however causes issues with
-  // the runtimeType intrinsic grabbing DeclarationType without checking its
-  // nullability. Indeed, when the CFE provides a non-nullable version of the
-  // type first, this non-nullable version gets cached as the declaration type.
   type = Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos(),
-                   Nullability::kLegacy);
+                   nullability);
   type ^= ClassFinalizer::FinalizeType(*this, type);
   set_declaration_type(type);
-  return type.ToNullability(nullability, Heap::kOld);
+  return type.raw();
 }
 
 void Class::set_allocation_stub(const Code& value) const {
