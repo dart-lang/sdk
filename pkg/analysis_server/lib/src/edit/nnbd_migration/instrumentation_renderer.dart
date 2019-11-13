@@ -77,6 +77,16 @@ h2 {
   font-weight: bold;
 }
 
+.content {
+  font-family: monospace;
+  /* Vertical margin around content. */
+  margin: 1em 0;
+  /* Offset the margin introduced by the absolutely positioned child div. */
+  margin-left: -0.5em;
+  position: relative;
+  white-space: pre;
+}
+
 .code {
   left: 0.5em;
   /* Increase line height to make room for borders in non-nullable type
@@ -84,14 +94,8 @@ h2 {
    */
   line-height: 1.3;
   padding-left: 60px;
-  position: absolute;
+  position: inherit;
   top: 0.5em;
-}
-
-.content {
-  font-family: monospace;
-  position: relative;
-  white-space: pre;
 }
 
 .regions {
@@ -206,6 +210,7 @@ h2 {
     '{{! the content, to provide tooltips for modified regions. }}'
     '{{{ regionContent }}}'
     '</div></div>'
+    '<div>Footer</div>'
     r'''
     {{/ units }}
     <script lang="javascript">
