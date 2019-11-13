@@ -2846,7 +2846,7 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_interfaceType_covariant_01() {
+  test_interfaceType_covariant() {
     var T = typeParameter('T', variance: Variance.covariant);
     var A = class_(name: 'A', typeParameters: [T]);
 
@@ -2861,22 +2861,11 @@ class SubtypeTest extends _SubtypingTestBase {
     );
 
     isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
     isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
-  test_interfaceType_covariant_02() {
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var A_num = A.instantiate(
-      typeArguments: [numNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-  }
-
-  test_interfaceType_contravariant_01() {
+  test_interfaceType_contravariant() {
     var T = typeParameter('T', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T]);
 
@@ -2891,19 +2880,8 @@ class SubtypeTest extends _SubtypingTestBase {
     );
 
     isSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
-    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
-  }
-
-  test_interfaceType_contravariant_02() {
-    var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var A_num = A.instantiate(
-      typeArguments: [numNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
     isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
   }
 
   test_interfaceType_invariant() {

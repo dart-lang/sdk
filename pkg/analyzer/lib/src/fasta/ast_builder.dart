@@ -2142,14 +2142,13 @@ class AstBuilder extends StackListener {
 
     // Peek to leave type parameters on top of stack.
     List<TypeParameter> typeParameters = peek();
-    TypeParameter typeParameter = typeParameters[index];
-    typeParameter
-      ..extendsKeyword = extendsOrSuper
-      ..bound = bound;
 
-    if (typeParameter is TypeParameterImpl) {
-      typeParameter.varianceKeyword = variance;
-    }
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    (typeParameters[index] as TypeParameterImpl)
+      ..extendsKeyword = extendsOrSuper
+      ..bound = bound
+      ..varianceKeyword = variance;
   }
 
   @override

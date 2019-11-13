@@ -1117,15 +1117,14 @@ class Dart2TypeSystem extends TypeSystem {
         DartType t1 = tArgs1[i];
         DartType t2 = tArgs2[i];
 
-        // TODO (kallentu) : Clean up TypeParameterElementImpl checks and
-        // casting once variance is added to the interface.
-        TypeParameterElement parameterElement = tParams[i];
-        Variance variance = Variance.covariant;
-        if (parameterElement is TypeParameterElementImpl) {
-          variance = parameterElement.variance;
-        }
-
-        if (variance.isContravariant) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        Variance variance = (tParams[i] as TypeParameterElementImpl).variance;
+        if (variance.isCovariant) {
+          if (!isSubtypeOf(t1, t2)) {
+            return false;
+          }
+        } else if (variance.isContravariant) {
           if (!isSubtypeOf(t2, t1)) {
             return false;
           }
@@ -1134,9 +1133,8 @@ class Dart2TypeSystem extends TypeSystem {
             return false;
           }
         } else {
-          if (!isSubtypeOf(t1, t2)) {
-            return false;
-          }
+          throw new StateError('Type parameter ${tParams[i]} has unknown '
+              'variance $variance for subtype checking.');
         }
       }
       return true;
@@ -2173,15 +2171,13 @@ class InterfaceLeastUpperBoundHelper {
 
       var args = List<DartType>(args1.length);
       for (int i = 0; i < args1.length; i++) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl checks and
-        // casting once variance is added to the interface.
-        TypeParameterElement parameter = params[i];
-        Variance parameterVariance = Variance.covariant;
-        if (parameter is TypeParameterElementImpl) {
-          parameterVariance = parameter.variance;
-        }
-
-        if (parameterVariance.isContravariant) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        Variance parameterVariance =
+            (params[i] as TypeParameterElementImpl).variance;
+        if (parameterVariance.isCovariant) {
+          args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+        } else if (parameterVariance.isContravariant) {
           if (typeSystem is Dart2TypeSystem) {
             args[i] = (typeSystem as Dart2TypeSystem)
                 .getGreatestLowerBound(args1[i], args2[i]);
@@ -2201,7 +2197,8 @@ class InterfaceLeastUpperBoundHelper {
           //  parameters.
           args[i] = args1[i];
         } else {
-          args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+          throw new StateError('Type parameter ${params[i]} has unknown '
+              'variance $parameterVariance for bounds calculation.');
         }
       }
 
