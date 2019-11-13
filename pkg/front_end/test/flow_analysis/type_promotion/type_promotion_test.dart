@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
@@ -23,10 +20,8 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const TypePromotionDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true})
-      ]),
+      runTest: runTestFor(
+          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
         // TODO(johnniwinther): Run all type promotion tests.
         'assignment_promoted.dart',
@@ -79,7 +74,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData) =>
-      typeToText(actualData, isNonNullableByDefault: true);
+      typeToText(actualData, TypeRepresentation.nonNullableByDefault);
 
   @override
   String isAsExpected(DartType actualData, String expectedData) {

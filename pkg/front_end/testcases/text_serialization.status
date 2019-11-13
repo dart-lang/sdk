@@ -891,6 +891,7 @@ instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
+nnbd/inheritance_from_opt_out: TypeCheckError
 nnbd/intersection_types: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
@@ -901,6 +902,7 @@ nnbd/null_shorting_explicit_extension: TextSerializationFailure
 nnbd/null_shorting_extension: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
+nnbd/opt_out: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure

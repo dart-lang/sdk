@@ -1,0 +1,79 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/inheritance_from_opt_out.dart:13:7: Error: 'Class3b' can't implement both 'GenericInterface<T>' and 'GenericInterface<T>'
+//  - 'GenericInterface' is from 'pkg/front_end/testcases/nnbd/inheritance_from_opt_out_lib.dart'.
+// class Class3b<T> extends LegacyClass3<T> implements GenericInterface<T> {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/inheritance_from_opt_out.dart:21:7: Error: 'Class4d' can't implement both 'GenericInterface<num>' and 'GenericInterface<num>'
+//  - 'GenericInterface' is from 'pkg/front_end/testcases/nnbd/inheritance_from_opt_out_lib.dart'.
+// class Class4d extends LegacyClass4 implements GenericInterface<num> {}
+//       ^
+//
+library;
+import self as self;
+import "inheritance_from_opt_out_lib.dart" as inh;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///inheritance_from_opt_out_lib.dart";
+
+class Class1 extends inh::LegacyClass1 {
+  synthetic constructor •() → self::Class1*
+    ;
+}
+class Class2<T extends core::Object? = dynamic> extends inh::LegacyClass2<self::Class2::T%> {
+  synthetic constructor •() → self::Class2<self::Class2::T*>*
+    ;
+}
+class Class3a<T extends core::Object? = dynamic> extends inh::LegacyClass3<self::Class3a::T%> {
+  synthetic constructor •() → self::Class3a<self::Class3a::T*>*
+    ;
+}
+class Class3b<T extends core::Object? = dynamic> extends inh::LegacyClass3<self::Class3b::T%> implements inh::GenericInterface<self::Class3b::T%> {
+  synthetic constructor •() → self::Class3b<self::Class3b::T*>*
+    ;
+}
+class Class4a extends inh::LegacyClass4 {
+  synthetic constructor •() → self::Class4a*
+    ;
+}
+class Class4b extends core::Object implements inh::GenericInterface<core::num> {
+  synthetic constructor •() → self::Class4b*
+    ;
+}
+class Class4c extends core::Object implements inh::GenericInterface<core::num?> {
+  synthetic constructor •() → self::Class4c*
+    ;
+}
+class Class4d extends inh::LegacyClass4 implements inh::GenericInterface<core::num> {
+  synthetic constructor •() → self::Class4d*
+    ;
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as inh;
+import "dart:core" as core;
+
+abstract class GenericInterface<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → inh::GenericInterface<inh::GenericInterface::T*>*
+    ;
+}
+class LegacyClass1 extends core::Object {
+  synthetic constructor •() → inh::LegacyClass1*
+    ;
+}
+class LegacyClass2<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → inh::LegacyClass2<inh::LegacyClass2::T*>*
+    ;
+}
+class LegacyClass3<T extends core::Object* = dynamic> extends core::Object implements inh::GenericInterface<inh::LegacyClass3::T*> {
+  synthetic constructor •() → inh::LegacyClass3<inh::LegacyClass3::T*>*
+    ;
+}
+class LegacyClass4 extends core::Object implements inh::GenericInterface<core::num*> {
+  synthetic constructor •() → inh::LegacyClass4*
+    ;
+}

@@ -7,9 +7,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
@@ -25,10 +22,8 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const DefiniteAssignmentDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true})
-      ]),
+      runTest: runTestFor(
+          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
         // TODO(johnniwinther): Update break/continue handling to support these:
         'do.dart',

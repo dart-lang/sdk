@@ -132,6 +132,12 @@ claim
 clarification
 clashes
 class's
+class3a
+class3b
+class4a
+class4b
+class4c
+class4d
 clazz
 cls
 cn
