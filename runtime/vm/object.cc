@@ -944,13 +944,13 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
 
   cls = dynamic_class_;
-  *dynamic_type_ = Type::NewNonParameterizedType(cls, kNullable);
+  *dynamic_type_ = Type::NewNonParameterizedType(cls);
 
   cls = void_class_;
-  *void_type_ = Type::NewNonParameterizedType(cls, kNullable);
+  *void_type_ = Type::NewNonParameterizedType(cls);
 
   cls = never_class_;
-  *never_type_ = Type::NewNonParameterizedType(cls, kNonNullable);
+  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -1567,7 +1567,7 @@ RawError* Object::Init(Isolate* isolate,
     cls = object_store->array_class();  // Was allocated above.
     RegisterPrivateClass(cls, Symbols::_List(), core_lib);
     pending_classes.Add(cls);
-    // We cannot use NewNonParameterizedType(), because Array is
+    // We cannot use NewNonParameterizedType(cls), because Array is
     // parameterized.  Warning: class _List has not been patched yet. Its
     // declared number of type parameters is still 0. It will become 1 after
     // patching. The array type allocated below represents the raw type _List
@@ -1934,8 +1934,7 @@ RawError* Object::Init(Isolate* isolate,
     // name is a built-in identifier (this is wrong).  The corresponding types
     // are stored in the object store.
     cls = object_store->null_class();
-    type = Type::NewNonParameterizedType(cls, kNullable);
-    cls.set_declaration_type(type);
+    type = Type::NewNonParameterizedType(cls);
     object_store->set_null_type(type);
     ASSERT(type.IsNullable());
 
@@ -4336,23 +4335,18 @@ void Class::set_declaration_type(const Type& value) const {
   // TODO(regis): Since declaration type is used as the runtime type of
   // instances of a non-generic class, the nullability should be set to
   // kNonNullable instead of kLegacy.
-  // For now, we accept any except for Null (kNullable).
-  ASSERT(!value.IsNullType() || value.IsNullable());
+  // For now, we set the nullability to kLegacy, except for Null.
+  ASSERT(value.IsLegacy() || (value.IsNullType() && value.IsNullable()));
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
-RawType* Class::DeclarationType(Nullability nullability) const {
+RawType* Class::DeclarationType() const {
   ASSERT(is_declaration_loaded());
-  if (IsNullClass()) {
-    // Ignore requested nullability (e.g. by mirrors).
-    nullability = kNullable;
+  if (declaration_type() != Type::null()) {
+    return declaration_type();
   }
-  Type& type = Type::Handle(declaration_type());
-  if (!type.IsNull()) {
-    return type.ToNullability(nullability, Heap::kOld);
-  }
-  type = Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos(),
-                   nullability);
+  Type& type = Type::Handle(
+      Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos()));
   type ^= ClassFinalizer::FinalizeType(*this, type);
   set_declaration_type(type);
   return type.raw();
@@ -6324,8 +6318,8 @@ RawType* Function::SignatureType(Nullability nullability) const {
     const TypeArguments& signature_type_arguments =
         TypeArguments::Handle(scope_class.type_parameters());
     // Return the still unfinalized signature type.
-    type = Type::New(scope_class, signature_type_arguments, token_pos(),
-                     nullability);
+    type = Type::New(scope_class, signature_type_arguments, token_pos());
+    type.set_nullability(nullability);
     type.set_signature(*this);
     SetSignatureType(type);
   }
@@ -16662,10 +16656,7 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    // TODO(regis): The runtime type of a non-null instance should be
-    // non-nullable instead of legacy. Revisit.
-    type = Type::New(cls, type_arguments, TokenPosition::kNoSource, kLegacy,
-                     space);
+    type = Type::New(cls, type_arguments, TokenPosition::kNoSource, space);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -17649,22 +17640,20 @@ RawType* Type::DartTypeType() {
   return Isolate::Current()->object_store()->type_type();
 }
 
-RawType* Type::NewNonParameterizedType(const Class& type_class,
-                                       Nullability nullability) {
+RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
   // It is too early to use the class finalizer, as type_class may not be named
   // yet, so do not call DeclarationType().
   Type& type = Type::Handle(type_class.declaration_type());
   if (type.IsNull()) {
     type = Type::New(Class::Handle(type_class.raw()),
-                     Object::null_type_arguments(), TokenPosition::kNoSource,
-                     nullability);
+                     Object::null_type_arguments(), TokenPosition::kNoSource);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     type_class.set_declaration_type(type);
   }
   ASSERT(type.IsFinalized());
-  return type.ToNullability(nullability, Heap::kOld);
+  return type.raw();
 }
 
 void Type::SetIsFinalized() const {
@@ -17800,8 +17789,8 @@ RawAbstractType* Type::InstantiateFrom(
   }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
-  const Type& instantiated_type = Type::Handle(
-      zone, Type::New(cls, type_arguments, token_pos(), nullability(), space));
+  const Type& instantiated_type =
+      Type::Handle(zone, Type::New(cls, type_arguments, token_pos(), space));
   // For a function type, possibly instantiate and set its signature.
   if (!sig_fun.IsNull()) {
     // If we are finalizing a typedef, do not yet instantiate its signature,
@@ -18020,8 +18009,10 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));
@@ -18054,12 +18045,10 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
         }
       }
     }
-    if (nullability() == type.nullability()) {
-      ASSERT(this->Equals(type));
-      ASSERT(type.IsCanonical());
-      ASSERT(type.IsOld());
-      return type.raw();
-    }
+    ASSERT(this->Equals(type));
+    ASSERT(type.IsCanonical());
+    ASSERT(type.IsOld());
+    return type.raw();
   }
 
   AbstractType& type = Type::Handle(zone);
@@ -18147,13 +18136,12 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsNullType() || (IsLegacy() && !cls.IsGeneric() &&
+                       !cls.IsClosureClass() && !cls.IsTypedefClass())) {
     ASSERT(!IsFunctionType());
+    ASSERT(!IsNullType() || IsNullable());
     type = cls.declaration_type();
-    ASSERT(type.IsCanonical());
-    if (nullability() == type.nullability()) {
-      return (raw() == type.raw());
-    }
+    return (raw() == type.raw());
   }
 
   ObjectStore* object_store = isolate->object_store();
@@ -18246,7 +18234,6 @@ RawType* Type::New(Heap::Space space) {
 RawType* Type::New(const Class& clazz,
                    const TypeArguments& arguments,
                    TokenPosition token_pos,
-                   Nullability nullability,
                    Heap::Space space) {
   Zone* Z = Thread::Current()->zone();
   const Type& result = Type::Handle(Z, Type::New(space));
@@ -18255,7 +18242,11 @@ RawType* Type::New(const Class& clazz,
   result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
-  result.set_nullability(nullability);
+  if (clazz.id() == kNullCid) {
+    result.set_nullability(kNullable);
+  } else {
+    result.set_nullability(kLegacy);
+  }
 
   result.SetTypeTestingStub(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));

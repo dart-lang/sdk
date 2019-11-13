@@ -1848,7 +1848,7 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
   }
   // Guaranteed not to re-enter ParseType.
   if (!ParseClass(cls_sexp, &type_class_)) return false;
-  *out = Type::New(type_class_, *type_args_ptr, token_pos);
+  *out = Type::New(type_class_, *type_args_ptr, token_pos, Heap::kOld);
   auto& type = Type::Cast(*out);
   if (auto const sig_sexp = list->ExtraLookupValue("signature")) {
     auto& function = Function::Handle(zone());

@@ -1669,7 +1669,14 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       if (!cls.is_declaration_loaded()) {
         LoadReferencedClass(cls);
       }
-      return cls.DeclarationType(nullability);
+      Type& type = Type::Handle(Z, cls.DeclarationType());
+      // TODO(regis): Remove this workaround once nullability of Null provided
+      // by CFE is always kNullable.
+      if (type.IsNullType()) {
+        ASSERT(type.IsNullable());
+        return type.raw();
+      }
+      return type.ToNullability(nullability, Heap::kOld);
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());
@@ -1703,9 +1710,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       }
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
-      const Type& type =
-          Type::Handle(Z, Type::New(cls, type_arguments,
-                                    TokenPosition::kNoSource, nullability));
+      const Type& type = Type::Handle(
+          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
+      type.set_nullability(nullability);
       type.SetIsFinalized();
       return type.Canonicalize();
     }
@@ -1735,9 +1742,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       pending_recursive_types_->SetLength(id);
       pending_recursive_types_ = saved_pending_recursive_types;
 
-      Type& type =
-          Type::Handle(Z, Type::New(cls, type_arguments,
-                                    TokenPosition::kNoSource, nullability));
+      Type& type = Type::Handle(
+          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
+      type.set_nullability(nullability);
       type_ref.set_type(type);
       type.SetIsFinalized();
       if (id != 0) {

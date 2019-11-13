@@ -2767,8 +2767,9 @@ void TypeTranslator::BuildTypeInternal() {
       result_ = Object::void_type().raw();
       break;
     case kBottomType:
-      result_ = Class::Handle(Z, I->object_store()->null_class())
-                    .DeclarationType(kNullable);
+      result_ =
+          Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
+      // We set the nullability of Null to kNullable, even in legacy mode.
       ASSERT(result_.IsNullable());
       break;
     case kNeverType:
@@ -2813,13 +2814,18 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   if (simple) {
     if (finalize_ || klass.is_type_finalized()) {
       // Fast path for non-generic types: retrieve or populate the class's only
-      // canonical type (as long as only one nullability variant is used), which
-      // is its declaration type.
-      result_ = klass.DeclarationType(nullability);
+      // canonical type, which is its declaration type.
+      result_ = klass.DeclarationType();
+      // TODO(regis): Remove this workaround once nullability of Null provided
+      // by CFE is always kNullable.
+      if (!result_.IsNullType()) {
+        result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
+      }
     } else {
       // Note that the type argument vector is not yet extended.
-      result_ = Type::New(klass, Object::null_type_arguments(),
-                          klass.token_pos(), nullability);
+      result_ =
+          Type::New(klass, Object::null_type_arguments(), klass.token_pos());
+      Type::Cast(result_).set_nullability(nullability);
     }
     return;
   }
@@ -2924,7 +2930,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   finalize_ = finalize;
 
   Type& signature_type =
-      Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
+      Type::ZoneHandle(Z, signature_function.SignatureType());
+  signature_type.set_nullability(nullability);
 
   if (finalize_) {
     signature_type ^=
