@@ -188,7 +188,7 @@ h2 {
     </style>
   </head>
   <body>
-    <h1>Non-nullable fix instrumentation report</h1>
+    <h1>Non-nullable migration preview</h1>
     <p>Migrated files:</p>
     <div class="navigation">
       {{# links }}
@@ -210,7 +210,9 @@ h2 {
     '{{! the content, to provide tooltips for modified regions. }}'
     '{{{ regionContent }}}'
     '</div></div>'
-    '<div>Footer</div>'
+    '<div>'
+    '<i>Generated on {{ generationDate }}</i>'
+    '</div>'
     r'''
     {{/ units }}
     <script lang="javascript">
@@ -251,6 +253,7 @@ class InstrumentationRenderer {
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),
       'navContent': _computeNavigationContent(unitInfo),
+      'generationDate': migrationInfo.migrationDate,
     };
     mustacheContext['units'].add({
       'path': unitInfo.path,
@@ -438,7 +441,10 @@ class MigrationInfo {
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
+  final String migrationDate;
+
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
+      : migrationDate = DateTime.now().toString();
 
   /// The path to the highlight.js script, relative to [unitInfo].
   String highlightJsPath(UnitInfo unitInfo) {

@@ -51,6 +51,9 @@ class PreviewMigrationInfo implements MigrationInfo {
   String get includedRoot => wrappedInfo.includedRoot;
 
   @override
+  String get migrationDate => wrappedInfo.migrationDate;
+
+  @override
   Context get pathContext => wrappedInfo.pathContext;
 
   @override
