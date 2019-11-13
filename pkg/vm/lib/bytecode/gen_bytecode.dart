@@ -972,11 +972,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   bool _needsSetter(Field field) {
-    // Static fields never need a setter.
-    if (field.isStatic) return false;
+    // Late fields always need a setter, unless they're static and non-final.
+    if (field.isLate) {
+      if (field.isStatic && !field.isFinal) return false;
+      return true;
+    }
 
-    // Late instance fields always need a setter.
-    if (field.isLate) return true;
+    // Non-late static fields never need a setter.
+    if (field.isStatic) return false;
 
     // Otherwise, the field only needs a setter if it isn't final.
     return !field.isFinal;
@@ -3670,7 +3673,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final target = node.target;
-    if (target is Field) {
+    if (target is Field && !_needsSetter(target)) {
       if (options.emitDebuggerStops &&
           _variableSetNeedsDebugCheck(node.value)) {
         asm.emitDebugCheck();
