@@ -128,6 +128,7 @@ enum EdgeOriginKind {
   alwaysNullableType,
   compoundAssignment,
   defaultValue,
+  dynamicAssignment,
   expressionChecks,
   fieldFormalParameter,
   forEachVariable,

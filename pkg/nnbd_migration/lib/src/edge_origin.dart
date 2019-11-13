@@ -70,6 +70,15 @@ class DefaultValueOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.defaultValue;
 }
 
+/// An edge origin used for edges that originated because of an assignment
+/// involving a value with a dynamic type.
+class DynamicAssignmentOrigin extends EdgeOrigin {
+  DynamicAssignmentOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.dynamicAssignment;
+}
+
 /// Common interface for classes providing information about how an edge came
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.

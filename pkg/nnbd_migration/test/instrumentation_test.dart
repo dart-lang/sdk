@@ -407,6 +407,21 @@ int f(int x) => x;
     expect(origin.node, findNode.simple('x;'));
   }
 
+  test_graphEdge_origin_dynamic_assignment() async {
+    await analyze('''
+int f(dynamic x) => x;
+''');
+    var xNode = explicitTypeNullability[findNode.typeAnnotation('dynamic x')];
+    var returnNode = explicitTypeNullability[findNode.typeAnnotation('int f')];
+    var matchingEdges = edges
+        .where((e) => e.sourceNode == xNode && e.destinationNode == returnNode)
+        .toList();
+    var origin = edgeOrigin[matchingEdges.single];
+    expect(origin.kind, EdgeOriginKind.dynamicAssignment);
+    expect(origin.source, source);
+    expect(origin.node, findNode.simple('x;'));
+  }
+
   test_graphEdge_soft() async {
     await analyze('''
 int f(int x, bool b) {
