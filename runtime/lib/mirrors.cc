@@ -633,17 +633,16 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
     // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
     // Null type, which should remain nullable.
     if (!type.IsNullType()) {
-      const Type& legacy_type = Type::Handle(
-          Type::Cast(type).ToNullability(Nullability::kLegacy, Heap::kOld));
+      const Type& legacy_type =
+          Type::Handle(Type::Cast(type).ToNullability(kLegacy, Heap::kOld));
       return CreateClassMirror(cls, legacy_type, Bool::False(),
                                Object::null_instance());
     }
     return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
   } else if (type.IsTypeParameter()) {
     // TODO(regis): Until mirrors reflect nullability, force kLegacy.
-    const TypeParameter& legacy_type =
-        TypeParameter::Handle(TypeParameter::Cast(type).ToNullability(
-            Nullability::kLegacy, Heap::kOld));
+    const TypeParameter& legacy_type = TypeParameter::Handle(
+        TypeParameter::Cast(type).ToNullability(kLegacy, Heap::kOld));
     return CreateTypeVariableMirror(legacy_type, Object::null_instance());
   }
   UNREACHABLE();

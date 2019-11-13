@@ -838,7 +838,7 @@ typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 // Keep in sync with package:kernel/lib/ast.dart
-enum class Nullability {
+enum Nullability {
   kUndetermined = 0,
   kNullable = 1,
   kNonNullable = 2,
@@ -846,7 +846,7 @@ enum class Nullability {
 };
 
 // Nullability aware subtype checking modes.
-enum class NNBDMode {
+enum NNBDMode {
   kUnaware,
   kWeak,
   kStrong,
@@ -954,8 +954,7 @@ class Class : public Object {
   // variant may be requested. The first requested type gets cached in the class
   // and subsequent nullability variants get cached in the object store.
   // TODO(regis): Is this caching still useful or should we eliminate it?
-  RawType* DeclarationType(
-      Nullability nullability = Nullability::kLegacy) const;
+  RawType* DeclarationType(Nullability nullability = kLegacy) const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(RawClass, declaration_type_);
@@ -2190,8 +2189,7 @@ class Function : public Object {
   // function type with uninstantiated type arguments 'T' and 'R' as elements of
   // its type argument vector.
   // A function type is non-nullable by default.
-  RawType* SignatureType(
-      Nullability nullability = Nullability::kNonNullable) const;
+  RawType* SignatureType(Nullability nullability = kNonNullable) const;
   RawType* ExistingSignatureType() const;
 
   // Update the signature type (with a canonical version).
@@ -6821,18 +6819,10 @@ class AbstractType : public Instance {
   virtual void SetIsBeingFinalized() const;
 
   virtual Nullability nullability() const;
-  virtual bool IsUndetermined() const {
-    return nullability() == Nullability::kUndetermined;
-  }
-  virtual bool IsNullable() const {
-    return nullability() == Nullability::kNullable;
-  }
-  virtual bool IsNonNullable() const {
-    return nullability() == Nullability::kNonNullable;
-  }
-  virtual bool IsLegacy() const {
-    return nullability() == Nullability::kLegacy;
-  }
+  virtual bool IsUndetermined() const { return nullability() == kUndetermined; }
+  virtual bool IsNullable() const { return nullability() == kNullable; }
+  virtual bool IsNonNullable() const { return nullability() == kNonNullable; }
+  virtual bool IsLegacy() const { return nullability() == kLegacy; }
 
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
@@ -6954,7 +6944,7 @@ class AbstractType : public Instance {
 
   // Check if this type represents a top type.
   // TODO(regis): Remove default kUnaware mode as implementation progresses.
-  bool IsTopType(NNBDMode mode = NNBDMode::kUnaware) const;
+  bool IsTopType(NNBDMode mode = kUnaware) const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -7067,8 +7057,8 @@ class Type : public AbstractType {
   }
   void set_nullability(Nullability value) const {
     ASSERT(!IsCanonical());
-    ASSERT(value != Nullability::kUndetermined);
-    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
+    ASSERT(value != kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, value);
   }
   RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
@@ -7167,14 +7157,13 @@ class Type : public AbstractType {
   static RawType* DartTypeType();
 
   // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(
-      const Class& type_class,
-      Nullability nullability = Nullability::kLegacy);
+  static RawType* NewNonParameterizedType(const Class& type_class,
+                                          Nullability nullability = kLegacy);
 
   static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
                       TokenPosition token_pos,
-                      Nullability nullability = Nullability::kLegacy,
+                      Nullability nullability = kLegacy,
                       Heap::Space space = Heap::kOld);
 
  private:

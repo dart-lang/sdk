@@ -580,9 +580,6 @@ class Symbols : public AllStatic {
   static const String& Percent() {
     return *(symbol_handles_[kNullCharId + '%']);
   }
-  static const String& QuestionMark() {
-    return *(symbol_handles_[kNullCharId + '?']);
-  }
   static const String& Caret() { return *(symbol_handles_[kNullCharId + '^']); }
   static const String& Tilde() { return *(symbol_handles_[kNullCharId + '~']); }
 

@@ -944,13 +944,13 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
 
   cls = dynamic_class_;
-  *dynamic_type_ = Type::NewNonParameterizedType(cls, Nullability::kNullable);
+  *dynamic_type_ = Type::NewNonParameterizedType(cls, kNullable);
 
   cls = void_class_;
-  *void_type_ = Type::NewNonParameterizedType(cls, Nullability::kNullable);
+  *void_type_ = Type::NewNonParameterizedType(cls, kNullable);
 
   cls = never_class_;
-  *never_type_ = Type::NewNonParameterizedType(cls, Nullability::kNonNullable);
+  *never_type_ = Type::NewNonParameterizedType(cls, kNonNullable);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -1934,7 +1934,7 @@ RawError* Object::Init(Isolate* isolate,
     // name is a built-in identifier (this is wrong).  The corresponding types
     // are stored in the object store.
     cls = object_store->null_class();
-    type = Type::NewNonParameterizedType(cls, Nullability::kNullable);
+    type = Type::NewNonParameterizedType(cls, kNullable);
     cls.set_declaration_type(type);
     object_store->set_null_type(type);
     ASSERT(type.IsNullable());
@@ -4345,7 +4345,7 @@ RawType* Class::DeclarationType(Nullability nullability) const {
   ASSERT(is_declaration_loaded());
   if (IsNullClass()) {
     // Ignore requested nullability (e.g. by mirrors).
-    nullability = Nullability::kNullable;
+    nullability = kNullable;
   }
   Type& type = Type::Handle(declaration_type());
   if (!type.IsNull()) {
@@ -16664,8 +16664,8 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     }
     // TODO(regis): The runtime type of a non-null instance should be
     // non-nullable instead of legacy. Revisit.
-    type = Type::New(cls, type_arguments, TokenPosition::kNoSource,
-                     Nullability::kLegacy, space);
+    type = Type::New(cls, type_arguments, TokenPosition::kNoSource, kLegacy,
+                     space);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -17019,7 +17019,7 @@ TokenPosition AbstractType::token_pos() const {
 Nullability AbstractType::nullability() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return Nullability::kNullable;
+  return kNullable;
 }
 
 bool AbstractType::IsInstantiated(Genericity genericity,
@@ -17201,21 +17201,8 @@ RawString* AbstractType::PrintURIs(URIs* uris) {
   return Symbols::FromConcatAll(thread, pieces);
 }
 
-static const String& NullabilitySuffix(Nullability value) {
-  // Keep in sync with Nullability enum in runtime/vm/object.h.
-  switch (value) {
-    case Nullability::kUndetermined:
-      return Symbols::Percent();
-    case Nullability::kNullable:
-      return Symbols::QuestionMark();
-    case Nullability::kNonNullable:
-      return Symbols::Empty();
-    case Nullability::kLegacy:
-      return Symbols::Star();
-    default:
-      UNREACHABLE();
-  }
-}
+// Keep in sync with Nullability enum in runtime/vm/object.h.
+static const char* nullability_suffix[4] = {"%", "?", "", "*"};
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   ASSERT(name_visibility != kScrubbedName);
@@ -17225,7 +17212,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     if (FLAG_show_nullability) {
       return Symbols::FromConcat(
           thread, String::Handle(zone, TypeParameter::Cast(*this).name()),
-          NullabilitySuffix(nullability()));
+          String::Handle(zone, String::New(nullability_suffix[nullability()])));
     }
     return TypeParameter::Cast(*this).name();
   }
@@ -17243,7 +17230,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         return Symbols::FromConcat(
             thread,
             String::Handle(zone, signature_function.UserVisibleSignature()),
-            NullabilitySuffix(nullability()));
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
       }
       return signature_function.UserVisibleSignature();
     }
@@ -17253,9 +17241,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
       if (FLAG_show_nullability) {
-        return Symbols::FromConcat(thread,
-                                   String::Handle(zone, class_name.raw()),
-                                   NullabilitySuffix(nullability()));
+        return Symbols::FromConcat(
+            thread, String::Handle(zone, class_name.raw()),
+            String::Handle(zone,
+                           String::New(nullability_suffix[nullability()])));
       }
       return class_name.raw();
     }
@@ -17298,7 +17287,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     pieces.Add(args_name);
   }
   if (FLAG_show_nullability) {
-    pieces.Add(NullabilitySuffix(nullability()));
+    pieces.Add(
+        String::Handle(zone, String::New(nullability_suffix[nullability()])));
   }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
@@ -17337,7 +17327,7 @@ bool AbstractType::IsTopType(NNBDMode mode) const {
     return false;
   }
   if (cid == kDynamicCid || cid == kVoidCid ||
-      (cid == kInstanceCid && (mode != NNBDMode::kStrong || IsNullable()))) {
+      (cid == kInstanceCid && (mode != kStrong || IsNullable()))) {
     return true;
   }
   // FutureOr<T> where T is a top type behaves as a top type.
@@ -18473,7 +18463,7 @@ void TypeParameter::SetGenericCovariantImpl(bool value) const {
 }
 
 void TypeParameter::set_nullability(Nullability value) const {
-  StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
+  StoreNonPointer(&raw_ptr()->nullability_, value);
 }
 
 RawTypeParameter* TypeParameter::ToNullability(Nullability value,
@@ -18672,7 +18662,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_name(name);
   result.set_bound(bound);
   result.set_flags(0);
-  result.set_nullability(Nullability::kLegacy);
+  result.set_nullability(kLegacy);
   result.SetGenericCovariantImpl(is_generic_covariant_impl);
   result.SetHash(0);
   result.set_token_pos(token_pos);
