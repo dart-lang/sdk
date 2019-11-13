@@ -671,14 +671,12 @@ class ParameterMember extends VariableMember
     implements ParameterElement {
   /**
    * Initialize a newly created element to represent a parameter, based on the
-   * [declaration], with applied [substitution]. If [type] is passed it will
-   * represent the already substituted type.
+   * [declaration], with applied [substitution].
    */
   ParameterMember(
     ParameterElement declaration,
-    MapSubstitution substitution, [
-    DartType type,
-  ]) : super._(declaration, substitution, type);
+    MapSubstitution substitution,
+  ) : super(declaration, substitution);
 
   @deprecated
   @override
@@ -995,18 +993,8 @@ abstract class VariableMember extends Member implements VariableElement {
    * Initialize a newly created element to represent a variable, based on the
    * [declaration], with applied [substitution].
    */
-  VariableMember(
-    VariableElement declaration,
-    MapSubstitution substitution, [
-    DartType type,
-  ])  : _type = type,
-        super(declaration, substitution);
-
-  // TODO(jmesserly): this is temporary to allow the ParameterMember subclass.
-  // Apparently mixins don't work with optional params.
-  VariableMember._(VariableElement declaration, MapSubstitution substitution,
-      [DartType type])
-      : this(declaration, substitution, type);
+  VariableMember(VariableElement declaration, MapSubstitution substitution)
+      : super(declaration, substitution);
 
   @deprecated
   @override
