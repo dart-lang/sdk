@@ -20,8 +20,8 @@ class InstrumentationInformation {
   /// The node used for type sources that are never `null`.
   NullabilityNodeInfo never;
 
-  /// Expando associating [NodeInformation] wich [NullabilityNodeInfo] objects.
-  Expando<NodeInformation> nodeInformation = Expando<NodeInformation>();
+  /// A map associating [NodeInformation] with [NullabilityNodeInfo] objects.
+  Map<NullabilityNodeInfo, NodeInformation> nodeInformation = {};
 
   /// A list of the steps in the propagation of nullability information through
   /// the nullability graph, to report details of the step that was performed

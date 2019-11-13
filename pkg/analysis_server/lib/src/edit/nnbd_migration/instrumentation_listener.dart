@@ -86,7 +86,7 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   }
 
   String _filePathForSource(Source source) {
-    return source.toString();
+    return source.fullName;
   }
 
   /// Return the source information associated with the given [source], creating
