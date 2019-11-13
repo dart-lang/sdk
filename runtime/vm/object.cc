@@ -8244,7 +8244,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
-  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (Dart::non_nullable_flag()) {
     // The non-nullable experiment changes the fingerprints, and we only track
     // one fingerprint set.
     return true;
