@@ -93,7 +93,7 @@ static method propertyAccess(self::Class? c) → void {
 }
 static method indexAccess(self::Class? c) → void {
   let final self::Class? #t65 = c in #t65.{core::Object::==}(null) ?{self::Class?} null : #t65.{self::Class::field}.{self::Class::[]}(c);
-  let final self::Class? #t66 = c in #t66.{core::Object::==}(null) ?{void} null : #t66.{self::Class::field}.{self::Class::[]=}(c, new self::Class::•());
+  let final self::Class? #t66 = c in #t66.{core::Object::==}(null) ?{self::Class*} null : #t66.{self::Class::field}.{self::Class::[]=}(c, new self::Class::•());
   c = let final self::Class? #t67 = c in #t67.{core::Object::==}(null) ?{self::Class*} null : let final self::Class? #t68 = #t67.{self::Class::field} in let final self::Class? #t69 = c in let final self::Class* #t70 = new self::Class::•() in let final void #t71 = #t68.{self::Class::[]=}(#t69, #t70) in #t70;
   let final self::Class? #t72 = c in #t72.{core::Object::==}(null) ?{self::Class?} null : #t72.{self::Class::field}.{self::Class::[]}(c).{self::Class::method}();
   let final self::Class? #t73 = c in #t73.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t74 = #t73.{self::Class::field} in let final self::Class? #t75 = c in #t74.{self::Class::[]=}(#t75, #t74.{self::Class::[]}(#t75).{self::Class::+}(0));

@@ -110,7 +110,7 @@ static method propertyAccess(self::Class? c) → void {
 }
 static method indexAccess(self::Class? c) → void {
   let final self::Class? #t147 = c in #t147.{core::Object::==}(null) ?{self::Class?} null : self::Extension|[](self::Extension|get#field(#t147), c);
-  let final self::Class? #t148 = c in #t148.{core::Object::==}(null) ?{void} null : self::Extension|[]=(self::Extension|get#field(#t148), c, new self::Class::•());
+  let final self::Class? #t148 = c in #t148.{core::Object::==}(null) ?{self::Class*} null : self::Extension|[]=(self::Extension|get#field(#t148), c, new self::Class::•());
   c = let final self::Class? #t149 = c in #t149.{core::Object::==}(null) ?{self::Class*} null : let final self::Class? #t150 = self::Extension|get#field(#t149) in let final self::Class? #t151 = c in let final self::Class* #t152 = new self::Class::•() in let final void #t153 = self::Extension|[]=(#t150, #t151, #t152) in #t152;
   let final self::Class? #t154 = c in #t154.{core::Object::==}(null) ?{self::Class?} null : self::Extension|method(self::Extension|[](self::Extension|get#field(#t154), c));
   let final self::Class? #t155 = c in #t155.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t156 = self::Extension|get#field(#t155) in let final self::Class? #t157 = c in self::Extension|[]=(#t156, #t157, self::Extension|+(self::Extension|[](#t156, #t157), 0));

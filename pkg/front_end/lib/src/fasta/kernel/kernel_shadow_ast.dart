@@ -1590,8 +1590,14 @@ class IndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
-  // TODO(johnniwinther): Add `readOnlyReceiver` capability.
-  IndexSet(this.receiver, this.index, this.value) {
+  final bool forEffect;
+
+  final bool readOnlyReceiver;
+
+  IndexSet(this.receiver, this.index, this.value,
+      {this.forEffect, this.readOnlyReceiver})
+      : assert(forEffect != null),
+        assert(readOnlyReceiver != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;

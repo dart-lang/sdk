@@ -2422,8 +2422,11 @@ class InferenceVisitor
       receiver = receiverResult.expression;
     }
     DartType receiverType = receiverResult.inferredType;
-    VariableDeclaration receiverVariable =
-        createVariable(receiver, receiverType);
+    VariableDeclaration receiverVariable;
+    if (!node.forEffect && !node.readOnlyReceiver) {
+      receiverVariable = createVariable(receiver, receiverType);
+      receiver = createVariableGet(receiverVariable);
+    }
 
     ObjectAccessTarget indexSetTarget = inferrer.findInterfaceMember(
         receiverType, indexSetName, node.fileOffset,
@@ -2438,38 +2441,46 @@ class InferenceVisitor
 
     Expression index = inferrer.ensureAssignableResult(indexType, indexResult);
 
-    VariableDeclaration indexVariable =
-        createVariable(index, indexResult.inferredType);
+    VariableDeclaration indexVariable;
+    if (!node.forEffect) {
+      indexVariable = createVariable(index, indexResult.inferredType);
+      index = createVariableGet(indexVariable);
+    }
 
     ExpressionInferenceResult valueResult = inferrer
         .inferExpression(node.value, valueType, true, isVoidAllowed: true);
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
-    VariableDeclaration valueVariable =
-        createVariable(value, valueResult.inferredType);
+
+    VariableDeclaration valueVariable;
+    if (!node.forEffect) {
+      valueVariable = createVariable(value, valueResult.inferredType);
+      value = createVariableGet(valueVariable);
+    }
 
     // The inferred type is that inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
     Expression assignment = _computeIndexSet(
-        node.fileOffset,
-        createVariableGet(receiverVariable),
-        receiverType,
-        indexSetTarget,
-        createVariableGet(indexVariable),
-        createVariableGet(valueVariable));
+        node.fileOffset, receiver, receiverType, indexSetTarget, index, value);
 
-    VariableDeclaration assignmentVariable =
-        createVariable(assignment, const VoidType());
-    Expression replacement = new Let(
-        receiverVariable,
-        createLet(
-            indexVariable,
-            createLet(
-                valueVariable,
-                createLet(
-                    assignmentVariable, createVariableGet(valueVariable))))
-          ..fileOffset = node.fileOffset);
+    Expression replacement;
+    if (node.forEffect) {
+      replacement = assignment;
+    } else {
+      assert(indexVariable != null);
+      assert(valueVariable != null);
+      VariableDeclaration assignmentVariable =
+          createVariable(assignment, const VoidType());
+      replacement = createLet(
+          indexVariable,
+          createLet(valueVariable,
+              createLet(assignmentVariable, createVariableGet(valueVariable))));
+      if (receiverVariable != null) {
+        replacement = createLet(receiverVariable, replacement);
+      }
+    }
+    replacement..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult.nullAware(
         inferredType, replacement, nullAwareGuard);
   }

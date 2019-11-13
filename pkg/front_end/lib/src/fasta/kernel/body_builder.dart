@@ -3428,11 +3428,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(receiver.buildIndexedAccess(index, openSquareBracket));
     } else if (receiver is Expression) {
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, receiver, index, null, null));
+          this, openSquareBracket, receiver, index));
     } else {
       assert(receiver is Initializer);
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, toValue(receiver), index, null, null));
+          this, openSquareBracket, toValue(receiver), index));
     }
   }
 
