@@ -717,7 +717,7 @@ void f() {
     await analyze('''
 typedef T F<T, U>(U u);
 ''');
-    var element = findElement.genericTypeAlias('F');
+    var element = findElement.functionTypeAlias('F');
     var decoratedType = variables.decoratedElementType(element);
     var t = element.typeParameters[0];
     var u = element.typeParameters[1];
@@ -743,7 +743,7 @@ typedef T F<T, U>(U u);
 typedef F();
 ''');
     var decoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     expect(decoratedType.returnType.type.isDynamic, isTrue);
     expect(decoratedType.returnType.node, same(always));
     expect(decoratedType.typeFormals, isEmpty);
@@ -754,7 +754,7 @@ typedef F();
 typedef int F(String s);
 ''');
     var decoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
     expect(decoratedType.typeFormals, isEmpty);
     expect(decoratedType.positionalParameters[0],
@@ -932,7 +932,7 @@ void f(void Function(int) x) {}
     await analyze('''
 typedef F = T Function<T, U>(U u);
 ''');
-    var element = findElement.genericTypeAlias('F');
+    var element = findElement.functionTypeAlias('F');
     var decoratedType = variables.decoratedElementType(element);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
@@ -956,7 +956,7 @@ typedef F = T Function<T, U>(U u);
     await analyze('''
 typedef F<T, U> = T Function(U u);
 ''');
-    var element = findElement.genericTypeAlias('F');
+    var element = findElement.functionTypeAlias('F');
     var decoratedType = variables.decoratedElementType(element);
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('T Function')));
@@ -984,7 +984,7 @@ typedef F<T, U> = T Function(U u);
 typedef F = Function();
 ''');
     var decoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('Function')));
     expect(decoratedType.returnType.type.isDynamic, isTrue);
@@ -997,7 +997,7 @@ typedef F = Function();
 typedef F = int Function(String s);
 ''');
     var decoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     expect(decoratedType,
         same(decoratedGenericFunctionTypeAnnotation('int Function')));
     expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
@@ -1542,7 +1542,7 @@ F<int> f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     var decoratedType = decoratedTypeAnnotation('F<int>');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
@@ -1564,7 +1564,7 @@ F f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
@@ -1589,7 +1589,7 @@ F f;
     // This is necessary because there is no guarantee of whether the typedef or
     // its usage will be visited first.
     var typedefDecoratedType =
-        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+        variables.decoratedElementType(findElement.functionTypeAlias('F'));
     var decoratedType = decoratedTypeAnnotation('F f');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
