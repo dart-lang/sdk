@@ -8,34 +8,28 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
-      '../../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
-      'data'));
+      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
   await runTests(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
+          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
-        // TODO(johnniwinther): Update break/continue handling to support these:
-        'do.dart',
-        'for.dart',
-        'for_each.dart',
-        'switch.dart',
+        // TODO(johnniwinther): Run all nullability tests.
+        'null_aware_access.dart',
+        'try_finally.dart',
         'while.dart',
       ]);
 }
 
-class DefiniteAssignmentDataComputer extends DataComputer<String> {
-  const DefiniteAssignmentDataComputer();
+class NullabilityDataComputer extends DataComputer<String> {
+  const NullabilityDataComputer();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -46,25 +40,21 @@ class DefiniteAssignmentDataComputer extends DataComputer<String> {
   void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member);
-    member.accept(new DefiniteAssignmentDataExtractor(compilerResult, actualMap,
-        memberBuilder.dataForTesting.inferenceData.flowAnalysisResult));
+    member.accept(new NullabilityDataExtractor(compilerResult, actualMap));
   }
 }
 
-class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
-  final FlowAnalysisResult _flowResult;
-
-  DefiniteAssignmentDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap, this._flowResult)
+class NullabilityDataExtractor extends CfeDataExtractor<String> {
+  NullabilityDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<String>> actualMap)
       : super(compilerResult, actualMap);
 
   @override
   String computeNodeValue(Id id, TreeNode node) {
-    if (node is VariableGet) {
-      if (_flowResult.unassignedNodes.contains(node)) {
-        return 'unassigned';
+    if (node is VariableGet && node.promotedType != null) {
+      if (node.variable.type.nullability != Nullability.nonNullable &&
+          node.promotedType.nullability == Nullability.nonNullable) {
+        return 'nonNullable';
       }
     }
     return null;
