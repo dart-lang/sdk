@@ -2346,8 +2346,7 @@ mixin _AssignmentChecker {
       // Assume an assignment to the type parameter's bound.
       _checkAssignment(origin,
           source: source,
-          destination:
-              _getTypeParameterTypeBound(destination).withNode(_graph.always),
+          destination: _getTypeParameterTypeBound(destination),
           hard: false);
     } else if (destinationType is InterfaceType) {
       assert(source.typeArguments.isEmpty,

@@ -97,7 +97,7 @@ class AssignmentCheckerTest extends Object
     var t2 = typeParameterType(typeParameter('T', bound));
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertNoEdge(t1.node, bound.node);
+    assertEdge(t1.node, bound.node, hard: false);
     assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
         hard: false);
   }
@@ -457,7 +457,7 @@ class C<T extends List<int>> {
     var parameterType = decoratedTypeAnnotation('List<int> x');
     var tType = decoratedTypeAnnotation('T f');
     assertEdge(parameterType.node, tType.node, hard: true);
-    assertNoEdge(parameterType.node, boundType.node);
+    assertEdge(parameterType.node, boundType.node, hard: false);
     // TODO(mfairhurst): Confirm we want this edge.
     assertEdge(
         parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
