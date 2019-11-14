@@ -443,6 +443,33 @@ void f(String s) {
     ]);
   }
 
+  test_nullCheck_onFunctionArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C([this.value]);
+  void f() {
+    value.abs();
+  }
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C([this.value]);
+  void f() {
+    value!.abs();
+  }
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `int?`.
+    assertRegion(
+        region: regions[1],
+        offset: 65,
+        details: ["A nullable value can't be used here"]);
+  }
+
   test_parameter_fromInvocation_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}

@@ -63,17 +63,13 @@ class NodeInformation {
 
   final Element element;
 
-  final String descriptionPrefix;
-
-  NodeInformation(
-      this.filePath, this.astNode, this.element, this.descriptionPrefix);
+  NodeInformation(this.filePath, this.astNode, this.element);
 
   /// Return detail text for a fix built from an edge with this node as a
   /// destination.
   String get descriptionForDestination {
-    // TODO(paulberry): describe AST nodes
-    var description = (element ?? '???').toString();
-    return "A nullable value can't be used as $descriptionPrefix$description";
+    // TODO(paulberry): describe AST nodes.
+    return "A nullable value can't be used here";
   }
 }
 

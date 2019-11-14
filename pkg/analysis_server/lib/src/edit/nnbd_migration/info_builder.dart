@@ -261,10 +261,13 @@ class InfoBuilder {
         }
       } else if (reason is EdgeInfo) {
         NullabilityNodeInfo destination = reason.destinationNode;
-        var nodeInfo = info.nodeInfoFor(destination);
+        NodeInformation nodeInfo = info.nodeInfoFor(destination);
         if (nodeInfo != null) {
-          details.add(RegionDetail(nodeInfo.descriptionForDestination,
-              _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
+          NavigationTarget target;
+          if (destination != info.never && destination != info.always) {
+            target = _targetForNode(nodeInfo.filePath, nodeInfo.astNode);
+          }
+          details.add(RegionDetail(nodeInfo.descriptionForDestination, target));
         } else {
           details.add(RegionDetail('node with no info ($destination)', null));
         }

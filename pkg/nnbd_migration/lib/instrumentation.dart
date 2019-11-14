@@ -180,8 +180,8 @@ abstract class NullabilityMigrationInstrumentation {
   /// and why it was created.
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo);
 
-  /// Called when the migration engine start up, to report information about the
-  /// immutable migration nodes [never] and [always] that are used as the
+  /// Called when the migration engine starts up, to report information about
+  /// the immutable migration nodes [never] and [always] that are used as the
   /// starting point for nullability propagation.
   void immutableNodes(NullabilityNodeInfo never, NullabilityNodeInfo always);
 
