@@ -30,8 +30,16 @@ static const intptr_t kBitVectorWordsPerBlock = 1;
 // is defined to be 64*16 bytes (1024 bytes). In 32 bit architectures,
 // aligments are of size 8 bytes and the bit vector is of size 32, therefore
 // the block size is 32*8 (256 byes).
+// static const intptr_t kBlockSize =
+//     // kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock; // TODO: testing
+//     kWordSize * kBitsPerWord * kBitVectorWordsPerBlock;
+#if defined(HASH_IN_OBJECT_HEADER)  // TODO: testing half block size for 64 bit
+static const intptr_t kBlockSize =
+    kWordSize * kBitsPerWord * kBitVectorWordsPerBlock;
+#else
 static const intptr_t kBlockSize =
     kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
+#endif
 static const intptr_t kBlockMask = ~(kBlockSize - 1);
 static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
 
@@ -64,16 +72,18 @@ class ForwardingBlock {
 
   intptr_t ComputeLiveVectorPosition(uword address) const {
     uword block_offset = address & ~kBlockMask;
-    intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
-    ASSERT(first_unit_position < kBitsPerWord);
-#if !defined(HASH_IN_OBJECT_HEADER)
+    intptr_t position = block_offset >> kObjectAlignmentLog2;
+    ASSERT(position < kBitsPerWord);
+#if defined(FAST_HASH_FOR_32_BIT)
     // In 32 bit platforms the previous objects might take one extra live space
     // to store the hashCode when reallocated. The position is duplicated to
     // take into account this extra size. In theory a block can increase in
     // size when sliding.
-    first_unit_position <<= 1;
+    position *= 2;
+#else
+    position *= 2;  // TODO: testing shift on 64bit, it worked
 #endif
-    return first_unit_position;
+    return position;
   }
 
   uword Lookup(uword old_addr) const {
@@ -81,8 +91,8 @@ class ForwardingBlock {
     bitset preceding_live_bitmask =
         (static_cast<bitset>(1) << first_unit_position) - 1;
     bitset preceding_live_bitset = live_bitvector_ & preceding_live_bitmask;
-    bitset preceding_live_bytes = Utils::CountOneBitsWord(preceding_live_bitset)
-                                  << kObjectAlignmentLog2;
+    intptr_t preceding_live_bytes = Utils::CountOneBits64(preceding_live_bitset)
+                                    << kObjectAlignmentLog2;
     return new_address_ + preceding_live_bytes;
   }
 
@@ -494,7 +504,8 @@ uword CompactorTask::PlanBlock(uword first_object,
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
     if (obj->IsMarked()) {
-#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+// #if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+#if defined(FAST_HASH_FOR_32_BIT)
       intptr_t extra_size = 0;
       // The first reallocated object that were to take more space (because
       // they can grow to store the hashCode) than the currently available
@@ -506,7 +517,7 @@ uword CompactorTask::PlanBlock(uword first_object,
       // next live object.
       if (free_current_ + block_live_size != current) {
         // In 32 bit platforms if the adresses don't match, the object will be
-        // reallocated and it might require extra space for the hashCode.
+        // reallocated and it might require extra space to store the hashCode.
         extra_size = obj->ReallocationExtraSize();
         size += extra_size;
       }
@@ -515,7 +526,7 @@ uword CompactorTask::PlanBlock(uword first_object,
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
-#if !defined(HASH_IN_OBJECT_HEADER)
+#if defined(FAST_HASH_FOR_32_BIT)
       // Restore size to the object's size.
       size -= extra_size;
 #endif
@@ -542,9 +553,9 @@ uword CompactorTask::SlideBlock(uword first_object,
 
   uword old_addr = first_object;
   while (old_addr < block_end) {
-#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
-    intptr_t extra_size = 0;
-#endif
+    // #if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+    //     intptr_t extra_size = 0;
+    // #endif
     RawObject* old_obj = RawObject::FromAddr(old_addr);
     intptr_t size = old_obj->HeapSize();
     if (old_obj->IsMarked()) {
@@ -570,10 +581,13 @@ uword CompactorTask::SlideBlock(uword first_object,
       }
       RawObject* new_obj = RawObject::FromAddr(new_addr);
 
+#if defined(FAST_HASH_FOR_32_BIT)
+      intptr_t extra_size = 0;
+#endif
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
-#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+#if defined(FAST_HASH_FOR_32_BIT)
         extra_size = old_obj->ReallocationExtraSize();
 #endif
         // Slide the object down.
@@ -590,9 +604,18 @@ uword CompactorTask::SlideBlock(uword first_object,
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
-#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+#if defined(FAST_HASH_FOR_32_BIT)
       free_current_ += extra_size;
-      extra_size = 0;
+      if (extra_size > 0) {
+        if (new_obj->HasTrailingHashCode()) {
+          OS::PrintErr("Good. Added trailing hashCode. 0x%X == 0x%X\n",
+                       new_obj->GetHash(), old_obj->GetHash());
+
+        } else {
+          OS::PrintErr("Bad. Didn't add trailing hashCode. 0x%X != 0x%X\n",
+                       new_obj->GetHash(), old_obj->GetHash());
+        }
+      }
 #endif
     } else {
       ASSERT(!forwarding_block->IsLive(old_addr));

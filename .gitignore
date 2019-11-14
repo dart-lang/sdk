@@ -104,5 +104,6 @@ editor/util/testing/mac/Samples.suite/Results
 /generated/
 /crash_logs/
 /build/config/gclient_args.gni
+/runtime/vm_icatalud
 
 runtime/vm_icatalud/

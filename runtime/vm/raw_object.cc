@@ -235,6 +235,9 @@ intptr_t RawObject::HeapSizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
+#if !defined(HASH_IN_OBJECT_HEADER)
+  instance_size += TrailingExtraSize();
+#endif
 #if defined(DEBUG)
   uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
@@ -255,9 +258,6 @@ intptr_t RawObject::HeapSizeFromClass() const {
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
-#if !defined(HASH_IN_OBJECT_HEADER)
-  instance_size += TrailingExtraSize();
-#endif
   return instance_size;
 }
 
@@ -383,13 +383,13 @@ void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
                                 ->next_field_offset_in_words_
                             << kWordSizeLog2;
   ASSERT(next_field_offset > 0);
-  // uword obj_addr = RawObject::ToAddr(this);
-  // uword from = obj_addr + sizeof(RawObject);
-  // uword to = obj_addr + next_field_offset - kWordSize;
+  uword obj_addr = RawObject::ToAddr(this);
+  uword from = obj_addr + sizeof(RawObject);
+  uword to = obj_addr + next_field_offset - kWordSize;
 
   // Not sure how next_field_offset should be interpreted
-  uword from = RawObject::FirstPointerAddr(this);
-  uword to = RawObject::ToAddr(this) + next_field_offset - kWordSize;
+  // uword from = RawObject::FirstPointerAddr(this);
+  // uword to = RawObject::ToAddr(this) + next_field_offset - kWordSize;
   visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                          reinterpret_cast<RawObject**>(to));
 }

@@ -99,6 +99,10 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 
+#if true  //!HASH_IN_OBJECT_HEADER TODO: testing
+#define FAST_HASH_FOR_32_BIT 1
+#endif
+
 // The expression OFFSET_OF(type, field) computes the byte-offset of
 // the specified field relative to the containing type.
 //

@@ -74,17 +74,17 @@ static inline void objcpy(void* dst, void* src, size_t size) {
   //  - size is a multiple of double words
   ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
 
-  // uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
-  // const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
-  // do {
-  //   uword a = *src_cursor++;
-  //   uword b = *src_cursor++;
-  //   *dst_cursor++ = a;
-  //   *dst_cursor++ = b;
-  //   size -= (2 * sizeof(uword));
-  // } while (size > 0);
-  reinterpret_cast<RawObject*>(src)->Reallocate(reinterpret_cast<uword>(dst),
-                                                size);
+  /*uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+  do {
+    uword a = *src_cursor++;
+    uword b = *src_cursor++;
+    *dst_cursor++ = a;
+    *dst_cursor++ = b;
+    size -= (2 * sizeof(uword));
+  } while (size > 0);*/
+  RawObject::FromAddr(reinterpret_cast<uword>(src))
+      ->Reallocate(reinterpret_cast<uword>(dst), size);
 }
 
 class ScavengerVisitor : public ObjectPointerVisitor {
@@ -220,8 +220,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
+
+#if defined(FAST_HASH_FOR_32_BIT)
+      objcpy(reinterpret_cast<void*>(new_addr),
+             reinterpret_cast<void*>(raw_addr),
+             size - raw_obj->ReallocationExtraSize());
+#else
       objcpy(reinterpret_cast<void*>(new_addr),
              reinterpret_cast<void*>(raw_addr), size);
+#endif
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
@@ -238,6 +245,17 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
+#if defined(FAST_HASH_FOR_32_BIT)
+        if (raw_obj->ReallocationExtraSize() > 0) {
+          if (new_obj->HasTrailingHashCode()) {
+            // OS::Print("Good. Added trailing hashCode. 0x% == 0x%\n",
+            //           new_obj->GetHash(), raw_obj->GetHash());
+          } else {
+            OS::PrintErr("Bad. Didn't add trailing hashCode. 0x% != 0x%\n",
+                         new_obj->GetHash(), raw_obj->GetHash());
+          }
+        }
+#endif
       }
 
       if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {

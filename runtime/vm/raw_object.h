@@ -171,7 +171,7 @@ class RawObject {
 
     static uword increaseSize(intptr_t extraSize, uword tag) {
       intptr_t oldSize = decode(tag);
-      if (oldSize >= kMaxSizeTag) {
+      if (oldSize == 0) {
         return tag;
       }
       return update(oldSize + extraSize, tag);
@@ -530,6 +530,10 @@ class RawObject {
 
   static uword FirstPointerAddr(const RawObject* raw_obj) {
     return reinterpret_cast<uword>(raw_obj->ptr()) + sizeof(RawObject);
+  }
+
+  static RawObject* LastPointer(const RawObject* raw_obj) {
+    return reinterpret_cast<RawObject*>(LastPointerAddr(raw_obj));
   }
 
   static uword LastPointerAddr(const RawObject* raw_obj) {

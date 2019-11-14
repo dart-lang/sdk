@@ -108,12 +108,12 @@ class Utils {
   static int CountOneBits64(uint64_t x);
   static int CountOneBits32(uint32_t x);
 
-  static int CountOneBitsWord(uword x) {
-#ifdef ARCH_IS_64_BIT
-    return CountOneBits64(x);
-#else
-    return CountOneBits32(x);
-#endif
+  static int CountOneBitsWord(uint64_t x) {
+    #ifdef ARCH_IS_64_BIT
+        return CountOneBits64(x);
+    #else
+        return CountOneBits32(x);
+    #endif
   }
 
   static int HighestBit(int64_t v);
@@ -341,7 +341,7 @@ class Utils {
     ASSERT(n <= kBitsPerWord);
     if (n == kBitsPerWord) {
       static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
-                            "Unexpected uword size");
+                    "Unexpected uword size");
       return std::numeric_limits<uword>::max();
     }
     return (1ll << n) - 1;
