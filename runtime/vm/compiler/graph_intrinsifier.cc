@@ -17,10 +17,10 @@
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
+#include "vm/flag_list.h"
 
 namespace dart {
 
-DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
@@ -299,8 +299,8 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       break;
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
-    // Use same truncating unbox-instruction for int32 and uint32.
-    FALL_THROUGH;
+      // Use same truncating unbox-instruction for int32 and uint32.
+      FALL_THROUGH;
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:
       // Supports smi and mint, slow-case for bigints.

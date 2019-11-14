@@ -71,6 +71,8 @@ constexpr bool kDartUseBytecode = false;
   R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
   R(disassemble_relative, false, bool, false,                                  \
     "Use offsets instead of absolute PCs")                                     \
+  R(code_comments, false, bool, false,                                         \
+    "Include comments into code and disassembly.")                             \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \

@@ -20,10 +20,6 @@ DEFINE_FLAG(bool,
             false,
             "Verify instructions offset in code object."
             "NOTE: This breaks the profiler.");
-DEFINE_FLAG(bool,
-            code_comments,
-            false,
-            "Include comments into code and disassembly");
 #if defined(TARGET_ARCH_ARM)
 DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches for ARM.");
 #endif

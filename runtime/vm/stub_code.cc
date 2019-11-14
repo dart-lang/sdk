@@ -74,15 +74,7 @@ RawCode* StubCode::Generate(
       /*optimized=*/false));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for stub '%s': {\n", name);
-    DisassembleToStdout formatter;
-    code.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    if (!object_pool.IsNull()) {
-      object_pool.DebugPrint();
-    }
+    Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
   return code.raw();
@@ -199,15 +191,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     Code::NotifyCodeObservers(name, stub, /*optimized=*/false);
 #ifndef PRODUCT
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-      LogBlock lb;
-      THR_Print("Code for allocation stub '%s': {\n", name);
-      DisassembleToStdout formatter;
-      stub.Disassemble(&formatter);
-      THR_Print("}\n");
-      const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-      if (!object_pool.IsNull()) {
-        object_pool.DebugPrint();
-      }
+      Disassembler::DisassembleStub(name, stub);
     }
 #endif  // !PRODUCT
   }
@@ -245,15 +229,7 @@ RawCode* StubCode::GetBuildMethodExtractorStub(
 
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for isolate stub '%s': {\n", name);
-    DisassembleToStdout formatter;
-    stub.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
-    if (!object_pool.IsNull()) {
-      object_pool.DebugPrint();
-    }
+    Disassembler::DisassembleStub(name, stub);
   }
 #endif  // !PRODUCT
   return stub.raw();

@@ -240,10 +240,14 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  const ObjectPool& object_pool =
-      ObjectPool::Handle(zone, code.GetObjectPool());
-  if (!object_pool.IsNull()) {
-    object_pool.DebugPrint();
+  if (FLAG_use_bare_instructions) {
+    THR_Print("(No object pool for bare instructions.)\n");
+  } else {
+    const ObjectPool& object_pool =
+        ObjectPool::Handle(zone, code.GetObjectPool());
+    if (!object_pool.IsNull()) {
+      object_pool.DebugPrint();
+    }
   }
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
@@ -258,23 +262,25 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
-  intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
-  if (deopt_table_length > 0) {
-    THR_Print("DeoptInfo: {\n");
-    Smi& offset = Smi::Handle(zone);
-    TypedData& info = TypedData::Handle(zone);
-    Smi& reason_and_flags = Smi::Handle(zone);
-    for (intptr_t i = 0; i < deopt_table_length; ++i) {
-      DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
-      const intptr_t reason =
-          DeoptTable::ReasonField::decode(reason_and_flags.Value());
-      ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
-      THR_Print(
-          "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, base + offset.Value(),
-          DeoptInfo::ToCString(deopt_table, info),
-          DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
+  if (!deopt_table.IsNull()) {
+    intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
+    if (deopt_table_length > 0) {
+      THR_Print("DeoptInfo: {\n");
+      Smi& offset = Smi::Handle(zone);
+      TypedData& info = TypedData::Handle(zone);
+      Smi& reason_and_flags = Smi::Handle(zone);
+      for (intptr_t i = 0; i < deopt_table_length; ++i) {
+        DeoptTable::GetEntry(deopt_table, i, &offset, &info, &reason_and_flags);
+        const intptr_t reason =
+            DeoptTable::ReasonField::decode(reason_and_flags.Value());
+        ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
+        THR_Print(
+            "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, base + offset.Value(),
+            DeoptInfo::ToCString(deopt_table, info),
+            DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
+      }
+      THR_Print("}\n");
     }
-    THR_Print("}\n");
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -343,6 +349,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("}\n");
   }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  THR_Print("(Cannot show static call target functions in AOT runtime.)\n");
+#else
   {
     THR_Print("Static call target functions {\n");
     const auto& table = Array::Handle(zone, code.static_calls_target_table());
@@ -393,8 +402,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         }
       }
     }
+    THR_Print("}\n");
   }
-  THR_Print("}\n");
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   if (optimized && FLAG_trace_inlining_intervals) {
     code.DumpInlineIntervals();
@@ -409,6 +419,20 @@ void Disassembler::DisassembleCode(const Function& function,
                                    bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
   DisassembleCodeHelper(function_fullname, code, optimized);
+}
+
+void Disassembler::DisassembleStub(const char* name, const Code& code) {
+  LogBlock lb;
+  THR_Print("Code for stub '%s': {\n", name);
+  DisassembleToStdout formatter;
+  code.Disassemble(&formatter);
+  THR_Print("}\n");
+  const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
+  if (FLAG_use_bare_instructions) {
+    THR_Print("(No object pool for bare instructions.)\n");
+  } else if (!object_pool.IsNull()) {
+    object_pool.DebugPrint();
+  }
 }
 
 #else   // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

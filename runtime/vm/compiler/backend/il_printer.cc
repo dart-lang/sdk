@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_printer.h"
 
 #include "vm/compiler/backend/il.h"
@@ -15,17 +13,10 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-DEFINE_FLAG(bool,
-            display_sorted_ic_data,
-            false,
-            "Calls display a unary, sorted-by count form of ICData");
-DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp,
             print_flow_graph_filter,
             NULL,
             "Print only IR of functions with matching names");
-
-DECLARE_FLAG(bool, trace_inlining_intervals);
 
 // Checks whether function's name matches the given filter, which is
 // a comma-separated list of strings.
@@ -73,6 +64,16 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return PassesFilter(FLAG_print_flow_graph_filter, function);
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool,
+            display_sorted_ic_data,
+            false,
+            "Calls display a unary, sorted-by count form of ICData");
+DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+
+DECLARE_FLAG(bool, trace_inlining_intervals);
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
@@ -1181,7 +1182,11 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1219,8 +1224,8 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

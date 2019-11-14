@@ -60,7 +60,6 @@ DEFINE_FLAG(int,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
-DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
