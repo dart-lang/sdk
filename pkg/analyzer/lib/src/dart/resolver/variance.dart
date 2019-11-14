@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// The variance of a type parameter `X` in a type `T`.
 class Variance {
@@ -33,10 +34,16 @@ class Variance {
       }
     } else if (type is InterfaceType) {
       var result = unrelated;
-      for (var argument in type.typeArguments) {
-        result = result.meet(
-          Variance(typeParameter, argument),
-        );
+      for (int i = 0; i < type.typeArguments.length; ++i) {
+        var argument = type.typeArguments[i];
+        var parameter = type.element.typeParameters[i];
+
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        var parameterVariance =
+            (parameter as TypeParameterElementImpl).variance;
+        result = result
+            .meet(parameterVariance.combine(Variance(typeParameter, argument)));
       }
       return result;
     } else if (type is FunctionType) {
@@ -98,6 +105,23 @@ class Variance {
         'Invalid keyword string for variance: $varianceString');
   }
 
+  /// Returns the associated keyword lexeme.
+  String toKeywordString() {
+    switch (this) {
+      case contravariant:
+        return 'in';
+      case invariant:
+        return 'inout';
+      case covariant:
+        return 'out';
+      case unrelated:
+        return '';
+      default:
+        throw new ArgumentError(
+            'Missing keyword lexeme representation for variance: $this');
+    }
+  }
+
   /// Return `true` if this represents the case when `X` occurs free in `T`, and
   /// `U <: V` implies `[V/X]T <: [U/X]T`.
   bool get isContravariant => this == contravariant;
@@ -156,6 +180,29 @@ class Variance {
   /// [meet] calculates the meet of two elements of such lattice.  It can be
   /// used, for example, to calculate the variance of a typedef type parameter
   /// if it's encountered on the RHS of the typedef multiple times.
+  ///
+  ///       unrelated
+  /// covariant   contravariant
+  ///       invariant
   Variance meet(Variance other) =>
       Variance._fromEncoding(_encoding | other._encoding);
+
+  /// Returns true if this variance is greater than (above) or equal to the
+  /// [other] variance in the partial order induced by the variance lattice.
+  ///
+  ///       unrelated
+  /// covariant   contravariant
+  ///       invariant
+  bool greaterThanOrEqual(Variance other) {
+    if (isUnrelated) {
+      return true;
+    } else if (isCovariant) {
+      return other.isCovariant || other.isInvariant;
+    } else if (isContravariant) {
+      return other.isContravariant || other.isInvariant;
+    } else {
+      assert(isInvariant);
+      return other.isInvariant;
+    }
+  }
 }

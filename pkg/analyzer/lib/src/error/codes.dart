@@ -4940,7 +4940,27 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
     "'{0}' can't be used contravariantly or invariantly in '{1}'.",
     correction: "Try not using class type parameters in types of formal "
-        "parameters of function types.",
+        "parameters of function types, nor in explicitly contravariant or "
+        "invariant superinterfaces.",
+  );
+
+  /**
+   * Let `C` be a generic class that declares a formal type parameter `X`, and
+   * assume that `T` is a direct superinterface of `C`.
+   *
+   * It is a compile-time error if `X` is explicitly defined as a covariant or
+   * 'in' type parameter and `X` occurs in a non-covariant position in `T`.
+   * It is a compile-time error if `X` is explicitly defined as a contravariant
+   * or 'out' type parameter and `X` occurs in a non-contravariant position in
+   * `T`.
+   */
+  static const CompileTimeErrorCode
+      WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE =
+      const CompileTimeErrorCode(
+    'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position in '{3}'.",
+    correction: "Try using 'in' type parameters in 'in' positions and 'out' "
+        "type parameters in 'out' positions in the superinterface.",
   );
 
   /**
