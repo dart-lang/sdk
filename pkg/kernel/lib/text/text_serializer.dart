@@ -115,6 +115,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
         ? "invoke-const-constructor"
         : "invoke-constructor";
   }
+
+  String visitFunctionExpression(FunctionExpression _) => "fun";
 }
 
 TextSerializer<InvalidExpression> invalidExpressionSerializer = new Wrapped(
@@ -691,6 +693,17 @@ ConstructorInvocation wrapConstConstructorInvocation(
       isConst: true);
 }
 
+TextSerializer<FunctionExpression> functionExpressionSerializer = new Wrapped(
+    unwrapFunctionExpression, wrapFunctionExpression, functionNodeSerializer);
+
+FunctionNode unwrapFunctionExpression(FunctionExpression expression) {
+  return expression.function;
+}
+
+FunctionExpression wrapFunctionExpression(FunctionNode node) {
+  return new FunctionExpression(node);
+}
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -975,6 +988,7 @@ class StatementTagger extends StatementVisitor<String>
   String tag(Statement statement) => statement.accept(this);
 
   String visitExpressionStatement(ExpressionStatement _) => "expr";
+  String visitReturnStatement(ReturnStatement _) => "ret";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -988,8 +1002,91 @@ ExpressionStatement wrapExpressionStatement(Expression expression) {
   return new ExpressionStatement(expression);
 }
 
+TextSerializer<ReturnStatement> returnStatementSerializer = new Wrapped(
+    unwrapReturnStatement, wrapReturnStatement, expressionSerializer);
+
+Expression unwrapReturnStatement(ReturnStatement statement) {
+  return statement.expression;
+}
+
+ReturnStatement wrapReturnStatement(Expression expression) {
+  return new ReturnStatement(expression);
+}
+
 Case<Statement> statementSerializer =
     new Case.uninitialized(const StatementTagger());
+
+class FunctionNodeTagger implements Tagger<FunctionNode> {
+  const FunctionNodeTagger();
+
+  String tag(FunctionNode node) {
+    switch (node.asyncMarker) {
+      case AsyncMarker.Async:
+        return "async";
+      case AsyncMarker.Sync:
+        return "sync";
+      case AsyncMarker.AsyncStar:
+        return "async-star";
+      case AsyncMarker.SyncStar:
+        return "sync-star";
+      case AsyncMarker.SyncYielding:
+        return "sync-yielding";
+    }
+    throw new UnsupportedError("${node.asyncMarker}");
+  }
+}
+
+TextSerializer<FunctionNode> syncFunctionNodeSerializer = new Wrapped(
+    unwrapFunctionNode,
+    wrapSyncFunctionNode,
+    new Bind(
+        new Rebind(
+            typeParametersSerializer,
+            new Tuple3Serializer(
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)))),
+        new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
+
+Tuple2<
+    Tuple2<
+        List<TypeParameter>,
+        Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+            List<VariableDeclaration>>>,
+    Tuple2<DartType, Statement>> unwrapFunctionNode(FunctionNode node) {
+  return new Tuple2(
+      new Tuple2(
+          node.typeParameters,
+          new Tuple3(
+              node.positionalParameters.sublist(0, node.requiredParameterCount),
+              node.positionalParameters.sublist(node.requiredParameterCount),
+              node.namedParameters)),
+      new Tuple2(node.returnType, node.body));
+}
+
+FunctionNode wrapSyncFunctionNode(
+    Tuple2<
+            Tuple2<
+                List<TypeParameter>,
+                Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+                    List<VariableDeclaration>>>,
+            Tuple2<DartType, Statement>>
+        tuple) {
+  return new FunctionNode(tuple.second.second,
+      typeParameters: tuple.first.first,
+      positionalParameters:
+          tuple.first.second.first + tuple.first.second.second,
+      namedParameters: tuple.first.second.third,
+      requiredParameterCount: tuple.first.second.first.length,
+      returnType: tuple.second.first,
+      asyncMarker: AsyncMarker.Sync);
+}
+
+Case<FunctionNode> functionNodeSerializer =
+    new Case.uninitialized(const FunctionNodeTagger());
 
 void initializeSerializers() {
   expressionSerializer.tags.addAll([
@@ -1036,6 +1133,7 @@ void initializeSerializers() {
     "invoke-direct-method",
     "invoke-constructor",
     "invoke-const-constructor",
+    "fun",
   ]);
   expressionSerializer.serializers.addAll([
     stringLiteralSerializer,
@@ -1081,6 +1179,7 @@ void initializeSerializers() {
     directMethodInvocationSerializer,
     constructorInvocationSerializer,
     constConstructorInvocationSerializer,
+    functionExpressionSerializer,
   ]);
   dartTypeSerializer.tags.addAll([
     "invalid",
@@ -1100,8 +1199,16 @@ void initializeSerializers() {
   ]);
   statementSerializer.tags.addAll([
     "expr",
+    "ret",
   ]);
   statementSerializer.serializers.addAll([
     expressionStatementSerializer,
+    returnStatementSerializer,
+  ]);
+  functionNodeSerializer.tags.addAll([
+    "sync",
+  ]);
+  functionNodeSerializer.serializers.addAll([
+    syncFunctionNodeSerializer,
   ]);
 }

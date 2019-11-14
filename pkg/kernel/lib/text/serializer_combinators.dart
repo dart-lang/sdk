@@ -483,37 +483,39 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
   }
 }
 
-/// Binds binders from one term in the other and adds them to the environment.
+/// Nested binding pattern that also binds binders from one term in the other.
 ///
-/// Serializes a [Tuple2] of [pattern] and [term], closing [term] over the
-/// binders found in [pattern].  The binders are added to the enclosing
-/// environment.
+/// Serializes a [Tuple2] of [pattern1] and [pattern2], closing [pattern2] over
+/// the binders found in [pattern1].  The binders from both [pattern1] and
+/// [pattern2] are added to the enclosing environment.
 class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
-  final TextSerializer<P> pattern;
-  final TextSerializer<T> term;
+  final TextSerializer<P> pattern1;
+  final TextSerializer<T> pattern2;
 
-  const Rebind(this.pattern, this.term);
+  const Rebind(this.pattern1, this.pattern2);
 
   Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
-    P first = pattern.readFrom(stream, state);
+    P first = pattern1.readFrom(stream, state);
     var closedState = new DeserializationState(
         new DeserializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
           ..close(),
         state.nameRoot);
-    T second = term.readFrom(stream, closedState);
+    T second = pattern2.readFrom(stream, closedState);
+    state.environment.binders.addAll(closedState.environment.binders);
     return new Tuple2(first, second);
   }
 
   void writeTo(
       StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
-    pattern.writeTo(buffer, tuple.first, state);
+    pattern1.writeTo(buffer, tuple.first, state);
     var closedState =
         new SerializationState(new SerializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
           ..close());
     buffer.write(' ');
-    term.writeTo(buffer, tuple.second, closedState);
+    pattern2.writeTo(buffer, tuple.second, closedState);
+    state.environment.binders.addAll(closedState.environment.binders);
   }
 }
 
