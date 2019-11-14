@@ -2410,6 +2410,8 @@ reuses
 reusing
 reverse
 reversed
+revert
+reverts
 review
 revise
 revision
@@ -2649,6 +2651,7 @@ starting
 starts
 startup
 state
+stateful
 statement
 statement's
 statements

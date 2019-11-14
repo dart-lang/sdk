@@ -65,6 +65,8 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   ir.TypeEnvironment get typeEnvironment => _typeEnvironment;
 
+  ir.StaticTypeContext get staticTypeContext;
+
   ThisInterfaceType get thisType;
 
   @override
@@ -131,17 +133,20 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitListLiteral(ir.ListLiteral node) {
-    return typeEnvironment.literalListType(node.typeArgument);
+    return typeEnvironment.literalListType(
+        node.typeArgument, ir.Nullability.legacy);
   }
 
   @override
   ir.DartType visitSetLiteral(ir.SetLiteral node) {
-    return typeEnvironment.literalSetType(node.typeArgument);
+    return typeEnvironment.literalSetType(
+        node.typeArgument, ir.Nullability.legacy);
   }
 
   @override
   ir.DartType visitMapLiteral(ir.MapLiteral node) {
-    return typeEnvironment.literalMapType(node.keyType, node.valueType);
+    return typeEnvironment.literalMapType(
+        node.keyType, node.valueType, ir.Nullability.legacy);
   }
 
   @override
@@ -225,12 +230,13 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitLoadLibrary(ir.LoadLibrary node) {
-    return typeEnvironment.futureType(const ir.DynamicType());
+    return typeEnvironment.futureType(
+        const ir.DynamicType(), ir.Nullability.legacy);
   }
 
   @override
   ir.DartType visitConstantExpression(ir.ConstantExpression node) {
     // TODO(johnniwinther): Include interface exactness where applicable.
-    return node.getStaticType(typeEnvironment);
+    return node.getStaticType(staticTypeContext);
   }
 }

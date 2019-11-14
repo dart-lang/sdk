@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
@@ -203,7 +204,10 @@ class KLibraryData {
   KLibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(library.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext.forAnnotations(
+            library, elementMap.typeEnvironment),
+        library.annotations);
   }
 
   Iterable<ImportEntity> getImports(KernelToElementMapImpl elementMap) {
@@ -667,7 +671,10 @@ class KClassDataImpl implements KClassData {
   @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(node.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext.forAnnotations(
+            node.enclosingLibrary, elementMap.typeEnvironment),
+        node.annotations);
   }
 
   @override
@@ -705,7 +712,9 @@ abstract class KMemberDataImpl implements KMemberData {
   @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
-    return _metadata ??= elementMap.getMetadata(node.annotations);
+    return _metadata ??= elementMap.getMetadata(
+        new ir.StaticTypeContext(node, elementMap.typeEnvironment),
+        node.annotations);
   }
 
   @override

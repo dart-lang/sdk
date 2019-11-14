@@ -112,7 +112,8 @@ abstract class KernelToElementMap {
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue getConstantValue(ir.Expression expression,
+  ConstantValue getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
   /// Return the [ImportEntity] corresponding to [node].
@@ -178,6 +179,8 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);
+
+  ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
 }
 
 /// Kinds of foreign functions.

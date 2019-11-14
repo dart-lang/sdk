@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
@@ -527,16 +528,20 @@ NullableInference inference;
 class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   final Set<Library> librariesFromDill;
   int _functionNesting = 0;
+  TypeEnvironment _typeEnvironment;
+  StaticTypeContext _staticTypeContext;
 
   _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
   visitComponent(Component node) {
     var hierarchy = ClassHierarchy(node);
-    inference ??= NullableInference(JSTypeRep(
+    var jsTypeRep = JSTypeRep(
       fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
       hierarchy,
-    ));
+    );
+    _typeEnvironment = jsTypeRep.types;
+    inference ??= NullableInference(jsTypeRep);
 
     if (useAnnotations) {
       inference.allowNotNullDeclarations = useAnnotations;
@@ -556,9 +561,32 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
+  visitField(Field node) {
+    _staticTypeContext = StaticTypeContext(node, _typeEnvironment);
+    super.visitField(node);
+    _staticTypeContext = null;
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    _staticTypeContext = StaticTypeContext(node, _typeEnvironment);
+    super.visitConstructor(node);
+    _staticTypeContext = null;
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _staticTypeContext = StaticTypeContext(node, _typeEnvironment);
+    super.visitProcedure(node);
+    _staticTypeContext = null;
+  }
+
+  @override
   visitFunctionNode(FunctionNode node) {
     _functionNesting++;
-    if (_functionNesting == 1) inference.enterFunction(node);
+    if (_functionNesting == 1) {
+      inference.enterFunction(_staticTypeContext, node);
+    }
     super.visitFunctionNode(node);
     if (_functionNesting == 1) inference.exitFunction(node);
     _functionNesting--;

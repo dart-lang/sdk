@@ -24,7 +24,7 @@ import 'package:kernel/text/ast_to_text.dart'
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart'
-    show SubtypeCheckMode, TypeEnvironment;
+    show StatefulStaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 import 'assembler.dart';
 import 'bytecode_serialization.dart' show StringTable;
 import 'constant_pool.dart';
@@ -122,6 +122,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
+  final StatefulStaticTypeContext staticTypeContext;
   final BytecodeOptions options;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
@@ -167,9 +168,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   List<int> savedMaxSourcePositions;
   int maxSourcePosition;
 
-  BytecodeGenerator(ast.Component component, this.coreTypes, this.hierarchy,
-      this.typeEnvironment, this.options)
-      : recognizedMethods = new RecognizedMethods(typeEnvironment),
+  BytecodeGenerator(
+      ast.Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      BytecodeOptions options)
+      : this._internal(component, coreTypes, hierarchy, typeEnvironment,
+            options, new StatefulStaticTypeContext(typeEnvironment));
+
+  BytecodeGenerator._internal(
+      ast.Component component,
+      this.coreTypes,
+      this.hierarchy,
+      this.typeEnvironment,
+      this.options,
+      this.staticTypeContext)
+      : recognizedMethods = new RecognizedMethods(staticTypeContext),
         formatVersion = currentBytecodeFormatVersion,
         astUriToSource = component.uriToSource {
     nullabilityDetector = new NullabilityDetector(recognizedMethods);
@@ -1656,9 +1671,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     parentFunction = null;
     isClosure = false;
     hasErrors = false;
-    if ((node is Procedure && !node.isStatic) || node is Constructor) {
-      typeEnvironment.thisType = enclosingClass.thisType;
-    }
+    staticTypeContext.enterMember(node);
     final isFactory = node is Procedure && node.isFactory;
     if (node.isInstanceMember || node is Constructor || isFactory) {
       if (enclosingClass.typeParameters.isNotEmpty) {
@@ -1729,8 +1742,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedMaxSourcePositions = <int>[];
     maxSourcePosition = node.fileOffset;
 
-    locals =
-        new LocalVariables(node, options, typeEnvironment, directCallMetadata);
+    locals = new LocalVariables(
+        node, options, staticTypeContext, directCallMetadata);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
@@ -1850,7 +1863,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
 
-    typeEnvironment.thisType = null;
+    staticTypeContext.leaveMember(node);
     enclosingClass = null;
     enclosingMember = null;
     enclosingFunction = null;
@@ -3240,7 +3253,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   bool _isUncheckedCall(
           Node node, Member interfaceTarget, Expression receiver) =>
-      isUncheckedCall(interfaceTarget, receiver, typeEnvironment) ||
+      isUncheckedCall(interfaceTarget, receiver, staticTypeContext) ||
       (inferredTypeMetadata != null &&
           inferredTypeMetadata[node]?.skipCheck == true);
 
@@ -3261,7 +3274,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     if (invocationKind != InvocationKind.getter && !isDynamic && !isUnchecked) {
-      final staticReceiverType = getStaticType(receiver, typeEnvironment);
+      final staticReceiverType = getStaticType(receiver, staticTypeContext);
       if (isInstantiatedInterfaceCall(interfaceTarget, staticReceiverType)) {
         final callCpIndex = cp.addInstantiatedInterfaceCall(
             invocationKind, interfaceTarget, argDesc, staticReceiverType);
@@ -3352,7 +3365,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     // Front-end guarantees that all calls with known function type
     // do not need any argument type checks.
-    if (isUncheckedClosureCall(node, typeEnvironment, options)) {
+    if (isUncheckedClosureCall(node, staticTypeContext, options)) {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
       // Duplicate receiver (closure) for UncheckedClosureCall.
