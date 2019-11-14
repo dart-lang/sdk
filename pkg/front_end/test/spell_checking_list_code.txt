@@ -705,6 +705,7 @@ residue
 respond
 restriction
 resumed
+ret
 rewrites
 rewrote
 rf

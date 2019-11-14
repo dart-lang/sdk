@@ -1085,6 +1085,145 @@ FunctionNode wrapSyncFunctionNode(
       asyncMarker: AsyncMarker.Sync);
 }
 
+TextSerializer<FunctionNode> asyncFunctionNodeSerializer = new Wrapped(
+    unwrapFunctionNode,
+    wrapAsyncFunctionNode,
+    new Bind(
+        new Rebind(
+            typeParametersSerializer,
+            new Tuple3Serializer(
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)))),
+        new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
+
+FunctionNode wrapAsyncFunctionNode(
+    Tuple2<
+            Tuple2<
+                List<TypeParameter>,
+                Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+                    List<VariableDeclaration>>>,
+            Tuple2<DartType, Statement>>
+        tuple) {
+  return new FunctionNode(tuple.second.second,
+      typeParameters: tuple.first.first,
+      positionalParameters:
+          tuple.first.second.first + tuple.first.second.second,
+      namedParameters: tuple.first.second.third,
+      requiredParameterCount: tuple.first.second.first.length,
+      returnType: tuple.second.first,
+      asyncMarker: AsyncMarker.Async);
+}
+
+TextSerializer<FunctionNode> syncStarFunctionNodeSerializer = new Wrapped(
+    unwrapFunctionNode,
+    wrapSyncStarFunctionNode,
+    new Bind(
+        new Rebind(
+            typeParametersSerializer,
+            new Tuple3Serializer(
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)))),
+        new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
+
+FunctionNode wrapSyncStarFunctionNode(
+    Tuple2<
+            Tuple2<
+                List<TypeParameter>,
+                Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+                    List<VariableDeclaration>>>,
+            Tuple2<DartType, Statement>>
+        tuple) {
+  return new FunctionNode(tuple.second.second,
+      typeParameters: tuple.first.first,
+      positionalParameters:
+          tuple.first.second.first + tuple.first.second.second,
+      namedParameters: tuple.first.second.third,
+      requiredParameterCount: tuple.first.second.first.length,
+      returnType: tuple.second.first,
+      asyncMarker: AsyncMarker.SyncStar);
+}
+
+TextSerializer<FunctionNode> asyncStarFunctionNodeSerializer = new Wrapped(
+    unwrapFunctionNode,
+    wrapAsyncStarFunctionNode,
+    new Bind(
+        new Rebind(
+            typeParametersSerializer,
+            new Tuple3Serializer(
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)),
+                new ListSerializer(new Binder(variableDeclarationSerializer,
+                    getVariableDeclarationName, setVariableDeclarationName)))),
+        new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
+
+FunctionNode wrapAsyncStarFunctionNode(
+    Tuple2<
+            Tuple2<
+                List<TypeParameter>,
+                Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+                    List<VariableDeclaration>>>,
+            Tuple2<DartType, Statement>>
+        tuple) {
+  return new FunctionNode(tuple.second.second,
+      typeParameters: tuple.first.first,
+      positionalParameters:
+          tuple.first.second.first + tuple.first.second.second,
+      namedParameters: tuple.first.second.third,
+      requiredParameterCount: tuple.first.second.first.length,
+      returnType: tuple.second.first,
+      asyncMarker: AsyncMarker.AsyncStar);
+}
+
+TextSerializer<FunctionNode> syncYieldingStarFunctionNodeSerializer =
+    new Wrapped(
+        unwrapFunctionNode,
+        wrapSyncYieldingFunctionNode,
+        new Bind(
+            new Rebind(
+                typeParametersSerializer,
+                new Tuple3Serializer(
+                    new ListSerializer(new Binder(
+                        variableDeclarationSerializer,
+                        getVariableDeclarationName,
+                        setVariableDeclarationName)),
+                    new ListSerializer(new Binder(
+                        variableDeclarationSerializer,
+                        getVariableDeclarationName,
+                        setVariableDeclarationName)),
+                    new ListSerializer(new Binder(
+                        variableDeclarationSerializer,
+                        getVariableDeclarationName,
+                        setVariableDeclarationName)))),
+            new Tuple2Serializer(dartTypeSerializer, statementSerializer)));
+
+FunctionNode wrapSyncYieldingFunctionNode(
+    Tuple2<
+            Tuple2<
+                List<TypeParameter>,
+                Tuple3<List<VariableDeclaration>, List<VariableDeclaration>,
+                    List<VariableDeclaration>>>,
+            Tuple2<DartType, Statement>>
+        tuple) {
+  return new FunctionNode(tuple.second.second,
+      typeParameters: tuple.first.first,
+      positionalParameters:
+          tuple.first.second.first + tuple.first.second.second,
+      namedParameters: tuple.first.second.third,
+      requiredParameterCount: tuple.first.second.first.length,
+      returnType: tuple.second.first,
+      asyncMarker: AsyncMarker.SyncYielding);
+}
+
 Case<FunctionNode> functionNodeSerializer =
     new Case.uninitialized(const FunctionNodeTagger());
 
@@ -1207,8 +1346,16 @@ void initializeSerializers() {
   ]);
   functionNodeSerializer.tags.addAll([
     "sync",
+    "async",
+    "sync-star",
+    "async-star",
+    "sync-yielding",
   ]);
   functionNodeSerializer.serializers.addAll([
     syncFunctionNodeSerializer,
+    asyncFunctionNodeSerializer,
+    syncStarFunctionNodeSerializer,
+    asyncStarFunctionNodeSerializer,
+    syncYieldingStarFunctionNodeSerializer,
   ]);
 }
