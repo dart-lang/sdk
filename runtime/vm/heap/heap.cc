@@ -446,7 +446,7 @@ void Heap::NotifyIdle(int64_t deadline) {
 }
 
 void Heap::NotifyLowMemory() {
-  CollectAllGarbage(kLowMemory);
+  CollectMostGarbage(kLowMemory);
 }
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
@@ -561,7 +561,8 @@ void Heap::CollectGarbage(Space space) {
 void Heap::CollectMostGarbage(GCReason reason) {
   Thread* thread = Thread::Current();
   CollectNewSpaceGarbage(thread, reason);
-  CollectOldSpaceGarbage(thread, kMarkSweep, reason);
+  CollectOldSpaceGarbage(
+      thread, reason == kLowMemory ? kMarkCompact : kMarkSweep, reason);
 }
 
 void Heap::CollectAllGarbage(GCReason reason) {
@@ -570,8 +571,15 @@ void Heap::CollectAllGarbage(GCReason reason) {
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
   EvacuateNewSpace(thread, reason);
+  if (thread->is_marking()) {
+    // If incremental marking is happening, we need to finish the GC cycle
+    // and perform a follow-up GC to pruge any "floating garbage" that may be
+    // retained by the incremental barrier.
+    CollectOldSpaceGarbage(thread, kMarkSweep, reason);
+  }
   CollectOldSpaceGarbage(
       thread, reason == kLowMemory ? kMarkCompact : kMarkSweep, reason);
+  WaitForSweeperTasks(thread);
 }
 
 void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {

@@ -137,7 +137,6 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_EQ(3, list_length);
 
   Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
 
@@ -167,7 +166,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
     // Force a scavenge.
-    heap->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
     RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
@@ -197,7 +196,6 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 // Test that the ring table is updated with nulls when the old GC collects.
 ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
-  Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
 
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
@@ -230,7 +228,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   // Force a GC. No reference exist to the old string anymore. It should be
   // collected and the object id ring will now return the null object for
   // those ids.
-  heap->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectOldSpace();
   RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved1);

@@ -161,6 +161,14 @@ class IsolateTestHelper {
 };
 
 TEST_CASE(NoOOBMessageScope) {
+  // Finish any GC in progress so that no kVMInterrupt is added for GC reasons.
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+    const Error& error = Error::Handle(thread->HandleInterrupts());
+    RELEASE_ASSERT(error.IsNull());
+  }
+
   // EXPECT_EQ is picky about type agreement for its arguments.
   const uword kZero = 0;
   const uword kMessageInterrupt = Thread::kMessageInterrupt;

@@ -2129,11 +2129,11 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   Heap* heap = Isolate::Current()->heap();
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
   // Page should shrink.
   EXPECT_LT(capacity_after, capacity_before);
@@ -3217,7 +3217,6 @@ TEST_CASE(StackTraceFormat) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     // Weak property and value in new. Key in old.
@@ -3232,8 +3231,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3251,8 +3250,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3270,7 +3269,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= Integer::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   // Weak property key and value should survive due implicit liveness of
   // non-heap objects.
   EXPECT(weak.key() != Object::null());
@@ -3288,7 +3287,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   // Weak property key and value should survive due implicit liveness of
   // non-heap objects.
   EXPECT(weak.key() != Object::null());
@@ -3305,8 +3304,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3323,8 +3322,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kOld);
+  GCTestHelper::CollectNewSpace();
+  GCTestHelper::CollectOldSpace();
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3334,7 +3333,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
   // This used to end in an infinite recursion. Caused by scavenging the weak
   // property before scavenging the key.
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   Array& arr = Array::Handle(Array::New(1));
   {
@@ -3348,13 +3346,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
   key ^= OneByteString::New("key");
@@ -3366,13 +3363,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1");
@@ -3392,7 +3388,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3400,7 +3396,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3418,7 +3413,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3426,7 +3421,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   String& key = String::Handle();
   key ^= OneByteString::New("key", Heap::kOld);
@@ -3438,13 +3432,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
     weak.set_key(key);
     weak.set_value(value);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   String& key1 = String::Handle();
   key1 ^= OneByteString::New("key1", Heap::kOld);
@@ -3464,7 +3457,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
     weak2.set_key(key2);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3472,7 +3465,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   String& key = String::Handle();
@@ -3490,7 +3482,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() != Object::null());
   EXPECT(weak1.value() != Object::null());
   EXPECT(weak2.key() != Object::null());
@@ -3498,7 +3490,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(thread);
@@ -3512,13 +3503,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
@@ -3536,7 +3526,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -3544,7 +3534,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
   {
     HANDLESCOPE(thread);
@@ -3558,13 +3547,12 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
-  Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
   WeakProperty& weak2 = WeakProperty::Handle();
   {
@@ -3582,7 +3570,7 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
     weak2.set_key(key);
     weak2.set_value(value2);
   }
-  isolate->heap()->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   EXPECT(weak1.key() == Object::null());
   EXPECT(weak1.value() == Object::null());
   EXPECT(weak2.key() == Object::null());
@@ -4005,8 +3993,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
     bin::VmService::SetNativeResolver();
   }
 
-  Heap* heap = Isolate::Current()->heap();
-  heap->CollectAllGarbage();
+  GCTestHelper::CollectAllGarbage();
   GrowableArray<Object*> objects;
   {
     HeapIterationScope iteration(Thread::Current());
