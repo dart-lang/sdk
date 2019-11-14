@@ -40,12 +40,12 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     ClassElementImpl classC = ElementFactory.classElement2("C");
     ClassElementImpl classD = ElementFactory.classElement2("D");
     ClassElementImpl classE = ElementFactory.classElement2("E");
-    classB.interfaces = <InterfaceType>[interfaceType(classA)];
-    classC.interfaces = <InterfaceType>[interfaceType(classA)];
-    classD.interfaces = <InterfaceType>[interfaceType(classC)];
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classD.interfaces = <InterfaceType>[interfaceTypeStar(classC)];
     classE.interfaces = <InterfaceType>[
-      interfaceType(classB),
-      interfaceType(classD)
+      interfaceTypeStar(classB),
+      interfaceTypeStar(classD)
     ];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
@@ -68,14 +68,14 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     //
     ClassElement classA = ElementFactory.classElement2("A");
     ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
     ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classA));
+        ElementFactory.classElement("C", interfaceTypeStar(classA));
     ClassElement classD =
-        ElementFactory.classElement("D", interfaceType(classC));
+        ElementFactory.classElement("D", interfaceTypeStar(classC));
     ClassElementImpl classE =
-        ElementFactory.classElement("E", interfaceType(classB));
-    classE.interfaces = <InterfaceType>[interfaceType(classD)];
+        ElementFactory.classElement("E", interfaceTypeStar(classB));
+    classE.interfaces = <InterfaceType>[interfaceTypeStar(classD)];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -90,8 +90,8 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
   void test_computeLongestInheritancePathToObject_recursion() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceType(classA));
-    classA.supertype = interfaceType(classB);
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
+    classA.supertype = interfaceTypeStar(classB);
     expect(_longestPathToObject(classA), 2);
   }
 
@@ -108,8 +108,8 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement2("B");
     ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[interfaceType(classA)];
-    classC.interfaces = <InterfaceType>[interfaceType(classB)];
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeStar(classB)];
     expect(_longestPathToObject(classA), 1);
     expect(_longestPathToObject(classB), 2);
     expect(_longestPathToObject(classC), 3);
@@ -127,9 +127,9 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     //
     ClassElement classA = ElementFactory.classElement2("A");
     ClassElement classB =
-        ElementFactory.classElement("B", interfaceType(classA));
+        ElementFactory.classElement("B", interfaceTypeStar(classA));
     ClassElement classC =
-        ElementFactory.classElement("C", interfaceType(classB));
+        ElementFactory.classElement("C", interfaceTypeStar(classB));
     expect(_longestPathToObject(classA), 1);
     expect(_longestPathToObject(classB), 2);
     expect(_longestPathToObject(classC), 3);
@@ -181,7 +181,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [interfaceType(classD)]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -189,12 +189,12 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [interfaceType(classD)]),
+        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [interfaceType(classD)]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ]),
     );
   }
@@ -242,7 +242,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [interfaceType(classD)]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -250,12 +250,12 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [interfaceType(classD)]),
+        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [interfaceType(classD)]),
+        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
       ]),
     );
   }

@@ -198,11 +198,11 @@ class X5 extends A with B, C implements D, E {}
     var d = findElement.class_('D');
     var e = findElement.class_('E');
 
-    var typeA = interfaceType(a);
-    var typeB = interfaceType(b);
-    var typeC = interfaceType(c);
-    var typeD = interfaceType(d);
-    var typeE = interfaceType(e);
+    var typeA = interfaceTypeStar(a);
+    var typeB = interfaceTypeStar(b);
+    var typeC = interfaceTypeStar(c);
+    var typeD = interfaceTypeStar(d);
+    var typeE = interfaceTypeStar(e);
 
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
@@ -244,16 +244,16 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
       [
-        interfaceType(a, typeArguments: [stringType]),
+        interfaceTypeStar(a, typeArguments: [stringType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
       [
-        interfaceType(b, typeArguments: [
+        interfaceTypeStar(b, typeArguments: [
           stringType,
-          interfaceType(listElement, typeArguments: [intType])
+          interfaceTypeStar(listElement, typeArguments: [intType])
         ]),
         objectType
       ],
@@ -261,8 +261,8 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
       [
-        interfaceType(c, typeArguments: [doubleType]),
-        interfaceType(b, typeArguments: [intType, doubleType]),
+        interfaceTypeStar(c, typeArguments: [doubleType]),
+        interfaceTypeStar(b, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
@@ -283,7 +283,7 @@ class X extends A {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X').allSupertypes,
-      [interfaceType(a), interfaceType(b), interfaceType(c)],
+      [interfaceTypeStar(a), interfaceTypeStar(b), interfaceTypeStar(c)],
     );
   }
 

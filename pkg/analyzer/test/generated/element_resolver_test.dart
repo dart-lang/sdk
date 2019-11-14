@@ -393,25 +393,25 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     ClassElementImpl classB = ElementFactory.classElement2("B");
     _encloseElement(classB);
-    classB.interfaces = <InterfaceType>[interfaceType(classA)];
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
     //
     // class C extends Object with B {}
     //
     ClassElementImpl classC = ElementFactory.classElement2("C");
     _encloseElement(classC);
-    classC.mixins = <InterfaceType>[interfaceType(classB)];
+    classC.mixins = <InterfaceType>[interfaceTypeStar(classB)];
     //
     // class D extends C {}
     //
     ClassElementImpl classD =
-        ElementFactory.classElement("D", interfaceType(classC));
+        ElementFactory.classElement("D", interfaceTypeStar(classC));
     _encloseElement(classA);
     //
     // D a;
     // a[i];
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = interfaceType(classD);
+    array.staticType = interfaceTypeStar(classD);
     IndexExpression expression =
         AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
     expect(_resolveIndexExpression(expression), same(operator));
@@ -862,9 +862,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
-    variable.type = interfaceType(classA);
+    variable.type = interfaceTypeStar(classA);
     target.staticElement = variable;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier = AstTestFactory.identifier(
         target, AstTestFactory.identifier3(getterName));
     _resolveNode(identifier);
@@ -886,7 +886,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.b"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     // resolve
@@ -907,7 +907,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.m"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.expressionStatement(identifier);
@@ -931,7 +931,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.b = null"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.assignmentExpression(
@@ -962,7 +962,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
@@ -985,8 +985,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType =
-        interfaceType(ElementFactory.classElement("B", interfaceType(classA)));
+    target.staticType = interfaceTypeStar(
+        ElementFactory.classElement("B", interfaceTypeStar(classA)));
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,
@@ -1009,7 +1009,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setter];
     ThisExpression target = AstTestFactory.thisExpression();
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, setterName);
     AstTestFactory.assignmentExpression(
         access, TokenType.EQ, AstTestFactory.integer(0));
@@ -1067,7 +1067,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(superclass, null);
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", interfaceType(superclass));
+        ElementFactory.classElement("B", interfaceTypeStar(superclass));
     _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
@@ -1092,7 +1092,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     superConstructor.parameters = <ParameterElement>[parameter];
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", interfaceType(superclass));
+        ElementFactory.classElement("B", interfaceTypeStar(superclass));
     _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);

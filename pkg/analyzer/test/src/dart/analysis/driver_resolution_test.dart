@@ -833,10 +833,10 @@ f() {}
     expect(atD.element, constructorD);
 
     expect(constC.staticElement, constructorC);
-    expect(constC.staticType, interfaceType(elementC));
+    expect(constC.staticType, interfaceTypeStar(elementC));
 
     expect(constC.constructorName.staticElement, constructorC);
-    expect(constC.constructorName.type.type, interfaceType(elementC));
+    expect(constC.constructorName.type.type, interfaceTypeStar(elementC));
   }
 
   test_annotation_unprefixed_topLevelVariable() async {
@@ -1468,7 +1468,7 @@ class B {
       expect(constructorName.staticElement, same(aUnnamed));
 
       TypeName typeName = constructorName.type;
-      expect(typeName.type, interfaceType(aElement));
+      expect(typeName.type, interfaceTypeStar(aElement));
 
       SimpleIdentifier identifier = typeName.name;
       expect(identifier.staticElement, same(aElement));
@@ -1488,7 +1488,7 @@ class B {
       expect(constructorName.staticElement, same(aNamed));
 
       TypeName typeName = constructorName.type;
-      expect(typeName.type, interfaceType(aElement));
+      expect(typeName.type, interfaceTypeStar(aElement));
 
       SimpleIdentifier identifier = typeName.name;
       expect(identifier.staticElement, same(aElement));
@@ -2217,7 +2217,7 @@ var b = new C.named();
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       InstanceCreationExpression value = aNode.initializer;
       expect(value.staticElement, defaultConstructor);
-      expect(value.staticType, interfaceType(cElement));
+      expect(value.staticType, interfaceTypeStar(cElement));
 
       TypeName typeName = value.constructorName.type;
       expect(typeName.typeArguments, isNull);
@@ -2234,7 +2234,7 @@ var b = new C.named();
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       InstanceCreationExpression value = bNode.initializer;
       expect(value.staticElement, namedConstructor);
-      expect(value.staticType, interfaceType(cElement));
+      expect(value.staticType, interfaceTypeStar(cElement));
 
       TypeName typeName = value.constructorName.type;
       expect(typeName.typeArguments, isNull);
@@ -2270,7 +2270,7 @@ var v = new X(1, b: true, c: 3.0);
     InstanceCreationExpression creation = vNode.initializer;
     List<Expression> arguments = creation.argumentList.arguments;
     expect(creation.staticElement, constructorElement);
-    expect(creation.staticType, interfaceType(xElement));
+    expect(creation.staticType, interfaceTypeStar(xElement));
 
     TypeName typeName = creation.constructorName.type;
     expect(typeName.typeArguments, isNull);
@@ -2310,7 +2310,7 @@ var b = new C.named(2);
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
       InstanceCreationExpression value = aNode.initializer;
       expect(value.staticElement, defaultConstructor);
-      expect(value.staticType, interfaceType(cElement));
+      expect(value.staticType, interfaceTypeStar(cElement));
 
       TypeName typeName = value.constructorName.type;
       expect(typeName.typeArguments, isNull);
@@ -2330,7 +2330,7 @@ var b = new C.named(2);
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
       InstanceCreationExpression value = bNode.initializer;
       expect(value.staticElement, namedConstructor);
-      expect(value.staticType, interfaceType(cElement));
+      expect(value.staticType, interfaceTypeStar(cElement));
 
       TypeName typeName = value.constructorName.type;
       expect(typeName.typeArguments, isNull);
@@ -6295,7 +6295,7 @@ class C {
 
     SimpleIdentifier prefix = prefixed.prefix;
     expect(prefix.staticElement, same(vElement));
-    expect(prefix.staticType, interfaceType(cElement));
+    expect(prefix.staticType, interfaceTypeStar(cElement));
 
     SimpleIdentifier identifier = prefixed.identifier;
     expect(identifier.staticElement, same(fElement.getter));
@@ -6623,7 +6623,7 @@ class C {
 
       InstanceCreationExpression newC = access.target;
       expect(newC.staticElement, cClassElement.unnamedConstructor);
-      expect(newC.staticType, interfaceType(cClassElement));
+      expect(newC.staticType, interfaceTypeStar(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));
       expect(access.propertyName.staticType, typeProvider.intType);
@@ -6658,7 +6658,7 @@ class C {
 
       InstanceCreationExpression newC = access.target;
       expect(newC.staticElement, cClassElement.unnamedConstructor);
-      expect(newC.staticType, interfaceType(cClassElement));
+      expect(newC.staticType, interfaceTypeStar(cClassElement));
 
       expect(access.propertyName.staticElement, same(fElement.getter));
       expect(access.propertyName.staticType, typeProvider.intType);
@@ -6823,7 +6823,8 @@ class B extends A {
       MethodInvocation invocation = statement.expression;
 
       SuperExpression target = invocation.target;
-      expect(target.staticType, interfaceType(bNode.declaredElement)); // raw
+      expect(
+          target.staticType, interfaceTypeStar(bNode.declaredElement)); // raw
 
       expect(invocation.methodName.staticElement, same(methodElement));
     }
@@ -6844,7 +6845,8 @@ class B extends A {
       expect(propertyAccess.staticType, typeProvider.intType);
 
       SuperExpression target = propertyAccess.target;
-      expect(target.staticType, interfaceType(bNode.declaredElement)); // raw
+      expect(
+          target.staticType, interfaceTypeStar(bNode.declaredElement)); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(getterElement));
       expect(propertyAccess.propertyName.staticType, typeProvider.intType);
@@ -6868,7 +6870,8 @@ class B extends A {
       PropertyAccess propertyAccess = assignment.leftHandSide;
 
       SuperExpression target = propertyAccess.target;
-      expect(target.staticType, interfaceType(bNode.declaredElement)); // raw
+      expect(
+          target.staticType, interfaceTypeStar(bNode.declaredElement)); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(setterElement));
       expect(propertyAccess.propertyName.staticType, typeProvider.intType);
@@ -6880,7 +6883,8 @@ class B extends A {
       BinaryExpression binary = statement.expression;
 
       ThisExpression target = binary.leftOperand;
-      expect(target.staticType, interfaceType(bNode.declaredElement)); // raw
+      expect(
+          target.staticType, interfaceTypeStar(bNode.declaredElement)); // raw
 
       expect(binary.staticElement, same(operatorElement));
       expect(binary.staticType, typeProvider.intType);
@@ -6920,7 +6924,7 @@ class A {
     List<Statement> testStatements = testBody.block.statements;
 
     var elementA = findElement.class_('A');
-    var thisTypeA = interfaceType(elementA);
+    var thisTypeA = interfaceTypeStar(elementA);
 
     // method(1);
     {
@@ -7763,7 +7767,7 @@ class C<T extends A, U extends List<A>, V> {}
       expect(tNode.declaredElement, same(cElement.typeParameters[0]));
 
       TypeName bound = tNode.bound;
-      expect(bound.type, interfaceType(aElement));
+      expect(bound.type, interfaceTypeStar(aElement));
 
       SimpleIdentifier boundIdentifier = bound.name;
       expect(boundIdentifier.staticElement, same(aElement));
@@ -7773,7 +7777,7 @@ class C<T extends A, U extends List<A>, V> {}
     {
       var listElement = typeProvider.listElement;
       var listOfA = listElement.instantiate(
-        typeArguments: [interfaceType(aElement)],
+        typeArguments: [interfaceTypeStar(aElement)],
         nullabilitySuffix: NullabilitySuffix.star,
       );
 
@@ -7788,7 +7792,7 @@ class C<T extends A, U extends List<A>, V> {}
       expect(listIdentifier.staticType, isNull);
 
       TypeName aTypeName = bound.typeArguments.arguments[0];
-      expect(aTypeName.type, interfaceType(aElement));
+      expect(aTypeName.type, interfaceTypeStar(aElement));
 
       SimpleIdentifier aIdentifier = aTypeName.name;
       expect(aIdentifier.staticElement, same(aElement));
@@ -8291,7 +8295,7 @@ main() {
     ExpressionStatement statement = statements[0];
 
     InstanceCreationExpression creation = statement.expression;
-    expect(creation.staticType, interfaceType(randomElement));
+    expect(creation.staticType, interfaceTypeStar(randomElement));
 
     ConstructorName constructorName = creation.constructorName;
 

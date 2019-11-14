@@ -107,7 +107,7 @@ mixin ElementsTypesMixin {
 
   DartType futureType(DartType T) {
     var futureElement = typeProvider.futureElement;
-    return interfaceType(futureElement, typeArguments: [T]);
+    return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
 
   GenericFunctionTypeElementImpl genericFunctionType({
@@ -135,12 +135,41 @@ mixin ElementsTypesMixin {
   InterfaceType interfaceType(
     ClassElement element, {
     List<DartType> typeArguments = const [],
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+    @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return InterfaceTypeImpl.explicit(
-      element,
-      typeArguments,
+    return element.instantiate(
+      typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  InterfaceType interfaceTypeNone(
+    ClassElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType interfaceTypeQuestion(
+    ClassElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType interfaceTypeStar(
+    ClassElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
