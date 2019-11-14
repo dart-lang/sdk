@@ -12962,22 +12962,23 @@ const char* CodeSourceMap::ToCString() const {
   return "CodeSourceMap";
 }
 
-intptr_t CompressedStackMaps::Hash() const {
-  uint32_t hash = 0;
-  for (intptr_t i = 0; i < payload_size(); i++) {
-    uint8_t byte = Payload()[i];
+intptr_t CompressedStackMaps::Hashcode() const {
+  uint32_t hash = payload_size();
+  for (uintptr_t i = 0; i < payload_size(); i++) {
+    uint8_t byte = PayloadByte(i);
     hash = CombineHashes(hash, byte);
   }
   return FinalizeHash(hash, kHashBits);
 }
 
 RawCompressedStackMaps* CompressedStackMaps::New(
-    const GrowableArray<uint8_t>& payload) {
+    const GrowableArray<uint8_t>& payload,
+    RawCompressedStackMaps::Kind kind) {
   ASSERT(Object::compressed_stackmaps_class() != Class::null());
   auto& result = CompressedStackMaps::Handle();
 
   const uintptr_t payload_size = payload.length();
-  if (payload_size > kMaxInt32) {
+  if (!RawCompressedStackMaps::SizeField::is_valid(payload_size)) {
     FATAL1(
         "Fatal error in CompressedStackMaps::New: "
         "invalid payload size %" Pu "\n",
@@ -12991,7 +12992,7 @@ RawCompressedStackMaps* CompressedStackMaps::New(
         CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_payload_size(payload_size);
+    result.set_payload_size(payload_size, kind);
   }
   result.SetPayload(payload);
 
@@ -13000,19 +13001,24 @@ RawCompressedStackMaps* CompressedStackMaps::New(
 
 void CompressedStackMaps::SetPayload(
     const GrowableArray<uint8_t>& payload) const {
-  auto const array_length = payload.length();
+  const uintptr_t array_length = payload.length();
   ASSERT(array_length <= payload_size());
 
   NoSafepointScope no_safepoint;
   uint8_t* payload_start = UnsafeMutableNonPointer(raw_ptr()->data());
-  for (intptr_t i = 0; i < array_length; i++) {
+  for (uintptr_t i = 0; i < array_length; i++) {
     payload_start[i] = payload.At(i);
   }
 }
 
 const char* CompressedStackMaps::ToCString() const {
-  ZoneTextBuffer b(Thread::Current()->zone(), 100);
-  CompressedStackMapsIterator it(*this);
+  ASSERT(!IsGlobalTable());
+  auto const t = Thread::Current();
+  auto zone = t->zone();
+  ZoneTextBuffer b(zone, 100);
+  const auto& global_table = CompressedStackMaps::Handle(
+      zone, t->isolate()->object_store()->canonicalized_stack_map_entries());
+  CompressedStackMapsIterator it(*this, global_table);
   bool first_entry = true;
   while (it.MoveNext()) {
     if (first_entry) {
@@ -13021,7 +13027,7 @@ const char* CompressedStackMaps::ToCString() const {
       b.AddString("\n");
     }
     b.Printf("0x%08x: ", it.pc_offset());
-    for (intptr_t i = 0, n = it.length(); i < n; i++) {
+    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
       b.AddString(it.IsObject(i) ? "1" : "0");
     }
   }

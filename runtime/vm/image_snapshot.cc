@@ -183,7 +183,7 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
     case kCompressedStackMapsCid: {
       RawCompressedStackMaps* raw_maps =
           static_cast<RawCompressedStackMaps*>(raw_object);
-      return CompressedStackMapsSizeInSnapshot(raw_maps->ptr()->payload_size_);
+      return CompressedStackMapsSizeInSnapshot(raw_maps->ptr()->payload_size());
     }
     case kOneByteStringCid:
     case kTwoByteStringCid: {
@@ -381,9 +381,9 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      stream->WriteFixed<uint32_t>(payload_size);
       // We do not need to align the stream to a word boundary on 64-bit because
       // sizeof(RawCompressedStackMaps) is 12, even there.
+      stream->WriteFixed<uint32_t>(map.raw()->ptr()->flags_and_size_);
       stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
       stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else if (obj.IsString()) {

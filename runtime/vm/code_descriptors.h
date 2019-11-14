@@ -48,6 +48,8 @@ class CompressedStackMapsBuilder : public ZoneAllocated {
  public:
   CompressedStackMapsBuilder() : encoded_bytes_() {}
 
+  static void EncodeLEB128(GrowableArray<uint8_t>* data, uintptr_t value);
+
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
                 intptr_t spill_slot_bit_count);
@@ -64,8 +66,16 @@ class CompressedStackMapsIterator : public ValueObject {
  public:
   // We use the null value to represent CompressedStackMaps with no
   // entries, so the constructor allows them.
+  CompressedStackMapsIterator(const CompressedStackMaps& maps,
+                              const CompressedStackMaps& global_table)
+      : maps_(maps),
+        bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
+    ASSERT(!maps_.IsGlobalTable());
+    ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+  }
+
   explicit CompressedStackMapsIterator(const CompressedStackMaps& maps)
-      : maps_(maps) {}
+      : CompressedStackMapsIterator(maps, CompressedStackMaps::Handle()) {}
 
   // Loads the next entry from [maps_], if any. If [maps_] is the null
   // value, this always returns false.
@@ -91,25 +101,38 @@ class CompressedStackMapsIterator : public ValueObject {
     ASSERT(HasLoadedEntry());
     return current_pc_offset_;
   }
-  intptr_t length() const {
+  // We lazily load and cache information from the global table if the
+  // CSM uses it, so these methods cannot be const.
+  intptr_t Length();
+  intptr_t SpillSlotBitCount();
+  bool IsObject(intptr_t bit_offset);
+
+  void EnsureFullyLoadedEntry() {
     ASSERT(HasLoadedEntry());
-    return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+    if (current_spill_slot_bit_count_ < 0) {
+      LazyLoadGlobalTableEntry();
+    }
+    ASSERT(current_spill_slot_bit_count_ >= 0);
   }
-  intptr_t spill_slot_bit_count() const {
-    ASSERT(HasLoadedEntry());
-    return current_spill_slot_bit_count_;
-  }
-  bool IsObject(intptr_t bit_offset) const;
 
  private:
+  static uintptr_t DecodeLEB128(const CompressedStackMaps& data,
+                                uintptr_t* byte_index);
   bool HasLoadedEntry() const { return next_offset_ > 0; }
+  void LazyLoadGlobalTableEntry();
 
   const CompressedStackMaps& maps_;
-  intptr_t next_offset_ = 0;
+  const CompressedStackMaps& bits_container_;
+
+  uintptr_t next_offset_ = 0;
   uint32_t current_pc_offset_ = 0;
+  // Only used when looking up non-PC information in the global table.
+  uintptr_t current_global_table_offset_ = 0;
   intptr_t current_spill_slot_bit_count_ = -1;
   intptr_t current_non_spill_slot_bit_count_ = -1;
   intptr_t current_bits_offset_ = -1;
+
+  friend class StackMapEntry;
 };
 
 class ExceptionHandlerList : public ZoneAllocated {

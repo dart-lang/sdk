@@ -1594,30 +1594,74 @@ class RawCompressedStackMaps : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
-  uint32_t payload_size_;  // Length of the encoded payload, in bytes.
+  // The most significant bits are the length of the encoded payload, in bytes.
+  // The low bits determine the expected payload contents, as described below.
+  uint32_t flags_and_size_;
 
-  // Variable length data follows here. The payload consists of entries with
-  // the following information:
+  // Variable length data follows here. There are three types of
+  // CompressedStackMaps (CSM):
   //
-  // * A header containing the following three pieces of information:
-  //   * An unsigned integer representing the PC offset as a delta from the
-  //     PC offset of the previous entry (from 0 for the first entry).
-  //   * An unsigned integer representing the number of bits used for
-  //     register entries.
-  //   * An unsigned integer representing the number of bits used for spill
-  //     slot entries.
-  // * The body containing the bits for the stack map. The length of the body
-  //   in bits is the sum of the register and spill slot bit counts.
+  // 1) kind == kInlined: CSMs that include all information about the stack
+  //    maps. The payload for these contain tightly packed entries with the
+  //    following information:
   //
-  // Each unsigned integer is LEB128 encoded, as generally they tend to fit in
-  // a single byte or two. Thus, entry headers are not a fixed length, and
-  // currently there is no random access of entries.  In addition, PC offsets
-  // are currently encoded as deltas, which also inhibits random access without
-  // accessing previous entries. That means to find an entry for a given PC
-  // offset, a linear search must be done where the payload is decoded
-  // up to the entry whose PC offset is >= the given PC.
+  //   * A header containing the following three pieces of information:
+  //     * An unsigned integer representing the PC offset as a delta from the
+  //       PC offset of the previous entry (from 0 for the first entry).
+  //     * An unsigned integer representing the number of bits used for
+  //       spill slot entries.
+  //     * An unsigned integer representing the number of bits used for other
+  //       entries.
+  //   * The body containing the bits for the stack map. The length of the body
+  //     in bits is the sum of the spill slot and non-spill slot bit counts.
+  //
+  // 2) kind == kUsesTable: CSMs where the majority of the stack map information
+  //    has been offloaded and canonicalized into a global table. The payload
+  //    contains tightly packed entries with the following information:
+  //
+  //   * A header containing just an unsigned integer representing the PC offset
+  //     delta as described above.
+  //   * The body is just an unsigned integer containing the offset into the
+  //     payload for the global table.
+  //
+  // 3) kind == kGlobalTable: A CSM implementing the global table. Here, the
+  //    payload contains tightly packed entries with the following information:
+  //   * A header containing the following two pieces of information:
+  //     * An unsigned integer representing the number of bits used for
+  //       spill slot entries.
+  //     * An unsigned integer representing the number of bits used for other
+  //       entries.
+  //   * The body containing the bits for the stack map. The length of the body
+  //     in bits is the sum of the spill slot and non-spill slot bit counts.
+  //
+  // In all types of CSM, each unsigned integer is LEB128 encoded, as generally
+  // they tend to fit in a single byte or two. Thus, entry headers are not a
+  // fixed length, and currently there is no random access of entries.  In
+  // addition, PC offsets are currently encoded as deltas, which also inhibits
+  // random access without accessing previous entries. That means to find an
+  // entry for a given PC offset, a linear search must be done where the payload
+  // is decoded up to the entry whose PC offset is >= the given PC.
+
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  enum Kind {
+    kInlined = 0b00,
+    kUsesTable = 0b01,
+    kGlobalTable = 0b10,
+  };
+
+  static const uintptr_t kKindBits = 2;
+  using KindField = BitField<uint32_t, Kind, 0, kKindBits>;
+  using SizeField = BitField<uint32_t, uint32_t, kKindBits, 32 - kKindBits>;
+
+  uint32_t payload_size() const { return SizeField::decode(flags_and_size_); }
+  bool UsesGlobalTable() const {
+    return KindField::decode(flags_and_size_) == kUsesTable;
+  }
+  bool IsGlobalTable() const {
+    return KindField::decode(flags_and_size_) == kGlobalTable;
+  }
 
   friend class ImageWriter;
 };

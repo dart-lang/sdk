@@ -5170,18 +5170,24 @@ class CompressedStackMaps : public Object {
  public:
   static const intptr_t kHashBits = 30;
 
-  intptr_t payload_size() const { return raw_ptr()->payload_size_; }
+  uintptr_t payload_size() const { return raw_ptr()->payload_size(); }
 
   bool Equals(const CompressedStackMaps& other) const {
-    if (payload_size() != other.payload_size()) return false;
+    // Both the payload size and the kind of table must match.
+    if (raw_ptr()->flags_and_size_ != other.raw_ptr()->flags_and_size_) {
+      return false;
+    }
     NoSafepointScope no_safepoint;
     return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(payload_size())) ==
            0;
   }
-  intptr_t Hash() const;
+
+  // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
+  bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
+  intptr_t Hashcode() const;
 
   static intptr_t UnroundedSize(RawCompressedStackMaps* maps) {
-    return UnroundedSize(maps->ptr()->payload_size_);
+    return UnroundedSize(maps->ptr()->payload_size());
   }
   static intptr_t UnroundedSize(intptr_t length) {
     return sizeof(RawCompressedStackMaps) + length;
@@ -5196,22 +5202,49 @@ class CompressedStackMaps : public Object {
   }
 
  private:
-  // The encoding logic for CompressedStackMaps entries is in
-  // CompressedStackMapsBuilder, and the decoding logic is in
-  // CompressedStackMapsIterator.
-  static RawCompressedStackMaps* New(const GrowableArray<uint8_t>& bytes);
+  static RawCompressedStackMaps* New(const GrowableArray<uint8_t>& bytes,
+                                     RawCompressedStackMaps::Kind kind);
 
-  void set_payload_size(intptr_t payload_size) const {
-    StoreNonPointer(&raw_ptr()->payload_size_, payload_size);
+  static RawCompressedStackMaps* NewInlined(
+      const GrowableArray<uint8_t>& bytes) {
+    return New(bytes, RawCompressedStackMaps::kInlined);
   }
+  static RawCompressedStackMaps* NewUsingTable(
+      const GrowableArray<uint8_t>& bytes) {
+    return New(bytes, RawCompressedStackMaps::kUsesTable);
+  }
+  static RawCompressedStackMaps* NewGlobalTable(
+      const GrowableArray<uint8_t>& bytes) {
+    return New(bytes, RawCompressedStackMaps::kGlobalTable);
+  }
+
+  void set_payload_size(intptr_t payload_size,
+                        RawCompressedStackMaps::Kind kind) const {
+    ASSERT(RawCompressedStackMaps::SizeField::is_valid(payload_size));
+    const uint32_t encoded_fields =
+        RawCompressedStackMaps::KindField::encode(kind) |
+        RawCompressedStackMaps::SizeField::encode(payload_size);
+    StoreNonPointer(&raw_ptr()->flags_and_size_, encoded_fields);
+  }
+
+  bool UsesGlobalTable() const {
+    return !IsNull() && raw_ptr()->UsesGlobalTable();
+  }
+  bool IsGlobalTable() const { return !IsNull() && raw_ptr()->IsGlobalTable(); }
 
   const uint8_t* Payload() const { return raw_ptr()->data(); }
   void SetPayload(const GrowableArray<uint8_t>& payload) const;
+  uint8_t PayloadByte(uintptr_t offset) const {
+    ASSERT(offset >= 0 && offset < payload_size());
+    return raw_ptr()->data()[offset];
+  }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps, Object);
   friend class Class;
   friend class CompressedStackMapsBuilder;
   friend class CompressedStackMapsIterator;
+  friend class ProgramVisitor;
+  friend class StackMapEntry;
 };
 
 class ExceptionHandlers : public Object {
@@ -9087,6 +9120,7 @@ class TypedData : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, TypedDataBase);
   friend class Class;
+  friend class CompressedStackMapsIterator;
   friend class ExternalTypedData;
   friend class TypedDataView;
 };
