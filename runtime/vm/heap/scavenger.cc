@@ -245,7 +245,16 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
     // Update the reference.
     RawObject* new_obj = RawObject::FromAddr(new_addr);
-    *p = new_obj;
+    if (new_obj->IsOldObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<RawObject*>*>(p)->store(
+          new_obj, std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
     // Update the store buffer as needed.
     if (visiting_old_object_ != NULL) {
       UpdateStoreBuffer(p, new_obj);

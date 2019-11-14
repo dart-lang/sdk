@@ -2337,7 +2337,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     raw_obj->SetMarkBitUnsynchronized();
     // Setting the mark bit must not be ordered after a publishing store of this
     // object. Adding a barrier here is cheaper than making every store into the
-    // heap a store-release.
+    // heap a store-release. Compare Scavenger::ScavengePointer.
     std::atomic_thread_fence(std::memory_order_release);
     heap->old_space()->AllocateBlack(size);
   }
