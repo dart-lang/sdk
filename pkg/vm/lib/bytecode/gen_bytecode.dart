@@ -226,6 +226,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
+    staticTypeContext.enterLibrary(node);
     startMembers();
     visitList(node.procedures, this);
     visitList(node.fields, this);
@@ -240,6 +241,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     bytecodeComponent.libraries
         .add(getLibraryDeclaration(node, classDeclarations));
     classDeclarations = null;
+    staticTypeContext.leaveLibrary(node);
   }
 
   @override
