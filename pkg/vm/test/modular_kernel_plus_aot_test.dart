@@ -123,7 +123,7 @@ Uint8List concat(List<int> a, List<int> b) {
   return bytes;
 }
 
-Uri sdkRootFile(name) => Directory.current.uri.resolve(name);
+Uri sdkRootFile(name) => Directory.current.uri.resolveUri(Uri.file(name));
 
 const String mainFile = r'''
 import 'mixin.dart';
