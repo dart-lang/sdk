@@ -2616,7 +2616,7 @@ var b = new C<num, String>.named(4, 'five');
       expect(creation.constructorName.name, isNull);
 
       Expression argument = creation.argumentList.arguments[0];
-      _assertArgumentToParameter(argument, defaultConstructor.parameters[0]);
+      _assertArgumentToParameter2(argument, 'int');
     }
 
     {
@@ -2638,7 +2638,7 @@ var b = new C<num, String>.named(4, 'five');
       assertType(constructorName, null);
 
       var argument = creation.argumentList.arguments[0];
-      _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
+      _assertArgumentToParameter2(argument, 'num');
     }
   }
 

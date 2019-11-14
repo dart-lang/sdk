@@ -362,7 +362,7 @@ class MethodInvocationResolver {
       return result;
     }
 
-    ExecutableElement member = result.getter;
+    var member = _resolver.toLegacyElement(result.getter);
     nameNode.staticElement = member;
 
     if (member.isStatic) {
@@ -387,6 +387,7 @@ class MethodInvocationResolver {
       ExtensionElement extension, SimpleIdentifier nameNode, String name) {
     var getter = extension.getGetter(name);
     if (getter != null) {
+      getter = _resolver.toLegacyElement(getter);
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
       _rewriteAsFunctionExpressionInvocation(node, getter.returnType);
@@ -395,6 +396,7 @@ class MethodInvocationResolver {
 
     var method = extension.getMethod(name);
     if (method != null) {
+      method = _resolver.toLegacyElement(method);
       nameNode.staticElement = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
       _setResolution(node, method.type);
@@ -412,7 +414,7 @@ class MethodInvocationResolver {
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
     var result = _extensionResolver.getOverrideMember(override, name);
-    var member = result.getter;
+    var member = _resolver.toLegacyElement(result.getter);
 
     if (member == null) {
       _setDynamicResolution(node);
@@ -464,7 +466,7 @@ class MethodInvocationResolver {
     ResolutionResult result =
         _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      var member = result.getter;
+      var member = _resolver.toLegacyElement(result.getter);
       nameNode.staticElement = member;
       if (member is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, member.returnType);
@@ -473,6 +475,7 @@ class MethodInvocationResolver {
     } else if (result.isAmbiguous) {
       return;
     }
+
     // We can invoke Object methods on Function.
     var member = _inheritance.getMember(
       _resolver.typeProvider.functionType,
@@ -500,6 +503,7 @@ class MethodInvocationResolver {
 
     var target = _inheritance.getMember(receiverType, _currentName);
     if (target != null) {
+      target = _resolver.toLegacyElement(target);
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
@@ -545,6 +549,7 @@ class MethodInvocationResolver {
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
     var element = nameScope.lookup(nameNode, _definingLibrary);
     if (element != null) {
+      element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
       if (element is MultiplyDefinedElement) {
         MultiplyDefinedElement multiply = element;
@@ -590,6 +595,7 @@ class MethodInvocationResolver {
     var target = _inheritance.getMember(receiverType, _currentName);
 
     if (target != null) {
+      target = _resolver.toLegacyElement(target);
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
@@ -619,7 +625,7 @@ class MethodInvocationResolver {
 
     var result = _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      var target = result.getter;
+      var target = _resolver.toLegacyElement(result.getter);
       if (target != null) {
         nameNode.staticElement = target;
         _setResolution(node, target.type);
@@ -651,6 +657,7 @@ class MethodInvocationResolver {
     // But maybe this is the only one solution.
     var prefixedName = new PrefixedIdentifierImpl.temp(receiver, nameNode);
     var element = nameScope.lookup(prefixedName, _definingLibrary);
+    element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
     if (element is MultiplyDefinedElement) {
@@ -682,6 +689,7 @@ class MethodInvocationResolver {
       _currentName,
       forSuper: true,
     );
+    target = _resolver.toLegacyElement(target);
 
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
@@ -723,6 +731,7 @@ class MethodInvocationResolver {
     }
 
     var element = _resolveElement(receiver, nameNode);
+    element = _resolver.toLegacyElement(element);
     if (element != null) {
       if (element is ExecutableElement) {
         nameNode.staticElement = element;
@@ -804,6 +813,7 @@ class MethodInvocationResolver {
           return;
         }
       }
+      call = _resolver.toLegacyElement(call);
       if (call != null && call.kind == ElementKind.METHOD) {
         invocation.staticElement = call;
         rawFunctionType = call.type;

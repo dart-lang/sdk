@@ -7466,6 +7466,9 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   TopLevelVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  TopLevelVariableElement get declaration => this;
+
+  @override
   bool get isStatic => true;
 
   @override
@@ -7566,6 +7569,8 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get displayName => name;
 
+  bool get isLegacyCovariant => _variance == null;
+
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
@@ -7604,8 +7609,6 @@ class TypeParameterElementImpl extends ElementImpl
   Variance get variance => _variance ?? Variance.covariant;
 
   void set variance(Variance newVariance) => _variance = newVariance;
-
-  bool get isLegacyCovariant => _variance == null;
 
   @override
   bool operator ==(Object other) {

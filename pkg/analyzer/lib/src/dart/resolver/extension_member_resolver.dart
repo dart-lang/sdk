@@ -95,10 +95,11 @@ class ExtensionMemberResolver {
       node.typeArgumentTypes,
     );
 
-    var getterMember =
-        getter != null ? ExecutableMember.from2(getter, substitution) : null;
-    var setterMember =
-        setter != null ? ExecutableMember.from2(setter, substitution) : null;
+    var getterMember = ExecutableMember.from2(getter, substitution);
+    var setterMember = ExecutableMember.from2(setter, substitution);
+
+    getterMember = _resolver.toLegacyElement(getterMember);
+    setterMember = _resolver.toLegacyElement(setterMember);
 
     return ResolutionResult(getter: getterMember, setter: setterMember);
   }

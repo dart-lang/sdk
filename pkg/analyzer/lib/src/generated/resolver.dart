@@ -21,7 +21,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
+import 'package:analyzer/src/dart/element/member.dart'
+    show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -2912,6 +2913,13 @@ class ResolverVisitor extends ScopedVisitor {
     if (comment != null) {
       super.visitComment(comment);
     }
+  }
+
+  /// If in a legacy library, return the legacy view on the [element].
+  /// Otherwise, return the original element.
+  T toLegacyElement<T extends Element>(T element) {
+    if (_nonNullableEnabled) return element;
+    return Member.legacy(element);
   }
 
   @override

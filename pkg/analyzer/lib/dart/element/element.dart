@@ -1571,7 +1571,10 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// A top-level variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelVariableElement implements PropertyInducingElement {}
+abstract class TopLevelVariableElement implements PropertyInducingElement {
+  @override
+  TopLevelVariableElement get declaration;
+}
 
 /// An element that defines a type.
 ///

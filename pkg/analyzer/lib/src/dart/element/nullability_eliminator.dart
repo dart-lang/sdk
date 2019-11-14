@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 class NullabilityEliminator extends DartTypeVisitor<DartType> {
   int _counter = 0;
@@ -96,6 +97,11 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitUnknownInferredType(UnknownInferredType type) {
+    return type;
+  }
+
+  @override
   DartType visitVoidType(VoidType type) {
     return type;
   }
@@ -152,6 +158,10 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
   /// return a new type with legacy nullability suffixes. Otherwise return the
   /// original instance.
   static T perform<T extends DartType>(T type) {
+    if (type == null) {
+      return type;
+    }
+
     return NullabilityEliminator().visit(type);
   }
 
