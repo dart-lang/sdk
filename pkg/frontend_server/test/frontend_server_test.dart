@@ -1095,14 +1095,18 @@ true
             file.writeAsStringSync("pkgA() {} pkgA_2() {}");
 
             count += 1;
+            outputParser.expectSources = false;
             inputStreamController.add('reject\n'.codeUnits);
-            inputStreamController.add('reset\n'.codeUnits);
-            inputStreamController.add('recompile ${file.path} abc\n'
-                    '${file.path}\n'
-                    'abc\n'
-                .codeUnits);
             break;
           case 1:
+            count += 1;
+            inputStreamController.add('reset\n'.codeUnits);
+            inputStreamController.add('recompile ${file.path} abc\n'
+                '${file.uri}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 2:
             expect(dillFile.existsSync(), equals(true));
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
@@ -1124,11 +1128,11 @@ true
             inputStreamController.add('accept\n'.codeUnits);
             inputStreamController.add('reset\n'.codeUnits);
             inputStreamController.add('recompile ${file.path} abc\n'
-                    '${file.path}\n'
-                    'abc\n'
+                '${file.uri}\n'
+                'abc\n'
                 .codeUnits);
             break;
-          case 2:
+          case 3:
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
             inputStreamController.add('quit\n'.codeUnits);

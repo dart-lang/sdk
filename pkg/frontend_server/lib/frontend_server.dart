@@ -923,9 +923,9 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> rejectLastDelta() async {
-    await _generator.reject();
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
+    await _generator.reject();
     _outputStream.writeln(boundaryKey);
   }
 
