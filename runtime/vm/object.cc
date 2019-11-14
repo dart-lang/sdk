@@ -21949,6 +21949,14 @@ RawFunction* Closure::GetInstantiatedSignature(Zone* zone) const {
   return sig_fun.raw();
 }
 
+bool StackTrace::skip_sync_start_in_parent_stack() const {
+  return raw_ptr()->skip_sync_start_in_parent_stack;
+}
+
+void StackTrace::set_skip_sync_start_in_parent_stack(bool value) const {
+  StoreNonPointer(&raw_ptr()->skip_sync_start_in_parent_stack, value);
+}
+
 intptr_t StackTrace::Length() const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return code_array.Length();
@@ -22009,12 +22017,14 @@ RawStackTrace* StackTrace::New(const Array& code_array,
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
   result.set_expand_inlined(true);  // default.
+  result.set_skip_sync_start_in_parent_stack(false);
   return result.raw();
 }
 
 RawStackTrace* StackTrace::New(const Array& code_array,
                                const Array& pc_offset_array,
                                const StackTrace& async_link,
+                               bool skip_sync_start_in_parent_stack,
                                Heap::Space space) {
   StackTrace& result = StackTrace::Handle();
   {
@@ -22027,6 +22037,7 @@ RawStackTrace* StackTrace::New(const Array& code_array,
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
   result.set_expand_inlined(true);  // default.
+  result.set_skip_sync_start_in_parent_stack(skip_sync_start_in_parent_stack);
   return result.raw();
 }
 
@@ -22085,8 +22096,9 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
   // Iterate through the stack frames and create C string description
   // for each frame.
   intptr_t frame_index = 0;
+  uint32_t frame_skip = 0;
   do {
-    for (intptr_t i = 0; i < stack_trace.Length(); i++) {
+    for (intptr_t i = frame_skip; i < stack_trace.Length(); i++) {
       code_object = stack_trace.CodeAtFrame(i);
       if (code_object.IsNull()) {
         // Check for a null function, which indicates a gap in a StackOverflow
@@ -22146,6 +22158,9 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
       }
     }
     // Follow the link.
+    frame_skip = stack_trace.skip_sync_start_in_parent_stack()
+                     ? StackTrace::kSyncAsyncCroppedFrames
+                     : 0;
     stack_trace = stack_trace.async_link();
   } while (!stack_trace.IsNull());
 
@@ -22173,8 +22188,9 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
   buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                 OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
   intptr_t frame_index = 0;
+  uint32_t frame_skip = 0;
   do {
-    for (intptr_t i = 0; i < stack_trace.Length(); i++) {
+    for (intptr_t i = frame_skip; i < stack_trace.Length(); i++) {
       code = stack_trace.CodeAtFrame(i);
       if (code.IsNull()) {
         // Check for a null function, which indicates a gap in a StackOverflow
@@ -22216,6 +22232,9 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
       }
     }
     // Follow the link.
+    frame_skip = stack_trace.skip_sync_start_in_parent_stack()
+                     ? StackTrace::kSyncAsyncCroppedFrames
+                     : 0;
     stack_trace = stack_trace.async_link();
   } while (!stack_trace.IsNull());
 

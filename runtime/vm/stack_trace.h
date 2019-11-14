@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/flag_list.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -16,10 +17,12 @@ class StackTraceUtils : public AllStatic {
   /// Counts the number of stack frames.
   /// Skips over the first |skip_frames|.
   /// If |async_function| is not null, stops at the function that has
-  /// |async_function| as its parent.
+  /// |async_function| as its parent, and records in 'sync_async_end' whether
+  /// |async_function| was called synchronously.
   static intptr_t CountFrames(Thread* thread,
                               int skip_frames,
-                              const Function& async_function);
+                              const Function& async_function,
+                              bool* sync_async_end);
 
   /// Collects |count| frames into |code_array| and |pc_offset_array|.
   /// Writing begins at |array_offset|.
@@ -42,6 +45,36 @@ class StackTraceUtils : public AllStatic {
                                              StackTrace* async_stack_trace,
                                              Array* async_code_array,
                                              Array* async_pc_offset_array);
+
+  // The number of frames involved in a "sync-async" gap: a synchronous initial
+  // invocation of an asynchronous function. See CheckAndSkipAsync.
+  static constexpr intptr_t kSyncAsyncFrameGap = 2;
+
+  // A synchronous invocation of an async function involves the following
+  // frames:
+  //   <async function>__<anonymous_closure>    (0)
+  //   _Closure.call                            (1)
+  //   _AsyncAwaitCompleter.start               (2)
+  //   <async_function>                         (3)
+  //
+  // Alternatively, for bytecode or optimized frames, we may see:
+  //   <async function>__<anonymous_closure>    (0)
+  //   _AsyncAwaitCompleter.start               (1)
+  //   <async_function>                         (2)
+  static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
+                                const String& function_name) {
+    ASSERT(*skip_sync_async_frames_count > 0);
+    if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
+      *skip_sync_async_frames_count = 0;
+      return true;
+    }
+    if (function_name.Equals(Symbols::_ClosureCall()) &&
+        *skip_sync_async_frames_count == 2) {
+      (*skip_sync_async_frames_count)--;
+      return true;
+    }
+    return false;
+  }
 };
 
 }  // namespace dart

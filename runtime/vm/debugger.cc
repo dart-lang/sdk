@@ -2266,8 +2266,9 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
     return NULL;
   }
 
+  bool sync_async_end = false;
   intptr_t synchronous_stack_trace_length =
-      StackTraceUtils::CountFrames(thread, 0, async_function);
+      StackTraceUtils::CountFrames(thread, 0, async_function, &sync_async_end);
 
   // Append the top frames from the synchronous stack trace, up until the active
   // asynchronous function. We truncate the remainder of the synchronous
@@ -2304,8 +2305,11 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // Now we append the asynchronous causal stack trace. These are not active
   // frames but a historical record of how this asynchronous function was
   // activated.
+
+  intptr_t frame_skip =
+      sync_async_end ? StackTrace::kSyncAsyncCroppedFrames : 0;
   while (!async_stack_trace.IsNull()) {
-    for (intptr_t i = 0; i < async_stack_trace.Length(); i++) {
+    for (intptr_t i = frame_skip; i < async_stack_trace.Length(); i++) {
       code_obj = async_stack_trace.CodeAtFrame(i);
       if (code_obj.IsNull()) {
         break;
@@ -2340,21 +2344,14 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
       }
     }
     // Follow the link.
+    frame_skip = async_stack_trace.skip_sync_start_in_parent_stack()
+                     ? StackTrace::kSyncAsyncCroppedFrames
+                     : 0;
     async_stack_trace = async_stack_trace.async_link();
   }
 
   return stack_trace;
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static bool CheckAndSkipAsync(int skip_sync_async_frames_count,
-                              const String& function_name) {
-  return (skip_sync_async_frames_count == 2 &&
-          function_name.Equals(Symbols::_ClosureCall())) ||
-         (skip_sync_async_frames_count == 1 &&
-          function_name.Equals(Symbols::_AsyncAwaitCompleterStart()));
-}
-#endif
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -2407,9 +2404,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
         if (skip_sync_async_frames_count > 0) {
           function_name = function.QualifiedScrubbedName();
-          if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
-            skip_sync_async_frames_count--;
-          } else {
+          if (!StackTraceUtils::CheckAndSkipAsync(&skip_sync_async_frames_count,
+                                                  function_name)) {
             // Unexpected function in synchronous call of async function.
             break;
           }
@@ -2457,10 +2453,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
             if (skip_sync_async_frames_count > 0) {
               function_name ^= function.QualifiedScrubbedName();
-              if (CheckAndSkipAsync(skip_sync_async_frames_count,
-                                    function_name)) {
-                skip_sync_async_frames_count--;
-              } else {
+              if (!StackTraceUtils::CheckAndSkipAsync(
+                      &skip_sync_async_frames_count, function_name)) {
                 // Unexpected function in sync async call
                 skip_sync_async_frames_count = -1;
                 abort_attempt_to_navigate_through_sync_async = true;
@@ -2512,10 +2506,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
           if (skip_sync_async_frames_count > 0) {
             function_name ^= function.QualifiedScrubbedName();
-            if (CheckAndSkipAsync(skip_sync_async_frames_count,
-                                  function_name)) {
-              skip_sync_async_frames_count--;
-            } else {
+            if (!StackTraceUtils::CheckAndSkipAsync(
+                    &skip_sync_async_frames_count, function_name)) {
               // Unexpected function in synchronous call of async function.
               break;
             }
