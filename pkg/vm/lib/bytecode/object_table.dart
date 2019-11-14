@@ -1745,14 +1745,13 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   _TypeHandle _dynamicType;
   _TypeHandle _voidType;
   _TypeHandle _neverType;
-  CoreTypes coreTypes;
   _NodeVisitor _nodeVisitor;
 
-  ObjectTable() {
+  ObjectTable(CoreTypes coreTypes) {
     _dynamicType = getOrAddObject(new _DynamicTypeHandle());
     _voidType = getOrAddObject(new _VoidTypeHandle());
     _neverType = getOrAddObject(new _NeverTypeHandle());
-    _nodeVisitor = new _NodeVisitor(this);
+    _nodeVisitor = new _NodeVisitor(this, coreTypes);
   }
 
   ObjectHandle getHandle(Node node) {
@@ -2093,11 +2092,13 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
 class _NodeVisitor extends Visitor<ObjectHandle> {
   final ObjectTable objectTable;
+  final CoreTypes coreTypes;
   final _typeParameters = <TypeParameter, ObjectHandle>{};
   final Map<DartType, int> _recursiveTypeIds = <DartType, int>{};
-  final recursiveTypesValidator = new RecursiveTypesValidator();
+  final recursiveTypesValidator;
 
-  _NodeVisitor(this.objectTable);
+  _NodeVisitor(this.objectTable, this.coreTypes)
+      : recursiveTypesValidator = new RecursiveTypesValidator(coreTypes);
 
   @override
   ObjectHandle defaultNode(Node node) =>
@@ -2132,7 +2133,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
-      objectTable.getHandle(objectTable.coreTypes.nullType);
+      objectTable.getHandle(coreTypes.nullType);
 
   @override
   ObjectHandle visitInterfaceType(InterfaceType node) {

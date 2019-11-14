@@ -39,7 +39,8 @@ abstract class TypeChecker {
       currentLibrary = library;
       if (ignoreSdk && library.importUri.scheme == 'dart') continue;
       for (var class_ in library.classes) {
-        currentThisType = class_.thisType;
+        currentThisType = coreTypes.thisInterfaceType(
+            class_, class_.enclosingLibrary.nonNullable);
         for (var field in class_.fields) {
           visitor.visitField(field);
         }

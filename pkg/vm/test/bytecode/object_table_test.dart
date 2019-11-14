@@ -40,7 +40,7 @@ main() {
     lib2.parent = component;
     component.libraries.add(lib2);
 
-    objectTable = new ObjectTable();
+    objectTable = new ObjectTable(coreTypes);
   });
 
   tearDown(() {});

@@ -1202,6 +1202,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.imports[node];
   }
 
+  @override
   ir.CoreTypes get coreTypes =>
       _coreTypes ??= ir.CoreTypes(programEnv.mainComponent);
 

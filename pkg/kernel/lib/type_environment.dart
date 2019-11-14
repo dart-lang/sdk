@@ -636,7 +636,8 @@ class StaticTypeContext {
   /// of [member].
   StaticTypeContext(Member member, this.typeEnvironment)
       : _library = member.enclosingLibrary,
-        thisType = member.enclosingClass?.thisType;
+        thisType = member.enclosingClass?.getThisType(
+            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable);
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
@@ -668,7 +669,8 @@ class StatefulStaticTypeContext implements StaticTypeContext {
   }
 
   @override
-  InterfaceType get thisType => _currentMember?.enclosingClass?.thisType;
+  InterfaceType get thisType => _currentMember?.enclosingClass
+      ?.getThisType(typeEnvironment.coreTypes, _currentLibrary.nonNullable);
 
   @override
   Nullability get nonNullable => _library?.nonNullable;

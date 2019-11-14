@@ -762,6 +762,7 @@ deserialization
 deserialize
 deserialized
 designed
+desired
 desugar
 desugared
 desugaring
@@ -1073,6 +1074,7 @@ failure
 failures
 fake
 fall
+fallback
 falls
 false
 far

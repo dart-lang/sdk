@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:vm/bytecode/recursive_types_validator.dart';
 
 main() {
+  CoreTypes coreTypes;
   Library lib;
   Supertype objectSuper;
   DartType intType;
@@ -27,7 +28,7 @@ main() {
   setUp(() {
     // Start with mock SDK libraries.
     Component component = createMockSdkComponent();
-    CoreTypes coreTypes = new CoreTypes(component);
+    coreTypes = new CoreTypes(component);
     objectSuper = coreTypes.objectClass.asThisSupertype;
     intType = new InterfaceType(coreTypes.intClass, Nullability.legacy);
     doubleType = new InterfaceType(coreTypes.doubleClass, Nullability.legacy);
@@ -40,7 +41,7 @@ main() {
     // class Base<T>
     base = addClass('Base', [new TypeParameter('T')]);
 
-    validator = new RecursiveTypesValidator();
+    validator = new RecursiveTypesValidator(coreTypes);
   });
 
   tearDown(() {});
@@ -165,9 +166,10 @@ main() {
         new InterfaceType(e, Nullability.legacy, [intType, doubleType]);
 
     validator.validateType(eOfIntDouble);
-    validator.validateType(e.thisType);
+    validator.validateType(e.getThisType(coreTypes, lib.nonNullable));
 
     Expect.isFalse(validator.isRecursive(eOfIntDouble));
-    Expect.isFalse(validator.isRecursive(e.thisType));
+    Expect.isFalse(
+        validator.isRecursive(e.getThisType(coreTypes, lib.nonNullable)));
   });
 }

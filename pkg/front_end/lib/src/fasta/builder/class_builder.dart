@@ -33,7 +33,8 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         VariableDeclaration,
         Variance,
-        VoidType;
+        VoidType,
+        getAsTypeArguments;
 
 import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
 
@@ -49,6 +50,7 @@ import 'package:kernel/src/bounds_checks.dart'
         computeVariance,
         findTypeArgumentIssues,
         getGenericTypeName;
+
 import 'package:kernel/text/text_serialization_verifier.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
@@ -383,6 +385,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool isNullClass = false;
 
+  InterfaceType _legacyRawType;
+  InterfaceType _nullableRawType;
+  InterfaceType _nonNullableRawType;
+  InterfaceType _thisType;
+
   ClassBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -604,15 +611,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return declaration;
   }
 
-  InterfaceType _legacyRawType;
-  InterfaceType _nullableRawType;
-  InterfaceType _nonNullableRawType;
-
   @override
   ClassBuilder get origin => actualOrigin ?? this;
 
   @override
-  InterfaceType get thisType => cls.thisType;
+  InterfaceType get thisType {
+    return _thisType ??= new InterfaceType(
+        cls, library.nonNullable, getAsTypeArguments(cls.typeParameters));
+  }
 
   @override
   InterfaceType get legacyRawType {
@@ -1382,8 +1388,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
       interfaceSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, interfaceMember.enclosingClass));
+          .getKernelTypeAsInstanceOf(thisType, interfaceMember.enclosingClass));
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
@@ -1454,8 +1459,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Substitution declaredSubstitution = Substitution.empty;
     if (declaredMember.enclosingClass.typeParameters.isNotEmpty) {
       declaredSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, declaredMember.enclosingClass));
+          .getKernelTypeAsInstanceOf(thisType, declaredMember.enclosingClass));
     }
     return declaredSubstitution;
   }

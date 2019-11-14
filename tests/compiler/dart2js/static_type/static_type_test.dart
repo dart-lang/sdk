@@ -59,7 +59,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
             new CachedStaticType(
                 getStaticTypeContext(elementMap, node),
                 staticTypeCache,
-                new ThisInterfaceType.from(node.enclosingClass?.thisType)))
+                new ThisInterfaceType.from(node.enclosingClass?.getThisType(
+                    _typeEnvironment.coreTypes,
+                    node.enclosingLibrary.nonNullable))))
         .run(node);
   }
 

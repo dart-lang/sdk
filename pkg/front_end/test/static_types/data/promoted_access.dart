@@ -28,6 +28,10 @@ main() {
       /*cfe|dart2js.Class<dynamic>*/
       /*cfe:nnbd.Class<dynamic>!*/
       Class/*<dynamic>*/();
-  /*Class<dynamic>*/ c. /*invoke: dynamic*/ method(/*Class<dynamic>*/ c);
-  /*invoke: dynamic*/ method/*<Class<dynamic>>*/(/*Class<dynamic>*/ c);
+  /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c
+      . /*invoke: dynamic*/ method(
+          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
+  /*invoke: dynamic*/ method
+      /*cfe|dart2js.<Class<dynamic>>*/ /*cfe:nnbd.<Class<dynamic>!>*/ (
+          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
 }

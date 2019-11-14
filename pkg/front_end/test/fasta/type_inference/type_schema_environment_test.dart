@@ -276,16 +276,18 @@ class TypeSchemaEnvironmentTest {
 
   void test_inferGenericFunctionOrType() {
     var env = _makeEnv();
+    InterfaceType listClassThisType =
+        coreTypes.thisInterfaceType(listClass, testLib.nonNullable);
     {
       // Test an instantiation of [1, 2.0] with no context.  This should infer
       // as List<?> during downwards inference.
       var inferredTypes = <DartType>[unknownType];
-      TypeParameterType T = listClass.thisType.typeArguments[0];
+      TypeParameterType T = listClassThisType.typeArguments[0];
       env.inferGenericFunctionOrType(
-          listClass.thisType, [T.parameter], null, null, null, inferredTypes);
+          listClassThisType, [T.parameter], null, null, null, inferredTypes);
       expect(inferredTypes[0], unknownType);
       // And upwards inference should refine it to List<num>.
-      env.inferGenericFunctionOrType(listClass.thisType, [T.parameter], [T, T],
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
           [intType, doubleType], null, inferredTypes);
       expect(inferredTypes[0], numType);
     }
@@ -293,12 +295,12 @@ class TypeSchemaEnvironmentTest {
       // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
       // should infer as List<Object> during downwards inference.
       var inferredTypes = <DartType>[unknownType];
-      TypeParameterType T = listClass.thisType.typeArguments[0];
-      env.inferGenericFunctionOrType(listClass.thisType, [T.parameter], null,
+      TypeParameterType T = listClassThisType.typeArguments[0];
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
           null, _list(objectType), inferredTypes);
       expect(inferredTypes[0], objectType);
       // And upwards inference should preserve the type.
-      env.inferGenericFunctionOrType(listClass.thisType, [T.parameter], [T, T],
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
           [intType, doubleType], _list(objectType), inferredTypes);
       expect(inferredTypes[0], objectType);
     }
@@ -307,7 +309,8 @@ class TypeSchemaEnvironmentTest {
   void test_inferTypeFromConstraints_applyBound() {
     // class A<T extends num> {}
     var T = new TypeParameter('T', numType);
-    _addClass(_class('A', typeParameters: [T])).thisType;
+    coreTypes.thisInterfaceType(
+        _addClass(_class('A', typeParameters: [T])), testLib.nonNullable);
     var env = _makeEnv();
     {
       // With no constraints:

@@ -767,7 +767,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     getBaseClass(int count) {
-      var base = emitDeferredType(c.thisType);
+      var base = emitDeferredType(
+          c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable));
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -1349,8 +1350,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         !f.namedParameters.any(isCovariantParameter)) {
       result = f.thisFunctionType;
     } else {
-      reifyParameter(VariableDeclaration p) =>
-          isCovariantParameter(p) ? _coreTypes.objectClass.thisType : p.type;
+      reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
+          ? _coreTypes.objectClass.getThisType(
+              _coreTypes, _coreTypes.objectClass.enclosingLibrary.nonNullable)
+          : p.type;
       reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));
 

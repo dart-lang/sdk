@@ -190,12 +190,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     nullabilityDetector = new NullabilityDetector(recognizedMethods);
     component.addMetadataRepository(metadata);
 
-    bytecodeComponent = new Component(formatVersion);
+    bytecodeComponent = new Component(formatVersion, coreTypes);
     metadata.mapping[component] = new BytecodeMetadata(bytecodeComponent);
 
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
-    objectTable.coreTypes = coreTypes;
 
     if (component.mainMethod != null) {
       bytecodeComponent.mainLibrary =

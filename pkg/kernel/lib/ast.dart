@@ -75,6 +75,7 @@ export 'canonical_name.dart' show CanonicalName;
 
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
+import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 
@@ -730,11 +731,6 @@ class Typedef extends NamedNode implements FileUriNode {
 
   Library get enclosingLibrary => parent;
 
-  TypedefType get thisType {
-    return new TypedefType(
-        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
-  }
-
   R accept<R>(TreeVisitor<R> v) {
     return v.visitTypedef(this);
   }
@@ -1226,13 +1222,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Supertype get asThisSupertype {
-    return new Supertype(this, _getAsTypeArguments(typeParameters));
+    return new Supertype(this, getAsTypeArguments(typeParameters));
   }
 
-  InterfaceType _thisType;
-  InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(
-        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
+  /// Returns the type of `this` for the class using [coreTypes] for caching.
+  InterfaceType getThisType(CoreTypes coreTypes, Nullability nullability) {
+    return coreTypes.thisInterfaceType(this, nullability);
   }
 
   InterfaceType _bottomType;
@@ -7069,13 +7064,6 @@ void transformList(List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
   }
 }
 
-List<DartType> _getAsTypeArguments(List<TypeParameter> typeParameters) {
-  if (typeParameters.isEmpty) return const <DartType>[];
-  return new List<DartType>.generate(typeParameters.length,
-      (i) => new TypeParameterType(typeParameters[i], Nullability.legacy),
-      growable: false);
-}
-
 class _ChildReplacer extends Transformer {
   final TreeNode child;
   final TreeNode replacement;
@@ -7397,4 +7385,15 @@ String demangleMixinApplicationSubclassName(String name) {
   if (nameParts.length < 2) return name;
   assert(nameParts[0].startsWith('_'));
   return nameParts[0].substring(1);
+}
+
+/// Computes a list of [typeParameters] taken as types.
+List<DartType> getAsTypeArguments(List<TypeParameter> typeParameters) {
+  if (typeParameters.isEmpty) return const <DartType>[];
+  List<DartType> result =
+      new List<DartType>.filled(typeParameters.length, null, growable: false);
+  for (int i = 0; i < result.length; ++i) {
+    result[i] = new TypeParameterType(typeParameters[i], Nullability.legacy);
+  }
+  return result;
 }
