@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -173,8 +173,8 @@ Future<String> _fetchLinterForVersion(String version) async {
 }
 
 Future<List<String>> _fetchSdkTags() {
-  var github = createGitHubClient();
-  var slug = RepositorySlug('dart-lang', 'sdk');
+  final github = GitHub();
+  final slug = RepositorySlug('dart-lang', 'sdk');
 
   return github.repositories.listTags(slug).map((t) => t.name).where((t) {
     // Filter on numeric release tags.

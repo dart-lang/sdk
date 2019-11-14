@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
-
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -221,7 +220,7 @@ class ScoreCard {
   }
 
   static Future<List<Issue>> _getIssues() async {
-    var github = createGitHubClient();
+    var github = GitHub();
     var slug = RepositorySlug('dart-lang', 'linter');
     return github.issues.listByRepo(slug).toList();
   }
