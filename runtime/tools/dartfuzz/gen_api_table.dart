@@ -122,7 +122,7 @@ void visitClass(ClassElement classElement) {
         constructor.name.isNotEmpty) {
       addToTable(
           typeString(classElement.thisType),
-          '${classElement.name}.${constructor.name}',
+          '${classString(classElement)}.${constructor.name}',
           protoString(null, constructor.parameters));
     }
   }
@@ -131,7 +131,7 @@ void visitClass(ClassElement classElement) {
       if (method.isStatic) {
         addToTable(
             typeString(method.returnType),
-            '${classElement.name}.${method.name}',
+            '${classString(classElement)}.${method.name}',
             protoString(null, method.parameters));
       } else {
         addToTable(typeString(method.returnType), method.name,
@@ -150,6 +150,20 @@ void visitClass(ClassElement classElement) {
             '${typeString(classElement.thisType)}v');
       }
     }
+  }
+}
+
+// Function that returns the explicit class name.
+String classString(ClassElement classElement) {
+  switch (typeString(classElement.thisType)) {
+    case 'X':
+      return 'Set<int>';
+    case 'L':
+      return 'List<int>';
+    case 'M':
+      return 'Map<int, String>';
+    default:
+      return classElement.name;
   }
 }
 
