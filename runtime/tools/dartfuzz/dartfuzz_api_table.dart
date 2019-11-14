@@ -771,7 +771,7 @@ class DartLib {
     DartLib('trimRight', 'SV'),
   ];
   static const listLibs = [
-    DartLib('List<int>.filled', 'VII'),
+    DartLib('List<int>.filled', 'ViI'),
     DartLib('Uri.parseIPv4Address', 'VS'),
     DartLib('Uri.parseIPv6Address', 'VSII'),
     DartLib('codeUnits', 'Sv'),

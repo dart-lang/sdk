@@ -258,7 +258,7 @@ void addToTable(String ret, String name, String proto) {
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
     proto = proto.replaceFirst('IS', 'is');
-  } else if (name == 'List.filled') {
+  } else if (name == 'List<int>.filled') {
     proto = proto.replaceFirst('I', 'i');
   }
   // Add to table.
