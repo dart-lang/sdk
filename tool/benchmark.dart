@@ -8,6 +8,11 @@ import 'package:linter/src/utils.dart';
 
 import '../test/ascii_utils_test.dart' as utils_test;
 
+/// Micro-benchmarks.
+///
+/// More comprehensive benchmarks are run like so:
+///
+///     dart bin/linter.dart --benchmark -q -c example/all.yaml .
 main() {
   FileNameRegexpTestBenchmarkGood().report();
   FileNameCharLoopTestBenchmarkGood().report();
