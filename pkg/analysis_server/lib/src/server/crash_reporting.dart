@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/instrumentation/plugin_data.dart';
 import 'package:telemetry/crash_reporting.dart';
@@ -13,6 +14,14 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
 
   @override
   void logException(dynamic exception, [StackTrace stackTrace]) {
+    if (exception is CaughtException) {
+      // Get the root CaughtException, which matters most for debugging.
+      exception = exception.rootCaughtException;
+      // Report the root exception stack trace.
+      stackTrace = exception.stackTrace;
+      // Report the dynamic exception object that the CaughtException holds.
+      exception = exception.exception;
+    }
     reporter
         .sendReport(exception, stackTrace: stackTrace ?? StackTrace.current)
         .catchError((error) {
