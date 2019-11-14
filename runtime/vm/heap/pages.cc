@@ -931,7 +931,7 @@ void PageSpace::WriteProtectCode(bool read_only) {
   }
 }
 
-bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
+bool PageSpace::ShouldStartIdleMarkSweep(int64_t deadline) {
   // To make a consistent decision, we should not yield for a safepoint in the
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
@@ -950,8 +950,11 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
     }
   }
 
+  // This uses the size of new-space because the pause time to start concurrent
+  // marking is related to the size of the root set, which is mostly new-space.
   int64_t estimated_mark_completion =
-      OS::GetCurrentMonotonicMicros() + UsedInWords() / mark_words_per_micro_;
+      OS::GetCurrentMonotonicMicros() +
+      heap_->new_space()->UsedInWords() / mark_words_per_micro_;
   return estimated_mark_completion <= deadline;
 }
 

@@ -700,7 +700,6 @@ class ConcurrentMarkTask : public ThreadPool::Task {
       }
     }
 
-    isolate_->ScheduleInterrupts(Thread::kVMInterrupt);
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
     Thread::ExitIsolateAsHelper(true);
     // This marker task is done. Notify the original isolate.

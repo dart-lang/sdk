@@ -429,9 +429,19 @@ void Heap::NotifyIdle(int64_t deadline) {
   if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkCompact, kIdle);
-  } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
-    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
-    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
+  } else if (old_space_.ShouldStartIdleMarkSweep(deadline)) {
+    PageSpace::Phase phase;
+    {
+      MonitorLocker ml(old_space_.tasks_lock());
+      phase = old_space_.phase();
+    }
+    if (phase == PageSpace::kAwaitingFinalization) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+      CollectOldSpaceGarbage(thread, Heap::kMarkSweep, Heap::kFinalize);
+    } else if (phase == PageSpace::kDone) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+      StartConcurrentMarking(thread);
+    }
   } else if (old_space_.NeedsGarbageCollection()) {
     // Even though the following GC may exceed our idle deadline, we need to
     // ensure than that promotions during idle scavenges do not lead to
@@ -591,11 +601,15 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
   }
 
   if (old_space_.AlmostNeedsGarbageCollection()) {
-    if (BeginOldSpaceGC(thread)) {
-      TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
-      old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
-      EndOldSpaceGC();
-    }
+    StartConcurrentMarking(thread);
+  }
+}
+
+void Heap::StartConcurrentMarking(Thread* thread) {
+  if (BeginOldSpaceGC(thread)) {
+    TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
+    old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
+    EndOldSpaceGC();
   }
 }
 

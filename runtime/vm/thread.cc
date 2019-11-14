@@ -514,7 +514,6 @@ RawError* Thread::HandleInterrupts() {
       }
       heap()->CollectGarbage(Heap::kNew);
     }
-    heap()->CheckFinishConcurrentMarking(this);
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =

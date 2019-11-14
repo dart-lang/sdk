@@ -143,6 +143,7 @@ class Heap {
   }
 
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void StartConcurrentMarking(Thread* thread);
   void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
