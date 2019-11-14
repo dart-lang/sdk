@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:analyzer/error/error.dart';
 
 import 'analyzer.dart';
+import 'util/score_utils.dart';
 
 const benchmarkRuns = 10;
 final int _pipeCodeUnit = '|'.codeUnitAt(0);
@@ -58,7 +59,11 @@ Future writeBenchmarks(
     });
   }
 
-  List<_Stat> stats = timings.keys.map((t) => _Stat(t, timings[t])).toList();
+  final pedanticRuleset = await pedanticRules;
+  final stats = timings.keys.map((t) {
+    final details = pedanticRuleset.contains(t) ? ' [pedantic]' : '';
+    return _Stat('$t$details', timings[t]);
+  }).toList();
   _writeTimings(out, stats, 0);
 }
 
@@ -293,8 +298,8 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeTimings() {
-    Map<String, Stopwatch> timers = lintRegistry.timers;
-    List<_Stat> timings = timers.keys
+    final timers = lintRegistry.timers;
+    final timings = timers.keys
         .map((t) => _Stat(t, timers[t].elapsedMilliseconds))
         .toList();
     _writeTimings(out, timings, _summaryLength);
