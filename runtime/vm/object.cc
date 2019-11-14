@@ -10350,9 +10350,8 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     // There is no metadata for this object.
     return Object::empty_array().raw();
   }
-  Object& metadata = Object::Handle();
-  metadata = field.StaticValue();
-  if (field.StaticValue() == Object::empty_array().raw()) {
+  Object& metadata = Object::Handle(field.StaticValue());
+  if (metadata.raw() == Object::empty_array().raw()) {
     if (field.is_declared_in_bytecode()) {
       metadata = kernel::BytecodeReader::ReadAnnotation(field);
     } else {
@@ -10362,9 +10361,11 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     }
     if (metadata.IsArray() || metadata.IsNull()) {
       ASSERT(metadata.raw() != Object::empty_array().raw());
-      field.SetStaticValue(
-          metadata.IsNull() ? Object::null_array() : Array::Cast(metadata),
-          true);
+      if (!Compiler::IsBackgroundCompilation()) {
+        field.SetStaticValue(
+            metadata.IsNull() ? Object::null_array() : Array::Cast(metadata),
+            true);
+      }
     }
   }
   if (metadata.IsNull()) {
