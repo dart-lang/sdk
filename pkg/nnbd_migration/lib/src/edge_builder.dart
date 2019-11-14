@@ -2336,11 +2336,6 @@ mixin _AssignmentChecker {
               'downcast to type parameters with bounds not supported');
         }
       }
-
-      for (final arg in destination.typeArguments) {
-        // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
-        _checkDowncast(origin, source: source, destination: arg, hard: false);
-      }
     } else if (destinationType is TypeParameterType &&
         source.type is! TypeParameterType) {
       // Assume an assignment to the type parameter's bound.
@@ -2354,13 +2349,6 @@ mixin _AssignmentChecker {
       for (final param in destinationType.element.typeParameters) {
         assert(param.bound == null,
             'downcast to type parameters with bounds not supported');
-      }
-      for (final arg in destination.typeArguments) {
-        // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
-        _checkDowncast(origin,
-            source: DecoratedType(typeProvider.dynamicType, _graph.always),
-            destination: arg,
-            hard: false);
       }
     } else {
       assert(
