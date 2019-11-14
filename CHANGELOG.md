@@ -48,11 +48,11 @@ program-defined, whereas previously it was undefined.
 
 #### Linter
 
-The Linter was updated to `0.1.103`, which includes:
+The Linter was updated to `0.1.104`, which includes:
 
-* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
-* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
-  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
+* updated `unnecessary_overrides` to allow overrides when annotations (besides `@override` are specified)
+* updated `file_names` to allow names w/ leading `_`'s (and improved performance)
+* new lint: `unnecessary_final`
 
 #### Pub
 
