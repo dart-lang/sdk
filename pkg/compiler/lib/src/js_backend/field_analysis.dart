@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../constants/values.dart';
@@ -57,8 +56,7 @@ class KFieldAnalysis {
 
       FieldEntity fieldElement = _elementMap.getField(field);
       ir.Expression expression = field.initializer;
-      ConstantValue value = _elementMap.getConstantValue(
-          _elementMap.getStaticTypeContext(fieldElement), expression,
+      ConstantValue value = _elementMap.getConstantValue(expression,
           requireConstant: false, implicitNull: true);
       if (value != null && value.isConstant) {
         fieldData[fieldElement] = new AllocatorData(value);
@@ -67,8 +65,6 @@ class KFieldAnalysis {
 
     for (ir.Constructor constructor in classNode.constructors) {
       KConstructor constructorElement = _elementMap.getConstructor(constructor);
-      ir.StaticTypeContext staticTypeContext =
-          _elementMap.getStaticTypeContext(constructorElement);
       constructors.add(constructorElement);
       for (ir.Initializer initializer in constructor.initializers) {
         if (initializer is ir.FieldInitializer) {
@@ -83,8 +79,7 @@ class KFieldAnalysis {
 
           Initializer initializerValue = const Initializer.complex();
           ir.Expression value = initializer.value;
-          ConstantValue constantValue = _elementMap.getConstantValue(
-              staticTypeContext, value,
+          ConstantValue constantValue = _elementMap.getConstantValue(value,
               requireConstant: false, implicitNull: true);
           if (constantValue != null && constantValue.isConstant) {
             initializerValue = new Initializer.direct(constantValue);
@@ -95,8 +90,9 @@ class KFieldAnalysis {
             if (position != -1) {
               if (position >= constructor.function.requiredParameterCount) {
                 constantValue = _elementMap.getConstantValue(
-                    staticTypeContext, parameter.initializer,
-                    requireConstant: false, implicitNull: true);
+                    parameter.initializer,
+                    requireConstant: false,
+                    implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
                       new Initializer.positional(position, constantValue);
@@ -107,8 +103,9 @@ class KFieldAnalysis {
                   constructor.function.namedParameters.indexOf(parameter);
               if (position != -1) {
                 constantValue = _elementMap.getConstantValue(
-                    staticTypeContext, parameter.initializer,
-                    requireConstant: false, implicitNull: true);
+                    parameter.initializer,
+                    requireConstant: false,
+                    implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
                       new Initializer.named(parameter.name, constantValue);
@@ -126,8 +123,7 @@ class KFieldAnalysis {
   void registerStaticField(KField field, InitializerComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
-    ConstantValue value = _elementMap.getConstantValue(
-        _elementMap.getStaticTypeContext(field), expression,
+    ConstantValue value = _elementMap.getConstantValue(expression,
         requireConstant: node.isConst, implicitNull: true);
     if (value != null && !value.isConstant) {
       value = null;

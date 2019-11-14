@@ -53,7 +53,6 @@ void transformLibraries(
 class _FfiUseSiteTransformer extends FfiTransformer {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
-  StaticTypeContext _staticTypeContext;
 
   Library currentLibrary;
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
@@ -80,6 +79,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   @override
   visitClass(Class node) {
+    env.thisType = InterfaceType(node, Nullability.legacy);
     try {
       _ensureNotExtendsOrImplementsSealedClass(node);
       return super.visitClass(node);
@@ -88,31 +88,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       // cause compilation to fail. By continuing, we can report more
       // diagnostics before compilation ends.
       return super.visitClass(node);
+    } finally {
+      env.thisType = null;
     }
-  }
-
-  @override
-  visitField(Field node) {
-    _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitField(node);
-    _staticTypeContext = null;
-    return result;
-  }
-
-  @override
-  visitConstructor(Constructor node) {
-    _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitConstructor(node);
-    _staticTypeContext = null;
-    return result;
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    _staticTypeContext = new StaticTypeContext(node, env);
-    var result = super.visitProcedure(node);
-    _staticTypeContext = null;
-    return result;
   }
 
   @override
@@ -150,7 +128,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
-        final DartType dartType = func.getStaticType(_staticTypeContext);
+        final DartType dartType = func.getStaticType(env);
 
         _ensureIsStaticFunction(func);
 
@@ -211,8 +189,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             return node;
           }
 
-          final DartType returnType =
-              exceptionalReturn.getStaticType(_staticTypeContext);
+          final DartType returnType = exceptionalReturn.getStaticType(env);
 
           if (!env.isSubtypeOf(returnType, funcType.returnType,
               SubtypeCheckMode.ignoringNullabilities)) {
@@ -322,8 +299,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final DartType dartType = node.arguments.types[0];
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
+        final DartType pointerType = node.receiver.getStaticType(env);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
         _ensureNativeTypeValid(pointerType, node);
@@ -337,8 +313,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       } else if (target == elementAtMethod) {
         // TODO(37773): When moving to extension methods we can get rid of
         // this rewiring.
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
+        final DartType pointerType = node.receiver.getStaticType(env);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
         if (nativeType is TypeParameterType) {
           // Do not rewire generic invocations.

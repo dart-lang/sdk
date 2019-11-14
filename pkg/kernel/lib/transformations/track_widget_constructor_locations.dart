@@ -271,7 +271,7 @@ class _WidgetCallSiteTransformer extends Transformer {
       location,
       parameterLocations: new ListLiteral(
         parameterLocations,
-        typeArgument: new InterfaceType(_locationClass, Nullability.legacy),
+        typeArgument: _locationClass.thisType,
         isConst: true,
       ),
     );
@@ -365,7 +365,7 @@ class WidgetCreatorTracker {
       ));
       final VariableDeclaration variable = new VariableDeclaration(
         _creationLocationParameterName,
-        type: new InterfaceType(_locationClass, Nullability.legacy),
+        type: _locationClass.thisType,
       );
       if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
@@ -499,7 +499,7 @@ class WidgetCreatorTracker {
           procedure.function,
           new VariableDeclaration(
             _creationLocationParameterName,
-            type: new InterfaceType(_locationClass, Nullability.legacy),
+            type: _locationClass.thisType,
           ),
         );
       }
@@ -522,7 +522,7 @@ class WidgetCreatorTracker {
 
       final VariableDeclaration variable = new VariableDeclaration(
         _creationLocationParameterName,
-        type: new InterfaceType(_locationClass, Nullability.legacy),
+        type: _locationClass.thisType,
       );
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {

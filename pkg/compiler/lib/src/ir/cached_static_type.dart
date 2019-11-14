@@ -17,13 +17,11 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
   final StaticTypeCache _cache;
 
   @override
-  final ir.StaticTypeContext staticTypeContext;
-
-  @override
   final ThisInterfaceType thisType;
 
-  CachedStaticType(this.staticTypeContext, this._cache, this.thisType)
-      : super(staticTypeContext.typeEnvironment);
+  CachedStaticType(
+      ir.TypeEnvironment typeEnvironment, this._cache, this.thisType)
+      : super(typeEnvironment);
 
   @override
   ir.DartType getStaticType(ir.Expression node) {

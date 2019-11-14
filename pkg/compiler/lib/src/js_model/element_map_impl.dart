@@ -1202,7 +1202,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.imports[node];
   }
 
-  @override
   ir.CoreTypes get coreTypes =>
       _coreTypes ??= ir.CoreTypes(programEnv.mainComponent);
 
@@ -1212,22 +1211,17 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(programEnv.mainComponent);
 
-  ir.StaticTypeContext getStaticTypeContext(ir.Member node) {
-    // TODO(johnniwinther): Cache the static type context.
-    return new ir.StaticTypeContext(node, typeEnvironment);
-  }
-
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition = members.getData(member).definition;
     StaticTypeCache cachedStaticTypes;
-    ir.StaticTypeContext staticTypeContext;
+    ir.InterfaceType thisType;
     switch (memberDefinition.kind) {
       case MemberKind.regular:
       case MemberKind.constructor:
       case MemberKind.constructorBody:
         ir.Member node = memberDefinition.node;
-        staticTypeContext = getStaticTypeContext(node);
+        thisType = node.enclosingClass?.thisType;
         cachedStaticTypes = members.getData(member).staticTypes;
         break;
       case MemberKind.closureCall:
@@ -1235,7 +1229,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         while (node != null) {
           if (node is ir.Member) {
             ir.Member member = node;
-            staticTypeContext = getStaticTypeContext(member);
+            thisType = member.enclosingClass?.thisType;
             cachedStaticTypes = members.getData(getMember(member)).staticTypes;
             break;
           }
@@ -1246,26 +1240,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.signature:
       case MemberKind.generatorBody:
         cachedStaticTypes = const StaticTypeCache();
-        ir.TreeNode node = memberDefinition.node;
-        while (node != null) {
-          if (node is ir.Member) {
-            ir.Member member = node;
-            staticTypeContext = getStaticTypeContext(member);
-            break;
-          } else if (node is ir.Library) {
-            // Closure field may use class nodes or type parameter nodes as
-            // the definition node.
-            staticTypeContext =
-                new ir.StaticTypeContext.forAnnotations(node, typeEnvironment);
-          }
-          node = node.parent;
-        }
         break;
     }
+
     assert(cachedStaticTypes != null, "No static types cached for $member.");
-    assert(staticTypeContext != null, "No static types context for $member.");
-    return new CachedStaticType(staticTypeContext, cachedStaticTypes,
-        new ThisInterfaceType.from(staticTypeContext.thisType));
+    return new CachedStaticType(typeEnvironment, cachedStaticTypes,
+        new ThisInterfaceType.from(thisType));
   }
 
   @override

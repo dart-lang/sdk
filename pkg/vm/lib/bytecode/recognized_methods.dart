@@ -5,7 +5,7 @@
 library vm.bytecode.recognized_methods;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_environment.dart' show StaticTypeContext;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'dbc.dart';
 import 'generics.dart' show getStaticType;
@@ -41,18 +41,15 @@ class RecognizedMethods {
     '<=': Opcode.kCompareDoubleLe,
   };
 
-  final StaticTypeContext staticTypeContext;
+  final TypeEnvironment typeEnv;
 
-  RecognizedMethods(this.staticTypeContext);
+  RecognizedMethods(this.typeEnv);
 
-  DartType staticType(Expression expr) =>
-      getStaticType(expr, staticTypeContext);
+  DartType staticType(Expression expr) => getStaticType(expr, typeEnv);
 
-  bool isInt(DartType type) =>
-      type == staticTypeContext.typeEnvironment.coreTypes.intLegacyRawType;
+  bool isInt(DartType type) => type == typeEnv.coreTypes.intLegacyRawType;
 
-  bool isDouble(DartType type) =>
-      type == staticTypeContext.typeEnvironment.coreTypes.doubleLegacyRawType;
+  bool isDouble(DartType type) => type == typeEnv.coreTypes.doubleLegacyRawType;
 
   Opcode specializedBytecodeFor(MethodInvocation node) {
     final args = node.arguments;

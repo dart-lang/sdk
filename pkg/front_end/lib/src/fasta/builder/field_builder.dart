@@ -264,13 +264,9 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
       return;
     }
     type.isStarted = true;
-    InterfaceType enclosingClassThisType = field.enclosingClass == null
-        ? null
-        : library.loader.typeInferenceEngine.coreTypes.thisInterfaceType(
-            field.enclosingClass, field.enclosingLibrary.nonNullable);
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
-        .createTopLevelTypeInferrer(fileUri, enclosingClassThisType, library,
-            dataForTesting?.inferenceData);
+        .createTopLevelTypeInferrer(fileUri, field.enclosingClass?.thisType,
+            library, dataForTesting?.inferenceData);
     BodyBuilder bodyBuilder =
         library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =

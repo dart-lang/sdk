@@ -40,14 +40,14 @@ class Visitor extends StaticTypeVisitorBase {
       // as static type.
       return const ir.DynamicType();
     }
-    ir.TreeNode enclosingMember = node;
-    while (enclosingMember != null && enclosingMember is! ir.Member) {
-      enclosingMember = enclosingMember.parent;
+    ir.TreeNode enclosingClass = node;
+    while (enclosingClass != null && enclosingClass is! ir.Class) {
+      enclosingClass = enclosingClass.parent;
     }
     try {
-      staticTypeContext =
-          new ir.StaticTypeContext(enclosingMember, typeEnvironment);
-      return node.getStaticType(staticTypeContext);
+      typeEnvironment.thisType =
+          enclosingClass is ir.Class ? enclosingClass.thisType : null;
+      return node.getStaticType(typeEnvironment);
     } catch (e) {
       // The static type computation crashes on type errors. Use `dynamic`
       // as static type.

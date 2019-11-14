@@ -9,7 +9,7 @@ import 'dart:math' show min;
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:kernel/type_environment.dart' show StaticTypeContext;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'options.dart' show BytecodeOptions;
 
@@ -185,11 +185,11 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns static type of [expr].
-DartType getStaticType(Expression expr, StaticTypeContext staticTypeContext) {
+DartType getStaticType(Expression expr, TypeEnvironment typeEnvironment) {
   // TODO(dartbug.com/34496): Remove this try/catch once
   // getStaticType() is reliable.
   try {
-    return expr.getStaticType(staticTypeContext);
+    return expr.getStaticType(typeEnvironment);
   } catch (e) {
     return const DynamicType();
   }
@@ -212,7 +212,7 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
 /// [receiver] can omit argument type checks needed due to generic-covariant
 /// parameters.
 bool isUncheckedCall(Member interfaceTarget, Expression receiver,
-    StaticTypeContext staticTypeContext) {
+    TypeEnvironment typeEnvironment) {
   if (interfaceTarget == null) {
     // Dynamic call cannot be unchecked.
     return false;
@@ -228,14 +228,14 @@ bool isUncheckedCall(Member interfaceTarget, Expression receiver,
     return true;
   }
 
-  DartType receiverStaticType = getStaticType(receiver, staticTypeContext);
+  DartType receiverStaticType = getStaticType(receiver, typeEnvironment);
   if (receiverStaticType is InterfaceType) {
     if (receiverStaticType.typeArguments.isEmpty) {
       return true;
     }
 
-    if (receiverStaticType.typeArguments.every(
-        (t) => isSealedType(t, staticTypeContext.typeEnvironment.coreTypes))) {
+    if (receiverStaticType.typeArguments
+        .every((t) => isSealedType(t, typeEnvironment.coreTypes))) {
       return true;
     }
   }
@@ -282,9 +282,9 @@ bool _hasGenericCovariantParameters(Member target) {
 /// Returns true if invocation [node] is a closure call with statically known
 /// function type. Such invocations can omit argument type checks.
 bool isUncheckedClosureCall(MethodInvocation node,
-        StaticTypeContext staticTypeContext, BytecodeOptions options) =>
+        TypeEnvironment typeEnvironment, BytecodeOptions options) =>
     node.name.name == 'call' &&
-    getStaticType(node.receiver, staticTypeContext) is FunctionType &&
+    getStaticType(node.receiver, typeEnvironment) is FunctionType &&
     !options.avoidClosureCallInstructions;
 
 /// Returns true if [MethodInvocation] node with given [interfaceTarget] is

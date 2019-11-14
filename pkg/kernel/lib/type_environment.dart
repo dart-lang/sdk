@@ -17,6 +17,12 @@ typedef void ErrorHandler(TreeNode node, String message);
 abstract class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
 
+  InterfaceType thisType;
+
+  DartType returnType;
+  DartType yieldType;
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
   /// An error handler for use in debugging, or `null` if type errors should not
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
@@ -38,30 +44,29 @@ abstract class TypeEnvironment extends SubtypeTester {
   InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
-  InterfaceType literalListType(DartType elementType, Nullability nullability) {
+  InterfaceType literalListType(DartType elementType) {
     return new InterfaceType(
-        coreTypes.listClass, nullability, <DartType>[elementType]);
+        coreTypes.listClass, Nullability.legacy, <DartType>[elementType]);
   }
 
-  InterfaceType literalSetType(DartType elementType, Nullability nullability) {
+  InterfaceType literalSetType(DartType elementType) {
     return new InterfaceType(
-        coreTypes.setClass, nullability, <DartType>[elementType]);
+        coreTypes.setClass, Nullability.legacy, <DartType>[elementType]);
   }
 
-  InterfaceType literalMapType(
-      DartType key, DartType value, Nullability nullability) {
+  InterfaceType literalMapType(DartType key, DartType value) {
     return new InterfaceType(
-        coreTypes.mapClass, nullability, <DartType>[key, value]);
+        coreTypes.mapClass, Nullability.legacy, <DartType>[key, value]);
   }
 
-  InterfaceType iterableType(DartType type, Nullability nullability) {
+  InterfaceType iterableType(DartType type) {
     return new InterfaceType(
-        coreTypes.iterableClass, nullability, <DartType>[type]);
+        coreTypes.iterableClass, Nullability.legacy, <DartType>[type]);
   }
 
-  InterfaceType streamType(DartType type, Nullability nullability) {
+  InterfaceType streamType(DartType type) {
     return new InterfaceType(
-        coreTypes.streamClass, nullability, <DartType>[type]);
+        coreTypes.streamClass, Nullability.legacy, <DartType>[type]);
   }
 
   InterfaceType futureType(DartType type,
@@ -608,120 +613,5 @@ abstract class SubtypeTester {
     }
     return result
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype));
-  }
-}
-
-/// Context object needed for computing `Expression.getStaticType`.
-///
-/// The [StaticTypeContext] provides access to the [TypeEnvironment] and the
-/// current 'this type' as well as determining the nullability state of the
-/// enclosing library.
-// TODO(johnniwinther): Support static type caching through [StaticTypeContext].
-class StaticTypeContext {
-  /// The [TypeEnvironment] used for the static type computation.
-  ///
-  /// This provides access to the core types and the class hierarchy.
-  final TypeEnvironment typeEnvironment;
-
-  /// The library in which the static type is computed.
-  ///
-  /// The `library.isNonNullableByDefault` property is used to determine the
-  /// nullabilities of the static types.
-  final Library _library;
-
-  /// The static type of a `this` expression.
-  final InterfaceType thisType;
-
-  /// Creates a static type context for computing static types in the body
-  /// of [member].
-  StaticTypeContext(Member member, this.typeEnvironment)
-      : _library = member.enclosingLibrary,
-        thisType = member.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable);
-
-  /// Creates a static type context for computing static types of annotations
-  /// in [library].
-  StaticTypeContext.forAnnotations(this._library, this.typeEnvironment)
-      : thisType = null;
-
-  /// The [Nullability] used for non-nullable types.
-  ///
-  /// For opt out libraries this is [Nullability.legacy].
-  Nullability get nonNullable => _library.nonNullable;
-}
-
-/// Implementation of [StaticTypeContext] that update its state when entering
-/// and leaving libraries and members.
-class StatefulStaticTypeContext implements StaticTypeContext {
-  @override
-  final TypeEnvironment typeEnvironment;
-  Library _currentLibrary;
-  Member _currentMember;
-
-  StatefulStaticTypeContext(this.typeEnvironment);
-
-  @override
-  Library get _library {
-    Library library = _currentLibrary ?? _currentMember?.enclosingLibrary;
-    assert(library != null,
-        "No library currently associated with StaticTypeContext.");
-    return library;
-  }
-
-  @override
-  InterfaceType get thisType => _currentMember?.enclosingClass
-      ?.getThisType(typeEnvironment.coreTypes, _currentLibrary.nonNullable);
-
-  @override
-  Nullability get nonNullable => _library?.nonNullable;
-
-  /// Updates the [nonNullable] and [thisType] to match static type context for
-  /// the member [node].
-  ///
-  /// This should be called before computing static types on the body of member
-  /// [node].
-  ///
-  /// Only one member can be entered at a time.
-  void enterMember(Member node) {
-    assert(_currentMember == null, "Already in context of $_currentMember");
-    _currentMember = node;
-  }
-
-  /// Reverts the [nonNullable] and [thisType] values to the previous state.
-  ///
-  /// This should be called after computing static types on the body of member
-  /// [node].
-  void leaveMember(Member node) {
-    assert(
-        _currentMember == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${_currentMember}.");
-    _currentMember = null;
-  }
-
-  /// Updates the [nonNullable] and [thisType] to match static type context for
-  /// the library [node].
-  ///
-  /// This should be called before computing static types on annotations in the
-  /// library [node].
-  ///
-  /// Only one library can be entered at a time, and not while a member is
-  /// entered through [enterMember].
-  void enterLibrary(Library node) {
-    assert(_currentLibrary == null, "Already in context of $_currentLibrary");
-    assert(_currentMember == null, "Already in context of $_currentMember");
-    _currentLibrary = node;
-  }
-
-  /// Reverts the [nonNullable] and [thisType] values to the previous state.
-  ///
-  /// This should be called after computing static types on annotations in the
-  /// library [node].
-  void leaveLibrary(Library node) {
-    assert(
-        _currentLibrary == node,
-        "Inconsistent static type context stack: "
-        "Trying to leave $node but current is ${_currentLibrary}.");
-    _currentLibrary = null;
   }
 }

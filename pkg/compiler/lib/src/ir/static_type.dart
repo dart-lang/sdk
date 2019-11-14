@@ -392,9 +392,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType _narrowInstanceReceiver(
       ir.Member interfaceTarget, ir.DartType receiverType) {
     if (interfaceTarget != null && receiverType == const ir.DynamicType()) {
-      receiverType = interfaceTarget.enclosingClass.getThisType(
-          typeEnvironment.coreTypes,
-          interfaceTarget.enclosingLibrary.nonNullable);
+      receiverType = interfaceTarget.enclosingClass.thisType;
     }
     return receiverType;
   }
@@ -1379,8 +1377,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitProcedure(ir.Procedure node) {
-    thisType = new ThisInterfaceType.from(node.enclosingClass?.getThisType(
-        typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
+    thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
     _currentVariables = {};
     visitSignature(node.function);
     visitNode(node.function.body);
@@ -1394,8 +1391,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitConstructor(ir.Constructor node) {
-    thisType = new ThisInterfaceType.from(node.enclosingClass.getThisType(
-        typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
+    thisType = new ThisInterfaceType.from(node.enclosingClass.thisType);
     _currentVariables = {};
     visitSignature(node.function);
     visitNodes(node.initializers);
@@ -1410,8 +1406,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   Null visitField(ir.Field node) {
-    thisType = new ThisInterfaceType.from(node.enclosingClass?.getThisType(
-        typeEnvironment.coreTypes, node.enclosingLibrary.nonNullable));
+    thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
     _currentVariables = {};
     visitNode(node.initializer);
     handleField(node);

@@ -1160,8 +1160,7 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     ir.TreeNode sourceNode = definition.node;
     ir.DartType type;
     if (sourceNode is ir.Class) {
-      type = sourceNode.getThisType(
-          elementMap.coreTypes, sourceNode.enclosingLibrary.nonNullable);
+      type = sourceNode.thisType;
     } else if (sourceNode is ir.VariableDeclaration) {
       type = sourceNode.type;
     } else if (sourceNode is ir.Field) {

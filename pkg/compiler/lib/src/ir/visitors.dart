@@ -499,8 +499,6 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
     ConstructedConstantExpression superConstructorInvocation;
     List<AssertConstantExpression> assertions = <AssertConstantExpression>[];
-    List<ir.DartType> parametersAsArguments =
-        ir.getAsTypeArguments(node.enclosingClass.typeParameters);
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
         registerField(initializer.field, visit(initializer.value));
@@ -511,7 +509,9 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             initializer.arguments.types);
       } else if (initializer is ir.RedirectingInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
-            initializer.target, initializer.arguments, parametersAsArguments);
+            initializer.target,
+            initializer.arguments,
+            node.enclosingClass.thisType.typeArguments);
       } else if (initializer is ir.AssertInitializer) {
         ConstantExpression condition = visit(initializer.statement.condition);
         ConstantExpression message = initializer.statement.message != null

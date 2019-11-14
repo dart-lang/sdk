@@ -5,7 +5,6 @@
 library vm.bytecode.declarations;
 
 import 'package:kernel/ast.dart' show TreeNode, listHashCode, listEquals;
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'bytecode_serialization.dart'
     show
         BufferedWriter,
@@ -1254,9 +1253,9 @@ class Component {
   Set<String> protectedNames;
   ObjectHandle mainLibrary;
 
-  Component(this.version, CoreTypes coreTypes)
+  Component(this.version)
       : stringTable = new StringTable(),
-        objectTable = new ObjectTable(coreTypes);
+        objectTable = new ObjectTable();
 
   void write(BufferedWriter writer) {
     objectTable.allocateIndexTable();

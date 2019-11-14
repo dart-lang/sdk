@@ -11,7 +11,6 @@ import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_environment.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -50,7 +49,6 @@ class StaticTypeDataComputer extends DataComputer<String> {
 
 class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   final TypeEnvironment _environment;
-  StaticTypeContext _staticTypeContext;
 
   StaticTypeDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap)
@@ -60,27 +58,6 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
         super(compilerResult, actualMap);
 
   @override
-  visitField(Field node) {
-    _staticTypeContext = new StaticTypeContext(node, _environment);
-    super.visitField(node);
-    _staticTypeContext = null;
-  }
-
-  @override
-  visitConstructor(Constructor node) {
-    _staticTypeContext = new StaticTypeContext(node, _environment);
-    super.visitConstructor(node);
-    _staticTypeContext = null;
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    _staticTypeContext = new StaticTypeContext(node, _environment);
-    super.visitProcedure(node);
-    _staticTypeContext = null;
-  }
-
-  @override
   String computeLibraryValue(Id id, Library node) {
     return 'nnbd=${node.isNonNullableByDefault}';
   }
@@ -88,7 +65,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   @override
   String computeNodeValue(Id id, TreeNode node) {
     if (node is Expression) {
-      DartType type = node.getStaticType(_staticTypeContext);
+      DartType type = node.getStaticType(_environment);
       return typeToText(type);
     } else if (node is Arguments) {
       if (node.types.isNotEmpty) {

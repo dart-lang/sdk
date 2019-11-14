@@ -5,7 +5,6 @@
 library vm.bytecode.recursive_types_validator;
 
 import 'package:kernel/ast.dart' hide MapEntry;
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'generics.dart'
@@ -14,12 +13,9 @@ import 'generics.dart'
 /// Detect recursive types and validates that finalized (flattened)
 /// representation of generic types is valid (finite).
 class RecursiveTypesValidator {
-  final CoreTypes coreTypes;
   final Set<DartType> _validatedTypes = <DartType>{};
   final Set<DartType> _recursiveTypes = <DartType>{};
   final Set<Class> _validatedClases = <Class>{};
-
-  RecursiveTypesValidator(this.coreTypes);
 
   /// Validates [type].
   void validateType(DartType type) {
@@ -43,8 +39,7 @@ class RecursiveTypesValidator {
   void validateClass(Class cls) {
     if (_validatedClases.add(cls)) {
       try {
-        validateType(
-            cls.getThisType(coreTypes, cls.enclosingLibrary.nonNullable));
+        validateType(cls.thisType);
       } on IllegalRecursiveTypeException catch (e) {
         _validatedClases.remove(cls);
         throw e;

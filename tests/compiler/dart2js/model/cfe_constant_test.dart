@@ -52,7 +52,7 @@ class ConstantDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     ir.Member node = elementMap.getMemberNode(member);
-    new ConstantDataExtractor(compiler.reporter, actualMap, elementMap, member)
+    new ConstantDataExtractor(compiler.reporter, actualMap, elementMap)
         .run(node);
   }
 
@@ -75,17 +75,15 @@ class ConstantDataComputer extends DataComputer<String> {
 /// IR visitor for computing inference data for a member.
 class ConstantDataExtractor extends IrDataExtractor<String> {
   final KernelToElementMapImpl elementMap;
-  final MemberEntity member;
 
   ConstantDataExtractor(DiagnosticReporter reporter,
-      Map<Id, ActualData<String>> actualMap, this.elementMap, this.member)
+      Map<Id, ActualData<String>> actualMap, this.elementMap)
       : super(reporter, actualMap);
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.ConstantExpression) {
-      return constantToText(elementMap.getConstantValue(
-          elementMap.getStaticTypeContext(member), node));
+      return constantToText(elementMap.getConstantValue(node));
     }
     return null;
   }

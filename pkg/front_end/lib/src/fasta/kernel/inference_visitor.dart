@@ -350,8 +350,7 @@ class InferenceVisitor
         getExplicitTypeArguments(node.arguments) != null;
     DartType inferredType = inferrer.inferInvocation(typeContext,
         node.fileOffset, node.target.function.thisFunctionType, node.arguments,
-        returnType:
-            computeConstructorReturnType(node.target, inferrer.coreTypes),
+        returnType: computeConstructorReturnType(node.target),
         isConst: node.isConst);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
@@ -617,8 +616,7 @@ class InferenceVisitor
         getExplicitTypeArguments(node.arguments) != null;
     DartType inferredType = inferrer.inferInvocation(typeContext,
         node.fileOffset, node.target.function.thisFunctionType, node.arguments,
-        returnType:
-            computeConstructorReturnType(node.target, inferrer.coreTypes),
+        returnType: computeConstructorReturnType(node.target),
         isConst: node.isConst);
     node.hasBeenInferred = true;
     if (!inferrer.isTopLevel) {
@@ -1360,8 +1358,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitListLiteral(
       ListLiteral node, DartType typeContext) {
     Class listClass = inferrer.coreTypes.listClass;
-    InterfaceType listType = inferrer.coreTypes
-        .thisInterfaceType(listClass, inferrer.library.nonNullable);
+    InterfaceType listType = listClass.thisType;
     List<DartType> inferredTypes;
     DartType inferredTypeArgument;
     List<DartType> formalTypes;
@@ -1834,8 +1831,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitMapLiteral(
       MapLiteral node, DartType typeContext) {
     Class mapClass = inferrer.coreTypes.mapClass;
-    InterfaceType mapType = inferrer.coreTypes
-        .thisInterfaceType(mapClass, inferrer.library.nonNullable);
+    InterfaceType mapType = mapClass.thisType;
     List<DartType> inferredTypes;
     DartType inferredKeyType;
     DartType inferredValueType;
@@ -1936,8 +1932,7 @@ class InferenceVisitor
       if (canBeSet && !canBeMap) {
         List<Expression> setElements = <Expression>[];
         List<DartType> formalTypesForSet = <DartType>[];
-        InterfaceType setType = inferrer.coreTypes.thisInterfaceType(
-            inferrer.coreTypes.setClass, inferrer.library.nonNullable);
+        InterfaceType setType = inferrer.coreTypes.setClass.thisType;
         for (int i = 0; i < node.entries.length; ++i) {
           setElements.add(convertToElement(node.entries[i], inferrer.helper,
               inferrer.assignedVariables.reassignInfo));
@@ -1954,8 +1949,7 @@ class InferenceVisitor
             inferredTypesForSet,
             isConst: node.isConst);
         inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
-            inferrer.coreTypes.thisInterfaceType(
-                inferrer.coreTypes.setClass, inferrer.library.nonNullable),
+            inferrer.coreTypes.setClass.thisType,
             inferrer.coreTypes.setClass.typeParameters,
             formalTypesForSet,
             actualTypesForSet,
@@ -4288,8 +4282,7 @@ class InferenceVisitor
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
     inferrer.inferInvocation(null, node.fileOffset,
         node.target.function.thisFunctionType, node.arguments,
-        returnType: inferrer.coreTypes.thisInterfaceType(
-            node.target.enclosingClass, inferrer.library.nonNullable),
+        returnType: node.target.enclosingClass.thisType,
         skipTypeArgumentInference: true);
     ArgumentsImpl.removeNonInferrableArgumentTypes(node.arguments);
   }
@@ -4324,8 +4317,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitSetLiteral(
       SetLiteral node, DartType typeContext) {
     Class setClass = inferrer.coreTypes.setClass;
-    InterfaceType setType = inferrer.coreTypes
-        .thisInterfaceType(setClass, inferrer.library.nonNullable);
+    InterfaceType setType = setClass.thisType;
     List<DartType> inferredTypes;
     DartType inferredTypeArgument;
     List<DartType> formalTypes;

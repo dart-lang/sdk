@@ -18,7 +18,7 @@ import 'package:kernel/ast.dart'
         transformList,
         visitList;
 
-import 'package:kernel/type_environment.dart' show StaticTypeContext;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/visitor.dart'
     show
@@ -45,7 +45,7 @@ mixin ControlFlowElement on Expression {
   /// Spread and control-flow elements are not expressions and do not have a
   /// static type.
   @override
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(TypeEnvironment types) {
     return unsupported("getStaticType", fileOffset, getFileUri(this));
   }
 

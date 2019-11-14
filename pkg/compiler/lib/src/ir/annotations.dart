@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 import '../common/names.dart';
 import 'modular.dart';
 
@@ -126,15 +125,13 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
   IrAnnotationData data = new IrAnnotationData();
 
   void processMember(ir.Member member) {
-    ir.StaticTypeContext staticTypeContext = new ir.StaticTypeContext(
-        member, modularCore.constantEvaluator.typeEnvironment);
     List<PragmaAnnotationData> pragmaAnnotations;
     List<String> createsAnnotations;
     List<String> returnsAnnotations;
     for (ir.Expression annotation in member.annotations) {
       if (annotation is ir.ConstantExpression) {
-        ir.Constant constant = modularCore.constantEvaluator
-            .evaluate(staticTypeContext, annotation);
+        ir.Constant constant =
+            modularCore.constantEvaluator.evaluate(annotation);
 
         String jsName = _getJsInteropName(constant);
         if (jsName != null) {
@@ -179,13 +176,10 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
   }
 
   for (ir.Library library in component.libraries) {
-    ir.StaticTypeContext staticTypeContext =
-        new ir.StaticTypeContext.forAnnotations(
-            library, modularCore.constantEvaluator.typeEnvironment);
     for (ir.Expression annotation in library.annotations) {
       if (annotation is ir.ConstantExpression) {
-        ir.Constant constant = modularCore.constantEvaluator
-            .evaluate(staticTypeContext, annotation);
+        ir.Constant constant =
+            modularCore.constantEvaluator.evaluate(annotation);
 
         String jsName = _getJsInteropName(constant);
         if (jsName != null) {
@@ -196,8 +190,8 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
     for (ir.Class cls in library.classes) {
       for (ir.Expression annotation in cls.annotations) {
         if (annotation is ir.ConstantExpression) {
-          ir.Constant constant = modularCore.constantEvaluator
-              .evaluate(staticTypeContext, annotation);
+          ir.Constant constant =
+              modularCore.constantEvaluator.evaluate(annotation);
 
           String nativeClassName = _getNativeClassName(constant);
           if (nativeClassName != null) {

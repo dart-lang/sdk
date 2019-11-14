@@ -762,7 +762,6 @@ deserialization
 deserialize
 deserialized
 designed
-desired
 desugar
 desugared
 desugaring
@@ -1074,7 +1073,6 @@ failure
 failures
 fake
 fall
-fallback
 falls
 false
 far
@@ -2412,8 +2410,6 @@ reuses
 reusing
 reverse
 reversed
-revert
-reverts
 review
 revise
 revision
@@ -2653,7 +2649,6 @@ starting
 starts
 startup
 state
-stateful
 statement
 statement's
 statements

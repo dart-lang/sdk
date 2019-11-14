@@ -34,15 +34,12 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   ErrorReporter get errorReporter => super.errorReporter;
 
   @override
-  ir.Constant evaluate(
-      ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {bool requireConstant: true}) {
+  ir.Constant evaluate(ir.Expression node, {bool requireConstant: true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
-        ir.Constant result =
-            super.evaluate(staticTypeContext, constant.expression);
+        ir.Constant result = super.evaluate(constant.expression);
         assert(
             result is ir.UnevaluatedConstant ||
                 !result.accept(const UnevaluatedConstantFinder()),
@@ -57,10 +54,10 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
     if (requireConstant) {
       // TODO(johnniwinther): Handle reporting of compile-time constant
       // evaluation errors.
-      return super.evaluate(staticTypeContext, node);
+      return super.evaluate(node);
     } else {
       try {
-        return super.evaluate(staticTypeContext, node);
+        return super.evaluate(node);
       } catch (e) {
         return null;
       }

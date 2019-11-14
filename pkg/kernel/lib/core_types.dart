@@ -168,10 +168,6 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
   final Map<Class, InterfaceType> _nonNullableRawTypes =
       new Map<Class, InterfaceType>.identity();
-  final Map<Class, InterfaceType> _thisInterfaceTypes =
-      new Map<Class, InterfaceType>.identity();
-  final Map<Typedef, TypedefType> _thisTypedefTypes =
-      new Map<Typedef, TypedefType>.identity();
 
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
@@ -1232,29 +1228,5 @@ class CoreTypes {
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
     }
-  }
-
-  InterfaceType thisInterfaceType(Class klass, Nullability nullability) {
-    InterfaceType result = _thisInterfaceTypes[klass];
-    if (result == null) {
-      return _thisInterfaceTypes[klass] = new InterfaceType(
-          klass, nullability, getAsTypeArguments(klass.typeParameters));
-    }
-    if (result.nullability != nullability) {
-      return _thisInterfaceTypes[klass] = result.withNullability(nullability);
-    }
-    return result;
-  }
-
-  TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
-    TypedefType result = _thisTypedefTypes[typedef];
-    if (result == null) {
-      return _thisTypedefTypes[typedef] = new TypedefType(
-          typedef, nullability, getAsTypeArguments(typedef.typeParameters));
-    }
-    if (result.nullability != nullability) {
-      return _thisTypedefTypes[typedef] = result.withNullability(nullability);
-    }
-    return result;
   }
 }

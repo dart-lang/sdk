@@ -5,49 +5,31 @@
 /*cfe.library: nnbd=false*/
 /*cfe:nnbd.library: nnbd=true*/
 
-num numTopLevel = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
-int intTopLevel = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
-dynamic dynamicTopLevel = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
+num numTopLevel = /*int*/ 0;
+int intTopLevel = /*int*/ 0;
+dynamic dynamicTopLevel = /*int*/ 0;
 
 testTopLevel() {
   /*cfe|dart2js.update: num*/
   /*cfe:nnbd.update: num!*/
   /*cfe|dart2js.num*/
   /*cfe:nnbd.num!*/
-  numTopLevel
-      /*cfe|dart2js.invoke: num*/
-      /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+  numTopLevel /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++;
 
   /*cfe|dart2js.update: num*/
   /*cfe:nnbd.update: num!*/
   /*cfe|dart2js.num*/
   /*cfe:nnbd.num!*/
-  numTopLevel
-      /*cfe|dart2js.invoke: num*/
-      /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+  numTopLevel /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --;
 
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++
       /*cfe|dart2js.update: num*/
       /*cfe:nnbd.update: num!*/
       /*cfe|dart2js.num*/
       /*cfe:nnbd.num!*/
       numTopLevel;
 
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --
       /*cfe|dart2js.update: num*/
       /*cfe:nnbd.update: num!*/
       /*cfe|dart2js.num*/
@@ -61,9 +43,7 @@ testTopLevel() {
   intTopLevel
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+      /*int*/ ++;
 
   /*cfe|dart2js.update: int*/
   /*cfe:nnbd.update: int!*/
@@ -72,15 +52,11 @@ testTopLevel() {
   intTopLevel
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+      /*int*/ --;
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*int*/ ++
       /*cfe|dart2js.update: int*/
       /*cfe:nnbd.update: int!*/
       /*cfe|dart2js.int*/
@@ -89,9 +65,7 @@ testTopLevel() {
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*int*/ --
       /*cfe|dart2js.update: int*/
       /*cfe:nnbd.update: int!*/
       /*cfe|dart2js.int*/
@@ -99,34 +73,22 @@ testTopLevel() {
       intTopLevel;
 
   /*update: dynamic*/ /*dynamic*/ dynamicTopLevel
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+      /*invoke: dynamic*/ /*int*/ ++;
 
   /*update: dynamic*/ /*dynamic*/ dynamicTopLevel
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+      /*invoke: dynamic*/ /*int*/ --;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*invoke: dynamic*/ /*int*/ ++
       /*update: dynamic*/ /*dynamic*/ dynamicTopLevel;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*invoke: dynamic*/ /*int*/ --
       /*update: dynamic*/ /*dynamic*/ dynamicTopLevel;
 }
 
 class Class {
-  num numInstance = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
-  int intInstance = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
-  dynamic dynamicInstance = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
+  num numInstance = /*int*/ 0;
+  int intInstance = /*int*/ 0;
+  dynamic dynamicInstance = /*int*/ 0;
 
   testInstance() {
     /*cfe|dart2js.update: num*/
@@ -136,9 +98,7 @@ class Class {
     numInstance
         /*cfe|dart2js.invoke: num*/
         /*cfe:nnbd.invoke: num!*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        ++;
+        /*int*/ ++;
 
     /*cfe|dart2js.update: num*/
     /*cfe:nnbd.update: num!*/
@@ -147,26 +107,16 @@ class Class {
     numInstance
         /*cfe|dart2js.invoke: num*/
         /*cfe:nnbd.invoke: num!*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        --;
+        /*int*/ --;
 
-    /*cfe|dart2js.invoke: num*/
-    /*cfe:nnbd.invoke: num!*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    ++
+    /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++
         /*cfe|dart2js.update: num*/
         /*cfe:nnbd.update: num!*/
         /*cfe|dart2js.num*/
         /*cfe:nnbd.num!*/
         numInstance;
 
-    /*cfe|dart2js.invoke: num*/
-    /*cfe:nnbd.invoke: num!*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    --
+    /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --
         /*cfe|dart2js.update: num*/
         /*cfe:nnbd.update: num!*/
         /*cfe|dart2js.num*/
@@ -180,9 +130,7 @@ class Class {
     intInstance
         /*cfe|dart2js.invoke: int*/
         /*cfe:nnbd.invoke: int!*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        ++;
+        /*int*/ ++;
 
     /*cfe|dart2js.update: int*/
     /*cfe:nnbd.update: int!*/
@@ -191,15 +139,11 @@ class Class {
     intInstance
         /*cfe|dart2js.invoke: int*/
         /*cfe:nnbd.invoke: int!*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        --;
+        /*int*/ --;
 
     /*cfe|dart2js.invoke: int*/
     /*cfe:nnbd.invoke: int!*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    ++
+    /*int*/ ++
         /*cfe|dart2js.update: int*/
         /*cfe:nnbd.update: int!*/
         /*cfe|dart2js.int*/
@@ -208,9 +152,7 @@ class Class {
 
     /*cfe|dart2js.invoke: int*/
     /*cfe:nnbd.invoke: int!*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    --
+    /*int*/ --
         /*cfe|dart2js.update: int*/
         /*cfe:nnbd.update: int!*/
         /*cfe|dart2js.int*/
@@ -218,24 +160,12 @@ class Class {
         intInstance;
 
     /*update: dynamic*/ /*dynamic*/ dynamicInstance
-        /*invoke: dynamic*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        ++;
+        /*invoke: dynamic*/ /*int*/ ++;
     /*update: dynamic*/ /*dynamic*/ dynamicInstance
-        /*invoke: dynamic*/
-        /*cfe|dart2js.int*/
-        /*cfe:nnbd.int!*/
-        --;
-    /*invoke: dynamic*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    ++
+        /*invoke: dynamic*/ /*int*/ --;
+    /*invoke: dynamic*/ /*int*/ ++
         /*update: dynamic*/ /*dynamic*/ dynamicInstance;
-    /*invoke: dynamic*/
-    /*cfe|dart2js.int*/
-    /*cfe:nnbd.int!*/
-    --
+    /*invoke: dynamic*/ /*int*/ --
         /*update: dynamic*/ /*dynamic*/ dynamicInstance;
   }
 }
@@ -249,10 +179,7 @@ testInstanceOnClass(Class c) {
           numInstance
       /*cfe|dart2js.invoke: num*/
       /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
-
+      /*int*/ ++;
   /*cfe|dart2js.Class*/
   /*cfe:nnbd.Class!*/
   c. /*cfe|dart2js.update: num*/ /*cfe:nnbd.update: num!*/
@@ -261,31 +188,18 @@ testInstanceOnClass(Class c) {
           numInstance
       /*cfe|dart2js.invoke: num*/
       /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
-
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+      /*int*/ --;
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
-      c. /*cfe|dart2js.update: num*/
-          /*cfe:nnbd.update: num!*/
+      c. /*cfe|dart2js.update: num*/ /*cfe:nnbd.update: num!*/
           /*cfe|dart2js.num*/
           /*cfe:nnbd.num!*/
           numInstance;
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
-      c. /*cfe|dart2js.update: num*/
-          /*cfe:nnbd.update: num!*/
+      c. /*cfe|dart2js.update: num*/ /*cfe:nnbd.update: num!*/
           /*cfe|dart2js.num*/
           /*cfe:nnbd.num!*/
           numInstance;
@@ -300,9 +214,7 @@ testInstanceOnClass(Class c) {
           intInstance
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+      /*int*/ ++;
 
   /*cfe|dart2js.Class*/
   /*cfe:nnbd.Class!*/
@@ -314,15 +226,11 @@ testInstanceOnClass(Class c) {
           intInstance
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+      /*int*/ --;
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*int*/ ++
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
       c.
@@ -334,9 +242,7 @@ testInstanceOnClass(Class c) {
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*int*/ --
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
       c.
@@ -349,170 +255,83 @@ testInstanceOnClass(Class c) {
   /*cfe|dart2js.Class*/
   /*cfe:nnbd.Class!*/
   c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+      /*invoke: dynamic*/ /*int*/ ++;
 
   /*cfe|dart2js.Class*/
   /*cfe:nnbd.Class!*/
   c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+      /*invoke: dynamic*/ /*int*/ --;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*invoke: dynamic*/ /*int*/ ++
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
       c. /*update: dynamic*/ /*dynamic*/ dynamicInstance;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*invoke: dynamic*/ /*int*/ --
       /*cfe|dart2js.Class*/
       /*cfe:nnbd.Class!*/
       c. /*update: dynamic*/ /*dynamic*/ dynamicInstance;
 }
 
 testInstanceOnDynamic(dynamic c) {
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ numInstance
+      /*invoke: dynamic*/ /*int*/ ++;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ numInstance
+      /*invoke: dynamic*/ /*int*/ --;
+  /*invoke: dynamic*/ /*int*/ ++ /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ numInstance;
+  /*invoke: dynamic*/ /*int*/ -- /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ numInstance;
 
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ intInstance
+      /*invoke: dynamic*/ /*int*/ ++;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ intInstance
+      /*invoke: dynamic*/ /*int*/ --;
+  /*invoke: dynamic*/ /*int*/ ++ /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ intInstance;
+  /*invoke: dynamic*/ /*int*/ -- /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ intInstance;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance;
-
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ numInstance;
-
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
-
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
-
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance;
-
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ intInstance;
-
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
-
-  /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
-
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance;
-
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
-      /*dynamic*/ c.
-          /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
+      /*invoke: dynamic*/ /*int*/ ++;
+  /*dynamic*/ c. /*update: dynamic*/ /*dynamic*/ dynamicInstance
+      /*invoke: dynamic*/ /*int*/ --;
+  /*invoke: dynamic*/ /*int*/ ++ /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ dynamicInstance;
+  /*invoke: dynamic*/ /*int*/ -- /*dynamic*/ c
+      . /*update: dynamic*/ /*dynamic*/ dynamicInstance;
 }
 
 main() {
   /// ignore: unused_local_variable
-  num numLocal = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
+  num numLocal = /*int*/ 0;
 
   /// ignore: unused_local_variable
-  int intLocal = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
+  int intLocal = /*int*/ 0;
 
   /// ignore: unused_local_variable
-  dynamic dynamicLocal = /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0;
+  dynamic dynamicLocal = /*int*/ 0;
 
   /*cfe|dart2js.update: num*/
   /*cfe:nnbd.update: num!*/
   /*cfe|dart2js.num*/
   /*cfe:nnbd.num!*/
-  numLocal
-      /*cfe|dart2js.invoke: num*/
-      /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+  numLocal /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++;
 
   /*cfe|dart2js.update: num*/
   /*cfe:nnbd.update: num!*/
   /*cfe|dart2js.num*/
   /*cfe:nnbd.num!*/
-  numLocal
-      /*cfe|dart2js.invoke: num*/
-      /*cfe:nnbd.invoke: num!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+  numLocal /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --;
 
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++
       /*cfe|dart2js.update: num*/
       /*cfe:nnbd.update: num!*/
       /*cfe|dart2js.num*/
       /*cfe:nnbd.num!*/
       numLocal;
 
-  /*cfe|dart2js.invoke: num*/
-  /*cfe:nnbd.invoke: num!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --
       /*cfe|dart2js.update: num*/
       /*cfe:nnbd.update: num!*/
       /*cfe|dart2js.num*/
@@ -526,9 +345,7 @@ main() {
   intLocal
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+      /*int*/ ++;
 
   /*cfe|dart2js.update: int*/
   /*cfe:nnbd.update: int!*/
@@ -537,15 +354,11 @@ main() {
   intLocal
       /*cfe|dart2js.invoke: int*/
       /*cfe:nnbd.invoke: int!*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+      /*int*/ --;
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
+  /*int*/ ++
       /*cfe|dart2js.update: int*/
       /*cfe:nnbd.update: int!*/
       /*cfe|dart2js.int*/
@@ -554,36 +367,18 @@ main() {
 
   /*cfe|dart2js.invoke: int*/
   /*cfe:nnbd.invoke: int!*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
+  /*int*/ --
       /*cfe|dart2js.update: int*/
       /*cfe:nnbd.update: int!*/
       /*cfe|dart2js.int*/
       /*cfe:nnbd.int!*/
       intLocal;
 
-  /*update: dynamic*/ /*dynamic*/ dynamicLocal
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      ++;
+  /*update: dynamic*/ /*dynamic*/ dynamicLocal /*invoke: dynamic*/ /*int*/ ++;
 
-  /*update: dynamic*/ /*dynamic*/ dynamicLocal
-      /*invoke: dynamic*/
-      /*cfe|dart2js.int*/
-      /*cfe:nnbd.int!*/
-      --;
+  /*update: dynamic*/ /*dynamic*/ dynamicLocal /*invoke: dynamic*/ /*int*/ --;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  ++
-      /*update: dynamic*/ /*dynamic*/ dynamicLocal;
+  /*invoke: dynamic*/ /*int*/ ++ /*update: dynamic*/ /*dynamic*/ dynamicLocal;
 
-  /*invoke: dynamic*/
-  /*cfe|dart2js.int*/
-  /*cfe:nnbd.int!*/
-  --
-      /*update: dynamic*/ /*dynamic*/ dynamicLocal;
+  /*invoke: dynamic*/ /*int*/ -- /*update: dynamic*/ /*dynamic*/ dynamicLocal;
 }

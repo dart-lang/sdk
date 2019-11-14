@@ -19,7 +19,6 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 import '../helpers/memory_compiler.dart';
 
 class TestData {
@@ -576,7 +575,6 @@ Future testData(TestData data) async {
     Compiler compiler = result.compiler;
     KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
-    ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
@@ -607,8 +605,7 @@ Future testData(TestData data) async {
             errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           }, environment: environment, supportReevaluationForTesting: true);
-          ir.Constant evaluatedConstant = evaluator.evaluate(
-              new ir.StaticTypeContext(node, typeEnvironment), initializer);
+          ir.Constant evaluatedConstant = evaluator.evaluate(initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
               ? constantValuefier.visitConstant(evaluatedConstant)

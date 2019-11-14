@@ -32,14 +32,13 @@ main(List<String> args) {
 class StaticTypeDataComputer extends DataComputer<String> {
   ir.TypeEnvironment _typeEnvironment;
 
-  ir.StaticTypeContext getStaticTypeContext(
-      KernelToElementMapImpl elementMap, ir.Member node) {
+  ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
       _typeEnvironment = new ir.TypeEnvironment(
           new ir.CoreTypes(component), new ir.ClassHierarchy(component));
     }
-    return new ir.StaticTypeContext(node, _typeEnvironment);
+    return _typeEnvironment;
   }
 
   /// Compute type inference data for [member] from kernel based inference.
@@ -57,11 +56,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
             compiler.reporter,
             actualMap,
             new CachedStaticType(
-                getStaticTypeContext(elementMap, node),
+                getTypeEnvironment(elementMap),
                 staticTypeCache,
-                new ThisInterfaceType.from(node.enclosingClass?.getThisType(
-                    _typeEnvironment.coreTypes,
-                    node.enclosingLibrary.nonNullable))))
+                new ThisInterfaceType.from(node.enclosingClass?.thisType)))
         .run(node);
   }
 

@@ -13,9 +13,7 @@ import 'package:kernel/ast.dart'
         Nullability,
         TypeParameter,
         Typedef,
-        TypedefType,
-        VariableDeclaration,
-        getAsTypeArguments;
+        VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters, substitute;
@@ -95,11 +93,6 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     return typedef;
   }
 
-  TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
-    return new TypedefType(typedef, clientLibrary.nonNullable,
-        getAsTypeArguments(typedef.typeParameters));
-  }
-
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (identical(thisType, cyclicTypeAliasMarker)) {
@@ -115,8 +108,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     thisType = cyclicTypeAliasMarker;
     TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder) {
-      FunctionType builtType =
-          type?.build(library, thisTypedefType(typedef, library));
+      FunctionType builtType = type?.build(library, typedef.thisType);
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables) {
