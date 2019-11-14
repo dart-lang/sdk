@@ -242,6 +242,15 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
+/// An edge origin used for edges that originated because a literal expression
+/// has a known nullability.
+class LiteralOrigin extends EdgeOrigin {
+  LiteralOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.literal;
+}
+
 /// Edge origin resulting from a call site that does not supply a named
 /// parameter.
 ///

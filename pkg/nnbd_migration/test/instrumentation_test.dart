@@ -890,7 +890,7 @@ Map<int, String> f() => {1: null};
         explicitTypeNullability[findNode.typeAnnotation('String')];
     expect(
         edges.where((e) =>
-            e.sourceNode == never &&
+            _pointsToNeverHard(e.sourceNode) &&
             e.destinationNode == implicitMapLiteralKeyNode),
         hasLength(1));
     expect(
@@ -992,5 +992,10 @@ voig g(C<int> x, int y) {
   bool _isPointedToByAlways(NullabilityNodeInfo node) {
     return edges
         .any((e) => e.sourceNode == always && e.destinationNode == node);
+  }
+
+  bool _pointsToNeverHard(NullabilityNodeInfo node) {
+    return edges.any(
+        (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }
 }

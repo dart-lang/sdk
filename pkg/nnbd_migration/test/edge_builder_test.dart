@@ -5256,7 +5256,7 @@ void set x(int value) {}
 main() { x = 1; }
 ''');
     var setXType = decoratedTypeAnnotation('int value');
-    assertEdge(never, setXType.node, hard: false);
+    assertEdge(inSet(neverClosure), setXType.node, hard: false);
   }
 
   test_topLevelSetter_nullable() async {

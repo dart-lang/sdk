@@ -141,6 +141,7 @@ enum EdgeOriginKind {
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
+  literal,
   namedParameterNotSupplied,
   nonNullAssertion,
   nullabilityComment,
