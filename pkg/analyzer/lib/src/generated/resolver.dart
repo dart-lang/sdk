@@ -3540,7 +3540,7 @@ class ResolverVisitor extends ScopedVisitor {
           node,
           identifierElement is VariableElement
               ? identifierElement
-              : loopVariable.declaredElement,
+              : loopVariable?.declaredElement,
           elementType ?? typeProvider.dynamicType);
       node.body?.accept(this);
       _flowAnalysis?.flow?.forEach_end();
