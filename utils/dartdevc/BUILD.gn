@@ -10,7 +10,12 @@ import("../create_timestamp.gni")
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
-sdk_libraries_json = "$target_gen_dir/libraries.json"
+
+if (use_nnbd) {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk/lib/libraries.json"
+}
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -23,8 +28,21 @@ application_snapshot("dartdevc") {
     "-k",
     "-o",
     "dartdevc.js",
-    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
+
+  if (use_nnbd) {
+    training_args += [
+      "--enable-experiment=non-nullable",
+
+      # TODO(sigmund): restore training with dartdevc.dart. Currently blocked by
+      # some regressions in type-promotion in the CFE when nnbd is enabled.
+      # The following test file is pretty simple and has no imports, so it
+      # should be easier to compile while we bootstrap NNBD.
+      rebase_path("../../tests/language_2/abstract_equal_test.dart"),
+    ]
+  } else {
+    training_args += [ rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart") ]
+  }
 
   deps = [
     ":dartdevc_kernel_sdk",
@@ -39,8 +57,10 @@ application_snapshot("dartdevc") {
 # TODO(#38701) Cleanup after merging the forked SDK into mainline.
 if (use_nnbd) {
   sdk_root = "../../sdk_nnbd"
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
 } else {
   sdk_root = "../../sdk"
+  libraries_specification_path = "sdk/lib/libraries.json"
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -261,7 +281,6 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   deps = [
     ":dartdevc_files_stamp",
     ":dartdevc_kernel_sdk",
-    ":dartdevc_kernel_sdk_libraries_json",
     ":dartdevc_kernel_sdk_outline",
     ":dartdevc_sdk",
     "../../pkg:pkg_files_stamp",
@@ -269,7 +288,6 @@ prebuilt_dart_action("dartdevc_test_pkg") {
 
   inputs = [
     sdk_dill,
-    sdk_libraries_json,
     sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
@@ -357,6 +375,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "../../utils/bazel/kernel_worker.dart",
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
+    "../../$libraries_specification_path",
   ]
 
   outputs = [
@@ -372,9 +391,9 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root",
-    "file:///" + rebase_path(sdk_root),
+    "file:///" + rebase_path("../../"),
     "--libraries-file",
-    "org-dartlang-sdk:///lib/libraries.json",
+    "org-dartlang-sdk:///$libraries_specification_path",
     "--output",
     rebase_path(sdk_dill),
     "--source",
@@ -385,15 +404,6 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
   if (use_nnbd) {
     args += [ "--enable-experiment=non-nullable" ]
   }
-}
-
-copy("dartdevc_kernel_sdk_libraries_json") {
-  sources = [
-    rebase_path("$sdk_root/lib/libraries.json"),
-  ]
-  outputs = [
-    sdk_libraries_json,
-  ]
 }
 
 # Compiles the DDC SDK's kernel summary and JS code.
@@ -407,6 +417,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
   inputs = [
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
+    "../../$libraries_specification_path",
   ]
 
   outputs = [
@@ -430,11 +441,11 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root",
-    "file:///" + rebase_path(sdk_root),
+    "file:///" + rebase_path("../../"),
     "--multi-root-output-path",
-    rebase_path("$target_gen_dir/../../"),
+    rebase_path("$target_gen_dir/../../../"),
     "--libraries-file",
-    "org-dartlang-sdk:///lib/libraries.json",
+    "org-dartlang-sdk:///$libraries_specification_path",
     "--modules",
     "amd",
     "-o",

@@ -528,7 +528,7 @@
         "checked": true,
         "use-sdk": true
     }},
-    "dartdevc-strong-linux-release-chrome": {
+    "dartdevk-strong-linux-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true,
@@ -536,7 +536,7 @@
         "enable-asserts": true
 
     }},
-    "dartdevc-weak-linux-release-chrome": {
+    "dartdevk-weak-linux-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true,
@@ -1478,14 +1478,14 @@
         {
           "name": "ddc nnbd strong tests",
           "arguments": [
-            "-ndartdevc-strong-linux-release-chrome",
+            "-ndartdevk-strong-linux-release-chrome",
             "dartdevc_native"
           ]
         },
         {
           "name": "ddc nnbd weak tests",
           "arguments": [
-            "-ndartdevc-weak-linux-release-chrome",
+            "-ndartdevk-weak-linux-release-chrome",
             "dartdevc_native"
           ]
         }

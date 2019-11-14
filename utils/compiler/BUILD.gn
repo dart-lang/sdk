@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
@@ -51,6 +52,12 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
   ]
 }
 
+if (use_nnbd) {
+  libraries_specification_path = "sdk_nnbd/lib/libraries.json"
+} else {
+  libraries_specification_path = "sdk/lib/libraries.json"
+}
+
 application_snapshot("dart2js") {
   deps = [
     ":compile_dart2js_platform",
@@ -64,7 +71,7 @@ application_snapshot("dart2js") {
   main_dart = "$target_gen_dir/dart2js.dart"
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
-    "--libraries-spec=" + rebase_path("../../sdk/lib/libraries.json"),
+    "--libraries-spec=" + rebase_path("../../$libraries_specification_path"),
     rebase_path("$target_gen_dir/dart2js.dart"),
   ]
 }
@@ -72,7 +79,8 @@ application_snapshot("dart2js") {
 compile_platform("compile_dart2js_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+  libraries_specification_uri =
+      "org-dartlang-sdk:///$libraries_specification_path"
 
   outputs = [
     "$root_out_dir/dart2js_platform.dill",
@@ -87,7 +95,8 @@ compile_platform("compile_dart2js_platform") {
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+  libraries_specification_uri =
+      "org-dartlang-sdk:///$libraries_specification_path"
 
   outputs = [
     "$root_out_dir/dart2js_server_platform.dill",
