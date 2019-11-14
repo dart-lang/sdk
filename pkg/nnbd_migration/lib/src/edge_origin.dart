@@ -109,6 +109,19 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.fieldFormalParameter;
 }
 
+/// An edge origin used for edges that originated because a field was not
+/// initialized.
+///
+/// The AST node associated with the edge is the AST node for the constructor
+/// that failed to initialize the field (or the class, if the constructor is
+/// synthetic).
+class FieldNotInitializedOrigin extends EdgeOrigin {
+  FieldNotInitializedOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.fieldNotInitialized;
+}
+
 /// Edge origin resulting from the use of an iterable type in a for-each loop.
 ///
 /// For example, in the following code snippet:

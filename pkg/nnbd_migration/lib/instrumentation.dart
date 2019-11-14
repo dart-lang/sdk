@@ -131,6 +131,7 @@ enum EdgeOriginKind {
   dynamicAssignment,
   expressionChecks,
   fieldFormalParameter,
+  fieldNotInitialized,
   forEachVariable,
   greatestLowerBound,
   ifNull,

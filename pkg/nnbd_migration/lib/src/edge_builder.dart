@@ -188,6 +188,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// of the cascade.  Otherwise `null`.
   DecoratedType _currentCascadeTargetType;
 
+  /// While visiting a class declaration, set of class fields that lack
+  /// initializers at their declaration sites.
+  Set<FieldElement> _fieldsNotInitializedAtDeclaration;
+
+  /// While visiting a constructor, set of class fields that lack initializers
+  /// at their declaration sites *and* for which we haven't yet found an
+  /// initializer in the constructor declaration.
+  Set<FieldElement> _fieldsNotInitializedByConstructor;
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -450,8 +459,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
+    _fieldsNotInitializedAtDeclaration = {
+      for (var member in node.members)
+        if (member is FieldDeclaration)
+          for (var field in member.fields.variables)
+            if (field.initializer == null) field.declaredElement as FieldElement
+    };
+    if (node.declaredElement.unnamedConstructor?.isSynthetic == true) {
+      _handleUninitializedFields(node, _fieldsNotInitializedAtDeclaration);
+    }
     node.metadata.accept(this);
     node.members.accept(this);
+    _fieldsNotInitializedAtDeclaration = null;
     return null;
   }
 
@@ -512,6 +531,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
+    _fieldsNotInitializedByConstructor =
+        _fieldsNotInitializedAtDeclaration.toSet();
     _handleExecutableDeclaration(
         node,
         node.declaredElement,
@@ -521,12 +542,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.initializers,
         node.body,
         node.redirectedConstructor);
+    _fieldsNotInitializedByConstructor = null;
     return null;
   }
 
   @override
   DecoratedType visitConstructorFieldInitializer(
       ConstructorFieldInitializer node) {
+    _fieldsNotInitializedByConstructor.remove(node.fieldName.staticElement);
     _handleAssignment(node.expression,
         destinationType: getOrComputeElementType(node.fieldName.staticElement));
     return null;
@@ -597,7 +620,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
-    var fieldType = _variables.decoratedElementType(parameterElement.field);
+    var field = parameterElement.field;
+    _fieldsNotInitializedByConstructor.remove(field);
+    var fieldType = _variables.decoratedElementType(field);
     var origin = FieldFormalParameterOrigin(source, node);
     if (node.type == null) {
       _unionDecoratedTypes(parameterType, fieldType, origin);
@@ -1733,6 +1758,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
       initializers?.accept(this);
+      if (node is ConstructorDeclaration) {
+        _handleUninitializedFields(node, _fieldsNotInitializedByConstructor);
+      }
       body.accept(this);
       if (redirectedConstructor != null) {
         _handleConstructorRedirection(parameters, redirectedConstructor);
@@ -2043,6 +2071,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: type.typeArguments
             .map((t) => DecoratedType(t, _graph.never))
             .toList());
+  }
+
+  void _handleUninitializedFields(AstNode node, Set<FieldElement> fields) {
+    for (var field in fields) {
+      _graph.makeNullable(_variables.decoratedElementType(field).node,
+          FieldNotInitializedOrigin(source, node));
+    }
   }
 
   bool _isPrefix(Expression e) =>

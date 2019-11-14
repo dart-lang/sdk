@@ -1213,6 +1213,52 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initialized_at_declaration_site() async {
+    var content = '''
+class C {
+  int i = 0;
+  C();
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+  C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initialized_at_declaration_site_no_constructor() async {
+    var content = '''
+class C {
+  int i = 0;
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initialized_in_constructor() async {
+    var content = '''
+class C {
+  int i;
+  C() : i = 0;
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C() : i = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_initializer_simple() async {
     var content = '''
 class C {
@@ -1294,6 +1340,36 @@ class C {
 class C {
   Set<int?> f;
   C() : f = {null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_not_initialized() async {
+    var content = '''
+class C {
+  int i;
+  C();
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_not_initialized_no_constructor() async {
+    var content = '''
+class C {
+  int i;
+}
+''';
+    var expected = '''
+class C {
+  int? i;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
