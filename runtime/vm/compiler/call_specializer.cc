@@ -988,8 +988,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   const Function& target = targets.FirstTarget();
   intptr_t receiver_cid = targets.MonomorphicReceiverCid();
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target);
+  MethodRecognizer::Kind recognized_kind = target.recognized_kind();
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
@@ -1308,8 +1307,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
   if (speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
     // Only if speculative inlining is enabled.
 
-    MethodRecognizer::Kind recognized_kind =
-        MethodRecognizer::RecognizeKind(call->function());
+    MethodRecognizer::Kind recognized_kind = call->function().recognized_kind();
     const CallTargets& targets = call->Targets();
     const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 

@@ -54,7 +54,7 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const Code& name() { return *entries_[k##name##Index]; }              \
+  static const Code& name() { return *entries_[k##name##Index].code; }         \
   static intptr_t name##Size() { return name().Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
@@ -78,11 +78,11 @@ class StubCode : public AllStatic {
   static const intptr_t kNoInstantiator = 0;
   static const intptr_t kInstantiationSizeInWords = 3;
 
-  static const Code& EntryAt(intptr_t index) { return *entries_[index]; }
+  static const Code& EntryAt(intptr_t index) { return *(entries_[index].code); }
   static void EntryAtPut(intptr_t index, Code* entry) {
     ASSERT(entry->IsReadOnlyHandle());
-    ASSERT(entries_[index] == nullptr);
-    entries_[index] = entry;
+    ASSERT(entries_[index].code == nullptr);
+    entries_[index].code = entry;
   }
   static intptr_t NumEntries() { return kNumStubEntries; }
 
@@ -108,7 +108,14 @@ class StubCode : public AllStatic {
         kNumStubEntries
   };
 
-  static Code* entries_[kNumStubEntries];
+  struct StubCodeEntry {
+    Code* code;
+    const char* name;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    void (*generator)(compiler::Assembler* assembler);
+#endif
+  };
+  static StubCodeEntry entries_[kNumStubEntries];
 };
 
 }  // namespace dart

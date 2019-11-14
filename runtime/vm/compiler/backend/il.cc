@@ -2645,7 +2645,7 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
 }
 
 bool LoadFieldInstr::IsTypedDataViewFactory(const Function& function) {
-  auto kind = MethodRecognizer::RecognizeKind(function);
+  auto kind = function.recognized_kind();
   switch (kind) {
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
@@ -3734,7 +3734,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
     int lower_limit_cid = (idx == 0) ? -1 : targets[idx - 1].cid_end;
     auto target_info = targets.TargetAt(idx);
     const Function& target = *target_info->target;
-    if (MethodRecognizer::PolymorphicTarget(target)) continue;
+    if (target.is_polymorphic_target()) continue;
     for (int i = target_info->cid_start - 1; i > lower_limit_cid; i--) {
       bool class_is_abstract = false;
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
@@ -3758,7 +3758,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
         (idx == length - 1) ? max_cid : targets[idx + 1].cid_start;
     auto target_info = targets.TargetAt(idx);
     const Function& target = *target_info->target;
-    if (MethodRecognizer::PolymorphicTarget(target)) continue;
+    if (target.is_polymorphic_target()) continue;
     // The code below makes attempt to avoid spreading class-id range
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
@@ -3809,7 +3809,7 @@ void CallTargets::MergeIntoRanges() {
     const Function& target = *TargetAt(dest)->target;
     if (TargetAt(dest)->cid_end + 1 >= TargetAt(src)->cid_start &&
         target.raw() == TargetAt(src)->target->raw() &&
-        !MethodRecognizer::PolymorphicTarget(target)) {
+        !target.is_polymorphic_target()) {
       TargetAt(dest)->cid_end = TargetAt(src)->cid_end;
       TargetAt(dest)->count += TargetAt(src)->count;
       TargetAt(dest)->exactness = StaticTypeExactnessState::NotTracking();
@@ -4384,8 +4384,7 @@ const BinaryFeedback& StaticCallInstr::BinaryFeedback() {
 
 bool CallTargets::HasSingleRecognizedTarget() const {
   if (!HasSingleTarget()) return false;
-  return MethodRecognizer::RecognizeKind(FirstTarget()) !=
-         MethodRecognizer::kUnknown;
+  return FirstTarget().recognized_kind() != MethodRecognizer::kUnknown;
 }
 
 bool CallTargets::HasSingleTarget() const {

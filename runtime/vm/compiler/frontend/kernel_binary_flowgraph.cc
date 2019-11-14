@@ -3112,7 +3112,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ++argument_count;
   }
 
-  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
+  const auto recognized_kind = target.recognized_kind();
   if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
     return BuildFfiAsFunctionInternal();
   } else if (FLAG_precompiled_mode &&

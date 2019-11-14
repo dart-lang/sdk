@@ -2915,24 +2915,24 @@ class Function : public Object {
   }
 
   bool IsFfiLoad() const {
-    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    const auto kind = recognized_kind();
     return MethodRecognizer::kFfiLoadInt8 <= kind &&
            kind <= MethodRecognizer::kFfiLoadPointer;
   }
 
   bool IsFfiStore() const {
-    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    const auto kind = recognized_kind();
     return MethodRecognizer::kFfiStoreInt8 <= kind &&
            kind <= MethodRecognizer::kFfiStorePointer;
   }
 
   bool IsFfiFromAddress() const {
-    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiFromAddress;
   }
 
   bool IsFfiGetAddress() const {
-    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiGetAddress;
   }
 
@@ -6605,8 +6605,6 @@ class LibraryPrefix : public Instance {
 
   RawLibrary* GetLibrary(int index) const;
   void AddImport(const Namespace& import) const;
-  RawObject* LookupObject(const String& name) const;
-  RawClass* LookupClass(const String& class_name) const;
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
 

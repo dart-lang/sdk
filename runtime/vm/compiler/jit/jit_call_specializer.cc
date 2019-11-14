@@ -126,9 +126,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       has_one_target = PolymorphicInstanceCallInstr::ComputeRuntimeType(
                            targets) != Type::null();
     } else {
-      const bool polymorphic_target =
-          MethodRecognizer::PolymorphicTarget(target);
-      has_one_target = !polymorphic_target;
+      has_one_target = !target.is_polymorphic_target();
     }
   }
 

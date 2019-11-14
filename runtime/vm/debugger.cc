@@ -1911,16 +1911,6 @@ void Debugger::Shutdown() {
 
 void Debugger::OnIsolateRunnable() {}
 
-static RawFunction* ResolveLibraryFunction(const Library& library,
-                                           const String& fname) {
-  ASSERT(!library.IsNull());
-  const Object& object = Object::Handle(library.ResolveName(fname));
-  if (!object.IsNull() && object.IsFunction()) {
-    return Function::Cast(object).raw();
-  }
-  return Function::null();
-}
-
 bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
@@ -1972,26 +1962,6 @@ bool Debugger::SetResumeAction(ResumeAction action,
       UNREACHABLE();
       return false;
   }
-}
-
-RawFunction* Debugger::ResolveFunction(const Library& library,
-                                       const String& class_name,
-                                       const String& function_name) {
-  ASSERT(!library.IsNull());
-  ASSERT(!class_name.IsNull());
-  ASSERT(!function_name.IsNull());
-  if (class_name.Length() == 0) {
-    return ResolveLibraryFunction(library, function_name);
-  }
-  const Class& cls = Class::Handle(library.LookupClass(class_name));
-  Function& function = Function::Handle();
-  if (!cls.IsNull()) {
-    function = cls.LookupStaticFunction(function_name);
-    if (function.IsNull()) {
-      function = cls.LookupDynamicFunction(function_name);
-    }
-  }
-  return function.raw();
 }
 
 // Deoptimize all functions in the isolate.

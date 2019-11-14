@@ -507,10 +507,6 @@ class Debugger {
   }
   void NotifyDoneLoading();
 
-  RawFunction* ResolveFunction(const Library& library,
-                               const String& class_name,
-                               const String& function_name);
-
   // Set breakpoint at closest location to function entry.
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);

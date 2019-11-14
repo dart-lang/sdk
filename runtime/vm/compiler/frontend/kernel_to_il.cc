@@ -834,7 +834,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
 
 bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     const Function& function) {
-  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
     case MethodRecognizer::kTypedData_ByteDataView_factory:
@@ -936,7 +936,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
-  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);

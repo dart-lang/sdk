@@ -34,8 +34,6 @@ class MethodRecognizer : public AllStatic {
         kNumRecognizedMethods
   };
 
-  static Kind RecognizeKind(const Function& function);
-  static bool PolymorphicTarget(const Function& function);
   static intptr_t NumArgsCheckedForStaticCall(const Function& function);
 
   // Try to find an annotation of the form
@@ -59,7 +57,6 @@ class MethodRecognizer : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
-  static RawGrowableObjectArray* QueryRecognizedMethods(Zone* zone);
 
  private:
   static void Libraries(GrowableArray<Library*>* libs);

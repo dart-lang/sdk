@@ -828,8 +828,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
     const Function& target = targets.FirstTarget();
-    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
-    has_one_target = !polymorphic_target;
+    has_one_target = !target.is_polymorphic_target();
   }
 
   if (has_one_target) {

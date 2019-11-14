@@ -1020,7 +1020,7 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
 
 RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
                                                 const String& external_name) {
-  MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  MethodRecognizer::Kind kind = function.recognized_kind();
   // This list of recognized methods must be kept in sync with the list of
   // methods handled specially by the NativeCall bytecode in the interpreter.
   switch (kind) {

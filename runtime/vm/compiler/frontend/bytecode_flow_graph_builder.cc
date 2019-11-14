@@ -842,8 +842,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  switch (recognized_kind) {
+  switch (target.recognized_kind()) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       BuildFfiAsFunction();
       return;
@@ -2010,8 +2009,7 @@ bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-      return MethodRecognizer::RecognizeKind(function()) ==
-             MethodRecognizer::kListFactory;
+      return function().recognized_kind() == MethodRecognizer::kListFactory;
 
     default:
       return false;

@@ -3813,34 +3813,31 @@ bool Class::InjectCIDFields() const {
   Smi& value = Smi::Handle(zone);
   String& field_name = String::Handle(zone);
 
+  static const struct {
+    const char* const field_name;
+    const intptr_t cid;
+  } cid_fields[] = {
 #define CLASS_LIST_WITH_NULL(V)                                                \
   V(Null)                                                                      \
   CLASS_LIST_NO_OBJECT(V)
-
-#define ADD_SET_FIELD(clazz)                                                   \
-  field_name = Symbols::New(thread, "cid" #clazz);                             \
-  field = Field::New(field_name, true, false, true, false, *this,              \
-                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
-                     TokenPosition::kMinSource);                               \
-  value = Smi::New(k##clazz##Cid);                                             \
-  field.SetStaticValue(value, true);                                           \
-  AddField(field);
-
-  CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
+#define ADD_SET_FIELD(clazz) {"cid" #clazz, k##clazz##Cid},
+      CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
-
-#define ADD_SET_FIELD(clazz)                                                   \
-  field_name = Symbols::New(thread, "cid" #clazz "View");                      \
-  field = Field::New(field_name, true, false, true, false, *this,              \
-                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
-                     TokenPosition::kMinSource);                               \
-  value = Smi::New(kTypedData##clazz##ViewCid);                                \
-  field.SetStaticValue(value, true);                                           \
-  AddField(field);
-
-  CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
+#define ADD_SET_FIELD(clazz) {"cid" #clazz "View", kTypedData##clazz##ViewCid},
+          CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
+  };
+
+  const AbstractType& field_type = Type::Handle(zone, Type::IntType());
+  for (size_t i = 0; i < ARRAY_SIZE(cid_fields); i++) {
+    field_name = Symbols::New(thread, cid_fields[i].field_name);
+    field = Field::New(field_name, true, false, true, false, *this, field_type,
+                       TokenPosition::kMinSource, TokenPosition::kMinSource);
+    value = Smi::New(cid_fields[i].cid);
+    field.SetStaticValue(value, true);
+    AddField(field);
+  }
 
   return true;
 }
@@ -11905,75 +11902,6 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
   }
   imports.SetAt(num_current_imports, import);
   set_num_imports(num_current_imports + 1);
-}
-
-RawObject* LibraryPrefix::LookupObject(const String& name) const {
-  Array& imports = Array::Handle(this->imports());
-  Object& obj = Object::Handle();
-  Namespace& import = Namespace::Handle();
-  Library& import_lib = Library::Handle();
-  String& import_lib_url = String::Handle();
-  String& first_import_lib_url = String::Handle();
-  Object& found_obj = Object::Handle();
-  String& found_obj_name = String::Handle();
-  for (intptr_t i = 0; i < num_imports(); i++) {
-    import ^= imports.At(i);
-    obj = import.Lookup(name);
-    if (!obj.IsNull()) {
-      import_lib = import.library();
-      import_lib_url = import_lib.url();
-      if (found_obj.raw() != obj.raw()) {
-        if (first_import_lib_url.IsNull() ||
-            first_import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // This is the first object we found, or the
-          // previously found object is exported from a Dart
-          // system library. The newly found object hides the one
-          // from the Dart library.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.raw();
-          found_obj_name = found_obj.DictionaryName();
-        } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
-          // The newly found object is exported from a Dart system
-          // library. It is hidden by the previously found object.
-          // We continue to search.
-        } else if (Field::IsSetterName(found_obj_name) &&
-                   !Field::IsSetterName(name)) {
-          // We are looking for an unmangled name or a getter, but
-          // the first object we found is a setter. Replace the first
-          // object with the one we just found.
-          first_import_lib_url = import_lib.url();
-          found_obj = obj.raw();
-          found_obj_name = found_obj.DictionaryName();
-        } else {
-          // We found two different objects with the same name.
-          // Note that we need to compare the names again because
-          // looking up an unmangled name can return a getter or a
-          // setter. A getter name is the same as the unmangled name,
-          // but a setter name is different from an unmangled name or a
-          // getter name.
-          if (Field::IsGetterName(found_obj_name)) {
-            found_obj_name = Field::NameFromGetter(found_obj_name);
-          }
-          String& second_obj_name = String::Handle(obj.DictionaryName());
-          if (Field::IsGetterName(second_obj_name)) {
-            second_obj_name = Field::NameFromGetter(second_obj_name);
-          }
-          if (found_obj_name.Equals(second_obj_name)) {
-            return Object::null();
-          }
-        }
-      }
-    }
-  }
-  return found_obj.raw();
-}
-
-RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
-  const Object& obj = Object::Handle(LookupObject(class_name));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
-  }
-  return Class::null();
 }
 
 RawLibraryPrefix* LibraryPrefix::New() {

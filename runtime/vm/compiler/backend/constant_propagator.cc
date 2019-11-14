@@ -445,7 +445,7 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 }
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
-  const auto kind = MethodRecognizer::RecognizeKind(instr->function());
+  const auto kind = instr->function().recognized_kind();
   switch (kind) {
     case MethodRecognizer::kOneByteString_equality:
     case MethodRecognizer::kTwoByteString_equality: {
