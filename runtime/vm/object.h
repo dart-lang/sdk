@@ -837,6 +837,21 @@ typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 // The third string in the triplet is "print" if the triplet should be printed.
 typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
+// Keep in sync with package:kernel/lib/ast.dart
+enum class Nullability {
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
+  kLegacy = 3,
+};
+
+// Nullability aware subtype checking modes.
+enum class NNBDMode {
+  kUnaware,
+  kWeak,
+  kStrong,
+};
+
 class Class : public Object {
  public:
   enum InvocationDispatcherEntry {
@@ -935,7 +950,12 @@ class Class : public Object {
   // class B<T, S>
   // class C<R> extends B<R, int>
   // C.DeclarationType() --> C [R, int, R]
-  RawType* DeclarationType() const;
+  // The declaration type is legacy by default, but another nullability
+  // variant may be requested. The first requested type gets cached in the class
+  // and subsequent nullability variants get cached in the object store.
+  // TODO(regis): Is this caching still useful or should we eliminate it?
+  RawType* DeclarationType(
+      Nullability nullability = Nullability::kLegacy) const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(RawClass, declaration_type_);
@@ -2130,21 +2150,6 @@ class ICData : public Object {
   friend class SnapshotWriter;
 };
 
-// Keep in sync with package:kernel/lib/ast.dart
-enum Nullability {
-  kUndetermined = 0,
-  kNullable = 1,
-  kNonNullable = 2,
-  kLegacy = 3,
-};
-
-// Nullability aware subtype checking modes.
-enum NNBDMode {
-  kUnaware,
-  kWeak,
-  kStrong,
-};
-
 // Often used constants for number of free function type parameters.
 enum {
   kNoneFree = 0,
@@ -2185,7 +2190,8 @@ class Function : public Object {
   // function type with uninstantiated type arguments 'T' and 'R' as elements of
   // its type argument vector.
   // A function type is non-nullable by default.
-  RawType* SignatureType(Nullability nullability = kNonNullable) const;
+  RawType* SignatureType(
+      Nullability nullability = Nullability::kNonNullable) const;
   RawType* ExistingSignatureType() const;
 
   // Update the signature type (with a canonical version).
@@ -6815,10 +6821,18 @@ class AbstractType : public Instance {
   virtual void SetIsBeingFinalized() const;
 
   virtual Nullability nullability() const;
-  virtual bool IsUndetermined() const { return nullability() == kUndetermined; }
-  virtual bool IsNullable() const { return nullability() == kNullable; }
-  virtual bool IsNonNullable() const { return nullability() == kNonNullable; }
-  virtual bool IsLegacy() const { return nullability() == kLegacy; }
+  virtual bool IsUndetermined() const {
+    return nullability() == Nullability::kUndetermined;
+  }
+  virtual bool IsNullable() const {
+    return nullability() == Nullability::kNullable;
+  }
+  virtual bool IsNonNullable() const {
+    return nullability() == Nullability::kNonNullable;
+  }
+  virtual bool IsLegacy() const {
+    return nullability() == Nullability::kLegacy;
+  }
 
   virtual bool HasTypeClass() const { return type_class_id() != kIllegalCid; }
   virtual classid_t type_class_id() const;
@@ -6940,7 +6954,7 @@ class AbstractType : public Instance {
 
   // Check if this type represents a top type.
   // TODO(regis): Remove default kUnaware mode as implementation progresses.
-  bool IsTopType(NNBDMode mode = kUnaware) const;
+  bool IsTopType(NNBDMode mode = NNBDMode::kUnaware) const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -7053,8 +7067,8 @@ class Type : public AbstractType {
   }
   void set_nullability(Nullability value) const {
     ASSERT(!IsCanonical());
-    ASSERT(value != kUndetermined);
-    StoreNonPointer(&raw_ptr()->nullability_, value);
+    ASSERT(value != Nullability::kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
   }
   RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
@@ -7093,6 +7107,7 @@ class Type : public AbstractType {
   virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
+  intptr_t ComputeHash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawType));
@@ -7153,15 +7168,17 @@ class Type : public AbstractType {
   static RawType* DartTypeType();
 
   // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(const Class& type_class);
+  static RawType* NewNonParameterizedType(
+      const Class& type_class,
+      Nullability nullability = Nullability::kLegacy);
 
   static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
                       TokenPosition token_pos,
+                      Nullability nullability = Nullability::kLegacy,
                       Heap::Space space = Heap::kOld);
 
  private:
-  intptr_t ComputeHash() const;
   void SetHash(intptr_t value) const;
 
   void set_token_pos(TokenPosition token_pos) const;

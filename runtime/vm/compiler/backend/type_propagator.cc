@@ -776,11 +776,7 @@ const AbstractType* CompileType::ToAbstractType() {
 
     Isolate* I = Isolate::Current();
     const Class& type_class = Class::Handle(I->class_table()->At(cid_));
-    if (type_class.NumTypeArguments() > 0) {
-      type_ = &AbstractType::ZoneHandle(type_class.RareType());
-    } else {
-      type_ = &Type::ZoneHandle(Type::NewNonParameterizedType(type_class));
-    }
+    type_ = &AbstractType::ZoneHandle(type_class.RareType());
   }
 
   return type_;

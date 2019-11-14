@@ -502,11 +502,12 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   closures_->SetAt(closureIndex, closure);
 
   Type& signature_type = Type::Handle(
-      Z, ReadFunctionSignature(
-             closure, (flags & kHasOptionalPositionalParamsFlag) != 0,
-             (flags & kHasOptionalNamedParamsFlag) != 0,
-             (flags & kHasTypeParamsFlag) != 0,
-             /* has_positional_param_names = */ true, kNonNullable));
+      Z, ReadFunctionSignature(closure,
+                               (flags & kHasOptionalPositionalParamsFlag) != 0,
+                               (flags & kHasOptionalNamedParamsFlag) != 0,
+                               (flags & kHasTypeParamsFlag) != 0,
+                               /* has_positional_param_names = */ true,
+                               Nullability::kNonNullable));
 
   closure.SetSignatureType(signature_type);
 
@@ -1508,7 +1509,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const Nullability nullability =
           bytecode_component_->GetVersion() >= 24
               ? static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4)
-              : kLegacy;
+              : Nullability::kLegacy;
       return ReadType(tag, nullability);
     }
     default:
@@ -1669,14 +1670,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       if (!cls.is_declaration_loaded()) {
         LoadReferencedClass(cls);
       }
-      Type& type = Type::Handle(Z, cls.DeclarationType());
-      // TODO(regis): Remove this workaround once nullability of Null provided
-      // by CFE is always kNullable.
-      if (type.IsNullType()) {
-        ASSERT(type.IsNullable());
-        return type.raw();
-      }
-      return type.ToNullability(nullability, Heap::kOld);
+      return cls.DeclarationType(nullability);
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());
@@ -1710,9 +1704,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       }
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
-      const Type& type = Type::Handle(
-          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
-      type.set_nullability(nullability);
+      const Type& type =
+          Type::Handle(Z, Type::New(cls, type_arguments,
+                                    TokenPosition::kNoSource, nullability));
       type.SetIsFinalized();
       return type.Canonicalize();
     }
@@ -1742,9 +1736,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       pending_recursive_types_->SetLength(id);
       pending_recursive_types_ = saved_pending_recursive_types;
 
-      Type& type = Type::Handle(
-          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
-      type.set_nullability(nullability);
+      Type& type =
+          Type::Handle(Z, Type::New(cls, type_arguments,
+                                    TokenPosition::kNoSource, nullability));
       type_ref.set_type(type);
       type.SetIsFinalized();
       if (id != 0) {
