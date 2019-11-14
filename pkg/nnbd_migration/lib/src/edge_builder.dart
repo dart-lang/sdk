@@ -219,13 +219,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var variable = baseElement.variable;
       var decoratedElementType = _variables.decoratedElementType(variable);
       if (baseElement.isGetter) {
-        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
+        decoratedBaseType = DecoratedType(
+            baseElement.type, NullabilityNode.forInferredType(),
             returnType: decoratedElementType);
       } else {
         assert(baseElement.isSetter);
-        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
+        decoratedBaseType = DecoratedType(
+            baseElement.type, NullabilityNode.forInferredType(),
             positionalParameters: [decoratedElementType],
-            returnType: DecoratedType(VoidTypeImpl.instance, _graph.always));
+            returnType: DecoratedType(
+                VoidTypeImpl.instance, NullabilityNode.forInferredType()));
       }
     } else {
       decoratedBaseType = _variables.decoratedElementType(baseElement);
