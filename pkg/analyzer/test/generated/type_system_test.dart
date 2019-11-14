@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, UriKind;
-import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
@@ -2599,7 +2598,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       interfaces: [instA.withNullabilitySuffixNone],
     );
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       constraints: [instA.withNullabilitySuffixNone],
     );
@@ -2619,7 +2618,7 @@ class LeastUpperBoundTest extends BoundTestBase {
 
   void test_mixinAndClass_object() {
     var classA = class_(name: 'A');
-    var mixinM = ElementFactory.mixinElement(name: 'M');
+    var mixinM = mixin_(name: 'M');
 
     _checkLeastUpperBound(
       interfaceType(classA),
@@ -2637,7 +2636,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       interfaces: [instA.withNullabilitySuffixNone],
     );
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       interfaces: [instA.withNullabilitySuffixNone],
     );

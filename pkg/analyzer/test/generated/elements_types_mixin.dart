@@ -158,6 +158,20 @@ mixin ElementsTypesMixin {
       ..typeParameters = typeFormals;
   }
 
+  MixinElementImpl mixin_({
+    @required String name,
+    List<TypeParameterElement> typeParameters = const [],
+    List<InterfaceType> constraints,
+    List<InterfaceType> interfaces = const [],
+  }) {
+    var element = MixinElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.superclassConstraints = constraints ?? [typeProvider.objectType];
+    element.interfaces = interfaces;
+    element.constructors = const <ConstructorElement>[];
+    return element;
+  }
+
   ParameterElement namedParameter({
     @required String name,
     @required DartType type,

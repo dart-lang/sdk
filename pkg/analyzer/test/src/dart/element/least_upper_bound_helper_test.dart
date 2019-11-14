@@ -275,7 +275,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     var classC = ElementFactory.classElement3(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       constraints: [
         instB.withNullabilitySuffixNone,
@@ -293,7 +293,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
   void test_computeSuperinterfaceSet_mixin_constraints_object() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var mixinM = ElementFactory.mixinElement(name: 'M');
+    var mixinM = mixin_(name: 'M');
     var instM = InstantiatedClass(mixinM, const []);
 
     expect(
@@ -317,7 +317,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
     var classC = ElementFactory.classElement3(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
-    var mixinM = ElementFactory.mixinElement(
+    var mixinM = mixin_(
       name: 'M',
       interfaces: [
         instB.withNullabilitySuffixNone,
