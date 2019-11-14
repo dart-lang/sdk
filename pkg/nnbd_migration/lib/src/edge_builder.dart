@@ -265,9 +265,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
       if (intentNode != null && _conditionInfo.postDominatingIntent) {
-        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
-            _graph.never, NonNullAssertionOrigin(source, node),
-            hard: true);
+        _graph.makeNonNullable(_conditionInfo.trueDemonstratesNonNullIntent,
+            NonNullAssertionOrigin(source, node));
       }
     }
     _flowAnalysis.assert_afterCondition(node.condition);
@@ -283,9 +282,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
       if (intentNode != null && _conditionInfo.postDominatingIntent) {
-        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
-            _graph.never, NonNullAssertionOrigin(source, node),
-            hard: true);
+        _graph.makeNonNullable(_conditionInfo.trueDemonstratesNonNullIntent,
+            NonNullAssertionOrigin(source, node));
       }
     }
     _flowAnalysis.assert_afterCondition(node.condition);
@@ -555,9 +553,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else {
-        _connect(
-            _graph.always,
-            getOrComputeElementType(node.declaredElement).node,
+        _graph.makeNullable(getOrComputeElementType(node.declaredElement).node,
             OptionalFormalParameterOrigin(source, node));
       }
     } else {
@@ -828,14 +824,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (type is NamedType) {
       // The main type of the is check historically could not be nullable.
       // Making it nullable could change runtime behavior.
-      _connect(decoratedType.node, _graph.never,
-          IsCheckMainTypeOrigin(source, type));
+      _graph.makeNonNullable(
+          decoratedType.node, IsCheckMainTypeOrigin(source, type));
       if (type.typeArguments != null) {
         // TODO(mfairhurst): connect arguments to the expression type when they
         // relate.
         type.typeArguments.arguments.forEach((argument) {
-          _connect(
-              _graph.always,
+          _graph.makeNullable(
               _variables.decoratedTypeAnnotation(source, argument).node,
               IsCheckComponentTypeOrigin(source, argument));
         });

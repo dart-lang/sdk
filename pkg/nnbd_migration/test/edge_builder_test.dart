@@ -2884,7 +2884,7 @@ bool f(Iterable<num> iter) => iter is List<int>
 bool f(a) => a is String;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
-    assertEdge(decoratedTypeAnnotation('String').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('String').node, never, hard: true);
   }
 
   test_isExpression_typeName_typeArguments() async {
@@ -2892,7 +2892,7 @@ bool f(a) => a is String;
 bool f(a) => a is List<int>;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
-    assertEdge(decoratedTypeAnnotation('List').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('List').node, never, hard: true);
     assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
