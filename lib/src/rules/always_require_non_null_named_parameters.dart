@@ -13,8 +13,8 @@ const _desc = r'Use @required.';
 
 const _details = r'''
 
-**DO** specify `@required` on named parameter without default value on which an
-assert(param != null) is done.
+**DO** specify `@required` on named parameters without a default value on which 
+an `assert(param != null)` is done.
 
 **GOOD:**
 ```
@@ -68,48 +68,58 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    final params = node.parameters
-        // only named parameters
-        .where((p) => p.isNamed)
-        .map((p) => p as DefaultFormalParameter)
-        // without default value
-        .where((p) => p.defaultValue == null)
-        // without @required
-        .where((p) => !p.declaredElement.hasRequired)
-        .toList();
+    List<DefaultFormalParameter> getParams() {
+      final params = <DefaultFormalParameter>[];
+      for (final p in node.parameters) {
+        // Only named parameters
+        if (p.isNamed) {
+          DefaultFormalParameter parameter = p as DefaultFormalParameter;
+          // Without a default value or marked @required
+          if (parameter.defaultValue == null &&
+              !parameter.declaredElement.hasRequired) {
+            params.add(parameter);
+          }
+        }
+      }
+      return params;
+    }
+
     final parent = node.parent;
     if (parent is FunctionExpression) {
-      _checkParams(params, parent.body);
+      _checkParams(getParams(), parent.body);
     } else if (parent is ConstructorDeclaration) {
-      _checkInitializerList(params, parent.initializers);
-      _checkParams(params, parent.body);
+      _checkInitializerList(getParams(), parent.initializers);
+      _checkParams(getParams(), parent.body);
     } else if (parent is MethodDeclaration) {
-      _checkParams(params, parent.body);
+      _checkParams(getParams(), parent.body);
+    }
+  }
+
+  void _checkAssert(
+      Expression assertExpression, List<DefaultFormalParameter> params) {
+    for (final param in params) {
+      if (_hasAssertNotNull(assertExpression, param.identifier.name)) {
+        rule.reportLintForToken(param.identifier.beginToken);
+        params.remove(param);
+        return;
+      }
     }
   }
 
   void _checkInitializerList(List<DefaultFormalParameter> params,
       NodeList<ConstructorInitializer> initializers) {
-    final asserts = initializers
-        .whereType<AssertInitializer>()
-        .map((e) => e.condition)
-        .toList();
-    for (final param in params) {
-      if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
-        rule.reportLintForToken(param.identifier.beginToken);
+    for (final initializer in initializers) {
+      if (initializer is AssertInitializer) {
+        _checkAssert(initializer.condition, params);
       }
     }
   }
 
   void _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
     if (body is BlockFunctionBody) {
-      final asserts = body.block.statements
-          .takeWhile((e) => e is AssertStatement)
-          .map((e) => (e as AssertStatement).condition)
-          .toList();
-      for (final param in params) {
-        if (asserts.any((e) => _hasAssertNotNull(e, param.identifier.name))) {
-          rule.reportLintForToken(param.identifier.beginToken);
+      for (final statement in body.block.statements) {
+        if (statement is AssertStatement) {
+          _checkAssert(statement.condition, params);
         }
       }
     }
