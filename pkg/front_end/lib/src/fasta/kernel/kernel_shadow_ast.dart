@@ -380,6 +380,8 @@ class Cascade extends InternalExpression {
   /// initializer;
   VariableDeclaration variable;
 
+  final bool isNullAware;
+
   /// The expressions performed on [variable].
   final List<Expression> expressions = <Expression>[];
 
@@ -387,7 +389,7 @@ class Cascade extends InternalExpression {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  Cascade(this.variable) {
+  Cascade(this.variable, {this.isNullAware}) : assert(isNullAware != null) {
     variable?.parent = this;
   }
 

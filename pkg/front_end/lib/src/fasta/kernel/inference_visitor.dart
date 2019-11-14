@@ -255,8 +255,19 @@ class InferenceVisitor
           createVariable(expressionResults[index].expression, const VoidType()),
           replacement);
     }
-    replacement = new Let(node.variable, replacement)
-      ..fileOffset = node.fileOffset;
+
+    if (node.isNullAware) {
+      Member equalsMember = inferrer
+          .findInterfaceMember(result.inferredType, equalsName, node.fileOffset)
+          .member;
+      NullAwareGuard nullAwareGuard = new NullAwareGuard(
+          node.variable, node.variable.fileOffset, equalsMember);
+      replacement =
+          nullAwareGuard.createExpression(result.inferredType, replacement);
+    } else {
+      replacement = new Let(node.variable, replacement)
+        ..fileOffset = node.fileOffset;
+    }
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 

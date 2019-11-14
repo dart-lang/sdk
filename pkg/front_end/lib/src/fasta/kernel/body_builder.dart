@@ -1481,7 +1481,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
-      push(new Cascade(variable)..fileOffset = expression.fileOffset);
+      push(new Cascade(variable, isNullAware: optional('?..', token))
+        ..fileOffset = expression.fileOffset);
       push(_createReadOnlyVariableAccess(
           variable, token, expression.fileOffset, null));
     }
