@@ -1040,6 +1040,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
       _checkForMustCallSuper(node);
+      _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -5348,6 +5349,80 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass.interfaces.forEach(checkOne);
     _enclosingClass.mixins.forEach(checkOne);
     _enclosingClass.superclassConstraints.forEach(checkOne);
+  }
+
+  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
+    // Only need to report errors for parameters with explicitly defined type
+    // parameters in classes or mixins.
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          if (method.typeParameters != null) {
+            for (var methodTypeParameter
+                in method.typeParameters.typeParameters) {
+              Variance methodTypeParameterVariance = Variance.invariant.combine(
+                  Variance(typeParameter, methodTypeParameter.bound.type));
+              _checkForWrongVariancePosition(methodTypeParameterVariance,
+                  typeParameter, methodTypeParameter);
+            }
+          }
+          if (method.parameters != null) {
+            for (int i = 0; i < method.parameters.parameters.length; i++) {
+              var methodParameterElement =
+                  method.parameters.parameterElements[i];
+              var methodParameterNode = method.parameters.parameters[i];
+              if (!methodParameterElement.isCovariant) {
+                Variance methodParameterVariance = Variance.contravariant
+                    .combine(
+                        Variance(typeParameter, methodParameterElement.type));
+                _checkForWrongVariancePosition(methodParameterVariance,
+                    typeParameter, methodParameterNode);
+              }
+            }
+          }
+          if (method.returnType != null) {
+            Variance methodReturnTypeVariance =
+                Variance(typeParameter, method.returnType.type);
+            _checkForWrongVariancePosition(
+                methodReturnTypeVariance, typeParameter, method.returnType);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Check for invalid variance positions in members of a class or mixin.
+   *
+   * Let `C` be a class or mixin declaration with type parameter `T`.
+   * If `T` is an `out` type parameter then `T` can only appear in covariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `in` type parameter then `T` can only appear in contravariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `inout` type parameter or a type parameter with no explicit
+   * variance modifier then `T` can appear in any variant position within the
+   * accessors and methods of `C`.
+   *
+   * Errors should only be reported in classes and mixins since those are the
+   * only components that allow explicit variance modifiers.
+   */
+  void _checkForWrongVariancePosition(
+      Variance variance, TypeParameterElement typeParameter, AstNode node) {
+    TypeParameterElementImpl typeParameterImpl =
+        typeParameter as TypeParameterElementImpl;
+    if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        node,
+        [
+          typeParameterImpl.variance.toKeywordString(),
+          typeParameterImpl.name,
+          variance.toKeywordString()
+        ],
+      );
+    }
   }
 
   /**

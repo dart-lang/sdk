@@ -4945,6 +4945,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Let `C` be a generic class that declares a formal type parameter `X`.
+   *
+   * If `X` is explicitly contravariant then it is a compile-time error for
+   * `X` to occur in a non-contravariant position in a member signature in the
+   * body of `C`, except when `X` is in a contravariant position in the type
+   * annotation of a covariant formal parameter.
+   *
+   * If `X` is explicitly covariant then it is a compile-time error for
+   * `X` to occur in a non-covariant position in a member signature in the
+   * body of `C`, except when `X` is in a covariant position in the type
+   * annotation of a covariant formal parameter.
+   *
+   * Parameters:
+   * 0: the variance modifier defined for {0}
+   * 1: the name of the type parameter
+   * 2: the variance position that the type parameter {1} is in
+   */
+  static const CompileTimeErrorCode WRONG_TYPE_PARAMETER_VARIANCE_POSITION =
+      const CompileTimeErrorCode(
+    'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+    "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
+    correction: "Try removing the type parameter or change the explicit "
+        "variance modifier declaration for the type parameter to another one of"
+        " 'in', 'out', or 'inout'.",
+  );
+
+  /**
    * Let `C` be a generic class that declares a formal type parameter `X`, and
    * assume that `T` is a direct superinterface of `C`.
    *
@@ -4953,6 +4980,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * It is a compile-time error if `X` is explicitly defined as a contravariant
    * or 'out' type parameter and `X` occurs in a non-contravariant position in
    * `T`.
+   *
+   * Parameters:
+   * 0: the name of the type parameter
+   * 1: the variance modifier defined for {0}
+   * 2: the variance position of the type parameter {0} in the
+   *    superinterface {3}
+   * 3: the name of the superinterface
    */
   static const CompileTimeErrorCode
       WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE =
