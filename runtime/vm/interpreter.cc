@@ -2312,6 +2312,21 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(PushUninitializedSentinel, 0);
+    *++SP = Object::sentinel().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfInitialized, T);
+    SP -= 1;
+    if (SP[1] != Object::sentinel().raw()) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);

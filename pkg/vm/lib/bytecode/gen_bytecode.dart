@@ -570,12 +570,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   FieldDeclaration getFieldDeclaration(Field field, Code initializer) {
     int flags = 0;
     Constant value;
-    if (_hasTrivialInitializer(field)) {
-      if (field.initializer != null) {
-        value = _getConstant(field.initializer);
-      }
-    } else {
+    if (_hasNonTrivialInitializer(field)) {
       flags |= FieldDeclaration.hasNontrivialInitializerFlag;
+    } else if (field.initializer != null) {
+      value = _getConstant(field.initializer);
     }
     if (initializer != null) {
       flags |= FieldDeclaration.hasInitializerCodeFlag;
@@ -956,7 +954,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       (field.isStatic ||
           field.isLate ||
           options.emitInstanceFieldInitializers) &&
-      !_hasTrivialInitializer(field);
+      _hasNonTrivialInitializer(field);
 
   bool _needsGetter(Field field) {
     // All instance fields need a getter.
@@ -964,7 +962,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // Static fields also need a getter if they have a non-trivial initializer,
     // because it needs to be initialized lazily.
-    if (!_hasTrivialInitializer(field)) return true;
+    if (_hasNonTrivialInitializer(field)) return true;
 
     // Static late fields with no initializer also need a getter, to check if
     // it's been initialized.
@@ -1076,6 +1074,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _futureValue;
   Procedure get futureValue =>
       _futureValue ??= libraryIndex.getMember('dart:async', 'Future', 'value');
+
+  Procedure _throwNewLateInitializationError;
+  Procedure get throwNewLateInitializationError =>
+      _throwNewLateInitializationError ??= libraryIndex.getMember(
+          'dart:core', '_LateInitializationError', '_throwNew');
 
   Procedure _throwNewAssertionError;
   Procedure get throwNewAssertionError => _throwNewAssertionError ??=
@@ -1206,7 +1209,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genLateFieldInitializer(Field field) {
     assert(!field.isStatic);
 
-    if (field.initializer != null && _hasTrivialInitializer(field)) {
+    if (_isTrivialInitializer(field.initializer)) {
       _genFieldInitializer(field, field.initializer);
       return;
     }
@@ -1476,6 +1479,34 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genLoadVar(VariableDeclaration v, {int currentContextLevel}) {
+    if (v.isLate) {
+      _genLoadVarImpl(v, currentContextLevel);
+
+      final Label done = new Label();
+      asm.emitJumpIfInitialized(done);
+
+      if (v.initializer != null) {
+        if (locals.isCaptured(v)) {
+          _genPushContextForVariable(v,
+              currentContextLevel: currentContextLevel);
+        }
+        // TODO(dartbug.com/38841): Make this work for all initializers.
+        _generateNode(v.initializer);
+        _genStoreVar(v);
+      } else {
+        asm.emitPushConstant(cp.addName(v.name));
+        _genDirectCall(throwNewLateInitializationError,
+            objectTable.getArgDescHandle(1), 1);
+        asm.emitDrop1();
+      }
+
+      asm.bind(done);
+    }
+
+    _genLoadVarImpl(v, currentContextLevel);
+  }
+
+  void _genLoadVarImpl(VariableDeclaration v, int currentContextLevel) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -3572,10 +3603,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genRethrow(tryCatch);
   }
 
-  bool _hasTrivialInitializer(Field field) {
-    final initializer = field.initializer;
-    if (initializer == null ||
-        initializer is StringLiteral ||
+  bool _hasNonTrivialInitializer(Field field) {
+    if (field.initializer == null) return false;
+    return !_isTrivialInitializer(field.initializer);
+  }
+
+  bool _isTrivialInitializer(Expression initializer) {
+    if (initializer == null) return false;
+    if (initializer is StringLiteral ||
         initializer is BoolLiteral ||
         initializer is IntLiteral ||
         initializer is DoubleLiteral ||
@@ -4418,19 +4453,37 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     finallyBlocks.remove(node);
   }
 
+  bool _skipVariableInitialization(VariableDeclaration v, bool isCaptured) {
+    // We can skip variable initialization if the variable is supposed to be
+    // initialized to null and it's captured. This is because all the slots in
+    // the capture context are implicitly initialized to null.
+
+    // Check if the variable is supposed to be initialized to null.
+    if (!(v.initializer == null || v.initializer is NullLiteral)) {
+      return false;
+    }
+
+    // Late variables need to be initialized to a sentinel, not null.
+    if (v.isLate) return false;
+
+    // Non-captured variables go in stack slots that aren't implicitly nulled.
+    return isCaptured;
+  }
+
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node);
       final initializer = node.initializer;
-      final bool emitStore =
-          !(isCaptured && (initializer == null || initializer is NullLiteral));
+      final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
       if (emitStore) {
         if (isCaptured) {
           _genPushContextForVariable(node);
         }
-        if (initializer != null) {
+        if (node.isLate && !_isTrivialInitializer(initializer)) {
+          asm.emitPushUninitializedSentinel();
+        } else if (initializer != null) {
           _startRecordingMaxPosition(node.fileOffset);
           _generateNode(initializer);
           maxInitializerPosition = _endRecordingMaxPosition();

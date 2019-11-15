@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 26;
+const int currentBytecodeFormatVersion = 27;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -95,9 +95,11 @@ enum Opcode {
   kUnusedOpcode079,
   kUnusedOpcode080,
   kUnusedOpcode081,
-  kUnusedOpcode082,
-  kUnusedOpcode083,
-  kUnusedOpcode084,
+
+  // Late variables.
+  kJumpIfInitialized,
+  kJumpIfInitialized_Wide,
+  kPushUninitializedSentinel,
 
   kTrap,
 
@@ -181,7 +183,7 @@ enum Opcode {
   kStoreIndexedTOS,
   kUnused20,
 
-  // Late fields and variables.
+  // Late fields.
   kInitLateField,
   kInitLateField_Wide,
 
@@ -416,6 +418,10 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kInitLateField: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kPushUninitializedSentinel: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kJumpIfInitialized: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kLoadStatic: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreStaticTOS: const Format(
@@ -642,6 +648,7 @@ bool isPush(Opcode opcode) {
     case Opcode.kPushTrue:
     case Opcode.kPushFalse:
     case Opcode.kPushInt:
+    case Opcode.kPushUninitializedSentinel:
       return true;
     default:
       return false;

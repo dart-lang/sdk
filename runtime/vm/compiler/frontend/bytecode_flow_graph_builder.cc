@@ -1328,6 +1328,15 @@ void BytecodeFlowGraphBuilder::BuildInitLateField() {
       field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 }
 
+void BytecodeFlowGraphBuilder::BuildPushUninitializedSentinel() {
+  code_ += B->Constant(Object::sentinel());
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfInitialized() {
+  code_ += B->Constant(Object::sentinel());
+  BuildJumpIfStrictCompare(Token::kNE);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());

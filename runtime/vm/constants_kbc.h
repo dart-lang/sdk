@@ -553,9 +553,9 @@ namespace dart {
   V(UnusedOpcode079,                       0, RESV, ___, ___, ___)             \
   V(UnusedOpcode080,                       0, RESV, ___, ___, ___)             \
   V(UnusedOpcode081,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode082,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode083,                       0, RESV, ___, ___, ___)             \
-  V(UnusedOpcode084,                       0, RESV, ___, ___, ___)             \
+  V(JumpIfInitialized,                     T, ORDN, tgt, ___, ___)             \
+  V(JumpIfInitialized_Wide,                T, WIDE, tgt, ___, ___)             \
+  V(PushUninitializedSentinel,             0, ORDN, ___, ___, ___)             \
   V(Trap,                                  0, ORDN, ___, ___, ___)             \
   V(Entry,                                 D, ORDN, num, ___, ___)             \
   V(Entry_Wide,                            D, WIDE, num, ___, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 26;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 27;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -887,6 +887,8 @@ class KernelBytecode {
       case KernelBytecode::kJumpIfNotNull_Wide:
       case KernelBytecode::kJumpIfUnchecked:
       case KernelBytecode::kJumpIfUnchecked_Wide:
+      case KernelBytecode::kJumpIfInitialized:
+      case KernelBytecode::kJumpIfInitialized_Wide:
         return true;
 
       default:

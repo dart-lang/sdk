@@ -746,4 +746,14 @@ class BytecodeAssembler {
     emitSourcePosition();
     _emitInstructionD(Opcode.kInitLateField, rd);
   }
+
+  @pragma('vm:prefer-inline')
+  void emitPushUninitializedSentinel() {
+    _emitInstruction0(Opcode.kPushUninitializedSentinel);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitJumpIfInitialized(Label label) {
+    _emitJumpInstruction(Opcode.kJumpIfInitialized, label);
+  }
 }
