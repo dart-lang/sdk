@@ -1767,7 +1767,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
       initializers?.accept(this);
-      if (node is ConstructorDeclaration) {
+      if (declaredElement is ConstructorElement &&
+          !declaredElement.isFactory &&
+          declaredElement.redirectedConstructor == null) {
         _handleUninitializedFields(node, _fieldsNotInitializedByConstructor);
       }
       body.accept(this);

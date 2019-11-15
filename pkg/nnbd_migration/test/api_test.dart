@@ -1259,6 +1259,30 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initialized_in_constructor_with_factories_and_redirects() async {
+    var content = '''
+class C {
+  int i;
+  C() : i = 0;
+  factory C.factoryConstructor => C();
+  factory C.factoryRedirect = D;
+  C.redirect : this();
+}
+class D extends C {}
+''';
+    var expected = '''
+class C {
+  int i;
+  C() : i = 0;
+  factory C.factoryConstructor => C();
+  factory C.factoryRedirect = D;
+  C.redirect : this();
+}
+class D extends C {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_initializer_simple() async {
     var content = '''
 class C {
