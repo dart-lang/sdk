@@ -9,6 +9,8 @@
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
 
+// @dart = 2.6
+
 library dart._http;
 
 import "dart:async";

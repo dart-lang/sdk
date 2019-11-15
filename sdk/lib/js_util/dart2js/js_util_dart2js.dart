@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Utility methods to efficiently manipulate typed JSInterop objects in cases
 /// where the name to call is not known at runtime. You should only use these
 /// methods when the same effect cannot be achieved with @JS annotations.

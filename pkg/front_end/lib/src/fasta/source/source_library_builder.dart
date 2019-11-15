@@ -214,7 +214,7 @@ import 'source_loader.dart' show SourceLoader;
 
 // TODO(johnniwinther,jensj): Replace this with the correct scheme.
 const int enableNonNullableDefaultMajorVersion = 2;
-const int enableNonNullableDefaultMinorVersion = 6;
+const int enableNonNullableDefaultMinorVersion = 7;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
