@@ -93,31 +93,35 @@ class InfoBuilder {
 
   /// Return detail text for a fix built from an edge with [node] as a
   /// destination.
-  String _baseDescriptionForOrigin(EdgeOriginInfo origin) {
+  String _baseDescriptionForOrigin(
+      EdgeOriginInfo origin, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
     AstNode parent = node.parent;
 
-    if (node is DefaultFormalParameter) {
+    String aNullableDefault(DefaultFormalParameter node) {
       Expression defaultValue = node.defaultValue;
       if (defaultValue == null) {
-        return "This parameter has an implicit default value of 'null'";
+        return "an implicit default value of 'null'";
       } else if (defaultValue is NullLiteral) {
-        return "This parameter has an explicit default value of 'null'";
+        return "an explicit default value of 'null'";
       }
-      return "This parameter has a nullable default value";
+      return "a nullable default value";
+    }
+
+    if (node is DefaultFormalParameter) {
+      // TODO(srawlins): Is there an enum of fixes I can use? The fix classes
+      //  are subclasses of PotentialModification, e.g. PotentiallyAddRequired.
+      if (fixKind == NullabilityFixKind.addRequired) {
+        return "This parameter is non-nullable, so cannot have "
+            "${aNullableDefault(node)}";
+      } else {
+        return "This parameter has ${aNullableDefault(node)}";
+      }
     } else if (node is FieldFormalParameter) {
       AstNode parent = node.parent;
       if (parent is DefaultFormalParameter) {
-        Expression defaultValue = parent.defaultValue;
-        if (defaultValue == null) {
-          return "This field is initialized by an optional field formal "
-              "parameter that has an implicit default value of 'null'";
-        } else if (defaultValue is NullLiteral) {
-          return "This field is initialized by an optional field formal "
-              "parameter that has an explicit default value of 'null'";
-        }
         return "This field is initialized by an optional field formal "
-            "parameter that has a nullable default value";
+            "parameter that has ${aNullableDefault(parent)}";
       }
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
@@ -211,8 +215,9 @@ class InfoBuilder {
   }
 
   /// Return a description of the given [origin].
-  String _buildDescriptionForOrigin(EdgeOriginInfo origin) {
-    String description = _baseDescriptionForOrigin(origin);
+  String _buildDescriptionForOrigin(
+      EdgeOriginInfo origin, NullabilityFixKind fixKind) {
+    String description = _baseDescriptionForOrigin(origin, fixKind);
     if (_inTestCode(origin.node)) {
       // TODO(brianwilkerson) Don't add this if the graph node with which the
       //  origin is associated is also in test code.
@@ -222,7 +227,8 @@ class InfoBuilder {
   }
 
   /// Return a description of the given [origin] associated with the [edge].
-  RegionDetail _buildDetailForOrigin(EdgeOriginInfo origin, EdgeInfo edge) {
+  RegionDetail _buildDetailForOrigin(
+      EdgeOriginInfo origin, EdgeInfo edge, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
     NavigationTarget target;
     // Some nodes don't need a target; default formal parameters
@@ -250,7 +256,7 @@ class InfoBuilder {
       }
       target = _targetForNode(origin.source.fullName, node);
     }
-    return RegionDetail(_buildDescriptionForOrigin(origin), target);
+    return RegionDetail(_buildDescriptionForOrigin(origin, fixKind), target);
   }
 
   /// Compute the details for the fix with the given [fixInfo].
@@ -290,7 +296,8 @@ class InfoBuilder {
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
-              details.add(_buildDetailForOrigin(origin, edge));
+              details.add(_buildDetailForOrigin(
+                  origin, edge, fixInfo.fix.description.kind));
             } else {
               details.add(
                   RegionDetail('upstream edge with no origin ($edge)', null));
@@ -300,7 +307,7 @@ class InfoBuilder {
       } else if (reason is EdgeInfo) {
         NullabilityNodeInfo destination = reason.destinationNode;
         NodeInformation nodeInfo = info.nodeInfoFor(destination);
-        if (nodeInfo != null) {
+        if (nodeInfo != null && nodeInfo.astNode != null) {
           NavigationTarget target;
           if (destination != info.never && destination != info.always) {
             target = _targetForNode(nodeInfo.filePath, nodeInfo.astNode);

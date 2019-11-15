@@ -305,6 +305,50 @@ class A {
         details: ["This field is initialized to a nullable value"]);
   }
 
+  test_insertedRequired_fieldFormal() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+  int level2;
+  C({this.level}) : this.level2 = level + 1;
+}
+''', migratedContent: '''
+class C {
+  int level;
+  int level2;
+  C({required this.level}) : this.level2 = level + 1;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 42, length: 9, details: [
+      "This parameter is non-nullable, so cannot have an implicit default "
+          "value of 'null'"
+    ]);
+  }
+
+  test_insertedRequired_parameter() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+  bool f({int lvl}) => lvl >= level;
+}
+''', migratedContent: '''
+class C {
+  int? level;
+  bool f({required int lvl}) => lvl >= level!;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `int? s` fix.
+    assertRegion(region: regions[1], offset: 34, length: 9, details: [
+      "This parameter is non-nullable, so cannot have an implicit default "
+          "value of 'null'"
+    ]);
+    // regions[2] is the `level!` fix.
+  }
+
   test_listAndSetLiteralTypeArgument() async {
     // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
     UnitInfo unit = await buildInfoForSingleTestFile('''
