@@ -39,11 +39,11 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   test_outputContainsEachPath() async {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
+          regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
       unit('/package/lib/part1.dart', 'int? b = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
+          regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
       unit('/package/lib/part2.dart', 'int? c = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
+          regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
     });
     List<String> contents = renderLibrary(info);
     expect(contents[0], contains(resourceProvider.convertPath('lib/a.dart')));
@@ -56,7 +56,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   test_outputContainsEscapedHtml() async {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'List<String>? a = null;', regions: [
-        RegionInfo(12, 1, 'null was assigned', [], RegionType.fix)
+        RegionInfo(RegionType.fix, 12, 1, 'null was assigned', [])
       ]),
     });
     String output = renderLibrary(info)[0];
@@ -78,7 +78,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   test_outputContainsModifiedAndUnmodifiedRegions() async {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
+          regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
     });
     String output = renderLibrary(info)[0];
     expect(

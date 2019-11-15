@@ -228,6 +228,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
+  /// A flag indicating whether the incremental workflow is currently supported.
+  static const bool supportsIncrementalWorkflow = false;
+
   /// Display information for a compilation unit.
   final UnitInfo unitInfo;
 
@@ -375,23 +378,30 @@ class InstrumentationRenderer {
           '${content.substring(offset, offset + length)}'
           '<span class="tooltip">'
           '<p>${region.explanation}</p>');
+      //
+      // Write out any details.
+      //
       if (region.details.isNotEmpty) {
         regions.write('<ul>');
-      }
-      for (var detail in region.details) {
-        regions.write('<li>');
-
-        if (detail.target != null) {
-          regions.write('<a href="${_uriForTarget(detail.target, unitDir)}">');
+        for (var detail in region.details) {
+          regions.write('<li>');
+          if (detail.target != null) {
+            String targetUri = _uriForTarget(detail.target, unitDir);
+            regions.write('<a href="$targetUri">');
+          }
+          writeSplitLines(detail.description);
+          if (detail.target != null) {
+            regions.write('</a>');
+          }
+          regions.write('</li>');
         }
-        writeSplitLines(detail.description);
-        if (detail.target != null) {
-          regions.write('</a>');
-        }
-        regions.write('</li>');
-      }
-      if (region.details.isNotEmpty) {
         regions.write('</ul>');
+      }
+      //
+      // Write out any edits.
+      //
+      if (supportsIncrementalWorkflow && region.edits.isNotEmpty) {
+        // TODO(brianwilkerson) Implement this.
       }
       regions.write('</span></span>');
     }
