@@ -23,38 +23,48 @@ Exactly<T> inferInvContra<T>(Invariant<T> x, Contravariant<T> y) => new Exactly<
 main() {
   // Middle <: T <: Middle and int <: T <: int are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<int>());
-  //          ^
-  // [analyzer] unspecified
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  //          ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Object>'.
-  //                               ^
-  // [analyzer] unspecified
+  //                               ^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<int>' can't be assigned to the parameter type 'Invariant<Object>'.
 
   // Middle <: T <: Middle and Upper <: T <: Upper are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<Upper>());
-  //          ^
-  // [analyzer] unspecified
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  //          ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
 
   // Middle <: T <: Middle and Lower <: T <: Lower are not valid constraints.
   inferInvInv(Invariant<Middle>(), Invariant<Lower>());
-  //                               ^
-  // [analyzer] unspecified
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  //                               ^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Lower>' can't be assigned to the parameter type 'Invariant<Middle>'.
 
   // Upper <: T
   // Middle <: T <: Middle
   // Upper <: T <: Middle is not a valid constraint.
   inferInvCov(Invariant<Middle>(), Covariant<Upper>());
-  //          ^
-  // [analyzer] unspecified
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  //          ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
 
   // T <: Lower
   // Middle <: T <: Lower
   // Middle <: T <: Lower is not a valid constraint
   inferInvContra(Invariant<Middle>(), Contravariant<Lower>());
-  //                                  ^
-  // [analyzer] unspecified
+//^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  //                                  ^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
   // [cfe] The constructor returns type 'Contravariant<Lower>' that isn't of expected type 'Contravariant<Middle>'.
 }

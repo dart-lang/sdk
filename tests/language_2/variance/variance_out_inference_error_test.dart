@@ -21,13 +21,13 @@ main() {
 
   var inferredMiddle = inferCovCov(Covariant<Lower>(), Covariant<Middle>());
   lower = inferredMiddle;
-  //      ^
-  // [analyzer] unspecified
+  //      ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Middle>' can't be assigned to a variable of type 'Exactly<Lower>'.
 
   var inferredUpper = inferCovCov(Covariant<Lower>(), Covariant<Upper>());
   lower = inferredUpper;
-  //      ^
-  // [analyzer] unspecified
+  //      ^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Upper>' can't be assigned to a variable of type 'Exactly<Lower>'.
 }

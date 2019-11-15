@@ -821,6 +821,49 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
         covariant: true);
   }
 
+  void test_variance_covariant() {
+    // class A<out T>
+    var tCovariant = typeParameter('T', variance: Variance.covariant);
+    var tType = typeParameterType(tCovariant);
+    var A = class_(name: 'A', typeParameters: [tCovariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceType(A, typeArguments: [numType]);
+    var aT = interfaceType(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num'], covariant: true);
+  }
+
+  void test_variance_contravariant() {
+    // class A<in T>
+    var tContravariant = typeParameter('T', variance: Variance.contravariant);
+    var tType = typeParameterType(tContravariant);
+    var A = class_(name: 'A', typeParameters: [tContravariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceType(A, typeArguments: [numType]);
+    var aT = interfaceType(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: T'], covariant: true);
+  }
+
+  void test_variance_invariant() {
+    // class A<inout T>
+    var tInvariant = typeParameter('T', variance: Variance.invariant);
+    var tType = typeParameterType(tInvariant);
+    var A = class_(name: 'A', typeParameters: [tInvariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceType(A, typeArguments: [numType]);
+    var aT = interfaceType(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num', 'num <: T'],
+        covariant: true);
+  }
+
   void _checkIsNotSubtypeMatchOf(
       DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
       {bool covariant}) {

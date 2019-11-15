@@ -1747,12 +1747,40 @@ class GenericInferrer {
     if (i1.element == i2.element) {
       List<DartType> tArgs1 = i1.typeArguments;
       List<DartType> tArgs2 = i2.typeArguments;
+      List<TypeParameterElement> tParams = i1.element.typeParameters;
       assert(tArgs1.length == tArgs2.length);
+      assert(tArgs1.length == tParams.length);
       for (int i = 0; i < tArgs1.length; i++) {
-        if (!_matchSubtypeOf(
-            tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
-            covariant: covariant)) {
-          return false;
+        TypeParameterElement typeParameterElement = tParams[i];
+
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        Variance parameterVariance =
+            (typeParameterElement as TypeParameterElementImpl).variance;
+        if (parameterVariance.isCovariant) {
+          if (!_matchSubtypeOf(
+              tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
+              covariant: covariant)) {
+            return false;
+          }
+        } else if (parameterVariance.isContravariant) {
+          if (!_matchSubtypeOf(
+              tArgs2[i], tArgs1[i], new HashSet<Element>(), origin,
+              covariant: !covariant)) {
+            return false;
+          }
+        } else if (parameterVariance.isInvariant) {
+          if (!_matchSubtypeOf(
+                  tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
+                  covariant: covariant) ||
+              !_matchSubtypeOf(
+                  tArgs2[i], tArgs1[i], new HashSet<Element>(), origin,
+                  covariant: !covariant)) {
+            return false;
+          }
+        } else {
+          throw new StateError("Type parameter ${tParams[i]} has unknown "
+              "variance $parameterVariance for inference.");
         }
       }
       return true;
