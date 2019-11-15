@@ -14,6 +14,15 @@ class Class {
     lateStaticField2 = 42;
     expect(42, lateStaticField2);
   }
+
+  late int? lateInstanceField;
+
+  instanceMethod() {
+    throws(() => lateInstanceField,
+        'Read value from uninitialized Class.lateInstanceField');
+    lateInstanceField = 16;
+    expect(16, lateInstanceField);
+  }
 }
 
 main() {

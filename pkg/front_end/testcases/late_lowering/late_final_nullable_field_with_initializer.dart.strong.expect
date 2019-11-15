@@ -9,6 +9,9 @@ class Class extends core::Object {
   static field core::int? lateStaticField2Init = null;
   static field core::int? _#lateStaticField2 = null;
   static field dynamic _#lateStaticField2#isSet = false;
+  field core::int? lateInstanceFieldInit = null;
+  field core::int? _#lateInstanceField = null;
+  field dynamic _#lateInstanceField#isSet = false;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
@@ -37,6 +40,21 @@ class Class extends core::Object {
     self::expect(42, self::Class::lateStaticField2);
     self::expect(42, self::Class::lateStaticField2Init);
   }
+  method initLateInstanceField(core::int value) → core::int? {
+    return this.{self::Class::lateInstanceFieldInit} = value;
+  }
+  get lateInstanceField() → core::int? {
+    if(!this.{self::Class::_#lateInstanceField#isSet}) {
+      this.{self::Class::_#lateInstanceField#isSet} = true;
+      this.{self::Class::_#lateInstanceField} = this.{self::Class::initLateInstanceField}(16);
+    }
+    return this.{self::Class::_#lateInstanceField};
+  }
+  method instanceMethod() → dynamic {
+    self::expect(null, this.{self::Class::lateInstanceFieldInit});
+    self::expect(16, this.{self::Class::lateInstanceField});
+    self::expect(16, this.{self::Class::lateInstanceFieldInit});
+  }
 }
 static field core::int? lateTopLevelField1Init;
 static field core::int? _#lateTopLevelField1 = null;
@@ -59,6 +77,7 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::expect(87, self::Class::lateStaticField1Init);
   self::Class::staticMethod();
+  new self::Class::•().{self::Class::instanceMethod}();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

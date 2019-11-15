@@ -17,7 +17,7 @@ import '../fasta_codes.dart'
         templateCantInferTypeDueToCircularity;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
@@ -335,6 +335,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   }
 
   DartType get builtType => fieldType;
+
+  @override
+  List<ClassMember> get localMembers => _fieldEncoding.getLocalMembers(this);
+
+  @override
+  List<ClassMember> get localSetters => _fieldEncoding.getLocalSetters(this);
 }
 
 /// Strategy pattern for creating different encodings of a declared field.
@@ -378,6 +384,10 @@ abstract class FieldEncoding {
       SourceLibraryBuilder library,
       SourceFieldBuilder fieldBuilder,
       void Function(Member, BuiltMemberKind) f);
+
+  List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder);
+
+  List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder);
 }
 
 class RegularFieldEncoding implements FieldEncoding {
@@ -461,6 +471,14 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   Member get writeTarget => _field;
+
+  @override
+  List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
+      <ClassMember>[fieldBuilder];
+
+  @override
+  List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
+      const <ClassMember>[];
 }
 
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
@@ -502,6 +520,26 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _lateSetter.function.body = _createSetterBody(
           name, _lateSetter.function.positionalParameters.first)
         ..parent = _lateSetter.function;
+    }
+  }
+
+  Expression _createFieldGet(Field field) {
+    if (field.isStatic) {
+      return new StaticGet(field)..fileOffset = fileOffset;
+    } else {
+      return new PropertyGet(
+          new ThisExpression()..fileOffset = fileOffset, field.name, field)
+        ..fileOffset = fileOffset;
+    }
+  }
+
+  Expression _createFieldSet(Field field, Expression value) {
+    if (field.isStatic) {
+      return new StaticSet(field, value)..fileOffset = fileOffset;
+    } else {
+      return new PropertySet(new ThisExpression()..fileOffset = fileOffset,
+          field.name, value, field)
+        ..fileOffset = fileOffset;
     }
   }
 
@@ -623,6 +661,25 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       f(_lateSetter, BuiltMemberKind.LateSetter);
     }
   }
+
+  @override
+  List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) {
+    List<ClassMember> list = <ClassMember>[
+      new _ClassMember(fieldBuilder, field),
+      new _ClassMember(fieldBuilder, _lateGetter)
+    ];
+    if (_lateIsSetField != null) {
+      list.add(new _ClassMember(fieldBuilder, _lateIsSetField));
+    }
+    return list;
+  }
+
+  @override
+  List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
+    return _lateSetter == null
+        ? const <ClassMember>[]
+        : <ClassMember>[new _ClassMember(fieldBuilder, _lateSetter)];
+  }
 }
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
@@ -630,7 +687,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   Statement _createSetterBody(String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     Statement assignment = new ExpressionStatement(
-        new StaticSet(
+        _createFieldSet(
             _field, new VariableGet(parameter)..fileOffset = fileOffset)
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
@@ -638,7 +695,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
     if (_type.isPotentiallyNullable) {
       return new Block([
         new ExpressionStatement(
-            new StaticSet(
+            _createFieldSet(
                 _lateIsSetField, new BoolLiteral(true)..fileOffset = fileOffset)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
@@ -665,21 +722,21 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
       //    return _#field;
       return new Block(<Statement>[
         new IfStatement(
-            new Not(new StaticGet(_lateIsSetField)..fileOffset = fileOffset)
+            new Not(_createFieldGet(_lateIsSetField)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new Block(<Statement>[
               new ExpressionStatement(
-                  new StaticSet(_lateIsSetField,
+                  _createFieldSet(_lateIsSetField,
                       new BoolLiteral(true)..fileOffset = fileOffset)
                     ..fileOffset = fileOffset)
                 ..fileOffset = fileOffset,
               new ExpressionStatement(
-                  new StaticSet(_field, initializer)..fileOffset = fileOffset)
+                  _createFieldSet(_field, initializer)..fileOffset = fileOffset)
                 ..fileOffset = fileOffset,
             ]),
             null)
           ..fileOffset = fileOffset,
-        new ReturnStatement(new StaticGet(_field)..fileOffset = fileOffset)
+        new ReturnStatement(_createFieldGet(_field)..fileOffset = fileOffset)
           ..fileOffset = fileOffset
       ])
         ..fileOffset = fileOffset;
@@ -688,7 +745,7 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
       //
       //    return let # = _#field in # == null ? _#field = <init> : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          new StaticGet(_field)..fileOffset = fileOffset,
+          _createFieldGet(_field)..fileOffset = fileOffset,
           type: _field.type)
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -703,7 +760,7 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
                       ])
                         ..fileOffset = fileOffset)
                     ..fileOffset = fileOffset,
-                  new StaticSet(_field, initializer)..fileOffset = fileOffset,
+                  _createFieldSet(_field, initializer)..fileOffset = fileOffset,
                   new VariableGet(variable, _type)..fileOffset = fileOffset,
                   _type)
                 ..fileOffset = fileOffset)
@@ -734,8 +791,8 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
       //    return _#isSet#field ? _#field : throw '...';
       return new ReturnStatement(
           _conditionalExpression = new ConditionalExpression(
-              new StaticGet(_lateIsSetField)..fileOffset = fileOffset,
-              new StaticGet(_field)..fileOffset = fileOffset,
+              _createFieldGet(_lateIsSetField)..fileOffset = fileOffset,
+              _createFieldGet(_field)..fileOffset = fileOffset,
               exception,
               _type)
             ..fileOffset = fileOffset)
@@ -745,7 +802,7 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
       //
       //    return let # = _#field in # == null ? throw '...' : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          new StaticGet(_field)..fileOffset = fileOffset,
+          _createFieldGet(_field)..fileOffset = fileOffset,
           type: _field.type)
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -812,16 +869,16 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       //      _#field = parameter
       //    }
       return new IfStatement(
-          new StaticGet(_lateIsSetField)..fileOffset = fileOffset,
+          _createFieldGet(_lateIsSetField)..fileOffset = fileOffset,
           new ExpressionStatement(exception)..fileOffset = fileOffset,
           new Block([
             new ExpressionStatement(
-                new StaticSet(_lateIsSetField,
+                _createFieldSet(_lateIsSetField,
                     new BoolLiteral(true)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                new StaticSet(
+                _createFieldSet(
                     _field, new VariableGet(parameter)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset
@@ -838,14 +895,14 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       //    }
       return new IfStatement(
         new MethodInvocation(
-            new StaticGet(_field)..fileOffset = fileOffset,
+            _createFieldGet(_field)..fileOffset = fileOffset,
             equalsName,
             new Arguments(
                 <Expression>[new NullLiteral()..fileOffset = fileOffset])
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
         new ExpressionStatement(
-            new StaticSet(
+            _createFieldSet(
                 _field, new VariableGet(parameter)..fileOffset = fileOffset)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
@@ -867,4 +924,67 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding
   @override
   Statement _createSetterBody(String name, VariableDeclaration parameter) =>
       null;
+}
+
+class _ClassMember implements ClassMember {
+  final SourceFieldBuilder fieldBuilder;
+
+  @override
+  final Member member;
+
+  _ClassMember(this.fieldBuilder, this.member);
+
+  @override
+  ClassBuilder get classBuilder => fieldBuilder.classBuilder;
+
+  @override
+  bool get isDuplicate => fieldBuilder.isDuplicate;
+
+  @override
+  bool get isStatic => fieldBuilder.isStatic;
+
+  @override
+  bool get isField => member is Field;
+
+  @override
+  bool get isAssignable {
+    Member field = member;
+    return field is Field && field.hasSetter;
+  }
+
+  @override
+  bool get isSetter {
+    Member procedure = member;
+    return procedure is Procedure && procedure.kind == ProcedureKind.Setter;
+  }
+
+  @override
+  bool get isGetter {
+    Member procedure = member;
+    return procedure is Procedure && procedure.kind == ProcedureKind.Getter;
+  }
+
+  @override
+  bool get isFinal {
+    Member field = member;
+    return field is Field && field.isFinal;
+  }
+
+  @override
+  bool get isConst {
+    Member field = member;
+    return field is Field && field.isConst;
+  }
+
+  @override
+  String get fullNameForErrors => fieldBuilder.fullNameForErrors;
+
+  @override
+  Uri get fileUri => fieldBuilder.fileUri;
+
+  @override
+  int get charOffset => fieldBuilder.charOffset;
+
+  @override
+  String toString() => '_ClassMember($fieldBuilder,$member)';
 }

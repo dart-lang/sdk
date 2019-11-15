@@ -5,6 +5,7 @@ import "dart:core" as core;
 class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
   static field core::int? _#lateStaticField2 = null;
+  field core::int? _#lateInstanceField = null;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
@@ -21,12 +22,21 @@ class Class extends core::Object {
     self::Class::lateStaticField2 = 42;
     self::expect(42, self::Class::lateStaticField2);
   }
+  get lateInstanceField() → core::int
+    return let final core::int? #t5 = this.{self::Class::_#lateInstanceField} in #t5.==(null) ?{core::int} throw "Field 'lateInstanceField' has not been initialized." : #t5{core::int};
+  set lateInstanceField(core::int #t6) → void
+    this.{self::Class::_#lateInstanceField} = #t6;
+  method instanceMethod() → dynamic {
+    self::throws(() → core::int => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+    this.{self::Class::lateInstanceField} = 16;
+    self::expect(16, this.{self::Class::lateInstanceField});
+  }
 }
 static field core::int? _#lateTopLevelField = null;
 static get lateTopLevelField() → core::int
-  return let final core::int? #t5 = self::_#lateTopLevelField in #t5.==(null) ?{core::int} throw "Field 'lateTopLevelField' has not been initialized." : #t5{core::int};
-static set lateTopLevelField(core::int #t6) → void
-  self::_#lateTopLevelField = #t6;
+  return let final core::int? #t7 = self::_#lateTopLevelField in #t7.==(null) ?{core::int} throw "Field 'lateTopLevelField' has not been initialized." : #t7{core::int};
+static set lateTopLevelField(core::int #t8) → void
+  self::_#lateTopLevelField = #t8;
 static method main() → dynamic {
   self::throws(() → core::int => self::lateTopLevelField, "Read value from uninitialized lateTopLevelField");
   self::lateTopLevelField = 123;
@@ -35,6 +45,7 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 87;
   self::expect(87, self::Class::lateStaticField1);
   self::Class::staticMethod();
+  new self::Class::•().{self::Class::instanceMethod}();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

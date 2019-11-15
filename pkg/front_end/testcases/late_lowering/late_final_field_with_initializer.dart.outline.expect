@@ -7,6 +7,8 @@ class Class extends core::Object {
   static field core::int? _#lateStaticField1;
   static field core::int? lateStaticField2Init;
   static field core::int? _#lateStaticField2;
+  field core::int? lateInstanceFieldInit;
+  field core::int? _#lateInstanceField;
   synthetic constructor •() → self::Class*
     ;
   static method initLateStaticField1(core::int value) → core::int
@@ -16,6 +18,11 @@ class Class extends core::Object {
     ;
   static get lateStaticField2() → core::int;
   static method staticMethod() → dynamic
+    ;
+  method initLateInstanceField(core::int value) → core::int
+    ;
+  get lateInstanceField() → core::int;
+  method instanceMethod() → dynamic
     ;
 }
 static field core::int? lateTopLevelField1Init;

@@ -29,6 +29,19 @@ class Class {
     expect(42, lateStaticField2);
     expect(42, lateStaticField2Init);
   }
+
+  int? lateInstanceFieldInit;
+  int initLateInstanceField(int value) {
+    return lateInstanceFieldInit = value;
+  }
+
+  late final int lateInstanceField = initLateInstanceField(16);
+
+  instanceMethod() {
+    expect(null, lateInstanceFieldInit);
+    expect(16, lateInstanceField);
+    expect(16, lateInstanceFieldInit);
+  }
 }
 
 main() {
@@ -41,6 +54,7 @@ main() {
   expect(87, Class.lateStaticField1Init);
 
   Class.staticMethod();
+  new Class().instanceMethod();
 }
 
 expect(expected, actual) {

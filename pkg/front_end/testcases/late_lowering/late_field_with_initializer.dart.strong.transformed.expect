@@ -5,6 +5,7 @@ import "dart:core" as core;
 class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
   static field core::int? _#lateStaticField2 = null;
+  field core::int? _#lateInstanceField = null;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
@@ -21,12 +22,21 @@ class Class extends core::Object {
     self::Class::lateStaticField2 = 43;
     self::expect(43, self::Class::lateStaticField2);
   }
+  get lateInstanceField() → core::int
+    return let final core::int? #t5 = this.{self::Class::_#lateInstanceField} in #t5.==(null) ?{core::int} this.{self::Class::_#lateInstanceField} = 16 : #t5{core::int};
+  set lateInstanceField(core::int #t6) → void
+    this.{self::Class::_#lateInstanceField} = #t6;
+  method instanceMethod() → dynamic {
+    self::expect(16, this.{self::Class::lateInstanceField});
+    this.{self::Class::lateInstanceField} = 17;
+    self::expect(17, this.{self::Class::lateInstanceField});
+  }
 }
 static field core::int? _#lateTopLevelField1 = null;
 static get lateTopLevelField1() → core::int
-  return let final core::int? #t5 = self::_#lateTopLevelField1 in #t5.==(null) ?{core::int} self::_#lateTopLevelField1 = 123 : #t5{core::int};
-static set lateTopLevelField1(core::int #t6) → void
-  self::_#lateTopLevelField1 = #t6;
+  return let final core::int? #t7 = self::_#lateTopLevelField1 in #t7.==(null) ?{core::int} self::_#lateTopLevelField1 = 123 : #t7{core::int};
+static set lateTopLevelField1(core::int #t8) → void
+  self::_#lateTopLevelField1 = #t8;
 static method main() → dynamic {
   self::expect(123, self::lateTopLevelField1);
   self::lateTopLevelField1 = 124;
@@ -35,6 +45,7 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 88;
   self::expect(88, self::Class::lateStaticField1);
   self::Class::staticMethod();
+  new self::Class::•().{self::Class::instanceMethod}();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

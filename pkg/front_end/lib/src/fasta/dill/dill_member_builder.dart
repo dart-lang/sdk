@@ -11,6 +11,7 @@ import '../builder/builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/library_builder.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -127,6 +128,14 @@ class DillMemberBuilder extends MemberBuilderImpl {
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     throw new UnsupportedError('DillMemberBuilder.buildMembers');
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter ? <ClassMember>[this] : const <ClassMember>[];
 }
 
 int computeModifiers(Member member) {

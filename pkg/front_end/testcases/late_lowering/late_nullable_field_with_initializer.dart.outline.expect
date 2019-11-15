@@ -7,6 +7,8 @@ class Class extends core::Object {
   static field dynamic _#lateStaticField1#isSet;
   static field core::int? _#lateStaticField2;
   static field dynamic _#lateStaticField2#isSet;
+  field core::int? _#lateInstanceField;
+  field dynamic _#lateInstanceField#isSet;
   synthetic constructor •() → self::Class*
     ;
   static method lateStaticField1Init() → core::int?
@@ -19,13 +21,19 @@ class Class extends core::Object {
   static set lateStaticField2(core::int? #t2) → void;
   static method staticMethod() → dynamic
     ;
+  method lateInstanceFieldInit() → core::int?
+    ;
+  get lateInstanceField() → core::int?;
+  set lateInstanceField(core::int? #t3) → void;
+  method instanceMethod() → dynamic
+    ;
 }
 static field core::int? _#lateTopLevelField1;
 static field dynamic _#lateTopLevelField1#isSet;
 static method lateTopLevelField1Init() → core::int?
   ;
 static get lateTopLevelField1() → core::int?;
-static set lateTopLevelField1(core::int? #t3) → void;
+static set lateTopLevelField1(core::int? #t4) → void;
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

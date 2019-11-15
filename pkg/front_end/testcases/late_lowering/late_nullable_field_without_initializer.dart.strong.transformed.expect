@@ -7,6 +7,8 @@ class Class extends core::Object {
   static field dynamic _#lateStaticField1#isSet = false;
   static field core::int? _#lateStaticField2 = null;
   static field dynamic _#lateStaticField2#isSet = false;
+  field core::int? _#lateInstanceField = null;
+  field dynamic _#lateInstanceField#isSet = false;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
@@ -27,14 +29,25 @@ class Class extends core::Object {
     self::Class::lateStaticField2 = 42;
     self::expect(42, self::Class::lateStaticField2);
   }
+  get lateInstanceField() → core::int?
+    return this.{self::Class::_#lateInstanceField#isSet} ?{core::int?} this.{self::Class::_#lateInstanceField} : throw "Field 'lateInstanceField' has not been initialized.";
+  set lateInstanceField(core::int? #t3) → void {
+    this.{self::Class::_#lateInstanceField#isSet} = true;
+    this.{self::Class::_#lateInstanceField} = #t3;
+  }
+  method instanceMethod() → dynamic {
+    self::throws(() → core::int? => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+    this.{self::Class::lateInstanceField} = 16;
+    self::expect(16, this.{self::Class::lateInstanceField});
+  }
 }
 static field core::int? _#lateTopLevelField = null;
 static field dynamic _#lateTopLevelField#isSet = false;
 static get lateTopLevelField() → core::int?
   return self::_#lateTopLevelField#isSet ?{core::int?} self::_#lateTopLevelField : throw "Field 'lateTopLevelField' has not been initialized.";
-static set lateTopLevelField(core::int? #t3) → void {
+static set lateTopLevelField(core::int? #t4) → void {
   self::_#lateTopLevelField#isSet = true;
-  self::_#lateTopLevelField = #t3;
+  self::_#lateTopLevelField = #t4;
 }
 static method main() → dynamic {
   self::throws(() → core::int? => self::lateTopLevelField, "Read value from uninitialized lateTopLevelField");

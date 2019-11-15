@@ -7,6 +7,8 @@ class Class extends core::Object {
   static field dynamic _#lateStaticField1#isSet = false;
   static field core::int? _#lateStaticField2 = null;
   static field dynamic _#lateStaticField2#isSet = false;
+  field core::int? _#lateInstanceField = null;
+  field dynamic _#lateInstanceField#isSet = false;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
@@ -41,6 +43,24 @@ class Class extends core::Object {
     self::Class::lateStaticField2 = 43;
     self::expect(43, self::Class::lateStaticField2);
   }
+  method lateInstanceFieldInit() → core::int?
+    return 16;
+  get lateInstanceField() → core::int? {
+    if(!this.{self::Class::_#lateInstanceField#isSet}) {
+      this.{self::Class::_#lateInstanceField#isSet} = true;
+      this.{self::Class::_#lateInstanceField} = this.{self::Class::lateInstanceFieldInit}();
+    }
+    return this.{self::Class::_#lateInstanceField};
+  }
+  set lateInstanceField(core::int? #t3) → void {
+    this.{self::Class::_#lateInstanceField#isSet} = true;
+    this.{self::Class::_#lateInstanceField} = #t3;
+  }
+  method instanceMethod() → dynamic {
+    self::expect(16, this.{self::Class::lateInstanceField});
+    this.{self::Class::lateInstanceField} = 17;
+    self::expect(17, this.{self::Class::lateInstanceField});
+  }
 }
 static field core::int? _#lateTopLevelField1 = null;
 static field dynamic _#lateTopLevelField1#isSet = false;
@@ -53,9 +73,9 @@ static get lateTopLevelField1() → core::int? {
   }
   return self::_#lateTopLevelField1;
 }
-static set lateTopLevelField1(core::int? #t3) → void {
+static set lateTopLevelField1(core::int? #t4) → void {
   self::_#lateTopLevelField1#isSet = true;
-  self::_#lateTopLevelField1 = #t3;
+  self::_#lateTopLevelField1 = #t4;
 }
 static method main() → dynamic {
   self::expect(123, self::lateTopLevelField1);
@@ -65,6 +85,7 @@ static method main() → dynamic {
   self::Class::lateStaticField1 = 88;
   self::expect(88, self::Class::lateStaticField1);
   self::Class::staticMethod();
+  new self::Class::•().{self::Class::instanceMethod}();
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

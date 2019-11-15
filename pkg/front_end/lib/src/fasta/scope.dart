@@ -14,6 +14,7 @@ import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
+import 'kernel/class_hierarchy_builder.dart' show ClassMember;
 
 import 'fasta_codes.dart'
     show
@@ -642,6 +643,12 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }
+
+  @override
+  List<ClassMember> get localMembers => const <ClassMember>[];
+
+  @override
+  List<ClassMember> get localSetters => const <ClassMember>[];
 }
 
 class ScopeLocalDeclarationIterator implements Iterator<Builder> {

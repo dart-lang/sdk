@@ -13,8 +13,8 @@ import 'package:kernel/type_algebra.dart';
 
 import '../scope.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
-
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -531,4 +531,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter ? <ClassMember>[this] : const <ClassMember>[];
 }

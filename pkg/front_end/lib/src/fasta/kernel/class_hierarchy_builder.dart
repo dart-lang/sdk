@@ -1206,14 +1206,23 @@ class ClassHierarchyNodeBuilder {
     }
 
     /// Members (excluding setters) declared in [cls].
-    List<ClassMember> localMembers =
-        new List<ClassMember>.from(scope.localMembers)
-          ..sort(compareDeclarations);
+    List<ClassMember> localMembers = <ClassMember>[];
 
     /// Setters declared in [cls].
-    List<ClassMember> localSetters =
-        new List<ClassMember>.from(scope.localSetters)
-          ..sort(compareDeclarations);
+    List<ClassMember> localSetters = <ClassMember>[];
+
+    for (MemberBuilder memberBuilder in scope.localMembers) {
+      localMembers.addAll(memberBuilder.localMembers);
+      localSetters.addAll(memberBuilder.localSetters);
+    }
+
+    for (MemberBuilder memberBuilder in scope.localSetters) {
+      localMembers.addAll(memberBuilder.localMembers);
+      localSetters.addAll(memberBuilder.localSetters);
+    }
+
+    localMembers.sort(compareDeclarations);
+    localSetters.sort(compareDeclarations);
 
     // Add implied setters from fields in [localMembers].
     localSetters = mergeAccessors(localMembers, localSetters);

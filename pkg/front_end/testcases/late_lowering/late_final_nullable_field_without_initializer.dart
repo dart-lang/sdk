@@ -16,6 +16,17 @@ class Class {
     throws(() => lateStaticField2 = 43,
         'Write value to initialized Class.lateStaticField2');
   }
+
+  late final int? lateInstanceField;
+
+  instanceMethod() {
+    throws(() => lateInstanceField,
+        'Read value from uninitialized Class.lateInstanceField');
+    lateInstanceField = 16;
+    expect(16, lateInstanceField);
+    throws(() => lateInstanceField = 17,
+        'Write value to initialized Class.lateInstanceField');
+  }
 }
 
 main() {
@@ -34,6 +45,7 @@ main() {
       'Write value to initialized Class.lateStaticField1');
 
   Class.staticMethod();
+  new Class().instanceMethod();
 }
 
 expect(expected, actual) {

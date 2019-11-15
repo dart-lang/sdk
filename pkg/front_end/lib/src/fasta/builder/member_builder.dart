@@ -54,6 +54,20 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   ProcedureKind get kind;
 
   void buildOutlineExpressions(LibraryBuilder library);
+
+  /// Returns the [ClassMember]s for the non-setter members created for this
+  /// member builder.
+  ///
+  /// This is normally the member itself, if not a setter, but for instance for
+  /// lowered late fields this can be synthesized members.
+  List<ClassMember> get localMembers;
+
+  /// Returns the [ClassMember]s for the setters created for this member
+  /// builder.
+  ///
+  /// This is normally the member itself, if a setter, but for instance
+  /// lowered late fields this can be synthesized setters.
+  List<ClassMember> get localSetters;
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
