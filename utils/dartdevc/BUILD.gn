@@ -353,7 +353,11 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
   if (use_nnbd) {
     args += [
-      "--enable-experiment=non-nullable",
+      # TODO(sigmund): reenable. We turned this off temporarily while the
+      # migration of libraries is in flux, this step otherwise fails
+      # with many nnbd-related compile-time errors because the packages are
+      # assumed to be nnbd compilant.
+      #  "--enable-experiment=non-nullable",
 
       # TODO(rnystrom): Most of the packages used by tests can be cleanly
       # compiled as opted-in libraries, but js.dart has an optional parameter
