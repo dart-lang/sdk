@@ -14,7 +14,7 @@ import '../builder/field_builder.dart';
 import '../problems.dart' show unsupported;
 
 abstract class ImplicitFieldType extends DartType {
-  FieldBuilderImpl get fieldBuilder;
+  SourceFieldBuilder get fieldBuilder;
   Token get initializerToken;
   void set initializerToken(Token value);
   bool get isStarted;
@@ -23,7 +23,7 @@ abstract class ImplicitFieldType extends DartType {
   ImplicitFieldType._();
 
   factory ImplicitFieldType(
-          FieldBuilderImpl fieldBuilder, Token initializerToken) =
+          SourceFieldBuilder fieldBuilder, Token initializerToken) =
       _ImplicitFieldTypeRoot;
 
   @override
@@ -51,7 +51,7 @@ abstract class ImplicitFieldType extends DartType {
         "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
-  ImplicitFieldType createAlias(FieldBuilderImpl target) =>
+  ImplicitFieldType createAlias(SourceFieldBuilder target) =>
       new _ImplicitFieldTypeAlias(this, target);
 
   @override
@@ -67,7 +67,7 @@ abstract class ImplicitFieldType extends DartType {
 }
 
 class _ImplicitFieldTypeRoot extends ImplicitFieldType {
-  final FieldBuilderImpl fieldBuilder;
+  final SourceFieldBuilder fieldBuilder;
   Token initializerToken;
   bool isStarted = false;
 
@@ -78,13 +78,13 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
 
 class _ImplicitFieldTypeAlias extends ImplicitFieldType {
   final ImplicitFieldType _root;
-  final FieldBuilderImpl _targetFieldBuilder;
+  final SourceFieldBuilder _targetFieldBuilder;
 
   _ImplicitFieldTypeAlias(this._root, this._targetFieldBuilder)
       : assert(_root.fieldBuilder != _targetFieldBuilder),
         super._();
 
-  FieldBuilderImpl get fieldBuilder => _root.fieldBuilder;
+  SourceFieldBuilder get fieldBuilder => _root.fieldBuilder;
 
   Token get initializerToken => _root.initializerToken;
 

@@ -1,0 +1,66 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int? _#lateStaticField1 = null;
+  static field dynamic _#isSet#lateStaticField1 = false;
+  static field core::int? _#lateStaticField2 = null;
+  static field dynamic _#isSet#lateStaticField2 = false;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  static get lateStaticField1() → core::int {
+    if(!self::Class::_#isSet#lateStaticField1) {
+      self::Class::_#isSet#lateStaticField1 = true;
+      self::Class::_#lateStaticField1 = 87;
+    }
+    return self::Class::_#lateStaticField1;
+  }
+  static set lateStaticField1(core::int #t1) → void {
+    self::Class::_#isSet#lateStaticField1 = true;
+    self::Class::_#lateStaticField1 = #t1;
+  }
+  static get lateStaticField2() → core::int {
+    if(!self::Class::_#isSet#lateStaticField2) {
+      self::Class::_#isSet#lateStaticField2 = true;
+      self::Class::_#lateStaticField2 = 42;
+    }
+    return self::Class::_#lateStaticField2;
+  }
+  static set lateStaticField2(core::int #t2) → void {
+    self::Class::_#isSet#lateStaticField2 = true;
+    self::Class::_#lateStaticField2 = #t2;
+  }
+  static method staticMethod() → dynamic {
+    self::expect(42, self::Class::lateStaticField2);
+    self::Class::lateStaticField2 = 43;
+    self::expect(43, self::Class::lateStaticField2);
+  }
+}
+static field core::int? _#lateTopLevelField1 = null;
+static field dynamic _#isSet#lateTopLevelField1 = false;
+static get lateTopLevelField1() → core::int {
+  if(!self::_#isSet#lateTopLevelField1) {
+    self::_#isSet#lateTopLevelField1 = true;
+    self::_#lateTopLevelField1 = 123;
+  }
+  return self::_#lateTopLevelField1;
+}
+static set lateTopLevelField1(core::int #t3) → void {
+  self::_#isSet#lateTopLevelField1 = true;
+  self::_#lateTopLevelField1 = #t3;
+}
+static method main() → dynamic {
+  self::expect(123, self::lateTopLevelField1);
+  self::lateTopLevelField1 = 124;
+  self::expect(124, self::lateTopLevelField1);
+  self::expect(87, self::Class::lateStaticField1);
+  self::Class::lateStaticField1 = 88;
+  self::expect(88, self::Class::lateStaticField1);
+  self::Class::staticMethod();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

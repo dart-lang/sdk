@@ -23,6 +23,11 @@ class DevCompilerTarget extends Target {
   @override
   bool get enableSuperMixins => true;
 
+  // TODO(johnniwinther): Change this to `false` when late field lowering is
+  // ready.
+  @override
+  bool get supportsLateFields => true;
+
   @override
   String get name => 'dartdevc';
 

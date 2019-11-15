@@ -675,20 +675,30 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       fields.add(fieldBuilder);
       if (initializer != null) {
-        if (fieldBuilder.next != null) {
+        if (fieldBuilder.isDuplicate) {
           // Duplicate definition. The field might not be the correct one,
           // so we skip inference of the initializer.
           // Error reporting and recovery is handled elsewhere.
-        } else if (fieldBuilder.field.initializer != null) {
+        } else if (fieldBuilder.hasBodyBeenBuilt) {
           // The initializer was already compiled (e.g., if it appear in the
           // outline, like constant field initializers) so we do not need to
           // perform type inference or transformations.
         } else {
-          fieldBuilder.initializer = typeInferrer?.inferFieldInitializer(
+          initializer = typeInferrer?.inferFieldInitializer(
               this, fieldBuilder.builtType, initializer);
-          libraryBuilder.loader.transformPostInference(
-              fieldBuilder.field, transformSetLiterals, transformCollections);
+
+          if (transformCollections || transformSetLiterals) {
+            // Wrap the initializer in a temporary parent expression; the
+            // transformations need a parent relation.
+            Not wrapper = new Not(initializer);
+            libraryBuilder.loader.transformPostInference(
+                wrapper, transformSetLiterals, transformCollections);
+            initializer = wrapper.operand;
+          }
+          fieldBuilder.buildBody(initializer);
         }
+      } else {
+        fieldBuilder.buildBody(null);
       }
     }
     {

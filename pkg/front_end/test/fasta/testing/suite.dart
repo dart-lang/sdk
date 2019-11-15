@@ -141,8 +141,17 @@ const String experimentalFlagOptions = '--enable-experiment=';
 
 class TestOptions {
   final Map<ExperimentalFlag, bool> experimentalFlags;
+  final bool forceLateLowering;
 
-  TestOptions(this.experimentalFlags);
+  TestOptions(this.experimentalFlags, {this.forceLateLowering})
+      : assert(forceLateLowering != null);
+
+  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Map<ExperimentalFlag, bool> flags = new Map.from(experimentalFlags);
+    flags.addAll(forcedExperimentalFlags);
+    return flags;
+  }
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -226,35 +235,37 @@ class FastaContext extends ChainContext with MatchContext {
   ///
   /// [forcedExperimentalFlags] is used to override the default flags for
   /// [description].
-  Map<ExperimentalFlag, bool> computeExperimentalFlags(
-      TestDescription description,
-      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+  TestOptions computeTestOptions(TestDescription description) {
     Directory directory = new File.fromUri(description.uri).parent;
     // TODO(johnniwinther): Support nested test folders?
     TestOptions testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
+      bool forceLateLowering = false;
       List<String> experimentalFlagsArguments = [];
       File optionsFile =
           new File.fromUri(directory.uri.resolve('test.options'));
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
-          // TODO(johnniwinther): Support more options if need.
+          line = line.trim();
           if (line.startsWith(experimentalFlagOptions)) {
             experimentalFlagsArguments =
                 line.substring(experimentalFlagOptions.length).split('\n');
+          } else if (line.startsWith('--force-late-lowering')) {
+            forceLateLowering = true;
+          } else if (line.isNotEmpty) {
+            throw new UnsupportedError("Unsupported test option '$line'");
           }
         }
       }
-      testOptions = new TestOptions(parseExperimentalFlags(
-          parseExperimentalArguments(experimentalFlagsArguments),
-          onError: (String message) => throw new ArgumentError(message),
-          onWarning: (String message) => throw new ArgumentError(message)));
+      testOptions = new TestOptions(
+          parseExperimentalFlags(
+              parseExperimentalArguments(experimentalFlagsArguments),
+              onError: (String message) => throw new ArgumentError(message),
+              onWarning: (String message) => throw new ArgumentError(message)),
+          forceLateLowering: forceLateLowering);
       _testOptions[directory.uri] = testOptions;
     }
-    Map<ExperimentalFlag, bool> flags =
-        new Map.from(testOptions.experimentalFlags);
-    flags.addAll(forcedExperimentalFlags);
-    return flags;
+    return testOptions;
   }
 
   Expectation get verificationError => expectationSet["VerificationError"];
@@ -395,6 +406,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
   Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
     StringBuffer errors = new StringBuffer();
+    TestOptions testOptions = context.computeTestOptions(description);
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -404,8 +416,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..environmentDefines = {}
-          ..experimentalFlags = context.computeExperimentalFlags(
-              description, context.experimentalFlags),
+          ..experimentalFlags =
+              testOptions.computeExperimentalFlags(context.experimentalFlags),
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
@@ -414,7 +426,11 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(
-          ticker, context.uriTranslator, new TestVmTarget(new TargetFlags()));
+        ticker,
+        context.uriTranslator,
+        new TestVmTarget(new TargetFlags(
+            forceLateLoweringForTesting: testOptions.forceLateLowering)),
+      );
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.

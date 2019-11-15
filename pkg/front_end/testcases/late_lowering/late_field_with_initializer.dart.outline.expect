@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int? _#lateStaticField1;
+  static field dynamic _#isSet#lateStaticField1;
+  static field core::int? _#lateStaticField2;
+  static field dynamic _#isSet#lateStaticField2;
+  synthetic constructor •() → self::Class*
+    ;
+  static get lateStaticField1() → core::int;
+  static set lateStaticField1(core::int #t1) → void;
+  static get lateStaticField2() → core::int;
+  static set lateStaticField2(core::int #t2) → void;
+  static method staticMethod() → dynamic
+    ;
+}
+static field core::int? _#lateTopLevelField1;
+static field dynamic _#isSet#lateTopLevelField1;
+static get lateTopLevelField1() → core::int;
+static set lateTopLevelField1(core::int #t3) → void;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

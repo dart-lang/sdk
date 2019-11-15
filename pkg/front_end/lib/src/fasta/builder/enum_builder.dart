@@ -128,9 +128,9 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
 
-    members["index"] = new FieldBuilderImpl(null, intType, "index",
+    members["index"] = new SourceFieldBuilder(null, intType, "index",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    members["_name"] = new FieldBuilderImpl(null, stringType, "_name",
+    members["_name"] = new SourceFieldBuilder(null, stringType, "_name",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         null,
@@ -150,7 +150,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    FieldBuilder valuesBuilder = new FieldBuilderImpl(
+    FieldBuilder valuesBuilder = new SourceFieldBuilder(
         null,
         listType,
         "values",
@@ -209,7 +209,7 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        FieldBuilder fieldBuilder = new FieldBuilderImpl(
+        FieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
             selfType,
             name,
@@ -273,10 +273,12 @@ class EnumBuilder extends SourceClassBuilder {
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
-    FieldBuilderImpl indexFieldBuilder = firstMemberNamed("index");
-    Field indexField = indexFieldBuilder.build(libraryBuilder);
-    FieldBuilderImpl nameFieldBuilder = firstMemberNamed("_name");
-    Field nameField = nameFieldBuilder.build(libraryBuilder);
+    SourceFieldBuilder indexFieldBuilder = firstMemberNamed("index");
+    indexFieldBuilder.build(libraryBuilder);
+    Field indexField = indexFieldBuilder.field;
+    SourceFieldBuilder nameFieldBuilder = firstMemberNamed("_name");
+    nameFieldBuilder.build(libraryBuilder);
+    Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
     toStringBuilder.body = new ReturnStatement(
         new DirectPropertyGet(new ThisExpression(), nameField));
@@ -286,16 +288,17 @@ class EnumBuilder extends SourceClassBuilder {
         if (enumConstantInfo != null) {
           Builder declaration = firstMemberNamed(enumConstantInfo.name);
           if (declaration.isField) {
-            FieldBuilderImpl field = declaration;
-            values.add(new StaticGet(field.build(libraryBuilder)));
+            SourceFieldBuilder fieldBuilder = declaration;
+            fieldBuilder.build(libraryBuilder);
+            values.add(new StaticGet(fieldBuilder.field));
           }
         }
       }
     }
-    FieldBuilderImpl valuesBuilder = firstMemberNamed("values");
+    SourceFieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
-    valuesBuilder.initializer = new ListLiteral(values,
-        typeArgument: rawType(library.nonNullable), isConst: true);
+    valuesBuilder.buildBody(new ListLiteral(values,
+        typeArgument: rawType(library.nonNullable), isConst: true));
     ConstructorBuilderImpl constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
@@ -339,8 +342,8 @@ class EnumBuilder extends SourceClassBuilder {
             new IntLiteral(index++),
             new StringLiteral("$name.$constant")
           ]);
-          field.initializer =
-              new ConstructorInvocation(constructor, arguments, isConst: true);
+          field.buildBody(
+              new ConstructorInvocation(constructor, arguments, isConst: true));
         }
       }
     }

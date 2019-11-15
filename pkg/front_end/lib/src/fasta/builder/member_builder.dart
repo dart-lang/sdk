@@ -142,6 +142,9 @@ enum BuiltMemberKind {
   ExtensionSetter,
   ExtensionOperator,
   ExtensionTearOff,
+  LateIsSetField,
+  LateGetter,
+  LateSetter,
 }
 
 class MemberDataForTesting {

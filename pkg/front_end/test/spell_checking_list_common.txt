@@ -916,6 +916,7 @@ encoded
 encoder
 encodes
 encoding
+encodings
 encounter
 encountered
 encountering
@@ -1665,6 +1666,7 @@ lower
 lowercase
 lowered
 lowering
+lowerings
 machine
 made
 magenta

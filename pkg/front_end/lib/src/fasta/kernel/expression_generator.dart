@@ -1326,7 +1326,7 @@ class StaticAccessGenerator extends Generator {
       MemberBuilder getterBuilder,
       MemberBuilder setterBuilder) {
     return new StaticAccessGenerator(helper, token, targetName,
-        getterBuilder?.member, setterBuilder?.member);
+        getterBuilder?.readTarget, setterBuilder?.writeTarget);
   }
 
   @override

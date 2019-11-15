@@ -1783,7 +1783,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    FieldBuilderImpl fieldBuilder = new FieldBuilderImpl(
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);

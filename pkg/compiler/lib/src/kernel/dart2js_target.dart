@@ -53,6 +53,11 @@ class Dart2jsTarget extends Target {
   @override
   bool get enableNoSuchMethodForwarders => true;
 
+  // TODO(johnniwinther): Change this to `false` when late field lowering is
+  // ready.
+  @override
+  bool get supportsLateFields => true;
+
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
