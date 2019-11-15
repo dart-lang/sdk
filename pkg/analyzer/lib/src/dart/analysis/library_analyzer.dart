@@ -295,8 +295,8 @@ class LibraryAnalyzer {
     {
       UsedLocalElements usedElements =
           new UsedLocalElements.merge(_usedLocalElementsList);
-      UnusedLocalElementsVerifier visitor =
-          new UnusedLocalElementsVerifier(errorListener, usedElements);
+      UnusedLocalElementsVerifier visitor = new UnusedLocalElementsVerifier(
+          errorListener, usedElements, _inheritance, _libraryElement);
       unit.accept(visitor);
     }
 
