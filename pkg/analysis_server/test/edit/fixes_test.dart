@@ -147,6 +147,8 @@ dependencies:
 bbb:${toUri('/bbb/lib')}
 ''');
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
+    newFile('/bbb/lib/target.generated.dart', content: 'class Foo() {}');
+    newFile('/bbb/lib/target.template.dart', content: 'class Foo() {}');
 
     handleSuccessfulRequest(
         new AnalysisSetAnalysisRootsParams(
@@ -167,6 +169,13 @@ bbb:${toUri('/bbb/lib')}
         .map((f) => f.message)
         .toList();
     expect(fixes, contains("Import library 'package:bbb/target.dart'"));
+    expect(
+        fixes, contains("Import library 'package:bbb/target.generated.dart'"));
+
+    // TODO(jwren) http://dartbug.com/39401 The following will be switched from
+    //  isTrue to isFalse once this bug is fixed:
+    expect(fixes.contains("Import library 'package:bbb/target.template.dart'"),
+        isTrue);
   }
 
   void _addOverlay(String name, String contents) {
