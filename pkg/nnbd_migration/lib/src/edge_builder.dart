@@ -828,7 +828,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedTypeArguments = const [];
       }
     }
-    var createdType = DecoratedType(node.staticType, _graph.never,
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(
+        nullabilityNode, InstanceCreationOrigin(source, node));
+    var createdType = DecoratedType(node.staticType, nullabilityNode,
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
     _handleInvocationArguments(node, node.argumentList.arguments, typeArguments,
@@ -1103,7 +1106,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitRethrowExpression(RethrowExpression node) {
     _flowAnalysis.handleExit();
-    return DecoratedType(node.staticType, _graph.never);
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(nullabilityNode, ThrowOrigin(source, node));
+    return DecoratedType(node.staticType, nullabilityNode);
   }
 
   @override
@@ -1299,7 +1304,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
     _flowAnalysis.handleExit();
-    return DecoratedType(node.staticType, _graph.never);
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(nullabilityNode, ThrowOrigin(source, node));
+    return DecoratedType(node.staticType, nullabilityNode);
   }
 
   @override
@@ -2061,14 +2068,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _handleThisOrSuper(Expression node) {
     var type = node.staticType as InterfaceType;
-    // Instantiate the type, and any type arguments, with `_graph.never`,
+    // Instantiate the type, and any type arguments, with non-nullable types,
     // because the type of `this` is always `ClassName<Param, Param, ...>` with
     // no `?`s.  (Even if some of the type parameters are allowed to be
     // instantiated with nullable types at runtime, a reference to `this` can't
     // be migrated in such a way that forces them to be nullable).
-    return DecoratedType(type, _graph.never,
+    NullabilityNode makeNonNullableNode() {
+      var nullabilityNode = NullabilityNode.forInferredType();
+      _graph.makeNonNullable(nullabilityNode, ThisOrSuperOrigin(source, node));
+      return nullabilityNode;
+    }
+
+    return DecoratedType(type, makeNonNullableNode(),
         typeArguments: type.typeArguments
-            .map((t) => DecoratedType(t, _graph.never))
+            .map((t) => DecoratedType(t, makeNonNullableNode()))
             .toList());
   }
 

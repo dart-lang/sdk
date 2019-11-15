@@ -200,6 +200,15 @@ class InitializerInferenceOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.initializerInference;
 }
 
+/// An edge origin used for edges that originated because of an instance
+/// creation expression.
+class InstanceCreationOrigin extends EdgeOrigin {
+  InstanceCreationOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.instanceCreation;
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:
@@ -316,4 +325,21 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
+}
+
+/// Edge origin resulting from the use of `this` or `super`.
+class ThisOrSuperOrigin extends EdgeOrigin {
+  ThisOrSuperOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.thisOrSuper;
+}
+
+/// An edge origin used for edges that originated from the type of a `throw` or
+/// `rethrow`.
+class ThrowOrigin extends EdgeOrigin {
+  ThrowOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.throw_;
 }

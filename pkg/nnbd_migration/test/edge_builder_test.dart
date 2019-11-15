@@ -5207,7 +5207,8 @@ class C<T> extends B<T> {
 ''');
     assertEdge(
         substitutionNode(
-            substitutionNode(never, decoratedTypeAnnotation('T> {').node),
+            substitutionNode(
+                inSet(neverClosure), decoratedTypeAnnotation('T> {').node),
             decoratedTypeAnnotation('U g').node),
         decoratedTypeAnnotation('T f').node,
         hard: false);

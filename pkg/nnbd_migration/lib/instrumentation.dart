@@ -138,6 +138,7 @@ enum EdgeOriginKind {
   implicitMixinSuperCall,
   inheritance,
   initializerInference,
+  instanceCreation,
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
@@ -146,6 +147,8 @@ enum EdgeOriginKind {
   nonNullAssertion,
   nullabilityComment,
   optionalFormalParameter,
+  thisOrSuper,
+  throw_,
 }
 
 /// Interface used by the migration engine to expose information to its client
