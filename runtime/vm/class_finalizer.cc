@@ -1631,6 +1631,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || type.IsRecursive());
   }
   object_store->set_canonical_types(types_table.Release());
@@ -1662,6 +1663,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || typearg.IsRecursive());
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
