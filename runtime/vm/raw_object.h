@@ -1349,10 +1349,11 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
-  union {
-    RawTypedData* catch_entry_moves_maps_;
-    RawSmi* variables_;
-  } catch_entry_;
+  // If FLAG_precompiled_mode, then this field contains
+  //   RawTypedData* catch_entry_moves_maps
+  // Otherwise, it is
+  //   RawSmi* num_variables
+  RawObject* catch_entry_;
   RawCompressedStackMaps* compressed_stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;

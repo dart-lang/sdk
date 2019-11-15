@@ -1116,12 +1116,14 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {
 #if defined(DART_PRECOMPILER)
-  TypedData& maps = TypedData::Handle(
-      catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
-  code.set_catch_entry_moves_maps(maps);
-#else
-  code.set_variables(Smi::Handle(Smi::New(flow_graph().variable_count())));
+  if (FLAG_precompiled_mode) {
+    TypedData& maps = TypedData::Handle(
+        catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
+    code.set_catch_entry_moves_maps(maps);
+    return;
+  }
 #endif
+  code.set_num_variables(flow_graph().variable_count());
 }
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {

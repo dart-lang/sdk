@@ -14529,13 +14529,28 @@ void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
   StorePointer(&raw_ptr()->compressed_stackmaps_, maps.raw());
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
-void Code::set_variables(const Smi& smi) const {
-  StorePointer(&raw_ptr()->catch_entry_.variables_, smi.raw());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+intptr_t Code::num_variables() const {
+  ASSERT(!FLAG_precompiled_mode);
+  return Smi::Value(Smi::RawCast(raw_ptr()->catch_entry_));
 }
-#else
+void Code::set_num_variables(intptr_t num_variables) const {
+  ASSERT(!FLAG_precompiled_mode);
+  // Object::RawCast is needed for StorePointer template argument resolution.
+  StorePointer(&raw_ptr()->catch_entry_,
+               Object::RawCast(Smi::New(num_variables)));
+}
+#endif
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+RawTypedData* Code::catch_entry_moves_maps() const {
+  ASSERT(FLAG_precompiled_mode);
+  return TypedData::RawCast(raw_ptr()->catch_entry_);
+}
 void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
-  StorePointer(&raw_ptr()->catch_entry_.catch_entry_moves_maps_, maps.raw());
+  ASSERT(FLAG_precompiled_mode);
+  // Object::RawCast is needed for StorePointer template argument resolution.
+  StorePointer(&raw_ptr()->catch_entry_, Object::RawCast(maps.raw()));
 }
 #endif
 

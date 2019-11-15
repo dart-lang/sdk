@@ -5438,13 +5438,13 @@ class Code : public Object {
   }
   void set_deopt_info_array(const Array& array) const;
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
-  RawSmi* variables() const { return raw_ptr()->catch_entry_.variables_; }
-  void set_variables(const Smi& smi) const;
-#else
-  RawTypedData* catch_entry_moves_maps() const {
-    return raw_ptr()->catch_entry_.catch_entry_moves_maps_;
-  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t num_variables() const;
+  void set_num_variables(intptr_t num_variables) const;
+#endif
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  RawTypedData* catch_entry_moves_maps() const;
   void set_catch_entry_moves_maps(const TypedData& maps) const;
 #endif
 
