@@ -84,6 +84,7 @@ algebra
 algorithm
 algorithms
 alias
+aliases
 alignment
 all
 allocated
@@ -1851,6 +1852,7 @@ node
 nodes
 non
 none
+nonfunction
 nor
 normal
 normalize
