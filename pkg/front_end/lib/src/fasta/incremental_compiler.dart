@@ -389,7 +389,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         this.invalidatedUris.clear();
         hasToCheckPackageUris = false;
         userCodeOld?.loader?.releaseAncillaryResources();
-        userCodeOld?.loader?.builders?.clear();
         userCodeOld = null;
       }
 

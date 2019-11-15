@@ -191,4 +191,6 @@ abstract class TargetImplementation extends Target {
       throw new StateError("Unparsable sdk version given: $currentSdkVersion");
     }
   }
+
+  void releaseAncillaryResources();
 }

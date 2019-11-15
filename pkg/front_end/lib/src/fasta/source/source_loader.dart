@@ -1105,7 +1105,17 @@ class SourceLoader extends Loader {
 
   void releaseAncillaryResources() {
     hierarchy = null;
+    builderHierarchy = null;
     typeInferenceEngine = null;
+    builders?.clear();
+    libraries?.clear();
+    first = null;
+    sourceBytes?.clear();
+    target?.releaseAncillaryResources();
+    coreTypes = null;
+    instrumentation = null;
+    collectionTransformer = null;
+    setLiteralTransformer = null;
   }
 
   @override

@@ -866,6 +866,10 @@ class KernelTarget extends TargetImplementation {
       }
     }
   }
+
+  void releaseAncillaryResources() {
+    component = null;
+  }
 }
 
 /// Looks for a constructor call that matches `super()` from a constructor in
