@@ -3825,6 +3825,13 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
   static bool IsInitName(const String& function_name);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  RawSubtypeTestCache* type_test_cache() const {
+    return raw_ptr()->type_test_cache_;
+  }
+  void set_type_test_cache(const SubtypeTestCache& cache) const;
+#endif
+
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -6236,11 +6243,11 @@ class SubtypeTestCache : public Object {
   static void Init();
   static void Cleanup();
 
+  RawArray* cache() const { return raw_ptr()->cache_; }
+
  private:
   // A VM heap allocated preinitialized empty subtype entry array.
   static RawArray* cached_array_;
-
-  RawArray* cache() const { return raw_ptr()->cache_; }
 
   void set_cache(const Array& value) const;
 
@@ -6973,26 +6980,26 @@ class AbstractType : public Instance {
   bool IsNullTypeRef() const;
 
   // Check if this type represents the 'dynamic' type.
-  bool IsDynamicType() const;
+  bool IsDynamicType() const { return type_class_id() == kDynamicCid; }
 
   // Check if this type represents the 'void' type.
-  bool IsVoidType() const;
+  bool IsVoidType() const { return type_class_id() == kVoidCid; }
 
   // Check if this type represents the 'Null' type.
-  bool IsNullType() const;
+  bool IsNullType() const { return type_class_id() == kNullCid; }
 
   // Check if this type represents the 'Never' type.
-  bool IsNeverType() const;
+  bool IsNeverType() const { return type_class_id() == kNeverCid; }
 
   // Check if this type represents the 'Object' type.
-  bool IsObjectType() const;
+  bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents a top type.
   // TODO(regis): Remove default kUnaware mode as implementation progresses.
   bool IsTopType(NNBDMode mode = NNBDMode::kUnaware) const;
 
   // Check if this type represents the 'bool' type.
-  bool IsBoolType() const;
+  bool IsBoolType() const { return type_class_id() == kBoolCid; }
 
   // Check if this type represents the 'int' type.
   bool IsIntType() const;
@@ -7010,10 +7017,10 @@ class AbstractType : public Instance {
   bool IsInt32x4Type() const;
 
   // Check if this type represents the 'num' type.
-  bool IsNumberType() const;
+  bool IsNumberType() const { return type_class_id() == kNumberCid; }
 
   // Check if this type represents the '_Smi' type.
-  bool IsSmiType() const;
+  bool IsSmiType() const { return type_class_id() == kSmiCid; }
 
   // Check if this type represents the 'String' type.
   bool IsStringType() const;

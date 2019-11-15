@@ -9516,6 +9516,12 @@ void Field::ForceDynamicGuardedCidAndLength() const {
   DeoptimizeDependentCode();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Field::set_type_test_cache(const SubtypeTestCache& cache) const {
+  StorePointer(&raw_ptr()->type_test_cache_, cache.raw());
+}
+#endif
+
 bool Script::HasSource() const {
   return raw_ptr()->source_ != String::null();
 }
@@ -17309,22 +17315,6 @@ bool AbstractType::IsNullTypeRef() const {
   return IsTypeRef() && (TypeRef::Cast(*this).type() == AbstractType::null());
 }
 
-bool AbstractType::IsDynamicType() const {
-  return type_class_id() == kDynamicCid;
-}
-
-bool AbstractType::IsVoidType() const {
-  return type_class_id() == kVoidCid;
-}
-
-bool AbstractType::IsNeverType() const {
-  return type_class_id() == kNeverCid;
-}
-
-bool AbstractType::IsObjectType() const {
-  return type_class_id() == kInstanceCid;
-}
-
 bool AbstractType::IsTopType(NNBDMode mode) const {
   const classid_t cid = type_class_id();
   if (cid == kIllegalCid) {
@@ -17350,14 +17340,6 @@ bool AbstractType::IsTopType(NNBDMode mode) const {
     }
   }
   return false;
-}
-
-bool AbstractType::IsNullType() const {
-  return type_class_id() == kNullCid;
-}
-
-bool AbstractType::IsBoolType() const {
-  return type_class_id() == kBoolCid;
 }
 
 bool AbstractType::IsIntType() const {
@@ -17386,14 +17368,6 @@ bool AbstractType::IsInt32x4Type() const {
   // kInt32x4Cid refers to the private class and cannot be used here.
   return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Int32x4()).type_class());
-}
-
-bool AbstractType::IsNumberType() const {
-  return type_class_id() == kNumberCid;
-}
-
-bool AbstractType::IsSmiType() const {
-  return type_class_id() == kSmiCid;
 }
 
 bool AbstractType::IsStringType() const {

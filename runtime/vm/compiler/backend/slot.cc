@@ -212,13 +212,22 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  const Slot& slot = SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kDartField,
-           IsImmutableBit::encode(field.is_final() || field.is_const()) |
-               IsNullableBit::encode(is_nullable) |
-               IsGuardedBit::encode(used_guarded_state),
-           nullable_cid, compiler::target::Field::OffsetOf(field), &field,
-           &AbstractType::ZoneHandle(zone, field.type())));
+  AbstractType& type = AbstractType::ZoneHandle(zone, field.type());
+
+  if (field.needs_load_guard()) {
+    // Should be kept in sync with LoadStaticFieldInstr::ComputeType.
+    type = Type::DynamicType();
+    nullable_cid = kDynamicCid;
+    is_nullable = true;
+    used_guarded_state = false;
+  }
+
+  const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
+      Kind::kDartField,
+      IsImmutableBit::encode(field.is_final() || field.is_const()) |
+          IsNullableBit::encode(is_nullable) |
+          IsGuardedBit::encode(used_guarded_state),
+      nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type));
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background

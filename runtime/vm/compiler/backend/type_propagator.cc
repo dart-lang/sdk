@@ -1371,6 +1371,11 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     is_nullable = field.is_nullable();
     abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   }
+  if (field.needs_load_guard()) {
+    // Should be kept in sync with Slot::Get.
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    return CompileType::Dynamic();
+  }
   return CompileType(is_nullable, cid, abstract_type);
 }
 

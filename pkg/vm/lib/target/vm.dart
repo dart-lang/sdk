@@ -351,7 +351,7 @@ class VmTarget extends Target {
           new ListLiteral(elements, typeArgument: typeArgument)
             ..fileOffset = offset
         ], types: [
-          new DynamicType()
+          typeArgument,
         ]));
   }
 

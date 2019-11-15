@@ -1811,23 +1811,32 @@ class InvalidationCollector : public ObjectVisitor {
  public:
   InvalidationCollector(Zone* zone,
                         GrowableArray<const Function*>* functions,
-                        GrowableArray<const KernelProgramInfo*>* kernel_infos)
-      : zone_(zone), functions_(functions), kernel_infos_(kernel_infos) {}
+                        GrowableArray<const KernelProgramInfo*>* kernel_infos,
+                        GrowableArray<const Field*>* fields,
+                        GrowableArray<const Instance*>* instances)
+      : zone_(zone),
+        functions_(functions),
+        kernel_infos_(kernel_infos),
+        fields_(fields),
+        instances_(instances) {}
   virtual ~InvalidationCollector() {}
 
-  virtual void VisitObject(RawObject* obj) {
-    if (obj->IsPseudoObject()) {
-      return;  // Cannot be wrapped in handles.
-    }
-    const Object& handle = Object::Handle(Z, obj);
-    if (handle.IsFunction()) {
-      const auto& func = Function::Cast(handle);
+  void VisitObject(RawObject* obj) {
+    intptr_t cid = obj->GetClassId();
+    if (cid == kFunctionCid) {
+      const Function& func =
+          Function::Handle(zone_, static_cast<RawFunction*>(obj));
       if (!func.ForceOptimize()) {
         // Force-optimized functions cannot deoptimize.
         functions_->Add(&func);
       }
-    } else if (handle.IsKernelProgramInfo()) {
-      kernel_infos_->Add(&KernelProgramInfo::Cast(handle));
+    } else if (cid == kKernelProgramInfoCid) {
+      kernel_infos_->Add(&KernelProgramInfo::Handle(
+          zone_, static_cast<RawKernelProgramInfo*>(obj)));
+    } else if (cid == kFieldCid) {
+      fields_->Add(&Field::Handle(zone_, static_cast<RawField*>(obj)));
+    } else if (cid > kNumPredefinedCids) {
+      instances_->Add(&Instance::Handle(zone_, static_cast<RawInstance*>(obj)));
     }
   }
 
@@ -1835,12 +1844,13 @@ class InvalidationCollector : public ObjectVisitor {
   Zone* const zone_;
   GrowableArray<const Function*>* const functions_;
   GrowableArray<const KernelProgramInfo*>* const kernel_infos_;
+  GrowableArray<const Field*>* const fields_;
+  GrowableArray<const Instance*>* const instances_;
 };
 
 typedef UnorderedHashMap<SmiTraits> IntHashMap;
 
 void IsolateReloadContext::RunInvalidationVisitors() {
-  TIMELINE_SCOPE(MarkAllFunctionsForRecompilation);
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -1856,12 +1866,26 @@ void IsolateReloadContext::RunInvalidationVisitors() {
 
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
+  GrowableArray<const Field*> fields(4 * KB);
+  GrowableArray<const Instance*> instances(4 * KB);
 
   {
     HeapIterationScope iteration(thread);
-    InvalidationCollector visitor(zone, &functions, &kernel_infos);
+    InvalidationCollector visitor(zone, &functions, &kernel_infos, &fields,
+                                  &instances);
     iteration.IterateObjects(&visitor);
   }
+
+  InvalidateKernelInfos(zone, kernel_infos);
+  InvalidateFunctions(zone, functions);
+  InvalidateFields(zone, fields, instances);
+}
+
+void IsolateReloadContext::InvalidateKernelInfos(
+    Zone* zone,
+    const GrowableArray<const KernelProgramInfo*>& kernel_infos) {
+  TIMELINE_SCOPE(InvalidateKernelInfos);
+  HANDLESCOPE(Thread::Current());
 
   Array& data = Array::Handle(zone);
   Object& key = Object::Handle(zone);
@@ -1889,6 +1913,13 @@ void IsolateReloadContext::RunInvalidationVisitors() {
       kernel::BytecodeReader::ResetObjectTable(info);
     }
   }
+}
+
+void IsolateReloadContext::InvalidateFunctions(
+    Zone* zone,
+    const GrowableArray<const Function*>& functions) {
+  TIMELINE_SCOPE(InvalidateFunctions);
+  HANDLESCOPE(Thread::Current());
 
   CallSiteResetter resetter(zone);
 
@@ -1947,7 +1978,194 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   }
 }
 
+// Finds fields that are initialized or have a value that does not conform to
+// the field's static type, setting Field::needs_load_guard(). Accessors for
+// such fields are compiled with additional checks to handle lazy initialization
+// and to preserve type soundness.
+class FieldInvalidator {
+ public:
+  explicit FieldInvalidator(Zone* zone)
+      : cls_(Class::Handle(zone)),
+        cls_fields_(Array::Handle(zone)),
+        entry_(Object::Handle(zone)),
+        value_(Instance::Handle(zone)),
+        type_(AbstractType::Handle(zone)),
+        cache_(SubtypeTestCache::Handle(zone)),
+        entries_(Array::Handle(zone)),
+        instantiator_type_arguments_(TypeArguments::Handle(zone)),
+        function_type_arguments_(TypeArguments::Handle(zone)),
+        instance_cid_or_function_(Object::Handle(zone)),
+        instance_type_arguments_(TypeArguments::Handle(zone)),
+        parent_function_type_arguments_(TypeArguments::Handle(zone)),
+        delayed_function_type_arguments_(TypeArguments::Handle(zone)) {}
+
+  void CheckStatics(const GrowableArray<const Field*>& fields) {
+    HANDLESCOPE(Thread::Current());
+    instantiator_type_arguments_ = TypeArguments::null();
+    for (intptr_t i = 0; i < fields.length(); i++) {
+      const Field& field = *fields[i];
+      if (!field.is_static()) {
+        continue;
+      }
+      if (field.needs_load_guard()) {
+        continue;  // Already guarding.
+      }
+      value_ = field.StaticValue();
+      CheckValueType(value_, field);
+    }
+  }
+
+  void CheckInstances(const GrowableArray<const Instance*>& instances) {
+    for (intptr_t i = 0; i < instances.length(); i++) {
+      // This handle scope does run very frequently, but is a net-win by
+      // preventing us from spending too much time in malloc for new handle
+      // blocks.
+      HANDLESCOPE(Thread::Current());
+      CheckInstance(*instances[i]);
+    }
+  }
+
+ private:
+  DART_FORCE_INLINE
+  void CheckInstance(const Instance& instance) {
+    cls_ = instance.clazz();
+    if (cls_.NumTypeArguments() > 0) {
+      instantiator_type_arguments_ = instance.GetTypeArguments();
+    } else {
+      instantiator_type_arguments_ = TypeArguments::null();
+    }
+    cls_fields_ = cls_.OffsetToFieldMap();
+    for (intptr_t i = 0; i < cls_fields_.Length(); i++) {
+      entry_ = cls_fields_.At(i);
+      if (!entry_.IsField()) {
+        continue;
+      }
+      const Field& field = Field::Cast(entry_);
+      CheckInstanceField(instance, field);
+    }
+  }
+
+  DART_FORCE_INLINE
+  void CheckInstanceField(const Instance& instance, const Field& field) {
+    if (field.needs_load_guard()) {
+      return;  // Already guarding.
+    }
+    value_ ^= instance.GetField(field);
+    if (value_.raw() == Object::sentinel().raw()) {
+      // Needs guard for initialization.
+      ASSERT(!FLAG_identity_reload);
+      field.set_needs_load_guard(true);
+      return;
+    }
+    CheckValueType(value_, field);
+  }
+
+  DART_FORCE_INLINE
+  void CheckValueType(const Instance& value, const Field& field) {
+    if (value.IsNull()) {
+      return;  // TODO(nnbd): Implement.
+    }
+    type_ = field.type();
+    if (type_.IsDynamicType()) {
+      return;
+    }
+
+    cls_ = value.clazz();
+    const intptr_t cid = cls_.id();
+    if (cid == kClosureCid) {
+      instance_cid_or_function_ = Closure::Cast(value).function();
+      instance_type_arguments_ =
+          Closure::Cast(value).instantiator_type_arguments();
+      parent_function_type_arguments_ =
+          Closure::Cast(value).function_type_arguments();
+      delayed_function_type_arguments_ =
+          Closure::Cast(value).delayed_type_arguments();
+    } else {
+      instance_cid_or_function_ = Smi::New(cid);
+      if (cls_.NumTypeArguments() > 0) {
+        instance_type_arguments_ = value_.GetTypeArguments();
+      } else {
+        instance_type_arguments_ = TypeArguments::null();
+      }
+      parent_function_type_arguments_ = TypeArguments::null();
+      delayed_function_type_arguments_ = TypeArguments::null();
+    }
+
+    cache_ = field.type_test_cache();
+    if (cache_.IsNull()) {
+      cache_ = SubtypeTestCache::New();
+      field.set_type_test_cache(cache_);
+    }
+    entries_ = cache_.cache();
+
+    bool cache_hit = false;
+    for (intptr_t i = 0; entries_.At(i) != Object::null();
+         i += SubtypeTestCache::kTestEntryLength) {
+      if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
+           instance_cid_or_function_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
+           instance_type_arguments_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
+           instantiator_type_arguments_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kFunctionTypeArguments) ==
+           function_type_arguments_.raw()) &&
+          (entries_.At(
+               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
+           parent_function_type_arguments_.raw()) &&
+          (entries_.At(
+               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
+           delayed_function_type_arguments_.raw())) {
+        cache_hit = true;
+        if (entries_.At(i + SubtypeTestCache::kTestResult) !=
+            Bool::True().raw()) {
+          ASSERT(!FLAG_identity_reload);
+          field.set_needs_load_guard(true);
+        }
+        break;
+      }
+    }
+
+    if (!cache_hit) {
+      if (!value.IsInstanceOf(type_, instantiator_type_arguments_,
+                              function_type_arguments_)) {
+        ASSERT(!FLAG_identity_reload);
+        field.set_needs_load_guard(true);
+      } else {
+        cache_.AddCheck(instance_cid_or_function_, instance_type_arguments_,
+                        instantiator_type_arguments_, function_type_arguments_,
+                        parent_function_type_arguments_,
+                        delayed_function_type_arguments_, Bool::True());
+      }
+    }
+  }
+
+  Class& cls_;
+  Array& cls_fields_;
+  Object& entry_;
+  Instance& value_;
+  AbstractType& type_;
+  SubtypeTestCache& cache_;
+  Array& entries_;
+  TypeArguments& instantiator_type_arguments_;
+  TypeArguments& function_type_arguments_;
+  Object& instance_cid_or_function_;
+  TypeArguments& instance_type_arguments_;
+  TypeArguments& parent_function_type_arguments_;
+  TypeArguments& delayed_function_type_arguments_;
+};
+
+void IsolateReloadContext::InvalidateFields(
+    Zone* zone,
+    const GrowableArray<const Field*>& fields,
+    const GrowableArray<const Instance*>& instances) {
+  TIMELINE_SCOPE(InvalidateFields);
+  FieldInvalidator invalidator(zone);
+  invalidator.CheckStatics(fields);
+  invalidator.CheckInstances(instances);
+}
+
 void IsolateReloadContext::InvalidateWorld() {
+  TIMELINE_SCOPE(InvalidateWorld);
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
   if (FLAG_trace_deoptimization) {

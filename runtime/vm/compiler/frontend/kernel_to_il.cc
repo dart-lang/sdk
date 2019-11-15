@@ -2663,15 +2663,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     }
     body += NullConstant();
   } else if (is_method) {
-#if !defined(PRODUCT)
     if (field.needs_load_guard()) {
+#if defined(PRODUCT)
+      UNREACHABLE();
+#else
       ASSERT(Isolate::Current()->HasAttemptedReload());
       body += LoadLocal(parsed_function_->ParameterVariable(0));
       body += InitInstanceField(field);
-      // TODO(rmacnak): Type check.
-    }
+
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += LoadField(field);
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
 #endif
-    if (field.is_late() && !field.has_trivial_initializer()) {
+    } else if (field.is_late() && !field.has_trivial_initializer()) {
       body += LoadLateField(field, parsed_function_->ParameterVariable(0));
     } else {
       body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2700,6 +2705,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += InitStaticField(field);
       body += Constant(field);
       body += LoadStaticField();
+    }
+    if (field.needs_load_guard()) {
+#if defined(PRODUCT)
+      UNREACHABLE();
+#else
+      ASSERT(Isolate::Current()->HasAttemptedReload());
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
+#endif
     }
   }
   body += Return(TokenPosition::kNoSource);

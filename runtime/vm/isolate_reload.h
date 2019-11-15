@@ -361,11 +361,18 @@ class IsolateReloadContext {
   void CommitAfterInstanceMorphing();
   void PostCommit();
 
-  // atomic_install:
-  void InvalidateWorld();
-  void ResetMegamorphicCaches();
-  void ResetUnoptimizedICsOnStack();
   void RunInvalidationVisitors();
+  void InvalidateKernelInfos(
+      Zone* zone,
+      const GrowableArray<const KernelProgramInfo*>& kernel_infos);
+  void InvalidateFunctions(Zone* zone,
+                           const GrowableArray<const Function*>& functions);
+  void InvalidateFields(Zone* zone,
+                        const GrowableArray<const Field*>& fields,
+                        const GrowableArray<const Instance*>& instances);
+  void ResetUnoptimizedICsOnStack();
+  void ResetMegamorphicCaches();
+  void InvalidateWorld();
 
   struct LibraryInfo {
     bool dirty;
