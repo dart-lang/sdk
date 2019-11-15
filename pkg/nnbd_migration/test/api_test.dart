@@ -2412,7 +2412,6 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38344')
   test_not_definitely_assigned_value() async {
     var content = '''
 String f(bool b) {

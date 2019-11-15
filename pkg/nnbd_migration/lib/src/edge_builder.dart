@@ -1209,7 +1209,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var promotedType = _flowAnalysis.variableRead(node, staticElement);
         if (promotedType != null) return promotedType;
       }
-      return getOrComputeElementType(staticElement);
+      var type = getOrComputeElementType(staticElement);
+      if (!node.inDeclarationContext() &&
+          node.inGetterContext() &&
+          !_flowAnalysis.isAssigned(staticElement)) {
+        _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
+      }
+      return type;
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement) {
       return getOrComputeElementType(staticElement);
@@ -1491,6 +1497,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             PromotableElement, DecoratedType>(
         DecoratedTypeOperations(_typeSystem, _variables, _graph),
         _assignedVariables);
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        _flowAnalysis.initialize(parameter.declaredElement);
+      }
+    }
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,

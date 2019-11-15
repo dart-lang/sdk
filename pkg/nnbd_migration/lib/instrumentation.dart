@@ -150,6 +150,7 @@ enum EdgeOriginKind {
   optionalFormalParameter,
   thisOrSuper,
   throw_,
+  uninitializedRead,
 }
 
 /// Interface used by the migration engine to expose information to its client

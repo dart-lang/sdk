@@ -351,3 +351,12 @@ class ThrowOrigin extends EdgeOrigin {
   @override
   EdgeOriginKind get kind => EdgeOriginKind.throw_;
 }
+
+/// Edge origin resulting from the read of a variable that has not been
+/// definitely assigned a value.
+class UninitializedReadOrigin extends EdgeOrigin {
+  UninitializedReadOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.uninitializedRead;
+}
