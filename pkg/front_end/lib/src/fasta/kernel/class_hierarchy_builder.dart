@@ -979,8 +979,10 @@ class ClassHierarchyNodeBuilder {
         if (inheritedType is ImplicitFieldType) {
           SourceLibraryBuilder library = classBuilder.library;
           (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
+          a.fieldType = inheritedType.createAlias(a);
+        } else {
+          a.fieldType = inheritedType;
         }
-        a.field.type = inheritedType;
       }
     }
     return result;
@@ -2119,20 +2121,20 @@ class DelayedOverrideCheck {
                   hierarchy.getKernelTypeAsInstanceOf(
                       classBuilder.cls.thisType, b.member.enclosingClass))
               .substituteType(type);
-          if (type != a.field.type) {
+          if (type != a.fieldType) {
             if (a.hadTypesInferred) {
               if (b.isSetter &&
                   (!impliesSetter(a) ||
-                      hierarchy.types.isSubtypeOfKernel(type, a.field.type,
+                      hierarchy.types.isSubtypeOfKernel(type, a.fieldType,
                           SubtypeCheckMode.ignoringNullabilities))) {
-                type = a.field.type;
+                type = a.fieldType;
               } else {
                 reportCantInferFieldType(classBuilder, a);
                 type = const InvalidType();
               }
             }
             debug?.log("Inferred type ${type} for ${fullName(a)}");
-            a.field.type = type;
+            a.fieldType = type;
           }
         }
         a.hadTypesInferred = true;

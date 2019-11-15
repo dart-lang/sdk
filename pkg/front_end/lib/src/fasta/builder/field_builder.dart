@@ -67,6 +67,10 @@ abstract class FieldBuilder implements MemberBuilder {
   bool get isEligibleForInference;
 
   DartType get builtType;
+
+  DartType inferType();
+
+  DartType fieldType;
 }
 
 class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
@@ -181,7 +185,7 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
         ..isExtensionMember = false;
     }
     if (type != null) {
-      field.type = type.build(libraryBuilder);
+      fieldType = type.build(libraryBuilder);
 
       if (!isFinal && !isConst) {
         IncludesTypeParametersNonCovariantly needsCheckVisitor;
@@ -198,7 +202,7 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
           }
         }
         if (needsCheckVisitor != null) {
-          if (field.type.accept(needsCheckVisitor)) {
+          if (fieldType.accept(needsCheckVisitor)) {
             field.isGenericCovariantImpl = true;
           }
         }
@@ -229,7 +233,7 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       initializer = bodyBuilder.typeInferrer?.inferFieldInitializer(bodyBuilder,
-          field.type, bodyBuilder.parseFieldInitializer(constInitializerToken));
+          fieldType, bodyBuilder.parseFieldInitializer(constInitializerToken));
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
         loader.transformPostInference(field, bodyBuilder.transformSetLiterals,
@@ -240,19 +244,23 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
     constInitializerToken = null;
   }
 
+  DartType get fieldType => field.type;
+
+  void set fieldType(DartType value) {
+    field.type = value;
+  }
+
   @override
-  void inferType() {
+  DartType inferType() {
     SourceLibraryBuilder library = this.library;
-    if (field.type is! ImplicitFieldType) {
+    if (fieldType is! ImplicitFieldType) {
       // We have already inferred a type.
-      return;
+      return fieldType;
     }
-    ImplicitFieldType type = field.type;
-    if (type.memberBuilder != this) {
+    ImplicitFieldType type = fieldType;
+    if (type.fieldBuilder != this) {
       // The implicit type was inherited.
-      FieldBuilder other = type.memberBuilder;
-      other.inferCopiedType(field);
-      return;
+      return fieldType = type.inferType();
     }
     if (type.isStarted) {
       library.addProblem(
@@ -260,8 +268,7 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
           charOffset,
           name.length,
           fileUri);
-      field.type = const InvalidType();
-      return;
+      return fieldType = const InvalidType();
     }
     type.isStarted = true;
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
@@ -271,19 +278,20 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
         library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =
         isConst ? ConstantContext.inferred : ConstantContext.none;
-    initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);
+    Expression initializer =
+        bodyBuilder.parseFieldInitializer(type.initializerToken);
     type.initializerToken = null;
 
     ExpressionInferenceResult result = typeInferrer.inferExpression(
-        field.initializer, const UnknownType(), true,
+        initializer, const UnknownType(), true,
         isVoidAllowed: true);
     DartType inferredType =
         typeInferrer.inferDeclarationType(result.inferredType);
 
-    if (field.type is ImplicitFieldType) {
-      // `field.type` may have changed if a circularity was detected when
+    if (fieldType is ImplicitFieldType) {
+      // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
-      field.type = inferredType;
+      fieldType = inferredType;
 
       IncludesTypeParametersNonCovariantly needsCheckVisitor;
       if (parent is ClassBuilder) {
@@ -299,24 +307,13 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
         }
       }
       if (needsCheckVisitor != null) {
-        if (field.type.accept(needsCheckVisitor)) {
+        if (fieldType.accept(needsCheckVisitor)) {
           field.isGenericCovariantImpl = true;
         }
       }
     }
-
-    // The following is a hack. The outline should contain the compiled
-    // initializers, however, as top-level inference is subtly different from
-    // we need to compile the field initializer again when everything else is
-    // compiled.
-    field.initializer = null;
+    return fieldType;
   }
 
-  void inferCopiedType(Field other) {
-    inferType();
-    other.type = field.type;
-    other.initializer = null;
-  }
-
-  DartType get builtType => field.type;
+  DartType get builtType => fieldType;
 }

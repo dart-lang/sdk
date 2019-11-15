@@ -199,11 +199,7 @@ abstract class TypeInferenceEngine {
     if (member is Field) {
       DartType type = member.type;
       if (type is ImplicitFieldType) {
-        if (type.memberBuilder.member != member) {
-          type.memberBuilder.inferCopiedType(member);
-        } else {
-          type.memberBuilder.inferType();
-        }
+        type.inferType();
       }
     }
     return member;

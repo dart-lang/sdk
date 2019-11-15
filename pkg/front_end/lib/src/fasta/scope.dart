@@ -642,16 +642,6 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }
-
-  @override
-  void inferType() {
-    throw new UnsupportedError('AmbiguousMemberBuilder.inferType');
-  }
-
-  @override
-  void inferCopiedType(covariant Object other) {
-    throw new UnsupportedError('AmbiguousMemberBuilder.inferCopiedType');
-  }
 }
 
 class ScopeLocalDeclarationIterator implements Iterator<Builder> {

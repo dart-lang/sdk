@@ -54,10 +54,6 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   ProcedureKind get kind;
 
   void buildOutlineExpressions(LibraryBuilder library);
-
-  void inferType();
-
-  void inferCopiedType(covariant Object other);
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
@@ -130,14 +126,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   String get fullNameForErrors => name;
-
-  @override
-  void inferType() => unsupported("inferType", charOffset, fileUri);
-
-  @override
-  void inferCopiedType(covariant Object other) {
-    unsupported("inferType", charOffset, fileUri);
-  }
 
   @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
