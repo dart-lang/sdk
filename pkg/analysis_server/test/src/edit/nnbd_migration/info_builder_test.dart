@@ -187,6 +187,35 @@ void g() {
     assertDetail(detail: regions[0].details[0], offset: 104, length: 1);
   }
 
+  test_exactNullable() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(List<int> list) {
+  list[0] = null;
+}
+
+void g() {
+  f(<int>[]);
+}
+''', migratedContent: '''
+void f(List<int?> list) {
+  list[0] = null;
+}
+
+void g() {
+  f(<int?>[]);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is the hard edge that f's parameter is non-nullable.
+    // TODO(mfairhurst): Diagnose why no detail is appearing here.
+    // assertRegion(region: regions[1], offset: 15, details: ["Null is assigned"]);
+    assertRegion(
+        region: regions[2],
+        offset: 66,
+        details: ["This is later required to accept null."]);
+  }
+
   test_expressionFunctionReturnTarget() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() => 1 == 2 ? "Hello" : null;

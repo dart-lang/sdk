@@ -258,7 +258,35 @@ class InfoBuilder {
     List<RegionDetail> details = [];
     for (FixReasonInfo reason in fixInfo.reasons) {
       if (reason is NullabilityNodeInfo) {
+        if (reason.isExactNullable) {
+          // When the node is exact nullable, that nullability propagated from
+          // downstream.
+          for (EdgeInfo edge in reason.downstreamEdges) {
+            final exactNullableDownstream = edge.destinationNode;
+            if (!exactNullableDownstream.isExactNullable) {
+              // This wasn't the source of the nullability.
+              continue;
+            }
+
+            var nodeInfo = info.nodeInfoFor(exactNullableDownstream);
+            if (nodeInfo != null) {
+              // TODO(mfairhurst): Give a better text description.
+              details.add(RegionDetail('This is later required to accept null.',
+                  _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
+            } else {
+              details.add(RegionDetail(
+                  'exact nullable node with no info ($exactNullableDownstream)',
+                  null));
+            }
+          }
+        }
+
         for (EdgeInfo edge in reason.upstreamEdges) {
+          if (edge.sourceNode.isExactNullable) {
+            // When an exact nullable points here, the nullability propagated
+            // in the other direction.
+            continue;
+          }
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {

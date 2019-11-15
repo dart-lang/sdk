@@ -232,6 +232,14 @@ abstract class NullabilityMigrationInstrumentation {
 /// Information exposed to the migration client about a single node in the
 /// nullability graph.
 abstract class NullabilityNodeInfo implements FixReasonInfo {
+  /// Some nodes get nullability from downstream, so the downstream edges are
+  /// available to query as well.
+  Iterable<EdgeInfo> get downstreamEdges;
+
+  /// After migration is complete, this getter can be used to query whether
+  /// the type associated with this node was determined to be "exact nullable."
+  bool get isExactNullable;
+
   /// Indicates whether the node is immutable.  The only immutable nodes in the
   /// nullability graph are the nodes `never` and `always` that are used as the
   /// starting points for nullability propagation.

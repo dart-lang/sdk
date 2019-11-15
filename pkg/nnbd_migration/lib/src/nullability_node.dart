@@ -672,14 +672,18 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   String get debugSuffix => isNullable ? '?' : '';
 
   @override
-  bool get isExactNullable => isNullable;
+  // Note: the node "always" is not exact nullable, because exact nullability is
+  // a concept for contravariant generics which propagates upstream instead of
+  // downstream. "always" is not a contravariant generic, and does not have any
+  // upstream nodes, so it should not be considered *exact* nullable.
+  bool get isExactNullable => false;
 
   @override
   bool get isImmutable => true;
 
   @override
   NullabilityState get _state => isNullable
-      ? NullabilityState.exactNullable
+      ? NullabilityState.ordinaryNullable
       : NullabilityState.nonNullable;
 }
 
