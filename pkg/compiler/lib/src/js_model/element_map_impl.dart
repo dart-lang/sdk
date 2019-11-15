@@ -2784,9 +2784,7 @@ class ClosedEntityReader extends EntityReader {
 class ClosedEntityWriter extends EntityWriter {
   final int _earlyMemberIndexLimit;
 
-  final JsKernelToElementMap _elementMap;
-
-  ClosedEntityWriter(this._elementMap, this._earlyMemberIndexLimit);
+  ClosedEntityWriter(this._earlyMemberIndexLimit);
 
   @override
   void writeMemberToDataSink(DataSink sink, IndexedMember value) {

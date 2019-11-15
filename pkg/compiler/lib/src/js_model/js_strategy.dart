@@ -413,7 +413,7 @@ class JsBackendStrategy implements BackendStrategy {
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter =
-        new ClosedEntityWriter(_elementMap, earlyMemberIndexLimit);
+        new ClosedEntityWriter(earlyMemberIndexLimit);
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
