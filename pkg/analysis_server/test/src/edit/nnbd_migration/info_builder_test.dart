@@ -849,4 +849,41 @@ int? _f2 = _f;
         offset: 19,
         details: ["This variable is initialized to a nullable value"]);
   }
+
+  test_uninitializedField() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C();
+  C.one() {
+    this.value = 7;
+  }
+  C.two() {}
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C();
+  C.one() {
+    this.value = 7;
+  }
+  C.two() {}
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    RegionInfo region = regions.single;
+    assertRegion(region: region, offset: 15, details: [
+      "The constructor 'C' does not initialize this field in its initializer "
+          "list",
+      "The constructor 'C.one' does not initialize this field in its "
+          "initializer list",
+      "The constructor 'C.two' does not initialize this field in its "
+          "initializer list",
+    ]);
+
+    assertDetail(detail: region.details[0], offset: 25, length: 1);
+    assertDetail(detail: region.details[1], offset: 34, length: 3);
+    assertDetail(detail: region.details[2], offset: 70, length: 3);
+  }
 }

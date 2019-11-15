@@ -196,6 +196,16 @@ class InfoBuilder {
         return "This field is initialized to $nullableValue";
       }
       return "This variable is initialized to $nullableValue";
+    } else if (node is ConstructorDeclaration &&
+        origin.kind == EdgeOriginKind.fieldNotInitialized) {
+      String constructorName =
+          node.declaredElement.enclosingElement.displayName;
+      if (node.declaredElement.displayName.isNotEmpty) {
+        constructorName =
+            "$constructorName.${node.declaredElement.displayName}";
+      }
+      return "The constructor '$constructorName' does not initialize this "
+          "field in its initializer list";
     }
     return capitalize("$nullableValue is assigned");
   }
