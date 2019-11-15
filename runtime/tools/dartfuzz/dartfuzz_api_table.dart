@@ -32,6 +32,18 @@ class DartLib {
   final String proto;
   const DartLib(this.name, this.proto);
 
+  static const voidLibs = [
+    DartLib('RangeError.checkNotNegative', 'VISS'),
+    DartLib('RangeError.checkValueInInterval', 'VIIISS'),
+    DartLib('add', 'LI'),
+    DartLib('addAll', 'MM'),
+    DartLib('clear', 'LV'),
+    DartLib('clear', 'MV'),
+    DartLib('clear', 'XV'),
+    DartLib('fillRange', 'LIII'),
+    DartLib('insert', 'LII'),
+    DartLib('removeRange', 'LII'),
+  ];
   static const boolLibs = [
     DartLib('NetworkInterface.listSupported', 'Vv'),
     DartLib('SecurityContext.alpnSupported', 'Vv'),

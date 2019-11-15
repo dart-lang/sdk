@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.67';
+const String version = '1.68';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -254,6 +254,7 @@ class DartApi {
           ...DartLib.doubleLibs,
         ];
 
+  final voidLibs = DartLib.voidLibs;
   final boolLibs = DartLib.boolLibs;
   final stringLibs = DartLib.stringLibs;
   final listLibs = DartLib.listLibs;
@@ -1218,7 +1219,7 @@ class DartFuzz {
       return emitAssign();
     }
     // Possibly nested statement.
-    switch (choose(16)) {
+    switch (choose(17)) {
       // Favors assignment.
       case 0:
         return emitPrint();
@@ -1248,6 +1249,9 @@ class DartFuzz {
         return emitTryCatch(depth);
       case 13:
         return emitForEach(depth);
+      case 14:
+        emitLibraryCall(depth, DartType.VOID, includeSemicolon: true);
+        return true;
       default:
         return emitAssign();
     }
@@ -1762,10 +1766,13 @@ class DartFuzz {
   }
 
   // Emit library call.
-  void emitLibraryCall(int depth, DartType tp, {RhsFilter rhsFilter}) {
+  void emitLibraryCall(int depth, DartType tp,
+      {RhsFilter rhsFilter, bool includeSemicolon = false}) {
     DartLib lib = getLibraryMethod(tp);
     if (lib == null) {
-      // no matching lib: resort to literal.
+      // We cannot find a library method. This can only happen for non-void
+      // types. In those cases, we resort to a literal.
+      assert(tp != DartType.VOID);
       emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
       return;
     }
@@ -1795,6 +1802,9 @@ class DartFuzz {
         emit(' as ${tp.name}');
       }
     });
+    if (includeSemicolon) {
+      emit(';');
+    }
   }
 
   // Helper for a method call.
@@ -1918,7 +1928,9 @@ class DartFuzz {
 
   // Get a library method that returns given type.
   DartLib getLibraryMethod(DartType tp) {
-    if (tp == DartType.BOOL) {
+    if (tp == DartType.VOID) {
+      return oneOf(api.voidLibs);
+    } else if (tp == DartType.BOOL) {
       return oneOf(api.boolLibs);
     } else if (tp == DartType.INT) {
       return oneOf(api.intLibs);

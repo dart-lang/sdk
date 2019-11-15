@@ -29,6 +29,7 @@ class DartLib {
 }
 
 // Lists of recognized methods, organized by return type.
+var voidTable = <DartLib>[];
 var boolTable = <DartLib>[];
 var intTable = <DartLib>[];
 var doubleTable = <DartLib>[];
@@ -53,6 +54,7 @@ main() async {
 
   // Generate the tables in a stand-alone Dart class.
   dumpHeader();
+  dumpTable('voidLibs', voidTable);
   dumpTable('boolLibs', boolTable);
   dumpTable('intLibs', intTable);
   dumpTable('doubleLibs', doubleTable);
@@ -184,6 +186,8 @@ String typeString(DartType type) {
   // TODO(ajcbik): inspect type structure semantically, not by display name
   //               and unify DartFuzz's DartType with analyzer DartType.
   switch (type.displayName) {
+    case 'void':
+      return 'V';
     case 'E':
       return 'I';
     case 'num':
@@ -223,6 +227,8 @@ String protoString(DartType receiver, List<ParameterElement> parameters) {
 
 List<DartLib> getTable(String ret) {
   switch (ret) {
+    case 'V':
+      return voidTable;
     case 'B':
       return boolTable;
     case 'I':
@@ -249,8 +255,11 @@ void addToTable(String ret, String name, String proto) {
   if (ret.contains('?') || proto.contains('?')) {
     return;
   }
-  // Avoid some obvious false divergences.
-  if (name == 'pid' || name == 'hashCode' || name == 'exitCode') {
+  // Avoid the exit function and other functions that give false divergences.
+  if (name == 'exit' ||
+      name == 'pid' ||
+      name == 'hashCode' ||
+      name == 'exitCode') {
     return;
   }
   // Restrict parameters for a few hardcoded cases,
