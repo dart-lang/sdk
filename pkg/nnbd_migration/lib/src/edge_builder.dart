@@ -871,7 +871,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     expression.accept(this);
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
-    return DecoratedType(node.staticType, _graph.never);
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(
+        nullabilityNode, IsCheckResultTypeOrigin(source, node));
+    return DecoratedType(node.staticType, nullabilityNode);
   }
 
   @override
