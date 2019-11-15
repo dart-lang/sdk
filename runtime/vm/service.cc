@@ -3201,12 +3201,15 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  Isolate* isolate = thread->isolate();
-  if (!isolate->HasTagHandler()) {
+  IsolateGroup* isolate_group = thread->isolate_group();
+  if (isolate_group->library_tag_handler() == nullptr) {
     js->PrintError(kFeatureDisabled,
                    "A library tag handler must be installed.");
     return true;
   }
+  // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
+  // call to accept an isolate group instead of an isolate.
+  Isolate* isolate = thread->isolate();
   if ((isolate->sticky_error() != Error::null()) ||
       (Thread::Current()->sticky_error() != Error::null())) {
     js->PrintError(kIsolateReloadBarred,
@@ -3214,7 +3217,7 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "was an unhandled exception error. Restart the isolate.");
     return true;
   }
-  if (isolate->IsReloading()) {
+  if (isolate_group->IsReloading()) {
     js->PrintError(kIsolateIsReloading, "This isolate is being reloaded.");
     return true;
   }
@@ -3226,8 +3229,8 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   const bool force_reload =
       BoolParameter::Parse(js->LookupParam("force"), false);
 
-  isolate->ReloadSources(js, force_reload, js->LookupParam("rootLibUri"),
-                         js->LookupParam("packagesUri"));
+  isolate_group->ReloadSources(js, force_reload, js->LookupParam("rootLibUri"),
+                               js->LookupParam("packagesUri"));
 
   Service::CheckForPause(isolate, js);
 

@@ -302,6 +302,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     library_tag_handler_ = handler;
   }
 
+  // Runs the given [function] on every isolate in the isolate group.
+  //
+  // During the duration of this function, no new isolates can be added to the
+  // isolate group.
+  void ForEachIsolate(std::function<void(Isolate* isolate)> function);
+
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
@@ -329,6 +335,36 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void PrintMemoryUsageJSON(JSONStream* stream);
 #endif
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // By default the reload context is deleted. This parameter allows
+  // the caller to delete is separately if it is still needed.
+  bool ReloadSources(JSONStream* js,
+                     bool force_reload,
+                     const char* root_script_url = nullptr,
+                     const char* packages_url = nullptr,
+                     bool dont_delete_reload_context = false);
+
+  // If provided, the VM takes ownership of kernel_buffer.
+  bool ReloadKernel(JSONStream* js,
+                    bool force_reload,
+                    const uint8_t* kernel_buffer = nullptr,
+                    intptr_t kernel_buffer_size = 0,
+                    bool dont_delete_reload_context = false);
+
+  void set_last_reload_timestamp(int64_t value) {
+    last_reload_timestamp_ = value;
+  }
+  int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
+
+  IsolateGroupReloadContext* reload_context() {
+    return group_reload_context_.get();
+  }
+
+  void DeleteReloadContext();
+
+  bool IsReloading() const { return group_reload_context_ != nullptr; }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   uint64_t id() { return id_; }
 
   static void Init();
@@ -351,6 +387,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  int64_t last_reload_timestamp_;
+  std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
+#endif
 
   std::unique_ptr<IsolateGroupSource> source_;
   std::unique_ptr<ThreadRegistry> thread_registry_;
@@ -527,23 +568,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleInterrupts(uword interrupt_bits);
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // By default the reload context is deleted. This parameter allows
-  // the caller to delete is separately if it is still needed.
-  bool ReloadSources(JSONStream* js,
-                     bool force_reload,
-                     const char* root_script_url = nullptr,
-                     const char* packages_url = nullptr,
-                     bool dont_delete_reload_context = false);
-
-  // If provided, the VM takes ownership of kernel_buffer.
-  bool ReloadKernel(JSONStream* js,
-                    bool force_reload,
-                    const uint8_t* kernel_buffer = nullptr,
-                    intptr_t kernel_buffer_size = 0,
-                    bool dont_delete_reload_context = false);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   const char* MakeRunnable();
   void Run();
@@ -765,8 +789,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  bool IsReloading() const { return reload_context_ != nullptr; }
-
   IsolateReloadContext* reload_context() { return reload_context_; }
 
   void DeleteReloadContext();
@@ -779,11 +801,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   bool CanReload() const;
-
-  void set_last_reload_timestamp(int64_t value) {
-    last_reload_timestamp_ = value;
-  }
-  int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
 #else
   bool IsReloading() const { return false; }
   bool HasAttemptedReload() const { return false; }
@@ -1216,7 +1233,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_ = nullptr;
-  int64_t last_reload_timestamp_;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1323,6 +1339,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class Thread;
   friend class Timeline;
   friend class NoReloadScope;  // reload_block
+  friend class IsolateGroup;   // reload_context_
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

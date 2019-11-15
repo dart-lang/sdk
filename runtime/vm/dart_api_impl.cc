@@ -5852,33 +5852,33 @@ DART_EXPORT char* Dart_SetFileModifiedCallback(
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
-    if (IsolateReloadContext::file_modified_callback() != NULL) {
+    if (IsolateGroupReloadContext::file_modified_callback() != NULL) {
       return strdup(
           "Dart_SetFileModifiedCallback permits only one callback to be"
           " registered, please remove the existing callback and then add"
           " this callback");
     }
   } else {
-    if (IsolateReloadContext::file_modified_callback() == NULL) {
+    if (IsolateGroupReloadContext::file_modified_callback() == NULL) {
       return strdup(
           "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
           " be set before it is cleared.");
     }
   }
-  IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
+  IsolateGroupReloadContext::SetFileModifiedCallback(file_modified_callback);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
   return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  return isolate->IsReloading();
+  return isolate->group()->IsReloading();
 #endif
 }
 

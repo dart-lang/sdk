@@ -216,9 +216,9 @@ intptr_t RawObject::HeapSizeFromClass() const {
 #if defined(DEBUG)
       auto class_table = isolate->shared_class_table();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      auto reload_context = isolate->reload_context();
+      auto reload_context = isolate->group()->reload_context();
       const bool use_saved_class_table =
-          reload_context != nullptr ? reload_context->UseSavedClassTableForGC()
+          reload_context != nullptr ? reload_context->UseSavedSizeTableForGC()
                                     : false;
 #else
       const bool use_saved_class_table = false;

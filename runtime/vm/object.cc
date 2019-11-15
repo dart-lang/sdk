@@ -11670,7 +11670,7 @@ void Library::AllocatePrivateKey() const {
   Isolate* isolate = thread->isolate();
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_support_reload && isolate->IsReloading()) {
+  if (FLAG_support_reload && isolate->group()->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     IsolateReloadContext* reload_context = isolate->reload_context();
@@ -16873,6 +16873,14 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
   RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
+  return reinterpret_cast<RawInstance*>(raw);
+}
+
+RawInstance* Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
+                                         classid_t cid) {
+  const intptr_t instance_size = shared_class_table->SizeAt(cid);
+  ASSERT(instance_size > 0);
+  RawObject* raw = Object::Allocate(cid, instance_size, Heap::kNew);
   return reinterpret_cast<RawInstance*>(raw);
 }
 

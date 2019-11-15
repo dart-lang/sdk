@@ -3617,7 +3617,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
   EXPECT_ERROR(lib, "......");
 }
 
-TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
+TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
   const char* kScript =
       "class Super {\n"
       "  static var foo = 'right';\n"
@@ -3654,7 +3654,11 @@ TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances in the
   // correct scope.
-  EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
+  const char* actual = SimpleInvokeStr(lib, "main");
+  EXPECT(actual != nullptr);
+  if (actual != nullptr) {
+    EXPECT_STREQ("right", actual);
+  }
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {

@@ -67,7 +67,6 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_tables_(new MallocGrowableArray<ClassAndSize*>()),
       old_class_tables_(new MallocGrowableArray<RawClass**>()),
       shared_class_table_(shared_class_table) {
   if (Dart::vm_isolate() == NULL) {
@@ -100,31 +99,31 @@ ClassTable::ClassTable(ClassTable* original,
     : top_(original->top_),
       capacity_(original->top_),
       table_(original->table_),
-      old_tables_(nullptr),
       old_class_tables_(nullptr),
       shared_class_table_(shared_class_table) {}
 
 ClassTable::~ClassTable() {
-  if (old_tables_ != nullptr || old_class_tables_ != nullptr) {
+  if (old_class_tables_ != nullptr) {
     FreeOldTables();
-    delete old_tables_;
     delete old_class_tables_;
   }
   free(table_);
 }
 
-void ClassTable::AddOldTable(ClassAndSize* old_table) {
+void ClassTable::AddOldTable(RawClass** old_class_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  old_tables_->Add(old_table);
+  old_class_tables_->Add(old_class_table);
 }
 
 void ClassTable::FreeOldTables() {
-  while (old_tables_->length() > 0) {
-    free(old_tables_->RemoveLast());
-  }
   while (old_class_tables_->length() > 0) {
     free(old_class_tables_->RemoveLast());
   }
+}
+
+void SharedClassTable::AddOldTable(intptr_t* old_table) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+  old_tables_->Add(old_table);
 }
 
 void SharedClassTable::FreeOldTables() {

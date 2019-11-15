@@ -2281,8 +2281,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
 
     // Issue a reload.
-    bool success =
-        isolate->ReloadSources(&js, true /* force_reload */, script_uri);
+    bool success = isolate->group()->ReloadSources(&js, true /* force_reload */,
+                                                   script_uri);
     if (!success) {
       FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
     }

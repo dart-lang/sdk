@@ -19,6 +19,8 @@ class ClassStats;
 class ClassTable;
 class Isolate;
 class IsolateGroup;
+class IsolateGroupReloadContext;
+class IsolateReloadContext;
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -232,6 +234,42 @@ class SharedClassTable {
   // Called immediately after a new GC.
   void UpdatePromoted();
 
+  void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
+    // The [IsolateGroupReloadContext] will need to maintain a copy of the old
+    // class table until instances have been morphed.
+    const intptr_t num_cids = NumCids();
+    const intptr_t bytes = sizeof(intptr_t) * num_cids;
+    auto size_table = static_cast<intptr_t*>(malloc(bytes));
+    memmove(size_table, table_, sizeof(intptr_t) * num_cids);
+    *copy_num_cids = num_cids;
+    *copy = size_table;
+  }
+
+  void ResetBeforeHotReload() {
+    // The [IsolateReloadContext] is now source-of-truth for GC.
+    memset(table_, 0, sizeof(intptr_t) * top_);
+  }
+
+  void ResetAfterHotReload(intptr_t* old_table,
+                           intptr_t num_old_cids,
+                           bool is_rollback) {
+    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // return, so we restore size information for all classes.
+    if (is_rollback) {
+      SetNumCids(num_old_cids);
+      memmove(table_, old_table, sizeof(intptr_t) * num_old_cids);
+    }
+
+    // Can't free this table immediately as another thread (e.g., concurrent
+    // marker or sweeper) may be between loading the table pointer and loading
+    // the table element. The table will be freed at the next major GC or
+    // isolate shutdown.
+    AddOldTable(old_table);
+  }
+
+  // Deallocates table copies. Do not call during concurrent access to table.
+  void FreeOldTables();
+
 #if !defined(PRODUCT)
   // Called whenever a class is allocated in the runtime.
   void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
@@ -262,6 +300,13 @@ class SharedClassTable {
   }
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid, intptr_t size);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool IsReloading() const { return reload_context_ != nullptr; }
+
+  IsolateGroupReloadContext* reload_context() { return reload_context_; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #endif  // !defined(PRODUCT)
 
   // Returns the newly allocated cid.
@@ -272,8 +317,6 @@ class SharedClassTable {
   void Unregister(intptr_t index);
 
   void Remap(intptr_t* old_to_new_cids);
-
-  void FreeOldTables();
 
   // Used by the generated code.
 #ifndef PRODUCT
@@ -324,6 +367,8 @@ class SharedClassTable {
   ClassHeapStats* class_heap_stats_table_ = nullptr;
 #endif  // !PRODUCT
 
+  void AddOldTable(intptr_t* old_table);
+
   void Grow(intptr_t new_capacity);
 
   intptr_t top_;
@@ -332,6 +377,8 @@ class SharedClassTable {
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
   intptr_t* table_;  // Maps the cid to the instance size.
   MallocGrowableArray<intptr_t*>* old_tables_;
+
+  IsolateGroupReloadContext* reload_context_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
 };
@@ -347,44 +394,33 @@ class ClassTable {
 
   SharedClassTable* shared_class_table() const { return shared_class_table_; }
 
-  void CopyBeforeHotReload(ClassAndSize** copy, intptr_t* copy_num_cids) {
+  void CopyBeforeHotReload(RawClass*** copy, intptr_t* copy_num_cids) {
     // The [IsolateReloadContext] will need to maintain a copy of the old class
     // table until instances have been morphed.
     const intptr_t num_cids = NumCids();
-    const intptr_t bytes = sizeof(ClassAndSize) * num_cids;
-    auto class_and_size = static_cast<ClassAndSize*>(malloc(bytes));
-    for (intptr_t i = 0; i < num_cids; ++i) {
-      class_and_size[i] =
-          ClassAndSize(table_[i], shared_class_table_->table_[i]);
-    }
+    const intptr_t bytes = sizeof(RawClass*) * num_cids;
+    auto class_table = static_cast<RawClass**>(malloc(bytes));
+    memmove(class_table, table_, sizeof(RawClass*) * num_cids);
     *copy_num_cids = num_cids;
-    *copy = class_and_size;
+    *copy = class_table;
   }
 
   void ResetBeforeHotReload() {
-    // The [IsolateReloadContext] is now source-of-truth for GC.
-    //
-    // Though we cannot clear out the class pointers, because a hot-reload
+    // We cannot clear out the class pointers, because a hot-reload
     // contains only a diff: If e.g. a class included in the hot-reload has a
     // super class not included in the diff, it will look up in this class table
     // to find the super class (e.g. `cls.SuperClass` will cause us to come
     // here).
-    for (intptr_t i = 0; i < top_; ++i) {
-      shared_class_table_->table_[i] = 0;
-    }
   }
 
-  void ResetAfterHotReload(ClassAndSize* old_table,
+  void ResetAfterHotReload(RawClass** old_table,
                            intptr_t num_old_cids,
                            bool is_rollback) {
     // The [IsolateReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
       SetNumCids(num_old_cids);
-      for (intptr_t i = 0; i < num_old_cids; ++i) {
-        shared_class_table_->table_[i] = old_table[i].size_;
-        table_[i] = old_table[i].class_;
-      }
+      memmove(table_, old_table, sizeof(RawClass*) * num_old_cids);
     } else {
       CopySizesFromClassObjects();
     }
@@ -471,7 +507,6 @@ class ClassTable {
   void PrintToJSONObject(JSONObject* object);
 #endif  // !PRODUCT
 
-  void AddOldTable(ClassAndSize* old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
@@ -485,14 +520,16 @@ class ClassTable {
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 
+  void AddOldTable(RawClass** old_table);
+
   void Grow(intptr_t index);
 
   intptr_t top_;
   intptr_t capacity_;
 
-  // Copy-on-write is used for table_, with old copies stored in old_tables_.
+  // Copy-on-write is used for table_, with old copies stored in
+  // old_class_tables_.
   RawClass** table_;
-  MallocGrowableArray<ClassAndSize*>* old_tables_;
   MallocGrowableArray<RawClass**>* old_class_tables_;
   SharedClassTable* shared_class_table_;
 

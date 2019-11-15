@@ -33,6 +33,9 @@ extern intptr_t kPlatformStrongDillSize;
 
 namespace dart {
 
+DECLARE_FLAG(bool, gc_during_reload);
+DECLARE_FLAG(bool, force_evacuation);
+
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
@@ -558,17 +561,22 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 #ifndef PRODUCT
 
 Dart_Handle TestCase::SetReloadTestScript(const char* script) {
-    Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    Dart_KernelCompilationResult compilation_result =
-        KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
-    delete[] sourcefiles;
-    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-      Dart_Handle result = Dart_NewApiError(compilation_result.error);
-      free(compilation_result.error);
-      return result;
-    }
-    return Api::Success();
+  // For our vm/cc/IsolateReload_* tests we flip the GC flag on, which will
+  // cause the isolate reload to do GCs before/after morphing, etc.
+  FLAG_gc_during_reload = true;
+  FLAG_force_evacuation = true;
+
+  Dart_SourceFile* sourcefiles = NULL;
+  intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
+  Dart_KernelCompilationResult compilation_result =
+      KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+  delete[] sourcefiles;
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    Dart_Handle result = Dart_NewApiError(compilation_result.error);
+    free(compilation_result.error);
+    return result;
+  }
+  return Api::Success();
 }
 
 Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
@@ -579,10 +587,11 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success = isolate->ReloadKernel(&js,
-                                    false,  // force_reload
-                                    kernel_buffer, kernel_buffer_size,
-                                    true);  // dont_delete_reload_context
+    success =
+        isolate->group()->ReloadKernel(&js,
+                                       false,  // force_reload
+                                       kernel_buffer, kernel_buffer_size,
+                                       true);  // dont_delete_reload_context
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -593,9 +602,10 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 
   if (Dart_IsError(result)) {
     // Keep load error.
-  } else if (isolate->reload_context()->reload_aborted()) {
+  } else if (isolate->group()->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
-    result = Api::NewHandle(thread, isolate->reload_context()->error());
+    result = Api::NewHandle(
+        thread, isolate->reload_context()->group_reload_context()->error());
   } else {
     result = Dart_RootLibrary();
   }
@@ -603,6 +613,7 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   TransitionNativeToVM transition(thread);
   if (isolate->reload_context() != NULL) {
     isolate->DeleteReloadContext();
+    isolate->group()->DeleteReloadContext();
   }
 
   return result;

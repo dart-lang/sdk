@@ -607,7 +607,7 @@ char* Dart::Cleanup() {
   MallocHooks::Cleanup();
   Flags::Cleanup();
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  IsolateReloadContext::SetFileModifiedCallback(NULL);
+  IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return NULL;

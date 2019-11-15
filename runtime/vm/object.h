@@ -63,6 +63,7 @@ class FlowGraphCompiler;
 class HierarchyInfo;
 class LocalScope;
 class CodeStatistics;
+class IsolateGroupReloadContext;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -6575,6 +6576,9 @@ class Instance : public Object {
   void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
     StorePointer(RawFieldAddrAtOffset(offset), value.raw());
   }
+
+  static RawInstance* NewFromCidAndSize(SharedClassTable* shared_class_table,
+                                        classid_t cid);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
