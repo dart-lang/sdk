@@ -17,55 +17,68 @@ class MultiThree<in T, out U, inout V> {}
 
 class A<in T, out U, inout V> extends Covariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'Covariant'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class B<in T> extends MultiThree<T, T, T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in supertype 'MultiThree'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class C<in T, out U, inout V> extends MultiTwo<U, T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class D<in T, out U, inout V> extends MultiThree<V, U, T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in supertype 'MultiThree'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class E<in T, out U, inout V> extends MultiThree<Covariant<U>, Covariant<T>, Covariant<U>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiThree'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'U' in an 'inout' position in supertype 'MultiThree'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class F<in T, out U, inout V> extends MultiTwo<Contravariant<T>, Contravariant<U>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class G<in T, out U, inout V> extends MultiThree<CovFunction<U>, CovFunction<T>, CovFunction<U>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiThree'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'U' in an 'inout' position in supertype 'MultiThree'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class H<in T, out U, inout V> extends MultiTwo<ContraFunction<T>, ContraFunction<U>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in supertype 'MultiTwo'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'U' in an 'in' position in supertype 'MultiTwo'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//                ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
