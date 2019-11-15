@@ -1,0 +1,74 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int? _#lateStaticField1 = null;
+  static field dynamic _#lateStaticField1#isSet = false;
+  static field core::int? _#lateStaticField2 = null;
+  static field dynamic _#lateStaticField2#isSet = false;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  static get lateStaticField1() → core::int?
+    return self::Class::_#lateStaticField1#isSet ?{core::int?} self::Class::_#lateStaticField1 : throw "Field 'lateStaticField1' has not been initialized.";
+  static set lateStaticField1(core::int? #t1) → void
+    if(self::Class::_#lateStaticField1#isSet)
+      throw "Field 'lateStaticField1' has already been initialized.";
+    else {
+      self::Class::_#lateStaticField1#isSet = true;
+      self::Class::_#lateStaticField1 = #t1;
+    }
+  static get lateStaticField2() → core::int?
+    return self::Class::_#lateStaticField2#isSet ?{core::int?} self::Class::_#lateStaticField2 : throw "Field 'lateStaticField2' has not been initialized.";
+  static set lateStaticField2(core::int? #t2) → void
+    if(self::Class::_#lateStaticField2#isSet)
+      throw "Field 'lateStaticField2' has already been initialized.";
+    else {
+      self::Class::_#lateStaticField2#isSet = true;
+      self::Class::_#lateStaticField2 = #t2;
+    }
+  static method staticMethod() → dynamic {
+    self::throws(() → core::int? => self::Class::lateStaticField2, "Read value from uninitialized Class.lateStaticField2");
+    self::Class::lateStaticField2 = 42;
+    self::expect(42, self::Class::lateStaticField2);
+    self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
+  }
+}
+static field core::int? _#lateTopLevelField = null;
+static field dynamic _#lateTopLevelField#isSet = false;
+static get lateTopLevelField() → core::int?
+  return self::_#lateTopLevelField#isSet ?{core::int?} self::_#lateTopLevelField : throw "Field 'lateTopLevelField' has not been initialized.";
+static set lateTopLevelField(core::int? #t3) → void
+  if(self::_#lateTopLevelField#isSet)
+    throw "Field 'lateTopLevelField' has already been initialized.";
+  else {
+    self::_#lateTopLevelField#isSet = true;
+    self::_#lateTopLevelField = #t3;
+  }
+static method main() → dynamic {
+  self::throws(() → core::int? => self::lateTopLevelField, "Read value from uninitialized lateTopLevelField");
+  self::lateTopLevelField = 123;
+  self::expect(123, self::lateTopLevelField);
+  self::throws(() → core::int => self::lateTopLevelField = 124, "Write value to initialized lateTopLevelField");
+  self::throws(() → core::int? => self::Class::lateStaticField1, "Read value from uninitialized Class.lateStaticField1");
+  self::Class::lateStaticField1 = 87;
+  self::expect(87, self::Class::lateStaticField1);
+  self::throws(() → core::int => self::Class::lateStaticField1 = 88, "Write value to initialized Class.lateStaticField1");
+  self::Class::staticMethod();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}
