@@ -157,6 +157,12 @@ main() { foo(() {}); }
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
 
+#### `dart:io`
+
+* Added `enableTimelineLogging` property to `HttpClient` which, when enabled,
+  will post HTTP connection and request information to the developer timeline
+  for all `HttpClient` instances.
+
 ### Dart VM
 
 * Added a new tool for AOT compiling Dart programs to native, self-contained

@@ -16,6 +16,7 @@ class MyHttpClient1 implements HttpClient {
   Duration connectionTimeout;
   int maxConnectionsPerHost;
   bool autoUncompress;
+  bool enableTimelineLogging;
 
   Future<HttpClientRequest> open(
           String method, String host, int port, String path) =>
@@ -55,6 +56,7 @@ class MyHttpClient2 implements HttpClient {
   Duration connectionTimeout;
   int maxConnectionsPerHost;
   bool autoUncompress;
+  bool enableTimelineLogging;
 
   Future<HttpClientRequest> open(
           String method, String host, int port, String path) =>
