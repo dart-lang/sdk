@@ -28,6 +28,8 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/clone.dart';
 
+import 'package:kernel/core_types.dart';
+
 import '../../base/instrumentation.dart'
     show
         InstrumentationValueForMember,
@@ -96,9 +98,11 @@ import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 part "inference_visitor.dart";
 
 /// Computes the return type of a (possibly factory) constructor.
-InterfaceType computeConstructorReturnType(Member constructor) {
+InterfaceType computeConstructorReturnType(
+    Member constructor, CoreTypes coreTypes) {
   if (constructor is Constructor) {
-    return constructor.enclosingClass.thisType;
+    return coreTypes.thisInterfaceType(
+        constructor.enclosingClass, constructor.enclosingLibrary.nonNullable);
   } else {
     return constructor.function.returnType;
   }

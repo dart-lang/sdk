@@ -12,7 +12,8 @@ library vm.transformations.call_site_annotator;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show StaticTypeContext, TypeEnvironment;
 
 import '../metadata/call_site_attributes.dart';
 
@@ -32,6 +33,7 @@ void transformLibraries(Component component, List<Library> libraries,
 class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
   final CallSiteAttributesMetadataRepository _metadata;
   final TypeEnvironment env;
+  StaticTypeContext _staticTypeContext;
 
   AnnotateWithStaticTypes(
       Component component, CoreTypes coreTypes, ClassHierarchy hierarchy)
@@ -40,24 +42,22 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
 
   @override
   visitProcedure(Procedure proc) {
-    if (!proc.isStatic) {
-      env.thisType = proc.enclosingClass?.thisType;
-    }
+    _staticTypeContext = new StaticTypeContext(proc, env);
     super.visitProcedure(proc);
-    env.thisType = null;
+    _staticTypeContext = null;
   }
 
   @override
   visitConstructor(Constructor proc) {
-    env.thisType = proc.enclosingClass?.thisType;
+    _staticTypeContext = new StaticTypeContext(proc, env);
     super.visitConstructor(proc);
-    env.thisType = null;
+    _staticTypeContext = null;
   }
 
   void annotateWithType(TreeNode node, Expression receiver) {
     try {
       _metadata.mapping[node] = new CallSiteAttributesMetadata(
-          receiverType: receiver.getStaticType(env));
+          receiverType: receiver.getStaticType(_staticTypeContext));
     } catch (e) {
       // TODO(dartbug.com/34496) Currently getStaticType is unreliable due to
       // various issues with AST welltypedness. As a workaround we just

@@ -800,6 +800,12 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(env.mainComponent);
 
+  @override
+  ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
+    // TODO(johnniwinther): Cache the static type context.
+    return new ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
+  }
+
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
         (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
@@ -1065,13 +1071,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue getConstantValue(ir.Expression node,
+  ConstantValue getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression node,
       {bool requireConstant: true,
       bool implicitNull: false,
       bool checkCasts: true}) {
     if (node is ir.ConstantExpression) {
-      ir.Constant constant =
-          constantEvaluator.evaluate(node, requireConstant: requireConstant);
+      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+          requireConstant: requireConstant);
       if (constant == null) {
         if (requireConstant) {
           throw new UnsupportedError(
@@ -1111,13 +1118,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
-  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
+  List<ConstantValue> getMetadata(
+      ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
     List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.
-      metadata.add(getConstantValue(node, checkCasts: false));
+      metadata
+          .add(getConstantValue(staticTypeContext, node, checkCasts: false));
     });
     return metadata;
   }
@@ -1417,7 +1426,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       ImpactData impactData = impactBuilderData.impactData;
       memberData.staticTypes = impactBuilderData.cachedStaticTypes;
       KernelImpactConverter converter = new KernelImpactConverter(
-          this, member, reporter, options, _constantValuefier);
+          this,
+          member,
+          reporter,
+          options,
+          _constantValuefier,
+          // TODO(johnniwinther): Pull the static type context from the cached
+          // static types.
+          new ir.StaticTypeContext(node, typeEnvironment));
       return converter.convert(impactData);
     } else {
       KernelImpactBuilder builder = new KernelImpactBuilder(
@@ -1425,6 +1441,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           member,
           reporter,
           options,
+          new ir.StaticTypeContext(node, typeEnvironment),
           variableScopeModel,
           annotations,
           _constantValuefier);

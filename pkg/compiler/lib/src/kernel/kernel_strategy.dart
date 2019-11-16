@@ -5,6 +5,7 @@
 library dart2js.kernel.frontend_strategy;
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
@@ -457,8 +458,10 @@ class KernelModularStrategy extends ModularStrategy {
       // depend on metadata, so these parts of the impact data need to be
       // computed during conversion to [ResolutionImpact].
       impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
-        ImpactBuilder builder = new ImpactBuilder(_elementMap.typeEnvironment,
-            _elementMap.classHierarchy, scopeModel.variableScopeModel,
+        ImpactBuilder builder = new ImpactBuilder(
+            new ir.StaticTypeContext(node, _elementMap.typeEnvironment),
+            _elementMap.classHierarchy,
+            scopeModel.variableScopeModel,
             useAsserts: _elementMap.options.enableUserAssertions,
             inferEffectivelyFinalVariableTypes:
                 !annotations.contains(PragmaAnnotation.disableFinal));

@@ -763,6 +763,7 @@ deserialization
 deserialize
 deserialized
 designed
+desired
 desugar
 desugared
 desugaring
@@ -1075,6 +1076,7 @@ failure
 failures
 fake
 fall
+fallback
 falls
 false
 far
@@ -2414,6 +2416,8 @@ reuses
 reusing
 reverse
 reversed
+revert
+reverts
 review
 revise
 revision
@@ -2640,6 +2644,7 @@ square
 squiggly
 stable
 stack
+stacked
 stage
 stamps
 standalone
@@ -2653,6 +2658,7 @@ starting
 starts
 startup
 state
+stateful
 statement
 statement's
 statements
@@ -2720,6 +2726,7 @@ succeeds
 success
 successful
 successfully
+successively
 succinct
 such
 suffice

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 import 'closure.dart';
@@ -15,6 +16,7 @@ import 'scope.dart';
 class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     with VariableCollectorMixin {
   final ir.ConstantEvaluator _constantEvaluator;
+  ir.StaticTypeContext _staticTypeContext;
 
   final ClosureScopeModel _model = new ClosureScopeModel();
 
@@ -85,6 +87,8 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
           initializerComplexity: const InitializerComplexity.lazy());
     }
 
+    _staticTypeContext =
+        new ir.StaticTypeContext(node, _constantEvaluator.typeEnvironment);
     if (node is ir.Constructor) {
       _hasThisLocal = true;
     } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
@@ -1074,7 +1078,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   @override
   InitializerComplexity visitConstantExpression(ir.ConstantExpression node) {
     if (node.constant is ir.UnevaluatedConstant) {
-      node.constant = _constantEvaluator.evaluate(node);
+      node.constant = _constantEvaluator.evaluate(_staticTypeContext, node);
     }
     return const InitializerComplexity.constant();
   }

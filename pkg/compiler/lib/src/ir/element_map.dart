@@ -59,6 +59,7 @@ abstract class IrToElementMap {
 
   CommonElements get commonElements;
   DiagnosticReporter get reporter;
+  ir.CoreTypes get coreTypes;
   InterfaceType getThisType(IndexedClass cls);
   InterfaceType getSuperType(IndexedClass cls);
   OrderedTypeSet getOrderedTypeSet(IndexedClass cls);

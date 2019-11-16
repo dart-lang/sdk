@@ -11,7 +11,8 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show StaticTypeContext, TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
@@ -310,6 +311,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
   RuntimeTypeTranslator _translator;
+  StaticTypeContext _staticTypeContext;
 
   // Currently only used for factory constructors.
   Map<TypeParameter, TypeExpr> _fnTypeVariables;
@@ -330,6 +332,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     debugPrint("===== ${member} =====");
     assertx(!member.isAbstract);
 
+    _staticTypeContext = new StaticTypeContext(member, _environment);
     _variableJoins = <VariableDeclaration, Join>{};
     _variables = <VariableDeclaration, TypeExpr>{};
     _returnValue = null;
@@ -347,7 +350,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _receiver = _declareParameter("this",
             _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
-        _environment.thisType = member.enclosingClass?.thisType;
       } else {
         _summary = new Summary();
       }
@@ -394,7 +396,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _receiver = _declareParameter("this",
             _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
-        _environment.thisType = member.enclosingClass?.thisType;
       }
 
       _translator = new RuntimeTypeTranslator(
@@ -488,8 +489,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       _summary.result = _returnValue;
-      _environment.thisType = null;
     }
+
+    _staticTypeContext = null;
 
     debugPrint("------------ SUMMARY ------------");
     debugPrint(_summary);
@@ -700,7 +702,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     // TODO(dartbug.com/34496): Remove this try/catch once
     // getStaticType() is reliable.
     try {
-      return node.getStaticType(_environment);
+      return node.getStaticType(_staticTypeContext);
     } catch (e) {
       return const DynamicType();
     }
@@ -732,7 +734,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Type _cachedNullType;
   Type get _nullType => _cachedNullType ??= new Type.nullable(new Type.empty());
 
-  Class get _superclass => _environment.thisType.classNode.superclass;
+  Class get _superclass => _staticTypeContext.thisType.classNode.superclass;
 
   Type _intLiteralType(int value) {
     Class concreteClass =
@@ -1689,7 +1691,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
     return concreteClass != null
         ? summaryCollector._entryPointsListener.addAllocatedClass(concreteClass)
-        : new Type.cone(constant.getType(summaryCollector._environment));
+        : new Type.cone(constant.getType(summaryCollector._staticTypeContext));
   }
 
   @override
@@ -1708,18 +1710,18 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final Procedure procedure = constant.procedure;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(procedure));
-    return new Type.cone(constant.getType(summaryCollector._environment));
+    return new Type.cone(constant.getType(summaryCollector._staticTypeContext));
   }
 
   @override
   Type visitPartialInstantiationConstant(
       PartialInstantiationConstant constant) {
     constant.tearOffConstant.accept(this);
-    return new Type.cone(constant.getType(summaryCollector._environment));
+    return new Type.cone(constant.getType(summaryCollector._staticTypeContext));
   }
 
   @override
   Type visitTypeLiteralConstant(TypeLiteralConstant constant) {
-    return new Type.cone(constant.getType(summaryCollector._environment));
+    return new Type.cone(constant.getType(summaryCollector._staticTypeContext));
   }
 }

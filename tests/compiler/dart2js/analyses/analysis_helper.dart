@@ -75,6 +75,9 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   ir.ConstantEvaluator _constantEvaluator;
 
+  @override
+  ir.StaticTypeContext staticTypeContext;
+
   StaticTypeVisitorBase(
       ir.Component component, ir.ClassHierarchy classHierarchy)
       : super(
@@ -103,10 +106,12 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
+    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
     variableScopeModel =
         new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitProcedure(node);
     variableScopeModel = null;
+    staticTypeContext = null;
   }
 
   @override
@@ -115,10 +120,12 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
+    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
     variableScopeModel =
         new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitField(node);
     variableScopeModel = null;
+    staticTypeContext = null;
   }
 
   @override
@@ -127,10 +134,12 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
+    staticTypeContext = new ir.StaticTypeContext(node, typeEnvironment);
     variableScopeModel =
         new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitConstructor(node);
     variableScopeModel = null;
+    staticTypeContext = null;
   }
 }
 
@@ -292,9 +301,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
       enclosingClass = enclosingClass.parent;
     }
     try {
-      typeEnvironment.thisType =
-          enclosingClass is ir.Class ? enclosingClass.thisType : null;
-      return node.getStaticType(typeEnvironment);
+      return node.getStaticType(staticTypeContext);
     } catch (e) {
       // The static type computation crashes on type errors. Use `dynamic`
       // as static type.

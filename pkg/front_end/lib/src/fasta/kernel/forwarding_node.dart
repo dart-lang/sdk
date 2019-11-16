@@ -381,7 +381,9 @@ class ForwardingNode {
 
   Substitution _substitutionFor(Member candidate, Class class_) {
     return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-        class_.thisType, candidate.enclosingClass));
+        hierarchy.coreTypes
+            .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
+        candidate.enclosingClass));
   }
 
   List<VariableDeclaration> getPositionalParameters(Member member) {

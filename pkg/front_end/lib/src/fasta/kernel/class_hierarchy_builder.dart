@@ -2082,7 +2082,9 @@ class DelayedOverrideCheck {
           if (type != null) {
             type = Substitution.fromInterfaceType(
                     hierarchy.getKernelTypeAsInstanceOf(
-                        classBuilder.cls.thisType, b.member.enclosingClass))
+                        hierarchy.coreTypes.thisInterfaceType(
+                            classBuilder.cls, classBuilder.library.nonNullable),
+                        b.member.enclosingClass))
                 .substituteType(type);
             if (!a.hadTypesInferred || !b.isSetter) {
               inferReturnType(
@@ -2104,7 +2106,9 @@ class DelayedOverrideCheck {
           if (type != null) {
             type = Substitution.fromInterfaceType(
                     hierarchy.getKernelTypeAsInstanceOf(
-                        classBuilder.cls.thisType, b.member.enclosingClass))
+                        hierarchy.coreTypes.thisInterfaceType(
+                            classBuilder.cls, classBuilder.library.nonNullable),
+                        b.member.enclosingClass))
                 .substituteType(type);
             if (!a.hadTypesInferred || !b.isGetter) {
               inferParameterType(classBuilder, a, a.formals.single, type,
@@ -2128,7 +2132,9 @@ class DelayedOverrideCheck {
         if (type != null) {
           type = Substitution.fromInterfaceType(
                   hierarchy.getKernelTypeAsInstanceOf(
-                      classBuilder.cls.thisType, b.member.enclosingClass))
+                      hierarchy.coreTypes.thisInterfaceType(
+                          classBuilder.cls, classBuilder.library.nonNullable),
+                      b.member.enclosingClass))
               .substituteType(type);
           if (type != a.fieldType) {
             if (a.hadTypesInferred) {
@@ -2331,7 +2337,8 @@ class InterfaceConflict extends DelayedMember {
     if (classBuilder.library is! SourceLibraryBuilder) {
       return combinedMemberSignatureResult = declarations.first.member;
     }
-    DartType thisType = classBuilder.cls.thisType;
+    DartType thisType = hierarchy.coreTypes
+        .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
     ClassMember bestSoFar;
     DartType bestTypeSoFar;
     for (int i = declarations.length - 1; i >= 0; i--) {

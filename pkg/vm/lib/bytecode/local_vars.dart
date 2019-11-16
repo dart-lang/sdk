@@ -25,7 +25,7 @@ class LocalVariables {
   Map<TreeNode, VariableDeclaration> _capturedStackTraceVars;
   Map<ForInStatement, VariableDeclaration> _capturedIteratorVars;
   final BytecodeOptions options;
-  final TypeEnvironment typeEnvironment;
+  final StaticTypeContext staticTypeContext;
   final Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   Scope _currentScope;
@@ -190,7 +190,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.typeEnvironment,
+  LocalVariables(Member node, this.options, this.staticTypeContext,
       this.directCallMetadata) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
@@ -1225,7 +1225,8 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     int numTemps = 0;
-    if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
+    if (isUncheckedClosureCall(
+        node, locals.staticTypeContext, locals.options)) {
       numTemps = 1;
     } else if (isCallThroughGetter(node.interfaceTarget)) {
       final args = node.arguments;
