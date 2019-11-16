@@ -894,11 +894,6 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
-  void UpdateAllocationStats(intptr_t cid);
-
-  void UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg);
-  void UpdateAllocationStatsWithSize(intptr_t cid, intptr_t instance_size);
-
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(intptr_t cid, Label* trace, bool near_jump);

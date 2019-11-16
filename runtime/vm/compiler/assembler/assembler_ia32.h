@@ -810,15 +810,6 @@ class Assembler : public AssemblerBase {
                             Label* trace,
                             bool near_jump);
 
-  void UpdateAllocationStats(intptr_t cid, Register temp_reg);
-
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     Register size_reg,
-                                     Register temp_reg);
-  void UpdateAllocationStatsWithSize(intptr_t cid,
-                                     intptr_t instance_size,
-                                     Register temp_reg);
-
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.

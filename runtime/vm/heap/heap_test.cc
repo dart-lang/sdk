@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/object_graph.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -81,21 +82,6 @@ TEST_CASE(LargeSweep) {
 }
 
 #ifndef PRODUCT
-class ClassHeapStatsTestHelper {
- public:
-  static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
-                                            intptr_t cid) {
-    return class_table->shared_class_table()->PreliminaryStatsAt(cid);
-  }
-
-  static void DumpClassHeapStats(ClassHeapStats* stats) {
-    OS::PrintErr("%" Pd " ", stats->recent.new_count.load());
-    OS::PrintErr("%" Pd " ", stats->post_gc.new_count.load());
-    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count.load());
-    OS::PrintErr("\n");
-  }
-};
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
@@ -114,8 +100,6 @@ TEST_CASE(ClassHeapStats) {
       "  var x = new A();\n"
       "  return new A();\n"
       "}\n";
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
@@ -123,7 +107,7 @@ TEST_CASE(ClassHeapStats) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNull(result));
-  ClassHeapStats* class_stats;
+  intptr_t cid;
   {
     TransitionNativeToVM transition(thread);
     Library& lib = Library::Handle();
@@ -131,59 +115,69 @@ TEST_CASE(ClassHeapStats) {
     EXPECT(!lib.IsNull());
     const Class& cls = Class::Handle(GetClass(lib, "A"));
     ASSERT(!cls.IsNull());
-    intptr_t cid = cls.id();
-    class_stats =
-        ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-    // Verify preconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    EXPECT_EQ(0, class_stats->pre_gc.new_count);
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // Class allocated twice since GC from new space.
-    EXPECT_EQ(2, class_stats->recent.new_count);
+    cid = cls.id();
+
+    {
+      // Verify preconditions: allocated twice in new space.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(2, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
+
     // Perform GC.
     GCTestHelper::CollectNewSpace();
-    // Verify postconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    // Total allocations before GC.
-    EXPECT_EQ(2, class_stats->pre_gc.new_count);
-    // Only one survived.
-    EXPECT_EQ(1, class_stats->post_gc.new_count);
-    EXPECT_EQ(0, class_stats->recent.new_count);
+
+    {
+      // Verify postconditions: Only one survived.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(1, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
+
     // Perform GC. The following is heavily dependent on the behaviour
     // of the GC: Retained instance of A will be promoted.
     GCTestHelper::CollectNewSpace();
-    // Verify postconditions:
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    // One promoted instance.
-    EXPECT_EQ(1, class_stats->promoted_count);
-    // Promotion counted as an allocation from old space.
-    EXPECT_EQ(1, class_stats->recent.old_count);
-    // There was one instance allocated before GC.
-    EXPECT_EQ(1, class_stats->pre_gc.new_count);
-    // There are no instances allocated in new space after GC.
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // No new allocations.
-    EXPECT_EQ(0, class_stats->recent.new_count);
+
+    {
+      // Verify postconditions: One promoted instance.
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
+
     // Perform a GC on new space.
     GCTestHelper::CollectNewSpace();
-    // There were no instances allocated before GC.
-    EXPECT_EQ(0, class_stats->pre_gc.new_count);
-    // There are no instances allocated in new space after GC.
-    EXPECT_EQ(0, class_stats->post_gc.new_count);
-    // No new allocations.
-    EXPECT_EQ(0, class_stats->recent.new_count);
-    // Nothing was promoted.
-    EXPECT_EQ(0, class_stats->promoted_count);
+
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
+
     GCTestHelper::CollectOldSpace();
-    // Verify postconditions:
-    EXPECT_EQ(1, class_stats->pre_gc.old_count);
-    EXPECT_EQ(1, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
+
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(1, visitor.old_count_[cid]);
+    }
   }
   // Exit scope, freeing instance.
   Dart_ExitScope();
@@ -191,52 +185,16 @@ TEST_CASE(ClassHeapStats) {
     TransitionNativeToVM transition(thread);
     // Perform GC.
     GCTestHelper::CollectOldSpace();
-    // Verify postconditions:
-    EXPECT_EQ(1, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
-    // Perform GC.
-    GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(0, class_stats->pre_gc.old_count);
-    EXPECT_EQ(0, class_stats->post_gc.old_count);
-    EXPECT_EQ(0, class_stats->recent.old_count);
+    {
+      // Verify postconditions:
+      CountObjectsVisitor visitor(thread, class_table->NumCids());
+      HeapIterationScope iter(thread);
+      iter.IterateObjects(&visitor);
+      isolate->VisitWeakPersistentHandles(&visitor);
+      EXPECT_EQ(0, visitor.new_count_[cid]);
+      EXPECT_EQ(0, visitor.old_count_[cid]);
+    }
   }
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
-}
-
-TEST_CASE(ArrayHeapStats) {
-  const char* kScriptChars =
-      "List f(int len) {\n"
-      "  return new List(len);\n"
-      "}\n"
-      ""
-      "main() {\n"
-      "  return f(1234);\n"
-      "}\n";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  intptr_t cid = kArrayCid;
-  ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
-  Dart_EnterScope();
-  // Invoke 'main' twice, since initial compilation might trigger extra array
-  // allocations.
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(!Dart_IsNull(result));
-  intptr_t before = class_stats->recent.new_size;
-  Dart_Handle result2 = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(result2);
-  EXPECT(!Dart_IsNull(result2));
-  intptr_t after = class_stats->recent.new_size;
-  const intptr_t expected_size = Array::InstanceSize(1234);
-  // Invoking the method might involve some additional tiny array allocations,
-  // so we allow slightly more than expected.
-  static const intptr_t kTolerance = 10 * kWordSize;
-  EXPECT_LE(expected_size, after - before);
-  EXPECT_GT(expected_size + kTolerance, after - before);
-  Dart_ExitScope();
 }
 #endif  // !PRODUCT
 
@@ -666,14 +624,14 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
       HeapTestHelper::Scavenge(thread);
     }
 
-    ClassHeapStats* stats = ClassHeapStatsTestHelper::GetHeapStatsForCid(
-        isolate->class_table(), kArrayCid);
-    EXPECT_LE(
-        stats->post_gc.old_external_size + stats->recent.old_external_size,
-        heap->old_space()->ExternalInWords() * kWordSize);
-    EXPECT_LE(
-        stats->post_gc.new_external_size + stats->recent.new_external_size,
-        heap->new_space()->ExternalInWords() * kWordSize);
+    CountObjectsVisitor visitor(thread, isolate->class_table()->NumCids());
+    HeapIterationScope iter(thread);
+    iter.IterateObjects(&visitor);
+    isolate->VisitWeakPersistentHandles(&visitor);
+    EXPECT_LE(visitor.old_external_size_[kArrayCid],
+              heap->old_space()->ExternalInWords() * kWordSize);
+    EXPECT_LE(visitor.new_external_size_[kArrayCid],
+              heap->new_space()->ExternalInWords() * kWordSize);
   }
 }
 #endif  // !defined(PRODUCT)

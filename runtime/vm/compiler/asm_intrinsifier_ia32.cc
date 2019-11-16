@@ -128,7 +128,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movl(Address(THR, target::Thread::top_offset()), EBX);                    \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));             \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -1998,8 +1997,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EDI, ECX));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.

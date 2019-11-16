@@ -536,9 +536,6 @@ bool PageSpace::CurrentThreadOwnsDataLock() {
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   usage_.external_in_words += size_in_words;
-  NOT_IN_PRODUCT(
-      heap_->isolate()->shared_class_table()->UpdateAllocatedExternalOld(cid,
-                                                                         size));
 }
 
 void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
@@ -1097,7 +1094,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
     return;
   }
 
-  NOT_IN_PRODUCT(isolate->shared_class_table()->ResetCountersOld());
   marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;

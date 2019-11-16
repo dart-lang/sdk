@@ -275,9 +275,6 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   const intptr_t remaining = thread->end() - start;
   if (LIKELY(remaining >= instance_size)) {
     thread->set_top(start + instance_size);
-#ifndef PRODUCT
-    table->UpdateAllocatedNew(class_id, instance_size);
-#endif
     *result = InitializeHeader(start, class_id, instance_size);
     return true;
   }

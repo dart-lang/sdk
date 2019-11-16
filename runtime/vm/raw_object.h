@@ -16,7 +16,6 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
-#include "vm/object_graph.h"
 #include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"

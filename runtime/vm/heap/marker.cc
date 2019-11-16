@@ -394,16 +394,6 @@ class MarkingWeakVisitor : public HandleVisitor {
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
       handle->UpdateUnreachable(thread()->isolate());
-    } else {
-#ifndef PRODUCT
-      intptr_t cid = raw_obj->GetClassIdMayBeSmi();
-      intptr_t size = handle->external_size();
-      if (raw_obj->IsSmiOrOldObject()) {
-        class_table_->UpdateLiveOldExternal(cid, size);
-      } else {
-        class_table_->UpdateLiveNewExternal(cid, size);
-      }
-#endif  // !PRODUCT
     }
   }
 
@@ -731,18 +721,6 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
     marked_micros_ += visitor->marked_micros();
-#ifndef PRODUCT
-    // Class heap stats are not themselves thread-safe yet, so we update the
-    // stats while holding stats_mutex_.
-    auto table = heap_->isolate()->shared_class_table();
-    for (intptr_t i = 0; i < table->NumCids(); ++i) {
-      const intptr_t count = visitor->live_count(i);
-      if (count > 0) {
-        const intptr_t size = visitor->live_size(i);
-        table->UpdateLiveOld(i, size, count);
-      }
-    }
-#endif  // !PRODUCT
   }
   visitor->Finalize();
 }

@@ -2331,11 +2331,6 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   }
 #ifndef PRODUCT
   auto class_table = thread->isolate()->shared_class_table();
-  if (space == Heap::kNew) {
-    class_table->UpdateAllocatedNew(cls_id, size);
-  } else {
-    class_table->UpdateAllocatedOld(cls_id, size);
-  }
   if (class_table->TraceAllocationFor(cls_id)) {
     Profiler::SampleAllocation(thread, cls_id);
   }

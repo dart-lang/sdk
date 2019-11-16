@@ -164,14 +164,6 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
       }
     }
   }
-  {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    const ClassHeapStats* stats = class_table->StatsWithUpdatedSize(id());
-    if (stats != NULL) {
-      JSONObject allocation_stats(&jsobj, "_allocationStats");
-      stats->PrintToJSONObject(*this, &allocation_stats, /*internal*/ true);
-    }
-  }
 }
 
 void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {

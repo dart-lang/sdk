@@ -1123,7 +1123,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // next object start and initialize the object.
   __ movq(Address(THR, target::Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));
+
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -1553,7 +1553,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     __ subq(R13, RAX);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R13));
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1871,7 +1870,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(THR, target::Thread::top_offset()), RBX);
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(target::Class::GetId(cls)));
 
     // RAX: new object start (untagged).
     // RBX: next object start.

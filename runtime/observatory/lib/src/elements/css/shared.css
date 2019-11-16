@@ -399,7 +399,7 @@ button.big {
 
 .allocation-profile .heap-space {
   display: inline-block;
-  width: 50%;
+  width: 33%;
 }
 
 .allocation-profile .heap-space.right,
@@ -499,33 +499,41 @@ button.big {
 }
 
 .allocation-profile .collection-item :nth-child(2n+2).group,
-.allocation-profile .collection-item :nth-child(4n+3),
-.allocation-profile .collection-item :nth-child(4n+4) {
+.allocation-profile .collection-item :nth-child(8n+1),
+.allocation-profile .collection-item :nth-child(8n+2),
+.allocation-profile .collection-item :nth-child(8n+3),
+.allocation-profile .collection-item :nth-child(8n+4) {
   background-color: #EEEEEE;
 }
 
-.allocation-profile .collection-item:hover :nth-child(2n+2).group,
-.allocation-profile .collection-item:hover :nth-child(4n+3),
-.allocation-profile .collection-item:hover :nth-child(4n+4) {
+.allocation-profile .collection-item:hover :nth-child(2n+1).group,
+.allocation-profile .collection-item:hover :nth-child(8n+1),
+.allocation-profile .collection-item:hover :nth-child(8n+2),
+.allocation-profile .collection-item:hover :nth-child(8n+3),
+.allocation-profile .collection-item:hover :nth-child(8n+4) {
   background-color: #afd5fd;
 }
 
-.allocation-profile .header .collection-item :nth-child(2n+1).group,
-.allocation-profile .header .collection-item :nth-child(4n+1),
-.allocation-profile .header .collection-item :nth-child(4n+2) {
+.allocation-profile .header .collection-item :nth-child(2n+2).group,
+.allocation-profile .header .collection-item :nth-child(8n+5),
+.allocation-profile .header .collection-item :nth-child(8n+6),
+.allocation-profile .header .collection-item :nth-child(8n+7),
+.allocation-profile .header .collection-item :nth-child(8n+8) {
   background-color: #FFFFFF;
 }
 
-.allocation-profile .header .collection-item :nth-child(2n+2).group,
-.allocation-profile .header .collection-item :nth-child(4n+3),
-.allocation-profile .header .collection-item :nth-child(4n+4) {
+.allocation-profile .header .collection-item :nth-child(2n+1).group,
+.allocation-profile .header .collection-item :nth-child(8n+1),
+.allocation-profile .header .collection-item :nth-child(8n+2),
+.allocation-profile .header .collection-item :nth-child(8n+3),
+.allocation-profile .header .collection-item :nth-child(8n+4) {
   background-color: #DDDDDD;
 }
 
 .allocation-profile .collection-item .group {
   display: inline-block;
-  width: 12em;
-  text-align: right;
+  width: 24em;
+  text-align: center;
   padding-right: 0.5em;
   line-height: 20px;
   border-right: solid 1px #AAAAAA;

@@ -1225,7 +1225,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // R7: potential next object start.
   __ str(R7, Address(THR, target::Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R3));
 
   // R0: new object start as a tagged pointer.
   // R1: array element type.
@@ -1648,7 +1647,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     __ str(R3, Address(THR, target::Thread::top_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));
 
     // Calculate the size tag.
     // R0: new object.

@@ -3497,9 +3497,8 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
   ASSERT(stats_addr_reg != kNoRegister);
   ASSERT(stats_addr_reg != TMP);
-  const uword state_offset = target::ClassHeapStats::state_offset();
-  ldr(TMP, Address(stats_addr_reg, state_offset));
-  tst(TMP, Operand(target::ClassHeapStats::TraceAllocationMask()));
+  ldrb(TMP, Address(stats_addr_reg, 0));
+  cmp(TMP, Operand(0));
   b(trace, NE);
 }
 
@@ -3519,37 +3518,6 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ldr(dest, Address(dest, shared_table_offset));
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
-}
-
-void Assembler::IncrementAllocationStats(Register stats_addr_reg,
-                                         intptr_t cid) {
-  ASSERT(stats_addr_reg != kNoRegister);
-  ASSERT(stats_addr_reg != TMP);
-  ASSERT(cid > 0);
-  const uword count_field_offset =
-      target::ClassHeapStats::allocated_since_gc_new_space_offset();
-  const Address& count_address = Address(stats_addr_reg, count_field_offset);
-  ldr(TMP, count_address);
-  AddImmediate(TMP, 1);
-  str(TMP, count_address);
-}
-
-void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
-                                                 Register size_reg) {
-  ASSERT(stats_addr_reg != kNoRegister);
-  ASSERT(stats_addr_reg != TMP);
-  const uword count_field_offset =
-      target::ClassHeapStats::allocated_since_gc_new_space_offset();
-  const uword size_field_offset =
-      target::ClassHeapStats::allocated_size_since_gc_new_space_offset();
-  const Address& count_address = Address(stats_addr_reg, count_field_offset);
-  const Address& size_address = Address(stats_addr_reg, size_field_offset);
-  ldr(TMP, count_address);
-  AddImmediate(TMP, 1);
-  str(TMP, count_address);
-  ldr(TMP, size_address);
-  add(TMP, TMP, Operand(size_reg));
-  str(TMP, size_address);
 }
 #endif  // !PRODUCT
 
@@ -3592,8 +3560,6 @@ void Assembler::TryAllocate(const Class& cls,
         target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, target::Object::tags_offset()));
-
-    NOT_IN_PRODUCT(IncrementAllocationStats(temp_reg, cid));
   } else {
     b(failure);
   }
@@ -3638,9 +3604,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     LoadImmediate(temp2, tags);
     str(temp2,
         FieldAddress(instance, target::Object::tags_offset()));  // Store tags.
-
-    NOT_IN_PRODUCT(LoadImmediate(temp2, instance_size));
-    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp1, temp2));
   } else {
     b(failure);
   }

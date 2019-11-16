@@ -1572,62 +1572,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
       target::ClassTable::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   LoadIsolate(temp_reg);
   ldr(temp_reg, Address(temp_reg, shared_table_offset));
   ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, state_offset);
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(target::ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
-
-void Assembler::UpdateAllocationStats(intptr_t cid) {
-  ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t counter_offset =
-      target::ClassTable::NewSpaceCounterOffsetFor(cid);
-
-  LoadIsolate(TMP2);
-  ldr(TMP2, Address(TMP2, shared_table_offset));
-  ldr(TMP, Address(TMP2, table_offset));
-  AddImmediate(TMP2, TMP, counter_offset);
-  ldr(TMP, Address(TMP2, 0));
-  AddImmediate(TMP, 1);
-  str(TMP, Address(TMP2, 0));
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
-  ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-
-  const uword class_offset = target::ClassTable::ClassOffsetFor(cid);
-  const uword count_field_offset =
-      target::ClassHeapStats::allocated_since_gc_new_space_offset();
-  const uword size_field_offset =
-      target::ClassHeapStats::allocated_size_since_gc_new_space_offset();
-
-  LoadIsolate(TMP2);
-  ldr(TMP2, Address(TMP2, shared_table_offset));
-  ldr(TMP, Address(TMP2, table_offset));
-  AddImmediate(TMP2, TMP, class_offset);
-  ldr(TMP, Address(TMP2, count_field_offset));
-  AddImmediate(TMP, 1);
-  str(TMP, Address(TMP2, count_field_offset));
-  ldr(TMP, Address(TMP2, size_field_offset));
-  add(TMP, TMP, Operand(size_reg));
-  str(TMP, Address(TMP2, size_field_offset));
+  AddImmediate(temp_reg, class_offset);
+  ldr(temp_reg, Address(temp_reg, 0), kUnsignedByte);
+  cbnz(trace, temp_reg);
 }
 #endif  // !PRODUCT
 
@@ -1662,8 +1614,6 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(top_reg, Address(THR, target::Thread::top_offset()));
-
-    NOT_IN_PRODUCT(UpdateAllocationStats(cid));
 
     const uint32_t tags =
         target::MakeTagWordForNewSpaceObject(cid, instance_size);
@@ -1710,7 +1660,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(end_address, Address(THR, target::Thread::top_offset()));
     add(instance, instance, Operand(kHeapObjectTag));
     NOT_IN_PRODUCT(LoadImmediate(temp2, instance_size));
-    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

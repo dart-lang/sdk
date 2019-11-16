@@ -1895,16 +1895,6 @@ void Precompiler::DropClasses() {
     constants = cls.constants();
     ASSERT(constants.Length() == 0);
 
-#if !defined(PRODUCT)
-    intptr_t instances =
-        class_table->StatsWithUpdatedSize(cid)->post_gc.new_count +
-        class_table->StatsWithUpdatedSize(cid)->post_gc.old_count;
-    if (instances != 0) {
-      FATAL2("Want to drop class %s, but it has %" Pd " instances\n",
-             cls.ToCString(), instances);
-    }
-#endif
-
     dropped_class_count_++;
     if (FLAG_trace_precompiler) {
       THR_Print("Dropping class %" Pd " %s\n", cid, cls.ToCString());

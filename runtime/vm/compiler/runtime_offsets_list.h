@@ -65,11 +65,6 @@
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, type_arguments_field_offset_in_words_offset)                    \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, TraceAllocationMask))                   \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, allocated_since_gc_new_space_offset))   \
-  NOT_IN_PRODUCT(                                                              \
-      FIELD(ClassHeapStats, allocated_size_since_gc_new_space_offset))         \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, state_offset))                          \
   FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
   NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
@@ -236,14 +231,6 @@
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, NewSpaceCounterOffsetFor, ClassOffsetFor,                    \
-      ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(ClassTable, StateOffsetFor, ClassOffsetFor, \
-                                   ClassHeapStats::state_offset()))            \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
-      ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \

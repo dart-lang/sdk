@@ -15,7 +15,6 @@
 namespace dart {
 
 class Class;
-class ClassStats;
 class ClassTable;
 class Isolate;
 class IsolateGroup;
@@ -44,148 +43,6 @@ class ClassAndSize {
   friend class ClassTable;
   friend class IsolateReloadContext;  // For VisitObjectPointers.
 };
-
-#ifndef PRODUCT
-template <typename T>
-class AllocStats {
- public:
-  RelaxedAtomic<T> new_count;
-  RelaxedAtomic<T> new_size;
-  RelaxedAtomic<T> new_external_size;
-  RelaxedAtomic<T> old_count;
-  RelaxedAtomic<T> old_size;
-  RelaxedAtomic<T> old_external_size;
-
-  void ResetNew() {
-    new_count = 0;
-    new_size = 0;
-    new_external_size = 0;
-    old_external_size = 0;
-  }
-
-  void AddNew(T size) {
-    new_count.fetch_add(1);
-    new_size.fetch_add(size);
-  }
-
-  void AddNewGC(T size) {
-    new_count.fetch_add(1);
-    new_size.fetch_add(size);
-  }
-
-  void AddNewExternal(T size) { new_external_size.fetch_add(size); }
-
-  void ResetOld() {
-    old_count = 0;
-    old_size = 0;
-    old_external_size = 0;
-    new_external_size = 0;
-  }
-
-  void AddOld(T size, T count = 1) {
-    old_count.fetch_add(count);
-    old_size.fetch_add(size);
-  }
-
-  void AddOldGC(T size, T count = 1) {
-    old_count.fetch_add(count);
-    old_size.fetch_add(size);
-  }
-
-  void AddOldExternal(T size) { old_external_size.fetch_add(size); }
-
-  void Reset() {
-    ResetNew();
-    ResetOld();
-  }
-
-  // For classes with fixed instance size we do not emit code to update
-  // the size statistics. Update them by calling this method.
-  void UpdateSize(intptr_t instance_size) {
-    ASSERT(instance_size > 0);
-    old_size = old_count * instance_size;
-    new_size = new_count * instance_size;
-  }
-
-  void Verify() {
-    ASSERT(new_count >= 0);
-    ASSERT(new_size >= 0);
-    ASSERT(new_external_size >= 0);
-    ASSERT(old_count >= 0);
-    ASSERT(old_size >= 0);
-    ASSERT(old_external_size >= 0);
-  }
-};
-
-class ClassHeapStats {
- public:
-  // Snapshot before GC.
-  AllocStats<intptr_t> pre_gc;
-  // Live after GC.
-  AllocStats<intptr_t> post_gc;
-  // Allocations since the last GC.
-  AllocStats<intptr_t> recent;
-  // Accumulated (across GC) allocations .
-  AllocStats<int64_t> accumulated;
-  // Snapshot of recent at the time of the last reset.
-  AllocStats<intptr_t> last_reset;
-  // Promoted from new to old by last new GC.
-  intptr_t promoted_count;
-  intptr_t promoted_size;
-
-  static intptr_t allocated_since_gc_new_space_offset() {
-    return OFFSET_OF(ClassHeapStats, recent) +
-           OFFSET_OF(AllocStats<intptr_t>, new_count);
-  }
-  static intptr_t allocated_since_gc_old_space_offset() {
-    return OFFSET_OF(ClassHeapStats, recent) +
-           OFFSET_OF(AllocStats<intptr_t>, old_count);
-  }
-  static intptr_t allocated_size_since_gc_new_space_offset() {
-    return OFFSET_OF(ClassHeapStats, recent) +
-           OFFSET_OF(AllocStats<intptr_t>, new_size);
-  }
-  static intptr_t allocated_size_since_gc_old_space_offset() {
-    return OFFSET_OF(ClassHeapStats, recent) +
-           OFFSET_OF(AllocStats<intptr_t>, old_size);
-  }
-  static intptr_t state_offset() { return OFFSET_OF(ClassHeapStats, state_); }
-  static intptr_t TraceAllocationMask() { return (1 << kTraceAllocationBit); }
-
-  void Initialize();
-  void ResetAtNewGC();
-  void ResetAtOldGC();
-  void ResetAccumulator();
-  void UpdatePromotedAfterNewGC();
-  void UpdateSize(intptr_t instance_size);
-#ifndef PRODUCT
-  void PrintToJSONObject(const Class& cls,
-                         JSONObject* obj,
-                         bool internal) const;
-#endif
-  void Verify();
-
-  bool trace_allocation() const { return TraceAllocationBit::decode(state_); }
-
-  void set_trace_allocation(bool trace_allocation) {
-    state_ = TraceAllocationBit::update(trace_allocation, state_);
-  }
-
- private:
-  enum StateBits {
-    kTraceAllocationBit = 0,
-  };
-
-  class TraceAllocationBit
-      : public BitField<intptr_t, bool, kTraceAllocationBit, 1> {};
-
-  // Recent old at start of last new GC (used to compute promoted_*).
-  intptr_t old_pre_new_gc_count_;
-  intptr_t old_pre_new_gc_size_;
-  intptr_t state_;
-  intptr_t align_;  // Make SIMARM and ARM agree on the size of ClassHeapStats.
-};
-#endif  // !PRODUCT
 
 // Registry of all known classes and their sizes.
 //
@@ -227,12 +84,18 @@ class SharedClassTable {
     top_ = num_cids;
   }
 
-  // Called whenever a old GC occurs.
-  void ResetCountersOld();
-  // Called whenever a new GC occurs.
-  void ResetCountersNew();
-  // Called immediately after a new GC.
-  void UpdatePromoted();
+#if !defined(PRODUCT)
+  void SetTraceAllocationFor(intptr_t cid, bool trace) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    trace_allocation_table_[cid] = trace ? 1 : 0;
+  }
+  bool TraceAllocationFor(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return trace_allocation_table_[cid] != 0;
+  }
+#endif  // !defined(PRODUCT)
 
   void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
     // The [IsolateGroupReloadContext] will need to maintain a copy of the old
@@ -270,44 +133,11 @@ class SharedClassTable {
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
-#if !defined(PRODUCT)
-  // Called whenever a class is allocated in the runtime.
-  void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    ASSERT(stats != NULL);
-    ASSERT(size != 0);
-    stats->recent.AddNew(size);
-  }
-  void UpdateAllocatedOld(intptr_t cid, intptr_t size) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    ASSERT(stats != NULL);
-    ASSERT(size != 0);
-    stats->recent.AddOld(size);
-  }
-  void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
-  void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
-  void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
-
-  void ResetAllocationAccumulators();
-
-  void SetTraceAllocationFor(intptr_t cid, bool trace) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    stats->set_trace_allocation(trace);
-  }
-  bool TraceAllocationFor(intptr_t cid) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    return stats->trace_allocation();
-  }
-
-  ClassHeapStats* StatsWithUpdatedSize(intptr_t cid, intptr_t size);
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool IsReloading() const { return reload_context_ != nullptr; }
 
   IsolateGroupReloadContext* reload_context() { return reload_context_; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-#endif  // !defined(PRODUCT)
 
   // Returns the newly allocated cid.
   //
@@ -321,21 +151,12 @@ class SharedClassTable {
   // Used by the generated code.
 #ifndef PRODUCT
   static intptr_t class_heap_stats_table_offset() {
-    return OFFSET_OF(SharedClassTable, class_heap_stats_table_);
+    return OFFSET_OF(SharedClassTable, trace_allocation_table_);
   }
 #endif
 
   // Used by the generated code.
   static intptr_t ClassOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t NewSpaceCounterOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t StateOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t NewSpaceSizeOffsetFor(intptr_t cid);
 
   static const int kInitialCapacity = 512;
   static const int kCapacityIncrement = 256;
@@ -346,25 +167,11 @@ class SharedClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
-  friend class ClassHeapStatsTestHelper;
-  friend class HeapTestsHelper;
 
   static bool ShouldUpdateSizeForClassId(intptr_t cid);
 
 #ifndef PRODUCT
-  // May not have updated size for variable size classes.
-  ClassHeapStats* PreliminaryStatsAt(intptr_t cid) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    return &class_heap_stats_table_[cid];
-  }
-  void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
-  void UpdateLiveNew(intptr_t cid, intptr_t size);
-  void UpdateLiveNewGC(intptr_t cid, intptr_t size);
-  void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
-  void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
-
-  ClassHeapStats* class_heap_stats_table_ = nullptr;
+  uint8_t* trace_allocation_table_ = nullptr;
 #endif  // !PRODUCT
 
   void AddOldTable(intptr_t* old_table);
@@ -494,13 +301,11 @@ class ClassTable {
   struct ArrayLayout {
     static intptr_t elements_start_offset() { return 0; }
 
-    static constexpr intptr_t kElementSize = sizeof(ClassHeapStats);
+    static constexpr intptr_t kElementSize = sizeof(uint8_t);
   };
 #endif
 
 #ifndef PRODUCT
-
-  ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 
   void AllocationProfilePrintJSON(JSONStream* stream, bool internal);
 
@@ -515,8 +320,6 @@ class ClassTable {
   friend class MarkingWeakVisitor;
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
-  friend class ClassHeapStatsTestHelper;
-  friend class HeapTestsHelper;
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 

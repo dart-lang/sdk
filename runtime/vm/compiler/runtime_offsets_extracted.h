@@ -77,13 +77,6 @@ static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
     Class_type_arguments_field_offset_in_words_offset = 96;
 static constexpr dart::compiler::target::word
-    ClassHeapStats_TraceAllocationMask = 1;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_since_gc_new_space_offset = 48;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_size_since_gc_new_space_offset = 52;
-static constexpr dart::compiler::target::word ClassHeapStats_state_offset = 160;
-static constexpr dart::compiler::target::word
     ClassTable_shared_class_table_offset = 16;
 static constexpr dart::compiler::target::word ClassTable_table_offset = 8;
 static constexpr dart::compiler::target::word
@@ -344,7 +337,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
     0;
-static constexpr dart::compiler::target::word ClassTable_element_size = 168;
+static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -437,13 +430,6 @@ static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
 static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
     Class_type_arguments_field_offset_in_words_offset = 180;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_TraceAllocationMask = 1;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_since_gc_new_space_offset = 96;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_size_since_gc_new_space_offset = 104;
-static constexpr dart::compiler::target::word ClassHeapStats_state_offset = 272;
 static constexpr dart::compiler::target::word
     ClassTable_shared_class_table_offset = 32;
 static constexpr dart::compiler::target::word ClassTable_table_offset = 16;
@@ -707,7 +693,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
     0;
-static constexpr dart::compiler::target::word ClassTable_element_size = 288;
+static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
@@ -798,13 +784,6 @@ static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
 static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
     Class_type_arguments_field_offset_in_words_offset = 96;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_TraceAllocationMask = 1;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_since_gc_new_space_offset = 48;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_size_since_gc_new_space_offset = 52;
-static constexpr dart::compiler::target::word ClassHeapStats_state_offset = 160;
 static constexpr dart::compiler::target::word
     ClassTable_shared_class_table_offset = 16;
 static constexpr dart::compiler::target::word ClassTable_table_offset = 8;
@@ -1066,7 +1045,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
     0;
-static constexpr dart::compiler::target::word ClassTable_element_size = 168;
+static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
@@ -1155,13 +1134,6 @@ static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
 static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
     Class_type_arguments_field_offset_in_words_offset = 180;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_TraceAllocationMask = 1;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_since_gc_new_space_offset = 96;
-static constexpr dart::compiler::target::word
-    ClassHeapStats_allocated_size_since_gc_new_space_offset = 104;
-static constexpr dart::compiler::target::word ClassHeapStats_state_offset = 272;
 static constexpr dart::compiler::target::word
     ClassTable_shared_class_table_offset = 32;
 static constexpr dart::compiler::target::word ClassTable_table_offset = 16;
@@ -1425,7 +1397,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
     0;
-static constexpr dart::compiler::target::word ClassTable_element_size = 288;
+static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word

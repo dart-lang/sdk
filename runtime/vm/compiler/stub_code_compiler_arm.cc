@@ -1123,13 +1123,11 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
   __ str(NOTFP, Address(THR, target::Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
-  // R3: allocation stats address.
   // NOTFP: new object end address.
   // R9: allocation size.
   {
@@ -1161,13 +1159,11 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
-  // R3: allocation stats address.
   // R8, R9: null
   // R4: iterator which initially points to the start of the variable
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9));
 
   __ LoadObject(R8, NullObject());
   __ mov(R9, Operand(R8));
@@ -1518,7 +1514,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
     __ str(R3, Address(THR, target::Thread::top_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -1527,7 +1522,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
     __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
@@ -1549,7 +1543,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables as integer value (not object).
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
 
     // Setup the parent field.
@@ -1557,7 +1550,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     __ LoadObject(R8, NullObject());
     __ MoveRegister(R9, R8);  // Needed for InitializeFieldsNoBarrier.
     __ StoreIntoObjectNoBarrier(
@@ -1569,12 +1561,10 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R8, R9: raw null.
-    // R4: allocation stats address.
     Label loop;
     __ AddImmediate(NOTFP, R0,
                     target::Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1849,12 +1839,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     }
     __ str(kEndOfInstanceReg, Address(THR, target::Thread::top_offset()));
 
-    // Load the address of the allocation stats table. We split up the load
-    // and the increment so that the dependent load is not too nearby.
-    NOT_IN_PRODUCT(static Register kAllocationStatsReg = R4);
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(kAllocationStatsReg,
-                                                 target::Class::GetId(cls)));
-
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
     const uint32_t tags = target::MakeTagWordForNewSpaceObject(
@@ -1887,10 +1871,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       __ StoreIntoObjectNoBarrier(
           kInstanceReg, FieldAddress(kInstanceReg, offset), kTypeArgumentsReg);
     }
-
-    // Update allocation stats.
-    NOT_IN_PRODUCT(__ IncrementAllocationStats(kAllocationStatsReg,
-                                               target::Class::GetId(cls)));
 
     __ Ret();
     __ Bind(&slow_case);
