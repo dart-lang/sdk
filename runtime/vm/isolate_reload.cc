@@ -2126,7 +2126,9 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      if (!value.IsInstanceOf(type_, instantiator_type_arguments_,
+      // TODO(regis): Make type check nullability aware.
+      if (!value.IsInstanceOf(NNBDMode::kLegacy, type_,
+                              instantiator_type_arguments_,
                               function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);

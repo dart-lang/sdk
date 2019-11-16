@@ -2263,7 +2263,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
+  if (int_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
     is_non_smi = true;
   }

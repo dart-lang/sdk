@@ -1164,10 +1164,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
-  V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \
-  V(ErrorOnBadType)                                                            \
-  V(ErrorOnBadOverride)                                                        \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \

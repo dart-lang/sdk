@@ -218,7 +218,8 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
       test_succeeded = false;
     } else if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
+      test_succeeded =
+          cls_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -1004,9 +1005,9 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
 
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
-    if (AbstractType::InstantiateAndTestSubtype(&sub_type, &super_type,
-                                                instantiator_type_args,
-                                                function_type_args)) {
+    if (AbstractType::InstantiateAndTestSubtype(
+            NNBDMode::kLegacy, &sub_type, &super_type, instantiator_type_args,
+            function_type_args)) {
       return NULL;
     }
   }
@@ -2930,9 +2931,9 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z,
-        dst_type().InstantiateFrom(*instantiator_type_args, *function_type_args,
-                                   kAllFree, nullptr, Heap::kOld));
+        Z, dst_type().InstantiateFrom(
+               NNBDMode::kLegacy, *instantiator_type_args, *function_type_args,
+               kAllFree, nullptr, Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;
@@ -3242,7 +3243,8 @@ static bool MayBeNumber(CompileType* type) {
   }
   // Note that type 'Number' is a subtype of itself.
   return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
-         compile_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
+         compile_type.IsSubtypeOf(NNBDMode::kLegacy,
+                                  Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has

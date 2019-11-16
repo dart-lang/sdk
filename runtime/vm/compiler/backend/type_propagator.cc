@@ -554,10 +554,12 @@ void CompileType::Union(CompileType* other) {
   }
 
   const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsSubtypeOf(*other_abstract_type, Heap::kOld)) {
+  if (abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *other_abstract_type,
+                                 Heap::kOld)) {
     type_ = other_abstract_type;
     return;
-  } else if (other_abstract_type->IsSubtypeOf(*abstract_type, Heap::kOld)) {
+  } else if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *abstract_type,
+                                              Heap::kOld)) {
     return;  // Nothing to do.
   }
 
@@ -567,7 +569,8 @@ void CompileType::Union(CompileType* other) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
-      if (other_abstract_type->IsSubtypeOf(*type_, Heap::kOld)) {
+      if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *type_,
+                                           Heap::kOld)) {
         // Found suitable supertype: keep type_ only.
         cid_ = kDynamicCid;
         return;
@@ -607,7 +610,8 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
 
   CompileType* preferred_type;
-  if (old_abstract_type->IsSubtypeOf(*new_abstract_type, Heap::kOld)) {
+  if (old_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *new_abstract_type,
+                                     Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
   } else {
@@ -814,7 +818,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsSubtypeOf(type, Heap::kOld);
+  *is_instance = compile_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld);
   return *is_instance;
 }
 
@@ -823,7 +827,7 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
     return false;
   }
 
-  return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
+  return ToAbstractType()->IsSubtypeOf(NNBDMode::kLegacy, other, Heap::kOld);
 }
 
 void CompileType::PrintTo(BufferFormatter* f) const {

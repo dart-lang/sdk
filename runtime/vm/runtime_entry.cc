@@ -385,8 +385,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsInstantiated());
   type =
-      type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           kAllFree, NULL, Heap::kOld);
+      type.InstantiateFrom(NNBDMode::kLegacy, instantiator_type_arguments,
+                           function_type_arguments, kAllFree, NULL, Heap::kOld);
   if (type.IsTypeRef()) {
     type = TypeRef::Cast(type).type();
     ASSERT(!type.IsTypeRef());
@@ -417,7 +417,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   // instantiator can be reused as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity());
   type_arguments = type_arguments.InstantiateAndCanonicalizeFrom(
-      instantiator_type_arguments, function_type_arguments);
+      NNBDMode::kLegacy, instantiator_type_arguments, function_type_arguments);
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -444,7 +444,8 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
 
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
-          &subtype, &supertype, instantiator_type_args, function_type_args)) {
+          NNBDMode::kLegacy, &subtype, &supertype, instantiator_type_args,
+          function_type_args)) {
     return;
   }
 
@@ -537,7 +538,8 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
-      if (!call_function.AreValidArguments(args_desc, NULL)) {
+      if (!call_function.AreValidArguments(NNBDMode::kLegacy, args_desc,
+                                           NULL)) {
         call_function = Function::null();
       }
       break;
@@ -573,9 +575,9 @@ static void PrintTypeCheck(const char* message,
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type =
-        AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments,
-                                                  function_type_arguments,
-                                                  kAllFree, NULL, Heap::kOld));
+        AbstractType::Handle(type.InstantiateFrom(
+            NNBDMode::kLegacy, instantiator_type_arguments,
+            function_type_arguments, kAllFree, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -698,9 +700,9 @@ static void UpdateTypeTestCache(
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(zone, type.raw());
     if (!test_type.IsInstantiated()) {
-      test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       function_type_arguments, kAllFree, NULL,
-                                       Heap::kNew);
+      test_type = type.InstantiateFrom(
+          NNBDMode::kLegacy, instantiator_type_arguments,
+          function_type_arguments, kAllFree, NULL, Heap::kNew);
     }
     const auto& type_class = Class::Handle(zone, test_type.type_class());
     const auto& instance_class_name =
@@ -751,7 +753,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   const Bool& result = Bool::Get(instance.IsInstanceOf(
-      type, instantiator_type_arguments, function_type_arguments));
+      NNBDMode::kLegacy, type, instantiator_type_arguments,
+      function_type_arguments));
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("InstanceOf", instance, type, instantiator_type_arguments,
                    function_type_arguments, result);
@@ -800,7 +803,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   ASSERT(!src_instance.IsNull());     // Already checked in inlined code.
 
   const bool is_instance_of = src_instance.IsInstanceOf(
-      dst_type, instantiator_type_arguments, function_type_arguments);
+      NNBDMode::kLegacy, dst_type, instantiator_type_arguments,
+      function_type_arguments);
 
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("TypeCheck", src_instance, dst_type,
@@ -814,9 +818,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
-      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
-                                          function_type_arguments, kAllFree,
-                                          NULL, Heap::kNew);
+      dst_type = dst_type.InstantiateFrom(
+          NNBDMode::kLegacy, instantiator_type_arguments,
+          function_type_arguments, kAllFree, NULL, Heap::kNew);
       // Note that instantiated dst_type may be malbounded.
     }
     if (dst_name.IsNull()) {
@@ -1221,7 +1225,8 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
+  bool result = receiver.IsInstanceOf(NNBDMode::kLegacy, type,
+                                      Object::null_type_arguments(),
                                       Object::null_type_arguments());
   ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =
@@ -2086,7 +2091,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     while (!cls.IsNull()) {
       function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(args_desc, NULL));
+        ASSERT(!function.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
       function = cls.LookupDynamicFunction(getter_name);

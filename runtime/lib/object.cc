@@ -141,8 +141,9 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
-  const bool is_instance_of = instance.IsInstanceOf(
-      type, instantiator_type_arguments, function_type_arguments);
+  const bool is_instance_of = instance.IsInstanceOf(NNBDMode::kLegacy, type,
+                                                    instantiator_type_arguments,
+                                                    function_type_arguments);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
@@ -166,7 +167,8 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
   ASSERT(type.IsFinalized());
   ASSERT(type.IsInstantiated());
   const bool is_instance_of = instance.IsInstanceOf(
-      type, Object::null_type_arguments(), Object::null_type_arguments());
+      NNBDMode::kLegacy, type, Object::null_type_arguments(),
+      Object::null_type_arguments());
   return Bool::Get(is_instance_of).raw();
 }
 
@@ -223,8 +225,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
-            Heap::kNew);
+            NNBDMode::kLegacy, instance_type_args,
+            Object::null_type_arguments(), kNoneFree, NULL, Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
                                    cur_interface_type_args, interface_cls,
@@ -378,7 +380,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
 
     // The supertype may not be instantiated.
     if (!AbstractType::InstantiateAndTestSubtype(
-            &subtype, &supertype, instantiator_type_args, function_type_args)) {
+            NNBDMode::kLegacy, &subtype, &supertype, instantiator_type_args,
+            function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {

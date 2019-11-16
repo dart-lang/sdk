@@ -1539,8 +1539,8 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   while (!iterate_klass.IsNull()) {
     function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
     if (!function.IsNull()) {
-      if (function.AreValidArguments(type_args_len, argument_count,
-                                     argument_names,
+      if (function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+                                     argument_count, argument_names,
                                      /* error_message = */ NULL)) {
         return function;
       }
@@ -3190,8 +3190,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   instructions += BuildArguments(&argument_names, NULL /* arg count */,
                                  NULL /* positional arg count */,
                                  special_case);  // read arguments.
-  ASSERT(target.AreValidArguments(type_args_len, argument_count, argument_names,
-                                  NULL));
+  ASSERT(target.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+                                  argument_count, argument_names, NULL));
 
   // Special case identical(x, y) call.
   // Note: similar optimization is performed in bytecode flow graph builder -
@@ -3485,7 +3485,8 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   // special case this situation.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
 
-  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, Heap::kOld)) {
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld)) {
     // Evaluate the expression on the left but ignore it's result.
     instructions += Drop();
 

@@ -150,6 +150,8 @@ constexpr bool kDartUseBytecode = false;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
+  P(strong_non_nullable_type_checks, bool, false,                              \
+    "Enable strong non-nullable type checking mode.")                          \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   P(enable_isolate_groups, bool, kDartPrecompiledRuntime,                      \
     "Enable isolate group support.")                                           \

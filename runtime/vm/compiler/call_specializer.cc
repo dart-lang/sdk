@@ -1107,7 +1107,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
+            : Class::IsSubtypeOf(NNBDMode::kLegacy, cls,
+                                 Object::null_type_arguments(), type_class,
                                  Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
@@ -1420,9 +1421,9 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
-    const bool smi_is_subtype =
-        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
-                           Object::null_type_arguments(), Heap::kOld);
+    const bool smi_is_subtype = Class::IsSubtypeOf(
+        NNBDMode::kLegacy, smi_class, Object::null_type_arguments(), type_class,
+        Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
