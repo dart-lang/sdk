@@ -443,10 +443,8 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
 ///     b.y = a.x = v;
 class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
-  final CompilerOptions _options;
-  //HGraph graph;
 
-  SsaAssignmentChaining(this._options, this._closedWorld);
+  SsaAssignmentChaining(this._closedWorld);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -1114,9 +1112,7 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
 /// name would be shorter than repeated references.  These are caches for 'this'
 /// and constant values.
 class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
-  final CompilerOptions _options;
-
-  SsaShareRegionConstants(this._options);
+  SsaShareRegionConstants();
 
   @override
   visitGraph(HGraph graph) {

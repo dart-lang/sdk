@@ -390,10 +390,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
-    runPhase(new SsaAssignmentChaining(_options, _closedWorld));
+    runPhase(new SsaAssignmentChaining(_closedWorld));
     runPhase(new SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));
-    runPhase(new SsaShareRegionConstants(_options));
+    runPhase(new SsaShareRegionConstants());
 
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(generateAtUseSite, controlFlowOperators);

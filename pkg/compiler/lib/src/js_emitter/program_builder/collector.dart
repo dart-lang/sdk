@@ -9,13 +9,10 @@ part of dart2js.js_emitter.program_builder;
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
 class Collector {
-  final CompilerOptions _options;
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
   final CodegenWorld _codegenWorld;
-  // TODO(floitsch): the code-emitter task should not need a namer.
-  final Namer _namer;
   final Emitter _emitter;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
@@ -47,12 +44,10 @@ class Collector {
   final List<ClassEntity> nativeClassesAndSubclasses = <ClassEntity>[];
 
   Collector(
-      this._options,
       this._commonElements,
       this._elementEnvironment,
       this._outputUnitData,
       this._codegenWorld,
-      this._namer,
       this._emitter,
       this._nativeData,
       this._interceptorData,

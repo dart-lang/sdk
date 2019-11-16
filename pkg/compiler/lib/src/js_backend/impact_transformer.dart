@@ -353,7 +353,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 class CodegenImpactTransformer {
   final JClosedWorld _closedWorld;
   final ElementEnvironment _elementEnvironment;
-  final CommonElements _commonElements;
   final BackendImpacts _impacts;
   final NativeData _nativeData;
   final BackendUsage _backendUsage;
@@ -367,7 +366,6 @@ class CodegenImpactTransformer {
   CodegenImpactTransformer(
       this._closedWorld,
       this._elementEnvironment,
-      this._commonElements,
       this._impacts,
       this._nativeData,
       this._backendUsage,

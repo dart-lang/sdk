@@ -808,20 +808,6 @@ class CodegenWorldImpl implements CodegenWorld {
     _invokedSetters.forEach(f);
   }
 
-  bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-      MemberEntity member, JClosedWorld world) {
-    if (selectors == null) return false;
-    for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member)) {
-        SelectorConstraints masks = selectors[selector];
-        if (masks.canHit(member, selector.memberName, world)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   @override
   bool hasInvokedGetter(MemberEntity member) {
     MemberUsage memberUsage = _liveMemberUsage[member];

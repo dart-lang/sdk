@@ -312,7 +312,6 @@ class JsBackendStrategy implements BackendStrategy {
     _codegenImpactTransformer = new CodegenImpactTransformer(
         closedWorld,
         closedWorld.elementEnvironment,
-        closedWorld.commonElements,
         impacts,
         closedWorld.nativeData,
         closedWorld.backendUsage,
