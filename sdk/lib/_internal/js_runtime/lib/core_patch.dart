@@ -1902,7 +1902,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Returns `trunc(this / other)`, with `other != 0`.
-  _BigIntImpl _div(covariant _BigIntImpl other) {
+  _BigIntImpl _div(_BigIntImpl other) {
     assert(other._used > 0);
     if (_used < other._used) {
       return zero;
@@ -2139,16 +2139,16 @@ class _BigIntImpl implements BigInt {
   double operator /(BigInt other) => this.toDouble() / other.toDouble();
 
   /// Relational less than operator.
-  bool operator <(BigInt other) => compareTo(other) < 0;
+  bool operator <(covariant _BigIntImpl other) => compareTo(other) < 0;
 
   /// Relational less than or equal operator.
-  bool operator <=(BigInt other) => compareTo(other) <= 0;
+  bool operator <=(covariant _BigIntImpl other) => compareTo(other) <= 0;
 
   /// Relational greater than operator.
-  bool operator >(BigInt other) => compareTo(other) > 0;
+  bool operator >(covariant _BigIntImpl other) => compareTo(other) > 0;
 
   /// Relational greater than or equal operator.
-  bool operator >=(BigInt other) => compareTo(other) >= 0;
+  bool operator >=(covariant _BigIntImpl other) => compareTo(other) >= 0;
 
   /// Euclidean modulo operator.
   ///
