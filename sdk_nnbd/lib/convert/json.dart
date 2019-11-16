@@ -288,8 +288,6 @@ class JsonEncoder extends Converter<Object?, String> {
     if (other is Utf8Encoder) {
       // The instance check guarantees that `T` is (a subtype of) List<int>,
       // but the static type system doesn't know that, and so we cast.
-      // Cast through dynamic to keep the cast implicit for builds using
-      // unchecked implicit casts.
       return JsonUtf8Encoder(indent, _toEncodable) as Converter<Object?, T>;
     }
     return super.fuse<T>(other);

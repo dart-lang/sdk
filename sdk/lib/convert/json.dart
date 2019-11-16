@@ -281,7 +281,7 @@ class JsonEncoder extends Converter<Object, String> {
   Stream<String> bind(Stream<Object> stream) => super.bind(stream);
 
   Converter<Object, T> fuse<T>(Converter<String, T> other) {
-    if (other is Utf8Encoder && T is List<int>) {
+    if (other is Utf8Encoder) {
       // The instance check guarantees that `T` is (a subtype of) List<int>,
       // but the static type system doesn't know that, and so we cast.
       // Cast through dynamic to keep the cast implicit for builds using
