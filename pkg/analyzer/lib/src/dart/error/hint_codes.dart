@@ -112,7 +112,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `x` is deprecated:
   //
   // ```dart
   // @deprecated
@@ -335,7 +335,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `x` isn't a
+  // constructor:
   //
   // ```dart
   // import 'package:meta/meta.dart';
@@ -584,7 +585,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `f` doesn't end with a
+  // return:
   //
   // ```dart
   // int [!f!](int x) {
@@ -1527,7 +1529,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `_x` isn't referenced
+  // anywhere in the library:
   //
   // ```dart
   // class Point {
@@ -1557,7 +1560,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because nothing defined in
+  // `dart:async` is referenced in the library:
   //
   // ```dart
   // import [!'dart:async'!];
@@ -1595,7 +1599,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the value of `count` is
+  // never read:
   //
   // ```dart
   // void main() {

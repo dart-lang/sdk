@@ -74,7 +74,8 @@ member in the superclass chain. Abstract members can't be invoked.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `B` doesn't inherit a
+concrete implementation of `a`:
 
 {% prettify dart %}
 abstract class A {
@@ -288,7 +289,8 @@ can't be assigned to the static type of the corresponding parameter.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because a `num` can't be
+assigned to a `String`:
 
 {% prettify dart %}
 String f(String x) => x;
@@ -341,7 +343,8 @@ built-in identifier. Built-in identifiers can’t be used as extension names.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `mixin` is a built-in
+identifier:
 
 {% prettify dart %}
 extension [!mixin!] on int {}
@@ -362,7 +365,8 @@ cast expression is defined to be something other than a type.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `x` is a variable, not
+a type:
 
 {% prettify dart %}
 num x = 0;
@@ -428,7 +432,8 @@ or a set.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the value of `list1` is
+`null`, which is neither a list nor a set:
 
 {% prettify dart %}
 const List<int> list1 = null;
@@ -456,7 +461,8 @@ operator in a constant map evaluates to something other than a map.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the value of `map1` is
+`null`, which isn't a map:
 
 {% prettify dart %}
 const Map<String, int> map1 = null;
@@ -483,7 +489,7 @@ with an argument that isn't a constant expression.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `i` isn't a constant:
 
 {% prettify dart %}
 class C {
@@ -546,7 +552,7 @@ class member is used in the same package in which it's declared.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `x` is deprecated:
 
 {% prettify dart %}
 @deprecated
@@ -571,7 +577,8 @@ a previous declaration with the same name in the same scope.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `x` is
+declared twice:
 
 {% prettify dart %}
 int x = 0;
@@ -599,7 +606,8 @@ which means that one of the values is unnecessary.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the string `'a'` is
+specified twice:
 
 {% prettify dart %}
 const Set<String> set = {'a', [!'a'!]};
@@ -630,7 +638,8 @@ pointless.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the key `1` is used
+twice:
 
 {% prettify dart %}
 const map = <int, String>{1: 'a', 2: 'b', [!1!]: 'c', 4: 'd'};
@@ -691,11 +700,14 @@ _Extension '{0}' can't be used as an expression._
 
 The analyzer produces this diagnostic when the name of an extension is used
 in an expression other than in an extension override or to qualify an
-access to a static member of the extension.
+access to a static member of the extension. Because classes define a type,
+the name of a class can be used to refer to the instance of `Type`
+representing the type of the class. Extensions, on the other hand, don't
+define a type and can't be used as a type literal.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `E` is an extension:
 
 {% prettify dart %}
 extension E on int {
@@ -733,7 +745,8 @@ of the name within the body of the extension.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `a` is being
+used for two different members:
 
 {% prettify dart %}
 extension E on Object {
@@ -764,7 +777,8 @@ declared in an extension. Extensions can declare only concrete members.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the method `a` doesn't
+have a body:
 
 {% prettify dart %}
 extension E on String {
@@ -789,7 +803,8 @@ an extension.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because there is a constructor
+declaration in `E`:
 
 {% prettify dart %}
 extension E on String {
@@ -813,7 +828,8 @@ extensions can only add behavior, not state.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `s` is an instance
+field:
 
 {% prettify dart %}
 extension E on String {
@@ -840,7 +856,8 @@ always found first.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `toString` is defined
+by `Object`:
 
 {% prettify dart %}
 extension E on String {
@@ -873,15 +890,15 @@ name of the extension, not an extension override.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `m` is static:
 
 {% prettify dart %}
 extension E on String {
-  static void staticMethod() {}
+  static void m() {}
 }
 
 void f() {
-  E('').[!staticMethod!]();
+  E('').[!m!]();
 }
 {% endprettify %}
 
@@ -891,11 +908,11 @@ Replace the extension override with the name of the extension:
 
 {% prettify dart %}
 extension E on String {
-  static void staticMethod() {}
+  static void m() {}
 }
 
 void f() {
-  E.staticMethod();
+  E.m();
 }
 {% endprettify %}
 
@@ -911,7 +928,7 @@ override isn't assignable to the type being extended by the extension.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `3` isn't a `String`:
 
 {% prettify dart %}
 extension E on String {
@@ -955,7 +972,8 @@ controls which member is selected at compile time.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `E(i)` isn't an
+expression:
 
 {% prettify dart %}
 extension E on int {
@@ -1002,11 +1020,14 @@ cascade expression._
 #### Description
 
 The analyzer produces this diagnostic when an extension override is used as
-the target of a cascade expression.
+the target of a cascade expression. The value of a cascade expression
+`e..m` is the value of the target `e`, but extension overrides are not
+expressions and don't have a value.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `E(3)` isn't an
+expression:
 
 {% prettify dart %}
 extension E on int {
@@ -1044,7 +1065,8 @@ has more positional arguments than the method or function allows.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `f` defines 2
+parameters but is invoked with 3 arguments:
 
 {% prettify dart %}
 void f(int a, int b) {}
@@ -1076,7 +1098,9 @@ method or function defines named parameters.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `f` defines 2
+positional parameters but has a named parameter that could be used for the
+third argument:
 
 {% prettify dart %}
 void f(int a, int b, {int c}) {}
@@ -1118,7 +1142,8 @@ initialized.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `x` doesn't have an
+initializer:
 
 {% prettify dart %}
 final [!x!];
@@ -1165,7 +1190,8 @@ than a class or mixin.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `x` is a variable
+rather than a class or mixin:
 
 {% prettify dart %}
 var x;
@@ -1292,7 +1318,8 @@ to a const constructor.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `x` isn't a
+constructor:
 
 {% prettify dart %}
 import 'package:meta/meta.dart';
@@ -1322,7 +1349,8 @@ no purpose.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `i` is marked as being
+covariant:
 
 {% prettify dart %}
 extension E on String {
@@ -1352,7 +1380,8 @@ than a function.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `Binary` is the name of
+a function type, not a function:
 
 {% prettify dart %}
 typedef Binary = int Function(int, int);
@@ -1377,7 +1406,8 @@ is found in a set literal.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the literal has a map
+entry even though it's a set literal:
 
 {% prettify dart %}
 const collection = <String>{[!'a' : 'b'!]};
@@ -1417,7 +1447,8 @@ analyzer produces this diagnostic when it finds an implicit return.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `f` doesn't end with a
+return:
 
 {% prettify dart %}
 int [!f!](int x) {
@@ -1443,7 +1474,7 @@ isn't a constant expression.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `j` isn't a constant:
 
 {% prettify dart %}
 void f(int i, int j) {
@@ -1567,7 +1598,7 @@ isn't a constant value.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic beause `a` isn't a constant:
 
 {% prettify dart %}
 var a = 'a';
@@ -1602,7 +1633,7 @@ literal isn't a constant value.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `a` isn't a constant:
 
 {% prettify dart %}
 var a = 'a';
@@ -1688,7 +1719,8 @@ parameters.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `f` declares two
+required parameters, but only one argument is provided:
 
 {% prettify dart %}
 void f(int a, int b) {}
@@ -1749,7 +1781,7 @@ implement the type `Map`.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `l` isn't a `Map`:
 
 {% prettify dart %}
 var l =  <String>['a', 'b'];
@@ -1824,7 +1856,8 @@ declaration is located.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `i` is used before it
+is declared:
 
 {% prettify dart %}
 void f() {
@@ -2344,7 +2377,8 @@ have superclasses, so the `super` keyword serves no purpose.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `super` can't be used
+in an extension:
 
 {% prettify dart %}
 extension E on Object {
@@ -2373,7 +2407,8 @@ as or a subclass of the bounds of the corresponding type parameter.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `String` isn't a
+subclass of `num`:
 
 {% prettify dart %}
 class A<E extends num> {}
@@ -2402,7 +2437,8 @@ type test expression isn't defined.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `Srting` isn't
+defined:
 
 {% prettify dart %}
 void f(Object o) {
@@ -2435,7 +2471,8 @@ used as an annotation.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `undefined`
+isn't defined:
 
 {% prettify dart %}
 [!@undefined!]
@@ -2475,7 +2512,7 @@ in the scope in which it's being referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `Piont` isn't defined:
 
 {% prettify dart %}
 class Point {}
@@ -2791,7 +2828,8 @@ visible in the scope in which it's being referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `emty` isn't
+defined:
 
 {% prettify dart %}
 List<int> empty() => [];
@@ -2830,7 +2868,8 @@ visible in the scope in which it's being referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `String` has no member
+named `len`:
 
 {% prettify dart %}
 int f(String s) => s.[!len!];
@@ -2858,7 +2897,8 @@ referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the name `rihgt` isn't
+defined:
 
 {% prettify dart %}
 int min(int left, int right) => left <= [!rihgt!] ? left : right;
@@ -2889,7 +2929,8 @@ visible in the scope in which it's being referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the identifier
+`removeMiddle` isn't defined:
 
 {% prettify dart %}
 int f(List<int> l) => l.[!removeMiddle!]();
@@ -2917,7 +2958,8 @@ define a parameter with the same name.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `m` doesn't declare a
+named parameter named `a`:
 
 {% prettify dart %}
 class C {
@@ -2986,7 +3028,8 @@ libraries imported using that prefix.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `dart:core` doesn't
+define anything named `a`:
 
 {% prettify dart %}
 import 'dart:core' as p;
@@ -3016,7 +3059,8 @@ visible in the scope in which the identifier is being referenced.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because there isn't a setter
+named `z`:
 
 {% prettify dart %}
 class C {
@@ -3054,7 +3098,8 @@ superclass chain.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `Object` doesn't define
+a member named `n`:
 
 {% prettify dart %}
 class C {
@@ -3088,7 +3133,8 @@ superclasses.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `m` is a static member
+of the extended type `C`:
 
 {% prettify dart %}
 class C {
@@ -3172,7 +3218,8 @@ never read, even if it's written in one or more places.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because `_x` isn't referenced
+anywhere in the library:
 
 {% prettify dart %}
 class Point {
@@ -3198,7 +3245,8 @@ library.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because nothing defined in
+`dart:async` is referenced in the library:
 
 {% prettify dart %}
 import [!'dart:async'!];
@@ -3224,7 +3272,8 @@ never read, even if it's written in one or more places.
 
 #### Example
 
-The following code produces this diagnostic:
+The following code produces this diagnostic because the value of `count` is
+never read:
 
 {% prettify dart %}
 void main() {

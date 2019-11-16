@@ -118,7 +118,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `B` doesn't inherit a
+  // concrete implementation of `a`:
   //
   // ```dart
   // abstract class A {
@@ -448,7 +449,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `mixin` is a built-in
+  // identifier:
   //
   // ```dart
   // extension [!mixin!] on int {}
@@ -970,7 +972,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the value of `list1` is
+  // `null`, which is neither a list nor a set:
   //
   // ```dart
   // const List<int> list1 = null;
@@ -1001,7 +1004,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the value of `map1` is
+  // `null`, which isn't a map:
   //
   // ```dart
   // const Map<String, int> map1 = null;
@@ -1065,7 +1069,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `i` isn't a constant:
   //
   // ```dart
   // class C {
@@ -1271,7 +1275,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `x` is
+  // declared twice:
   //
   // ```dart
   // int x = 0;
@@ -1331,7 +1336,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the string `'a'` is
+  // specified twice:
   //
   // ```dart
   // const Set<String> set = {'a', [!'a'!]};
@@ -1365,7 +1371,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the key `1` is used
+  // twice:
   //
   // ```dart
   // const map = <int, String>{1: 'a', 2: 'b', [!1!]: 'c', 4: 'd'};
@@ -1523,11 +1530,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when the name of an extension is used
   // in an expression other than in an extension override or to qualify an
-  // access to a static member of the extension.
+  // access to a static member of the extension. Because classes define a type,
+  // the name of a class can be used to refer to the instance of `Type`
+  // representing the type of the class. Extensions, on the other hand, don't
+  // define a type and can't be used as a type literal.
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `E` is an extension:
   //
   // ```dart
   // extension E on int {
@@ -1570,7 +1580,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `a` is being
+  // used for two different members:
   //
   // ```dart
   // extension E on Object {
@@ -1610,7 +1621,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `toString` is defined
+  // by `Object`:
   //
   // ```dart
   // extension E on String {
@@ -1648,15 +1660,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `m` is static:
   //
   // ```dart
   // extension E on String {
-  //   static void staticMethod() {}
+  //   static void m() {}
   // }
   //
   // void f() {
-  //   E('').[!staticMethod!]();
+  //   E('').[!m!]();
   // }
   // ```
   //
@@ -1666,11 +1678,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // extension E on String {
-  //   static void staticMethod() {}
+  //   static void m() {}
   // }
   //
   // void f() {
-  //   E.staticMethod();
+  //   E.m();
   // }
   // ```
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER =
@@ -1693,7 +1705,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `3` isn't a `String`:
   //
   // ```dart
   // extension E on String {
@@ -1736,11 +1748,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is used as
-  // the target of a cascade expression.
+  // the target of a cascade expression. The value of a cascade expression
+  // `e..m` is the value of the target `e`, but extension overrides are not
+  // expressions and don't have a value.
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `E(3)` isn't an
+  // expression:
   //
   // ```dart
   // extension E on int {
@@ -1786,7 +1801,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `E(i)` isn't an
+  // expression:
   //
   // ```dart
   // extension E on int {
@@ -1842,7 +1858,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `f` defines 2
+  // parameters but is invoked with 3 arguments:
   //
   // ```dart
   // void f(int a, int b) {}
@@ -1880,7 +1897,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `f` defines 2
+  // positional parameters but has a named parameter that could be used for the
+  // third argument:
   //
   // ```dart
   // void f(int a, int b, {int c}) {}
@@ -2084,7 +2103,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `x` is a variable
+  // rather than a class or mixin:
   //
   // ```dart
   // var x;
@@ -2671,7 +2691,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the literal has a map
+  // entry even though it's a set literal:
   //
   // ```dart
   // const collection = <String>{[!'a' : 'b'!]};
@@ -3112,7 +3133,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `j` isn't a constant:
   //
   // ```dart
   // void f(int i, int j) {
@@ -3262,7 +3283,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic beause `a` isn't a constant:
   //
   // ```dart
   // var a = 'a';
@@ -3315,7 +3336,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `a` isn't a constant:
   //
   // ```dart
   // var a = 'a';
@@ -3486,7 +3507,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `f` declares two
+  // required parameters, but only one argument is provided:
   //
   // ```dart
   // void f(int a, int b) {}
@@ -3607,7 +3629,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `l` isn't a `Map`:
   //
   // ```dart
   // var l =  <String>['a', 'b'];
@@ -4009,7 +4031,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `i` is used before it
+  // is declared:
   //
   // ```dart
   // void f() {
@@ -4119,7 +4142,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `super` can't be used
+  // in an extension:
   //
   // ```dart
   // extension E on Object {
@@ -4186,7 +4210,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `String` isn't a
+  // subclass of `num`:
   //
   // ```dart
   // class A<E extends num> {}
@@ -4234,7 +4259,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `undefined`
+  // isn't defined:
   //
   // ```dart
   // [!@undefined!]
@@ -4281,7 +4307,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `Piont` isn't defined:
   //
   // ```dart
   // class Point {}
@@ -4672,7 +4698,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `m` doesn't declare a
+  // named parameter named `a`:
   //
   // ```dart
   // class C {
@@ -4747,7 +4774,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `m` is a static member
+  // of the extended type `C`:
   //
   // ```dart
   // class C {
@@ -5204,7 +5232,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `Binary` is the name of
+  // a function type, not a function:
   //
   // ```dart
   // typedef Binary = int Function(int, int);
@@ -5402,7 +5431,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `emty` isn't
+  // defined:
   //
   // ```dart
   // List<int> empty() => [];
@@ -5450,7 +5480,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `String` has no member
+  // named `len`:
   //
   // ```dart
   // int f(String s) => s.[!len!];
@@ -5488,7 +5519,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the identifier
+  // `removeMiddle` isn't defined:
   //
   // ```dart
   // int f(List<int> l) => l.[!removeMiddle!]();
@@ -5547,7 +5579,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `dart:core` doesn't
+  // define anything named `a`:
   //
   // ```dart
   // import 'dart:core' as p;
@@ -5587,7 +5620,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because there isn't a setter
+  // named `z`:
   //
   // ```dart
   // class C {
@@ -5648,7 +5682,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `Object` doesn't define
+  // a member named `n`:
   //
   // ```dart
   // class C {
@@ -5897,7 +5932,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because a `num` can't be
+  // assigned to a `String`:
   //
   // ```dart
   // String f(String x) => x;
@@ -6040,7 +6076,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `x` is a variable, not
+  // a type:
   //
   // ```dart
   // num x = 0;
@@ -6190,7 +6227,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `x` doesn't have an
+  // initializer:
   //
   // ```dart
   // final [!x!];
@@ -6862,7 +6900,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `Srting` isn't
+  // defined:
   //
   // ```dart
   // void f(Object o) {
@@ -6932,7 +6971,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the name `rihgt` isn't
+  // defined:
   //
   // ```dart
   // int min(int left, int right) => left <= [!rihgt!] ? left : right;
