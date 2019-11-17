@@ -189,7 +189,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Get the new location of the object.
       new_addr = ForwardedAddr(header);
     } else {
-      intptr_t size = raw_obj->ReallocationHeapSize();
+      intptr_t size = raw_obj->HeapSize();
+#if defined(FAST_HASH_FOR_32_BIT)
+      intptr_t extra_size = raw_obj->ReallocationForcedExtraSize();
+      size += extra_size;
+#endif
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
@@ -221,14 +225,27 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
 
+      if (new_addr != raw_addr) {
 #if defined(FAST_HASH_FOR_32_BIT)
-      objcpy(reinterpret_cast<void*>(new_addr),
-             reinterpret_cast<void*>(raw_addr),
-             size - raw_obj->ReallocationExtraSize());
+        raw_obj->ReallocateWithTrailingHash(
+            new_addr, size - extra_size);
 #else
-      objcpy(reinterpret_cast<void*>(new_addr),
-             reinterpret_cast<void*>(raw_addr), size);
+        raw_obj->Reallocate(new_addr, size);
 #endif
+        
+        //#if defined(FAST_HASH_FOR_32_BIT)
+        //            objcpy(
+        //                reinterpret_cast<void*>(new_addr),
+        //                reinterpret_cast<void*>(raw_addr),
+        //                size- raw_obj->ReallocationExtraSize());
+        //#else
+        //        objcpy(reinterpret_cast<void*>(new_addr),
+        //               reinterpret_cast<void*>(raw_addr), size);
+        //#endif
+      } else {
+        OS::PrintErr("Odd, didn't find new address to allocate object. 0x%X\n",
+                     raw_obj->GetHash());
+      }
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
@@ -251,8 +268,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
             // OS::Print("Good. Added trailing hashCode. 0x% == 0x%\n",
             //           new_obj->GetHash(), raw_obj->GetHash());
           } else {
-            OS::PrintErr("Bad. Didn't add trailing hashCode. 0x% != 0x%\n",
-                         new_obj->GetHash(), raw_obj->GetHash());
+            /*OS::PrintErr("Bad. Didn't add trailing hashCode. 0x% != 0x%\n",
+                         new_obj->GetHash(), raw_obj->GetHash());*/
           }
         }
 #endif

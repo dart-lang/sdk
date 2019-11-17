@@ -537,8 +537,8 @@ class RawObject {
   }
 
   static uword LastPointerAddr(const RawObject* raw_obj) {
-    return reinterpret_cast<uword>(raw_obj->ptr()) + raw_obj->HeapSize() -
-           kWordSize;
+    return (reinterpret_cast<uword>(raw_obj->ptr()) + raw_obj->HeapSize() -
+            kWordSize);
   }
 
   static bool IsCanonical(intptr_t value) {

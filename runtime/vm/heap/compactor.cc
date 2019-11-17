@@ -21,6 +21,10 @@ DEFINE_FLAG(bool,
 
 typedef uint64_t bitset;
 
+#if defined(FAST_HASH_FOR_32_BIT)
+#define REALLOCATION_EXTRA_SIZE_ENABLED 1
+#endif
+
 static const intptr_t kBitVectorWordsPerBlock = 1;
 // The block size in bytes. One uword is used as a bit vector to keep track
 // of the sections-buckets in the block that are used. In 64 bit architectures,
@@ -74,7 +78,7 @@ class ForwardingBlock {
     uword block_offset = address & ~kBlockMask;
     intptr_t position = block_offset >> kObjectAlignmentLog2;
     ASSERT(position < kBitsPerWord);
-#if defined(FAST_HASH_FOR_32_BIT)
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
     // In 32 bit platforms the previous objects might take one extra live space
     // to store the hashCode when reallocated. The position is duplicated to
     // take into account this extra size. In theory a block can increase in
@@ -504,8 +508,7 @@ uword CompactorTask::PlanBlock(uword first_object,
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
     if (obj->IsMarked()) {
-// #if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
-#if defined(FAST_HASH_FOR_32_BIT)
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       intptr_t extra_size = 0;
       // The first reallocated object that were to take more space (because
       // they can grow to store the hashCode) than the currently available
@@ -526,7 +529,7 @@ uword CompactorTask::PlanBlock(uword first_object,
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
-#if defined(FAST_HASH_FOR_32_BIT)
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       // Restore size to the object's size.
       size -= extra_size;
 #endif
@@ -536,9 +539,25 @@ uword CompactorTask::PlanBlock(uword first_object,
     current += size;
   }
 
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
+  intptr_t next_page_start = free_page_->next()->object_start();
+#endif
+
   // 2. Find the next contiguous space that can fit the live objects that
   // start in the block.
   PlanMoveToContiguousSize(block_live_size);
+
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
+  // Because the block size could increase when an object requires extra
+  // reallocation space to store the trailing hashCode, the block is planned
+  // again if moved to a new page and the block first object address
+  // matches the page start address.
+  if (free_current_ == next_page_start && free_current_ == first_object) {
+    forwarding_block->Clear();
+    return PlanBlock(first_object, forwarding_page);
+  }
+#endif
+
   forwarding_block->set_new_address(free_current_);
   free_current_ += block_live_size;
 
@@ -581,17 +600,21 @@ uword CompactorTask::SlideBlock(uword first_object,
       }
       RawObject* new_obj = RawObject::FromAddr(new_addr);
 
-#if defined(FAST_HASH_FOR_32_BIT)
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       intptr_t extra_size = 0;
 #endif
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
-#if defined(FAST_HASH_FOR_32_BIT)
-        extra_size = old_obj->ReallocationExtraSize();
-#endif
         // Slide the object down.
-        old_obj->Reallocate(new_addr, size);
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
+        extra_size = old_obj->ReallocationExtraSize();
+		old_obj->Reallocate(new_addr, size);
+#else
+        old_obj->MoveTo(new_addr, size);
+#endif
+        
+        //old_obj->Reallocate(new_addr, size);
         // memmove(reinterpret_cast<void*>(new_addr),
         //         reinterpret_cast<void*>(old_addr), size);
 
@@ -604,12 +627,12 @@ uword CompactorTask::SlideBlock(uword first_object,
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
-#if defined(FAST_HASH_FOR_32_BIT)
+#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       free_current_ += extra_size;
       if (extra_size > 0) {
         if (new_obj->HasTrailingHashCode()) {
-          OS::PrintErr("Good. Added trailing hashCode. 0x%X == 0x%X\n",
-                       new_obj->GetHash(), old_obj->GetHash());
+          OS::Print("Good. Added trailing hashCode. 0x%X == 0x%X\n",
+                    new_obj->GetHash(), old_obj->GetHash());
 
         } else {
           OS::PrintErr("Bad. Didn't add trailing hashCode. 0x%X != 0x%X\n",

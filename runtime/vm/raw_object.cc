@@ -235,8 +235,14 @@ intptr_t RawObject::HeapSizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
-#if !defined(HASH_IN_OBJECT_HEADER)
-  instance_size += TrailingExtraSize();
+#if defined(FAST_HASH_FOR_32_BIT)
+  intptr_t tags_size = SizeTag::decode(ptr()->tags_);
+  // Special case when the trailing size couldn't be added to the size tag.
+  if (HasTrailingHashCode() && (tags_size == 0 || HashCodeWasRetrieved())) {
+    instance_size += TrailingExtraSize();
+  } else if(tags_size>instance_size) {
+    instance_size = tags_size;
+  }
 #endif
 #if defined(DEBUG)
   uint32_t tags = ptr()->tags_;
@@ -365,7 +371,17 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
          (class_id == kArrayCid && size > expected_size));
   return size;  // Prefer larger size.
 #else
-  return size;
+//#if defined(FAST_HASH_FOR_32_BIT)
+//  intptr_t tags_size = SizeTag::decode(ptr()->tags_);
+//  // Special case when the trailing size couldn't be added to the size tag.
+//  if (HasTrailingHashCode() && (tags_size > size || tags_size == 0 && HashCodeRetrievedBit())) {
+//    size += TrailingExtraSize();
+//  } else if (tags_size > size) {
+//    size = tags_size;
+//  }
+//#endif
+  //return size;
+  return HeapSize();
 #endif
 }
 
@@ -387,9 +403,6 @@ void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   uword from = obj_addr + sizeof(RawObject);
   uword to = obj_addr + next_field_offset - kWordSize;
 
-  // Not sure how next_field_offset should be interpreted
-  // uword from = RawObject::FirstPointerAddr(this);
-  // uword to = RawObject::ToAddr(this) + next_field_offset - kWordSize;
   visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                          reinterpret_cast<RawObject**>(to));
 }

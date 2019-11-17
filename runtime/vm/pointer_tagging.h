@@ -81,6 +81,13 @@ inline intptr_t ValueFromRawSmi(const RawSmi* raw_value) {
   return (value >> kSmiTagShift);
 }
 
+inline RawSmi* ValueToRawSmi(intptr_t value) {
+  RawSmi* raw_smi = reinterpret_cast<RawSmi*>(
+      (static_cast<uintptr_t>(value) << kSmiTagShift) | kSmiTag);
+  ASSERT(ValueFromRawSmi(raw_smi) == value);
+  return raw_smi;
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_POINTER_TAGGING_H_
