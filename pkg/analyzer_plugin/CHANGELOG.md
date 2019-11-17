@@ -1,3 +1,6 @@
+## 0.2.2
+- Bump maximum supported version of the analyzer to `<0.40.0`
+
 ## 0.2.1
 - Bump maximum supported version of the analyzer to `<0.39.0`.
 - Bug fixes: #37916, #38326.
