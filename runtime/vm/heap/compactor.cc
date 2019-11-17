@@ -550,7 +550,7 @@ uword CompactorTask::PlanBlock(uword first_object,
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
   // Because the block size could increase when an object requires extra
   // reallocation space to store the trailing hashCode, the block is planned
-  // again if moved to a new page and the block first object address
+  // again when moving to a new page and the block first object address
   // matches the page start address.
   if (free_current_ == next_page_start && free_current_ == first_object) {
     forwarding_block->Clear();
