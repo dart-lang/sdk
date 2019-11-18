@@ -1406,18 +1406,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _flowAnalysis.initialize(declaredElement);
           }
           var destinationType = getOrComputeElementType(declaredElement);
-          if (typeAnnotation == null) {
-            var initializerType = initializer.accept(this);
-            if (initializerType == null) {
-              throw StateError(
-                  'No type computed for ${initializer.runtimeType} '
-                  '(${initializer.toSource()}) offset=${initializer.offset}');
-            }
-            _unionDecoratedTypes(initializerType, destinationType,
-                InitializerInferenceOrigin(source, variable));
-          } else {
-            _handleAssignment(initializer, destinationType: destinationType);
-          }
+          _handleAssignment(initializer, destinationType: destinationType);
         }
       } finally {
         if (isTopLevel) {

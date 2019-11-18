@@ -100,7 +100,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38341')
   test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
 class C {
@@ -1399,6 +1398,7 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -1409,15 +1409,14 @@ class C {
   }
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
 class C {
-  var x = 1;
+  int? x = 1;
   void g() {
-    x = f()!;
+    x = f();
   }
 }
 ''';
@@ -2028,6 +2027,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_localVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -2036,14 +2036,13 @@ void main() {
   x = f();
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
 void main() {
-  var x = 1;
-  x = f()!;
+  int? x = 1;
+  x = f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2983,6 +2982,7 @@ Object? g() => f();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_topLevelVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -2991,14 +2991,13 @@ void main() {
   x = f();
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
-var x = 1;
+int? x = 1;
 void main() {
-  x = f()!;
+  x = f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);

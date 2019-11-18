@@ -350,65 +350,60 @@ class C {
   }
 
   test_listAndSetLiteralTypeArgument() async {
-    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
-  List<String> x = <String>["hello", s];
-  Set<String> y = <String>{"hello", s};
+  var x = <String>["hello", s];
+  var y = <String>{"hello", s};
 }
 ''', migratedContent: '''
 void f() {
   String? s = null;
-  List<String?> x = <String?>["hello", s];
-  Set<String?> y = <String?>{"hello", s};
-}
-''');
-    List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(5));
-    // regions[0] is the `String? s` fix.
-    // regions[1] is the `List<String?> x` fix.
-    assertRegion(
-        region: regions[2],
-        offset: 58,
-        details: ["This list is initialized with a nullable value on line 3"]);
-    assertDetail(detail: regions[2].details[0], offset: 67, length: 1);
-    // regions[3] is the `Set<String?> y` fix.
-    assertRegion(
-        region: regions[4],
-        offset: 100,
-        details: ["This set is initialized with a nullable value on line 4"]);
-    assertDetail(detail: regions[4].details[0], offset: 107, length: 1);
-  }
-
-  test_listLiteralTypeArgument_collectionIf() async {
-    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
-    UnitInfo unit = await buildInfoForSingleTestFile('''
-void f() {
-  String s = null;
-  List<String> x = <String>[
-    "hello",
-    if (1 == 2) s
-  ];
-}
-''', migratedContent: '''
-void f() {
-  String? s = null;
-  List<String?> x = <String?>[
-    "hello",
-    if (1 == 2) s
-  ];
+  var x = <String?>["hello", s];
+  var y = <String?>{"hello", s};
 }
 ''');
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(3));
     // regions[0] is the `String? s` fix.
-    // regions[1] is the `List<String?> x` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
+        details: ["This list is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[1].details[0], offset: 58, length: 1);
     assertRegion(
         region: regions[2],
-        offset: 58,
+        offset: 81,
+        details: ["This set is initialized with a nullable value on line 4"]);
+    assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
+  }
+
+  test_listLiteralTypeArgument_collectionIf() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  String s = null;
+  var x = <String>[
+    "hello",
+    if (1 == 2) s
+  ];
+}
+''', migratedContent: '''
+void f() {
+  String? s = null;
+  var x = <String?>[
+    "hello",
+    if (1 == 2) s
+  ];
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is the `String? s` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
         details: ["This list is initialized with a nullable value on line 5"]);
-    assertDetail(detail: regions[2].details[0], offset: 88, length: 1);
+    assertDetail(detail: regions[1].details[0], offset: 79, length: 1);
   }
 
   test_localVariable() async {
@@ -436,35 +431,32 @@ void f() {
   }
 
   test_mapLiteralTypeArgument() async {
-    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
-  Map<String, bool> x = <String, bool>{"hello": false, s: true};
-  Map<bool, String> y = <bool, String>{false: "hello", true: s};
+  var x = <String, bool>{"hello": false, s: true};
+  var y = <bool, String>{false: "hello", true: s};
 }
 ''', migratedContent: '''
 void f() {
   String? s = null;
-  Map<String?, bool> x = <String?, bool>{"hello": false, s: true};
-  Map<bool, String?> y = <bool, String?>{false: "hello", true: s};
+  var x = <String?, bool>{"hello": false, s: true};
+  var y = <bool, String?>{false: "hello", true: s};
 }
 ''');
     List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(5));
+    expect(regions, hasLength(3));
     // regions[0] is the `String? s` fix.
-    // regions[1] is the `Map<String?, bool> x` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
+        details: ["This map is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[1].details[0], offset: 71, length: 1);
     assertRegion(
         region: regions[2],
-        offset: 63,
-        details: ["This map is initialized with a nullable value on line 3"]);
-    assertDetail(detail: regions[2].details[0], offset: 85, length: 1);
-    // regions[3] is the `Map<bool, String?> y` fix.
-    assertRegion(
-        region: regions[4],
-        offset: 136,
+        offset: 106,
         details: ["This map is initialized with a nullable value on line 4"]);
-    assertDetail(detail: regions[4].details[0], offset: 156, length: 1);
+    assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
   }
 
   test_nonNullableType_assert() async {
@@ -872,11 +864,10 @@ class A {
   }
 
   test_setLiteralTypeArgument_nestedList() async {
-    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
-  Set<List<String>> x = <List<String>>{
+  var x = <List<String>>{
     ["hello"],
     if (1 == 2) [s]
   };
@@ -884,23 +875,22 @@ void f() {
 ''', migratedContent: '''
 void f() {
   String? s = null;
-  Set<List<String?>> x = <List<String?>>{
+  var x = <List<String?>>{
     ["hello"],
     if (1 == 2) [s]
   };
 }
 ''');
     List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(3));
+    expect(regions, hasLength(2));
     // regions[0] is the `String? s` fix.
-    // regions[1] is the `Set<List<String?>> x` fix.
     assertRegion(
-        region: regions[2],
-        offset: 68,
+        region: regions[1],
+        offset: 53,
         details: ["This set is initialized with a nullable value on line 5"]);
     // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
     //  `s` should be marked. Minor bug for now.
-    assertDetail(detail: regions[2].details[0], offset: 101, length: 3);
+    assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
   }
 
   test_topLevelVariable() async {
