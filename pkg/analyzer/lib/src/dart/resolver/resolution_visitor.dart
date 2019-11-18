@@ -917,9 +917,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       boundNode.accept(this);
       if (_elementWalker == null) {
         element.bound = boundNode.type;
-
-        element.metadata = _createElementAnnotations(node.metadata);
-        _setCodeRange(element, node);
       }
     }
   }
@@ -1059,6 +1056,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         element = TypeParameterElementImpl.forNode(name);
         _elementHolder.addTypeParameter(element);
+
+        element.metadata = _createElementAnnotations(typeParameter.metadata);
+        _setCodeRange(element, typeParameter);
       }
       name.staticElement = element;
       _nameScope.define(element);

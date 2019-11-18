@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -45,6 +46,17 @@ const x = const A<bool Function()>();
 
 int Function(int a) y;
 ''');
+  }
+
+  test_metadata_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+const a = 42;
+
+Function<@a T>() x;
+''');
+    var T = findNode.typeParameter('T');
+    var annotation = T.declaredElement.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
   }
 
   /// Test that when multiple [GenericFunctionType]s are used in a
