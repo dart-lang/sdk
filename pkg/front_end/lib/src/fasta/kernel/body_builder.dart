@@ -3162,8 +3162,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
       FunctionBuilder member = this.member;
-      parameter = member.getFormal(name.name);
+      parameter = member.getFormal(name);
       if (parameter == null) {
+        // This happens when the list of formals (originally) contains a
+        // ParserRecovery - then the popped list becomes null.
         push(new ParserRecovery(nameToken.charOffset));
         return;
       }
