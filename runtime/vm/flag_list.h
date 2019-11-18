@@ -24,22 +24,38 @@ constexpr bool kDartUseBytecode = true;
 constexpr bool kDartUseBytecode = false;
 #endif
 
+// The disassembler might be force included even in product builds so we need
+// to conditionally make these into product flags to make the disassembler
+// usable in product mode.
+#if defined(FORCE_INCLUDE_DISASSEMBLER)
+#define DISASSEMBLE_FLAGS(P, R, C, D)                                          \
+  P(disassemble, bool, false, "Disassemble dart code.")                        \
+  P(disassemble_optimized, bool, false, "Disassemble optimized code.")         \
+  P(disassemble_relative, bool, false, "Use offsets instead of absolute PCs")
+#else
+#define DISASSEMBLE_FLAGS(P, R, C, D)                                          \
+  R(disassemble, false, bool, false, "Disassemble dart code.")                 \
+  R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
+  R(disassemble_relative, false, bool, false,                                  \
+    "Use offsets instead of absolute PCs")
+#endif
+
 // List of all flags in the VM.
-// Flags can be one of three categories:
+// Flags can be one of four categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
 //   production.
 // * R elease flags: Generally available flags except when building product.
-// * D ebug flags: Can only be set in debug VMs, which also have C++ assertions
-//   enabled.
 // * pre C ompile flags: Generally available flags except when building product
 //   or precompiled runtime.
+// * D ebug flags: Can only be set in debug VMs, which also have C++ assertions
+//   enabled.
 //
 // Usage:
 //   P(name, type, default_value, comment)
 //   R(name, product_value, type, default_value, comment)
-//   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
-#define FLAG_LIST(P, R, D, C)                                                  \
+//   D(name, type, default_value, comment)
+#define FLAG_LIST(P, R, C, D)                                                  \
   P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
     "Omit runtime strong mode type checks and disable optimizations based on " \
     "types.")                                                                  \
@@ -67,10 +83,7 @@ constexpr bool kDartUseBytecode = false;
   C(deoptimize_every, 0, 0, int, 0,                                            \
     "Deoptimize on every N stack overflow checks")                             \
   R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
-  R(disassemble, false, bool, false, "Disassemble dart code.")                 \
-  R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
-  R(disassemble_relative, false, bool, false,                                  \
-    "Use offsets instead of absolute PCs")                                     \
+  DISASSEMBLE_FLAGS(P, R, C, D)                                                \
   R(code_comments, false, bool, false,                                         \
     "Include comments into code and disassembly.")                             \
   R(dump_megamorphic_stats, false, bool, false,                                \
@@ -223,7 +236,7 @@ constexpr bool kDartUseBytecode = false;
 // same as during runtime.
 //
 // Usage:
-//   P(name, command-line-flag-name)
+//   V(name, command-line-flag-name)
 #define VM_GLOBAL_FLAG_LIST(V)                                                 \
   V(use_bare_instructions, FLAG_use_bare_instructions)
 
