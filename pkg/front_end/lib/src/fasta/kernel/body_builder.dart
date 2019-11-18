@@ -856,18 +856,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.variable.initializer;
         if (parameter.isOptional || initializer != null) {
-          if (parameter.isOptional) {
-            initializer ??= forest.createNullLiteral(
-                // TODO(ahe): Should store: originParameter.fileOffset
-                // https://github.com/dart-lang/sdk/issues/32289
-                noLocation);
+          if (!parameter.initializerWasInferred) {
+            parameter.initializerWasInferred = true;
+            if (parameter.isOptional) {
+              initializer ??= forest.createNullLiteral(
+                  // TODO(ahe): Should store: originParameter.fileOffset
+                  // https://github.com/dart-lang/sdk/issues/32289
+                  noLocation);
+            }
+            VariableDeclaration originParameter = builder.getFormalParameter(i);
+            initializer = typeInferrer?.inferParameterInitializer(
+                this, initializer, originParameter.type);
+            originParameter.initializer = initializer..parent = originParameter;
+            libraryBuilder.loader.transformPostInference(
+                originParameter, transformSetLiterals, transformCollections);
           }
-          VariableDeclaration originParameter = builder.getFormalParameter(i);
-          initializer = typeInferrer?.inferParameterInitializer(
-              this, initializer, originParameter.type);
-          originParameter.initializer = initializer..parent = originParameter;
-          libraryBuilder.loader.transformPostInference(
-              originParameter, transformSetLiterals, transformCollections);
 
           VariableDeclaration extensionTearOffParameter =
               builder.getExtensionTearOffParameter(i);
@@ -3185,7 +3188,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             initializer.fileOffset,
             noLength);
       } else {
-        variable.initializer = initializer..parent = variable;
+        if (!parameter.initializerWasInferred) {
+          variable.initializer = initializer..parent = variable;
+        }
       }
     } else if (kind != FormalParameterKind.mandatory) {
       variable.initializer ??= forest.createNullLiteral(noLocation)

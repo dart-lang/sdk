@@ -67,6 +67,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// [buildOutlineExpressions].
   Token initializerToken;
 
+  bool initializerWasInferred = false;
+
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
       LibraryBuilder compilationUnit, int charOffset,
       [Uri fileUri])
@@ -174,6 +176,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
+      assert(!initializerWasInferred);
       Expression initializer =
           bodyBuilder.parseFieldInitializer(initializerToken);
       initializer = bodyBuilder.typeInferrer
@@ -184,6 +187,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         loader.transformPostInference(variable,
             bodyBuilder.transformSetLiterals, bodyBuilder.transformCollections);
       }
+      initializerWasInferred = true;
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     initializerToken = null;
