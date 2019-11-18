@@ -951,8 +951,6 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
       }
     }
 
-    const intptr_t var_length =
-        IsCompiledForOsr() ? osr_variable_count() : variable_count();
     while (!worklist.is_empty()) {
       BlockEntryInstr* current = worklist.RemoveLast();
       // Ensure a phi for each block in the dominance frontier of current.
@@ -960,10 +958,10 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
            !it.Done(); it.Advance()) {
         int index = it.Current();
         if (has_already[index] < var_index) {
-          BlockEntryInstr* block = preorder[index];
-          ASSERT(block->IsJoinEntry());
-          PhiInstr* phi =
-              block->AsJoinEntry()->InsertPhi(var_index, var_length);
+          JoinEntryInstr* join = preorder[index]->AsJoinEntry();
+          ASSERT(join != nullptr);
+          PhiInstr* phi = join->InsertPhi(
+              var_index, variable_count() + join->stack_depth());
           if (always_live) {
             phi->mark_alive();
             live_phis->Add(phi);
@@ -971,7 +969,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
           has_already[index] = var_index;
           if (work[index] < var_index) {
             work[index] = var_index;
-            worklist.Add(block);
+            worklist.Add(join);
           }
         }
       }
@@ -982,6 +980,18 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
 void FlowGraph::CreateCommonConstants() {
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
+}
+
+void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {
+  ASSERT(IsCompiledForOsr());
+  if (auto join = block->AsJoinEntry()) {
+    const intptr_t local_phi_count = variable_count() + join->stack_depth();
+    for (intptr_t i = variable_count(); i < local_phi_count; ++i) {
+      if (join->phis() == nullptr || (*join->phis())[i] == nullptr) {
+        join->InsertPhi(i, local_phi_count)->mark_alive();
+      }
+    }
+  }
 }
 
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
@@ -1007,17 +1017,14 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                                                : entry->SuccessorCount() == 1);
   }
 
-  // For OSR on a non-empty stack, insert synthetic phis on the joining entry.
+  // For OSR on a non-empty stack, insert synthetic phis on every joining entry.
   // These phis are synthetic since they are not driven by live variable
   // analysis, but merely serve the purpose of merging stack slots from
   // parameters and other predecessors at the block in which OSR occurred.
   if (IsCompiledForOsr()) {
-    JoinEntryInstr* join =
-        entry->osr_entry()->last_instruction()->SuccessorAt(0)->AsJoinEntry();
-    ASSERT(join != nullptr);
-    const intptr_t parameter_count = osr_variable_count();
-    for (intptr_t i = variable_count(); i < parameter_count; i++) {
-      join->InsertPhi(i, parameter_count)->mark_alive();
+    AddSyntheticPhis(entry->osr_entry()->last_instruction()->SuccessorAt(0));
+    for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n; ++i) {
+      AddSyntheticPhis(entry->dominated_blocks()[i]);
     }
   }
 
@@ -1168,10 +1175,9 @@ void FlowGraph::RenameRecursive(
   // 1. Process phis first.
   if (auto join = block_entry->AsJoinEntry()) {
     if (join->phis() != nullptr) {
-      const intptr_t var_length =
-          IsCompiledForOsr() ? osr_variable_count() : variable_count();
-      ASSERT(join->phis()->length() == var_length);
-      for (intptr_t i = 0; i < var_length; ++i) {
+      const intptr_t local_phi_count = variable_count() + join->stack_depth();
+      ASSERT(join->phis()->length() == local_phi_count);
+      for (intptr_t i = 0; i < local_phi_count; ++i) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi != nullptr) {
           (*env)[i] = phi;

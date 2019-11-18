@@ -429,6 +429,8 @@ class FlowGraph : public ZoneAllocated {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
+  void AddSyntheticPhis(BlockEntryInstr* block);
+
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
               ZoneGrowableArray<Definition*>* inlining_parameters);
