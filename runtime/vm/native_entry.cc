@@ -111,12 +111,40 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
   uword entry =
       reinterpret_cast<uword>(NativeEntry::BootstrapNativeCallWrapper);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+#endif
   return entry;
 }
 
 void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
                                              Dart_NativeFunction func) {
-  func(args);
+  CHECK_STACK_ALIGNMENT;
+  if (func == LinkNativeCall) {
+    func(args);
+    return;
+  }
+
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  // Tell MemorySanitizer 'arguments' is initialized by generated code.
+  MSAN_UNPOISON(arguments, sizeof(*arguments));
+  {
+    Thread* thread = arguments->thread();
+    ASSERT(thread == Thread::Current());
+    TransitionGeneratedToVM transition(thread);
+    StackZone zone(thread);
+    // Be careful holding return_value_unsafe without a handle here.
+    // A return of Object::sentinel means the return value has already
+    // been set.
+    RawObject* return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
+        func)(thread, zone.GetZone(), arguments);
+    if (return_value_unsafe != Object::sentinel().raw()) {
+      ASSERT(return_value_unsafe->IsDartInstance());
+      arguments->SetReturnUnsafe(return_value_unsafe);
+    }
+    DEOPTIMIZE_ALOT;
+  }
 }
 
 uword NativeEntry::NoScopeNativeCallWrapperEntry() {
@@ -220,10 +248,6 @@ static NativeFunction ResolveNativeFunction(Zone* zone,
 
 uword NativeEntry::LinkNativeCallEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-#endif
   return entry;
 }
 
@@ -286,16 +310,8 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
                                  caller_frame->pc(), code, &current_function));
-#if !defined(USING_SIMULATOR)
       ASSERT(current_function ==
              reinterpret_cast<NativeFunction>(LinkNativeCall));
-#else
-      ASSERT(
-          current_function ==
-          reinterpret_cast<NativeFunction>(Simulator::RedirectExternalReference(
-              reinterpret_cast<uword>(LinkNativeCall),
-              Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments)));
-#endif
       ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw());
     }
 #endif
@@ -321,12 +337,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       Code& trampoline = Code::Handle(zone);
       if (is_bootstrap_native) {
         trampoline = StubCode::CallBootstrapNative().raw();
-#if defined(USING_SIMULATOR)
-        patch_target_function = reinterpret_cast<NativeFunction>(
-            Simulator::RedirectExternalReference(
-                reinterpret_cast<uword>(patch_target_function),
-                Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
-#endif  // defined USING_SIMULATOR
       } else if (is_auto_scope) {
         trampoline = StubCode::CallAutoScopeNative().raw();
       } else {
@@ -344,7 +354,8 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
   // Tail-call resolved target.
   if (is_bootstrap_native) {
-    target_function(arguments);
+    NativeEntry::BootstrapNativeCallWrapper(
+        args, reinterpret_cast<Dart_NativeFunction>(target_function));
   } else if (is_auto_scope) {
     // Because this call is within a compilation unit, Clang doesn't respect
     // the ABI alignment here.

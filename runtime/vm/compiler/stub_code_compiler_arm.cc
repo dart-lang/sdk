@@ -602,83 +602,10 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
-  const intptr_t thread_offset = target::NativeArguments::thread_offset();
-  const intptr_t argc_tag_offset = target::NativeArguments::argc_tag_offset();
-  const intptr_t argv_offset = target::NativeArguments::argv_offset();
-  const intptr_t retval_offset = target::NativeArguments::retval_offset();
-
-  __ EnterStubFrame();
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to native code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
-    __ b(&ok, EQ);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Mark that the thread is executing native code.
-  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
-
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // R0) and align frame before entering the C++ world.
-  __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
-
-  // Initialize target::NativeArguments structure and call native function.
-  // Registers R0, R1, R2, and R3 are used.
-
-  ASSERT(thread_offset == 0 * target::kWordSize);
-  // Set thread in NativeArgs.
-  __ mov(R0, Operand(THR));
-
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  ASSERT(argc_tag_offset == 1 * target::kWordSize);
-  // Set argc in target::NativeArguments: R1 already contains argc.
-
-  ASSERT(argv_offset == 2 * target::kWordSize);
-  // Set argv in target::NativeArguments: R2 already contains argv.
-
-  // Set retval in NativeArgs.
-  ASSERT(retval_offset == 3 * target::kWordSize);
-  __ add(R3, FP, Operand(2 * target::kWordSize));
-
-  // Passing the structure by value as in runtime calls would require changing
-  // Dart API for native functions.
-  // For now, space is reserved on the stack and we pass a pointer to it.
-  __ stm(IA, SP, (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
-  __ mov(R0, Operand(SP));  // Pass the pointer to the target::NativeArguments.
-
-  // Call native function or redirection via simulator.
-  __ blx(R9);
-
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
-
-  // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
-
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  }
-
-  __ LeaveStubFrame();
-  __ Ret();
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR,
+              target::Thread::bootstrap_native_wrapper_entry_point_offset()));
 }
 
 // Input parameters:

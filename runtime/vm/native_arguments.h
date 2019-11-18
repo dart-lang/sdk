@@ -234,7 +234,7 @@ class NativeArguments {
   class ReverseArgOrderBit
       : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
-  friend class BootstrapNatives;
+  friend class NativeEntry;
   friend class Interpreter;
   friend class Simulator;
 

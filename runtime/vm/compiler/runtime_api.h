@@ -699,6 +699,7 @@ class Thread : public AllStatic {
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 
+  static word bootstrap_native_wrapper_entry_point_offset();
   static word no_scope_native_wrapper_entry_point_offset();
   static word auto_scope_native_wrapper_entry_point_offset();
 

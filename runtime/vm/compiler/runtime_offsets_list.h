@@ -150,6 +150,7 @@
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \
+  FIELD(Thread, bootstrap_native_wrapper_entry_point_offset)                   \
   FIELD(Thread, call_to_runtime_entry_point_offset)                            \
   FIELD(Thread, call_to_runtime_stub_offset)                                   \
   FIELD(Thread, dart_stream_offset)                                            \

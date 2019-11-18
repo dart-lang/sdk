@@ -23,7 +23,7 @@ namespace dart {
 // point.
 static struct NativeEntries {
   const char* name_;
-  Dart_NativeFunction function_;
+  BootstrapNativeFunction function_;
   int argument_count_;
 } BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #if !defined(DART_PRECOMPILED_RUNTIME)
