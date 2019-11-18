@@ -154,6 +154,17 @@ abstract class TypeEnvironment extends SubtypeTester {
 
     return coreTypes.numRawType(type1.nullability);
   }
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class cls, Name name, {bool setter: false});
 }
 
 /// Tri-state logical result of a nullability-aware subtype check.

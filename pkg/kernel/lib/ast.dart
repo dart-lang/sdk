@@ -3240,9 +3240,24 @@ class MethodInvocation extends InvocationExpression {
         return Substitution.fromPairs(
                 getterType.typeParameters, arguments.types)
             .substituteType(getterType.returnType);
-      } else {
-        return const DynamicType();
       }
+      // The front end currently do not replace a property call `o.foo()`, where
+      // `foo` is a field or getter, with a function call on the property,
+      // `o.foo.call()`, so we look up the call method explicitly here.
+      // TODO(johnniwinther): Remove this when the front end performs the
+      // correct replacement.
+      if (getterType is InterfaceType) {
+        Member member = context.typeEnvironment
+            .getInterfaceMember(getterType.classNode, new Name('call'));
+        if (member != null) {
+          DartType callType = member.getterType;
+          if (callType is FunctionType) {
+            return Substitution.fromInterfaceType(getterType)
+                .substituteType(callType.returnType);
+          }
+        }
+      }
+      return const DynamicType();
     }
     if (name.name == 'call') {
       var receiverType = receiver.getStaticType(context);
