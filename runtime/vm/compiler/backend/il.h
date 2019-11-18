@@ -2225,6 +2225,9 @@ class Definition : public Instruction {
   // boxing/unboxing and constraint instructions.
   Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
+  // Helper method to determine if definition denotes an array length.
+  static bool IsArrayLength(Definition* def);
+
   virtual Definition* AsDefinition() { return this; }
   virtual const Definition* AsDefinition() const { return this; }
 
@@ -7916,7 +7919,7 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 
   // Returns true if the bounds check can be eliminated without
   // changing the semantics (viz. 0 <= index < length).
-  bool IsRedundant();
+  bool IsRedundant(bool use_loops = false);
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };

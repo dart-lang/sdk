@@ -543,6 +543,16 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   }
 }
 
+bool Definition::IsArrayLength(Definition* def) {
+  if (def != nullptr) {
+    if (auto load = def->OriginalDefinitionIgnoreBoxingAndConstraints()
+                        ->AsLoadField()) {
+      return load->IsImmutableLengthLoad();
+    }
+  }
+  return false;
+}
+
 const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
