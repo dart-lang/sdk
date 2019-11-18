@@ -6,6 +6,7 @@ import("//build/config/sysroot.gni")
 
 config("sdk") {
   ldflags = []
+  cflags = []
 
   if (is_asan || is_lsan || is_msan || is_tsan || is_ubsan) {
     ldflags += [ "-lrt" ]
@@ -23,7 +24,7 @@ config("sdk") {
   }
 
   if (sysroot != "") {
-    cflags = [ "--sysroot=" + sysroot ]
+    cflags += [ "--sysroot=" + sysroot ]
     ldflags += [ "--sysroot=" + sysroot ]
 
     # Need to get some linker flags out of the sysroot.
@@ -44,10 +45,18 @@ config("sdk") {
       ]
     }
   }
+
+  if (is_qemu) {
+    cflags += ["-DDART_RUN_IN_QEMU_ARMv7"]
+  }
 }
 
 config("executable_config") {
-  if (current_cpu != "x86") {
+  # GDB cannot find the executable's mapping in QEMU when PIE is enabled.
+  if (is_qemu) {
+    cflags = [ "-fno-pie" ]
+    ldflags = [ "-no-pie" ]
+  } else if (current_cpu != "x86") {
     cflags = [ "-fPIE" ]
     ldflags = [ "-pie" ]
   }
