@@ -13003,25 +13003,28 @@ static int PrintVarInfo(char* buffer,
   const RawLocalVarDescriptors::VarInfoKind kind = info.kind();
   const int32_t index = info.index();
   if (kind == RawLocalVarDescriptors::kContextLevel) {
-    return Utils::SNPrint(buffer, len, "%2" Pd
-                                       " %-13s level=%-3d"
-                                       " begin=%-3d end=%d\n",
+    return Utils::SNPrint(buffer, len,
+                          "%2" Pd
+                          " %-13s level=%-3d"
+                          " begin=%-3d end=%d\n",
                           i, LocalVarDescriptors::KindToCString(kind), index,
                           static_cast<int>(info.begin_pos.value()),
                           static_cast<int>(info.end_pos.value()));
   } else if (kind == RawLocalVarDescriptors::kContextVar) {
     return Utils::SNPrint(
-        buffer, len, "%2" Pd
-                     " %-13s level=%-3d index=%-3d"
-                     " begin=%-3d end=%-3d name=%s\n",
+        buffer, len,
+        "%2" Pd
+        " %-13s level=%-3d index=%-3d"
+        " begin=%-3d end=%-3d name=%s\n",
         i, LocalVarDescriptors::KindToCString(kind), info.scope_id, index,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
   } else {
     return Utils::SNPrint(
-        buffer, len, "%2" Pd
-                     " %-13s scope=%-3d index=%-3d"
-                     " begin=%-3d end=%-3d name=%s\n",
+        buffer, len,
+        "%2" Pd
+        " %-13s scope=%-3d index=%-3d"
+        " begin=%-3d end=%-3d name=%s\n",
         i, LocalVarDescriptors::KindToCString(kind), info.scope_id, index,
         static_cast<int>(info.begin_pos.Pos()),
         static_cast<int>(info.end_pos.Pos()), var_name.ToCString());
@@ -15194,6 +15197,18 @@ void Code::DisableStubCode() const {
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 }
 
+void Code::InitializeCachedEntryPointsFrom(RawCode* code,
+                                           RawInstructions* instructions) {
+  NoSafepointScope _;
+  code->ptr()->entry_point_ = Instructions::EntryPoint(instructions);
+  code->ptr()->monomorphic_entry_point_ =
+      Instructions::MonomorphicEntryPoint(instructions);
+  code->ptr()->unchecked_entry_point_ =
+      Instructions::UncheckedEntryPoint(instructions);
+  code->ptr()->monomorphic_unchecked_entry_point_ =
+      Instructions::MonomorphicUncheckedEntryPoint(instructions);
+}
+
 void Code::SetActiveInstructions(const Instructions& instructions) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -15202,15 +15217,7 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
   StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
-  StoreNonPointer(&raw_ptr()->entry_point_,
-                  Instructions::EntryPoint(instructions.raw()));
-  StoreNonPointer(&raw_ptr()->monomorphic_entry_point_,
-                  Instructions::MonomorphicEntryPoint(instructions.raw()));
-  StoreNonPointer(&raw_ptr()->unchecked_entry_point_,
-                  Instructions::UncheckedEntryPoint(instructions.raw()));
-  StoreNonPointer(
-      &raw_ptr()->monomorphic_unchecked_entry_point_,
-      Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()));
+  Code::InitializeCachedEntryPointsFrom(raw(), instructions.raw());
 #endif
 }
 

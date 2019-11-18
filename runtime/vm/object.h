@@ -5798,6 +5798,10 @@ class Code : public Object {
 #endif
   }
 
+  // Initializes 4 cached entrypoint addresses in 'code' from 'instructions'.
+  static void InitializeCachedEntryPointsFrom(RawCode* code,
+                                              RawInstructions* instructions);
+
   void SetActiveInstructions(const Instructions& instructions) const;
 
   void set_instructions(const Instructions& instructions) const {
@@ -5838,6 +5842,7 @@ class Code : public Object {
   friend class Precompiler;  // for set_object_pool
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
+  friend class CodeDeserializationCluster;
   friend class StubCode;               // for set_object_pool
   friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;     // for set_instructions
