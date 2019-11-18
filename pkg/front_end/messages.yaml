@@ -3371,15 +3371,6 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
-IntersectionTypeAsTypeArgument:
-  template: "Can't infer a type for '#name', it can be either '#type' or '#type2'."
-  tip: "Try adding a type argument selecting one of the options."
-  script: |
-    class A {}
-    class B extends A {}
-    f<T>(T t) => null;
-    g<S>(S t) => t is B ? f(t) : null;
-
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING

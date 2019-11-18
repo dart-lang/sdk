@@ -327,7 +327,6 @@ IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
-IntersectionTypeAsTypeArgument/analyzerCode: Fail # Analyzer doesn't catch this error.
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail

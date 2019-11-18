@@ -145,7 +145,6 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInferred,
         templateIncorrectTypeArgumentQualified,
         templateIncorrectTypeArgumentQualifiedInferred,
-        templateIntersectionTypeAsTypeArgument,
         templateLanguageVersionTooHigh,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
@@ -2618,15 +2617,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
-      } else if (argument is TypeParameterType &&
-          argument.promotedBound != null) {
-        addProblem(
-            templateIntersectionTypeAsTypeArgument.withArguments(
-                typeParameter.name, argument, argument.promotedBound),
-            offset,
-            noLength,
-            fileUri);
-        continue;
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (issueInferred) {

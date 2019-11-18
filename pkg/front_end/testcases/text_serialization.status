@@ -213,6 +213,7 @@ general/issue38938: TextSerializationFailure
 general/issue38943: TextSerializationFailure
 general/issue38944: TextSerializationFailure
 general/issue38961: TextSerializationFailure
+general/issue39344: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -318,7 +319,7 @@ general/typedef: TextSerializationFailure # Was: Pass
 general/undefined: TextSerializationFailure # Was: Pass
 general/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 general/uninitialized_fields: TextSerializationFailure # Was: Pass
-general/unsound_promotion: TextSerializationFailure
+general/unsound_promotion: TypeCheckError
 general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure

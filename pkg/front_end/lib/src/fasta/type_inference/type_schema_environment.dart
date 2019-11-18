@@ -29,6 +29,8 @@ import 'standard_bounds.dart' show StandardBounds;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
+import 'type_demotion.dart';
+
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
@@ -198,6 +200,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     inferTypeFromConstraints(
         gatherer.computeConstraints(), typeParametersToInfer, inferredTypes,
         downwardsInferPhase: formalTypes == null);
+
+    for (int i = 0; i < inferredTypes.length; i++) {
+      inferredTypes[i] = demoteType(inferredTypes[i]);
+    }
   }
 
   bool hasOmittedBound(TypeParameter parameter) {

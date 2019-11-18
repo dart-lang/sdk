@@ -62,7 +62,7 @@ general/statements: Crash
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
 general/type_variable_bound_access: TypeCheckError
-general/unsound_promotion: RuntimeError
+general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
