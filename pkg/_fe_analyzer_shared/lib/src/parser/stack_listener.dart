@@ -71,7 +71,8 @@ enum NullValue {
 }
 
 abstract class StackListener extends Listener {
-  final Stack stack = new Stack();
+  static const bool debugStack = false;
+  final Stack stack = debugStack ? new DebugStack() : new StackImpl();
 
   /// Used to report an internal error encountered in the stack listener.
   dynamic internalProblem(Message message, int charOffset, Uri uri);
@@ -112,10 +113,9 @@ abstract class StackListener extends Listener {
   bool checkState(Token token, List<ValueKind> kinds) {
     bool success = true;
     for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      int stackIndex = stack.arrayLength - kindIndex - 1;
       ValueKind kind = kinds[kindIndex];
-      if (stackIndex >= 0) {
-        Object value = stack.array[stackIndex];
+      if (kindIndex < stack.length) {
+        Object value = stack[kindIndex];
         if (!kind.check(value)) {
           success = false;
         }
@@ -154,8 +154,7 @@ abstract class StackListener extends Listener {
       // Compute kind/stack frame information for all expected values plus 3 more
       // stack elements if available.
       for (int kindIndex = 0; kindIndex < kinds.length + 3; kindIndex++) {
-        int stackIndex = stack.arrayLength - kindIndex - 1;
-        if (stackIndex < 0 && kindIndex >= kinds.length) {
+        if (kindIndex >= stack.length && kindIndex >= kinds.length) {
           // No more stack elements nor kinds to display.
           break;
         }
@@ -168,8 +167,8 @@ abstract class StackListener extends Listener {
         } else {
           sb.write(padRight('---', 60));
         }
-        if (stackIndex >= 0) {
-          Object value = stack.array[stackIndex];
+        if (kindIndex < stack.length) {
+          Object value = stack[kindIndex];
           if (kind == null || kind.check(value)) {
             sb.write(' ');
           } else {
@@ -496,7 +495,29 @@ abstract class StackListener extends Listener {
       {bool wasHandled: false, List<LocatedMessage> context});
 }
 
-class Stack {
+abstract class Stack {
+  /// Pops [count] elements from the stack and puts it into [list].
+  /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
+  List<Object> popList(int count, List<Object> list, NullValue nullValue);
+
+  void push(Object value);
+
+  /// Will return [null] instead of [NullValue].
+  Object get last;
+
+  bool get isNotEmpty;
+
+  List<Object> get values;
+
+  Object pop(NullValue nullValue);
+
+  int get length;
+
+  /// Raw, i.e. [NullValue]s will be returned instead of [null].
+  Object operator [](int index);
+}
+
+class StackImpl implements Stack {
   List<Object> array = new List<Object>(8);
   int arrayLength = 0;
 
@@ -507,6 +528,10 @@ class Stack {
   Object get last {
     final Object value = array[arrayLength - 1];
     return value is NullValue ? null : value;
+  }
+
+  Object operator [](int index) {
+    return array[arrayLength - 1 - index];
   }
 
   void push(Object value) {
@@ -545,9 +570,7 @@ class Stack {
       } else if (value is ParserRecovery) {
         isParserRecovery = true;
       } else {
-        if (value is NullValue) {
-          print(value);
-        }
+        assert(value is! NullValue);
         list[i] = value;
       }
     }
@@ -569,6 +592,54 @@ class Stack {
     newArray.setRange(0, length, array, 0);
     array = newArray;
   }
+}
+
+class DebugStack implements Stack {
+  Stack realStack = new StackImpl();
+  Stack stackTraceStack = new StackImpl();
+  List<StackTrace> latestStacktraces = new List<StackTrace>();
+
+  @override
+  Object operator [](int index) {
+    Object result = realStack[index];
+    latestStacktraces.clear();
+    latestStacktraces.add(stackTraceStack[index]);
+    return result;
+  }
+
+  @override
+  bool get isNotEmpty => realStack.isNotEmpty;
+
+  @override
+  Object get last => this[0];
+
+  @override
+  int get length => realStack.length;
+
+  @override
+  Object pop(NullValue nullValue) {
+    Object result = realStack.pop(nullValue);
+    latestStacktraces.clear();
+    latestStacktraces.add(stackTraceStack.pop(null));
+    return result;
+  }
+
+  @override
+  List<Object> popList(int count, List<Object> list, NullValue nullValue) {
+    List<Object> result = realStack.popList(count, list, nullValue);
+    latestStacktraces.length = count;
+    stackTraceStack.popList(count, latestStacktraces, null);
+    return result;
+  }
+
+  @override
+  void push(Object value) {
+    realStack.push(value);
+    stackTraceStack.push(StackTrace.current);
+  }
+
+  @override
+  List<Object> get values => realStack.values;
 }
 
 /// Helper constant for popping a list of the top of a [Stack].  This helper
