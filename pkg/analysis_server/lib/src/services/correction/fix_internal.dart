@@ -2796,6 +2796,10 @@ class FixProcessor extends BaseProcessor {
         if (alreadyImportedWithPrefix.contains(declaration.path)) {
           continue;
         }
+        // Check that the import doesn't end with '.template.dart'
+        if (declaration.uri.path.endsWith('.template.dart')) {
+          continue;
+        }
         // Compute the fix kind.
         FixKind fixKind;
         if (declaration.uri.isScheme('dart')) {

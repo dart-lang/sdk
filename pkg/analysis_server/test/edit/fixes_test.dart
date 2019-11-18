@@ -172,10 +172,9 @@ bbb:${toUri('/bbb/lib')}
     expect(
         fixes, contains("Import library 'package:bbb/target.generated.dart'"));
 
-    // TODO(jwren) http://dartbug.com/39401 The following will be switched from
-    //  isTrue to isFalse once this bug is fixed:
+    // Context: http://dartbug.com/39401
     expect(fixes.contains("Import library 'package:bbb/target.template.dart'"),
-        isTrue);
+        isFalse);
   }
 
   void _addOverlay(String name, String contents) {
