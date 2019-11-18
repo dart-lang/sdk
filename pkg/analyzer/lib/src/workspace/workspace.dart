@@ -6,8 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-
-import 'bazel.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
 
 /**
  * Abstract superclass of classes that provide information about the workspace
