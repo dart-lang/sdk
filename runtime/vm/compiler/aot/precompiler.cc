@@ -1842,7 +1842,6 @@ void Precompiler::DropLibraryEntries() {
         script.set_compile_time_constants(Array::null_array());
         script.set_line_starts(null_typed_data);
         script.set_debug_positions(Array::null_array());
-        script.set_yield_positions(Array::null_array());
         script.set_kernel_program_info(null_info);
         script.set_source(String::null_string());
       }

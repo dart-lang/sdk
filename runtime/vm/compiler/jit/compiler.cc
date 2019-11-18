@@ -1017,41 +1017,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   }
 }
 
-void Compiler::ComputeYieldPositions(const Function& function) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function.script());
-  Array& yield_position_map = Array::Handle(zone, script.yield_positions());
-  if (yield_position_map.IsNull()) {
-    yield_position_map = HashTables::New<UnorderedHashMap<SmiTraits>>(4);
-  }
-  UnorderedHashMap<SmiTraits> function_map(yield_position_map.raw());
-  Smi& key = Smi::Handle(zone, Smi::New(function.token_pos().value()));
-
-  if (function_map.ContainsKey(key)) {
-    ASSERT(function_map.Release().raw() == yield_position_map.raw());
-    return;
-  }
-
-  CompilerState state(thread);
-  LongJumpScope jump;
-  auto& array = GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (setjmp(*jump.Set()) == 0) {
-    ParsedFunction* parsed_function =
-        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
-    ZoneGrowableArray<const ICData*>* ic_data_array =
-        new ZoneGrowableArray<const ICData*>();
-    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
-                                     /* not inlining */ nullptr, false,
-                                     Compiler::kNoOSRDeoptId, 1, false, &array);
-    builder.BuildGraph();
-  }
-  function_map.UpdateOrInsert(key, array);
-  // Release and store back to script
-  yield_position_map = function_map.Release().raw();
-  script.set_yield_positions(yield_position_map);
-}
-
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -1449,10 +1414,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
-  UNREACHABLE();
-}
-
-void Compiler::ComputeYieldPositions(const Function& function) {
   UNREACHABLE();
 }
 

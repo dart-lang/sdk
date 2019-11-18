@@ -40,8 +40,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id,
-    bool inlining_unchecked_entry,
-    GrowableObjectArray* record_yield_positions)
+    bool inlining_unchecked_entry)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
                            osr_id,
@@ -69,7 +68,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(NULL) {
   const Script& script =
       Script::Handle(Z, parsed_function->function().script());
-  record_yield_positions_ = record_yield_positions;
   H.InitFromScript(script);
 }
 
@@ -592,7 +590,8 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
-                                  bool omit_result_type_check /* = false */) {
+                                  bool omit_result_type_check,
+                                  intptr_t yield_index) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
@@ -620,7 +619,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += Drop();
   }
 
-  instructions += BaseFlowGraphBuilder::Return(position);
+  instructions += BaseFlowGraphBuilder::Return(position, yield_index);
 
   return instructions;
 }
@@ -806,7 +805,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
   //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, kernel_data, kernel_data_program_offset, record_yield_positions_);
+      this, kernel_data, kernel_data_program_offset);
   return streaming_flow_graph_builder.BuildGraph();
 }
 

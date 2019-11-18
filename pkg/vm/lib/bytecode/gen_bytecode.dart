@@ -1299,7 +1299,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  void _genReturnTOS() {
+  void _genReturnTOS([int yieldSourcePosition = null]) {
     if (options.causalAsyncStacks &&
         parentFunction != null &&
         (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
@@ -1312,6 +1312,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.currentSourcePosition = savedSourcePosition;
     }
 
+    if (yieldSourcePosition != null && options.emitSourcePositions) {
+      asm.emitYieldPointSourcePosition(yieldSourcePosition);
+    }
     asm.emitReturnTOS();
   }
 
@@ -4560,10 +4563,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    if (options.emitSourcePositions) {
-      asm.emitYieldPointSourcePosition();
-    }
-
     // 0 is reserved for normal entry, yield points are counted from 1.
     final int yieldIndex = yieldPoints.length + 1;
     final Label continuationLabel = new Label(allowsBackwardJumps: true);
@@ -4584,7 +4583,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // return <expression>
     // Note: finally blocks are *not* executed on the way out.
     _generateNode(node.expression);
-    _genReturnTOS();
+    _genReturnTOS(node.fileOffset);
 
     asm.bind(continuationLabel);
 

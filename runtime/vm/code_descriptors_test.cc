@@ -143,7 +143,7 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
     descriptors->AddDescriptor(RawPcDescriptors::kRuntimeCall, 0, 0,
-                               TokenPosition(token_positions[i]), 0);
+                               TokenPosition(token_positions[i]), 0, 1);
   }
 
   const PcDescriptors& finalized_descriptors =

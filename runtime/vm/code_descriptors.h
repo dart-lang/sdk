@@ -30,7 +30,8 @@ class DescriptorList : public ZoneAllocated {
                      intptr_t pc_offset,
                      intptr_t deopt_id,
                      TokenPosition token_pos,
-                     intptr_t try_index);
+                     intptr_t try_index,
+                     intptr_t yield_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 

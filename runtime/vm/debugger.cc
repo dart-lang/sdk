@@ -1015,7 +1015,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // Attempt to determine the token pos and try index from the async closure.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function().script());
 
   ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
   // This should only be called on frames that aren't active on the stack.
@@ -1058,28 +1057,17 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  intptr_t await_to_token_map_index = await_jump_var - 1;
-  const auto& array =
-      GrowableObjectArray::Handle(zone, script.GetYieldPositions(function_));
-  // await_jump_var is non zero means that array should not be empty
-  // index also fall into the correct range
-  ASSERT(array.Length() > 0 && await_to_token_map_index < array.Length());
-  const Object& token_pos =
-      Object::Handle(zone, array.At(await_to_token_map_index));
-  ASSERT(token_pos.IsSmi());
-  token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
-  token_pos_initialized_ = true;
-  GetPcDescriptors();
-  PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    if (iter.TokenPos() == token_pos_) {
-      // Match the lowest try index at this token position.
-      // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != kInvalidTryIndex) {
-        if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
-          try_index_ = iter.TryIndex();
-        }
-      }
+
+  const auto& pc_descriptors =
+      PcDescriptors::Handle(zone, code().pc_descriptors());
+  ASSERT(!pc_descriptors.IsNull());
+  PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+  while (it.MoveNext()) {
+    if (it.YieldIndex() == await_jump_var) {
+      try_index_ = it.TryIndex();
+      token_pos_ = it.TokenPos();
+      token_pos_initialized_ = true;
+      return;
     }
   }
 }
@@ -4320,6 +4308,8 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   Object& closure_or_null =
       Object::Handle(zone, top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
+    ASSERT(top_frame->function().IsAsyncClosure() ||
+           top_frame->function().IsAsyncGenClosure());
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     if (top_frame->function().is_declared_in_bytecode()) {
@@ -4339,18 +4329,16 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     }
     ASSERT(!top_frame->IsInterpreted());
-    const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    const auto& yield_positions = GrowableObjectArray::Handle(
-        zone, script.GetYieldPositions(top_frame->function()));
-    // No yield statements
-    if (yield_positions.IsNull() || (yield_positions.Length() == 0)) {
+    const auto& pc_descriptors =
+        PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
+    if (pc_descriptors.IsNull()) {
       return false;
     }
-    intptr_t looking_for = top_frame->TokenPos().value();
-    Smi& value = Smi::Handle(zone);
-    for (int i = 0; i < yield_positions.Length(); i++) {
-      value ^= yield_positions.At(i);
-      if (value.Value() == looking_for) {
+    const TokenPosition looking_for = top_frame->TokenPos();
+    PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+    while (it.MoveNext()) {
+      if (it.TokenPos() == looking_for &&
+          it.YieldIndex() != RawPcDescriptors::kInvalidYieldIndex) {
         return true;
       }
     }

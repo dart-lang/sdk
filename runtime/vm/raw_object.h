@@ -1152,7 +1152,6 @@ class RawScript : public RawObject {
   RawArray* compile_time_constants_;
   RawTypedData* line_starts_;
   RawArray* debug_positions_;
-  RawArray* yield_positions_;
   RawKernelProgramInfo* kernel_program_info_;
   RawString* source_;
   VISIT_TO(RawObject*, source_);
@@ -1520,25 +1519,42 @@ class RawPcDescriptors : public RawObject {
   static const char* KindToCString(Kind k);
   static bool ParseKind(const char* cstr, Kind* out);
 
-  class MergedKindTry {
+  // Used to represent the absense of a yield index in PcDescriptors.
+  static constexpr intptr_t kInvalidYieldIndex = -1;
+
+  class KindAndMetadata {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static int32_t Encode(intptr_t kind, intptr_t try_index) {
-      intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
+    static int32_t Encode(intptr_t kind,
+                          intptr_t try_index,
+                          intptr_t yield_index) {
+      const intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
       ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
       ASSERT(Utils::IsInt(kTryIndexSize, try_index));
-      return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
+      ASSERT(Utils::IsInt(kYieldIndexSize, yield_index));
+      return (yield_index << kYieldIndexPos) | (try_index << kTryIndexPos) |
+             (kind_shift << kKindShiftPos);
     }
 
-    static intptr_t DecodeKind(int32_t merged_kind_try) {
+    static intptr_t DecodeKind(int32_t kind_and_metadata) {
       const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
-      return 1 << (merged_kind_try & kKindShiftMask);
+      return 1 << (kind_and_metadata & kKindShiftMask);
     }
 
-    static intptr_t DecodeTryIndex(int32_t merged_kind_try) {
+    static intptr_t DecodeTryIndex(int32_t kind_and_metadata) {
       // Arithmetic shift.
-      return merged_kind_try >> kTryIndexPos;
+      return static_cast<int32_t>(static_cast<uint32_t>(kind_and_metadata)
+                                  << (32 - (kTryIndexPos + kTryIndexSize))) >>
+             (32 - kTryIndexSize);
+    }
+
+    static intptr_t DecodeYieldIndex(int32_t kind_and_metadata) {
+      // Arithmetic shift.
+      return static_cast<int32_t>(
+                 static_cast<uint32_t>(kind_and_metadata)
+                 << (32 - (kYieldIndexPos + kYieldIndexSize))) >>
+             (32 - kYieldIndexSize);
     }
 
    private:
@@ -1547,8 +1563,13 @@ class RawPcDescriptors : public RawObject {
     // Is kKindShiftSize enough bits?
     COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
-    static const intptr_t kTryIndexPos = kKindShiftSize;
-    static const intptr_t kTryIndexSize = 32 - kKindShiftSize;
+    static const intptr_t kTryIndexPos = kKindShiftPos + kKindShiftSize;
+    static const intptr_t kTryIndexSize = 10;
+
+    static const intptr_t kYieldIndexPos = kTryIndexPos + kTryIndexSize;
+    static const intptr_t kYieldIndexSize = 32 - kYieldIndexPos;
+
+    COMPILE_ASSERT((kYieldIndexPos + kYieldIndexSize) == 32);
   };
 
  private:

@@ -491,6 +491,12 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
   }
 }
 
+void FlowGraphCompiler::EmitYieldPositionMetadata(TokenPosition token_pos,
+                                                  intptr_t yield_index) {
+  AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
+                DeoptId::kNone, token_pos, CurrentTryIndex(), yield_index);
+}
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
@@ -731,12 +737,13 @@ void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       intptr_t pc_offset,
                                       intptr_t deopt_id,
                                       TokenPosition token_pos,
-                                      intptr_t try_index) {
+                                      intptr_t try_index,
+                                      intptr_t yield_index) {
   code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
   // Don't emit deopt-descriptors in AOT mode.
   if (FLAG_precompiled_mode && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
-                                      try_index);
+                                      try_index, yield_index);
 }
 
 // Uses current pc position and try-index.

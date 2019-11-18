@@ -1668,7 +1668,15 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  code_ += B->Return(position_);
+  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
+    if (pc_ == last_yield_point_pc_) {
+      // The return might actually be a yield point, if so we need to attach the
+      // yield index to the return instruction.
+      yield_index = last_yield_point_index_;
+    }
+  }
+  code_ += B->Return(position_, yield_index);
   ASSERT(IsStackEmpty());
 }
 
@@ -2327,6 +2335,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     while (update_position &&
            static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
+      if (source_pos_iter.IsYieldPoint()) {
+        last_yield_point_pc_ = source_pos_iter.PcOffset();
+        ++last_yield_point_index_;
+      }
       update_position = source_pos_iter.MoveNext();
     }
 

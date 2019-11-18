@@ -440,6 +440,10 @@ class TestIsolateScope {
   DISALLOW_COPY_AND_ASSIGN(TestIsolateScope);
 };
 
+// Ensures core libraries are initialized, thereby allowing vm/cc tests to
+// e.g. run functions using microtasks.
+void SetupCoreLibrariesForUnitTest();
+
 template <typename T>
 struct is_void {
   static const bool value = false;

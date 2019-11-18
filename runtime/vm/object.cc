@@ -9698,33 +9698,6 @@ void Script::set_debug_positions(const Array& value) const {
   StorePointer(&raw_ptr()->debug_positions_, value.raw());
 }
 
-void Script::set_yield_positions(const Array& value) const {
-  StorePointer(&raw_ptr()->yield_positions_, value.raw());
-}
-
-RawArray* Script::yield_positions() const {
-  return raw_ptr()->yield_positions_;
-}
-
-RawGrowableObjectArray* Script::GetYieldPositions(
-    const Function& function) const {
-  if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure())
-    return GrowableObjectArray::null();
-  ASSERT(!function.is_declared_in_bytecode());
-  Compiler::ComputeYieldPositions(function);
-  UnorderedHashMap<SmiTraits> function_map(raw_ptr()->yield_positions_);
-  const auto& key = Smi::Handle(Smi::New(function.token_pos().value()));
-  intptr_t entry = function_map.FindKey(key);
-  GrowableObjectArray& array = GrowableObjectArray::Handle();
-  if (entry < 0) {
-    array ^= GrowableObjectArray::null();
-  } else {
-    array ^= function_map.GetPayload(entry, 0);
-  }
-  function_map.Release();
-  return array.raw();
-}
-
 RawTypedData* Script::line_starts() const {
   return raw_ptr()->line_starts_;
 }
@@ -12824,13 +12797,14 @@ void PcDescriptors::PrintHeaderString() {
   const int addr_width = (kBitsPerWord / 4) + 2;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\n", addr_width, "pc");
+  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\tyield-idx\n", addr_width,
+            "pc");
 }
 
 const char* PcDescriptors::ToCString() const {
 // "*" in a printf format specifier tells it to read the field width from
 // the printf argument list.
-#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%s\t%" Pd "\n"
+#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%s\t%" Pd "\t%" Pd "\n"
   if (Length() == 0) {
     return "empty PcDescriptors\n";
   }
@@ -12843,7 +12817,8 @@ const char* PcDescriptors::ToCString() const {
     while (iter.MoveNext()) {
       len += Utils::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
                             KindAsStr(iter.Kind()), iter.DeoptId(),
-                            iter.TokenPos().ToCString(), iter.TryIndex());
+                            iter.TokenPos().ToCString(), iter.TryIndex(),
+                            iter.YieldIndex());
     }
   }
   // Allocate the buffer.
@@ -12852,10 +12827,10 @@ const char* PcDescriptors::ToCString() const {
   intptr_t index = 0;
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
-    index +=
-        Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                       iter.PcOffset(), KindAsStr(iter.Kind()), iter.DeoptId(),
-                       iter.TokenPos().ToCString(), iter.TryIndex());
+    index += Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
+                            iter.PcOffset(), KindAsStr(iter.Kind()),
+                            iter.DeoptId(), iter.TokenPos().ToCString(),
+                            iter.TryIndex(), iter.YieldIndex());
   }
   return buffer;
 #undef FORMAT

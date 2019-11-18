@@ -3985,12 +3985,6 @@ class Script : public Object {
 
   void set_debug_positions(const Array& value) const;
 
-  void set_yield_positions(const Array& value) const;
-
-  RawArray* yield_positions() const;
-
-  RawGrowableObjectArray* GetYieldPositions(const Function& function) const;
-
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
                      Heap::Space space = Heap::kNew) const;
@@ -5060,16 +5054,20 @@ class PcDescriptors : public Object {
           cur_kind_(0),
           cur_deopt_id_(0),
           cur_token_pos_(0),
-          cur_try_index_(0) {}
+          cur_try_index_(0),
+          cur_yield_index_(RawPcDescriptors::kInvalidYieldIndex) {}
 
     bool MoveNext() {
       // Moves to record that matches kind_mask_.
       while (byte_index_ < descriptors_.Length()) {
-        int32_t merged_kind_try = descriptors_.DecodeInteger(&byte_index_);
+        const int32_t kind_and_metadata =
+            descriptors_.DecodeInteger(&byte_index_);
         cur_kind_ =
-            RawPcDescriptors::MergedKindTry::DecodeKind(merged_kind_try);
-        cur_try_index_ =
-            RawPcDescriptors::MergedKindTry::DecodeTryIndex(merged_kind_try);
+            RawPcDescriptors::KindAndMetadata::DecodeKind(kind_and_metadata);
+        cur_try_index_ = RawPcDescriptors::KindAndMetadata::DecodeTryIndex(
+            kind_and_metadata);
+        cur_yield_index_ = RawPcDescriptors::KindAndMetadata::DecodeYieldIndex(
+            kind_and_metadata);
 
         cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
 
@@ -5089,6 +5087,7 @@ class PcDescriptors : public Object {
     intptr_t DeoptId() const { return cur_deopt_id_; }
     TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
     intptr_t TryIndex() const { return cur_try_index_; }
+    intptr_t YieldIndex() const { return cur_yield_index_; }
     RawPcDescriptors::Kind Kind() const {
       return static_cast<RawPcDescriptors::Kind>(cur_kind_);
     }
@@ -5106,7 +5105,8 @@ class PcDescriptors : public Object {
           cur_kind_(iter.cur_kind_),
           cur_deopt_id_(iter.cur_deopt_id_),
           cur_token_pos_(iter.cur_token_pos_),
-          cur_try_index_(iter.cur_try_index_) {}
+          cur_try_index_(iter.cur_try_index_),
+          cur_yield_index_(iter.cur_yield_index_) {}
 
     const PcDescriptors& descriptors_;
     const intptr_t kind_mask_;
@@ -5117,6 +5117,7 @@ class PcDescriptors : public Object {
     intptr_t cur_deopt_id_;
     intptr_t cur_token_pos_;
     intptr_t cur_try_index_;
+    intptr_t cur_yield_index_;
   };
 
   intptr_t Length() const;

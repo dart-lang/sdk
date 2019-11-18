@@ -2702,14 +2702,19 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
 ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
-  // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150),
-                         3);
+  // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1,
+                         1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0,
+                         -1);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1,
+                         10);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2,
+                         20);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3,
+                         30);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150), 3,
+                         30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2728,6 +2733,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(1, iter.YieldIndex());
   EXPECT_EQ(20, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
@@ -2735,19 +2741,24 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(30, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(20, iter.YieldIndex());
   EXPECT_EQ(40, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(80, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());
@@ -2763,16 +2774,17 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, TokenPosition(200),
-                         1);
+                         1, 10);
   builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, TokenPosition(300),
-                         0);
+                         0, -1);
   builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, TokenPosition(400),
-                         1);
-  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2);
+                         1, 10);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2,
+                         20);
   builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, TokenPosition(800),
-                         3);
+                         3, 30);
   builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, TokenPosition(150),
-                         3);
+                         3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2791,6 +2803,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(200, iter.TokenPos().value());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
@@ -2798,19 +2811,24 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(-1, iter.YieldIndex());
   EXPECT_EQ(300, iter.TokenPos().value());
   EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(10, iter.YieldIndex());
   EXPECT_EQ(400, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(20, iter.YieldIndex());
   EXPECT_EQ(0, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(800, iter.TokenPos().value());
 
   EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.YieldIndex());
   EXPECT_EQ(150, iter.TokenPos().value());
 
   EXPECT_EQ(3, iter.TryIndex());

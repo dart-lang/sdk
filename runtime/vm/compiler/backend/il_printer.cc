@@ -1061,6 +1061,13 @@ void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
+void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    f->Print(", yield_index = %" Pd "", yield_index());
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }

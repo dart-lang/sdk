@@ -61,7 +61,6 @@ namespace dart {
   F(Script, compile_time_constants_)                                           \
   F(Script, line_starts_)                                                      \
   F(Script, debug_positions_)                                                  \
-  F(Script, yield_positions_)                                                  \
   F(Script, kernel_program_info_)                                              \
   F(Script, source_)                                                           \
   F(Library, name_)                                                            \

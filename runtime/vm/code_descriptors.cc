@@ -13,19 +13,26 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
-                                   intptr_t try_index) {
+                                   intptr_t try_index,
+                                   intptr_t yield_index) {
+  // yield index 0 is reserved for normal entry.
+  RELEASE_ASSERT(yield_index != 0);
+
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
          (kind == RawPcDescriptors::kBSSRelocation) ||
-         (kind == RawPcDescriptors::kOther) || (deopt_id != DeoptId::kNone));
+         (kind == RawPcDescriptors::kOther) ||
+         (yield_index != RawPcDescriptors::kInvalidYieldIndex) ||
+         (deopt_id != DeoptId::kNone));
 
-  // When precompiling, we only use pc descriptors for exceptions and
-  // relocations.
+  // When precompiling, we only use pc descriptors for exceptions,
+  // relocations and yield indices.
   if (!FLAG_precompiled_mode || try_index != -1 ||
+      yield_index != RawPcDescriptors::kInvalidYieldIndex ||
       kind == RawPcDescriptors::kBSSRelocation) {
-    int32_t merged_kind_try =
-        RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
+    const int32_t kind_and_metadata =
+        RawPcDescriptors::KindAndMetadata::Encode(kind, try_index, yield_index);
 
-    PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);
+    PcDescriptors::EncodeInteger(&encoded_data_, kind_and_metadata);
     PcDescriptors::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
     prev_pc_offset = pc_offset;
 

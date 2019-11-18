@@ -107,9 +107,9 @@ class BytecodeAssembler {
     }
   }
 
-  void emitYieldPointSourcePosition() {
+  void emitYieldPointSourcePosition(int yieldSourcePosition) {
     if (!isUnreachable) {
-      sourcePositions.addYieldPoint(offset, currentSourcePosition);
+      sourcePositions.addYieldPoint(offset, yieldSourcePosition);
     }
   }
 

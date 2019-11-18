@@ -139,6 +139,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&stack_ok);
 #endif
   ASSERT(__ constant_pool_allowed());
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    compiler->EmitYieldPositionMetadata(token_pos(), yield_index());
+  }
   __ LeaveDartFrameAndReturn();  // Disallows constant pool use.
   // This ReturnInstr may be emitted out of order by the optimizer. The next
   // block may be a target expecting a properly set constant pool pointer.

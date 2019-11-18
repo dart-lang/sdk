@@ -129,6 +129,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
+
   EXPECT(isolate != NULL);
   return isolate;
 }
@@ -140,6 +141,20 @@ Dart_Isolate TestCase::CreateTestIsolate(const char* name,
                        0 /* Snapshots have length encoded within them. */,
                        bin::core_isolate_snapshot_instructions, name,
                        group_data, isolate_data);
+}
+
+void SetupCoreLibrariesForUnitTest() {
+  TransitionVMToNative transition(Thread::Current());
+
+  Dart_EnterScope();
+  bool ok = bin::DartUtils::SetOriginalWorkingDirectory();
+  RELEASE_ASSERT(ok);
+  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
+      /*is_service_isolate=*/false,
+      /*trace_loading=*/false);
+  Dart_ExitScope();
+
+  RELEASE_ASSERT(!Dart_IsError(result));
 }
 
 static const char* kPackageScheme = "package:";

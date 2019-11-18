@@ -1572,8 +1572,10 @@ Fragment StreamingFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   return flow_graph_builder_->LoadLocal(variable);
 }
 
-Fragment StreamingFlowGraphBuilder::Return(TokenPosition position) {
-  return flow_graph_builder_->Return(position);
+Fragment StreamingFlowGraphBuilder::Return(TokenPosition position,
+                                           intptr_t yield_index) {
+  return flow_graph_builder_->Return(position, /*omit_result_type_check=*/false,
+                                     yield_index);
 }
 
 Fragment StreamingFlowGraphBuilder::PushArgument() {
@@ -4788,10 +4790,6 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
-  // Collect yield position
-  if (record_yield_positions_ != nullptr) {
-    record_yield_positions_->Add(Smi::Handle(Z, Smi::New(position.value())));
-  }
   // Setup yield/continue point:
   //
   //   ...
@@ -4806,7 +4804,8 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
   // BuildGraphOfFunction will create a dispatch that jumps to
   // Continuation<:await_jump_var> upon entry to the function.
   //
-  Fragment instructions = IntConstant(yield_continuations().length() + 1);
+  const intptr_t new_yield_pos = yield_continuations().length() + 1;
+  Fragment instructions = IntConstant(new_yield_pos);
   instructions +=
       StoreLocal(TokenPosition::kNoSource, scopes()->yield_jump_variable);
   instructions += Drop();
@@ -4815,7 +4814,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
       StoreLocal(TokenPosition::kNoSource, scopes()->yield_context_variable);
   instructions += Drop();
   instructions += BuildExpression();  // read expression.
-  instructions += Return(position);
+  instructions += Return(position, new_yield_pos);
 
   // Note: DropTempsInstr serves as an anchor instruction. It will not
   // be linked into the resulting graph.
