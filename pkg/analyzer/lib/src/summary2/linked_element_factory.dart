@@ -240,24 +240,18 @@ class _ElementRequest {
       ElementImpl enclosing, Reference reference) {
     if (enclosing is ClassElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and fields.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is CompilationUnitElementImpl) {
+    } else if (enclosing is CompilationUnitElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is EnumElementImpl) {
+    } else if (enclosing is EnumElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.accessors;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
     }
-    // Only classes and units have accessors.
-    throw StateError('${enclosing.runtimeType}');
+    // Requesting accessors sets elements for accessors and variables.
+    assert(reference.element != null);
+    return reference.element;
   }
 
   ClassElementImpl _class(

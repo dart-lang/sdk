@@ -1260,14 +1260,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     SimpleIdentifier prefixNode = node.prefix;
     Element prefixElement = prefixNode.staticElement;
     // String.length
-    if (prefixElement is! PrefixElement && prefixElement is! ClassElement) {
+    if (prefixElement is! PrefixElement &&
+        prefixElement is! ClassElement &&
+        prefixElement is! ExtensionElement) {
       DartObjectImpl prefixResult = prefixNode.accept(this);
       if (_isStringLength(prefixResult, node.identifier)) {
         return prefixResult.stringLength(_typeProvider);
       }
     }
     // importPrefix.CONST
-    if (prefixElement is! PrefixElement) {
+    if (prefixElement is! PrefixElement && prefixElement is! ExtensionElement) {
       DartObjectImpl prefixResult = prefixNode.accept(this);
       if (prefixResult == null) {
         // The error has already been reported.
