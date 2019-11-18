@@ -37,7 +37,7 @@ class B<invariant T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method method(self::B::T* x) → self::B::T*
-    return null;
+    return x;
   set y(self::B::T* x) → void {}
 }
 class C<contravariant T extends core::Object* = dynamic> extends core::Object {
@@ -70,6 +70,21 @@ class F<invariant T extends core::Object* = dynamic> extends self::E<self::F::T*
   forwarding-stub method method(generic-covariant-impl self::F::T* x) → core::int*
     return super.{self::E::method}(x);
 }
+class NoSuchMethod<invariant T extends core::Object* = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T*> {
+  synthetic constructor •() → self::NoSuchMethod<self::NoSuchMethod::T*>*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return 3;
+  no-such-method-forwarder get x() → self::NoSuchMethod::T*
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError} self::NoSuchMethod::T*;
+  no-such-method-forwarder method method(self::NoSuchMethod::T* x) → self::NoSuchMethod::T*
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError} self::NoSuchMethod::T*;
+  no-such-method-forwarder set y(self::NoSuchMethod::T* x) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+  no-such-method-forwarder set x(self::NoSuchMethod::T* value) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+}
 static method main() → dynamic {
   self::A<core::int*, core::num*, core::String*>* a = new self::A::•<core::int*, core::num*, core::String*>();
   self::expect(null, a.{self::A::field});
@@ -83,7 +98,7 @@ static method main() → dynamic {
   self::B<core::int*>* b = new self::B::•<core::int*>();
   b.{self::B::x} = 3;
   self::expect(3, b.{self::B::x});
-  self::expect(null, b.{self::B::method}(3));
+  self::expect(3, b.{self::B::method}(3));
   b.{self::B::y} = 3;
   self::C<core::int*>* c = new self::C::•<core::int*>();
   self::expect(null, c.{self::C::field});
@@ -91,6 +106,8 @@ static method main() → dynamic {
   c.{self::C::x} = 3;
   self::D<core::Object*>* d = new self::F::•<core::String*>((core::String* s) → core::Null? {});
   d.{self::D::method}("test");
+  self::NoSuchMethod<core::num*>* nsm = new self::NoSuchMethod::•<core::num*>();
+  self::expect(3, nsm.{self::B::method}(3));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual)) {
@@ -100,4 +117,11 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = null
+  #C2 = #x
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
+  #C6 = #method
+  #C7 = #y=
+  #C8 = #x=
 }

@@ -273,6 +273,10 @@ void testOverrideLegacyMethods() {
 
   F<Object> f = new H<String>((String s) {});
   Expect.throws(() => f.method(3));
+
+  // Tests reified type is the type expected for F and not G.
+  Expect.type<int Function(Object)>(f.method);
+  Expect.type<int Function(Object)>(new H<String>((String s){}).method);
 }
 
 main() {
