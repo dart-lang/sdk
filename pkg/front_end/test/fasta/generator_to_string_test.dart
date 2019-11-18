@@ -118,11 +118,8 @@ main() {
         " assignmentOperator: +=)",
         new DelayedAssignment(
             helper, token, generator, expression, assignmentOperator));
-    check(
-        "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
-        " interfaceTarget: $uri::#class1::myInterfaceTarget)",
-        new DelayedPostfixIncrement(
-            helper, token, generator, binaryOperator, interfaceTarget));
+    check("DelayedPostfixIncrement(offset: 4, binaryOperator: +)",
+        new DelayedPostfixIncrement(helper, token, generator, binaryOperator));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",

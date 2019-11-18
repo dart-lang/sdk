@@ -149,16 +149,13 @@ abstract class Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false});
 
   /// Returns a [Expression] representing a pre-increment or pre-decrement of
   /// the generator.
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildCompoundAssignment(
         binaryOperator, _forest.createIntLiteral(offset, 1),
         offset: offset,
@@ -166,16 +163,13 @@ abstract class Generator {
         // instance `++a?.b;` is not providing a void context making it default
         // `true`.
         voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
         isPreIncDec: true);
   }
 
   /// Returns a [Expression] representing a post-increment or post-decrement of
   /// the generator.
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget});
+      {int offset: TreeNode.noOffset, bool voidContext: false});
 
   /// Returns a [Generator] or [Expression] representing an index access
   /// (e.g. `a[b]`) with the generator on the receiver and [index] as the
@@ -383,39 +377,25 @@ class VariableUseGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration read =
         _helper.forest.createVariableDeclarationForValue(_createRead());
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(_createWrite(offset, binary));
     return new LocalPostIncDec(read, write)..fileOffset = offset;
@@ -519,7 +499,6 @@ class PropertyAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return new CompoundPropertySet(receiver, name, binaryOperator, value,
@@ -533,28 +512,19 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
         _forest.createPropertyGet(fileOffset,
             _helper.createVariableGet(variable, receiver.fileOffset), name));
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(_helper.forest.createPropertySet(
             fileOffset,
@@ -661,41 +631,36 @@ class ThisPropertyAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
+    _helper.forest.createBinary(
         offset,
         _forest.createPropertyGet(
             fileOffset, _forest.createThisExpression(fileOffset), name),
         binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+        value);
+    Expression binary = _helper.forest.createBinary(
+        offset,
+        _forest.createPropertyGet(
+            fileOffset, _forest.createThisExpression(fileOffset), name),
+        binaryOperator,
+        value);
     return _createWrite(fileOffset, binary, forEffect: voidContext);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
         _forest.createPropertyGet(
             fileOffset, _forest.createThisExpression(fileOffset), name));
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
             _createWrite(fileOffset, binary, forEffect: true));
@@ -729,7 +694,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   NullAwarePropertyAccessGenerator(ExpressionGeneratorHelper helper,
       Token token, this.receiverExpression, this.name)
-      : this.receiver = makeOrReuseVariable(receiverExpression),
+      : this.receiver =
+            helper.forest.createVariableDeclarationForValue(receiverExpression),
         super(helper, token);
 
   @override
@@ -780,7 +746,6 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return new NullAwareCompoundSet(
@@ -793,15 +758,10 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildCompoundAssignment(
         binaryOperator, _forest.createIntLiteral(offset, 1),
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -873,39 +833,25 @@ class SuperPropertyAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
-      Procedure interfaceTarget,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration read =
         _helper.forest.createVariableDeclarationForValue(_createRead());
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(_createWrite(fileOffset, binary));
     return new StaticPostIncDec(read, write)..fileOffset = offset;
@@ -1004,7 +950,6 @@ class IndexedAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return new CompoundIndexSet(receiver, index, binaryOperator, value,
@@ -1017,15 +962,10 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -1109,7 +1049,6 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
@@ -1124,15 +1063,10 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -1213,7 +1147,6 @@ class SuperIndexedAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return new CompoundSuperIndexSet(
@@ -1227,15 +1160,10 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -1377,39 +1305,25 @@ class StaticAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
-      Procedure interfaceTarget,
       bool isPreIncDec = false,
       bool isPostIncDec = false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration read =
         _helper.forest.createVariableDeclarationForValue(_createRead());
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(_createWrite(offset, binary));
     return new StaticPostIncDec(read, write)..fileOffset = offset;
@@ -1657,39 +1571,25 @@ class ExtensionInstanceAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _createWrite(fileOffset, binary, forEffect: voidContext);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
     VariableDeclaration read =
         _helper.forest.createVariableDeclarationForValue(_createRead());
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest.createBinary(offset,
+        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
             _createWrite(fileOffset, binary, forEffect: true));
@@ -2013,18 +1913,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     if (isNullAware) {
       VariableDeclaration variable =
           _helper.forest.createVariableDeclarationForValue(receiver);
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
+      Expression binary = _helper.forest.createBinary(
           offset,
           _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
           binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
+          value);
       Expression write = _createWrite(fileOffset,
           _helper.createVariableGet(variable, receiver.fileOffset), binary,
           forEffect: voidContext, readOnlyReceiver: true);
@@ -2043,28 +1941,19 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
-          offset: offset,
-          voidContext: voidContext,
-          interfaceTarget: interfaceTarget,
-          isPostIncDec: true);
+          offset: offset, voidContext: voidContext, isPostIncDec: true);
     } else if (isNullAware) {
       VariableDeclaration variable =
           _helper.forest.createVariableDeclarationForValue(receiver);
       VariableDeclaration read = _helper.forest
           .createVariableDeclarationForValue(_createRead(
               _helper.createVariableGet(variable, receiver.fileOffset)));
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
-          offset,
-          _helper.createVariableGet(read, fileOffset),
-          binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
+      Expression binary = _helper.forest.createBinary(offset,
+          _helper.createVariableGet(read, fileOffset), binaryOperator, value);
       VariableDeclaration write = _helper.forest
           .createVariableDeclarationForValue(_createWrite(fileOffset,
               _helper.createVariableGet(variable, receiver.fileOffset), binary,
@@ -2079,12 +1968,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       VariableDeclaration read = _helper.forest
           .createVariableDeclarationForValue(_createRead(
               _helper.createVariableGet(variable, receiver.fileOffset)));
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
-          offset,
-          _helper.createVariableGet(read, fileOffset),
-          binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
+      Expression binary = _helper.forest.createBinary(offset,
+          _helper.createVariableGet(read, fileOffset), binaryOperator, value);
       VariableDeclaration write = _helper.forest
           .createVariableDeclarationForValue(_createWrite(fileOffset,
               _helper.createVariableGet(variable, receiver.fileOffset), binary,
@@ -2310,7 +2195,6 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return new CompoundExtensionIndexSet(extension, explicitTypeArguments,
@@ -2324,15 +2208,10 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -2423,16 +2302,13 @@ class ExplicitExtensionAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _makeInvalidRead();
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return _makeInvalidRead();
   }
 
@@ -2589,29 +2465,19 @@ class LoadLibraryGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        buildSimpleRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, buildSimpleRead(), binaryOperator, value);
     return _makeInvalidWrite(binary);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -2673,14 +2539,12 @@ class DeferredAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildCompoundAssignment(binaryOperator, value,
             offset: offset,
             voidContext: voidContext,
-            interfaceTarget: interfaceTarget,
             isPreIncDec: isPreIncDec,
             isPostIncDec: isPostIncDec),
         prefixGenerator.prefix,
@@ -2689,14 +2553,10 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return _helper.wrapInDeferredCheck(
         suffixGenerator.buildPostfixIncrement(binaryOperator,
-            offset: offset,
-            voidContext: voidContext,
-            interfaceTarget: interfaceTarget),
+            offset: offset, voidContext: voidContext),
         prefixGenerator.prefix,
         token.charOffset);
   }
@@ -3080,29 +2940,19 @@ class ReadOnlyAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
+    Expression binary = _helper.forest
+        .createBinary(offset, _createRead(), binaryOperator, value);
     return _makeInvalidWrite(binary);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
-        offset: offset,
-        voidContext: voidContext,
-        interfaceTarget: interfaceTarget,
-        isPostIncDec: true);
+        offset: offset, voidContext: voidContext, isPostIncDec: true);
   }
 
   @override
@@ -3176,7 +3026,6 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: -1,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
@@ -3185,7 +3034,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: -1, bool voidContext: false}) {
     return buildError(
         _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
@@ -3195,7 +3044,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: -1, bool voidContext: false}) {
     return buildError(
         _forest.createArguments(
             fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
@@ -3295,7 +3144,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _buildUnresolvedVariableAssignment(true, value);
@@ -3357,7 +3205,6 @@ abstract class ContextAwareGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: -1,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _makeInvalidWrite(value);
@@ -3365,13 +3212,13 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: -1, bool voidContext: false}) {
     return _makeInvalidWrite(null);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: -1, bool voidContext: false}) {
     return _makeInvalidWrite(null);
   }
 
@@ -3489,10 +3336,8 @@ class DelayedAssignment extends ContextAwareGenerator {
 class DelayedPostfixIncrement extends ContextAwareGenerator {
   final Name binaryOperator;
 
-  final Procedure interfaceTarget;
-
   DelayedPostfixIncrement(ExpressionGeneratorHelper helper, Token token,
-      Generator generator, this.binaryOperator, this.interfaceTarget)
+      Generator generator, this.binaryOperator)
       : super(helper, token, generator);
 
   @override
@@ -3501,25 +3346,19 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
   @override
   Expression buildSimpleRead() {
     return generator.buildPostfixIncrement(binaryOperator,
-        offset: fileOffset,
-        voidContext: false,
-        interfaceTarget: interfaceTarget);
+        offset: fileOffset, voidContext: false);
   }
 
   @override
   Expression buildForEffect() {
     return generator.buildPostfixIncrement(binaryOperator,
-        offset: fileOffset,
-        voidContext: true,
-        interfaceTarget: interfaceTarget);
+        offset: fileOffset, voidContext: true);
   }
 
   @override
   void printOn(StringSink sink) {
     sink.write(", binaryOperator: ");
     sink.write(binaryOperator.name);
-    sink.write(", interfaceTarget: ");
-    printQualifiedNameOn(interfaceTarget, sink);
   }
 }
 
@@ -3553,7 +3392,6 @@ class PrefixUseGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _makeInvalidRead();
@@ -3561,9 +3399,7 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return _makeInvalidRead();
   }
 
@@ -3678,7 +3514,6 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return _makeInvalidRead();
@@ -3686,9 +3521,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      Procedure interfaceTarget}) {
+      {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead();
   }
 
@@ -3767,23 +3600,18 @@ class ParserErrorGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return buildProblem();
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildProblem();
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildProblem();
   }
 
@@ -4089,23 +3917,18 @@ class ThisAccessGenerator extends Generator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return buildAssignmentError();
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildAssignmentError();
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return buildAssignmentError();
   }
 
@@ -4238,23 +4061,18 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return unsupported("buildCompoundAssignment", offset ?? fileOffset, _uri);
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return unsupported("buildPrefixIncrement", offset ?? fileOffset, _uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return unsupported("buildPostfixIncrement", offset ?? fileOffset, _uri);
   }
 
@@ -4317,23 +4135,18 @@ class IncompletePropertyAccessGenerator extends Generator
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
-      Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     return unsupported("buildCompoundAssignment", offset ?? fileOffset, _uri);
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return unsupported("buildPrefixIncrement", offset ?? fileOffset, _uri);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset, bool voidContext: false}) {
     return unsupported("buildPostfixIncrement", offset ?? fileOffset, _uri);
   }
 
@@ -4404,33 +4217,6 @@ class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
           _helper, send.token, _createRead(), send.name, isNullAware);
     }
   }
-}
-
-Expression makeLet(VariableDeclaration variable, Expression body) {
-  if (variable == null) return body;
-  return new Let(variable, body);
-}
-
-Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
-    Expression right, ExpressionGeneratorHelper helper,
-    {int offset: TreeNode.noOffset}) {
-  return new MethodInvocationImpl(left, operator,
-      helper.forest.createArguments(offset, <Expression>[right]),
-      interfaceTarget: interfaceTarget)
-    ..fileOffset = offset;
-}
-
-Expression buildIsNull(
-    Expression value, int offset, ExpressionGeneratorHelper helper) {
-  return makeBinary(
-      value, equalsName, null, helper.forest.createNullLiteral(offset), helper,
-      offset: offset);
-}
-
-VariableDeclaration makeOrReuseVariable(Expression value) {
-  // TODO: Devise a way to remember if a variable declaration was reused
-  // or is fresh (hence needs a let binding).
-  return new VariableDeclaration.forValue(value);
 }
 
 int adjustForImplicitCall(String name, int offset) {

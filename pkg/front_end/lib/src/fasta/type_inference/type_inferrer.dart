@@ -32,8 +32,6 @@ import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/expression_generator.dart' show buildIsNull;
-
 import '../kernel/kernel_shadow_ast.dart'
     show
         VariableDeclarationImpl,
@@ -607,8 +605,12 @@ class TypeInferrerImpl implements TypeInferrer {
           VariableDeclaration t =
               new VariableDeclaration.forValue(expression, type: actualType)
                 ..fileOffset = fileOffset;
-          Expression nullCheck =
-              buildIsNull(new VariableGet(t), fileOffset, helper);
+          Expression nullCheck = new MethodInvocation(
+              new VariableGet(t),
+              equalsName,
+              new Arguments(
+                  <Expression>[new NullLiteral()..fileOffset = fileOffset]))
+            ..fileOffset = fileOffset;
           PropertyGet tearOff =
               new PropertyGet(new VariableGet(t), callName, callMember)
                 ..fileOffset = fileOffset;

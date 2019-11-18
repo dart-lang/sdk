@@ -3500,7 +3500,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object generator = pop();
     if (generator is Generator) {
       push(new DelayedPostfixIncrement(
-          this, token, generator, incrementOperator(token), null));
+          this, token, generator, incrementOperator(token)));
     } else {
       push(wrapInProblem(
           toValue(generator), fasta.messageNotAnLvalue, noLength));
