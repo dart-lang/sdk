@@ -656,6 +656,13 @@ dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
 dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
 dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
 
+# pkg
+dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
+dart_ci_sandbox_builder("pkg-mac-release", category="pkg|m", dimensions=mac())
+dart_ci_sandbox_builder(
+    "pkg-win-release", category="pkg|w", dimensions=windows())
+dart_ci_sandbox_builder("pkg-linux-debug", category="pkg|ld", channels=["try"])
+
 # dart2js
 dart_ci_sandbox_builder(
     "dart2js-strong-hostasserts-linux-ia32-d8",
@@ -768,13 +775,6 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "ddc-win-release-chrome", category="ddc|w", dimensions=windows())
 dart_ci_sandbox_builder("ddk-linux-release-firefox", category="ddc|fl")
-
-# pkg
-dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
-dart_ci_sandbox_builder("pkg-mac-release", category="pkg|m", dimensions=mac())
-dart_ci_sandbox_builder(
-    "pkg-win-release", category="pkg|w", dimensions=windows())
-dart_ci_sandbox_builder("pkg-linux-debug", category="pkg|ld", channels=["try"])
 
 # misc
 dart_ci_sandbox_builder(
