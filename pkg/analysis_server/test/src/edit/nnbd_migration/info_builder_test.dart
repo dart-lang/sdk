@@ -409,16 +409,16 @@ void f() {
   test_localVariable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
-  int _v1 = null;
-  int _v2 = _v1;
+  int v1 = null;
+  int v2 = v1;
 }
 ''', migratedContent: '''
 void f() {
-  int? _v1 = null;
-  int? _v2 = _v1;
+  int? v1 = null;
+  int? v2 = v1;
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
@@ -426,7 +426,7 @@ void f() {
         details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
-        offset: 35,
+        offset: 34,
         details: ["This variable is initialized to a nullable value"]);
   }
 
@@ -948,5 +948,30 @@ class C {
     assertDetail(detail: region.details[0], offset: 25, length: 1);
     assertDetail(detail: region.details[1], offset: 34, length: 3);
     assertDetail(detail: region.details[2], offset: 70, length: 3);
+  }
+
+  test_uninitializedVariable_notLate_uninitializedUse() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  int v1;
+  if (1 == 2) v1 = 7;
+  g(v1);
+}
+void g(int i) => print(i.isEven);
+''', migratedContent: '''
+void f() {
+  int? v1;
+  if (1 == 2) v1 = 7;
+  g(v1!);
+}
+void g(int i) => print(i.isEven);
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 16, details: [
+      "This variable could not be made \'late\' because it is used on line 4, "
+          "when it is possibly uninitialized"
+    ]);
+    // regions[1] is the `v1!` fix.
   }
 }

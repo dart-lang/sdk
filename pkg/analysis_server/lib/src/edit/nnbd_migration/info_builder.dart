@@ -138,6 +138,15 @@ class InfoBuilder {
     } else {
       nullableValue = "a nullable value";
     }
+
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
+
+    if (origin.kind == EdgeOriginKind.uninitializedRead) {
+      return "This variable could not be made 'late' because it is used on "
+          "line $lineNumber, when it is possibly uninitialized";
+    }
+
     if (parent is ArgumentList) {
       return capitalize("$nullableValue is passed as an argument");
     }
@@ -167,8 +176,6 @@ class InfoBuilder {
       return (ancestor is TypedLiteral) ? ancestor : null;
     }
 
-    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
-    int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
     FunctionBody functionBody = findFunctionBody();
     if (functionBody != null) {
       AstNode function = functionBody.parent;
