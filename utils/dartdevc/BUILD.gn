@@ -249,7 +249,8 @@ group("dartdevc_test") {
     ":dartdevc",
     ":dartdevc_kernel_sdk",
     ":dartdevc_sdk",
-    ":dartdevc_test_pkg",
+    ":dartdevc_test_kernel_pkg",
+    ":dartdevc_test_legacy_pkg",
     "../..:create_sdk",
   ]
 }
@@ -261,7 +262,15 @@ group("dartdevc_test_local") {
   deps = [
     ":dartdevc_kernel_sdk",
     ":dartdevc_sdk",
-    ":dartdevc_test_pkg",
+    ":dartdevc_test_kernel_pkg",
+    ":dartdevc_test_legacy_pkg",
+  ]
+}
+
+group("dartdevc_test_kernel_local") {
+  deps = [
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_test_kernel_pkg",
   ]
 }
 
@@ -277,17 +286,14 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 
 # Compiles the packages used by the tests to JS with dartdevc so that they are
 # available for loading by the tests.
-prebuilt_dart_action("dartdevc_test_pkg") {
+prebuilt_dart_action("dartdevc_test_legacy_pkg") {
   deps = [
     ":dartdevc_files_stamp",
-    ":dartdevc_kernel_sdk",
-    ":dartdevc_kernel_sdk_outline",
     ":dartdevc_sdk",
     "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
-    sdk_dill,
     sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
@@ -315,7 +321,52 @@ prebuilt_dart_action("dartdevc_test_pkg") {
     # any of the above packages that are only here because unittest uses them.
     "$target_gen_dir/pkg/unittest.js",
     "$target_gen_dir/pkg/unittest.sum",
+  ]
 
+  script = "../../pkg/dev_compiler/tool/build_pkgs.dart"
+
+  args = [
+    "--analyzer-sdk",
+    rebase_path(sdk_summary),
+    "--output",
+    rebase_path("$target_gen_dir"),
+  ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [
+      # TODO(sigmund): reenable. We turned this off temporarily while the
+      # migration of libraries is in flux, this step otherwise fails
+      # with many nnbd-related compile-time errors because the packages are
+      # assumed to be nnbd compilant.
+      #  "--enable-experiment=non-nullable",
+
+      # TODO(rnystrom): Most of the packages used by tests can be cleanly
+      # compiled as opted-in libraries, but js.dart has an optional parameter
+      # of type String with no default value. Changing that would be a breaking
+      # API change. For now, ignore the error.
+      "--unsafe-force-compile",
+    ]
+  }
+}
+
+# Compiles the packages used by the tests to JS with dartdevc so that they are
+# available for loading by the tests.
+prebuilt_dart_action("dartdevc_test_kernel_pkg") {
+  deps = [
+    ":dartdevc_files_stamp",
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_kernel_sdk_outline",
+    "../../pkg:pkg_files_stamp",
+  ]
+
+  inputs = [
+    sdk_dill,
+    "$target_gen_dir/dartdevc_files.stamp",
+    "$root_gen_dir/pkg_files.stamp",
+  ]
+
+  outputs = [
     "$target_gen_dir/pkg_kernel/async_helper.dill",
     "$target_gen_dir/pkg_kernel/async_helper.js",
     "$target_gen_dir/pkg_kernel/collection.dill",
@@ -342,8 +393,6 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   script = "../../pkg/dev_compiler/tool/build_pkgs.dart"
 
   args = [
-    "--analyzer-sdk",
-    rebase_path(sdk_summary),
     "--kernel-sdk",
     rebase_path(sdk_dill),
     "--output",
