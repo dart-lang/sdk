@@ -184,7 +184,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      TypeAnnotation typeName = declaration.functionType.returnType;
+      TypeAnnotation typeName = declaration.functionType?.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
       }
