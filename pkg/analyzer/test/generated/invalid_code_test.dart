@@ -202,6 +202,17 @@ class B {}
     await _assertCanBeAnalyzed(r'c(=k(<)>');
   }
 
+  test_fuzz_38506() async {
+    // https://github.com/dart-lang/sdk/issues/38506
+    // We have only one LibraryElement to get resolved annotations.
+    // Leave annotations node of other LibraryDirective(s) unresolved.
+    await _assertCanBeAnalyzed(r'''
+library c;
+@foo
+library c;
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
