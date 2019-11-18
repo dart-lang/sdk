@@ -239,7 +239,7 @@ void validateHttpFinishEvent(Map event) {
 }
 
 void hasValidHttpRequests(List traceEvents, String method) {
-  final events = filterEventsByName(traceEvents, 'HTTP $method');
+  final events = filterEventsByName(traceEvents, 'HTTP Client $method');
   expect(hasCompletedEvents(events), isTrue);
   for (final event in events) {
     if (isStartEvent(event)) {

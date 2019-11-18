@@ -2122,12 +2122,6 @@ class _ConnectionTarget {
 typedef bool BadCertificateCallback(X509Certificate cr, String host, int port);
 
 class _HttpClient implements HttpClient {
-  static bool _enableTimelineLogging = false;
-  static bool get enableTimelineLogging => _enableTimelineLogging;
-  static void set enableTimelineLogging(bool value) {
-    _enableTimelineLogging = value ?? false;
-  }
-
   bool _closing = false;
   bool _closingForcefully = false;
   final Map<String, _ConnectionTarget> _connectionTargets =
@@ -2305,7 +2299,7 @@ class _HttpClient implements HttpClient {
     }
     TimelineTask timeline;
     // TODO(bkonyi): do we want this to be opt-in?
-    if (_enableTimelineLogging) {
+    if (HttpClient.enableTimelineLogging) {
       timeline = TimelineTask();
       _startRequestTimelineEvent(timeline, method, uri);
     }

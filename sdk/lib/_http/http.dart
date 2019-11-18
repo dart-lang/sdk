@@ -1408,7 +1408,17 @@ abstract class HttpClient {
   /// timeline.
   ///
   /// Default is `false`.
-  static bool enableTimelineLogging;
+  static set enableTimelineLogging(bool value) {
+    _enableTimelineLogging = value ?? false;
+  }
+
+  /// Current state of HTTP request logging from all [HttpClient]s to the
+  /// developer timeline.
+  ///
+  /// Default is `false`.
+  static bool get enableTimelineLogging => _enableTimelineLogging;
+
+  static bool _enableTimelineLogging = false;
 
   /// Gets and sets the idle timeout of non-active persistent (keep-alive)
   /// connections.
