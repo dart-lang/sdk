@@ -18,9 +18,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:watcher/watcher.dart';
 
-/**
- * A mock [ServerCommunicationChannel] for testing [AnalysisServer].
- */
+/// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
 class MockServerChannel implements ServerCommunicationChannel {
   StreamController<Request> requestController = new StreamController<Request>();
   StreamController<Response> responseController =
@@ -75,13 +73,11 @@ class MockServerChannel implements ServerCommunicationChannel {
     notificationController.add(notification);
   }
 
-  /**
-   * Send the given [request] to the server and return a future that will
-   * complete when a response associated with the [request] has been received.
-   * The value of the future will be the received response. If [throwOnError] is
-   * `true` (the default) then the returned future will throw an exception if a
-   * server error is reported before the response has been received.
-   */
+  /// Send the given [request] to the server and return a future that will
+  /// complete when a response associated with the [request] has been received.
+  /// The value of the future will be the received response. If [throwOnError] is
+  /// `true` (the default) then the returned future will throw an exception if a
+  /// server error is reported before the response has been received.
   Future<Response> sendRequest(Request request, {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
     // have the default behavior be the only behavior.
@@ -105,16 +101,14 @@ class MockServerChannel implements ServerCommunicationChannel {
     new Future(() => responseController.add(response));
   }
 
-  /**
-   * Return a future that will complete when a response associated with the
-   * given [request] has been received. The value of the future will be the
-   * received response. If [throwOnError] is `true` (the default) then the
-   * returned future will throw an exception if a server error is reported
-   * before the response has been received.
-   *
-   * Unlike [sendRequest], this method assumes that the [request] has already
-   * been sent to the server.
-   */
+  /// Return a future that will complete when a response associated with the
+  /// given [request] has been received. The value of the future will be the
+  /// received response. If [throwOnError] is `true` (the default) then the
+  /// returned future will throw an exception if a server error is reported
+  /// before the response has been received.
+  ///
+  /// Unlike [sendRequest], this method assumes that the [request] has already
+  /// been sent to the server.
   Future<Response> waitForResponse(Request request,
       {bool throwOnError = true}) {
     // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
@@ -144,10 +138,8 @@ class ServerError implements Exception {
   }
 }
 
-/**
- * A plugin manager that simulates broadcasting requests to plugins by
- * hard-coding the responses.
- */
+/// A plugin manager that simulates broadcasting requests to plugins by
+/// hard-coding the responses.
 class TestPluginManager implements PluginManager {
   plugin.AnalysisSetPriorityFilesParams analysisSetPriorityFilesParams;
   plugin.AnalysisSetSubscriptionsParams analysisSetSubscriptionsParams;
