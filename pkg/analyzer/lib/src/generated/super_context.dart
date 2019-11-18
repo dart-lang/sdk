@@ -7,6 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// An indication of the kind of context in which a super expression was found.
 class SuperContext {
   /// An indication that the super expression is in a context in which it is
+  /// invalid because it is in an annotation.
+  static const SuperContext annotation = SuperContext._('annotation');
+
+  /// An indication that the super expression is in a context in which it is
   /// invalid because it is in an instance member of an extension.
   static const SuperContext extension = SuperContext._('extension');
 
@@ -25,7 +29,9 @@ class SuperContext {
   /// being used.
   factory SuperContext.of(SuperExpression expression) {
     for (AstNode node = expression; node != null; node = node.parent) {
-      if (node is CompilationUnit) {
+      if (node is Annotation) {
+        return SuperContext.annotation;
+      } else if (node is CompilationUnit) {
         return SuperContext.static;
       } else if (node is ConstructorDeclaration) {
         return node.factoryKeyword == null

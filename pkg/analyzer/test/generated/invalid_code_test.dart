@@ -224,6 +224,16 @@ part '${[for(var v = 0;;) v]}';
 ''');
   }
 
+  test_fuzz_38878() async {
+    // We should not attempt to resolve `super` in annotations.
+    await _assertCanBeAnalyzed(r'''
+class C {
+  @A(super.f())
+  f(int x) {}
+}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
