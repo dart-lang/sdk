@@ -394,10 +394,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    super.visitExportDirective(node);
-    if (node.element != null) {
-      _setElementAnnotations(node.metadata, node.element.metadata);
-    }
+    _withElementWalker(null, () {
+      super.visitExportDirective(node);
+      if (node.element != null) {
+        _setElementAnnotations(node.metadata, node.element.metadata);
+      }
+    });
   }
 
   @override
@@ -707,10 +709,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    super.visitImportDirective(node);
-    if (node.element != null) {
-      _setElementAnnotations(node.metadata, node.element.metadata);
-    }
+    _withElementWalker(null, () {
+      super.visitImportDirective(node);
+      if (node.element != null) {
+        _setElementAnnotations(node.metadata, node.element.metadata);
+      }
+    });
   }
 
   @override
@@ -812,10 +816,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    super.visitPartDirective(node);
-    if (node.element != null) {
-      _setElementAnnotations(node.metadata, node.element.metadata);
-    }
+    _withElementWalker(null, () {
+      super.visitPartDirective(node);
+      if (node.element != null) {
+        _setElementAnnotations(node.metadata, node.element.metadata);
+      }
+    });
   }
 
   @override

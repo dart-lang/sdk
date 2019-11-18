@@ -213,6 +213,17 @@ library c;
 ''');
   }
 
+  test_fuzz_38953() async {
+    // When we enter a directive, we should stop using the element walker
+    // of the unit, just like when we enter a method body. Even though using
+    // interpolation is not allowed in any directives.
+    await _assertCanBeAnalyzed(r'''
+import '${[for(var v = 0;;) v]}';
+export '${[for(var v = 0;;) v]}';
+part '${[for(var v = 0;;) v]}';
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
