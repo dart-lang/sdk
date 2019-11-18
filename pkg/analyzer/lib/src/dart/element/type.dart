@@ -149,7 +149,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // Function types have an empty name when they are defined implicitly by
       // either a closure or as part of a parameter declaration.
       StringBuffer buffer = new StringBuffer();
-      appendTo(buffer, new Set.identity());
+      appendTo(buffer);
       if (nullabilitySuffix == NullabilitySuffix.question) {
         buffer.write('?');
       }
@@ -295,71 +295,61 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
-      {bool withNullability = false}) {
+  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
     // TODO(paulberry): eliminate code duplication with
     // _ElementWriter.writeType.  See issue #35818.
-    if (visitedTypes.add(this)) {
-      if (typeFormals.isNotEmpty) {
-        StringBuffer typeParametersBuffer = StringBuffer();
-        // To print a type with type variables, first make sure we have unique
-        // variable names to print.
-        var freeVariables = <TypeParameterElement>{};
-        _freeVariablesInFunctionType(this, freeVariables);
+    if (typeFormals.isNotEmpty) {
+      StringBuffer typeParametersBuffer = StringBuffer();
+      // To print a type with type variables, first make sure we have unique
+      // variable names to print.
+      var freeVariables = <TypeParameterElement>{};
+      _freeVariablesInFunctionType(this, freeVariables);
 
-        var namesToAvoid = <String>{};
-        for (TypeParameterElement arg in freeVariables) {
-          namesToAvoid.add(arg.displayName);
-        }
-
-        List<DartType> instantiateTypeArgs = <DartType>[];
-        List<TypeParameterElement> variables = <TypeParameterElement>[];
-        typeParametersBuffer.write('<');
-        for (TypeParameterElement e in typeFormals) {
-          if (e != typeFormals[0]) {
-            typeParametersBuffer.write(', ');
-          }
-          String name = e.name;
-          int counter = 0;
-          while (!namesToAvoid.add(name)) {
-            // Unicode subscript-zero is U+2080, zero is U+0030. Other digits
-            // are sequential from there. Thus +0x2050 will get us the subscript.
-            String subscript = new String.fromCharCodes(
-                counter.toString().codeUnits.map((n) => n + 0x2050));
-
-            name = e.name + subscript;
-            counter++;
-          }
-          TypeParameterTypeImpl t = new TypeParameterTypeImpl(
-              new TypeParameterElementImpl(name, -1),
-              nullabilitySuffix: NullabilitySuffix.none);
-          t.appendTo(typeParametersBuffer, visitedTypes,
-              withNullability: withNullability);
-          instantiateTypeArgs.add(t);
-          variables.add(e);
-          if (e.bound != null) {
-            typeParametersBuffer.write(' extends ');
-            TypeImpl renamed =
-                Substitution.fromPairs(variables, instantiateTypeArgs)
-                    .substituteType(e.bound);
-            renamed.appendTo(typeParametersBuffer, visitedTypes,
-                withNullability: withNullability);
-          }
-        }
-        typeParametersBuffer.write('>');
-
-        // Instantiate it and print the resulting type.
-        this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
-            buffer,
-            visitedTypes,
-            withNullability,
-            typeParametersBuffer.toString());
-      } else {
-        _appendToWithTypeParameters(buffer, visitedTypes, withNullability, '');
+      var namesToAvoid = <String>{};
+      for (TypeParameterElement arg in freeVariables) {
+        namesToAvoid.add(arg.displayName);
       }
-      visitedTypes.remove(this);
+
+      List<DartType> instantiateTypeArgs = <DartType>[];
+      List<TypeParameterElement> variables = <TypeParameterElement>[];
+      typeParametersBuffer.write('<');
+      for (TypeParameterElement e in typeFormals) {
+        if (e != typeFormals[0]) {
+          typeParametersBuffer.write(', ');
+        }
+        String name = e.name;
+        int counter = 0;
+        while (!namesToAvoid.add(name)) {
+          // Unicode subscript-zero is U+2080, zero is U+0030. Other digits
+          // are sequential from there. Thus +0x2050 will get us the subscript.
+          String subscript = new String.fromCharCodes(
+              counter.toString().codeUnits.map((n) => n + 0x2050));
+
+          name = e.name + subscript;
+          counter++;
+        }
+        TypeParameterTypeImpl t = new TypeParameterTypeImpl(
+            new TypeParameterElementImpl(name, -1),
+            nullabilitySuffix: NullabilitySuffix.none);
+        t.appendTo(typeParametersBuffer, withNullability: withNullability);
+        instantiateTypeArgs.add(t);
+        variables.add(e);
+        if (e.bound != null) {
+          typeParametersBuffer.write(' extends ');
+          TypeImpl renamed =
+              Substitution.fromPairs(variables, instantiateTypeArgs)
+                  .substituteType(e.bound);
+          renamed.appendTo(typeParametersBuffer,
+              withNullability: withNullability);
+        }
+      }
+      typeParametersBuffer.write('>');
+
+      // Instantiate it and print the resulting type.
+      this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
+          buffer, withNullability, typeParametersBuffer.toString());
     } else {
-      buffer.write('<recursive>');
+      _appendToWithTypeParameters(buffer, withNullability, '');
     }
   }
 
@@ -461,8 +451,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     );
   }
 
-  void _appendToWithTypeParameters(StringBuffer buffer,
-      Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
+  void _appendToWithTypeParameters(
+      StringBuffer buffer, bool withNullability, String typeParameters) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     DartType returnType = this.returnType;
@@ -471,7 +461,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       buffer.write('null');
     } else {
       (returnType as TypeImpl)
-          .appendTo(buffer, visitedTypes, withNullability: withNullability);
+          .appendTo(buffer, withNullability: withNullability);
     }
     buffer.write(' Function');
     buffer.write(typeParameters);
@@ -496,8 +486,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (normalParameterTypes.isNotEmpty) {
       for (DartType type in normalParameterTypes) {
         writeSeparator();
-        (type as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+        (type as TypeImpl).appendTo(buffer, withNullability: withNullability);
       }
     }
     if (optionalParameterTypes.isNotEmpty) {
@@ -505,8 +494,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       buffer.write('[');
       for (DartType type in optionalParameterTypes) {
         writeSeparator();
-        (type as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+        (type as TypeImpl).appendTo(buffer, withNullability: withNullability);
       }
       buffer.write(']');
       needsComma = true;
@@ -524,7 +512,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         buffer.write(parameter.name);
         buffer.write(': ');
         (parameter.type as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+            .appendTo(buffer, withNullability: withNullability);
       }
       buffer.write('}');
       needsComma = true;
@@ -1179,28 +1167,22 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
-      {bool withNullability = false}) {
-    if (visitedTypes.add(this)) {
-      buffer.write(name);
-      int argumentCount = typeArguments.length;
-      if (argumentCount > 0) {
-        buffer.write("<");
-        for (int i = 0; i < argumentCount; i++) {
-          if (i > 0) {
-            buffer.write(", ");
-          }
-          (typeArguments[i] as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
+  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
+    buffer.write(name);
+    int argumentCount = typeArguments.length;
+    if (argumentCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < argumentCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
         }
-        buffer.write(">");
+        (typeArguments[i] as TypeImpl)
+            .appendTo(buffer, withNullability: withNullability);
       }
-      if (withNullability) {
-        _appendNullability(buffer);
-      }
-      visitedTypes.remove(this);
-    } else {
-      buffer.write('<recursive>');
+      buffer.write(">");
+    }
+    if (withNullability) {
+      _appendNullability(buffer);
     }
   }
 
@@ -2038,20 +2020,13 @@ abstract class TypeImpl implements DartType {
   NullabilitySuffix get nullabilitySuffix;
 
   /**
-   * Append a textual representation of this type to the given [buffer]. The set
-   * of [visitedTypes] is used to prevent infinite recursion.
+   * Append a textual representation of this type to the given [buffer].
    */
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
-      {bool withNullability = false}) {
-    if (visitedTypes.add(this)) {
-      if (name == null) {
-        buffer.write("<unnamed type>");
-      } else {
-        buffer.write(name);
-      }
-      visitedTypes.remove(this);
+  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
+    if (name == null) {
+      buffer.write("<unnamed type>");
     } else {
-      buffer.write('<recursive>');
+      buffer.write(name);
     }
     if (withNullability) {
       _appendNullability(buffer);
@@ -2081,7 +2056,7 @@ abstract class TypeImpl implements DartType {
   @override
   String toString({bool withNullability = false}) {
     StringBuffer buffer = new StringBuffer();
-    appendTo(buffer, new Set.identity(), withNullability: withNullability);
+    appendTo(buffer, withNullability: withNullability);
     return buffer.toString();
   }
 

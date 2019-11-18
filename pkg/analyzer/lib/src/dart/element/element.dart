@@ -4639,7 +4639,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   void appendTo(StringBuffer buffer) {
     DartType type = returnType;
     if (type is TypeImpl) {
-      type.appendTo(buffer, new HashSet<TypeImpl>());
+      type.appendTo(buffer);
       buffer.write(' Function');
     } else {
       buffer.write('Function');
