@@ -1575,12 +1575,14 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+#if !defined(PRODUCT)
     if (!CodeObservers::AreActive() && !FLAG_support_disassembler) return;
+#endif
     Code& code = Code::Handle(zone);
     Object& owner = Object::Handle(zone);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       code ^= refs.At(id);
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
       if (CodeObservers::AreActive()) {
         Code::NotifyCodeObservers(code, code.is_optimized());
       }
