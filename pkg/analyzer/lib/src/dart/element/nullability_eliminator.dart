@@ -132,8 +132,13 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
 
     var freshElements = List<TypeParameterElement>(elements.length);
     for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      var element = elements[i] as TypeParameterElementImpl;
       var freshElement = TypeParameterElementImpl(element.name, -1);
+      if (!element.isLegacyCovariant) {
+        freshElement.variance = element.variance;
+      }
       freshElement.bound = freshBounds[i];
       freshElements[i] = freshElement;
     }

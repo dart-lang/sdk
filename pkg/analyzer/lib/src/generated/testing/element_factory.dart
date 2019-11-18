@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -643,9 +644,10 @@ class ElementFactory {
   }
 
   static TypeParameterElementImpl typeParameterWithType(String name,
-      [DartType bound]) {
+      [DartType bound, Variance variance]) {
     TypeParameterElementImpl typeParameter = typeParameterElement(name);
     typeParameter.bound = bound;
+    typeParameter.variance = variance;
     return typeParameter;
   }
 

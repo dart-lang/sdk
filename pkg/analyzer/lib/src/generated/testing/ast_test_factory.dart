@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1359,6 +1360,17 @@ class AstTestFactory {
   static TypeParameter typeParameter2(String name, TypeAnnotation bound) =>
       astFactory.typeParameter(null, null, identifier3(name),
           TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
+
+  static TypeParameter typeParameter3(String name, String varianceLexeme) =>
+      // TODO (kallentu) : Clean up AstFactoryImpl casting once variance is
+      // added to the interface.
+      (astFactory as AstFactoryImpl).typeParameter2(
+          comment: null,
+          metadata: null,
+          name: identifier3(name),
+          extendsKeyword: null,
+          bound: null,
+          varianceKeyword: TokenFactory.tokenFromString(varianceLexeme));
 
   static TypeParameterList typeParameterList([List<String> typeNames]) {
     List<TypeParameter> typeParameters;

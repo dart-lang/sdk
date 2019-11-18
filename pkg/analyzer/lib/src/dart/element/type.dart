@@ -313,10 +313,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       List<DartType> instantiateTypeArgs = <DartType>[];
       List<TypeParameterElement> variables = <TypeParameterElement>[];
       typeParametersBuffer.write('<');
-      for (TypeParameterElement e in typeFormals) {
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      for (TypeParameterElementImpl e in typeFormals) {
         if (e != typeFormals[0]) {
           typeParametersBuffer.write(', ');
         }
+
+        if (!e.isLegacyCovariant) {
+          typeParametersBuffer.write(e.variance.toKeywordString() + ' ');
+        }
+
         String name = e.name;
         int counter = 0;
         while (!namesToAvoid.add(name)) {

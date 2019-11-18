@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -1019,12 +1020,16 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   TypeParameter visitTypeParameter(TypeParameter node) =>
-      astFactory.typeParameter(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneNode(node.name),
-          cloneToken(node.extendsKeyword),
-          cloneNode(node.bound));
+      // TODO (kallentu) : Clean up TypeParameterImpl and AstFactoryImpl casting
+      // once variance is added to the interface.
+      (astFactory as AstFactoryImpl).typeParameter2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          name: cloneNode(node.name),
+          extendsKeyword: cloneToken(node.extendsKeyword),
+          bound: cloneNode(node.bound),
+          varianceKeyword:
+              cloneToken((node as TypeParameterImpl).varianceKeyword));
 
   @override
   TypeParameterList visitTypeParameterList(TypeParameterList node) =>
@@ -2269,10 +2274,14 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = _other as TypeParameter;
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualNodes(node.name, other.name) &&
+        isEqualTokens((node as TypeParameterImpl).varianceKeyword,
+            (other as TypeParameterImpl).varianceKeyword) &&
         isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
         isEqualNodes(node.bound, other.bound);
   }
@@ -5413,10 +5422,14 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter toNode = this._toNode as TypeParameter;
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens((node as TypeParameterImpl).varianceKeyword,
+            (toNode as TypeParameterImpl).varianceKeyword),
         _isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
         _isEqualNodes(node.bound, toNode.bound));
   }

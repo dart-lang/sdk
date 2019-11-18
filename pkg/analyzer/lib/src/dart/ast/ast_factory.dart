@@ -1030,6 +1030,16 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier name, Token extendsKeyword, TypeAnnotation bound) =>
       new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound);
 
+  TypeParameter typeParameter2(
+          {Comment comment,
+          List<Annotation> metadata,
+          SimpleIdentifier name,
+          Token extendsKeyword,
+          TypeAnnotation bound,
+          Token varianceKeyword}) =>
+      new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound)
+        ..varianceKeyword = varianceKeyword;
+
   @override
   TypeParameterList typeParameterList(Token leftBracket,
           List<TypeParameter> typeParameters, Token rightBracket) =>

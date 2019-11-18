@@ -7630,6 +7630,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
+    if (!isLegacyCovariant) {
+      buffer.write(variance.toKeywordString() + " ");
+    }
     buffer.write(displayName);
     if (bound != null) {
       buffer.write(" extends ");

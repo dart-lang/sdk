@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// AST visitor that prints tokens into their original positions.
 class AstTextPrinter extends ThrowingAstVisitor<void> {
@@ -931,6 +932,9 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _declaration(node);
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    _token((node as TypeParameterImpl).varianceKeyword);
     node.name?.accept(this);
     _token(node.extendsKeyword);
     node.bound?.accept(this);

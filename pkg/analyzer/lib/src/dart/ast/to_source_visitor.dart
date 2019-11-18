@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -1127,6 +1128,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    if ((node as TypeParameterImpl).varianceKeyword != null) {
+      sink.write((node as TypeParameterImpl).varianceKeyword.lexeme + ' ');
+    }
     safelyVisitNode(node.name);
     safelyVisitNodeWithPrefix(" extends ", node.bound);
   }

@@ -764,10 +764,12 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+    var aNum = interfaceType(A,
+        typeArguments: [numType], nullabilitySuffix: NullabilitySuffix.none);
+    var aT = interfaceType(A,
+        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: T'], covariant: true);
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: in T'], covariant: true);
   }
 
   void test_variance_covariant() {
@@ -778,10 +780,13 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+    var aNum = interfaceType(A,
+        typeArguments: [numType], nullabilitySuffix: NullabilitySuffix.none);
+    var aT = interfaceType(A,
+        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num'], covariant: true);
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['out T <: num'],
+        covariant: true);
   }
 
   void test_variance_invariant() {
@@ -792,10 +797,13 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
 
     // A<num>
     // A<T>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+    var aNum = interfaceType(A,
+        typeArguments: [numType], nullabilitySuffix: NullabilitySuffix.none);
+    var aT = interfaceType(A,
+        typeArguments: [tType], nullabilitySuffix: NullabilitySuffix.none);
 
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num', 'num <: T'],
+    _checkIsSubtypeMatchOf(
+        aT, aNum, [tType], ['inout T <: num', 'num <: inout T'],
         covariant: true);
   }
 
