@@ -1,3 +1,6 @@
+# 0.1.6
+* Improve experimental non-nullable migration support.
+
 # 0.1.5
 * Add command line options for selecting/excluding fixes to apply (`--fix`,
   `--excludeFix`, and `--required`). Call with `--help` for more details.
