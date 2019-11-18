@@ -106,6 +106,7 @@ alternative
 alternatively
 alternatives
 although
+altogether
 always
 ambiguous
 among
@@ -218,6 +219,7 @@ available
 average
 avoid
 avoided
+avoiding
 avoids
 await
 awaiter
