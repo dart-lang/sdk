@@ -440,7 +440,6 @@ void main(List<String> args) async {
   final branches = (testMatrix["branches"] as List).cast<String>();
   final buildersConfigurations =
       testMatrix["builder_configurations"] as List<dynamic>;
-
   // Determine what named configuration to run and which builders to download
   // existing results from.
   ResolvedConfigurations configurations = resolveNamedConfigurations(
@@ -455,7 +454,7 @@ void main(List<String> args) async {
     exitCode = 1;
     return;
   }
-
+  // Print information about the resolved builders to compare with.
   for (final builder in configurations.builders) {
     if (localConfiguration != null) {
       print("Testing the named configuration $localConfiguration "
@@ -467,27 +466,30 @@ void main(List<String> args) async {
           "compared with builder $builder");
     }
   }
-
   // Use given commit or find out where the current HEAD branched.
   final commit = options["commit"] ??
       await findMergeBase(options["remote"], options["branch"]);
   print("Base commit is $commit");
-
   // Store the downloaded results and our test results in a temporary directory.
   final outDirectory = await Directory.systemTemp.createTemp("test.dart.");
   try {
-    final mergedResults = <String, Map<String, dynamic>>{};
-    final mergedFlaky = <String, Map<String, dynamic>>{};
-
+    final tasks = <Future>[];
     bool needsConfigurationOverride = localConfiguration != null &&
         localConfiguration != namedConfigurations.single;
     bool needsMerge = configurations.builders.length > 1;
-
-    // Use the buildbucket API to search for builds of the right commit.
     final inexactBuilds = <String, String>{};
+    var previousFileName = "previous.json";
+    var flakyFileName = "flaky.json";
+    var downloadNumber = 0;
+    // Download the previous results and flakiness info from cloud storage.
     for (final builder in configurations.builders) {
-      // Download the previous results and flakiness info from cloud storage.
+      if (needsMerge) {
+        previousFileName = "previous-$downloadNumber.json";
+        flakyFileName = "flaky-$downloadNumber.json";
+        downloadNumber++;
+      }
       print("Finding build on builder $builder to compare with...");
+      // Use the buildbucket API to search for builds of the right commit.
       final buildSearchResult =
           await searchForApproximateBuild(builder, commit);
       if (buildSearchResult.commit != commit) {
@@ -497,50 +499,19 @@ void main(List<String> args) async {
       }
       final buildNumber = buildSearchResult.build.toString();
       print("Downloading results from builder $builder build $buildNumber...");
-      await cpGsutil(buildFileCloudPath(builder, buildNumber, "results.json"),
-          "${outDirectory.path}/previous.json");
+      tasks.add(cpGsutil(
+          buildFileCloudPath(builder, buildNumber, "results.json"),
+          "${outDirectory.path}/$previousFileName"));
       if (!options["report-flakes"]) {
-        await cpGsutil(buildFileCloudPath(builder, buildNumber, "flaky.json"),
-            "${outDirectory.path}/flaky.json");
-      }
-      // Merge the results for the builders.
-      if (needsMerge || needsConfigurationOverride) {
-        var results =
-            await loadResultsMap("${outDirectory.path}/previous.json");
-        if (needsConfigurationOverride) {
-          overrideConfiguration(
-              results, namedConfigurations.single, localConfiguration);
-        }
-        mergedResults.addAll(results);
-        if (!options["report-flakes"]) {
-          var flakyTests =
-              await loadResultsMap("${outDirectory.path}/flaky.json");
-          if (needsConfigurationOverride) {
-            overrideConfiguration(
-                flakyTests, namedConfigurations.single, localConfiguration);
-          }
-          mergedFlaky.addAll(flakyTests);
-        }
+        tasks.add(cpGsutil(
+            buildFileCloudPath(builder, buildNumber, "flaky.json"),
+            "${outDirectory.path}/$flakyFileName"));
       }
     }
-
-    // Write out the merged results for the builders.
-    if (needsMerge || needsConfigurationOverride) {
-      await new File("${outDirectory.path}/previous.json").writeAsString(
-          mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
-    }
-
-    // Ensure that there is a flaky.json even if it wasn't downloaded.
-    if (needsMerge || needsConfigurationOverride || options["report-flakes"]) {
-      await new File("${outDirectory.path}/flaky.json").writeAsString(
-          mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
-    }
-
+    // Run the tests.
     final configurationsToRun = localConfiguration != null
         ? <String>[localConfiguration]
         : namedConfigurations;
-
-    // Run the tests.
     print("".padLeft(80, "="));
     print("Running tests");
     print("".padLeft(80, "="));
@@ -557,11 +528,47 @@ void main(List<String> args) async {
           ...options.rest,
         ],
         runInShell: Platform.isWindows);
-
+    // Wait for the downloads and the test run to complete.
+    await Future.wait(tasks);
+    // Merge the results and flaky data downloaded from the builders.
+    final mergedResults = <String, Map<String, dynamic>>{};
+    final mergedFlaky = <String, Map<String, dynamic>>{};
+    if (needsMerge || needsConfigurationOverride) {
+      for (int i = 0; i < downloadNumber; ++i) {
+        previousFileName = needsMerge ? "previous-$i.json" : "previous.json";
+        var results =
+            await loadResultsMap("${outDirectory.path}/$previousFileName");
+        if (needsConfigurationOverride) {
+          overrideConfiguration(
+              results, namedConfigurations.single, localConfiguration);
+        }
+        mergedResults.addAll(results);
+        if (!options["report-flakes"]) {
+          flakyFileName = needsMerge ? "flaky-$i.json" : "flaky.json";
+          var flakyTests =
+              await loadResultsMap("${outDirectory.path}/$flakyFileName");
+          if (needsConfigurationOverride) {
+            overrideConfiguration(
+                flakyTests, namedConfigurations.single, localConfiguration);
+          }
+          mergedFlaky.addAll(flakyTests);
+        }
+      }
+    }
+    // Deflake results of the tests if required.
     if (options["deflake"]) {
       await deflake(outDirectory, configurationsToRun, options.rest);
     }
-
+    // Write out the merged results for the builders.
+    if (needsMerge || needsConfigurationOverride) {
+      await new File("${outDirectory.path}/previous.json").writeAsString(
+          mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
+    // Ensure that there is a flaky.json even if it wasn't downloaded.
+    if (needsMerge || needsConfigurationOverride || options["report-flakes"]) {
+      await new File("${outDirectory.path}/flaky.json").writeAsString(
+          mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
     // Write out the final comparison.
     print("".padLeft(80, "="));
     print("Test Results");
