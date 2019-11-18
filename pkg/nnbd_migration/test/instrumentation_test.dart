@@ -215,8 +215,9 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var entry =
-        fixes.entries.where((e) => e.key.location.offset == yUsage.end).single;
+    var entry = fixes.entries
+        .where((e) => e.key.locations.single.offset == yUsage.end)
+        .single;
     var reasons = entry.value;
     expect(reasons, hasLength(1));
     var edge = reasons[0] as EdgeInfo;
@@ -235,7 +236,7 @@ int x = null;
     var entries = fixes.entries.toList();
     expect(entries, hasLength(1));
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(entries.single.key.location.offset, intAnnotation.end);
+    expect(entries.single.key.locations.single.offset, intAnnotation.end);
     var reasons = entries.single.value;
     expect(reasons, hasLength(1));
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));

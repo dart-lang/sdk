@@ -48,11 +48,12 @@ class NullabilityMigrationImplTest {
         as SingleNullabilityFix;
     expect(fix.description.appliedMessage, 'Add ?');
     expect(fix.source, source);
-    expect(fix.location.offset, offset);
-    expect(fix.location.length, 0);
-    expect(fix.location.file, '/test.dart');
-    expect(fix.location.startLine, 2);
-    expect(fix.location.startColumn, 4);
+    Location location = fix.locations.single;
+    expect(location.offset, offset);
+    expect(location.length, 0);
+    expect(location.file, '/test.dart');
+    expect(location.startLine, 2);
+    expect(location.startColumn, 4);
     verifyNever(listener.reportException(any, any, any, any));
     final edit =
         verify(listener.addEdit(fix, captureAny)).captured.single as SourceEdit;

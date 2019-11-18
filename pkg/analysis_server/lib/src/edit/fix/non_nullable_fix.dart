@@ -344,7 +344,9 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
 
   @override
   void addFix(SingleNullabilityFix fix) {
-    listener.addSuggestion(fix.description.appliedMessage, fix.location);
+    for (Location location in fix.locations) {
+      listener.addSuggestion(fix.description.appliedMessage, location);
+    }
   }
 
   @override

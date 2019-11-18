@@ -159,6 +159,46 @@ int? f([num? a]) {
         details: ["The value of the expression is nullable"]);
   }
 
+  test_discardCondition() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(int i) {
+  print(i.isEven);
+  if (i != null) print('NULL');
+}
+''', migratedContent: '''
+void g(int i) {
+  print(i.isEven);
+  /* if (i != null) */ print('NULL');
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 37, length: 3);
+    assertRegion(region: regions[1], offset: 55, length: 3);
+  }
+
+  test_discardElse() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(int i) {
+  print(i.isEven);
+  if (i != null) print('NULL');
+  else print('NOT NULL');
+}
+''', migratedContent: '''
+void g(int i) {
+  print(i.isEven);
+  /* if (i != null) */ print('NULL'); /*
+  else print('NOT NULL'); */
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(4));
+    assertRegion(region: regions[0], offset: 37, length: 3);
+    assertRegion(region: regions[1], offset: 55, length: 3);
+    assertRegion(region: regions[2], offset: 72, length: 3);
+    assertRegion(region: regions[3], offset: 101, length: 3);
+  }
+
   test_dynamicValueIsUsed() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 bool f(int i) {

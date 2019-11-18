@@ -125,8 +125,8 @@ abstract class SingleNullabilityFix {
   /// What kind of fix this is.
   NullabilityFixDescription get description;
 
-  /// Location of the change, for reporting to the user.
-  Location get location;
+  /// Locations of the change, for reporting to the user.
+  List<Location> get locations;
 
   /// File to change.
   Source get source;

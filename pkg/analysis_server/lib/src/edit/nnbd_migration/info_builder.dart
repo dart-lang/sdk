@@ -350,9 +350,10 @@ class InfoBuilder {
     List<EditDetail> edits = [];
     SingleNullabilityFix fix = fixInfo.fix;
     if (fix.description.kind == NullabilityFixKind.makeTypeNullable) {
-      Location location = fix.location;
-      edits.add(EditDetail(
-          'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
+      for (Location location in fix.locations) {
+        edits.add(EditDetail(
+            'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
+      }
     }
     return edits;
   }
@@ -502,9 +503,10 @@ class InfoBuilder {
   FixInfo _findFixInfo(SourceInformation sourceInfo, int offset) {
     for (MapEntry<SingleNullabilityFix, List<FixReasonInfo>> entry
         in sourceInfo.fixes.entries) {
-      Location location = entry.key.location;
-      if (location.offset == offset) {
-        return FixInfo(entry.key, entry.value);
+      for (Location location in entry.key.locations) {
+        if (location.offset == offset) {
+          return FixInfo(entry.key, entry.value);
+        }
       }
     }
     return null;

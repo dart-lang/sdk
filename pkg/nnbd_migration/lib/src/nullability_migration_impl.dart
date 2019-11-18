@@ -121,30 +121,30 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
   @override
   final NullabilityFixDescription description;
 
-  Location _location;
+  List<Location> _locations;
 
   factory _SingleNullabilityFix(Source source,
       PotentialModification potentialModification, LineInfo lineInfo) {
-    Location location;
+    List<Location> locations = [];
 
-    if (potentialModification.modifications.isNotEmpty) {
-      final locationInfo = lineInfo
-          .getLocation(potentialModification.modifications.first.offset);
-      location = new Location(
+    for (var modification in potentialModification.modifications) {
+      final locationInfo = lineInfo.getLocation(modification.offset);
+      locations.add(new Location(
         source.fullName,
-        potentialModification.modifications.first.offset,
-        potentialModification.modifications.first.length,
+        modification.offset,
+        modification.length,
         locationInfo.lineNumber,
         locationInfo.columnNumber,
-      );
+      ));
     }
 
     return _SingleNullabilityFix._(source, potentialModification.description,
-        location: location);
+        locations: locations);
   }
 
-  _SingleNullabilityFix._(this.source, this.description, {Location location})
-      : this._location = location;
+  _SingleNullabilityFix._(this.source, this.description,
+      {List<Location> locations})
+      : this._locations = locations;
 
-  Location get location => _location;
+  List<Location> get locations => _locations;
 }
