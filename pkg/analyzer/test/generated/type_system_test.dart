@@ -1977,143 +1977,12 @@ class GreatestLowerBoundTest extends BoundTestBase {
     );
   }
 
-  void test_typeParameters_contravariant_different() {
-    // class A<in T>
-    var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    // A<int>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
-
-    _checkLeastUpperBound(aInt, aNum, aInt);
-  }
-
-  void test_typeParameters_contravariant_same() {
-    // class A<in T>
-    var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-
-    _checkLeastUpperBound(aNum, aNum, aNum);
-  }
-
-  void test_typeParameters_covariant_different() {
-    // class A<out T>
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    // A<int>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
-
-    _checkLeastUpperBound(aInt, aNum, aNum);
-  }
-
-  void test_typeParameters_covariant_same() {
-    // class A<out T>
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-
-    _checkLeastUpperBound(aNum, aNum, aNum);
-  }
-
   void test_typeParameters_different() {
     // GLB(List<int>, List<double>) = ⊥
     var listOfIntType = listType(intType);
     var listOfDoubleType = listType(doubleType);
     // TODO(rnystrom): Can we do something better here?
     _checkGreatestLowerBound(listOfIntType, listOfDoubleType, neverStar);
-  }
-
-  void test_typeParameters_invariant_object() {
-    // class A<inout T>
-    var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    // A<int>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
-
-    _checkLeastUpperBound(aNum, aInt, objectType);
-  }
-
-  void test_typeParameters_invariant_same() {
-    // class A<inout T>
-    var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    // A<num>
-    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
-
-    _checkLeastUpperBound(aNum, aNum, aNum);
-  }
-
-  void test_typeParameters_multi_basic() {
-    // class Multi<out T, inout U, in V>
-    var T = typeParameter('T', variance: Variance.covariant);
-    var U = typeParameter('T', variance: Variance.invariant);
-    var V = typeParameter('T', variance: Variance.contravariant);
-    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
-
-    // Multi<num, num, num>
-    // Multi<int, num, int>
-    var multiNumNumNum =
-        interfaceTypeStar(Multi, typeArguments: [numType, numType, numType]);
-    var multiIntNumInt =
-        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
-
-    // We expect Multi<num, num, int>
-    var multiNumNumInt =
-        interfaceTypeStar(Multi, typeArguments: [numType, numType, intType]);
-
-    _checkLeastUpperBound(multiNumNumNum, multiIntNumInt, multiNumNumInt);
-  }
-
-  void test_typeParameters_multi_objectInterface() {
-    // class Multi<out T, inout U, in V>
-    var T = typeParameter('T', variance: Variance.covariant);
-    var U = typeParameter('T', variance: Variance.invariant);
-    var V = typeParameter('T', variance: Variance.contravariant);
-    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
-
-    // Multi<num, String, num>
-    // Multi<int, num, int>
-    var multiNumStringNum =
-        interfaceTypeStar(Multi, typeArguments: [numType, stringType, numType]);
-    var multiIntNumInt =
-        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
-
-    _checkLeastUpperBound(multiNumStringNum, multiIntNumInt, objectType);
-  }
-
-  void test_typeParameters_multi_objectType() {
-    // class Multi<out T, inout U, in V>
-    var T = typeParameter('T', variance: Variance.covariant);
-    var U = typeParameter('T', variance: Variance.invariant);
-    var V = typeParameter('T', variance: Variance.contravariant);
-    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
-
-    // Multi<String, num, num>
-    // Multi<int, num, int>
-    var multiStringNumNum =
-        interfaceTypeStar(Multi, typeArguments: [stringType, numType, numType]);
-    var multiIntNumInt =
-        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
-
-    // We expect Multi<Object, num, int>
-    var multiObjectNumInt =
-        interfaceTypeStar(Multi, typeArguments: [objectType, numType, intType]);
-
-    _checkLeastUpperBound(multiStringNumNum, multiIntNumInt, multiObjectNumInt);
   }
 
   void test_typeParameters_same() {
@@ -3179,6 +3048,54 @@ class LeastUpperBoundTest extends BoundTestBase {
     );
   }
 
+  void test_typeParameters_contravariant_different() {
+    // class A<in T>
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    // A<int>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
+
+    _checkLeastUpperBound(aInt, aNum, aInt);
+  }
+
+  void test_typeParameters_contravariant_same() {
+    // class A<in T>
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+
+    _checkLeastUpperBound(aNum, aNum, aNum);
+  }
+
+  void test_typeParameters_covariant_different() {
+    // class A<out T>
+    var T = typeParameter('T', variance: Variance.covariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    // A<int>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
+
+    _checkLeastUpperBound(aInt, aNum, aNum);
+  }
+
+  void test_typeParameters_covariant_same() {
+    // class A<out T>
+    var T = typeParameter('T', variance: Variance.covariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+
+    _checkLeastUpperBound(aNum, aNum, aNum);
+  }
+
   /// Check least upper bound of the same class with different type parameters.
   void test_typeParameters_different() {
     // class List<int>
@@ -3187,6 +3104,89 @@ class LeastUpperBoundTest extends BoundTestBase {
     var listOfDoubleType = listType(doubleType);
     var listOfNum = listType(numType);
     _checkLeastUpperBound(listOfIntType, listOfDoubleType, listOfNum);
+  }
+
+  void test_typeParameters_invariant_object() {
+    // class A<inout T>
+    var T = typeParameter('T', variance: Variance.invariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    // A<int>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aInt = interfaceTypeStar(A, typeArguments: [intType]);
+
+    _checkLeastUpperBound(aNum, aInt, objectType);
+  }
+
+  void test_typeParameters_invariant_same() {
+    // class A<inout T>
+    var T = typeParameter('T', variance: Variance.invariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    // A<num>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+
+    _checkLeastUpperBound(aNum, aNum, aNum);
+  }
+
+  void test_typeParameters_multi_basic() {
+    // class Multi<out T, inout U, in V>
+    var T = typeParameter('T', variance: Variance.covariant);
+    var U = typeParameter('T', variance: Variance.invariant);
+    var V = typeParameter('T', variance: Variance.contravariant);
+    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
+
+    // Multi<num, num, num>
+    // Multi<int, num, int>
+    var multiNumNumNum =
+        interfaceTypeStar(Multi, typeArguments: [numType, numType, numType]);
+    var multiIntNumInt =
+        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
+
+    // We expect Multi<num, num, int>
+    var multiNumNumInt =
+        interfaceTypeStar(Multi, typeArguments: [numType, numType, intType]);
+
+    _checkLeastUpperBound(multiNumNumNum, multiIntNumInt, multiNumNumInt);
+  }
+
+  void test_typeParameters_multi_objectInterface() {
+    // class Multi<out T, inout U, in V>
+    var T = typeParameter('T', variance: Variance.covariant);
+    var U = typeParameter('T', variance: Variance.invariant);
+    var V = typeParameter('T', variance: Variance.contravariant);
+    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
+
+    // Multi<num, String, num>
+    // Multi<int, num, int>
+    var multiNumStringNum =
+        interfaceTypeStar(Multi, typeArguments: [numType, stringType, numType]);
+    var multiIntNumInt =
+        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
+
+    _checkLeastUpperBound(multiNumStringNum, multiIntNumInt, objectType);
+  }
+
+  void test_typeParameters_multi_objectType() {
+    // class Multi<out T, inout U, in V>
+    var T = typeParameter('T', variance: Variance.covariant);
+    var U = typeParameter('T', variance: Variance.invariant);
+    var V = typeParameter('T', variance: Variance.contravariant);
+    var Multi = class_(name: 'A', typeParameters: [T, U, V]);
+
+    // Multi<String, num, num>
+    // Multi<int, num, int>
+    var multiStringNumNum =
+        interfaceTypeStar(Multi, typeArguments: [stringType, numType, numType]);
+    var multiIntNumInt =
+        interfaceTypeStar(Multi, typeArguments: [intType, numType, intType]);
+
+    // We expect Multi<Object, num, int>
+    var multiObjectNumInt =
+        interfaceTypeStar(Multi, typeArguments: [objectType, numType, intType]);
+
+    _checkLeastUpperBound(multiStringNumNum, multiIntNumInt, multiObjectNumInt);
   }
 
   void test_typeParameters_same() {
