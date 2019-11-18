@@ -334,13 +334,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // stage, there is no easy way to make body building stage skip initializer
     // parsing, so we simply clear parsed initializers and rebuild them
     // again.
+    // For when doing an experimental incremental compilation they are also
+    // potentially done more than once (because it rebuilds the bodies of an old
+    // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    if (_constructor.isConst) {
-      _constructor.initializers.length = 0;
-      redirectingInitializer = null;
-      superInitializer = null;
-      hasMovedSuperInitializer = false;
-    }
+    _constructor.initializers.length = 0;
+    redirectingInitializer = null;
+    superInitializer = null;
+    hasMovedSuperInitializer = false;
   }
 }
