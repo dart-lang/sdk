@@ -233,6 +233,9 @@ abstract class NullabilityMigrationInstrumentation {
 /// Information exposed to the migration client about a single node in the
 /// nullability graph.
 abstract class NullabilityNodeInfo implements FixReasonInfo {
+  /// List of compound nodes wrapping this node.
+  final List<NullabilityNodeInfo> outerCompoundNodes = <NullabilityNodeInfo>[];
+
   /// Some nodes get nullability from downstream, so the downstream edges are
   /// available to query as well.
   Iterable<EdgeInfo> get downstreamEdges;

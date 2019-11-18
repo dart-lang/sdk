@@ -360,6 +360,8 @@ class NullabilityGraph {
         for (var edge in node._upstreamEdges) {
           pendingEdges.add(edge);
         }
+
+        // TODO(mfairhurst): should this propagate back up outerContainerNodes?
       }
     }
     while (pendingEdges.isNotEmpty) {
@@ -459,6 +461,9 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
+
+  /// List of compound nodes wrapping this node.
+  final List<NullabilityNode> outerCompoundNodes = <NullabilityNode>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
@@ -583,7 +588,10 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
   final NullabilityNode right;
 
-  NullabilityNodeForLUB._(this.left, this.right);
+  NullabilityNodeForLUB._(this.left, this.right) {
+    left.outerCompoundNodes.add(this);
+    right.outerCompoundNodes.add(this);
+  }
 
   @override
   Iterable<NullabilityNode> get _components => [left, right];
@@ -602,7 +610,10 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
   @override
   final NullabilityNode outerNode;
 
-  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode);
+  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode) {
+    innerNode.outerCompoundNodes.add(this);
+    outerNode.outerCompoundNodes.add(this);
+  }
 
   @override
   Iterable<NullabilityNode> get _components => [innerNode, outerNode];

@@ -208,8 +208,9 @@ void g() {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
     // regions[0] is the hard edge that f's parameter is non-nullable.
-    // TODO(mfairhurst): Diagnose why no detail is appearing here.
-    // assertRegion(region: regions[1], offset: 15, details: ["Null is assigned"]);
+    assertRegion(region: regions[1], offset: 15, details: [
+      "An explicit 'null' is assigned",
+    ]);
     assertRegion(
         region: regions[2],
         offset: 66,

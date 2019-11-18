@@ -91,6 +91,26 @@ class InfoBuilder {
     return units;
   }
 
+  Iterable<EdgeInfo> upstreamTriggeredEdges(NullabilityNodeInfo node,
+      [List<RegionDetail> details]) {
+    var edges = <EdgeInfo>[];
+    for (EdgeInfo edge in node.upstreamEdges) {
+      if (node.isExactNullable && edge.sourceNode.isExactNullable) {
+        // When an exact nullable points here, the nullability propagated
+        // in the other direction.
+        continue;
+      }
+      if (edge.isTriggered) {
+        edges.add(edge);
+      }
+    }
+    for (final containerNode in node.outerCompoundNodes) {
+      edges.addAll(upstreamTriggeredEdges(containerNode, details));
+    }
+
+    return edges;
+  }
+
   /// Return detail text for a fix built from an edge with [node] as a
   /// destination.
   String _baseDescriptionForOrigin(
@@ -294,21 +314,14 @@ class InfoBuilder {
           }
         }
 
-        for (EdgeInfo edge in reason.upstreamEdges) {
-          if (edge.sourceNode.isExactNullable) {
-            // When an exact nullable points here, the nullability propagated
-            // in the other direction.
-            continue;
-          }
-          if (edge.isTriggered) {
-            EdgeOriginInfo origin = info.edgeOrigin[edge];
-            if (origin != null) {
-              details.add(_buildDetailForOrigin(
-                  origin, edge, fixInfo.fix.description.kind));
-            } else {
-              details.add(
-                  RegionDetail('upstream edge with no origin ($edge)', null));
-            }
+        for (EdgeInfo edge in upstreamTriggeredEdges(reason)) {
+          EdgeOriginInfo origin = info.edgeOrigin[edge];
+          if (origin != null) {
+            details.add(_buildDetailForOrigin(
+                origin, edge, fixInfo.fix.description.kind));
+          } else {
+            details.add(
+                RegionDetail('upstream edge with no origin ($edge)', null));
           }
         }
       } else if (reason is EdgeInfo) {
