@@ -82,7 +82,7 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     migration.finish();
-    if (outputDir != null && port == null) {
+    if (outputDir != null) {
       OverlayResourceProvider provider = listener.server.resourceProvider;
       Folder outputFolder = provider.getFolder(outputDir);
       if (!outputFolder.exists) {
