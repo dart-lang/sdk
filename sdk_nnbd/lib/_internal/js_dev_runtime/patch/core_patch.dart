@@ -318,7 +318,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => dart.stackTraceForError(this);
+  StackTrace? get stackTrace => dart.stackTraceForError(this);
 }
 
 @patch

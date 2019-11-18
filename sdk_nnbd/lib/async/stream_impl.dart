@@ -426,7 +426,7 @@ class _BufferingStreamSubscription<T>
    * during the call, and it checks for state changes after the call
    * that should cause further callbacks.
    */
-  void _guardCallback(void callback()) {
+  void _guardCallback(void Function() callback) {
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
