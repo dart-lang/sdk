@@ -1498,34 +1498,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genLoadVar(VariableDeclaration v, {int currentContextLevel}) {
-    if (v.isLate) {
-      _genLoadVarImpl(v, currentContextLevel);
-
-      final Label done = new Label();
-      asm.emitJumpIfInitialized(done);
-
-      if (v.initializer != null) {
-        if (locals.isCaptured(v)) {
-          _genPushContextForVariable(v,
-              currentContextLevel: currentContextLevel);
-        }
-        // TODO(dartbug.com/38841): Make this work for all initializers.
-        _generateNode(v.initializer);
-        _genStoreVar(v);
-      } else {
-        asm.emitPushConstant(cp.addName(v.name));
-        _genDirectCall(throwNewLateInitializationError,
-            objectTable.getArgDescHandle(1), 1);
-        asm.emitDrop1();
-      }
-
-      asm.bind(done);
-    }
-
-    _genLoadVarImpl(v, currentContextLevel);
-  }
-
-  void _genLoadVarImpl(VariableDeclaration v, int currentContextLevel) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
       asm.emitLoadContextVar(
@@ -3806,6 +3778,26 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final v = node.variable;
     if (v.isConst) {
       _genPushConstExpr(v.initializer);
+    } else if (v.isLate) {
+      _genLoadVar(v);
+
+      final Label done = new Label();
+      asm.emitJumpIfInitialized(done);
+
+      if (v.initializer != null) {
+        _genPushContextIfCaptured(v);
+        // TODO(dartbug.com/38841): Make this work for all initializers.
+        _generateNode(v.initializer);
+        _genStoreVar(v);
+      } else {
+        asm.emitPushConstant(cp.addName(v.name));
+        _genDirectCall(throwNewLateInitializationError,
+            objectTable.getArgDescHandle(1), 1);
+        asm.emitDrop1();
+      }
+
+      asm.bind(done);
+      _genLoadVar(v);
     } else {
       _genLoadVar(v);
     }
@@ -3815,8 +3807,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitVariableSet(VariableSet node) {
     final v = node.variable;
     final bool hasResult = !isExpressionWithoutResult(node);
+    final bool isLateFinal = v.isLate && v.isFinal;
 
-    _genPushContextIfCaptured(v);
+    if (!isLateFinal) {
+      _genPushContextIfCaptured(v);
+    }
 
     _generateNode(node.value);
 
@@ -3824,7 +3819,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitDebugCheck();
     }
 
-    if (locals.isCaptured(v)) {
+    if (isLateFinal) {
+      final int temp = locals.tempIndexInFrame(node);
+      asm.emitPopLocal(temp);
+
+      final Label error = new Label();
+      final Label done = new Label();
+      _genLoadVar(v);
+      asm.emitJumpIfInitialized(error);
+
+      _genPushContextIfCaptured(v);
+      asm.emitPush(temp);
+      _genStoreVar(v);
+      asm.emitJump(done);
+
+      asm.bind(error);
+      asm.emitPushConstant(cp.addName(v.name));
+      _genDirectCall(
+          throwNewLateInitializationError, objectTable.getArgDescHandle(1), 1);
+      asm.emitDrop1();
+
+      asm.bind(done);
+
+      if (hasResult) {
+        asm.emitPush(temp);
+      }
+    } else if (locals.isCaptured(v)) {
       final int temp = locals.tempIndexInFrame(node);
       if (hasResult) {
         asm.emitStoreLocal(temp);

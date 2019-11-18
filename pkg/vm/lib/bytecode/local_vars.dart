@@ -1284,7 +1284,9 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitVariableSet(VariableSet node) {
-    _visit(node, temps: locals.isCaptured(node.variable) ? 1 : 0);
+    final v = node.variable;
+    final bool needsTemp = locals.isCaptured(v) || v.isLate && v.isFinal;
+    _visit(node, temps: needsTemp ? 1 : 0);
   }
 
   @override
