@@ -401,7 +401,22 @@ class InstrumentationRenderer {
       // Write out any edits.
       //
       if (supportsIncrementalWorkflow && region.edits.isNotEmpty) {
-        // TODO(brianwilkerson) Implement this.
+        for (EditDetail edit in region.edits) {
+          int offset = edit.offset;
+          String targetUri = Uri(
+              scheme: 'http',
+              path: pathContext.basename(unitInfo.path),
+              queryParameters: {
+                'offset': offset.toString(),
+                'end': (offset + edit.length).toString(),
+                'replacement': edit.replacement
+              }).toString();
+          regions.write('<p>');
+          regions.write('<a href="$targetUri">');
+          regions.write(edit.description);
+          regions.write('</a>');
+          regions.write('</p>');
+        }
       }
       regions.write('</span></span>');
     }

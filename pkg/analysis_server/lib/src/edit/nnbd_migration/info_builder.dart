@@ -324,6 +324,19 @@ class InfoBuilder {
     return details;
   }
 
+  /// Return a list of edits that can be applied.
+  List<EditDetail> _computeEdits(FixInfo fixInfo) {
+    // TODO(brianwilkerson) Add other kinds of edits, such as adding an assert.
+    List<EditDetail> edits = [];
+    SingleNullabilityFix fix = fixInfo.fix;
+    if (fix.description.kind == NullabilityFixKind.makeTypeNullable) {
+      Location location = fix.location;
+      edits.add(EditDetail(
+          'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
+    }
+    return edits;
+  }
+
   /// Return the navigation sources for the unit associated with the [result].
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
     NavigationCollectorImpl collector = new NavigationCollectorImpl();
@@ -443,12 +456,15 @@ class InfoBuilder {
       if (fixInfo != null) {
         String explanation = '${fixInfo.fix.description.appliedMessage}.';
         List<RegionDetail> details = _computeDetails(fixInfo);
+        List<EditDetail> edits = _computeEdits(fixInfo);
         if (length > 0) {
-          regions.add(RegionInfo(RegionType.fix, mapper.map(offset), length,
-              explanation, details));
+          regions.add(RegionInfo(
+              RegionType.fix, mapper.map(offset), length, explanation, details,
+              edits: edits));
         }
         regions.add(RegionInfo(RegionType.fix, mapper.map(end),
-            replacement.length, explanation, details));
+            replacement.length, explanation, details,
+            edits: edits));
       }
     }
     if (explainNonNullableTypes) {

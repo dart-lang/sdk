@@ -116,7 +116,7 @@ class RegionInfo {
   /// Initialize a newly created region.
   RegionInfo(
       this.regionType, this.offset, this.length, this.explanation, this.details,
-      {this.edits});
+      {this.edits = const []});
 }
 
 /// Different types of regions that are called out.
