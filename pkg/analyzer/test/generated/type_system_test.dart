@@ -756,6 +756,49 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
         covariant: true);
   }
 
+  void test_variance_contravariant() {
+    // class A<in T>
+    var tContravariant = typeParameter('T', variance: Variance.contravariant);
+    var tType = typeParameterType(tContravariant);
+    var A = class_(name: 'A', typeParameters: [tContravariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: T'], covariant: true);
+  }
+
+  void test_variance_covariant() {
+    // class A<out T>
+    var tCovariant = typeParameter('T', variance: Variance.covariant);
+    var tType = typeParameterType(tCovariant);
+    var A = class_(name: 'A', typeParameters: [tCovariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num'], covariant: true);
+  }
+
+  void test_variance_invariant() {
+    // class A<inout T>
+    var tInvariant = typeParameter('T', variance: Variance.invariant);
+    var tType = typeParameterType(tInvariant);
+    var A = class_(name: 'A', typeParameters: [tInvariant]);
+
+    // A<num>
+    // A<T>
+    var aNum = interfaceTypeStar(A, typeArguments: [numType]);
+    var aT = interfaceTypeStar(A, typeArguments: [tType]);
+
+    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num', 'num <: T'],
+        covariant: true);
+  }
+
   void test_x_futureOr_fail_both_branches() {
     // List<T> <: FutureOr<String> can't be satisfied because neither
     // List<T> <: Future<String> nor List<T> <: int can be satisfied
@@ -818,49 +861,6 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     // List<T> <: List<String> can be satisfied
     _checkIsSubtypeMatchOf(
         listType(T), futureOrType(listType(stringType)), [T], ['T <: String'],
-        covariant: true);
-  }
-
-  void test_variance_covariant() {
-    // class A<out T>
-    var tCovariant = typeParameter('T', variance: Variance.covariant);
-    var tType = typeParameterType(tCovariant);
-    var A = class_(name: 'A', typeParameters: [tCovariant]);
-
-    // A<num>
-    // A<T>
-    var aNum = interfaceType(A, typeArguments: [numType]);
-    var aT = interfaceType(A, typeArguments: [tType]);
-
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num'], covariant: true);
-  }
-
-  void test_variance_contravariant() {
-    // class A<in T>
-    var tContravariant = typeParameter('T', variance: Variance.contravariant);
-    var tType = typeParameterType(tContravariant);
-    var A = class_(name: 'A', typeParameters: [tContravariant]);
-
-    // A<num>
-    // A<T>
-    var aNum = interfaceType(A, typeArguments: [numType]);
-    var aT = interfaceType(A, typeArguments: [tType]);
-
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['num <: T'], covariant: true);
-  }
-
-  void test_variance_invariant() {
-    // class A<inout T>
-    var tInvariant = typeParameter('T', variance: Variance.invariant);
-    var tType = typeParameterType(tInvariant);
-    var A = class_(name: 'A', typeParameters: [tInvariant]);
-
-    // A<num>
-    // A<T>
-    var aNum = interfaceType(A, typeArguments: [numType]);
-    var aT = interfaceType(A, typeArguments: [tType]);
-
-    _checkIsSubtypeMatchOf(aT, aNum, [tType], ['T <: num', 'num <: T'],
         covariant: true);
   }
 
@@ -3223,103 +3223,6 @@ class LeastUpperBoundTest extends BoundTestBase {
         functionTypeStar(returnType: voidType),
       );
     }
-  }
-}
-
-//class Mix with ElementsTypesMixin {
-//  TypeProvider typeProvider;
-//  Dart2TypeSystem typeSystem;
-//
-//  FeatureSet get testFeatureSet {
-//    return FeatureSet.forTesting();
-//  }
-//
-//  void setUp() {
-//    var analysisContext = TestAnalysisContext(
-//      featureSet: testFeatureSet,
-//    );
-//    typeProvider = analysisContext.typeProvider;
-//    typeSystem = analysisContext.typeSystem;
-//  }
-//}
-
-class SubtypingTestBase extends AbstractTypeSystemTest {
-  void _checkEquivalent(DartType type1, DartType type2) {
-    _checkIsSubtypeOf(type1, type2);
-    _checkIsSubtypeOf(type2, type1);
-  }
-
-  void _checkGroups(DartType t1,
-      {List<DartType> equivalents,
-      List<DartType> unrelated,
-      List<DartType> subtypes,
-      List<DartType> supertypes}) {
-    if (equivalents != null) {
-      for (DartType t2 in equivalents) {
-        _checkEquivalent(t1, t2);
-      }
-    }
-    if (unrelated != null) {
-      for (DartType t2 in unrelated) {
-        _checkUnrelated(t1, t2);
-      }
-    }
-    if (subtypes != null) {
-      for (DartType t2 in subtypes) {
-        _checkIsStrictSubtypeOf(t2, t1);
-      }
-    }
-    if (supertypes != null) {
-      for (DartType t2 in supertypes) {
-        _checkIsStrictSubtypeOf(t1, t2);
-      }
-    }
-  }
-
-  void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
-    var strType1 = _toStringWithNullability(type1);
-    var strType2 = _toStringWithNullability(type2);
-    expect(typeSystem.isSubtypeOf(type1, type2), false,
-        reason: '$strType1 was not supposed to be a subtype of $strType2');
-  }
-
-  void _checkIsStrictSubtypeOf(DartType type1, DartType type2) {
-    _checkIsSubtypeOf(type1, type2);
-    _checkIsNotSubtypeOf(type2, type1);
-  }
-
-  void _checkIsSubtypeOf(DartType type1, DartType type2) {
-    expect(typeSystem.isSubtypeOf(type1, type2), true,
-        reason: '$type1 is not a subtype of $type2');
-  }
-
-  void _checkLattice(
-      DartType top, DartType left, DartType right, DartType bottom) {
-    _checkGroups(top,
-        equivalents: <DartType>[top],
-        subtypes: <DartType>[left, right, bottom]);
-    _checkGroups(left,
-        equivalents: <DartType>[left],
-        subtypes: <DartType>[bottom],
-        unrelated: <DartType>[right],
-        supertypes: <DartType>[top]);
-    _checkGroups(right,
-        equivalents: <DartType>[right],
-        subtypes: <DartType>[bottom],
-        unrelated: <DartType>[left],
-        supertypes: <DartType>[top]);
-    _checkGroups(bottom,
-        equivalents: <DartType>[bottom],
-        supertypes: <DartType>[top, left, right]);
-  }
-
-  void _checkUnrelated(DartType type1, DartType type2) {
-    _checkIsNotSubtypeOf(type1, type2);
-    _checkIsNotSubtypeOf(type2, type1);
-  }
-
-  static String _toStringWithNullability(DartType type) {
-    return (type as TypeImpl).toString(withNullability: true);
   }
 }
 
