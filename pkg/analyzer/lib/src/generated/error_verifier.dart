@@ -720,6 +720,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     try {
       _checkForNotInitializedNonNullableStaticField(node);
+      _checkForWrongTypeParameterVarianceInField(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -5387,6 +5388,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 Variance(typeParameter, method.returnType.type);
             _checkForWrongVariancePosition(
                 methodReturnTypeVariance, typeParameter, method.returnType);
+          }
+        }
+      }
+    }
+  }
+
+  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          var fields = node.fields;
+          var fieldElement = fields.variables.first.declaredElement;
+          var fieldName = fields.variables.first.name;
+          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
+
+          _checkForWrongVariancePosition(
+              fieldVariance, typeParameter, fieldName);
+          if (!fields.isFinal && node.covariantKeyword == null) {
+            _checkForWrongVariancePosition(
+                Variance.contravariant.combine(fieldVariance),
+                typeParameter,
+                fieldName);
           }
         }
       }

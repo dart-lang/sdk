@@ -9,53 +9,70 @@
 class A<in T> {
   final T a = null;
   //      ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   final T Function() b = () => null;
   //                 ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   T get c => null;
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+//        ^
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   T d;
-  //^
-  // [analyzer] unspecified
-  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   covariant T e;
   //          ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 }
 
 mixin BMixin<in T> {
   final T a = null;
   //      ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   final T Function() b = () => null;
   //                 ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   T get c => null;
-  //      ^
-  // [analyzer] unspecified
-  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+//^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+//        ^
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
   T d;
-  //^
-  // [analyzer] unspecified
-  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   covariant T e;
   //          ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+}
+
+abstract class C<in T> {
+  T get a;
+//^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+//       ^
+// [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+}
+
+class D<in T> extends C<T> {
+  var a;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 }
