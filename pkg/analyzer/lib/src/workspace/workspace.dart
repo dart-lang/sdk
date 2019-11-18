@@ -7,6 +7,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
+import 'bazel.dart';
+
 /**
  * Abstract superclass of classes that provide information about the workspace
  * in which analysis is being performed.
@@ -47,6 +49,13 @@ abstract class Workspace {
    * defined.
    */
   WorkspacePackage findPackageFor(String path);
+
+  /**
+   * Return true iff this [Workspace] is a [BazelWorkspace].
+   */
+  bool isBazelWorkspace() {
+    return this is BazelWorkspace;
+  }
 }
 
 /**
