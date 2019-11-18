@@ -163,12 +163,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           declaredLocalVar(id, loopVar.type);
         }
       }
-    } else if (forLoopParts is ForEachPartsWithIdentifier) {
-      SimpleIdentifier id = forLoopParts.identifier;
-      if (id != null) {
-        // If there is no loop variable, don't declare it.
-        declaredLocalVar(id, null);
-      }
     } else if (forLoopParts is ForPartsWithDeclarations) {
       VariableDeclarationList varList = forLoopParts.variables;
       if (varList != null) {
