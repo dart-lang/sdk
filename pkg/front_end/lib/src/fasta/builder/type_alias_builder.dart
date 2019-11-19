@@ -96,8 +96,35 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   }
 
   TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
-    return new TypedefType(typedef, clientLibrary.nonNullable,
-        getAsTypeArguments(typedef.typeParameters));
+    // At this point the bounds of `typedef.typeParameters` may not be assigned
+    // yet, so [getAsTypeArguments] may crash trying to compute the nullability
+    // of the created types from the bounds.  To avoid that, we use "dynamic"
+    // for the bound of all boundless variables and add them to the list for
+    // being recomputed later, when the bounds are assigned.
+    List<DartType> bounds =
+        new List<DartType>.filled(typedef.typeParameters.length, null);
+    for (int i = 0; i < bounds.length; ++i) {
+      bounds[i] = typedef.typeParameters[i].bound;
+      if (bounds[i] == null) {
+        typedef.typeParameters[i].bound = const DynamicType();
+      }
+    }
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedef.typeParameters, clientLibrary.library);
+    TypedefType result =
+        new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
+    for (int i = 0; i < bounds.length; ++i) {
+      if (bounds[i] == null) {
+        // If the bound is not assigned yet, put the corresponding
+        // type-parameter type into the list for the nullability re-computation.
+        // At this point, [parent] should be a [SourceLibraryBuilder] because
+        // otherwise it's a compiled library loaded from a dill file, and the
+        // bounds should have been assigned.
+        SourceLibraryBuilder parentLibrary = parent;
+        parentLibrary.pendingNullabilities.add(asTypeArguments[i]);
+      }
+    }
+    return result;
   }
 
   DartType buildThisType(LibraryBuilder library) {

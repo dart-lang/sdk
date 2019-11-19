@@ -214,7 +214,9 @@ TestData computeTestData(FileSystemEntity testFile,
   } else if (testFile is Directory) {
     testName = testFileUri.pathSegments[testFileUri.pathSegments.length - 2];
     additionalFiles = new Map<String, File>();
-    for (FileSystemEntity entry in testFile.listSync(recursive: true)) {
+    for (FileSystemEntity entry in testFile
+        .listSync(recursive: true)
+        .where((entity) => !entity.path.endsWith('~'))) {
       if (entry is! File) continue;
       if (entry.uri.pathSegments.last == "main.dart") {
         mainTestFile = entry;

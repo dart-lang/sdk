@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Expression,
         Field,
         FunctionNode,
+        FunctionType,
         InterfaceType,
         InvalidType,
         ListLiteral,
@@ -35,8 +36,6 @@ import 'package:kernel/ast.dart'
         Variance,
         VoidType,
         getAsTypeArguments;
-
-import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -616,27 +615,24 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(
-        cls, library.nonNullable, getAsTypeArguments(cls.typeParameters));
+    return _thisType ??= new InterfaceType(cls, library.nonNullable,
+        getAsTypeArguments(cls.typeParameters, library.library));
   }
 
   @override
   InterfaceType get legacyRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
   InterfaceType get nullableRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
   InterfaceType get nonNullableRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _nonNullableRawType ??= new InterfaceType(
         cls,
         Nullability.nonNullable,
@@ -1166,7 +1162,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         target.loader.coreTypes,
         new ThisExpression(),
         prefix + procedure.name.name,
-        new Arguments.forwarded(procedure.function),
+        new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
     Expression result = new MethodInvocation(new ThisExpression(),
@@ -1413,8 +1409,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType(
-                declaredFunction.typeParameters[i], Nullability.legacy);
+            new TypeParameterType.forAlphaRenaming(
+                interfaceFunction.typeParameters[i],
+                declaredFunction.typeParameters[i]);
       }
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {

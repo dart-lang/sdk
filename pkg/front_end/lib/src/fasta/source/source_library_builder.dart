@@ -345,7 +345,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._nameOrigin)
       : currentTypeParameterScopeBuilder = libraryDeclaration,
         super(
-            fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
+            fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
+    library.isNonNullableByDefault = isNonNullableByDefault;
+  }
 
   SourceLibraryBuilder(
       Uri uri, Uri fileUri, Loader loader, SourceLibraryBuilder actualOrigin,
@@ -2887,8 +2889,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i] =
           new TypeParameter(methodParameters[i].name);
-      substitutionMap[methodParameters[i]] = new TypeParameterType(
-          instantiatedMethodParameters[i], Nullability.legacy);
+      substitutionMap[methodParameters[i]] =
+          new TypeParameterType.forAlphaRenaming(
+              methodParameters[i], instantiatedMethodParameters[i]);
     }
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i].bound =

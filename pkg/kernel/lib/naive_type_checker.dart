@@ -148,8 +148,8 @@ ${ownType} is not a subtype of ${superType}
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
         var subParameter = ownFunction.typeParameters[i];
         var superParameter = superFunction.typeParameters[i];
-        typeParameterMap[subParameter] =
-            new TypeParameterType(superParameter, Nullability.legacy);
+        typeParameterMap[subParameter] = new TypeParameterType.forAlphaRenaming(
+            subParameter, superParameter);
       }
 
       ownSubstitution = Substitution.combine(

@@ -114,8 +114,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       growable: true);
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] =
-        new TypeParameterType(freshParameters[i], Nullability.legacy);
+    map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
+        typeParameters[i], freshParameters[i]);
   }
   CloneVisitor cloner;
   for (int i = 0; i < typeParameters.length; ++i) {
@@ -293,7 +293,7 @@ class _NullSubstitution extends Substitution {
   const _NullSubstitution();
 
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return new TypeParameterType(parameter, Nullability.legacy);
+    return new TypeParameterType.forAlphaRenaming(parameter, parameter);
   }
 
   @override
@@ -388,7 +388,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType(fresh, Nullability.legacy);
+    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
@@ -719,8 +719,8 @@ class _TypeUnification {
       var rightInstance = <TypeParameter, DartType>{};
       for (int i = 0; i < type1.typeParameters.length; ++i) {
         var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType =
-            new TypeParameterType(instantiator, Nullability.legacy);
+        var instantiatorType = new TypeParameterType.forAlphaRenaming(
+            type1.typeParameters[i], instantiator);
         leftInstance[type1.typeParameters[i]] = instantiatorType;
         rightInstance[type2.typeParameters[i]] = instantiatorType;
         _universallyQuantifiedVariables.add(instantiator);

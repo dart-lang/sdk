@@ -1926,7 +1926,8 @@ class TypeInferrerImpl implements TypeInferrer {
       for (int i = 0; i < typeContext.typeParameters.length; i++) {
         substitutionMap[typeContext.typeParameters[i]] =
             i < typeParameters.length
-                ? new TypeParameterType(typeParameters[i], Nullability.legacy)
+                ? new TypeParameterType.forAlphaRenaming(
+                    typeContext.typeParameters[i], typeParameters[i])
                 : const DynamicType();
       }
       substitution = Substitution.fromMap(substitutionMap);
@@ -3118,9 +3119,10 @@ abstract class MixinInferrer {
     // substitute them before calling instantiate to bounds.
     Substitution substitution = Substitution.fromPairs(
         mixinClass.typeParameters,
-        parameters
-            .map((p) => new TypeParameterType(p, Nullability.legacy))
-            .toList());
+        new List<DartType>.generate(
+            parameters.length,
+            (i) => new TypeParameterType.forAlphaRenaming(
+                mixinClass.typeParameters[i], parameters[i])));
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }

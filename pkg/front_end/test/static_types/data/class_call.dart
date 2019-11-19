@@ -30,7 +30,9 @@ abstract class GenericClassWithCall<T> {
 class GenericClass<S, T extends GenericClassWithCall<S>> {
   GenericClassWithCall<T> classWithCall;
 
-  S method() => /*invoke: T*/ classWithCall(). /*invoke: S*/ method();
+  S method() =>
+      /*cfe|dart2js.invoke: T*/ /*cfe:nnbd.invoke: T!*/ classWithCall()
+          . /*cfe|dart2js.invoke: S*/ /*cfe:nnbd.invoke: S%*/ method();
 }
 
 main() {
@@ -40,7 +42,7 @@ main() {
           /*cfe|dart2js.<String,GenericClassWithCall<String>>*/
           /*cfe:nnbd.<String!,GenericClassWithCall<String!>!>*/ ()
       . /*cfe|dart2js.invoke: GenericClassWithCall<String>*/
-      /*cfe:nnbd.invoke: GenericClassWithCall<String!>*/
+      /*cfe:nnbd.invoke: GenericClassWithCall<String!>!*/
       classWithCall()
-      . /*invoke: String*/ method();
+      . /*cfe|dart2js.invoke: String*/ /*cfe:nnbd.invoke: String!*/ method();
 }

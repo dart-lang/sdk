@@ -440,8 +440,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         TypeParameter tTypeVariable = tTypeVariables[i];
         result = result.and(
             types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound));
-        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable,
-            TypeParameterType.computeNullabilityFromBound(tTypeVariable)));
+        typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
+            sTypeVariable, tTypeVariable));
       }
       Substitution substitution =
           Substitution.fromPairs(sTypeVariables, typeVariableSubstitution);

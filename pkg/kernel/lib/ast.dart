@@ -1222,7 +1222,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Supertype get asThisSupertype {
-    return new Supertype(this, getAsTypeArguments(typeParameters));
+    return new Supertype(
+        this, getAsTypeArguments(typeParameters, this.enclosingLibrary));
   }
 
   /// Returns the type of `this` for the class using [coreTypes] for caching.
@@ -3135,14 +3136,15 @@ class Arguments extends TreeNode {
         positional = <Expression>[],
         named = <NamedExpression>[];
 
-  factory Arguments.forwarded(FunctionNode function) {
+  factory Arguments.forwarded(FunctionNode function, Library library) {
     return new Arguments(
         function.positionalParameters.map((p) => new VariableGet(p)).toList(),
         named: function.namedParameters
             .map((p) => new NamedExpression(p.name, new VariableGet(p)))
             .toList(),
         types: function.typeParameters
-            .map((p) => new TypeParameterType(p, Nullability.legacy))
+            .map((p) => new TypeParameterType.withDefaultNullabilityForLibrary(
+                p, library))
             .toList());
   }
 
@@ -5952,6 +5954,35 @@ class TypeParameterType extends DartType {
   TypeParameterType(this.parameter, this.typeParameterTypeNullability,
       [this.promotedBound]);
 
+  /// Creates an intersection type between a type parameter and [promotedBound].
+  TypeParameterType.intersection(
+      this.parameter, this.typeParameterTypeNullability, this.promotedBound);
+
+  /// Creates a type-parameter type to be used in alpha-renaming.
+  ///
+  /// The constructed type object is supposed to be used as a value in a
+  /// substitution map created to perform an alpha-renaming from parameter
+  /// [from] to parameter [to] on a generic type.  The resulting type-parameter
+  /// type is an occurrence of [to] as a type, but the nullability property is
+  /// derived from the bound of [from].  It allows to assign the bound to [to]
+  /// after the desired alpha-renaming is performed, which is often the case.
+  TypeParameterType.forAlphaRenaming(TypeParameter from, TypeParameter to)
+      : this(to, computeNullabilityFromBound(from));
+
+  /// Creates a type-parameter type with default nullability for the library.
+  ///
+  /// The nullability is computed as if the programmer omitted the modifier. It
+  /// means that in the opt-out libraries `Nullability.legacy` will be used, and
+  /// in opt-in libraries either `Nullability.nonNullable` or
+  /// `Nullability.undetermined` will be used, depending on the nullability of
+  /// the bound of [parameter].
+  TypeParameterType.withDefaultNullabilityForLibrary(
+      this.parameter, Library library) {
+    typeParameterTypeNullability = library.isNonNullableByDefault
+        ? computeNullabilityFromBound(parameter)
+        : Nullability.legacy;
+  }
+
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitTypeParameterType(this, arg);
@@ -7403,12 +7434,14 @@ String demangleMixinApplicationSubclassName(String name) {
 }
 
 /// Computes a list of [typeParameters] taken as types.
-List<DartType> getAsTypeArguments(List<TypeParameter> typeParameters) {
+List<DartType> getAsTypeArguments(
+    List<TypeParameter> typeParameters, Library library) {
   if (typeParameters.isEmpty) return const <DartType>[];
   List<DartType> result =
       new List<DartType>.filled(typeParameters.length, null, growable: false);
   for (int i = 0; i < result.length; ++i) {
-    result[i] = new TypeParameterType(typeParameters[i], Nullability.legacy);
+    result[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+        typeParameters[i], library);
   }
   return result;
 }

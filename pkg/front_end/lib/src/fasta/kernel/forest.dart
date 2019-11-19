@@ -607,8 +607,15 @@ class Forest {
     return new TypeParameter(name);
   }
 
-  TypeParameterType createTypeParameterType(TypeParameter typeParameter) {
-    return new TypeParameterType(typeParameter, Nullability.legacy);
+  TypeParameterType createTypeParameterType(
+      TypeParameter typeParameter, Nullability nullability) {
+    return new TypeParameterType(typeParameter, nullability);
+  }
+
+  TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
+      TypeParameter typeParameter, Library library) {
+    return new TypeParameterType.withDefaultNullabilityForLibrary(
+        typeParameter, library);
   }
 
   FunctionExpression createFunctionExpression(

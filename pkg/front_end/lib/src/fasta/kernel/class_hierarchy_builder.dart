@@ -159,7 +159,8 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   if (typeParameterCount != 0) {
     List<DartType> types = new List<DartType>(typeParameterCount);
     for (int i = 0; i < typeParameterCount; i++) {
-      types[i] = new TypeParameterType(aTypeParameters[i], Nullability.legacy);
+      types[i] = new TypeParameterType.forAlphaRenaming(
+          bTypeParameters[i], aTypeParameters[i]);
     }
     substitution = Substitution.fromPairs(bTypeParameters, types);
     for (int i = 0; i < typeParameterCount; i++) {
@@ -659,8 +660,8 @@ class ClassHierarchyNodeBuilder {
       }
       List<DartType> types = new List<DartType>(typeParameterCount);
       for (int i = 0; i < typeParameterCount; i++) {
-        types[i] =
-            new TypeParameterType(aTypeParameters[i], Nullability.legacy);
+        types[i] = new TypeParameterType.forAlphaRenaming(
+            bTypeParameters[i], aTypeParameters[i]);
       }
       substitution = Substitution.fromPairs(bTypeParameters, types);
       for (int i = 0; i < typeParameterCount; i++) {

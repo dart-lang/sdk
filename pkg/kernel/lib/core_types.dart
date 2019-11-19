@@ -1237,8 +1237,8 @@ class CoreTypes {
   InterfaceType thisInterfaceType(Class klass, Nullability nullability) {
     InterfaceType result = _thisInterfaceTypes[klass];
     if (result == null) {
-      return _thisInterfaceTypes[klass] = new InterfaceType(
-          klass, nullability, getAsTypeArguments(klass.typeParameters));
+      return _thisInterfaceTypes[klass] = new InterfaceType(klass, nullability,
+          getAsTypeArguments(klass.typeParameters, klass.enclosingLibrary));
     }
     if (result.nullability != nullability) {
       return _thisInterfaceTypes[klass] = result.withNullability(nullability);
@@ -1249,8 +1249,8 @@ class CoreTypes {
   TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
     TypedefType result = _thisTypedefTypes[typedef];
     if (result == null) {
-      return _thisTypedefTypes[typedef] = new TypedefType(
-          typedef, nullability, getAsTypeArguments(typedef.typeParameters));
+      return _thisTypedefTypes[typedef] = new TypedefType(typedef, nullability,
+          getAsTypeArguments(typedef.typeParameters, typedef.enclosingLibrary));
     }
     if (result.nullability != nullability) {
       return _thisTypedefTypes[typedef] = result.withNullability(nullability);

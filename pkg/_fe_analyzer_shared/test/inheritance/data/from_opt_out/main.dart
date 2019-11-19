@@ -9,13 +9,13 @@ import 'opt_out.dart';
 /*class: Class1:Class1,LegacyClass1,Object*/
 class Class1 extends LegacyClass1 {}
 
-/*class: Class2:Class2<T*>,LegacyClass2<T>,Object*/
+/*class: Class2:Class2<T>,LegacyClass2<T>,Object*/
 class Class2<T> extends LegacyClass2<T> {}
 
-/*class: Class3a:Class3a<T*>,GenericInterface<T*>,LegacyClass3<T>,Object*/
+/*class: Class3a:Class3a<T>,GenericInterface<T*>,LegacyClass3<T>,Object*/
 class Class3a<T> extends LegacyClass3<T> {}
 
-/*class: Class3b:Class3b<T*>,GenericInterface<T*>,LegacyClass3<T>,Object*/
+/*class: Class3b:Class3b<T>,GenericInterface<T*>,LegacyClass3<T>,Object*/
 class
 // TODO(johnniwinther): Avoid this error.
 /*error: AmbiguousSupertypes*/

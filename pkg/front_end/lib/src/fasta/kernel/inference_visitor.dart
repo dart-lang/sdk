@@ -4282,8 +4282,8 @@ class InferenceVisitor
     List<DartType> typeArguments =
         new List<DartType>(classTypeParameters.length);
     for (int i = 0; i < typeArguments.length; i++) {
-      typeArguments[i] =
-          new TypeParameterType(classTypeParameters[i], Nullability.legacy);
+      typeArguments[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+          classTypeParameters[i], inferrer.library.library);
     }
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
     inferrer.inferInvocation(null, node.fileOffset,

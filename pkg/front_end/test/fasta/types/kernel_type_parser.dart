@@ -23,7 +23,6 @@ import "package:kernel/ast.dart"
         Typedef,
         TypedefType,
         VoidType,
-        getAsTypeArguments,
         setParents;
 
 import "package:kernel/src/bounds_checks.dart" show calculateBounds;
@@ -83,11 +82,6 @@ Library parseLibrary(Uri uri, String text,
     }
   }
   return library;
-}
-
-TypedefType thisTypedefType(Typedef typedef, Nullability nullability) {
-  return new TypedefType(
-      typedef, nullability, getAsTypeArguments(typedef.typeParameters));
 }
 
 class KernelEnvironment {
@@ -266,7 +260,13 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
             namedParameters: f.namedParameters,
             typeParameters: f.typeParameters,
             requiredParameterCount: f.requiredParameterCount,
-            typedefType: thisTypedefType(def, Nullability.nonNullable));
+            typedefType: new TypedefType(
+                def,
+                Nullability.nonNullable,
+                def.typeParameters
+                    .map((p) => new TypeParameterType(
+                        p, TypeParameterType.computeNullabilityFromBound(p)))
+                    .toList()));
       }
     }
     return def..type = type;
@@ -321,7 +321,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     TypeParameterType type =
         node.a.accept<Node, KernelEnvironment>(this, environment);
     DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
-    return new TypeParameterType(type.parameter, type.nullability, bound);
+    return new TypeParameterType.intersection(
+        type.parameter, type.nullability, bound);
   }
 
   Supertype toSupertype(InterfaceType type) {

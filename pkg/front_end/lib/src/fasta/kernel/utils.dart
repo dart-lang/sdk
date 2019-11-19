@@ -16,7 +16,6 @@ import 'package:kernel/ast.dart'
         Component,
         DartType,
         Library,
-        Nullability,
         Procedure,
         Supertype,
         TreeNode,
@@ -98,7 +97,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         ..parent = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] =
-          new TypeParameterType(newNode, Nullability.legacy);
+          new TypeParameterType.forAlphaRenaming(typeParam, newNode);
     }
     CloneVisitor cloner = new CloneVisitor(
         typeSubstitution: typeSubstitution, typeParams: typeParams);

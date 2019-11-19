@@ -47,8 +47,9 @@ Component createMockSdkComponent() {
         class_('List', typeParameters: [
           T
         ], implementedTypes: [
-          new Supertype(
-              iterable, [new TypeParameterType(T, Nullability.legacy)])
+          new Supertype(iterable, [
+            new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)
+          ])
         ]));
   }
   addClass(

@@ -224,7 +224,8 @@ class IncludesTypeParametersCovariantlyTest {
         isFalse);
   }
 
-  TypeParameterType tpt(TypeParameter param, {int variance = null}) =>
-      new TypeParameterType(param, Nullability.legacy)
-        ..parameter.variance = variance;
+  TypeParameterType tpt(TypeParameter param, {int variance = null}) {
+    return new TypeParameterType(param, Nullability.legacy)
+      ..parameter.variance = variance;
+  }
 }

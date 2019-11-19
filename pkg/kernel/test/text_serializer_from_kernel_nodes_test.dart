@@ -351,11 +351,9 @@ void test() {
       TypeParameter t =
           new TypeParameter("T", const DynamicType(), const DynamicType());
       VariableDeclaration t1 = new VariableDeclaration("t1",
-          type: new TypeParameterType(
-              t, TypeParameterType.computeNullabilityFromBound(t)));
+          type: new TypeParameterType(t, Nullability.legacy));
       VariableDeclaration t2 = new VariableDeclaration("t2",
-          type: new TypeParameterType(
-              t, TypeParameterType.computeNullabilityFromBound(t)));
+          type: new TypeParameterType(t, Nullability.legacy));
       return new TestCase(
           name: "/* <T>(T t1, [T t2]) => t1; */",
           node: new ExpressionStatement(new FunctionExpression(new FunctionNode(
@@ -364,8 +362,7 @@ void test() {
               positionalParameters: [t1, t2],
               requiredParameterCount: 1,
               namedParameters: [],
-              returnType: new TypeParameterType(
-                  t, TypeParameterType.computeNullabilityFromBound(t)),
+              returnType: new TypeParameterType(t, Nullability.legacy),
               asyncMarker: AsyncMarker.Sync))),
           expectation: ''
               '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ((var '

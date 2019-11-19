@@ -321,7 +321,8 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
       typeParameters.add(newTypeParameter);
       typeArguments.add(substitutionMap[typeParameter] =
-          new TypeParameterType(newTypeParameter, Nullability.legacy));
+          new TypeParameterType.forAlphaRenaming(
+              typeParameter, newTypeParameter));
     }
 
     List<TypeParameter> tearOffTypeParameters = <TypeParameter>[];
@@ -536,8 +537,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
-          substitution[function.typeParameters[i]] = new TypeParameterType(
-              actualOrigin.function.typeParameters[i], Nullability.legacy);
+          substitution[function.typeParameters[i]] =
+              new TypeParameterType.withDefaultNullabilityForLibrary(
+                  actualOrigin.function.typeParameters[i], library.library);
         }
         List<DartType> newTypeArguments =
             new List<DartType>(typeArguments.length);

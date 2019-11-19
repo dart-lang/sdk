@@ -240,6 +240,16 @@ class IsSubtypeOf {
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
       DartType subtype, DartType supertype) {
+    if (subtype is InvalidType) {
+      if (supertype is InvalidType) {
+        return const IsSubtypeOf.always();
+      }
+      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+    }
+    if (supertype is InvalidType) {
+      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+    }
+
     if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
@@ -564,8 +574,8 @@ abstract class SubtypeTester {
       for (int i = 0; i < subtype.typeParameters.length; ++i) {
         var subParameter = subtype.typeParameters[i];
         var superParameter = supertype.typeParameters[i];
-        substitution[subParameter] =
-            new TypeParameterType(superParameter, Nullability.legacy);
+        substitution[subParameter] = new TypeParameterType.forAlphaRenaming(
+            subParameter, superParameter);
       }
       for (int i = 0; i < subtype.typeParameters.length; ++i) {
         var subParameter = subtype.typeParameters[i];

@@ -1504,8 +1504,9 @@ class ExtensionInstanceAccessGenerator extends Generator {
     if (extensionTypeParameters != null) {
       extensionTypeArguments = [];
       for (TypeParameter typeParameter in extensionTypeParameters) {
-        extensionTypeArguments
-            .add(_forest.createTypeParameterType(typeParameter));
+        extensionTypeArguments.add(
+            _forest.createTypeParameterTypeWithDefaultNullabilityForLibrary(
+                typeParameter, extension.enclosingLibrary));
       }
     }
     return extensionTypeArguments;

@@ -694,7 +694,7 @@ class _IsCheck extends TypePromotionFact {
             previousType.bound, SubtypeCheckMode.ignoringNullabilities)) {
       // The type we are checking against is a subtype of the bound of the
       // previous type of the variable; we can promote the bound.
-      return new TypeParameterType(
+      return new TypeParameterType.intersection(
           previousType.parameter, previousType.nullability, checkedType);
     } else {
       // The types aren't sufficiently related; we can't promote.
