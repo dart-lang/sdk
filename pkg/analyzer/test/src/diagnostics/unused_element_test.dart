@@ -402,6 +402,43 @@ main() {
 ''');
   }
 
+  test_getter_isUsed_invocation_subclass_plusPlus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a++;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
+''');
+  }
+
+  test_getter_notUsed_invocation_subclass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a = 7;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 35, 2),
+      error(HintCode.UNUSED_ELEMENT, 155, 2),
+    ]);
+  }
+
   test_getter_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {

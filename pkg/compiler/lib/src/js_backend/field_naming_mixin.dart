@@ -106,8 +106,6 @@ class _FieldNamingScope {
   /// The number of locally used fields. Depending on the naming source
   /// (e.g. inheritance based or globally unique for mixixns) this
   /// might be different from [inheritanceBasedFieldNameCounter].
-  // TODO(35677): remove
-  // ignore: unused_element
   int get _localFieldNameCounter => _fieldNameCounter;
   void set _localFieldNameCounter(int val) {
     _fieldNameCounter = val;
@@ -192,8 +190,6 @@ class _FieldNamingScope {
 /// in generated names themselves.
 class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
-  // TODO(35677): remove
-  // ignore: unused_element
   int get _localFieldNameCounter => registry.globalCount;
   @override
   void set _localFieldNameCounter(int val) {

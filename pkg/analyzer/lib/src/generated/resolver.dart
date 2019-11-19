@@ -2089,6 +2089,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
           if (element is PropertyAccessorElement && element.isSetter) {
             element = (element as PropertyAccessorElement).correspondingGetter;
           }
+          usedElements.members.add(element);
           usedElements.readMembers.add(element);
         }
       }
