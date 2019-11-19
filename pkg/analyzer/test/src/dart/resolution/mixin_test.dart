@@ -129,17 +129,6 @@ mixin M {}
     assertTypeNull(aRef);
   }
 
-  test_conflictingGenericInterfaces() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-mixin M on A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
-    ]);
-  }
-
   test_element() async {
     await assertNoErrorsInCode(r'''
 mixin M {}

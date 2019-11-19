@@ -154,28 +154,6 @@ abstract class B extends A {
     assertElement(findNode.simple('foo = 0;'), findElement.setter('foo'));
   }
 
-  test_conflictingGenericInterfaces_simple() async {
-    await resolveTestCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A implements B {}
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
-  test_conflictingGenericInterfaces_viaMixin() async {
-    await resolveTestCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-class C extends A with B {}
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
-  }
-
   test_element_allSupertypes() async {
     await resolveTestCode(r'''
 class A {}

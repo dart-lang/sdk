@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -2263,26 +2264,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var visitedClasses = <ClassElement>[];
     var interfaces = <ClassElement, InterfaceType>{};
+
     void visit(InterfaceType type) {
       if (type == null) return;
+
       var element = type.element;
       if (visitedClasses.contains(element)) return;
       visitedClasses.add(element);
+
       if (element.typeParameters.isNotEmpty) {
+        type = _toLegacyType(type);
         var oldType = interfaces[element];
         if (oldType == null) {
           interfaces[element] = type;
         } else if (type != oldType) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-              node,
-              [_enclosingClass.name, oldType, type]);
+            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+            node,
+            [_enclosingClass.name, oldType, type],
+          );
         }
       }
+
       visit(type.superclass);
       type.mixins.forEach(visit);
       type.superclassConstraints.forEach(visit);
       type.interfaces.forEach(visit);
+
       visitedClasses.removeLast();
     }
 
@@ -5301,6 +5309,72 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          var fields = node.fields;
+          var fieldElement = fields.variables.first.declaredElement;
+          var fieldName = fields.variables.first.name;
+          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
+
+          _checkForWrongVariancePosition(
+              fieldVariance, typeParameter, fieldName);
+          if (!fields.isFinal && node.covariantKeyword == null) {
+            _checkForWrongVariancePosition(
+                Variance.contravariant.combine(fieldVariance),
+                typeParameter,
+                fieldName);
+          }
+        }
+      }
+    }
+  }
+
+  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
+    // Only need to report errors for parameters with explicitly defined type
+    // parameters in classes or mixins.
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          if (method.typeParameters != null) {
+            for (var methodTypeParameter
+                in method.typeParameters.typeParameters) {
+              Variance methodTypeParameterVariance = Variance.invariant.combine(
+                  Variance(typeParameter, methodTypeParameter.bound.type));
+              _checkForWrongVariancePosition(methodTypeParameterVariance,
+                  typeParameter, methodTypeParameter);
+            }
+          }
+          if (method.parameters != null) {
+            for (int i = 0; i < method.parameters.parameters.length; i++) {
+              var methodParameterElement =
+                  method.parameters.parameterElements[i];
+              var methodParameterNode = method.parameters.parameters[i];
+              if (!methodParameterElement.isCovariant) {
+                Variance methodParameterVariance = Variance.contravariant
+                    .combine(
+                        Variance(typeParameter, methodParameterElement.type));
+                _checkForWrongVariancePosition(methodParameterVariance,
+                    typeParameter, methodParameterNode);
+              }
+            }
+          }
+          if (method.returnType != null) {
+            Variance methodReturnTypeVariance =
+                Variance(typeParameter, method.returnType.type);
+            _checkForWrongVariancePosition(
+                methodReturnTypeVariance, typeParameter, method.returnType);
+          }
+        }
+      }
+    }
+  }
+
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType superInterface) {
       if (superInterface != null) {
@@ -5350,72 +5424,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass.interfaces.forEach(checkOne);
     _enclosingClass.mixins.forEach(checkOne);
     _enclosingClass.superclassConstraints.forEach(checkOne);
-  }
-
-  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
-    // Only need to report errors for parameters with explicitly defined type
-    // parameters in classes or mixins.
-    if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
-          if (method.typeParameters != null) {
-            for (var methodTypeParameter
-                in method.typeParameters.typeParameters) {
-              Variance methodTypeParameterVariance = Variance.invariant.combine(
-                  Variance(typeParameter, methodTypeParameter.bound.type));
-              _checkForWrongVariancePosition(methodTypeParameterVariance,
-                  typeParameter, methodTypeParameter);
-            }
-          }
-          if (method.parameters != null) {
-            for (int i = 0; i < method.parameters.parameters.length; i++) {
-              var methodParameterElement =
-                  method.parameters.parameterElements[i];
-              var methodParameterNode = method.parameters.parameters[i];
-              if (!methodParameterElement.isCovariant) {
-                Variance methodParameterVariance = Variance.contravariant
-                    .combine(
-                        Variance(typeParameter, methodParameterElement.type));
-                _checkForWrongVariancePosition(methodParameterVariance,
-                    typeParameter, methodParameterNode);
-              }
-            }
-          }
-          if (method.returnType != null) {
-            Variance methodReturnTypeVariance =
-                Variance(typeParameter, method.returnType.type);
-            _checkForWrongVariancePosition(
-                methodReturnTypeVariance, typeParameter, method.returnType);
-          }
-        }
-      }
-    }
-  }
-
-  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
-    if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
-          var fields = node.fields;
-          var fieldElement = fields.variables.first.declaredElement;
-          var fieldName = fields.variables.first.name;
-          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
-
-          _checkForWrongVariancePosition(
-              fieldVariance, typeParameter, fieldName);
-          if (!fields.isFinal && node.covariantKeyword == null) {
-            _checkForWrongVariancePosition(
-                Variance.contravariant.combine(fieldVariance),
-                typeParameter,
-                fieldName);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -6005,6 +6013,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  /// If in a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType _toLegacyType(DartType type) {
+    if (_isNonNullable) return type;
+    return NullabilityEliminator.perform(type);
   }
 
   /**
