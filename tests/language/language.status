@@ -5,6 +5,9 @@
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
+[ $compiler != fasta ]
+nonfunction_type_aliases/*: Skip # github.com/dart-lang/language/issues/115
+
 [ $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
