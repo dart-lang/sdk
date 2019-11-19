@@ -15,7 +15,9 @@
       "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
-      "xcodebuild/ReleaseX64/dart-sdk/"
+      "out/ReleaseX64NNBD/dart-sdk/",
+      "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64NNBD/dart-sdk/"
     ],
     "dart2js": [
       ".packages",
@@ -555,6 +557,20 @@
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
+    }},
+    "analyzer-asserts-strong-linux": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "enable-asserts": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"]
+    }},
+    "analyzer-asserts-weak-linux": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "enable-asserts": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"]
     }}
   },
   "builder_configurations": [
@@ -2184,6 +2200,33 @@
             "-nanalyzer-asserts-${system}",
             "co19_2"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "analyzer-nnbd-linux-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the nnbd analyzer builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--nnbd", "create_sdk"]
+        },
+        {
+          "name": "analyze nnbd strong tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-strong-${system}",
+            "language_2"]
+        },
+        {
+          "name": "analyze nnbd weak tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-weak-${system}",
+            "language_2"]
         }
       ]
     },
