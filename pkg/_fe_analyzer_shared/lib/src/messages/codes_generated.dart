@@ -1358,8 +1358,9 @@ const Code<Null> codeConstructorWithTypeParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithTypeParameters = const MessageCode(
     "ConstructorWithTypeParameters",
-    analyzerCodes: <String>["TYPE_PARAMETER_ON_CONSTRUCTOR"],
-    message: r"""Constructors can't have type parameters.""");
+    index: 99,
+    message: r"""Constructors can't have type parameters.""",
+    tip: r"""Try removing the type parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithWrongName = messageConstructorWithWrongName;

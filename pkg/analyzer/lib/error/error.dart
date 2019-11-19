@@ -302,6 +302,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+  // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.UNDEFINED_ANNOTATION,
   CompileTimeErrorCode.UNDEFINED_CLASS,
@@ -629,6 +630,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.TYPEDEF_IN_CLASS,
   ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
   ParserErrorCode.TYPE_BEFORE_FACTORY,
+  ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,

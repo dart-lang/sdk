@@ -2598,8 +2598,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(
-                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 2),
+            expectedError(ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 2),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
@@ -2617,8 +2616,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(
-                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 6),
+            expectedError(ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 6),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 17, 1)
@@ -2637,7 +2635,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     listener.assertErrors(usingFastaParser
         ? [
             expectedError(
-                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 13),
+                ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 13),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 24, 1)

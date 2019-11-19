@@ -830,6 +830,9 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
+  static const ParserErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
+      _TYPE_PARAMETER_ON_CONSTRUCTOR;
+
   /**
    * Parameters:
    * 0: the starting character that was missing

@@ -4244,10 +4244,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Typedefs can't reference themselves directly or recursively via "
               "another typedef.");
 
-  static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
-      const CompileTimeErrorCode('TYPE_PARAMETER_ON_CONSTRUCTOR',
-          "Constructors can't have type parameters.",
-          correction: "Try removing the type parameters.");
+  @Deprecated('Use ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR')
+  static const ParserErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
+      ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR;
 
   /**
    * No parameters.

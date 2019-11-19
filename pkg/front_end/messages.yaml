@@ -1298,8 +1298,10 @@ ConstructorWithReturnType:
     - "class C { int C() {} }"
 
 ConstructorWithTypeParameters:
+  index: 99
   template: "Constructors can't have type parameters."
-  analyzerCode: TYPE_PARAMETER_ON_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR
+  tip: "Try removing the type parameters."
   script:
     - "class C { C<T>() {} }"
     - "class C { C.foo<T>() {} }"

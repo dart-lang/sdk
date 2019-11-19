@@ -106,6 +106,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _NULL_AWARE_CASCADE_OUT_OF_ORDER,
   _MULTIPLE_VARIANCE_MODIFIERS,
   _INVALID_USE_OF_COVARIANT_IN_EXTENSION,
+  _TYPE_PARAMETER_ON_CONSTRUCTOR,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -562,6 +563,11 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
 const ParserErrorCode _TYPE_BEFORE_FACTORY = const ParserErrorCode(
     'TYPE_BEFORE_FACTORY', r"Factory constructors cannot have a return type.",
     correction: "Try removing the type appearing before 'factory'.");
+
+const ParserErrorCode _TYPE_PARAMETER_ON_CONSTRUCTOR = const ParserErrorCode(
+    'TYPE_PARAMETER_ON_CONSTRUCTOR',
+    r"Constructors can't have type parameters.",
+    correction: "Try removing the type parameters.");
 
 const ParserErrorCode _VAR_AND_TYPE = const ParserErrorCode('VAR_AND_TYPE',
     r"Variables can't be declared using both 'var' and a type name.",
