@@ -214,6 +214,7 @@ general/issue38943: TextSerializationFailure
 general/issue38944: TextSerializationFailure
 general/issue38961: TextSerializationFailure
 general/issue39344: TextSerializationFailure
+general/issue39421: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -1183,5 +1184,5 @@ set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 top_level_variance_test: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
-variance/mixin_type_parameter_modifier: TextSerializationFailure
 variance/generic_covariance_sound_variance: TextSerializationFailure
+variance/mixin_type_parameter_modifier: TextSerializationFailure
