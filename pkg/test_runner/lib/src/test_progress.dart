@@ -255,7 +255,6 @@ class TimingPrinter extends EventListener {
 
 class StatusFileUpdatePrinter extends EventListener {
   final Map<String, List<String>> statusToConfigs = {};
-  final List<String> _failureSummary = [];
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -391,7 +390,6 @@ class TestFailurePrinter extends EventListener {
 
 class PassingStdoutPrinter extends EventListener {
   final Formatter _formatter;
-  final _failureSummary = <String>[];
 
   PassingStdoutPrinter([this._formatter = Formatter.normal]);
 

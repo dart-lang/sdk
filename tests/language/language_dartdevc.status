@@ -1,0 +1,23 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == dartdevc" or dartdevk.
+[ $compiler == dartdevc ]
+const_double_in_int_op_test/dd6: Skip # Triple shift
+const_double_in_int_op_test/di6: Skip # Triple shift
+const_double_in_int_op_test/id6: Skip # Triple shift
+const_double_in_int_op_test/ii6: Skip # Triple shift
+extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
+large_class_declaration_test: Slow
+nnbd/*: Skip
+variance/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing variance.
+
+[ $compiler == dartdevk && !$checked ]
+assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.
+
+[ $compiler == dartdevc || $compiler == dartdevk ]
+asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
+superinterface_variance/*: Skip # Issue dart-lang/language#113
+vm/*: SkipByDesign # VM only tests.; VM only tests.

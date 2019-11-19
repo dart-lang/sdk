@@ -147,7 +147,8 @@ abstract class TestSuite {
     // So, for now, until we have figured out how to manage those tests, we
     // implicitly skip any test that does not require NNBD if run in a
     // configuration that enables the NNBD experiment.
-    if (configuration.experiments.contains("non-nullable") &&
+    if (testFile.path.toString().contains("language_2") &&
+        configuration.experiments.contains("non-nullable") &&
         !(testFile.requirements.contains(Feature.nnbd) ||
             testFile.requirements.contains(Feature.nnbdWeak) ||
             testFile.requirements.contains(Feature.nnbdStrong))) {

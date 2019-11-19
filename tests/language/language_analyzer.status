@@ -1,0 +1,11 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == dart2analyzer".
+
+[ $compiler == dart2analyzer ]
+large_class_declaration_test: Slow
+vm/debug_break_enabled_vm_test: Skip
+vm/debug_break_vm_test/*: Skip
+vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
