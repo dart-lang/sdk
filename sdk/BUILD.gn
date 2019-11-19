@@ -690,7 +690,7 @@ copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_kernel_sdk_outline",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_sdk",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
