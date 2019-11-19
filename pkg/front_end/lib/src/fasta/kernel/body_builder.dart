@@ -697,7 +697,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           }
           fieldBuilder.buildBody(initializer);
         }
-      } else {
+      } else if (!fieldBuilder.hasBodyBeenBuilt) {
         fieldBuilder.buildBody(null);
       }
     }
@@ -3200,6 +3200,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (functionNestingLevel == 0) {
         inferAnnotations(variable, annotations);
       }
+      variable.clearAnnotations();
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
       }

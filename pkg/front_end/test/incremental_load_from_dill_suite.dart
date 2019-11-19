@@ -488,6 +488,11 @@ Future<Null> newWorldTest(
       }
     }
 
+    compiler.useExperimentalInvalidation = false;
+    if (world["useExperimentalInvalidation"] == true) {
+      compiler.useExperimentalInvalidation = true;
+    }
+
     List<Uri> invalidated = new List<Uri>();
     if (world["invalidate"] != null) {
       for (String filename in world["invalidate"]) {
@@ -597,7 +602,9 @@ Future<Null> newWorldTest(
     if (context.updateExpectations) {
       file.writeAsStringSync(actualSerialized);
     } else if (expected != actualSerialized) {
-      throw "Unexpected serialized representation. "
+      String extra = "";
+      if (expected == null) extra = "Expect file did not exist.\n";
+      throw "${extra}Unexpected serialized representation. "
           "Fix or update $uri to contain the below:\n\n"
           "$actualSerialized";
     }
@@ -632,6 +639,12 @@ Future<Null> newWorldTest(
         throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
             "libraries, got ${syntheticLibraries}";
       }
+    }
+
+    if (world["expectsRebuildBodiesOnly"] != null) {
+      bool didRebuildBodiesOnly = compiler.rebuildBodiesCount > 0;
+      Expect.equals(world["expectsRebuildBodiesOnly"], didRebuildBodiesOnly,
+          "Whether we expected to rebuild bodies only.");
     }
 
     if (!noFullComponent) {
@@ -1236,6 +1249,7 @@ Future<bool> initializedCompile(
 
 class TestIncrementalCompiler extends IncrementalCompiler {
   Set<Uri> invalidatedImportUrisForTesting;
+  int rebuildBodiesCount;
   final Uri entryPoint;
 
   /// Filter out the automatically added entryPoint, unless it's explicitly
@@ -1294,6 +1308,11 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       throw "Loaders builder should contain the sdk, "
           "but didn't even contain dart:core.";
     }
+  }
+
+  @override
+  void recordRebuildBodiesCountForTesting(int count) {
+    rebuildBodiesCount = count;
   }
 
   @override

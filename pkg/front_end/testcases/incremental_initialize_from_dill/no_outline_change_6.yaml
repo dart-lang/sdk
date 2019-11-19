@@ -8,6 +8,7 @@ type: newworld
 worlds:
   - entry: main.dart
     useExperimentalInvalidation: true
+    errors: true
     sources:
       main.dart: |
         import 'libA.dart';
@@ -16,7 +17,7 @@ worlds:
           final message;
           Foo(this.message);
           @override
-          toString() { return '$message'; }
+          toString() { return '$message' } // missing ;
         }
 
         main() {
@@ -35,6 +36,7 @@ worlds:
     expectedLibraryCount: 2
   - entry: main.dart
     useExperimentalInvalidation: true
+    errors: true
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -47,7 +49,34 @@ worlds:
           final message;
           Foo(this.message);
           @override
-          toString() { return '$message!'; }
+          toString() { return '$message!!!' } // missing ; still
+        }
+
+        main() {
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        enum CompilationStrategy { direct, toKernel, toData, fromData }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        class Foo {
+          final message;
+          Foo(this.message);
+          @override
+          toString() { return '$message?!?'; } // fixed
         }
 
         main() {

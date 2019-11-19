@@ -12,23 +12,39 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
+        const String useMeAsAnnotation = "hello";
+
+        @useMeAsAnnotation
+        class Bar {
+          @useMeAsAnnotation
+          Bar(@useMeAsAnnotation int x) {}
+        }
+
+        @useMeAsAnnotation
+        class Foo extends Bar {
+          @useMeAsAnnotation
           final message;
-          Foo(this.message);
+          @useMeAsAnnotation
+          Foo(@useMeAsAnnotation this.message) : super(42);
           @override
           toString() { return '$message'; }
         }
 
+        @useMeAsAnnotation
         main() {
+          @useMeAsAnnotation
           Foo foo = new Foo("hello");
           whatever(foo);
+          @useMeAsAnnotation
           CompilationStrategy compilationStrategy = CompilationStrategy.direct;
           print(compilationStrategy);
         }
 
-        enum CompilationStrategy { direct, toKernel, toData, fromData }
+        @useMeAsAnnotation
+        enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
       libA.dart: |
         import 'main.dart';
+        @useMeAsAnnotation
         whatever(Foo foo) {
           print(foo);
         }
@@ -43,20 +59,35 @@ worlds:
       main.dart: |
         import 'libA.dart';
 
-        class Foo {
-          final message;
-          Foo(this.message);
-          @override
-          toString() { return '$message!'; }
+        const String useMeAsAnnotation = "hello";
+
+        @useMeAsAnnotation
+        class Bar {
+          @useMeAsAnnotation
+          Bar(@useMeAsAnnotation int x) {}
         }
 
+        @useMeAsAnnotation
+        class Foo extends Bar {
+          @useMeAsAnnotation
+          final message;
+          @useMeAsAnnotation
+          Foo(@useMeAsAnnotation this.message) : super(42);
+          @override
+          toString() { return '$message'; }
+        }
+
+        @useMeAsAnnotation
         main() {
+          @useMeAsAnnotation
           Foo foo = new Foo("hello");
           whatever(foo);
+          @useMeAsAnnotation
           CompilationStrategy compilationStrategy = CompilationStrategy.direct;
           print(compilationStrategy);
         }
 
-        enum CompilationStrategy { direct, toKernel, toData, fromData }
+        @useMeAsAnnotation
+        enum CompilationStrategy { @useMeAsAnnotation direct, @useMeAsAnnotation toKernel, @useMeAsAnnotation toData, @useMeAsAnnotation fromData }
     expectedLibraryCount: 2
     expectsRebuildBodiesOnly: true

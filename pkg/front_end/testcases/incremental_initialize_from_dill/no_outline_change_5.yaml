@@ -2,7 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Compile an application, change a file, but don't change the outline.
+# Compile an application with a part, change a file,
+# but don't change the outline.
 
 type: newworld
 worlds:
@@ -10,7 +11,7 @@ worlds:
     useExperimentalInvalidation: true
     sources:
       main.dart: |
-        import 'libA.dart';
+        part 'myPart.dart';
 
         class Foo {
           const Foo();
@@ -22,32 +23,25 @@ worlds:
           await whatever();
           print(const Foo());
         }
-      libA.dart: |
+      myPart.dart: |
+        part of 'main.dart';
         whatever() async {
           await null;
           return "hello";
         }
-    expectedLibraryCount: 2
+    expectedLibraryCount: 1
   - entry: main.dart
     useExperimentalInvalidation: true
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
-      - main.dart
+      - myPart.dart
     sources:
-      main.dart: |
-        import 'libA.dart';
-
-        class Foo {
-          const Foo();
-          @override
-          toString() => 'Foo!';
+      myPart.dart: |
+        part of 'main.dart';
+        whatever() async {
+          await null;
+          return "hello!!!";
         }
-
-        main() async {
-          await whatever();
-          print(const Foo());
-          print("Done");
-        }
-    expectedLibraryCount: 2
+    expectedLibraryCount: 1
     expectsRebuildBodiesOnly: true

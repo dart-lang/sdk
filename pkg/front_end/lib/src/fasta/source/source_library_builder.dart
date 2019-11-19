@@ -218,7 +218,9 @@ const int enableNonNullableDefaultMinorVersion = 7;
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
-  final SourceLoader loader;
+  SourceLoader loader;
+
+  bool issueLexicalErrorsOnBodyBuild = false;
 
   final TypeParameterScopeBuilder libraryDeclaration;
 

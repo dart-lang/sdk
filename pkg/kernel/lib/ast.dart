@@ -5258,6 +5258,10 @@ class VariableDeclaration extends Statement {
     flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
   }
 
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];

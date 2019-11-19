@@ -8,6 +8,7 @@
 type: newworld
 worlds:
   - entry: main.dart
+    useExperimentalInvalidation: true
     sources:
       main.dart: |
         import 'libA.dart';
@@ -27,6 +28,7 @@ worlds:
         }
     expectedLibraryCount: 2
   - entry: main.dart
+    useExperimentalInvalidation: true
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

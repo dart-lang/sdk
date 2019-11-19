@@ -2526,6 +2526,7 @@ sets
 setter
 setters
 setting
+settings
 settled
 setup
 several
