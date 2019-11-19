@@ -195,6 +195,9 @@ class BazelWorkspace extends Workspace {
       this.provider, this.root, this.readonly, this.bin, this.genfiles);
 
   @override
+  bool get isBazel => true;
+
+  @override
   Map<String, List<Folder>> get packageMap => null;
 
   @override
@@ -391,11 +394,6 @@ class BazelWorkspace extends Workspace {
     }
   }
 
-  /// Return the first folder within [root], chosen from [names], which exists.
-  static Folder _firstExistingFolder(Folder root, List<String> names) => names
-      .map((name) => root.getChildAssumingFolder(name))
-      .firstWhere((folder) => folder.exists, orElse: () => null);
-
   /// Find the "bin" folder path, by searching for it.
   ///
   /// Depending on the environment we're working in (source code tree, build
@@ -451,6 +449,11 @@ class BazelWorkspace extends Workspace {
     // Couldn't find it.  Make a default assumption.
     return defaultSymlinkPrefix;
   }
+
+  /// Return the first folder within [root], chosen from [names], which exists.
+  static Folder _firstExistingFolder(Folder root, List<String> names) => names
+      .map((name) => root.getChildAssumingFolder(name))
+      .firstWhere((folder) => folder.exists, orElse: () => null);
 }
 
 /**

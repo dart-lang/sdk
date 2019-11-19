@@ -35,7 +35,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     newFile('/workspace/test.dart');
     newFile('/workspace/bazel-bin/gen1.dart');
     newFile('/workspace/bazel-genfiles/gen2.dart');
-    expect(workspace.isBazelWorkspace(), isTrue);
+    expect(workspace.isBazel, isTrue);
   }
 
   void test_resolveAbsolute_doesNotExist() {

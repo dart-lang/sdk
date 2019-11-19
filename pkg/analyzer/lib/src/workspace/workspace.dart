@@ -20,6 +20,11 @@ abstract class Workspace {
   bool get hasFlutterDependency => packageMap?.containsKey('flutter') ?? false;
 
   /**
+   * Return true iff this [Workspace] is a [BazelWorkspace].
+   */
+  bool get isBazel => false;
+
+  /**
    * Return a (possibly null) map of package sources.
    */
   Map<String, List<Folder>> get packageMap;
@@ -48,13 +53,6 @@ abstract class Workspace {
    * defined.
    */
   WorkspacePackage findPackageFor(String path);
-
-  /**
-   * Return true iff this [Workspace] is a [BazelWorkspace].
-   */
-  bool isBazelWorkspace() {
-    return this is BazelWorkspace;
-  }
 }
 
 /**

@@ -33,7 +33,7 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
     newFolder('/workspace');
     workspace = BasicWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
-    expect(workspace.isBazelWorkspace(), isFalse);
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
@@ -95,7 +95,7 @@ class BasicWorkspaceTest with ResourceProviderMixin {
     BasicWorkspace workspace = BasicWorkspace.find(
         resourceProvider, convertPath('/workspace'), new MockContextBuilder());
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.isBazelWorkspace(), isFalse);
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_find_fail_notAbsolute() {
@@ -111,7 +111,7 @@ class BasicWorkspaceTest with ResourceProviderMixin {
         convertPath('/workspace/project/lib/lib1.dart'),
         new MockContextBuilder());
     expect(workspace.root, convertPath('/workspace/project/lib'));
-    expect(workspace.isBazelWorkspace(), isFalse);
+    expect(workspace.isBazel, isFalse);
   }
 }
 

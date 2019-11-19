@@ -51,7 +51,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     workspace = PubWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
-    expect(workspace.isBazelWorkspace(), isFalse);
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
@@ -109,7 +109,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     PubWorkspace workspace = PubWorkspace.find(
         resourceProvider, convertPath('/workspace'), new MockContextBuilder());
-    expect(workspace.isBazelWorkspace(), isFalse);
+    expect(workspace.isBazel, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
 
