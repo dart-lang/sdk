@@ -64,8 +64,7 @@ abstract class TypeEnvironment extends SubtypeTester {
         coreTypes.streamClass, nullability, <DartType>[type]);
   }
 
-  InterfaceType futureType(DartType type,
-      [Nullability nullability = Nullability.legacy]) {
+  InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.futureClass, nullability, <DartType>[type]);
   }
@@ -338,8 +337,7 @@ abstract class SubtypeTester {
   Class get objectClass;
   Class get functionClass;
   Class get futureOrClass;
-  InterfaceType futureType(DartType type,
-      [Nullability nullability = Nullability.legacy]);
+  InterfaceType futureType(DartType type, Nullability nullability);
 
   static List<Object> typeChecks;
 

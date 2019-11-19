@@ -276,8 +276,7 @@ class Types implements SubtypeTester {
       hierarchy.coreTypes.functionLegacyRawType;
 
   @override
-  InterfaceType futureType(DartType type,
-      [Nullability nullability = Nullability.legacy]) {
+  InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         hierarchy.coreTypes.futureClass, nullability, <DartType>[type]);
   }
