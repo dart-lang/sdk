@@ -5784,7 +5784,6 @@ class FunctionType extends DartType {
     hash = 0x3fffffff & (hash * 31 + requiredParameterCount);
     for (int i = 0; i < typeParameters.length; ++i) {
       TypeParameter parameter = typeParameters[i];
-      _temporaryHashCodeTable[parameter] = _temporaryHashCodeTable.length;
       hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
     }
     for (int i = 0; i < positionalParameters.length; ++i) {
@@ -5794,10 +5793,6 @@ class FunctionType extends DartType {
       hash = 0x3fffffff & (hash * 31 + namedParameters[i].hashCode);
     }
     hash = 0x3fffffff & (hash * 31 + returnType.hashCode);
-    for (int i = 0; i < typeParameters.length; ++i) {
-      // Remove the type parameters from the scope again.
-      _temporaryHashCodeTable.remove(typeParameters[i]);
-    }
     hash = 0x3fffffff & (hash * 31 + nullability.index);
     return hash;
   }
@@ -5918,14 +5913,6 @@ class NamedType extends Node implements Comparable<NamedType> {
   }
 }
 
-/// Stores the hash code of function type parameters while computing the hash
-/// code of a [FunctionType] object.
-///
-/// This ensures that distinct [FunctionType] objects get the same hash code
-/// if they represent the same type, even though their type parameters are
-/// represented by different objects.
-final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
-
 /// Reference to a type variable.
 ///
 /// A type variable has an optional bound because type promotion can change the
@@ -6001,7 +5988,10 @@ class TypeParameterType extends DartType {
   }
 
   int get hashCode {
-    int hash = _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+    // TODO(johnniwinther): Since we use a unification strategy for function
+    //  type type parameter equality, we have to assume they can end up being
+    //  equal. Maybe we should change the equality strategy.
+    int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     hash = 0x3fffffff & (hash * 31 + (hash ^ promotedBound.hashCode));
