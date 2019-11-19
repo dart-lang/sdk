@@ -277,28 +277,7 @@ class SubtypeTest extends _SubtypingTestBase {
     if (expectedString != null) {
       var typeStr = _typeStr(type);
 
-      var typeParameterCollector = _TypeParameterCollector();
-      DartTypeVisitor.visit(type, typeParameterCollector);
-      for (var typeParameter in typeParameterCollector.typeParameters) {
-        if (typeParameter is TypeParameterMember) {
-          var base = typeParameter.declaration;
-          var baseBound = base.bound as TypeImpl;
-          if (baseBound != null) {
-            var baseBoundStr = baseBound.toString(withNullability: true);
-            typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
-          }
-
-          var bound = typeParameter.bound as TypeImpl;
-          var boundStr = bound.toString(withNullability: true);
-          typeStr += ', ${typeParameter.name} & ' + boundStr;
-        } else {
-          var bound = typeParameter.bound as TypeImpl;
-          if (bound != null) {
-            var boundStr = bound.toString(withNullability: true);
-            typeStr += ', ${typeParameter.name} extends ' + boundStr;
-          }
-        }
-      }
+      typeStr += _typeParametersStr(type);
 
       expect(typeStr, expectedString);
     }
@@ -391,14 +370,6 @@ class SubtypeTest extends _SubtypingTestBase {
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-  }
-
-  TypeParameterMember promoteTypeParameter(
-    TypeParameterElement element,
-    DartType bound,
-  ) {
-    assert(element is! TypeParameterMember);
-    return TypeParameterMember(element, null, bound);
   }
 
   @override
@@ -2846,25 +2817,6 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_interfaceType_covariant() {
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var A_num = A.instantiate(
-      typeArguments: [numNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    var A_int = A.instantiate(
-      typeArguments: [intNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
-  }
-
   test_interfaceType_contravariant() {
     var T = typeParameter('T', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T]);
@@ -2882,6 +2834,25 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
     isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
     isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+  }
+
+  test_interfaceType_covariant() {
+    var T = typeParameter('T', variance: Variance.covariant);
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var A_num = A.instantiate(
+      typeArguments: [numNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var A_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
   test_interfaceType_invariant() {
@@ -5944,6 +5915,34 @@ class SubtypeTest extends _SubtypingTestBase {
     var type = _types[str];
     expect(type, isNotNull, reason: 'No DartType for: $str');
     return type;
+  }
+
+  String _typeParametersStr(TypeImpl type) {
+    var typeStr = '';
+
+    var typeParameterCollector = _TypeParameterCollector();
+    DartTypeVisitor.visit(type, typeParameterCollector);
+    for (var typeParameter in typeParameterCollector.typeParameters) {
+      if (typeParameter is TypeParameterMember) {
+        var base = typeParameter.declaration;
+        var baseBound = base.bound as TypeImpl;
+        if (baseBound != null) {
+          var baseBoundStr = baseBound.toString(withNullability: true);
+          typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
+        }
+
+        var bound = typeParameter.bound as TypeImpl;
+        var boundStr = bound.toString(withNullability: true);
+        typeStr += ', ${typeParameter.name} & ' + boundStr;
+      } else {
+        var bound = typeParameter.bound as TypeImpl;
+        if (bound != null) {
+          var boundStr = bound.toString(withNullability: true);
+          typeStr += ', ${typeParameter.name} extends ' + boundStr;
+        }
+      }
+    }
+    return typeStr;
   }
 
   static String _typeStr(DartType type) {

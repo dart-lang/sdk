@@ -538,6 +538,24 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
+  /// Return `true`  for things in the equivalence class of `Never`.
+  bool isBottom(DartType type) {
+    // BOTTOM(Never) is true
+    if (identical(type, NeverTypeImpl.instance)) {
+      return true;
+    }
+
+    // BOTTOM(X&T) is true iff BOTTOM(T)
+    // BOTTOM(X extends T) is true iff BOTTOM(T)
+    if (type is TypeParameterType) {
+      var T = type.element.bound;
+      return isBottom(T);
+    }
+
+    // BOTTOM(T) is false otherwise
+    return false;
+  }
+
   bool isGroundType(DartType t) {
     // TODO(leafp): Revisit this.
     if (t is TypeParameterType) {
@@ -573,8 +591,247 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
+  /// Defines an (almost) total order on bottom and `Null` types. This does not
+  /// currently consistently order two different type variables with the same
+  /// bound.
+  bool isMoreBottom(DartType T, DartType S) {
+    var T_impl = T as TypeImpl;
+    var S_impl = S as TypeImpl;
+
+    var T_nullability = T_impl.nullabilitySuffix;
+    var S_nullability = S_impl.nullabilitySuffix;
+
+    // MOREBOTTOM(Never, T) = true
+    if (identical(T, NeverTypeImpl.instance)) {
+      return true;
+    }
+
+    // MOREBOTTOM(T, Never) = false
+    if (identical(S, NeverTypeImpl.instance)) {
+      return false;
+    }
+
+    // MOREBOTTOM(Null, T) = true
+    if (T_nullability == NullabilitySuffix.none && T.isDartCoreNull) {
+      return true;
+    }
+
+    // MOREBOTTOM(T, Null) = false
+    if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
+      return false;
+    }
+
+    // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
+    if (T_nullability == NullabilitySuffix.question &&
+        S_nullability == NullabilitySuffix.question) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreBottom(T2, S2);
+    }
+
+    // MOREBOTTOM(T, S?) = true
+    if (S_nullability == NullabilitySuffix.question) {
+      return true;
+    }
+
+    // MOREBOTTOM(T?, S) = false
+    if (T_nullability == NullabilitySuffix.question) {
+      return false;
+    }
+
+    // MOREBOTTOM(T*, S*) = MOREBOTTOM(T, S)
+    if (T_nullability == NullabilitySuffix.star &&
+        S_nullability == NullabilitySuffix.star) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreBottom(T2, S2);
+    }
+
+    // MOREBOTTOM(T, S*) = true
+    if (S_nullability == NullabilitySuffix.star) {
+      return true;
+    }
+
+    // MOREBOTTOM(T*, S) = false
+    if (T_nullability == NullabilitySuffix.star) {
+      return false;
+    }
+
+    // Type parameters.
+    if (T is TypeParameterType && S is TypeParameterType) {
+      // We have eliminated the possibility that T_nullability or S_nullability
+      // is anything except none by this point.
+      assert(T_nullability == NullabilitySuffix.none);
+      assert(S_nullability == NullabilitySuffix.none);
+      var T_element = T.element;
+      var S_element = S.element;
+      // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
+      if (T_element is TypeParameterMember &&
+          S_element is TypeParameterMember) {
+        var T_bound = T_element.bound;
+        var S_bound = S_element.bound;
+        return isMoreBottom(T_bound, S_bound);
+      }
+      // MOREBOTTOM(X&T, S) = true
+      if (T_element is TypeParameterMember) {
+        return true;
+      }
+      // MOREBOTTOM(T, Y&S) = false
+      if (S_element is TypeParameterMember) {
+        return false;
+      }
+      // MOREBOTTOM(X extends T, Y extends S) = MOREBOTTOM(T, S)
+      var T_bound = T_element.bound;
+      var S_bound = S_element.bound;
+      // The invariant of the larger algorithm that this is only called with
+      // types that satisfy `BOTTOM(T)` or `NULL(T)`, and all such types, if
+      // they are type variables, have bounds which themselves are
+      // `BOTTOM` or `NULL` types.
+      assert(T_bound != null);
+      assert(S_bound != null);
+      return isMoreBottom(T_bound, S_bound);
+    }
+
+    return false;
+  }
+
   @override
   bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
+
+  /// Defines a total order on top and Object types.
+  bool isMoreTop(DartType T, DartType S) {
+    var T_impl = T as TypeImpl;
+    var S_impl = S as TypeImpl;
+
+    var T_nullability = T_impl.nullabilitySuffix;
+    var S_nullability = S_impl.nullabilitySuffix;
+
+    // MORETOP(void, S) = true
+    if (identical(T, VoidTypeImpl.instance)) {
+      return true;
+    }
+
+    // MORETOP(T, void) = false
+    if (identical(S, VoidTypeImpl.instance)) {
+      return false;
+    }
+
+    // MORETOP(dynamic, S) = true
+    if (identical(T, DynamicTypeImpl.instance)) {
+      return true;
+    }
+
+    // MORETOP(T, dynamic) = false
+    if (identical(S, DynamicTypeImpl.instance)) {
+      return false;
+    }
+
+    // MORETOP(Object, S) = true
+    if (T_nullability == NullabilitySuffix.none && T.isDartCoreObject) {
+      return true;
+    }
+
+    // MORETOP(T, Object) = false
+    if (S_nullability == NullabilitySuffix.none && S.isDartCoreObject) {
+      return false;
+    }
+
+    // MORETOP(T*, S*) = MORETOP(T, S)
+    if (T_nullability == NullabilitySuffix.star &&
+        S_nullability == NullabilitySuffix.star) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreTop(T2, S2);
+    }
+
+    // MORETOP(T, S*) = true
+    if (S_nullability == NullabilitySuffix.star) {
+      return true;
+    }
+
+    // MORETOP(T*, S) = false
+    if (T_nullability == NullabilitySuffix.star) {
+      return false;
+    }
+
+    // MORETOP(T?, S?) = MORETOP(T, S)
+    if (T_nullability == NullabilitySuffix.question &&
+        S_nullability == NullabilitySuffix.question) {
+      var T2 = T_impl.withNullability(NullabilitySuffix.none);
+      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      return isMoreTop(T2, S2);
+    }
+
+    // MORETOP(T, S?) = true
+    if (S_nullability == NullabilitySuffix.question) {
+      return true;
+    }
+
+    // MORETOP(T?, S) = false
+    if (T_nullability == NullabilitySuffix.question) {
+      return false;
+    }
+
+    // MORETOP(FutureOr<T>, FutureOr<S>) = MORETOP(T, S)
+    if (T is InterfaceType &&
+        T.isDartAsyncFutureOr &&
+        S is InterfaceType &&
+        S.isDartAsyncFutureOr) {
+      assert(T_nullability == NullabilitySuffix.none);
+      assert(S_nullability == NullabilitySuffix.none);
+      var T2 = T.typeArguments[0];
+      var S2 = S.typeArguments[0];
+      return isMoreTop(T2, S2);
+    }
+
+    return false;
+  }
+
+  /// Return `true` for things in the equivalence class of `Null`.
+  bool isNull(DartType type) {
+    var typeImpl = type as TypeImpl;
+    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+
+    // NULL(Null) is true
+    // Also includes `Null?` and `Null*` from the rules below.
+    if (type.isDartCoreNull) {
+      return true;
+    }
+
+    // NULL(T?) is true iff NULL(T) or BOTTOM(T)
+    // NULL(T*) is true iff NULL(T) or BOTTOM(T)
+    // Cases for `Null?` and `Null*` are already checked above.
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        nullabilitySuffix == NullabilitySuffix.star) {
+      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      return isBottom(T);
+    }
+
+    // NULL(T) is false otherwise
+    return false;
+  }
+
+  /// Return `true` for any type which is in the equivalence class of `Object`.
+  bool isObject(DartType type) {
+    TypeImpl typeImpl = type;
+    if (typeImpl.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    // OBJECT(Object) is true
+    if (type.isDartCoreObject) {
+      return true;
+    }
+
+    // OBJECT(FutureOr<T>) is OBJECT(T)
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      var T = type.typeArguments[0];
+      return isObject(T);
+    }
+
+    // OBJECT(T) is false otherwise
+    return false;
+  }
 
   @override
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
@@ -837,6 +1094,40 @@ class Dart2TypeSystem extends TypeSystem {
       }
     }
 
+    return false;
+  }
+
+  /// Return `true` for any type which is in the equivalence class of top types.
+  bool isTop(DartType type) {
+    // TOP(dynamic) is true
+    if (identical(type, DynamicTypeImpl.instance)) {
+      return true;
+    }
+
+    // TOP(void) is true
+    if (identical(type, VoidTypeImpl.instance)) {
+      return true;
+    }
+
+    var typeImpl = type as TypeImpl;
+    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+
+    // TOP(T?) is true iff TOP(T) or OBJECT(T)
+    // TOP(T*) is true iff TOP(T) or OBJECT(T)
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        nullabilitySuffix == NullabilitySuffix.star) {
+      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      return isTop(T) || isObject(T);
+    }
+
+    // TOP(FutureOr<T>) is TOP(T)
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      assert(nullabilitySuffix == NullabilitySuffix.none);
+      var T = type.typeArguments[0];
+      return isTop(T);
+    }
+
+    // TOP(T) is false otherwise
     return false;
   }
 

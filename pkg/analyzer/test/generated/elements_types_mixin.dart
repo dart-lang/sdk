@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -226,6 +227,14 @@ mixin ElementsTypesMixin {
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     return parameter;
+  }
+
+  TypeParameterMember promoteTypeParameter(
+    TypeParameterElement element,
+    DartType bound,
+  ) {
+    assert(element is! TypeParameterMember);
+    return TypeParameterMember(element, null, bound);
   }
 
   ParameterElement requiredParameter({String name, @required DartType type}) {
