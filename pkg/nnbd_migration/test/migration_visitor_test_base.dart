@@ -180,6 +180,11 @@ mixin EdgeTester {
     return result;
   }
 
+  /// Gets the set of nodes with hard edges pointing to never.
+  Set<NullabilityNode> get pointsToNever {
+    return {for (var edge in getEdges(anyNode, graph.never)) edge.sourceNode};
+  }
+
   /// Asserts that an edge exists with a node matching [source] and a node
   /// matching [destination], and with the given [hard]ness and [guards].
   ///
