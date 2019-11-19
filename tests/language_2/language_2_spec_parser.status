@@ -9,16 +9,12 @@ const_native_factory_test: Skip # Uses `native`.
 deep_nesting_expression_test: Skip # JVM stack overflow.
 deep_nesting_statement_test: Skip # JVM stack overflow.
 double_invalid_test: Skip # Contains illegaly formatted double.
-getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
-inst_field_initializer1_negative_test: Skip # Negative, not syntax.
 instance_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
 instance_method2_negative_test: Skip # Negative, not syntax.
 instance_method_negative_test: Skip # Negative, not syntax.
 interface2_negative_test: Skip # Negative, not syntax.
 interface_static_method_negative_test: Skip # Negative, not syntax.
 interface_static_non_final_fields_negative_test: Skip # Negative, not syntax.
-is_not_class1_negative_test: Fail # Negative, uses `a is "A"`.
-is_not_class4_negative_test: Fail # Negative, uses `a is A is A`.
 issue1578_negative_test: Fail # Negative, is line noise.
 issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
 large_class_declaration_test: Skip # JVM stack overflow.
