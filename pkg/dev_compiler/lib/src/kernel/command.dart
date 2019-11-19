@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
@@ -428,6 +429,77 @@ Future<CompilerResult> _compile(List<String> args,
 
   await Future.wait(outFiles);
   return CompilerResult(0, kernelState: compilerState);
+}
+
+// A simplified entrypoint similar to `_compile` that only supports building the
+// sdk. Note that some changes in `_compile_` might need to be copied here as
+// well.
+// TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
+Future<CompilerResult> compileSdkFromDill(List<String> args) async {
+  var argParser = ArgParser(allowTrailingOptions: true)
+    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-sdk')
+    ..addOption('multi-root-output-path',
+        help: 'Path to set multi-root files relative to when generating'
+            ' source-maps.',
+        hide: true);
+  SharedCompilerOptions.addArguments(argParser);
+
+  ArgResults argResults;
+  try {
+    argResults = argParser.parse(filterUnknownArguments(args, argParser));
+  } on FormatException catch (error) {
+    print(error);
+    print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
+
+  var outPaths = argResults['out'] as List<String>;
+  var moduleFormats = parseModuleFormatOption(argResults);
+  if (outPaths.isEmpty) {
+    print('Please specify the output file location. For example:\n'
+        '    -o PATH/TO/OUTPUT_FILE.js');
+    return CompilerResult(64);
+  } else if (outPaths.length != moduleFormats.length) {
+    print('Number of output files (${outPaths.length}) must match '
+        'number of module formats (${moduleFormats.length}).');
+    return CompilerResult(64);
+  }
+
+  var component = loadComponentFromBinary(argResults.rest[0]);
+  var hierarchy = ClassHierarchy(component);
+  var multiRootScheme = argResults['multi-root-scheme'] as String;
+  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
+  var options = SharedCompilerOptions.fromArguments(argResults);
+
+  var compiler = ProgramCompiler(component, hierarchy, options);
+  var jsModule = compiler.emitModule(component, const [], const [], const {});
+  var outFiles = <Future>[];
+
+  // Also the old Analyzer backend had some code to make debugging better when
+  // --single-out-file is used, but that option does not appear to be used by
+  // any of our build systems.
+  for (var i = 0; i < outPaths.length; ++i) {
+    var output = outPaths[i];
+    var moduleFormat = moduleFormats[i];
+    var file = File(output);
+    await file.parent.create(recursive: true);
+    var jsCode = jsProgramToCode(jsModule, moduleFormat,
+        buildSourceMap: options.sourceMap,
+        inlineSourceMap: options.inlineSourceMap,
+        jsUrl: p.toUri(output).toString(),
+        mapUrl: p.toUri(output + '.map').toString(),
+        bazelMapping: options.bazelMapping,
+        customScheme: multiRootScheme,
+        multiRootOutputPath: multiRootOutputPath);
+
+    outFiles.add(file.writeAsString(jsCode.code));
+    if (jsCode.sourceMap != null) {
+      outFiles.add(
+          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
+  }
+  return CompilerResult(0);
 }
 
 /// The output of compiling a JavaScript module in a particular format.

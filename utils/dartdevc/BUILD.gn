@@ -11,6 +11,7 @@ import("../create_timestamp.gni")
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_outline_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
+sdk_full_dill = "$target_gen_dir/kernel/ddc_sdk_full.dill"
 
 if (use_nnbd) {
   libraries_specification_path = "sdk_nnbd/lib/libraries.json"
@@ -511,7 +512,7 @@ compile_platform("dartdevc_platform") {
       "org-dartlang-sdk:///$libraries_specification_path"
 
   outputs = [
-    "$target_gen_dir/kernel/ddc_full_sdk.dill",
+    sdk_full_dill,
     sdk_outline_dill,
   ]
 
@@ -530,14 +531,14 @@ compile_platform("dartdevc_platform") {
 prebuilt_dart_action("dartdevc_kernel_sdk") {
   deps = [
     ":dartdevc_files_stamp",
-    ":dartdevc_sdk_patch_stamp",
+    ":dartdevc_platform",
     "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
-    "../../$libraries_specification_path",
+    sdk_full_dill,
   ]
 
   outputs = [
@@ -551,21 +552,13 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
   ]
 
-  script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+  script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
 
   args = [
-    "-k",
-    "--compile-sdk",
-    "dart:core",
-    "--no-summarize",
     "--multi-root-scheme",
     "org-dartlang-sdk",
-    "--multi-root",
-    "file:///" + rebase_path("../../"),
     "--multi-root-output-path",
     rebase_path("$target_gen_dir/../../../"),
-    "--libraries-file",
-    "org-dartlang-sdk:///$libraries_specification_path",
     "--modules",
     "amd",
     "-o",
@@ -582,6 +575,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "legacy",
     "-o",
     rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
+    rebase_path("$sdk_full_dill"),
   ]
 
   # TODO(38701): Cleanup after merging the forked SDK into mainline.
