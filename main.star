@@ -741,6 +741,10 @@ dart_ci_sandbox_builder(
     on_cq=True,
     channels=ANALYZER_CHANNELS)
 dart_ci_sandbox_builder(
+    "analyzer-nnbd-linux-release",
+    category="analyzer|nn",
+    channels=ANALYZER_CHANNELS)
+dart_ci_sandbox_builder(
     "analyzer-mac-release",
     category="analyzer|m",
     dimensions=mac(),
