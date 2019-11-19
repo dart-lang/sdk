@@ -796,18 +796,15 @@ class NoSuchMethodError {
   final Symbol _memberName;
   final List? _arguments;
   final Map<Symbol, dynamic>? _namedArguments;
-  final List? _existingArgumentNames;
   final Invocation? _invocation;
 
   @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null])
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments)
       : _receiver = receiver,
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames,
         _invocation = null;
 
   @patch
@@ -816,7 +813,6 @@ class NoSuchMethodError {
         _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
         _namedArguments = invocation.namedArguments,
-        _existingArgumentNames = null,
         _invocation = invocation;
 
   @patch
@@ -848,20 +844,10 @@ class NoSuchMethodError {
     var failureMessage = (invocation is dart.InvocationImpl)
         ? invocation.failureMessage
         : 'method not found';
-    List? existingArgumentNames = _existingArgumentNames;
-    if (existingArgumentNames == null) {
-      return "NoSuchMethodError: '$memberName'\n"
-          "$failureMessage\n"
-          "Receiver: ${receiverText}\n"
-          "Arguments: [$actualParameters]";
-    } else {
-      String formalParameters = existingArgumentNames.join(', ');
-      return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$memberName'\n"
-          "Receiver: ${receiverText}\n"
-          "Tried calling: $memberName($actualParameters)\n"
-          "Found: $memberName($formalParameters)";
-    }
+    return "NoSuchMethodError: '$memberName'\n"
+        "$failureMessage\n"
+        "Receiver: ${receiverText}\n"
+        "Arguments: [$actualParameters]";
   }
 }
 
