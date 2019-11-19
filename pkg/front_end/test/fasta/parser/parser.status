@@ -1966,7 +1966,6 @@ tests/lib_strong/mirrors/mirror_in_static_init_test: Fail
 tests/lib_strong/mirrors/other_declarations_location_test: Fail
 tests/lib_strong/mirrors/syntax_error_test: Fail
 tests/lib_strong/mirrors/typevariable_mirror_metadata_test: Fail
-tests/standalone/io/process_exit_negative_test: Fail
 tests/standalone/io/snapshot_fail_script: Fail
 tests/standalone/io/test_extension: Fail
 tests/standalone/io/test_relative_extension: Fail

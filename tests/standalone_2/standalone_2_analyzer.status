@@ -4,5 +4,3 @@
 
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
-io/process_exit_negative_test: Skip
-
