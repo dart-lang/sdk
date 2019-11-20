@@ -415,6 +415,32 @@ T? _#x;
 T get x => let T? # = _#x in # == null ? _#x = <exp> : _#x;
 ```
 
+##### Local variables
+A late local variable is encoded similarly to a late field. Local functions are created which correspond to the getters and setters for late fields.
+
+For instance, a nullable late local _without_ initializer
+```
+method() {
+  late T? x;
+  <lhs> = x;
+  variable = <rhs>;
+}
+```
+is encoded as
+```
+method() {
+  bool #x#isSet = false;
+  T? #x;
+  T? #x#get() => #x#isSet ? #x : throw new StateError("Local 'x' has not been initialized.")
+  T? #x#set(T? value)  {
+    _#x#isSet = true;
+    return _#x = value;
+  }
+  <lhs> = #x#get.call();
+  #x#set.call(<rhs>);
+}
+```
+
 
 ### The Null Check Operator
 

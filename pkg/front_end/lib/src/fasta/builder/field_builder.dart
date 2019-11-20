@@ -5,7 +5,6 @@
 library fasta.field_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:front_end/src/fasta/names.dart';
 
 import 'package:kernel/ast.dart' hide MapEntry;
 
@@ -19,6 +18,7 @@ import '../fasta_codes.dart'
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
+import '../kernel/late_lowering.dart' as late_lowering;
 
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
@@ -690,25 +690,12 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
   Statement _createSetterBody(String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
-    Statement assignment = new ExpressionStatement(
-        _createFieldSet(
-            _field, new VariableGet(parameter)..fileOffset = fileOffset)
-          ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset;
-
-    if (_type.isPotentiallyNullable) {
-      return new Block([
-        new ExpressionStatement(
-            _createFieldSet(
-                _lateIsSetField, new BoolLiteral(true)..fileOffset = fileOffset)
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset,
-        assignment
-      ])
-        ..fileOffset = fileOffset;
-    } else {
-      return assignment;
-    }
+    return late_lowering.createSetterBody(fileOffset, name, parameter, _type,
+        shouldReturnValue: false,
+        createVariableWrite: (Expression value) =>
+            _createFieldSet(_field, value),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField, value));
   }
 }
 
@@ -716,61 +703,14 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
   @override
   Statement _createGetterBody(String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
-    if (_type.isPotentiallyNullable) {
-      // Generate:
-      //
-      //    if (!_#isSet#field) {
-      //      _#isSet#field = true
-      //      _#field = <init>;
-      //    }
-      //    return _#field;
-      return new Block(<Statement>[
-        new IfStatement(
-            new Not(_createFieldGet(_lateIsSetField)..fileOffset = fileOffset)
-              ..fileOffset = fileOffset,
-            new Block(<Statement>[
-              new ExpressionStatement(
-                  _createFieldSet(_lateIsSetField,
-                      new BoolLiteral(true)..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-              new ExpressionStatement(
-                  _createFieldSet(_field, initializer)..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-            ]),
-            null)
-          ..fileOffset = fileOffset,
-        new ReturnStatement(_createFieldGet(_field)..fileOffset = fileOffset)
-          ..fileOffset = fileOffset
-      ])
-        ..fileOffset = fileOffset;
-    } else {
-      // Generate:
-      //
-      //    return let # = _#field in # == null ? _#field = <init> : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
-          _createFieldGet(_field)..fileOffset = fileOffset,
-          type: _field.type)
-        ..fileOffset = fileOffset;
-      return new ReturnStatement(
-          new Let(
-              variable,
-              new ConditionalExpression(
-                  new MethodInvocation(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      equalsName,
-                      new Arguments(<Expression>[
-                        new NullLiteral()..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset,
-                  _createFieldSet(_field, initializer)..fileOffset = fileOffset,
-                  new VariableGet(variable, _type)..fileOffset = fileOffset,
-                  _type)
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    }
+    return late_lowering.createGetterWithInitializer(
+        fileOffset, name, _type, initializer,
+        createVariableRead: () => _createFieldGet(_field),
+        createVariableWrite: (Expression value) =>
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField, value));
   }
 
   @override
@@ -780,59 +720,13 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
 }
 
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
-  ConditionalExpression _conditionalExpression;
-
   @override
   Statement _createGetterBody(String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
-    Expression exception = new Throw(
-        new StringLiteral("Field '${name}' has not been initialized.")
-          ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset;
-    if (_type.isPotentiallyNullable) {
-      // Generate:
-      //
-      //    return _#isSet#field ? _#field : throw '...';
-      return new ReturnStatement(
-          _conditionalExpression = new ConditionalExpression(
-              _createFieldGet(_lateIsSetField)..fileOffset = fileOffset,
-              _createFieldGet(_field)..fileOffset = fileOffset,
-              exception,
-              _type)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      // Generate:
-      //
-      //    return let # = _#field in # == null ? throw '...' : #;
-      VariableDeclaration variable = new VariableDeclaration.forValue(
-          _createFieldGet(_field)..fileOffset = fileOffset,
-          type: _field.type)
-        ..fileOffset = fileOffset;
-      return new ReturnStatement(
-          new Let(
-              variable,
-              new ConditionalExpression(
-                  new MethodInvocation(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      equalsName,
-                      new Arguments(<Expression>[
-                        new NullLiteral()..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset,
-                  exception,
-                  new VariableGet(variable, _type)..fileOffset = fileOffset,
-                  _type)
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    }
-  }
-
-  void set type(DartType value) {
-    super.type = value;
-    _conditionalExpression?.staticType = value;
+    return late_lowering.createGetterBodyWithoutInitializer(
+        fileOffset, name, type, 'Field',
+        createVariableRead: () => _createFieldGet(_field),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField));
   }
 }
 
@@ -859,60 +753,15 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   @override
   Statement _createSetterBody(String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
-    Expression exception = new Throw(
-        new StringLiteral("Field '${name}' has already been initialized.")
-          ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset;
-    if (_type.isPotentiallyNullable) {
-      // Generate:
-      //
-      //    if (_#isSet#field) {
-      //      throw '...';
-      //    } else
-      //      _#isSet#field = true;
-      //      _#field = parameter
-      //    }
-      return new IfStatement(
-          _createFieldGet(_lateIsSetField)..fileOffset = fileOffset,
-          new ExpressionStatement(exception)..fileOffset = fileOffset,
-          new Block([
-            new ExpressionStatement(
-                _createFieldSet(_lateIsSetField,
-                    new BoolLiteral(true)..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset)
-              ..fileOffset = fileOffset,
-            new ExpressionStatement(
-                _createFieldSet(
-                    _field, new VariableGet(parameter)..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset)
-              ..fileOffset = fileOffset
-          ])
-            ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset;
-    } else {
-      // Generate:
-      //
-      //    if (_#field == null) {
-      //      _#field = parameter;
-      //    } else {
-      //      throw '...';
-      //    }
-      return new IfStatement(
-        new MethodInvocation(
-            _createFieldGet(_field)..fileOffset = fileOffset,
-            equalsName,
-            new Arguments(
-                <Expression>[new NullLiteral()..fileOffset = fileOffset])
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset,
-        new ExpressionStatement(
-            _createFieldSet(
-                _field, new VariableGet(parameter)..fileOffset = fileOffset)
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset,
-        new ExpressionStatement(exception)..fileOffset = fileOffset,
-      )..fileOffset = fileOffset;
-    }
+    return late_lowering.createSetterBodyFinal(
+        fileOffset, name, parameter, type, 'Field',
+        shouldReturnValue: false,
+        createVariableRead: () => _createFieldGet(_field),
+        createVariableWrite: (Expression value) =>
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField, value));
   }
 }
 

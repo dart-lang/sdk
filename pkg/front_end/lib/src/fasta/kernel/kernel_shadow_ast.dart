@@ -95,6 +95,8 @@ import 'collections.dart'
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
+import 'late_lowering.dart' as late_lowering;
+
 part "inference_visitor.dart";
 
 /// Computes the return type of a (possibly factory) constructor.
@@ -981,6 +983,9 @@ class VariableDeclarationImpl extends VariableDeclaration {
         implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
+
+  VariableDeclaration lateGetter;
+  VariableDeclaration lateSetter;
 
   /// Determine whether the given [VariableDeclarationImpl] had an implicit
   /// type.

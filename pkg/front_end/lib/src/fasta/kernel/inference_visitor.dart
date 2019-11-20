@@ -4838,15 +4838,27 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitVariableSet(
       VariableSet node, DartType typeContext) {
-    DartType writeContext = node.variable.type;
+    VariableDeclarationImpl variable = node.variable;
+    DartType writeContext = variable.type;
     ExpressionInferenceResult rhsResult = inferrer.inferExpression(
         node.value, writeContext ?? const UnknownType(), true,
         isVoidAllowed: true);
     Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
         fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
-    node.value = rhs..parent = node;
-    inferrer.flowAnalysis.write(node.variable, rhsResult.inferredType);
-    return new ExpressionInferenceResult(rhsResult.inferredType, node);
+    inferrer.flowAnalysis.write(variable, rhsResult.inferredType);
+    if (variable.lateSetter != null) {
+      return new ExpressionInferenceResult(
+          rhsResult.inferredType,
+          new MethodInvocation(
+              new VariableGet(variable.lateSetter)
+                ..fileOffset = node.fileOffset,
+              callName,
+              new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset);
+    } else {
+      node.value = rhs..parent = node;
+      return new ExpressionInferenceResult(rhsResult.inferredType, node);
+    }
   }
 
   @override
@@ -4888,6 +4900,91 @@ class InferenceVisitor
             inferred: true);
       }
     }
+    if (node.isLate &&
+        !inferrer.library.loader.target.backendTarget.supportsLateFields) {
+      int fileOffset = node.fileOffset;
+
+      List<Statement> result = <Statement>[];
+      result.add(node);
+
+      VariableDeclaration isSetVariable;
+      if (node.type.isPotentiallyNullable) {
+        isSetVariable = new VariableDeclaration('#${node.name}#isSet',
+            initializer: new BoolLiteral(false)..fileOffset = fileOffset,
+            type: inferrer.coreTypes.boolRawType(inferrer.library.nonNullable))
+          ..fileOffset = fileOffset;
+        result.add(isSetVariable);
+      }
+
+      Expression createVariableRead() => new VariableGet(node);
+      Expression createIsSetRead() => new VariableGet(isSetVariable);
+      Expression createVariableWrite(Expression value) =>
+          new VariableSet(node, value);
+      Expression createIsSetWrite(Expression value) =>
+          new VariableSet(isSetVariable, value);
+
+      VariableDeclaration getVariable =
+          new VariableDeclaration('#${node.name}#get')..fileOffset = fileOffset;
+      FunctionDeclaration getter = new FunctionDeclaration(
+          getVariable,
+          new FunctionNode(
+              node.initializer == null
+                  ? late_lowering.createGetterBodyWithoutInitializer(
+                      fileOffset, node.name, node.type, 'Local',
+                      createVariableRead: createVariableRead,
+                      createIsSetRead: createIsSetRead)
+                  : late_lowering.createGetterWithInitializer(
+                      fileOffset, node.name, node.type, node.initializer,
+                      createVariableRead: createVariableRead,
+                      createVariableWrite: createVariableWrite,
+                      createIsSetRead: createIsSetRead,
+                      createIsSetWrite: createIsSetWrite),
+              returnType: node.type))
+        ..fileOffset = fileOffset;
+      getVariable.type = getter.function.functionType;
+      node.lateGetter = getVariable;
+      result.add(getter);
+
+      if (!node.isFinal || node.initializer == null) {
+        VariableDeclaration setVariable =
+            new VariableDeclaration('#${node.name}#set')
+              ..fileOffset = fileOffset;
+        VariableDeclaration setterParameter =
+            new VariableDeclaration(null, type: node.type)
+              ..fileOffset = fileOffset;
+        FunctionDeclaration setter = new FunctionDeclaration(
+                setVariable,
+                new FunctionNode(
+                    node.isFinal
+                        ? late_lowering.createSetterBodyFinal(fileOffset,
+                            node.name, setterParameter, node.type, 'Local',
+                            shouldReturnValue: true,
+                            createVariableRead: createVariableRead,
+                            createVariableWrite: createVariableWrite,
+                            createIsSetRead: createIsSetRead,
+                            createIsSetWrite: createIsSetWrite)
+                        : late_lowering.createSetterBody(
+                            fileOffset, node.name, setterParameter, node.type,
+                            shouldReturnValue: true,
+                            createVariableWrite: createVariableWrite,
+                            createIsSetWrite: createIsSetWrite)
+                      ..fileOffset = fileOffset,
+                    positionalParameters: <VariableDeclaration>[
+                      setterParameter
+                    ]))
+            // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
+            //  use it for function declaration identity.
+            /*..fileOffset = fileOffset*/;
+        setVariable.type = setter.function.functionType;
+        node.lateSetter = setVariable;
+        result.add(setter);
+      }
+      node.isLate = false;
+      node.type = node.type.withNullability(Nullability.nullable);
+      node.initializer = null;
+
+      return new StatementInferenceResult.multiple(node.fileOffset, result);
+    }
     return const StatementInferenceResult();
   }
 
@@ -4920,6 +5017,15 @@ class InferenceVisitor
     DartType type = promotedType ?? declaredOrInferredType;
     if (variable._isLocalFunction) {
       return inferrer.instantiateTearOff(type, typeContext, node);
+    } else if (variable.lateGetter != null) {
+      return new ExpressionInferenceResult(
+          type,
+          new MethodInvocation(
+              new VariableGet(variable.lateGetter)
+                ..fileOffset = node.fileOffset,
+              callName,
+              new Arguments(<Expression>[])..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset);
     } else {
       return new ExpressionInferenceResult(type, node);
     }
