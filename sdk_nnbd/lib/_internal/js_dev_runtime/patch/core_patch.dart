@@ -28,7 +28,7 @@ import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 
 String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
     ? PrivateSymbol.getName(symbol)
-    : _symbol_dev.Symbol.getName(symbol);
+    : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
 
 @patch
 int identityHashCode(Object? object) {
@@ -102,7 +102,7 @@ class Null {
 @patch
 class Function {
   @patch
-  static apply(Function f, List<Object>? positionalArguments,
+  static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]) {
     positionalArguments ??= [];
     // dcall expects the namedArguments as a JS map in the last slot.
@@ -111,9 +111,9 @@ class Function {
       namedArguments.forEach((symbol, arg) {
         JS('', '#[#] = #', map, _symbolToString(symbol), arg);
       });
-      return dart.dcall(f, positionalArguments, map);
+      return dart.dcall(function, positionalArguments, map);
     }
-    return dart.dcall(f, positionalArguments);
+    return dart.dcall(function, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(
@@ -132,14 +132,14 @@ class Function {
   @JSExportName('as')
   static Object _as_Function(Object o) {
     // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "function"') || o == null) return o;
     return dart.cast(o, dart.unwrapType(Function), false);
   }
 
   @JSExportName('_check')
   static Object _check_Function(Object o) {
     // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "function"') || o == null) return o;
     return dart.cast(o, dart.unwrapType(Function), true);
   }
 }
@@ -188,7 +188,7 @@ class int {
   @patch
   static int parse(String source,
       {int? radix, @deprecated int onError(String source)?}) {
-    return Primitives.parseInt(source, radix, onError)!;
+    return Primitives.parseInt(source, radix, onError);
   }
 
   @patch
@@ -233,8 +233,8 @@ class int {
 class double {
   @patch
   static double parse(String source,
-      [@deprecated double onError(String source)]) {
-    return Primitives.parseDouble(source, onError)!;
+      [@deprecated double onError(String source)?]) {
+    return Primitives.parseDouble(source, onError);
   }
 
   @patch
@@ -308,7 +308,7 @@ class BigInt implements Comparable<BigInt> {
 @patch
 class Error {
   @patch
-  static String _objectToString(Object? object) {
+  static String _objectToString(Object object) {
     return "Instance of '${dart.typeName(dart.getReifiedType(object))}'";
   }
 
@@ -452,7 +452,7 @@ class DateTime {
   int get weekday => Primitives.getWeekday(this);
 
   @patch
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is DateTime &&
       _value == other.millisecondsSinceEpoch &&
       isUtc == other.isUtc;
@@ -505,16 +505,16 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([@undefined int _length]) {
+  factory List([@undefined int? length]) {
     dynamic list;
-    if (JS<bool>('!', '# === void 0', _length)) {
+    if (JS<bool>('!', '# === void 0', length)) {
       list = JS('', '[]');
     } else {
-      int length = JS('!', '#', _length);
-      if (_length == null || length < 0) {
+      int _length = JS('!', '#', length);
+      if (length == null || _length < 0) {
         throw ArgumentError("Length must be a non-negative integer: $_length");
       }
-      list = JS('', 'new Array(#)', length);
+      list = JS('', 'new Array(#)', _length);
       JS('', '#.fill(null)', list);
       JSArray.markFixedList(list);
     }
@@ -522,7 +522,7 @@ class List<E> {
   }
 
   @patch
-  factory List.empty({bool growable = false}) {
+  factory List.empty({bool growable = true}) {
     var list = JSArray<E>.of(JS('', 'new Array()'));
     if (!growable) JSArray.markFixedList(list);
     return list;
@@ -565,7 +565,7 @@ class List<E> {
 @patch
 class Map<K, V> {
   @patch
-  factory Map.unmodifiable(Map other) {
+  factory Map.unmodifiable(Map<dynamic, dynamic> other) {
     return UnmodifiableMapView<K, V>(Map<K, V>.from(other));
   }
 
@@ -740,7 +740,7 @@ class StringBuffer {
   }
 
   @patch
-  void writeAll(Iterable objects, [String separator = ""]) {
+  void writeAll(Iterable<dynamic> objects, [String separator = ""]) {
     _contents = _writeAll(_contents, objects, separator);
   }
 
@@ -1003,14 +1003,14 @@ class _BigIntImpl implements BigInt {
 
   // Result cache for last _divRem call.
   // Result cache for last _divRem call.
-  static Uint16List _lastDividendDigits;
-  static int _lastDividendUsed;
-  static Uint16List _lastDivisorDigits;
-  static int _lastDivisorUsed;
-  static Uint16List _lastQuoRemDigits;
-  static int _lastQuoRemUsed;
-  static int _lastRemUsed;
-  static int _lastRem_nsh;
+  static Uint16List? _lastDividendDigits;
+  static int? _lastDividendUsed;
+  static Uint16List? _lastDivisorDigits;
+  static int? _lastDivisorUsed;
+  static Uint16List? _lastQuoRemDigits;
+  static int? _lastQuoRemUsed;
+  static int? _lastRemUsed;
+  static int? _lastRem_nsh;
 
   /// Whether this bigint is negative.
   final bool _isNegative;
@@ -1070,7 +1070,7 @@ class _BigIntImpl implements BigInt {
     // Read in the source 4 digits at a time.
     // The first part may have a few leading virtual '0's to make the remaining
     // parts all have exactly 4 digits.
-    int digitInPartCount = 4 - source.length.remainder(4);
+    var digitInPartCount = 4 - source.length.remainder(4);
     if (digitInPartCount == 4) digitInPartCount = 0;
     for (int i = 0; i < source.length; i++) {
       part = part * 10 + source.codeUnitAt(i) - _0;
@@ -1112,7 +1112,7 @@ class _BigIntImpl implements BigInt {
   /// If [isNegative] is true, negates the result before returning it.
   ///
   /// The [source] (substring) must be a valid hex literal.
-  static _BigIntImpl _parseHex(String source, int startPos, bool isNegative) {
+  static _BigIntImpl? _parseHex(String source, int startPos, bool isNegative) {
     int hexDigitsPerChunk = _digitBits ~/ 4;
     int sourceLength = source.length - startPos;
     int chunkCount = (sourceLength / hexDigitsPerChunk).ceil();
@@ -1146,7 +1146,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The [source] will be checked for invalid characters. If it is invalid,
   /// this function returns `null`.
-  static _BigIntImpl _parseRadix(String source, int radix, bool isNegative) {
+  static _BigIntImpl? _parseRadix(String source, int radix, bool isNegative) {
     var result = zero;
     var base = _BigIntImpl._fromInt(radix);
     for (int i = 0; i < source.length; i++) {
@@ -1198,11 +1198,11 @@ class _BigIntImpl implements BigInt {
       return _parseDecimal(decimalMatch, isNegative);
     }
     if (radix == 16 && (decimalMatch != null || nonDecimalMatch != null)) {
-      return _parseHex(decimalMatch ?? nonDecimalMatch, 0, isNegative);
+      return _parseHex(decimalMatch ?? nonDecimalMatch!, 0, isNegative);
     }
 
     return _parseRadix(
-        decimalMatch ?? nonDecimalMatch ?? hexMatch, radix, isNegative);
+        decimalMatch ?? nonDecimalMatch ?? hexMatch!, radix, isNegative);
   }
 
   static RegExp _parseRE = RegExp(
@@ -1250,7 +1250,7 @@ class _BigIntImpl implements BigInt {
     // then use the bit-manipulating `_fromDouble` for all other values.
     if (value.abs() < 0x100000000) return _BigIntImpl._fromInt(value.toInt());
     if (value is double) return _BigIntImpl._fromDouble(value);
-    return _BigIntImpl._fromInt(value);
+    return _BigIntImpl._fromInt(value as int);
   }
 
   factory _BigIntImpl._fromInt(int value) {
@@ -2014,9 +2014,9 @@ class _BigIntImpl implements BigInt {
     _divRem(other);
     // Return quotient, i.e.
     // _lastQuoRem_digits[_lastRem_used.._lastQuoRem_used-1] with proper sign.
-    var lastQuo_used = _lastQuoRemUsed - _lastRemUsed;
+    var lastQuo_used = _lastQuoRemUsed! - _lastRemUsed!;
     var quo_digits = _cloneDigits(
-        _lastQuoRemDigits, _lastRemUsed, _lastQuoRemUsed, lastQuo_used);
+        _lastQuoRemDigits!, _lastRemUsed!, _lastQuoRemUsed!, lastQuo_used);
     var quo = _BigIntImpl._(false, lastQuo_used, quo_digits);
     if ((_isNegative != other._isNegative) && (quo._used > 0)) {
       quo = -quo;
@@ -2034,10 +2034,10 @@ class _BigIntImpl implements BigInt {
     // Return remainder, i.e.
     // denormalized _lastQuoRem_digits[0.._lastRem_used-1] with proper sign.
     var remDigits =
-        _cloneDigits(_lastQuoRemDigits, 0, _lastRemUsed, _lastRemUsed);
-    var rem = _BigIntImpl._(false, _lastRemUsed, remDigits);
-    if (_lastRem_nsh > 0) {
-      rem = rem >> _lastRem_nsh; // Denormalize remainder.
+        _cloneDigits(_lastQuoRemDigits!, 0, _lastRemUsed!, _lastRemUsed!);
+    var rem = _BigIntImpl._(false, _lastRemUsed!, remDigits);
+    if (_lastRem_nsh! > 0) {
+      rem = rem >> _lastRem_nsh!; // Denormalize remainder.
     }
     if (_isNegative && (rem._used > 0)) {
       rem = -rem;
