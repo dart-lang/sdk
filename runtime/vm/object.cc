@@ -3670,15 +3670,16 @@ RawObject* Class::Invoke(const String& function_name,
         call_args.SetAt(i + 1, temp);
       }
       call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-          Array::Handle(zone, ArgumentsDescriptor::New(
-                                  kTypeArgsLen, call_args.Length(), arg_names));
+      const Array& call_args_descriptor_array = Array::Handle(
+          zone, ArgumentsDescriptor::New(kTypeArgsLen, call_args.Length(),
+                                         arg_names, Heap::kNew));
       // Call the closure.
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
-  const Array& args_descriptor_array = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+  const Array& args_descriptor_array =
+      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(),
+                                                   arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() ||
@@ -7012,7 +7013,7 @@ RawObject* Function::DoArgumentTypesMatch(
   if (!HasInstantiatedSignature()) {
     instantiated_func = InstantiateSignatureFrom(mode, instantiator_type_args,
                                                  Object::null_type_arguments(),
-                                                 kAllFree, Heap::kOld);
+                                                 kAllFree, Heap::kNew);
   }
   AbstractType& argument_type = AbstractType::Handle(zone);
   AbstractType& parameter_type = AbstractType::Handle(zone);
@@ -7022,7 +7023,7 @@ RawObject* Function::DoArgumentTypesMatch(
   for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
        ++i) {
     argument ^= args.At(i);
-    argument_type = argument.GetType(Heap::kOld);
+    argument_type = argument.GetType(Heap::kNew);
     parameter_type = instantiated_func.ParameterTypeAt(i);
 
     // If the argument type is dynamic or the parameter is null, move on.
@@ -7062,7 +7063,7 @@ RawObject* Function::DoArgumentTypesMatch(
       if (argument_name.Equals(parameter_name)) {
         found = true;
         argument ^= args.At(args_desc.PositionAt(i));
-        argument_type = argument.GetType(Heap::kOld);
+        argument_type = argument.GetType(Heap::kNew);
         parameter_type = instantiated_func.ParameterTypeAt(j);
 
         // If the argument type is dynamic or the parameter is null, move on.
@@ -11476,14 +11477,14 @@ RawObject* Library::Invoke(const String& function_name,
       call_args.SetAt(0, getter_result);
       const Array& call_args_descriptor_array =
           Array::Handle(ArgumentsDescriptor::New(
-              kTypeArgsLen, call_args.Length(), arg_names));
+              kTypeArgsLen, call_args.Length(), arg_names, Heap::kNew));
       // Call closure.
       return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
     }
   }
 
-  const Array& args_descriptor_array = Array::Handle(
-      ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+  const Array& args_descriptor_array = Array::Handle(ArgumentsDescriptor::New(
+      kTypeArgsLen, args.Length(), arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() ||
@@ -11614,8 +11615,9 @@ static RawObject* EvaluateCompiledExpressionHelper(
       real_arguments.SetAt(i + 1, arg);
     }
 
-    const Array& args_desc = Array::Handle(
-        zone, ArgumentsDescriptor::New(num_type_args, arguments.Length()));
+    const Array& args_desc =
+        Array::Handle(zone, ArgumentsDescriptor::New(
+                                num_type_args, arguments.Length(), Heap::kNew));
     result = DartEntry::InvokeFunction(callee, real_arguments, args_desc);
   }
 
@@ -16318,7 +16320,7 @@ RawObject* Instance::InvokeGetter(const String& getter_name,
   const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, *this);
   const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), Heap::kNew));
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
                                 args_descriptor, respect_reflectable,
@@ -16364,7 +16366,7 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
   args.SetAt(0, *this);
   args.SetAt(1, value);
   const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), Heap::kNew));
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
                                 args_descriptor, respect_reflectable,
@@ -16389,8 +16391,9 @@ RawObject* Instance::Invoke(const String& function_name,
 
   // TODO(regis): Support invocation of generic functions with type arguments.
   const int kTypeArgsLen = 0;
-  const Array& args_descriptor = Array::Handle(
-      zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
+  const Array& args_descriptor =
+      Array::Handle(zone, ArgumentsDescriptor::New(kTypeArgsLen, args.Length(),
+                                                   arg_names, Heap::kNew));
 
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
@@ -16412,7 +16415,8 @@ RawObject* Instance::Invoke(const String& function_name,
       const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, *this);
       const Array& getter_args_descriptor = Array::Handle(
-          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length()));
+          zone, ArgumentsDescriptor::New(kTypeArgsLen, getter_args.Length(),
+                                         Heap::kNew));
       const Object& getter_result = Object::Handle(
           zone, InvokeInstanceFunction(*this, function, getter_name,
                                        getter_args, getter_args_descriptor,

@@ -74,13 +74,16 @@ class ArgumentsDescriptor : public ValueObject {
   // num_arguments) is indicated by a non-zero type_args_len.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
-                       const Array& optional_arguments_names);
+                       const Array& optional_arguments_names,
+                       Heap::Space space = Heap::kOld);
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional. The presence of a type argument
   // vector as first argument (not counted in num_arguments) is indicated
   // by a non-zero type_args_len.
-  static RawArray* New(intptr_t type_args_len, intptr_t num_arguments);
+  static RawArray* New(intptr_t type_args_len,
+                       intptr_t num_arguments,
+                       Heap::Space space = Heap::kOld);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void Init();
@@ -119,7 +122,8 @@ class ArgumentsDescriptor : public ValueObject {
 
   static RawArray* NewNonCached(intptr_t type_args_len,
                                 intptr_t num_arguments,
-                                bool canonicalize);
+                                bool canonicalize,
+                                Heap::Space space);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
