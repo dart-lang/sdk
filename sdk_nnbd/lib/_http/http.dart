@@ -128,8 +128,8 @@ part 'websocket_impl.dart';
  * about the streaming qualities of an HttpServer.
  * Pausing the subscription of the stream, pauses at the OS level.
  *
- * * The [shelf](https://pub.dartlang.org/packages/shelf)
- * package on pub.dartlang.org contains a set of high-level classes that,
+ * * The [shelf](https://pub.dev/packages/shelf)
+ * package on pub.dev contains a set of high-level classes that,
  * together with this class, makes it easy to provide content through HTTP
  * servers.
  */
@@ -1008,7 +1008,7 @@ abstract class Cookie {
  * that contains the content of and information about an HTTP request.
  *
  * __Note__: Check out the
- * [http_server](https://pub.dartlang.org/packages/http_server)
+ * [http_server](https://pub.dev/packages/http_server)
  * package, which makes working with the low-level
  * dart:io HTTP server subsystem easier.
  *

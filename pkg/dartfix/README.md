@@ -72,7 +72,7 @@ If you want a new fix, first look at [dartfix issues][]
 and star the fixes you want.
 If no issue exists for the fix, [create a GitHub issue.][new issue]
 
-[dartfix]: https://pub.dartlang.org/packages/dartfix
+[dartfix]: https://pub.dev/packages/dartfix
 [dartfmt]: https://www.dartlang.org/tools/dartfmt
 [added in Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15
 [features added to Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15

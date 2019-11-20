@@ -119,7 +119,7 @@ part of dart.core;
  *
  * The DateTime class does not provide internationalization.
  * To internationalize your code, use
- * the [intl](https://pub.dartlang.org/packages/intl) package.
+ * the [intl](https://pub.dev/packages/intl) package.
  *
  */
 class DateTime implements Comparable<DateTime> {
@@ -562,7 +562,7 @@ class DateTime implements Comparable<DateTime> {
    * The returned string is constructed for the time zone of this instance.
    * The `toString()` method provides a simply formatted string.
    * It does not support internationalized strings.
-   * Use the [intl](https://pub.dartlang.org/packages/intl) package
+   * Use the [intl](https://pub.dev/packages/intl) package
    * at the pub shared packages repo.
    *
    * The resulting string can be parsed back using [parse].
