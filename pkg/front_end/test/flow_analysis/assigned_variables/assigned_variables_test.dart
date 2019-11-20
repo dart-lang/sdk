@@ -10,8 +10,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 
@@ -28,10 +26,8 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const AssignedVariablesDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true})
-      ]),
+      runTest: runTestFor(
+          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
         'for.dart',
         'for_element.dart',

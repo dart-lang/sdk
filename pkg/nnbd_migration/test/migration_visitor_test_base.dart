@@ -24,16 +24,7 @@ import 'package:test/test.dart';
 import 'abstract_single_unit.dart';
 
 /// A [NodeMatcher] that matches any node, and records what node it matched to.
-class AnyNodeMatcher implements NodeMatcher {
-  final List<NullabilityNode> _matchingNodes = [];
-
-  NullabilityNode get matchingNode => _matchingNodes.single;
-
-  @override
-  void matched(NullabilityNode node) {
-    _matchingNodes.add(node);
-  }
-
+class AnyNodeMatcher extends _RecordingNodeMatcher {
   @override
   bool matches(NullabilityNode node) {
     return true;
@@ -75,8 +66,12 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
     parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
         e.key, e.value.type, ParameterKind.NAMED)));
     return DecoratedType(
-        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters,
-            nullabilitySuffix: NullabilitySuffix.star),
+        FunctionTypeImpl(
+          typeFormals: typeFormals,
+          parameters: parameters,
+          returnType: returnType.type,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
         node ?? newNode(),
         typeFormalBounds: typeFormals
             .map((formal) => _decoratedTypeParameterBounds[formal])
@@ -153,10 +148,37 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
 
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
+  /// Gets the set of all nodes pointed to by always, plus always itself.
+  Set<NullabilityNode> get alwaysPlus {
+    var result = <NullabilityNode>{graph.always};
+    for (var edge in getEdges(graph.always, anyNode)) {
+      if (edge.guards.isEmpty) {
+        result.add(edge.destinationNode);
+      }
+    }
+    return result;
+  }
+
   /// Returns a [NodeMatcher] that matches any node whatsoever.
   AnyNodeMatcher get anyNode => AnyNodeMatcher();
 
   NullabilityGraphForTesting get graph;
+
+  /// Gets the transitive closure of all nodes with hard edges pointing to
+  /// never, plus never itself.
+  Set<NullabilityNode> get neverClosure {
+    var result = <NullabilityNode>{};
+    var pending = <NullabilityNode>[graph.never];
+    while (pending.isNotEmpty) {
+      var node = pending.removeLast();
+      if (result.add(node)) {
+        for (var edge in getEdges(anyNode, node)) {
+          pending.add(edge.sourceNode);
+        }
+      }
+    }
+    return result;
+  }
 
   /// Asserts that an edge exists with a node matching [source] and a node
   /// matching [destination], and with the given [hard]ness and [guards].
@@ -228,6 +250,9 @@ mixin EdgeTester {
     }
     return result;
   }
+
+  /// Returns a [NodeMatcher] that matches any node in the given set.
+  NodeSetMatcher inSet(Set<NullabilityNode> nodes) => NodeSetMatcher(nodes);
 
   /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
   /// nodes match [inner] and [outer].
@@ -384,6 +409,16 @@ abstract class NodeMatcher {
   bool matches(NullabilityNode node);
 }
 
+/// A [NodeMatcher] that matches any node contained in the given set.
+class NodeSetMatcher extends _RecordingNodeMatcher {
+  final Set<NullabilityNode> _targetSet;
+
+  NodeSetMatcher(this._targetSet);
+
+  @override
+  bool matches(NullabilityNode node) => _targetSet.contains(node);
+}
+
 /// A [NodeMatcher] that matches exactly one node.
 class _ExactNodeMatcher implements NodeMatcher {
   final NullabilityNode _expectation;
@@ -395,6 +430,18 @@ class _ExactNodeMatcher implements NodeMatcher {
 
   @override
   bool matches(NullabilityNode node) => node == _expectation;
+}
+
+/// Base class for [NodeMatcher]s that remember which nodes were matched.
+abstract class _RecordingNodeMatcher implements NodeMatcher {
+  final List<NullabilityNode> _matchingNodes = [];
+
+  NullabilityNode get matchingNode => _matchingNodes.single;
+
+  @override
+  void matched(NullabilityNode node) {
+    _matchingNodes.add(node);
+  }
 }
 
 /// A [NodeMatcher] that matches a substitution node with the given inner and

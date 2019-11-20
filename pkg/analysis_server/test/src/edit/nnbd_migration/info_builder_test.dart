@@ -91,7 +91,8 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
-    InfoBuilder builder = InfoBuilder(info, listener);
+    InfoBuilder builder =
+        InfoBuilder(info, listener, explainNonNullableTypes: true);
     infos = (await builder.explainMigration()).toList();
   }
 
@@ -103,8 +104,12 @@ class InfoBuilderTest extends AbstractAnalysisTest {
       {@required String migratedContent}) async {
     addTestFile(originalContent);
     await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
+    // Ignore info for dart:core
+    var filteredInfos = [
+      for (var info in infos) if (info.path.indexOf('core.dart') == -1) info
+    ];
+    expect(filteredInfos, hasLength(1));
+    UnitInfo unit = filteredInfos[0];
     expect(unit.path, testFile);
     expect(unit.content, migratedContent);
     return unit;

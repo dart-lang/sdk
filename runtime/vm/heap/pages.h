@@ -26,8 +26,7 @@ class ObjectSet;
 class ForwardingPage;
 class GCMarker;
 
-// TODO(iposva): Determine heap sizes and tune the page size accordingly.
-static const intptr_t kPageSize = 256 * KB;
+static const intptr_t kPageSize = 512 * KB;
 static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
 static const intptr_t kPageMask = ~(kPageSize - 1);
 

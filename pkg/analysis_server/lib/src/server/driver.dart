@@ -10,11 +10,12 @@ import 'dart:math';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
+import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
@@ -25,6 +26,7 @@ import 'package:analysis_server/src/services/completion/dart/uri_contributor.dar
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -33,7 +35,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
-import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
@@ -334,9 +335,9 @@ class Driver implements ServerStarter {
   static const String TRAIN_USING = "train-using";
 
   /**
-   * The instrumentation server that is to be used by the analysis server.
+   * The instrumentation service that is to be used by the analysis server.
    */
-  InstrumentationServer instrumentationServer;
+  InstrumentationService instrumentationService;
 
   /**
    * The file resolver provider used to override the way file URI's are
@@ -423,9 +424,13 @@ class Driver implements ServerStarter {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
 
-    // TODO(devoncarew): Replace with the real crash product ID.
-    analysisServerOptions.crashReportSender =
-        new CrashReportSender('Dart_analysis_server', analytics);
+    final shouldSendCallback = () {
+      // TODO(devoncarew): Replace with a real enablement check.
+      return false;
+    };
+
+    final crashReportSender =
+        new CrashReportSender('Dart_analysis_server', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -466,17 +471,20 @@ class Driver implements ServerStarter {
     // Initialize the instrumentation service.
     //
     String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    List<InstrumentationService> allInstrumentationServices =
+        instrumentationService == null ? [] : [instrumentationService];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      FileInstrumentationServer fileBasedServer =
-          new FileInstrumentationServer(logFilePath);
-      instrumentationServer = instrumentationServer != null
-          ? new MulticastInstrumentationServer(
-              [instrumentationServer, fileBasedServer])
-          : fileBasedServer;
+      allInstrumentationServices.add(InstrumentationLogAdapter(
+          new FileInstrumentationLogger(logFilePath)));
     }
-    InstrumentationService instrumentationService =
-        new InstrumentationService(instrumentationServer);
+
+    ErrorNotifier errorNotifier = ErrorNotifier();
+    allInstrumentationServices
+        .add(CrashReportingInstrumentation(crashReportSender));
+    instrumentationService =
+        new MulticastInstrumentationService(allInstrumentationServices);
+
     instrumentationService.logVersion(
         results[TRAIN_USING] != null
             ? 'training-0'
@@ -500,22 +508,21 @@ class Driver implements ServerStarter {
       }
     }
 
-    CompilerContext.runWithDefaultOptions((_) async {
-      if (analysisServerOptions.useLanguageServerProtocol) {
-        startLspServer(results, analysisServerOptions, dartSdkManager,
-            instrumentationService, diagnosticServerPort);
-      } else {
-        startAnalysisServer(
-            results,
-            analysisServerOptions,
-            parser,
-            dartSdkManager,
-            instrumentationService,
-            RequestStatisticsHelper(),
-            analytics,
-            diagnosticServerPort);
-      }
-    });
+    if (analysisServerOptions.useLanguageServerProtocol) {
+      startLspServer(results, analysisServerOptions, dartSdkManager,
+          instrumentationService, diagnosticServerPort, errorNotifier);
+    } else {
+      startAnalysisServer(
+          results,
+          analysisServerOptions,
+          parser,
+          dartSdkManager,
+          instrumentationService,
+          RequestStatisticsHelper(),
+          analytics,
+          diagnosticServerPort,
+          errorNotifier);
+    }
   }
 
   void startAnalysisServer(
@@ -527,6 +534,7 @@ class Driver implements ServerStarter {
     RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
     int diagnosticServerPort,
+    ErrorNotifier errorNotifier,
   ) {
     String trainDirectory = results[TRAIN_USING];
     if (trainDirectory != null) {
@@ -561,6 +569,8 @@ class Driver implements ServerStarter {
         packageResolverProvider,
         detachableFileSystemManager);
     httpServer = new HttpAnalysisServer(socketServer);
+
+    errorNotifier.server = socketServer.analysisServer;
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
@@ -604,7 +614,7 @@ class Driver implements ServerStarter {
         exit(exitCode);
       }();
     } else {
-      _captureExceptions(socketServer, instrumentationService, () {
+      _captureExceptions(instrumentationService, () {
         StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
         stdioServer.serveStdio().then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -643,17 +653,13 @@ class Driver implements ServerStarter {
     // server was configured to load a language model on disk.
     CompletionRanking.instance =
         CompletionRanking(analysisServerOptions.completionModelFolder);
-    CompletionRanking.instance.start().catchError((error) {
+    CompletionRanking.instance.start().catchError((error, stackTrace) {
       // Disable smart ranking if model startup fails.
       analysisServerOptions.completionModelFolder = null;
       CompletionRanking.instance = null;
-      if (socketServer != null) {
-        socketServer.analysisServer.sendServerErrorNotification(
-            'Failed to start ranking model isolate', error, error.stackTrace);
-      } else {
-        lspSocketServer.analysisServer.sendServerErrorNotification(
-            'Failed to start ranking model isolate', error, error.stackTrace);
-      }
+      AnalysisEngine.instance.instrumentationService.logException(
+          CaughtException.withMessage(
+              'Failed to start ranking model isolate', error, stackTrace));
     });
   }
 
@@ -663,6 +669,7 @@ class Driver implements ServerStarter {
     DartSdkManager dartSdkManager,
     InstrumentationService instrumentationService,
     int diagnosticServerPort,
+    ErrorNotifier errorNotifier,
   ) {
     final serve_http = diagnosticServerPort != null;
 
@@ -676,6 +683,7 @@ class Driver implements ServerStarter {
       dartSdkManager,
       instrumentationService,
     );
+    errorNotifier.server = socketServer.analysisServer;
 
     httpServer = new HttpAnalysisServer(socketServer);
 
@@ -684,7 +692,7 @@ class Driver implements ServerStarter {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    _captureLspExceptions(socketServer, instrumentationService, () {
+    _captureExceptions(instrumentationService, () {
       LspStdioAnalysisServer stdioServer =
           new LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
@@ -705,14 +713,11 @@ class Driver implements ServerStarter {
    * instrumentation [service]. If a [print] function is provided, then also
    * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _captureExceptions(SocketServer socketServer,
-      InstrumentationService service, dynamic callback(),
+  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
-      service.logPriorityException(exception, stackTrace);
-      socketServer.analysisServer.sendServerErrorNotification(
-          'Captured exception', exception, stackTrace);
+      service.logException(exception, stackTrace);
       throw exception;
     }
 
@@ -725,33 +730,6 @@ class Driver implements ServerStarter {
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
-    return runZoned(callback, zoneSpecification: zoneSpecification);
-  }
-
-  /**
-   * Execute the given [callback] within a zone that will capture any unhandled
-   * exceptions and both report them to the client and send them to the given
-   * instrumentation [service]. If a [print] function is provided, then also
-   * capture any data printed by the callback and redirect it to the function.
-   */
-  dynamic _captureLspExceptions(
-      // TODO(dantup): This is a copy/paste of the above with some minor changes.
-      // We should either factor these out, or if we end up with an LspDriver, put
-      // this there.
-      LspSocketServer socketServer,
-      InstrumentationService service,
-      dynamic callback()) {
-    void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
-        dynamic exception, StackTrace stackTrace) {
-      service.logPriorityException(exception, stackTrace);
-      LspAnalysisServer analysisServer = socketServer.analysisServer;
-      analysisServer.sendServerErrorNotification(
-          'Captured exception', exception, stackTrace);
-      throw exception;
-    }
-
-    ZoneSpecification zoneSpecification =
-        new ZoneSpecification(handleUncaughtError: errorFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
@@ -909,14 +887,14 @@ class Driver implements ServerStarter {
         }
       }
     } catch (exception, stackTrace) {
-      service.logPriorityException(exception, stackTrace);
+      service.logException(exception, stackTrace);
     }
     String uuid = _generateUuidString();
     try {
       uuidFile.parent.createSync(recursive: true);
       uuidFile.writeAsStringSync(uuid);
     } catch (exception, stackTrace) {
-      service.logPriorityException(exception, stackTrace);
+      service.logException(exception, stackTrace);
       // Slightly alter the uuid to indicate it was not persisted
       uuid = 'temp-$uuid';
     }

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
@@ -1998,6 +1999,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  ConstructorElement get declaration => this;
+
+  @override
   String get displayName {
     if (linkedNode != null) {
       return reference.name;
@@ -2156,12 +2160,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   FunctionType get type {
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type ??= FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type ??= FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -2685,6 +2689,9 @@ abstract class ElementImpl implements Element {
     }
     return _enclosingElement.context;
   }
+
+  @override
+  Element get declaration => this;
 
   @override
   String get displayName => _name;
@@ -3739,12 +3746,12 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type = FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type = FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -4330,6 +4337,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  FieldElement get declaration => this;
+
+  @override
   bool get isCovariant {
     if (linkedNode != null) {
       return linkedContext.isExplicitlyCovariant(linkedNode);
@@ -4458,6 +4468,9 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
+  ExecutableElement get declaration => this;
+
+  @override
   String get displayName {
     if (linkedNode != null) {
       return reference.name;
@@ -4583,12 +4596,12 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    return _type = FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
-      element: this,
+    return _type = FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
   }
 
@@ -4900,13 +4913,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     var type = substitution.substituteType(function.type) as FunctionType;
-    return FunctionTypeImpl.synthetic(
-      type.returnType,
-      type.typeFormals,
-      type.parameters,
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: type.parameters,
+      returnType: type.returnType,
+      nullabilitySuffix: nullabilitySuffix,
       element: this,
       typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -5845,6 +5858,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  MethodElement get declaration => this;
+
+  @override
   String get displayName {
     String displayName = super.displayName;
     if ("unary-" == displayName) {
@@ -5869,6 +5885,23 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
         (0x41 <= first && first <= 0x5A) ||
         first == 0x5F ||
         first == 0x24);
+  }
+
+  /// Return `true` if this method is `operator==`, and there is no explicit
+  /// type specified for its formal parameter, in this method or in any
+  /// overridden methods other than the one declared in `Object`.
+  bool get isOperatorEqualWithParameterTypeFromObject {
+    if (linkedNode != null) {
+      return linkedContext.hasOperatorEqualParameterTypeFromObject(linkedNode);
+    }
+    return false;
+  }
+
+  /// See [isOperatorEqualWithParameterTypeFromObject].
+  set isOperatorEqualWithParameterTypeFromObject(bool value) {
+    if (linkedNode != null) {
+      linkedContext.setOperatorEqualParameterTypeFromObject(linkedNode, value);
+    }
   }
 
   @override
@@ -6156,6 +6189,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       this.context, this.session, this.name, this.conflictingElements);
 
   @override
+  Element get declaration => null;
+
+  @override
   String get displayName => name;
 
   @override
@@ -6316,7 +6352,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
   static NeverElementImpl get instance =>
-      BottomTypeImpl.instance.element as NeverElementImpl;
+      NeverTypeImpl.instance.element as NeverElementImpl;
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
@@ -6342,11 +6378,11 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   }) {
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
-        return BottomTypeImpl.instanceNullable;
+        return NeverTypeImpl.instanceNullable;
       case NullabilitySuffix.star:
-        return BottomTypeImpl.instanceLegacy;
+        return NeverTypeImpl.instanceLegacy;
       case NullabilitySuffix.none:
-        return BottomTypeImpl.instance;
+        return NeverTypeImpl.instance;
     }
     throw StateError('Unsupported nullability: $nullabilitySuffix');
   }
@@ -6413,8 +6449,12 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
         if (linkedContext.hasInitializer(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)
             ..isSynthetic = true
-            .._type = FunctionTypeImpl.synthetic(type, [], [],
-                nullabilitySuffix: NullabilitySuffix.star)
+            .._type = FunctionTypeImpl(
+              typeFormals: const [],
+              parameters: const [],
+              returnType: type,
+              nullabilitySuffix: NullabilitySuffix.star,
+            )
             ..enclosingElement = this;
         }
       }
@@ -6532,6 +6572,9 @@ class ParameterElementImpl extends VariableElementImpl
     }
     return super.codeOffset;
   }
+
+  @override
+  ParameterElement get declaration => this;
 
   @override
   String get defaultValueCode {
@@ -7042,6 +7085,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return variable.setter;
   }
 
+  @override
+  PropertyAccessorElement get declaration => this;
+
   /// Set whether this accessor is a getter.
   void set getter(bool isGetter) {
     setModifier(Modifier.GETTER, isGetter);
@@ -7158,12 +7204,12 @@ class PropertyAccessorElementImpl_ImplicitGetter
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    var type = FunctionTypeImpl.synthetic(
-      returnType,
-      const <TypeParameterElement>[],
-      const <ParameterElement>[],
-      element: this,
+    var type = FunctionTypeImpl(
+      typeFormals: const <TypeParameterElement>[],
+      parameters: const <ParameterElement>[],
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
 
     // Don't cache, because types change during top-level inference.
@@ -7217,12 +7263,12 @@ class PropertyAccessorElementImpl_ImplicitSetter
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
-    var type = FunctionTypeImpl.synthetic(
-      returnType,
-      const <TypeParameterElement>[],
-      parameters,
-      element: this,
+    var type = FunctionTypeImpl(
+      typeFormals: const <TypeParameterElement>[],
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
+      element: this,
     );
 
     // Don't cache, because types change during top-level inference.
@@ -7445,6 +7491,10 @@ class TypeParameterElementImpl extends ElementImpl
   /// if this parameter does not have an explicit bound.
   DartType _bound;
 
+  /// The value representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  Variance _variance;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   TypeParameterElementImpl(String name, int offset) : super(name, offset);
@@ -7493,6 +7543,9 @@ class TypeParameterElementImpl extends ElementImpl
     }
     return super.codeOffset;
   }
+
+  @override
+  TypeParameterElement get declaration => this;
 
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
@@ -7548,12 +7601,24 @@ class TypeParameterElementImpl extends ElementImpl
     _type = type;
   }
 
+  Variance get variance => _variance ?? Variance.covariant;
+
+  void set variance(Variance newVariance) => _variance = newVariance;
+
+  bool get isLegacyCovariant => _variance == null;
+
   @override
-  bool operator ==(Object object) {
-    if (identical(this, object)) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
       return true;
     }
-    return object is TypeParameterElementImpl && object.location == location;
+    if (other is TypeParameterElement) {
+      if (other.enclosingElement == null || enclosingElement == null) {
+        return identical(other, this);
+      }
+      return other.location == location;
+    }
+    return false;
   }
 
   @override
@@ -7701,6 +7766,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
+
+  @override
+  VariableElement get declaration => this;
 
   @override
   String get displayName => name;

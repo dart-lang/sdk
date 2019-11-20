@@ -509,6 +509,7 @@ class Printer extends Visitor<Null> {
     }
     writeComponentProblems(component);
     for (var library in component.libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) {
         if (!showExternal) {
           continue;

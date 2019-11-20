@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:module/a.dart";
+
+  class Foo extends a::A {
+    synthetic constructor •() → main::Foo*
+      : super a::A::•()
+      ;
+  }
+}
+library from "package:module/a.dart" as a {
+
+  import "package:module/b.dart";
+
+  class A extends a::A2<b::B*> {
+    synthetic constructor •() → a::A*
+      : super a::A2::•()
+      ;
+  }
+  class A2<T extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → a::A2<a::A2::T*>*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "package:module/b.dart" as b {
+
+  class B extends dart.core::Object {
+    synthetic constructor •() → b::B*
+      : super dart.core::Object::•()
+      ;
+  }
+}

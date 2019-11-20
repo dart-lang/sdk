@@ -101,7 +101,6 @@ Future<List<String>> attemptStuff(
     '--sdk-root',
     flutterPlatformDirectory.path,
     '--incremental',
-    '--strong',
     '--target=flutter',
     '--packages',
     dotPackage.path,

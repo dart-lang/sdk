@@ -4344,6 +4344,38 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
         featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
   }
 
+  void test_class_enabled_multiple() {
+    var unit = parseCompilationUnit('class A<in T, inout U, out V, W> { }');
+    expect(unit.declarations, hasLength(1));
+    var classDecl = unit.declarations[0] as ClassDeclaration;
+    expect(classDecl.name.name, 'A');
+
+    expect(classDecl.typeParameters.typeParameters, hasLength(4));
+    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+    expect(classDecl.typeParameters.typeParameters[1].name.name, 'U');
+    expect(classDecl.typeParameters.typeParameters[2].name.name, 'V');
+    expect(classDecl.typeParameters.typeParameters[3].name.name, 'W');
+
+    var typeParameterImplList = classDecl.typeParameters.typeParameters;
+    expect((typeParameterImplList[0] as TypeParameterImpl).varianceKeyword,
+        isNotNull);
+    expect(
+        (typeParameterImplList[0] as TypeParameterImpl).varianceKeyword.lexeme,
+        "in");
+    expect((typeParameterImplList[1] as TypeParameterImpl).varianceKeyword,
+        isNotNull);
+    expect(
+        (typeParameterImplList[1] as TypeParameterImpl).varianceKeyword.lexeme,
+        "inout");
+    expect((typeParameterImplList[2] as TypeParameterImpl).varianceKeyword,
+        isNotNull);
+    expect(
+        (typeParameterImplList[2] as TypeParameterImpl).varianceKeyword.lexeme,
+        "out");
+    expect((typeParameterImplList[3] as TypeParameterImpl).varianceKeyword,
+        isNull);
+  }
+
   void test_class_disabled_single() {
     parseCompilationUnit('class A<out T> { }',
         errors: [
@@ -4371,6 +4403,11 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
     expect(classDecl.name.name, 'A');
     expect(classDecl.typeParameters.typeParameters, hasLength(1));
     expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+
+    var typeParameterImpl =
+        classDecl.typeParameters.typeParameters[0] as TypeParameterImpl;
+    expect(typeParameterImpl.varianceKeyword, isNotNull);
+    expect(typeParameterImpl.varianceKeyword.lexeme, "in");
   }
 
   void test_function_disabled() {

@@ -282,7 +282,10 @@ abstract class AbstractAnalysisServer {
 
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
+        .catchError((e, st) {
+      AnalysisEngine.instance.instrumentationService.logException(e, st);
+      return null;
+    });
   }
 
   /// Notify the declarations tracker that the file with the given [path] was
@@ -291,6 +294,14 @@ abstract class AbstractAnalysisServer {
     declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify(null);
   }
+
+  /// Sends an error notification to the user.
+  void sendServerErrorNotification(
+    String message,
+    dynamic exception,
+    /*StackTrace*/ stackTrace, {
+    bool fatal = false,
+  });
 
   void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
     declarationsTracker?.discardContext(driver.analysisContext);

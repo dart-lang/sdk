@@ -2027,7 +2027,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
       }
-      if (dartType is DynamicType) {
+      if (dartType.isTop) {
         return node.checkedInput;
       }
     }
@@ -2042,22 +2042,59 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
-    HInstruction checkedInput = node.checkedInput;
-    AbstractValue inputType = checkedInput.instructionType;
-
-    AbstractBool isIn = _abstractValueDomain.isIn(
-        inputType, checkedAbstractValue.abstractValue);
-
-    if (isIn.isDefinitelyFalse) {
+    AbstractBool result = node.evaluate(_closedWorld);
+    if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
-    if (!checkedAbstractValue.isPrecise) return node;
-
-    if (isIn.isDefinitelyTrue) {
+    if (result.isDefinitelyTrue) {
       return _graph.addConstantBool(true, _closedWorld);
     }
 
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      DartType dartType = recipe.type;
+      if (dartType.isTop) {
+        return _graph.addConstantBool(true, _closedWorld);
+      }
+
+      IsTestSpecialization specialization =
+          SpecializedChecks.findIsTestSpecialization(
+              dartType, _graph, _closedWorld);
+
+      if (specialization == IsTestSpecialization.null_) {
+        return HIdentity(
+            node.checkedInput,
+            _graph.addConstantNull(_closedWorld),
+            null,
+            _abstractValueDomain.boolType);
+      }
+
+      if (specialization != null) {
+        AbstractValueWithPrecision checkedType =
+            _abstractValueDomain.createFromStaticType(dartType,
+                nullable: _abstractValueDomain
+                    .isNull(node.checkedAbstractValue.abstractValue)
+                    .isPotentiallyTrue);
+        return HIsTestSimple(dartType, checkedType, specialization,
+            node.checkedInput, _abstractValueDomain.boolType);
+      }
+    }
+
+    // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
+
+    return node;
+  }
+
+  @override
+  HInstruction visitIsTestSimple(HIsTestSimple node) {
+    AbstractBool result = node.evaluate(_closedWorld);
+    if (result.isDefinitelyFalse) {
+      return _graph.addConstantBool(false, _closedWorld);
+    }
+    if (result.isDefinitelyTrue) {
+      return _graph.addConstantBool(true, _closedWorld);
+    }
     return node;
   }
 
@@ -3148,6 +3185,27 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitIsTest(HIsTest instruction) {
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
     List<HBasicBlock> falseTargets = <HBasicBlock>[];
+
+    collectTargets(instruction, trueTargets, falseTargets);
+
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+
+    AbstractValue convertedType =
+        instruction.checkedAbstractValue.abstractValue;
+    HInstruction input = instruction.checkedInput;
+
+    for (HBasicBlock block in trueTargets) {
+      insertTypePropagationForDominatedUsers(block, input, convertedType);
+    }
+    // TODO(sra): Also strengthen uses for when the condition is precise and
+    // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
+    // to `null`.
+  }
+
+  @override
+  void visitIsTestSimple(HIsTestSimple instruction) {
+    List<HBasicBlock> trueTargets = [];
+    List<HBasicBlock> falseTargets = [];
 
     collectTargets(instruction, trueTargets, falseTargets);
 

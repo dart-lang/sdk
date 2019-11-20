@@ -311,7 +311,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   InitializerComplexity visitTypeParameter(ir.TypeParameter typeParameter) {
     ir.TreeNode context = _executableContext;
     TypeVariableTypeWithContext typeVariable = new TypeVariableTypeWithContext(
-        new ir.TypeParameterType(typeParameter),
+        new ir.TypeParameterType(typeParameter, ir.Nullability.legacy),
         // If this typeParameter is part of a typedef then its parent is
         // null because it has no context. Just pass in null for the
         // context in that case.

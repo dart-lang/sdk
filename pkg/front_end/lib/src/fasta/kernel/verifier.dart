@@ -9,15 +9,19 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart'
     show
         AsExpression,
+        BottomType,
         Class,
         Component,
         DartType,
+        DynamicType,
         ExpressionStatement,
         Field,
         FunctionType,
         InterfaceType,
+        InvalidType,
         Library,
         Member,
+        NeverType,
         Nullability,
         Procedure,
         StaticInvocation,
@@ -25,7 +29,8 @@ import 'package:kernel/ast.dart'
         SuperPropertyGet,
         SuperPropertySet,
         TreeNode,
-        TypeParameter;
+        TypeParameter,
+        VoidType;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -42,22 +47,22 @@ import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
 
 List<LocatedMessage> verifyComponent(Component component,
-    {bool isOutline: false, bool skipPlatform: false}) {
+    {bool isOutline, bool afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, skipPlatform);
+      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {
   final List<LocatedMessage> errors = <LocatedMessage>[];
+  Library currentLibrary = null;
 
   Uri fileUri;
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, this.skipPlatform) {
-    this.isOutline = isOutline;
-  }
+  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+      : super(isOutline: isOutline, afterConst: afterConst);
 
   Uri checkLocation(TreeNode node, String name, Uri fileUri) {
     if (name == null || name.contains("#")) {
@@ -145,7 +150,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
       return;
     }
     fileUri = checkLocation(node, node.name, node.fileUri);
+    currentLibrary = node;
     super.visitLibrary(node);
+    currentLibrary = null;
   }
 
   @override
@@ -166,11 +173,39 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     super.visitProcedure(node);
   }
 
+  bool isNullType(DartType node) {
+    if (node is InterfaceType) {
+      Uri importUri = node.classNode.enclosingLibrary.importUri;
+      return node.classNode.name == "Null" &&
+          importUri.scheme == "dart" &&
+          importUri.path == "core";
+    }
+    return false;
+  }
+
   @override
   defaultDartType(DartType node) {
     if (node is UnknownType) {
       // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
       problem(null, "Unexpected appearance of the unknown type.");
+    }
+    bool neverLegacy = isNullType(node) ||
+        node is DynamicType ||
+        node is InvalidType ||
+        node is VoidType ||
+        node is NeverType ||
+        node is BottomType;
+    bool expectedLegacy =
+        !currentLibrary.isNonNullableByDefault && !neverLegacy;
+    if (expectedLegacy && node.nullability != Nullability.legacy) {
+      problem(
+          null, "Found a non-legacy type '${node}' in an opted-out library.");
+    }
+    Nullability nodeNullability =
+        node is InvalidType ? Nullability.undetermined : node.nullability;
+    if (currentLibrary.isNonNullableByDefault &&
+        nodeNullability == Nullability.legacy) {
+      problem(null, "Found a legacy type '${node}' in an opted-in library.");
     }
     super.defaultDartType(node);
   }
@@ -192,11 +227,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   visitInterfaceType(InterfaceType node) {
-    Uri importUri = node.classNode.enclosingLibrary.importUri;
-    if (node.classNode.name == "Null" &&
-        importUri.scheme == "dart" &&
-        importUri.path == "core" &&
-        node.nullability != Nullability.nullable) {
+    if (isNullType(node) && node.nullability != Nullability.nullable) {
       problem(null, "Found a not nullable Null type: ${node}");
     }
     super.visitInterfaceType(node);

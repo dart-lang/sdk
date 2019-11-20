@@ -13,16 +13,15 @@ class InstrumentationInformation {
   /// The node used for type sources that are always `null`.
   NullabilityNodeInfo always;
 
-  /// A map from elements outside of the code being migrated, to the nullability
-  /// nodes associated with the type of the element.
-  final Map<Element, DecoratedTypeInfo> externalDecoratedType = {};
-
   /// A map from the graph edges between nullability nodes, to information about
   /// the edge that was created and why it was created.
   final Map<EdgeInfo, EdgeOriginInfo> edgeOrigin = {};
 
   /// The node used for type sources that are never `null`.
   NullabilityNodeInfo never;
+
+  /// A map associating [NodeInformation] with [NullabilityNodeInfo] objects.
+  Map<NullabilityNodeInfo, NodeInformation> nodeInformation = {};
 
   /// A list of the steps in the propagation of nullability information through
   /// the nullability graph, to report details of the step that was performed
@@ -37,40 +36,7 @@ class InstrumentationInformation {
 
   /// Return information about the given [node].
   NodeInformation nodeInfoFor(NullabilityNodeInfo node) {
-    for (MapEntry<Source, SourceInformation> sourceEntry
-        in sourceInformation.entries) {
-      SourceInformation sourceInfo = sourceEntry.value;
-      for (MapEntry<AstNode, DecoratedTypeInfo> entry
-          in sourceInfo.implicitReturnType.entries) {
-        if (entry.value.node == node) {
-          return NodeInformation(
-              sourceEntry.key.fullName, entry.key, entry.value);
-        }
-      }
-      for (MapEntry<AstNode, DecoratedTypeInfo> entry
-          in sourceInfo.implicitType.entries) {
-        if (entry.value.node == node) {
-          return NodeInformation(
-              sourceEntry.key.fullName, entry.key, entry.value);
-        }
-      }
-      for (MapEntry<AstNode, List<DecoratedTypeInfo>> entry
-          in sourceInfo.implicitTypeArguments.entries) {
-        for (var type in entry.value) {
-          if (type.node == node) {
-            return NodeInformation(sourceEntry.key.fullName, entry.key, type);
-          }
-        }
-      }
-    }
-    // The loop below doesn't help because we still don't have access to an AST
-    // node.
-//    for (MapEntry<Element, DecoratedTypeInfo> entry in externalDecoratedType.entries) {
-//      if (entry.value.node == node) {
-//        return NodeInformation(null, null, entry.value);
-//      }
-//    }
-    return null;
+    return nodeInformation[node];
   }
 
   /// Return the type annotation associated with the [node] or `null` if the
@@ -95,9 +61,20 @@ class NodeInformation {
 
   final AstNode astNode;
 
-  final DecoratedTypeInfo decoratedType;
+  final Element element;
 
-  NodeInformation(this.filePath, this.astNode, this.decoratedType);
+  final String descriptionPrefix;
+
+  NodeInformation(
+      this.filePath, this.astNode, this.element, this.descriptionPrefix);
+
+  /// Return detail text for a fix built from an edge with this node as a
+  /// destination.
+  String get descriptionForDestination {
+    // TODO(paulberry): describe AST nodes
+    var description = (element ?? '???').toString();
+    return "A nullable value can't be used as $descriptionPrefix$description";
+  }
 }
 
 /// The instrumentation information gathered from the migration engine that is
@@ -105,42 +82,12 @@ class NodeInformation {
 class SourceInformation {
   /// A map from the type annotations found in the source code, to the
   /// nullability nodes that are associated with that type.
+  ///
+  /// TODO(paulberry): we should probably get rid of this data structure.
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
 
   /// A map from the fixes that were decided on to the reasons for the fix.
   final Map<SingleNullabilityFix, List<FixReasonInfo>> fixes = {};
-
-  /// A map from AST nodes that have an implicit return type to the nullability
-  /// node associated with the implicit return type of the AST node. The node
-  /// can be an
-  /// - executable declaration,
-  /// - function-typed formal parameter declaration,
-  /// - function type alias declaration,
-  /// - generic function type, or
-  /// - function expression.
-  final Map<AstNode, DecoratedTypeInfo> implicitReturnType = {};
-
-  /// A map from AST nodes that have an implicit type to the nullability node
-  /// associated with the implicit type of the AST node. The node can be a
-  /// - formal parameter,
-  /// - declared identifier, or
-  /// - variable in a variable declaration list.
-  final Map<AstNode, DecoratedTypeInfo> implicitType = {};
-
-  /// Called whenever the migration engine encounters an AST node with implicit
-  /// type arguments, to report the nullability nodes associated with the
-  /// implicit type arguments of the AST node.
-  ///
-  /// A map from AST nodes that have implicit type arguments to the nullability
-  /// nodes associated with the implicit type arguments of the AST node. The
-  /// node can be a
-  /// - constructor redirection,
-  /// - function expression invocation,
-  /// - method invocation,
-  /// - instance creation expression,
-  /// - list/map/set literal, or
-  /// - type annotation.
-  final Map<AstNode, List<DecoratedTypeInfo>> implicitTypeArguments = {};
 
   /// Initialize a newly created holder of instrumentation information that is
   /// specific to a single source.

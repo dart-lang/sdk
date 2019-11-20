@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -364,7 +365,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           node.returnType, node.functionExpression.body, element, node);
 
       // Return types are inferred only on non-recursive local functions.
-      if (node.parent is CompilationUnit) {
+      if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
       _checkStrictInferenceInParameters(node.functionExpression.parameters);
@@ -498,7 +499,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
 
-      if (_strictInference && !node.isSetter && !elementIsOverride()) {
+      if (!node.isSetter && !elementIsOverride()) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
       _checkStrictInferenceInParameters(node.parameters);
@@ -1359,6 +1360,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
   static String _deprecatedMessage(Element element) {
+    // Implicit getters/setters.
+    if (element.isSynthetic && element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
     ElementAnnotationImpl annotation = element.metadata.firstWhere(
       (e) => e.isDeprecated,
       orElse: () => null,
@@ -2697,8 +2702,12 @@ class ResolverVisitor extends ScopedVisitor {
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
-  InterfaceType _iterableForSetMapDisambiguationCached;
-  InterfaceType _mapForSetMapDisambiguationCached;
+  /// Stack of expressions which we have not yet finished visiting, that should
+  /// terminate a null-shorting expression.
+  ///
+  /// The stack contains a `null` sentinel as its first entry so that it is
+  /// always safe to use `.last` to examine the top of the stack.
+  final List<Expression> unfinishedNullShorts = [null];
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
@@ -2790,31 +2799,6 @@ class ResolverVisitor extends ScopedVisitor {
     return _nonNullableEnabled
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
-  }
-
-  InterfaceType get _iterableForSetMapDisambiguation {
-    return _iterableForSetMapDisambiguationCached ??=
-        typeProvider.iterableElement.instantiate(
-      typeArguments: [
-        typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get _mapForSetMapDisambiguation {
-    return _mapForSetMapDisambiguationCached ??=
-        typeProvider.mapElement.instantiate(
-      typeArguments: [
-        typeProvider.dynamicType,
-        typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
   }
 
   /**
@@ -3840,8 +3824,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
-    if (node.isNullAware) {
-      _flowAnalysis?.flow?.nullAwareAccess_rightBegin(node.target);
+    if (node.isNullAware && _nonNullableEnabled) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     var method = node.staticElement;
@@ -4037,8 +4022,9 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the property access node.
     //
     node.target?.accept(this);
-    if (node.isNullAware) {
-      _flowAnalysis?.flow?.nullAwareAccess_rightBegin(node.target);
+    if (node.isNullAware && _nonNullableEnabled) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4509,9 +4495,9 @@ class ResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
       bool isIterable = typeSystem.isSubtypeOf(
-          unwrappedContextType, _iterableForSetMapDisambiguation);
+          unwrappedContextType, typeProvider.iterableForSetMapDisambiguation);
       bool isMap = typeSystem.isSubtypeOf(
-          unwrappedContextType, _mapForSetMapDisambiguation);
+          unwrappedContextType, typeProvider.mapForSetMapDisambiguation);
       if (isIterable && !isMap) {
         return _LiteralResolution(
             _LiteralResolutionKind.set, unwrappedContextType);
@@ -4604,7 +4590,7 @@ class ResolverVisitor extends ScopedVisitor {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = originalElement.baseElement;
+      var rawElement = originalElement.declaration;
 
       FunctionType constructorType =
           StaticTypeAnalyzer.constructorToGenericFunctionType(rawElement);
@@ -4834,7 +4820,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   final Source source;
 
   /// The object used to access the types from the core library.
-  final TypeProvider typeProvider;
+  final TypeProviderImpl typeProvider;
 
   /// The error reporter that will be informed of any errors that are found
   /// during resolution.
@@ -6292,6 +6278,9 @@ class TypeNameResolver {
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.
 abstract class TypeProvider {
+  /// Return the element representing the built-in class 'bool'.
+  ClassElement get boolElement;
+
   /// Return the type representing the built-in type 'bool'.
   InterfaceType get boolType;
 
@@ -6300,6 +6289,9 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Deprecated'.
   InterfaceType get deprecatedType;
+
+  /// Return the element representing the built-in class 'double'.
+  ClassElement get doubleElement;
 
   /// Return the type representing the built-in type 'double'.
   InterfaceType get doubleType;
@@ -6332,6 +6324,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Future'.
   @Deprecated('Use futureType2() instead.')
   InterfaceType get futureType;
+
+  /// Return the element representing the built-in class 'int'.
+  ClassElement get intElement;
 
   /// Return the type representing the built-in type 'int'.
   InterfaceType get intType;
@@ -6371,13 +6366,24 @@ abstract class TypeProvider {
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
+  Set<ClassElement> get nonSubtypableClasses;
+
+  /// Return a list containing all of the types that cannot be either extended
+  /// or implemented.
+  @Deprecated('Use nonSubtypableClasses instead.')
   List<InterfaceType> get nonSubtypableTypes;
+
+  /// Return the element representing the built-in class 'null'.
+  ClassElement get nullElement;
 
   /// Return a [DartObjectImpl] representing the `null` object.
   DartObjectImpl get nullObject;
 
   /// Return the type representing the built-in type 'Null'.
   InterfaceType get nullType;
+
+  /// Return the element representing the built-in class 'num'.
+  ClassElement get numElement;
 
   /// Return the type representing the built-in type 'num'.
   InterfaceType get numType;
@@ -6404,6 +6410,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Stream'.
   @Deprecated('Use streamType2() instead.')
   InterfaceType get streamType;
+
+  /// Return the element representing the built-in class 'String'.
+  ClassElement get stringElement;
 
   /// Return the type representing the built-in type 'String'.
   InterfaceType get stringType;
@@ -6882,7 +6891,16 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    Element element = identifier.staticElement;
+    // This is the same logic used in [checkForDeprecatedMemberUseAtIdentifier]
+    // to avoid reporting an error twice for named constructors.
+    AstNode parent = identifier.parent;
+    if (parent is ConstructorName && identical(identifier, parent.name)) {
+      return;
+    }
+    AstNode grandparent = parent?.parent;
+    Element element = grandparent is ConstructorName
+        ? grandparent.staticElement
+        : identifier.staticElement;
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }

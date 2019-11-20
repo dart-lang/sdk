@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// This class transforms ordinary [DartType]s into their corresponding
@@ -22,53 +23,55 @@ class AlreadyMigratedCodeDecorator {
 
   /// Transforms [type], which should have come from code that has already been
   /// migrated to NNBD, into the corresponding [DecoratedType].
-  DecoratedType decorate(DartType type) {
+  DecoratedType decorate(DartType type, Element element) {
     if (type.isVoid || type.isDynamic) {
-      return DecoratedType(type, _graph.always);
+      var node = NullabilityNode.forAlreadyMigrated();
+      _graph.makeNullable(node, AlwaysNullableTypeOrigin.forElement(element));
+      return DecoratedType(type, node);
     }
     NullabilityNode node;
     var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
     if (nullabilitySuffix == NullabilitySuffix.question) {
-      node = _graph.always;
+      node = NullabilityNode.forAlreadyMigrated();
+      _graph.makeNullable(node, AlreadyMigratedTypeOrigin.forElement(element));
     } else {
-      // Currently, all types passed to this method have nullability suffix `star`
-      // because (a) we don't yet have a migrated SDK, and (b) we haven't added
-      // support to the migrator for analyzing packages that have already been
-      // migrated with NNBD enabled.
-      // TODO(paulberry): fix this assertion when things change.
-      assert(nullabilitySuffix == NullabilitySuffix.star);
-      node = _graph.never;
+      node = NullabilityNode.forAlreadyMigrated();
+      _graph.makeNonNullable(
+          node, AlreadyMigratedTypeOrigin.forElement(element));
     }
     if (type is FunctionType) {
       var typeFormalBounds = type.typeFormals.map((e) {
         var bound = e.bound;
         if (bound == null) {
-          return decorate((_typeProvider.objectType as TypeImpl)
-              .withNullability(NullabilitySuffix.question));
+          return decorate(
+              (_typeProvider.objectType as TypeImpl)
+                  .withNullability(NullabilitySuffix.question),
+              element);
         } else {
-          return decorate(bound);
+          return decorate(bound, element);
         }
       }).toList();
       var positionalParameters = <DecoratedType>[];
       var namedParameters = <String, DecoratedType>{};
       for (var parameter in type.parameters) {
         if (parameter.isPositional) {
-          positionalParameters.add(decorate(parameter.type));
+          positionalParameters.add(decorate(parameter.type, element));
         } else {
-          namedParameters[parameter.name] = decorate(parameter.type);
+          namedParameters[parameter.name] = decorate(parameter.type, element);
         }
       }
       return DecoratedType(type, node,
           typeFormalBounds: typeFormalBounds,
-          returnType: decorate(type.returnType),
+          returnType: decorate(type.returnType, element),
           namedParameters: namedParameters,
           positionalParameters: positionalParameters);
     } else if (type is InterfaceType) {
       var typeParameters = type.element.typeParameters;
       if (typeParameters.isNotEmpty) {
         assert(type.typeArguments.length == typeParameters.length);
-        return DecoratedType(type, node,
-            typeArguments: type.typeArguments.map(decorate).toList());
+        return DecoratedType(type, node, typeArguments: [
+          for (var t in type.typeArguments) decorate(t, element)
+        ]);
       }
       return DecoratedType(type, node);
     } else if (type is TypeParameterType) {
@@ -96,6 +99,6 @@ class AlreadyMigratedCodeDecorator {
       // Add FutureOr<T> as a supertype of Future<T>.
       allSupertypes.add(_typeProvider.futureOrType2(type.typeArguments.single));
     }
-    return allSupertypes.map(decorate);
+    return [for (var t in allSupertypes) decorate(t, class_)];
   }
 }

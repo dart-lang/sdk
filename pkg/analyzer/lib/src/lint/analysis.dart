@@ -253,9 +253,7 @@ class LintDriver {
 
 /// Prints logging information comments to the [outSink] and error messages to
 /// [errorSink].
-class StdInstrumentation extends InstrumentationService {
-  StdInstrumentation() : super(null);
-
+class StdInstrumentation extends NoopInstrumentationService {
   @override
   void logError(String message, [exception]) {
     errorSink.writeln(message);

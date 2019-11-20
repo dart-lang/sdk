@@ -30,11 +30,25 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   /// The [Member] built by this builder;
   Member get member;
 
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  Member get extensionTearOff;
+  /// The [Member] to use when reading from this member builder.
+  ///
+  /// For a field, a getter or a regular method this is the [member] itself.
+  /// For an instance extension method this is special tear-off function. For
+  /// a constructor, an operator, a factory or a setter this is `null`.
+  Member get readTarget;
 
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  Procedure get procedure;
+  /// The [Member] to use when write to this member builder.
+  ///
+  /// For an assignable field or a setter this is the [member] itself. For
+  /// a constructor, a non-assignable field, a getter, an operator or a regular
+  /// method this is `null`.
+  Member get writeTarget;
+
+  /// The [Member] to use when invoking this member builder.
+  ///
+  /// For a constructor, a field, a regular method, a getter an operator or
+  /// a factory this is the [member] itself. For a setter this is `null`.
+  Member get invokeTarget;
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
@@ -106,19 +120,13 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
-  Member get extensionTearOff =>
-      unsupported("extensionTearOff", charOffset, fileUri);
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  Procedure get procedure => unsupported("procedure", charOffset, fileUri);
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {}
+
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
 
   @override
   String get fullNameForErrors => name;
@@ -133,6 +141,19 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+}
+
+enum BuiltMemberKind {
+  Constructor,
+  RedirectingFactory,
+  Field,
+  Method,
+  ExtensionField,
+  ExtensionMethod,
+  ExtensionGetter,
+  ExtensionSetter,
+  ExtensionOperator,
+  ExtensionTearOff,
 }
 
 class MemberDataForTesting {

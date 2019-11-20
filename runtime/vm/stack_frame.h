@@ -130,6 +130,8 @@ class StackFrame : public ValueObject {
   // Returns token_pos of the pc(), or -1 if none exists.
   TokenPosition GetTokenPos() const;
 
+  static void DumpCurrentTrace();
+
  protected:
   explicit StackFrame(Thread* thread)
       : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {}

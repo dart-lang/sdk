@@ -130,6 +130,8 @@ CyclicClassHierarchy/script1: Fail # We report an error for each class involved 
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
+DeferredExtensionImport/analyzerCode: Fail
+DeferredExtensionImport/part_wrapped_script: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
 DillOutlineSummary/analyzerCode: Fail

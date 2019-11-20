@@ -124,7 +124,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
           name.length,
           fileUri);
     }
-    return new TypeParameterType(parameter, null, nullability);
+    return new TypeParameterType(parameter, nullability);
   }
 
   TypeBuilder asTypeBuilder() {

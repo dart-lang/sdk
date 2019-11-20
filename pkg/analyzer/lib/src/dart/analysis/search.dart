@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
@@ -384,13 +383,8 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Function(
       Element element, SearchedFiles searchedFiles) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element, searchedFiles, const {
+    await _addResults(results, element.declaration, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });

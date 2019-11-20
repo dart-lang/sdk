@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
-
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
 /// syntactic (as opposed to semantic) structure of Dart code. The semantic
 /// structure of the code is modeled by the
@@ -35,6 +32,8 @@ import 'package:analyzer/dart/ast/precedence.dart';
 /// When an AST is resolved, the identifiers in the AST will be associated with
 /// the elements that they refer to and every expression in the AST will have a
 /// type associated with it.
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -286,7 +285,7 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AssignmentExpression
-    implements Expression, MethodReferenceExpression {
+    implements NullShortableExpression, MethodReferenceExpression {
   /// Return the expression used to compute the left hand side.
   Expression get leftHandSide;
 
@@ -2178,11 +2177,6 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   /// is not a function-typed field formal parameter.
   FormalParameterList get parameters;
 
-  /// If the parameter is function-typed, and has the question mark, then its
-  /// function type is nullable. Having a nullable function type means that the
-  /// parameter can be null.
-  Token get question;
-
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
   void set parameters(FormalParameterList parameters);
@@ -2192,6 +2186,11 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 
   /// Set the token representing the period to the given [token].
   void set period(Token token);
+
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token get question;
 
   /// Return the token representing the 'this' keyword.
   Token get thisKeyword;
@@ -3162,7 +3161,7 @@ abstract class ImportDirective implements NamespaceDirective {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IndexExpression
-    implements Expression, MethodReferenceExpression {
+    implements NullShortableExpression, MethodReferenceExpression {
   /// Return the auxiliary elements associated with this identifier, or `null`
   /// if this identifier is not in both a getter and setter context.
   ///
@@ -4054,6 +4053,24 @@ abstract class NullLiteral implements Literal {
   void set literal(Token token);
 }
 
+/// Abstract interface for expressions that may participate in null-shorting.
+abstract class NullShortableExpression implements Expression {
+  /// Returns the expression that terminates any null shorting that might occur
+  /// in this expression.  This may be called regardless of whether this
+  /// expression is itself null-aware.
+  ///
+  /// For example, the statement `a?.b[c] = d;` contains the following
+  /// null-shortable subexpressions:
+  /// - `a?.b`
+  /// - `a?.b[c]`
+  /// - `a?.b[c] = d`
+  ///
+  /// Calling [nullShortingTermination] on any of these subexpressions yields
+  /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
+  /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
+  Expression get nullShortingTermination;
+}
+
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
@@ -4250,7 +4267,7 @@ abstract class PrefixExpression
 ///        [Expression] '.' [SimpleIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyAccess implements Expression {
+abstract class PropertyAccess implements NullShortableExpression {
   /// Return `true` if this expression is cascaded.
   ///
   /// If it is, then the target of this expression is not stored locally but is

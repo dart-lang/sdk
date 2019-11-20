@@ -442,6 +442,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
   @override
+  ConstructorElement get declaration;
+
+  @override
   ClassElement get enclosingElement;
 
   /// Return `true` if this constructor is a const constructor.
@@ -500,6 +503,13 @@ abstract class Element implements AnalysisTarget {
 
   /// Return the analysis context in which this element is defined.
   AnalysisContext get context;
+
+  /// Return the declaration of this element. If the element is a view on an
+  /// element, e.g. a method from an interface type, with substituted type
+  /// parameters, return the corresponding element from the class, without any
+  /// substitutions. If this element is already a declaration (or a synthetic
+  /// element, e.g. a synthetic property accessor), return itself.
+  Element get declaration;
 
   /// Return the display name of this element, or `null` if this element does
   /// not have a name.
@@ -959,6 +969,9 @@ abstract class ElementVisitor<R> {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableElement implements FunctionTypedElement {
+  @override
+  ExecutableElement get declaration;
+
   /// Return `true` if this executable element did not have an explicit return
   /// type specified for it in the original source. Note that if there was no
   /// explicit return type, and if the element model is fully populated, then
@@ -1051,6 +1064,9 @@ abstract class ExtensionElement implements TypeParameterizedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
+  @override
+  FieldElement get declaration;
+
   /// Return `true` if this field was explicitly marked as being covariant.
   bool get isCovariant;
 
@@ -1327,7 +1343,10 @@ abstract class LocalVariableElement implements PromotableElement {}
 /// be contained within an extension element.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement implements ClassMemberElement, ExecutableElement {}
+abstract class MethodElement implements ClassMemberElement, ExecutableElement {
+  @override
+  MethodElement get declaration;
+}
 
 /// A pseudo-element that represents multiple elements defined within a single
 /// scope that have the same name. This situation is not allowed by the
@@ -1366,6 +1385,9 @@ abstract class NamespaceCombinator {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
     implements PromotableElement, ConstantEvaluationTarget {
+  @override
+  ParameterElement get declaration;
+
   /// Return the Dart code of the default value, or `null` if no default value.
   String get defaultValueCode;
 
@@ -1481,6 +1503,9 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   /// if there is no corresponding setter.
   PropertyAccessorElement get correspondingSetter;
 
+  @override
+  PropertyAccessorElement get declaration;
+
   /// Return `true` if this accessor represents a getter.
   bool get isGetter;
 
@@ -1568,6 +1593,9 @@ abstract class TypeParameterElement implements TypeDefiningElement {
   DartType get bound;
 
   @override
+  TypeParameterElement get declaration;
+
+  @override
   @deprecated
   TypeParameterType get type;
 
@@ -1632,6 +1660,9 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// modifier or if the value of this variable could not be computed because of
   /// errors.
   DartObject get constantValue;
+
+  @override
+  VariableElement get declaration;
 
   /// Return `true` if this variable element did not have an explicit type
   /// specified for it.

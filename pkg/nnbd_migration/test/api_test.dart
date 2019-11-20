@@ -38,7 +38,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   Future<void> _checkMultipleFileChanges(
       Map<String, String> input, Map<String, String> expectedOutput) async {
     for (var path in input.keys) {
-      newFile(path, content: input[path]);
+      driver.getFileSync(newFile(path, content: input[path]).path);
     }
     var listener = new TestMigrationListener();
     var migration =
@@ -1847,6 +1847,32 @@ bool f(a) => a is List<int?>;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_libraryWithParts() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/lib.dart');
+    var file1 = '''
+part 'src/foo/part.dart';
+''';
+    var expected1 = '''
+part 'src/foo/part.dart';
+''';
+    var path2 = convertPath('$root/src/foo/part.dart');
+    var file2 = '''
+part of '../../lib.dart';
+class C {
+  static void m(C c) {}
+}
+''';
+    var expected2 = '''
+part of '../../lib.dart';
+class C {
+  static void m(C c) {}
+}
+''';
+    await _checkMultipleFileChanges(
+        {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
+  }
+
   test_local_function() async {
     var content = '''
 int f(int i) {
@@ -2374,7 +2400,6 @@ test(int?/*?*/ j) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
   test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
 class C {

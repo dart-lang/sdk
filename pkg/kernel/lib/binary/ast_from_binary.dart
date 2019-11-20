@@ -2101,6 +2101,11 @@ class BinaryBuilder {
 
   Supertype readSupertype() {
     InterfaceType type = readDartType();
+    assert(
+        type.nullability == _currentLibrary.nonNullable,
+        "In serialized form supertypes should have Nullability.legacy if they "
+        "are in a library that is opted out of the NNBD feature.  If they are "
+        "in an opted-in library, they should have Nullability.nonNullable.");
     return new Supertype.byReference(type.className, type.typeArguments);
   }
 
@@ -2156,7 +2161,7 @@ class BinaryBuilder {
       case Tag.TypedefType:
         int nullabilityIndex = readByte();
         return new TypedefType.byReference(readTypedefReference(),
-            readDartTypeList(), Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], readDartTypeList());
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:
@@ -2171,11 +2176,11 @@ class BinaryBuilder {
       case Tag.InterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),
-            readDartTypeList(), Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], readDartTypeList());
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),
-            const <DartType>[], Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], const <DartType>[]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
         int nullabilityIndex = readByte();
@@ -2188,24 +2193,24 @@ class BinaryBuilder {
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
-        return new FunctionType(positional, returnType,
+        return new FunctionType(
+            positional, returnType, Nullability.values[nullabilityIndex],
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefType: typedefType,
-            nullability: Nullability.values[nullabilityIndex]);
+            typedefType: typedefType);
       case Tag.SimpleFunctionType:
         int nullabilityIndex = readByte();
         var positional = readDartTypeList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType,
-            nullability: Nullability.values[nullabilityIndex]);
+        return new FunctionType(
+            positional, returnType, Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
         int declaredNullabilityIndex = readByte();
         int index = readUInt();
         var bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index], bound,
-            Nullability.values[declaredNullabilityIndex]);
+        return new TypeParameterType(typeParameterStack[index],
+            Nullability.values[declaredNullabilityIndex], bound);
       default:
         throw fail('unexpected dart type tag: $tag');
     }

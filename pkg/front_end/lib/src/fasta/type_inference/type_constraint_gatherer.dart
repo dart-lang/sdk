@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         TypeParameter,
         TypeParameterType,
+        Variance,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show substitute, Substitution;
@@ -209,9 +210,25 @@ abstract class TypeConstraintGatherer {
         getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
-      if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
-          supertype.typeArguments[i])) {
-        return false;
+      // Generate constraints and subtype match with respect to variance.
+      int parameterVariance = supertype.classNode.typeParameters[i].variance;
+      if (parameterVariance == Variance.contravariant) {
+        if (!_isSubtypeMatch(supertype.typeArguments[i],
+            matchingSupertypeOfSubtype.typeArguments[i])) {
+          return false;
+        }
+      } else if (parameterVariance == Variance.invariant) {
+        if (!_isSubtypeMatch(supertype.typeArguments[i],
+                matchingSupertypeOfSubtype.typeArguments[i]) ||
+            !_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+                supertype.typeArguments[i])) {
+          return false;
+        }
+      } else {
+        if (!_isSubtypeMatch(matchingSupertypeOfSubtype.typeArguments[i],
+            supertype.typeArguments[i])) {
+          return false;
+        }
       }
     }
     return true;
@@ -401,7 +418,8 @@ abstract class TypeConstraintGatherer {
     for (int i = 0; i < params1.length; ++i) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
       freshTypeVariables.add(pFresh);
-      DartType variableFresh = new TypeParameterType(pFresh);
+      DartType variableFresh =
+          new TypeParameterType(pFresh, Nullability.legacy);
       substitution1[params1[i]] = variableFresh;
       substitution2[params2[i]] = variableFresh;
       DartType bound1 = substitute(params1[i].bound, substitution1);

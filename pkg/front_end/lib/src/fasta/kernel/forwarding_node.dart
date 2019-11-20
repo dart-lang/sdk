@@ -13,6 +13,7 @@ import "package:kernel/ast.dart"
         Member,
         Name,
         NamedExpression,
+        Nullability,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -23,6 +24,7 @@ import "package:kernel/ast.dart"
         TypeParameterType,
         VariableDeclaration,
         VariableGet,
+        Variance,
         VoidType;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
@@ -34,7 +36,7 @@ import "../builder/class_builder.dart";
 import "../problems.dart" show unhandled;
 
 import "../type_inference/type_inference_engine.dart"
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
@@ -269,7 +271,8 @@ class ForwardingNode {
             new NamedExpression(parameter.name, new VariableGet(parameter)))
         .toList();
     List<DartType> typeArguments = function.typeParameters
-        .map<DartType>((typeParameter) => new TypeParameterType(typeParameter))
+        .map<DartType>((typeParameter) =>
+            new TypeParameterType(typeParameter, Nullability.legacy))
         .toList();
     Arguments arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
@@ -319,7 +322,7 @@ class ForwardingNode {
           ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
-            new TypeParameterType(typeParameter);
+            new TypeParameterType(typeParameter, Nullability.legacy);
       }
       substitution = Substitution.combine(
           substitution, Substitution.fromMap(additionalSubstitution));

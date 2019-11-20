@@ -59,9 +59,9 @@ DartType _normalizeDartType(DartType type) {
     // TODO(alexmarkov): cache the created raw type or use a CoreTypes object
     return new InterfaceType(
         type.classNode,
+        Nullability.legacy,
         new List<DartType>.filled(
-            type.classNode.typeParameters.length, const DynamicType()),
-        Nullability.legacy);
+            type.classNode.typeParameters.length, const DynamicType()));
   } else if (type is FunctionType) {
     // TODO(alexmarkov): support function types
     return const DynamicType();
@@ -871,7 +871,7 @@ class RuntimeType extends Type {
           .take(klass.typeParameters.length)
           .map((pt) => pt.representedType)
           .toList();
-      return new InterfaceType(klass, typeArguments);
+      return new InterfaceType(klass, Nullability.legacy, typeArguments);
     } else {
       return _type;
     }

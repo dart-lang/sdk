@@ -635,9 +635,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     if (resourceProvider is MemoryResourceProvider) {
       (resourceProvider as MemoryResourceProvider).writeOn(buffer);
     }
+    // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        new CaughtException.withMessage(
-            buffer.toString(), lastException, lastStackTrace));
+        new SilentException(buffer.toString(), lastException, lastStackTrace));
     return new LibraryMap();
   }
 

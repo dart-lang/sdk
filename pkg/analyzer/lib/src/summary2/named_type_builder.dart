@@ -78,19 +78,19 @@ class NamedTypeBuilder extends TypeBuilder {
         var arguments = _buildArguments(parameters);
         var substitution = Substitution.fromPairs(parameters, arguments);
         var instantiated = substitution.substituteType(rawType) as FunctionType;
-        _type = FunctionTypeImpl.synthetic(
-          instantiated.returnType,
-          instantiated.typeFormals,
-          instantiated.parameters,
+        _type = FunctionTypeImpl(
+          typeFormals: instantiated.typeFormals,
+          parameters: instantiated.parameters,
+          returnType: instantiated.returnType,
+          nullabilitySuffix: nullabilitySuffix,
           element: element,
           typeArguments: arguments,
-          nullabilitySuffix: nullabilitySuffix,
         );
       } else {
         _type = _dynamicType;
       }
     } else if (element is NeverElementImpl) {
-      _type = BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(
         element,
@@ -188,10 +188,10 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     }).toList();
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      formalParameters,
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: formalParameters,
+      returnType: returnType,
       nullabilitySuffix: _getNullabilitySuffix(hasQuestion),
     );
   }
@@ -200,10 +200,10 @@ class NamedTypeBuilder extends TypeBuilder {
     if (node != null) {
       return _buildType(node?.type);
     } else {
-      return FunctionTypeImpl.synthetic(
-        _dynamicType,
-        const <TypeParameterElement>[],
-        const <ParameterElement>[],
+      return FunctionTypeImpl(
+        typeFormals: const <TypeParameterElement>[],
+        parameters: const <ParameterElement>[],
+        returnType: _dynamicType,
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }

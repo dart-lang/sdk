@@ -53,8 +53,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
-// TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
-  ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -133,7 +131,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
-  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: null)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
       valueHelp: 'opt1,opt2,...',
@@ -360,7 +358,27 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    compilerOptions.bytecode = options['gen-bytecode'] ?? options['aot'];
+    if (options['aot']) {
+      if (!options['link-platform']) {
+        print('Error: --no-link-platform option cannot be used with --aot');
+        return false;
+      }
+      if (options['split-output-by-packages']) {
+        print(
+            'Error: --split-output-by-packages option cannot be used with --aot');
+        return false;
+      }
+      if (options['incremental']) {
+        print('Error: --incremental option cannot be used with --aot');
+        return false;
+      }
+      if (options['import-dill'] != null) {
+        print('Error: --import-dill option cannot be used with --aot');
+        return false;
+      }
+    }
+
+    compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
       enableAsserts: options['enable-asserts'],
       emitSourceFiles: options['embed-source-text'],
@@ -581,7 +599,10 @@ class FrontendCompiler implements CompilerInterface {
         final IOSink sink = file.openWrite();
         final BinaryPrinter printer = filterExternal
             ? LimitedBinaryPrinter(
-                sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+                sink,
+                // ignore: DEPRECATED_MEMBER_USE
+                (lib) => !lib.isExternal,
+                true /* excludeUriToSource */)
             : printerFactory.newBinaryPrinter(sink);
 
         sortComponent(component);
@@ -594,7 +615,10 @@ class FrontendCompiler implements CompilerInterface {
       final IOSink sink = File(filename).openWrite();
       final BinaryPrinter printer = filterExternal
           ? LimitedBinaryPrinter(
-              sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+              sink,
+              // ignore: DEPRECATED_MEMBER_USE
+              (lib) => !lib.isExternal,
+              true /* excludeUriToSource */)
           : printerFactory.newBinaryPrinter(sink);
 
       sortComponent(component);

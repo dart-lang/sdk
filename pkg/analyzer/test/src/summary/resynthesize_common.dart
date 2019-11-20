@@ -7512,6 +7512,75 @@ void f() {}
 ''');
   }
 
+  test_instanceInference_operator_equal_legacy() async {
+    var library = await checkLibrary(r'''
+class A1 {
+  bool operator==(other) => false;
+}
+class A2 {
+  bool operator==(int other) => false;
+}
+class B1 extends A1 {
+  bool operator==(other) => false;
+}
+class B2 extends A2 {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A1 {
+  bool* ==(dynamic other) {}
+}
+class A2 {
+  bool* ==(int* other) {}
+}
+class B1 extends A1* {
+  bool* ==(dynamic other) {}
+}
+class B2 extends A2* {
+  bool* ==(int* other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_instanceInference_operator_equal_nnbd() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A1 {
+  bool operator==(other) => false;
+}
+class A2 {
+  bool operator==(int other) => false;
+}
+class B1 extends A1 {
+  bool operator==(other) => false;
+}
+class B2 extends A2 {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A1 {
+  bool ==(Object other) {}
+}
+class A2 {
+  bool ==(int other) {}
+}
+class B1 extends A1 {
+  bool ==(Object other) {}
+}
+class B2 extends A2 {
+  bool ==(int other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
     var library = await checkLibrary('''
 class C<S extends num, T extends C<S, T>> {}

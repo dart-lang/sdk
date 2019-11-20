@@ -29,6 +29,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
+import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -2435,6 +2436,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         emitIs(input, '!==', sourceInformation);
       } else if (input is HIsViaInterceptor) {
         emitIsViaInterceptor(input, sourceInformation, negative: true);
+      } else if (input is HIsTestSimple) {
+        _emitIsTestSimple(input, negative: true);
       } else if (input is HNot) {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
@@ -3367,6 +3370,66 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  visitIsTestSimple(HIsTestSimple node) {
+    _emitIsTestSimple(node);
+  }
+
+  _emitIsTestSimple(HIsTestSimple node, {bool negative: false}) {
+    use(node.checkedInput);
+    js.Expression value = pop();
+    String relation = negative ? '!=' : '==';
+
+    js.Expression handleNegative(js.Expression test) =>
+        negative ? js.Prefix('!', test) : test;
+
+    js.Expression typeof(String type) =>
+        js.Binary(relation, js.Prefix('typeof', value), js.string(type));
+
+    js.Expression isTest(MemberEntity helper) {
+      _registry.registerStaticUse(
+          StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+      js.Expression test =
+          js.Call(_emitter.staticFunctionAccess(helper), [value]);
+      return handleNegative(test);
+    }
+
+    js.Expression test;
+    switch (node.specialization) {
+      case IsTestSpecialization.null_:
+        // This case should be lowered to [HIdentity] during optimization.
+        test = js.Binary(relation, value, js.LiteralNull());
+        break;
+
+      case IsTestSpecialization.string:
+        test = typeof("string");
+        break;
+
+      case IsTestSpecialization.bool:
+        test = isTest(_commonElements.specializedIsBool);
+        break;
+
+      case IsTestSpecialization.num:
+        test = typeof("number");
+        break;
+
+      case IsTestSpecialization.int:
+        test = isTest(_commonElements.specializedIsInt);
+        break;
+
+      case IsTestSpecialization.arrayTop:
+        test = handleNegative(js.js('Array.isArray(#)', [value]));
+        break;
+
+      case IsTestSpecialization.instanceof:
+        InterfaceType type = node.dartType;
+        _registry.registerTypeUse(TypeUse.instanceConstructor(type));
+        test = handleNegative(js.js('# instanceof #',
+            [value, _emitter.constructorAccess(type.element)]));
+    }
+    push(test.withSourceInformation(node.sourceInformation));
+  }
+
+  @override
   visitAsCheck(HAsCheck node) {
     use(node.typeInput);
     js.Expression first = pop();
@@ -3429,7 +3492,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     // Try to use the 'rti' field, or a specialization of 'instanceType'.
-    AbstractValue receiverMask = input.instructionType;
+    AbstractValue receiverMask = node.codegenInputType;
 
     AbstractBool isArray = _abstractValueDomain.isInstanceOf(
         receiverMask, _commonElements.jsArrayClass);

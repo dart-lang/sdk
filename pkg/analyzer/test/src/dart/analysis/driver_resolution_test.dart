@@ -33,9 +33,9 @@ main() {
   });
 }
 
-final isBottomType = new TypeMatcher<BottomTypeImpl>();
-
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+
+final isNeverType = new TypeMatcher<NeverTypeImpl>();
 
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
@@ -132,7 +132,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     Element expectedBase,
     Map<String, String> expectedSubstitution,
   ) {
-    expect(actual.baseElement, same(expectedBase));
+    expect(actual.declaration, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(
       (k, v) => MapEntry(k.name, '$v'),
@@ -2188,7 +2188,7 @@ main() {
     MethodMember actualElement = indexExpression.staticElement;
     MethodMember expectedElement = listIntType.getMethod('[]');
     expect(actualElement.name, '[]');
-    expect(actualElement.baseElement, same(expectedElement.baseElement));
+    expect(actualElement.declaration, same(expectedElement.declaration));
     expect(actualElement.returnType, intType);
     expect(actualElement.parameters[0].type, intType);
   }
@@ -2826,7 +2826,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var throwExpression = findNode.throw_('throw 42;');
-    expect(throwExpression.staticType, isBottomType);
+    expect(throwExpression.staticType, isNeverType);
     assertType(throwExpression.expression, 'int');
   }
 
@@ -2838,7 +2838,7 @@ const c = throw 42;
     expect(result.errors, isNotEmpty);
 
     var throwExpression = findNode.throw_('throw 42;');
-    expect(throwExpression.staticType, isBottomType);
+    expect(throwExpression.staticType, isNeverType);
     assertType(throwExpression.expression, 'int');
   }
 
@@ -3891,7 +3891,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var rethrowExpression = findNode.rethrow_('rethrow;');
-    expect(rethrowExpression.staticType, isBottomType);
+    expect(rethrowExpression.staticType, isNeverType);
   }
 
   test_invalid_tryCatch_1() async {
@@ -4253,7 +4253,7 @@ void main() {
     FunctionElement fElement = fNode.declaredElement;
 
     expect(fElement.type.toString(),
-        'void Function<T extends U,U,V extends U>(T, U, V)');
+        'void Function<T extends U, U, V extends U>(T, U, V)');
     var tElement = fElement.typeParameters[0];
     var uElement = fElement.typeParameters[1];
     var vElement = fElement.typeParameters[2];
@@ -8700,18 +8700,7 @@ main() {
       expect(actual.type, memberType);
     }
 
-    ParameterElement base = actual;
-    if (actual is ParameterMember) {
-      base = actual.baseElement;
-      // Unwrap ParameterMember one more time.
-      // By some reason we wrap in twice.
-      if (base is ParameterMember) {
-        ParameterMember member = base;
-        base = member.baseElement;
-      }
-    }
-    ParameterElement baseActual = base;
-    expect(baseActual, same(expected));
+    expect(actual.declaration, same(expected));
 
     if (argument is NamedExpression) {
       SimpleIdentifier name = argument.name.label;

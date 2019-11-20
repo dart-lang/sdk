@@ -5,7 +5,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
@@ -16,7 +16,7 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
 
-import '../problems.dart' show unexpected;
+import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -25,7 +25,9 @@ import 'constructor_reference_builder.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'library_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -35,6 +37,10 @@ abstract class ProcedureBuilder implements FunctionBuilder {
   ProcedureBuilder get patchForTesting;
 
   AsyncMarker actualAsyncModifier;
+
+  Procedure get procedure;
+
+  ProcedureKind get kind;
 
   Procedure get actualProcedure;
 
@@ -49,8 +55,6 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   /// Returns `true` if this procedure is declared in an extension declaration.
   bool get isExtensionMethod;
-
-  Procedure build(SourceLibraryBuilder libraryBuilder);
 }
 
 class ProcedureBuilderImpl extends FunctionBuilderImpl
@@ -110,6 +114,49 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
+  Member get readTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+        return extensionTearOff ?? procedure;
+      case ProcedureKind.Getter:
+        return procedure;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return procedure;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return procedure;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
   ProcedureBuilder get origin => actualOrigin ?? this;
 
   @override
@@ -152,6 +199,36 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   bool get isExtensionMethod {
     return parent is ExtensionBuilder;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    if (isExtensionMethod) {
+      switch (kind) {
+        case ProcedureKind.Method:
+          f(member, BuiltMemberKind.ExtensionMethod);
+          break;
+        case ProcedureKind.Getter:
+          f(member, BuiltMemberKind.ExtensionGetter);
+          break;
+        case ProcedureKind.Setter:
+          f(member, BuiltMemberKind.ExtensionSetter);
+          break;
+        case ProcedureKind.Operator:
+          f(member, BuiltMemberKind.ExtensionOperator);
+          break;
+        case ProcedureKind.Factory:
+          throw new UnsupportedError(
+              'Unexpected extension method kind ${kind}');
+      }
+      if (extensionTearOff != null) {
+        f(extensionTearOff, BuiltMemberKind.ExtensionTearOff);
+      }
+    } else {
+      f(member, BuiltMemberKind.Method);
+    }
   }
 
   @override
@@ -244,7 +321,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
       typeParameters.add(newTypeParameter);
       typeArguments.add(substitutionMap[typeParameter] =
-          new TypeParameterType(newTypeParameter));
+          new TypeParameterType(newTypeParameter, Nullability.legacy));
     }
 
     List<TypeParameter> tearOffTypeParameters = <TypeParameter>[];
@@ -354,7 +431,6 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get procedure => isPatch ? origin.procedure : _procedure;
 
-  @override
   Procedure get extensionTearOff {
     if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
@@ -460,8 +536,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0; i < function.typeParameters.length; i++) {
-          substitution[function.typeParameters[i]] =
-              new TypeParameterType(actualOrigin.function.typeParameters[i]);
+          substitution[function.typeParameters[i]] = new TypeParameterType(
+              actualOrigin.function.typeParameters[i], Nullability.legacy);
         }
         List<DartType> newTypeArguments =
             new List<DartType>(typeArguments.length);
@@ -472,6 +548,13 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       }
       actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(member, BuiltMemberKind.RedirectingFactory);
   }
 
   @override

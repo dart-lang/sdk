@@ -740,4 +740,10 @@ class BytecodeAssembler {
     emitSourcePosition();
     _emitInstructionD(Opcode.kNullCheck, rd);
   }
+
+  @pragma('vm:prefer-inline')
+  void emitInitLateField(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kInitLateField, rd);
+  }
 }

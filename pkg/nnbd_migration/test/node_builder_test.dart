@@ -871,7 +871,7 @@ void f(T Function<T, U>(U) x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(decoratedType.type.toString(), 'T Function<T,U>(U)');
+    expect(decoratedType.type.toString(), 'T Function<T, U>(U)');
     expect(decoratedType.typeFormals, hasLength(2));
     var t = decoratedType.typeFormals[0];
     var u = decoratedType.typeFormals[1];

@@ -6,7 +6,8 @@ import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:expect/expect.dart" show Expect;
 
-import "package:kernel/ast.dart" show Class, Component, DartType, InterfaceType;
+import "package:kernel/ast.dart"
+    show Class, Component, DartType, InterfaceType, Nullability;
 
 import "package:kernel/core_types.dart";
 
@@ -82,9 +83,9 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
     //     {N<C1<String>>, Object} for N<C1<String>> and
     // Object is the most specific type in the intersection of the supertypes.
     checkGetLegacyLeastUpperBound(
-        new InterfaceType(C1, [intType]),
-        new InterfaceType(N, [
-          new InterfaceType(C1, [stringType])
+        new InterfaceType(C1, Nullability.legacy, [intType]),
+        new InterfaceType(N, Nullability.legacy, [
+          new InterfaceType(C1, Nullability.legacy, [stringType])
         ]),
         objectType);
 
@@ -94,9 +95,9 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
     //     {N<C2<String>>, Object} for N<C2<String>> and
     // Object is the most specific type in the intersection of the supertypes.
     checkGetLegacyLeastUpperBound(
-        new InterfaceType(C2, [intType]),
-        new InterfaceType(N, [
-          new InterfaceType(C2, [stringType])
+        new InterfaceType(C2, Nullability.legacy, [intType]),
+        new InterfaceType(N, Nullability.legacy, [
+          new InterfaceType(C2, Nullability.legacy, [stringType])
         ]),
         objectType);
   }
@@ -119,21 +120,25 @@ class F implements D<int*, bool*>;
     Class f = getClass("F");
 
     checkGetLegacyLeastUpperBound(
-        new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [intType, doubleType]));
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]));
     checkGetLegacyLeastUpperBound(
-        new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [intType, boolType]),
-        new InterfaceType(b, [intType]));
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        new InterfaceType(d, Nullability.legacy, [intType, boolType]),
+        new InterfaceType(b, Nullability.legacy, [intType]));
     checkGetLegacyLeastUpperBound(
-        new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [boolType, doubleType]),
-        new InterfaceType(c, [doubleType]));
-    checkGetLegacyLeastUpperBound(new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [boolType, intType]), coreTypes.legacyRawType(a));
-    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(e),
-        coreTypes.legacyRawType(f), new InterfaceType(b, [intType]));
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        new InterfaceType(d, Nullability.legacy, [boolType, doubleType]),
+        new InterfaceType(c, Nullability.legacy, [doubleType]));
+    checkGetLegacyLeastUpperBound(
+        new InterfaceType(d, Nullability.legacy, [intType, doubleType]),
+        new InterfaceType(d, Nullability.legacy, [boolType, intType]),
+        coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(
+        coreTypes.legacyRawType(e),
+        coreTypes.legacyRawType(f),
+        new InterfaceType(b, Nullability.legacy, [intType]));
   }
 
   Future<void> test_getLegacyLeastUpperBound_nonGeneric() async {

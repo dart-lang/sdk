@@ -299,10 +299,10 @@ class FfiTransformer extends Transformer {
     }
     if (kNativeTypeIntStart.index <= nativeType_.index &&
         nativeType_.index <= kNativeTypeIntEnd.index) {
-      return InterfaceType(intClass);
+      return InterfaceType(intClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {
-      return InterfaceType(doubleClass);
+      return InterfaceType(doubleClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kVoid) {
       return VoidType();
@@ -326,7 +326,7 @@ class FfiTransformer extends Transformer {
         .map((t) => convertNativeTypeToDartType(t, /*allowStructs=*/ false))
         .toList();
     if (argumentTypes.contains(null)) return null;
-    return FunctionType(argumentTypes, returnType);
+    return FunctionType(argumentTypes, returnType, Nullability.legacy);
   }
 
   NativeType getType(Class c) {

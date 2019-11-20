@@ -158,5 +158,5 @@ external void _postEvent(String eventKind, String eventData);
 // these into Dart code unless you can ensure that the operations will can be
 // done atomically. Native code lives in vm/isolate.cc-
 // LookupServiceExtensionHandler and RegisterServiceExtensionHandler.
-external ServiceExtensionHandler _lookupExtension(String method);
+external ServiceExtensionHandler? _lookupExtension(String method);
 external _registerExtension(String method, ServiceExtensionHandler handler);

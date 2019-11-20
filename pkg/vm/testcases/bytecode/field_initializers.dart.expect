@@ -29,16 +29,16 @@ Class 'A', script = '#lib'
 Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
     value = null
 
-Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable
+Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
     value = null
 
-Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable
+Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
     value = const 42
 
 Field 'foo4', type = dart:core::int, getter = 'get:foo4', setter = 'set:foo4', reflectable
     value = null
 
-Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable
+Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
     value = const 43
 
 Function '', constructor, reflectable, debuggable
@@ -162,13 +162,13 @@ ConstantPool {
 Class 'B', script = '#lib'
     extends #lib::A
 
-Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable
+Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
     value = const 46
 
-Field 'foo7', type = dart:core::int, reflectable, static
+Field 'foo7', type = dart:core::int, reflectable, static, has-initializer
     value = const 47
 
-Field 'foo8', type = dart:core::int, reflectable, static, const, final
+Field 'foo8', type = dart:core::int, reflectable, static, const, final, has-initializer
     value = const 48
 
 Function '', constructor, reflectable, debuggable

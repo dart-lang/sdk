@@ -22,9 +22,9 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 
-final isBottomType = new TypeMatcher<BottomTypeImpl>();
-
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+
+final isNeverType = new TypeMatcher<NeverTypeImpl>();
 
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
@@ -82,7 +82,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ) {
     var actual = getNodeAuxElements(node)?.staticElement as ExecutableMember;
 
-    expect(actual.baseElement, same(expectedBase));
+    expect(actual.declaration, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(
       (k, v) => MapEntry(k.name, '$v'),
@@ -103,7 +103,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertConstructorElement(
       ConstructorElement expected, ConstructorElement actual) {
     if (expected is ConstructorMember && actual is ConstructorMember) {
-      expect(expected.baseElement, same(actual.baseElement));
+      expect(expected.declaration, same(actual.declaration));
       // TODO(brianwilkerson) Compare the type arguments of the two members.
     } else {
       expect(expected, same(actual));
@@ -296,8 +296,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expectedSubstitution,
   ) {
     Member actual = getNodeElement(node);
+    assertMember2(actual, expectedBase, expectedSubstitution);
+  }
 
-    expect(actual.baseElement, same(expectedBase));
+  void assertMember2(
+    Element actualElement,
+    Element expectedBase,
+    Map<String, String> expectedSubstitution,
+  ) {
+    var actual = actualElement as Member;
+    expect(actual.declaration, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(
       (k, v) => MapEntry(k.name, '$v'),
@@ -318,12 +326,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     // TODO(scheglov) Check for Member.
     var element = invocation.methodName.staticElement;
-    if (element is Member) {
-      element = (element as Member).baseElement;
-      expect(element, same(expectedElement));
-    } else {
-      assertElement(invocation.methodName, expectedElement);
-    }
+    expect(element?.declaration, same(expectedElement));
 
     // TODO(scheglov) Should we enforce this?
 //    if (expectedNameType == null) {

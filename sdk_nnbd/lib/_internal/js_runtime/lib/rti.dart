@@ -24,7 +24,13 @@ import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
 import 'dart:_js_embedded_names'
-    show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE, TYPES;
+    show
+        JsBuiltin,
+        JsGetName,
+        RtiUniverseFieldNames,
+        CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME,
+        RTI_UNIVERSE,
+        TYPES;
 
 import 'dart:_recipe_syntax';
 
@@ -103,6 +109,18 @@ class Rti {
 
   static void _setPrecomputed1(Rti rti, Rti precomputed) {
     rti._precomputed1 = precomputed;
+  }
+
+  // Data value used by some tests.
+  @pragma('dart2js:noElision')
+  Object _specializedTestResource;
+
+  static Object _getSpecializedTestResource(Rti rti) {
+    return rti._specializedTestResource;
+  }
+
+  static void _setSpecializedTestResource(Rti rti, Object value) {
+    rti._specializedTestResource = value;
   }
 
   // The Type object corresponding to this Rti.
@@ -545,10 +563,14 @@ _FunctionParameters _instantiateFunctionParameters(universe,
   return result;
 }
 
+bool _isDartObject(object) => _Utils.instanceOf(object,
+    JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
+
 bool _isClosure(object) => _Utils.instanceOf(object,
     JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartClosureConstructor));
 
-/// Returns the structural function [Rti] of [closure].
+/// Returns the structural function [Rti] of [closure], or `null`.
+/// [closure] must be a subclass of [Closure].
 /// Called from generated code.
 Rti closureFunctionType(closure) {
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
@@ -560,19 +582,6 @@ Rti closureFunctionType(closure) {
     return _castToRti(JS('', '#[#]()', closure, signatureName));
   }
   return null;
-}
-
-// Subclasses of Closure are synthetic classes. The synthetic classes all
-// extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
-// them appear to be the superclass.
-// TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
-// prototype of Closure/BoundClosure/StaticClosure classes?
-Rti _closureInterfaceType(closure) {
-  var rti = JS('', r'#[#]', closure, JS_GET_NAME(JsGetName.RTI_NAME));
-  return rti != null
-      ? _castToRti(rti)
-      : _instanceTypeFromConstructor(
-          JS('', '#.__proto__.__proto__.constructor', closure));
 }
 
 /// Returns the Rti type of [object]. Closures have both an interface type
@@ -594,23 +603,18 @@ Rti instanceOrFunctionType(object, Rti testRti) {
 }
 
 /// Returns the Rti type of [object].
+/// This is the general entry for obtaining the interface type of any value.
 /// Called from generated code.
 Rti instanceType(object) {
-  if (_isClosure(object)) return _closureInterfaceType(object);
-  return _nonClosureInstanceType(object);
-}
+  // TODO(sra): Add interceptor-based specializations of this method. Inject a
+  // _getRti method into (Dart)Object, JSArray, and Interceptor. Then calls to
+  // this method can be generated as `getInterceptor(o)._getRti(o)`, allowing
+  // interceptor optimizations to select the specialization. If the only use of
+  // `getInterceptor` is for calling `_getRti`, then `instanceType` can be
+  // called, similar to a one-shot interceptor call. This would improve type
+  // lookup in ListMixin code as the interceptor is JavaScript 'this'.
 
-Rti _nonClosureInstanceType(object) {
-  // TODO(sra): Add specializations of this method. One possible way is to
-  // arrange that the interceptor has a _getType method that is injected into
-  // DartObject, Interceptor and JSArray. Then this method can be replaced-by
-  // `getInterceptor(o)._getType(o)`, allowing interceptor optimizations to
-  // select the specialization.
-
-  if (_Utils.instanceOf(
-      object,
-      JS_BUILTIN(
-          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
+  if (_isDartObject(object)) {
     return _instanceType(object);
   }
 
@@ -619,7 +623,7 @@ Rti _nonClosureInstanceType(object) {
   }
 
   var interceptor = getInterceptor(object);
-  return _instanceTypeFromConstructor(JS('', '#.constructor', interceptor));
+  return _instanceTypeFromConstructor(interceptor);
 }
 
 /// Returns the Rti type of JavaScript Array [object].
@@ -638,9 +642,7 @@ Rti _arrayInstanceType(object) {
 /// Called from generated code.
 Rti _instanceType(object) {
   var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
-  return rti != null
-      ? _castToRti(rti)
-      : _instanceTypeFromConstructor(JS('', '#.constructor', object));
+  return rti != null ? _castToRti(rti) : _instanceTypeFromConstructor(object);
 }
 
 String instanceTypeName(object) {
@@ -648,10 +650,32 @@ String instanceTypeName(object) {
   return _rtiToString(rti, null);
 }
 
-Rti _instanceTypeFromConstructor(constructor) {
-  // TODO(sra): Cache Rti on constructor.
-  return _Universe.findErasedType(
-      _theUniverse(), JS('String', '#.name', constructor));
+Rti _instanceTypeFromConstructor(instance) {
+  var constructor = JS('', '#.constructor', instance);
+  var probe = JS('', r'#[#]', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME);
+  if (probe != null) return _castToRti(probe);
+  return _instanceTypeFromConstructorMiss(instance, constructor);
+}
+
+@pragma('dart2js:noInline')
+Rti _instanceTypeFromConstructorMiss(instance, constructor) {
+  // Subclasses of Closure are synthetic classes. The synthetic classes all
+  // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
+  // them appear to be the superclass. Instantiations have a `$ti` field so
+  // don't reach here.
+  //
+  // TODO(39214): This will need fixing if we ever use instances of
+  // StaticClosure for static tear-offs.
+  //
+  // TODO(sra): Can this test be avoided, e.g. by putting $ti on the
+  // prototype of Closure/BoundClosure/StaticClosure classes?
+  var effectiveConstructor = _isClosure(instance)
+      ? JS('', '#.__proto__.__proto__.constructor', instance)
+      : constructor;
+  Rti rti = _Universe.findErasedType(
+      _theUniverse(), JS('String', '#.name', effectiveConstructor));
+  JS('', r'#[#] = #', constructor, CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME, rti);
+  return rti;
 }
 
 /// Returns the structural function type of [object], or `null` if the object is
@@ -674,7 +698,7 @@ Rti getTypeFromTypesTable(/*int*/ _index) {
 }
 
 Type getRuntimeType(object) {
-  Rti rti = _instanceFunctionType(object) ?? _nonClosureInstanceType(object);
+  Rti rti = _instanceFunctionType(object) ?? instanceType(object);
   return createRuntimeType(rti);
 }
 
@@ -752,6 +776,16 @@ bool _installSpecializedIsTest(object) {
       isFn = RAW_DART_FUNCTION_REF(_isString);
     } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
       isFn = RAW_DART_FUNCTION_REF(_isBool);
+    } else {
+      String name = Rti._getInterfaceName(testRti);
+      var arguments = Rti._getInterfaceTypeArguments(testRti);
+      if (JS(
+          'bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+        String propertyName =
+            '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
+        Rti._setSpecializedTestResource(testRti, propertyName);
+        isFn = RAW_DART_FUNCTION_REF(_isTestViaProperty);
+      }
     }
   }
 
@@ -766,6 +800,24 @@ bool _generalIsTestImplementation(object) {
   Rti testRti = _castToRti(JS('', 'this'));
   Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
+}
+
+/// Called from generated code.
+bool _isTestViaProperty(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  var tag = Rti._getSpecializedTestResource(testRti);
+
+  // This test is redundant with getInterceptor below, but getInterceptor does
+  // the tests in the wrong order for most tags, so it is usually faster to have
+  // this check.
+  if (_isDartObject(object)) {
+    return JS('bool', '!!#[#]', object, tag);
+  }
+
+  var interceptor = getInterceptor(object);
+  return JS('bool', '!!#[#]', interceptor, tag);
 }
 
 /// Called from generated code.

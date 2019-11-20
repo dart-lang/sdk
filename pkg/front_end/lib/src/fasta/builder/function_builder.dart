@@ -7,7 +7,7 @@ library fasta.procedure_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
@@ -34,7 +34,7 @@ import '../problems.dart' show unexpected;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -103,8 +103,6 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   bool get isNative;
 
-  FunctionNode buildFunction(LibraryBuilder library);
-
   /// Returns the [index]th parameter of this function.
   ///
   /// The index is the syntactical index, including both positional and named
@@ -127,8 +125,6 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// Returns a list of synthetic type parameters added to extension instance
   /// members.
   List<TypeParameter> get extensionTypeParameters;
-
-  Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader);
 
@@ -339,7 +335,6 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  @override
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
@@ -496,6 +491,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       }
     }
   }
+
+  Member build(SourceLibraryBuilder library);
 
   @override
   void becomeNative(Loader loader) {

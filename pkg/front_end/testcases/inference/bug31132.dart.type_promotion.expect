@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/bug31132.dart:15:28: Context: Possible promotion of x@318
-  var /*@ type=C* */ y = x is C ? /*@ promotedType=C* */ x : new C();
-                           ^^

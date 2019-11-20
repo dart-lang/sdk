@@ -8,6 +8,9 @@ Status: Living document.
 
 ## CHANGELOG
 
+2019.11.06:
+- Described required nullability parameter.
+
 2019.10.18:
 - Added information about `NeverType`.
 
@@ -16,8 +19,6 @@ Status: Living document.
 
 2019.10.15:
 - Added information about implementing the subtype relation.
-
-2019.10.15:
 - Added description of `DartType.withNullability`.
 
 2019.09.26:
@@ -290,7 +291,7 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 #### Nullability attribute on types
 
 - `DartType.nullability` is added to `DartType` and the implementations are added to the subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
-- Nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.
+- The required nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.  All of the call sites were modified so that `Nullability.legacy` is passed for the parameter.
 - `TypeParameterType.typeParameterTypeNullability` is added.  For details see section **Nullability of Intersection Types** of this document.
 - `TypeParameterType.computeNullabilityFromBound` is added.
 - `DartType.withNullability` method is added to `DartType` and is implemented in its subclasses.  The method takes a single parameter, the desired nullability, and returns the type that is the receiver with the given nullability.  If the receiver already has the nullability that is passed in as the parameter, the receiver object itself is returned, and a copy isn't created.  If the types that are represented by a particular `DartType` subclass always have a certain nullability, like `dynamic` or `void`, invocations of `withNullability` on them always return the receiver.
@@ -344,7 +345,7 @@ This set of members makes it possible to avoid the explicit use of `Nullability.
 
 #### Avoiding explicit legacy
 
-As described in section **Changes in caching of raw types**, all previously existing invocations of `Class.rawType` and of the related getters of `TypeEnvironment` were replaced with invocations of nullability-aware members of `CoreTypes`.  To keep the observable behavior of the client code, legacy types were used wherever before a raw type was used.  For example, `intClass.rawType` was replaced with `coreTypes.intLegacyRawType` and `cls.rawType` was replaced with `coreTypes.legacyRawType(cls)`.  All of those call sites should be updated as a part of the NNBD feature implementation because they are the source of legacy types regardless of the opted-in status of the library they are generated for.  Section **Library status and library-specific nullability treatment** describes the changes in the CFE public interface that are supposed to help with the process.
+As described in section **Nullability attribute on types**, all previously existing invocations of the constructors of `InterfaceType`, `TypedefType`, `TypeParameterType`, and `FunctionType` were given additional argument that specifies the nullability of the created type; `Nullability.legacy` was used in the cases that weren't migrated to the NNBD semantics yet.  Additionally, as described in section **Changes in caching of raw types**, all previously existing invocations of `Class.rawType` and of the related getters of `TypeEnvironment` were replaced with invocations of nullability-aware members of `CoreTypes`.  To keep the observable behavior of the client code, legacy types were used wherever before a raw type was used.  For example, `intClass.rawType` was replaced with `coreTypes.intLegacyRawType` and `cls.rawType` was replaced with `coreTypes.legacyRawType(cls)`.  All of those call sites should be updated as a part of the NNBD feature implementation because they are the source of legacy types regardless of the opted-in status of the library they are generated for.  Section **Library status and library-specific nullability treatment** describes the changes in the CFE public interface that are supposed to help with the process.
 
 The easiest way to avoid using explicitly legacy types is to do the following:
 
@@ -356,13 +357,13 @@ Quick recommendations for updating the described code are listed below.  The exa
 - Replace `coreTypes.intLegacyRawType` with `coreTypes.intRawType(library.nonNullable)`.  Similarly for other built-in types.
 - Replace `coreTypes.legacyRawType(cls)` with `coreTypes.rawType(cls, library.nonNullable)`.
 - Replace `coreTypes.rawType(cls, Nullability.legacy)` with `coreTypes.rawType(cls, library.nonNullable)`.
-- Replace `new InterfaceType(cls, typeArgs)` with `new InterfaceType(cls, typeArgs, library.nonNullable)`.
-- Replace `new InterfaceType(cls)` with `new InterfaceType(cls, const <DartType>[], library.nonNullable)`.
-- Replace `new InterfaceType.byReference(clsRef, typeArgs)` with `new InterfaceType.byReference(clsRef, typeArgs, library.nonNullable)`.
-- Replace `new FunctionType(positional, retType, <NAMED>)` with `new FunctionType(positional, retType, nullability: library.nonNullable, <NAMED>)` where `<NAMED>` are the named arguments passed in.
-- Replace `new TypedefType(tdef, typeArgs)` with `new TypedefType(tdef, typeArgs, library.nonNullable)`.
-- Replace `new TypedefType(tdef)` with `new TypedefType(tdef, const <DartType>[], library.nonNullable)`.
-- Replace `new TypedefType.byReference(tdefRef, typeArgs)` with `new TypedefType.byReference(tdefRef, typeArgs, library.nonNullable)`.
+- Replace `new InterfaceType(cls, Nullability.legacy, typeArgs)` with `new InterfaceType(cls, library.nonNullable, typeArgs)`.
+- Replace `new InterfaceType(cls, Nullability.legacy)` with `new InterfaceType(cls, library.nonNullable)`.
+- Replace `new InterfaceType.byReference(clsRef, Nullability.legacy, typeArgs)` with `new InterfaceType.byReference(clsRef, library.nonNullable, typeArgs)`.
+- Replace `new FunctionType(positional, retType, Nullability.legacy, <NAMED>)` with `new FunctionType(positional, retType, library.nonNullable, <NAMED>)` where `<NAMED>` are the named arguments passed in.
+- Replace `new TypedefType(tdef, Nullability.legacy, typeArgs)` with `new TypedefType(tdef, library.nonNullable, typeArgs)`.
+- Replace `new TypedefType(tdef, Nullability.legacy)` with `new TypedefType(tdef, library.nonNullable)`.
+- Replace `new TypedefType.byReference(tdefRef, Nullability.legacy, typeArgs)` with `new TypedefType.byReference(tdefRef, library.nonNullable, typeArgs)`.
 
 The code updated this way will generate nullable and non-nullable types as desired for the opted-in libraries and will generate legacy types for the opted-out libraries.  It should also be easy to deprecate the weak-NNBD mode for such code: `Library.nonNullable` and `Library.nullable` will start returning the corresponding nullability constants.
 

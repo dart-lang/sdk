@@ -217,10 +217,10 @@ Class 'Base', script = '#lib'
     type-params <dart:core::Object T1, dart:core::Object T2> (args: 2)
     extends dart:core::Object
 
-Field 't1', type = #lib::Base::TypeParam/0, getter = 'get:t1', setter = 'set:t1', reflectable
+Field 't1', type = #lib::Base::TypeParam/0, getter = 'get:t1', setter = 'set:t1', reflectable, has-initializer
     value = null
 
-Field 't2', type = #lib::Base::TypeParam/1, getter = 'get:t2', setter = 'set:t2', reflectable
+Field 't2', type = #lib::Base::TypeParam/1, getter = 'get:t2', setter = 'set:t2', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable, debuggable

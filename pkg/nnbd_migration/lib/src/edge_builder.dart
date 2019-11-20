@@ -128,9 +128,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// For convenience, a [DecoratedType] representing non-nullable `Type`.
   final DecoratedType _nonNullableTypeType;
 
-  /// For convenience, a [DecoratedType] representing `Null`.
-  final DecoratedType _nullType;
-
   /// For convenience, a [DecoratedType] representing `dynamic`.
   final DecoratedType _dynamicType;
 
@@ -203,7 +200,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
             DecoratedType(typeProvider.typeType, _graph.never),
-        _nullType = DecoratedType(typeProvider.nullType, _graph.always),
         _dynamicType = DecoratedType(typeProvider.dynamicType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
@@ -211,7 +207,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType getOrComputeElementType(Element element,
       {DecoratedType targetType}) {
     Map<TypeParameterElement, DecoratedType> substitution;
-    Element baseElement = element is Member ? element.baseElement : element;
+    Element baseElement = element.declaration;
     if (targetType != null) {
       var classElement = baseElement.enclosingElement as ClassElement;
       if (classElement.typeParameters.isNotEmpty) {
@@ -970,7 +966,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
     _flowAnalysis.nullLiteral(node);
-    return _nullType;
+    var decoratedType =
+        DecoratedType.forImplicitType(typeProvider, node.staticType, _graph);
+    _graph.makeNullable(
+        decoratedType.node, AlwaysNullableTypeOrigin(source, node));
+    return decoratedType;
   }
 
   @override
@@ -1094,8 +1094,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Expression returnValue = node.expression;
     final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
     if (returnValue == null) {
+      var implicitNullType = DecoratedType.forImplicitType(
+          typeProvider, typeProvider.nullType, _graph);
+      _graph.makeNullable(
+          implicitNullType.node, AlwaysNullableTypeOrigin(source, node));
       _checkAssignment(null,
-          source: isAsync ? _futureOf(_nullType) : _nullType,
+          source: isAsync ? _futureOf(implicitNullType) : implicitNullType,
           destination: returnType,
           hard: false);
     } else {
@@ -1622,7 +1626,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             '(${expression.toSource()}) offset=${expression.offset}');
       }
       EdgeOrigin edgeOrigin;
-      if (!sourceType.type.isDynamic) {
+      if (sourceType.type.isDynamic) {
+        edgeOrigin = DynamicAssignmentOrigin(source, expression);
+      } else {
         if (fromDefaultValue) {
           edgeOrigin = DefaultValueOrigin(source, expression);
         } else {
@@ -1702,10 +1708,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   void _handleConstructorRedirection(
       FormalParameterList parameters, ConstructorName redirectedConstructor) {
-    var callee = redirectedConstructor.staticElement;
-    if (callee is ConstructorMember) {
-      callee = (callee as ConstructorMember).baseElement;
-    }
+    var callee = redirectedConstructor.staticElement.declaration;
     var redirectedClass = callee.enclosingElement;
     var calleeType = _variables.decoratedElementType(callee);
     var typeArguments = redirectedConstructor.type.typeArguments;
@@ -1751,10 +1754,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 classElement.thisType,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
             const <ExecutableElement>[]) {
-          if (overriddenElement is ExecutableMember) {
-            var member = overriddenElement as ExecutableMember;
-            overriddenElement = member.baseElement;
-          }
+          overriddenElement = overriddenElement.declaration;
           var overriddenClass =
               overriddenElement.enclosingElement as ClassElement;
           var decoratedOverriddenFunctionType =

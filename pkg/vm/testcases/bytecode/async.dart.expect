@@ -9,7 +9,7 @@ Library '#lib'
 
 Class '', script = '#lib'
 
-Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < dart:core::Null >, getter = 'get:asyncInFieldInitializer', reflectable, static
+Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < dart:core::Null >, getter = 'get:asyncInFieldInitializer', reflectable, static, has-initializer
     initializer
 Bytecode {
   Entry                3
@@ -73,6 +73,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateContext      0, 9
   PopLocal             r0
@@ -1560,6 +1561,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateContext      1, 9
   StoreLocal           r1

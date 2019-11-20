@@ -617,19 +617,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   InterfaceType get legacyRawType {
     // TODO(dmitryas): Use computeBound instead of DynamicType here?
-    return _legacyRawType ??= new InterfaceType(
-        cls,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
-        Nullability.legacy);
+    return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
   InterfaceType get nullableRawType {
     // TODO(dmitryas): Use computeBound instead of DynamicType here?
-    return _nullableRawType ??= new InterfaceType(
-        cls,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
-        Nullability.nullable);
+    return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
@@ -637,8 +633,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _nonNullableRawType ??= new InterfaceType(
         cls,
-        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
-        Nullability.nonNullable);
+        Nullability.nonNullable,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
@@ -665,7 +661,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     return arguments == null
         ? rawType(nullability)
-        : new InterfaceType(cls, arguments, nullability);
+        : new InterfaceType(cls, nullability, arguments);
   }
 
   @override
@@ -807,7 +803,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     SourceLibraryBuilder library = this.library;
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        new InterfaceType(supertype.classNode, supertype.typeArguments),
+        new InterfaceType(
+            supertype.classNode, Nullability.legacy, supertype.typeArguments),
         typeEnvironment,
         allowSuperBounded: false);
     if (issues != null) {
@@ -1411,7 +1408,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType(declaredFunction.typeParameters[i]);
+            new TypeParameterType(
+                declaredFunction.typeParameters[i], Nullability.legacy);
       }
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {

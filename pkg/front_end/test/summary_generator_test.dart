@@ -39,6 +39,7 @@ main() {
     var component = loadComponentFromBytes(summary);
     var aLib = findLibrary(component, 'a.dart');
     expect(aLib.importUri.path, '/a/b/c/a.dart');
+    // ignore: DEPRECATED_MEMBER_USE
     expect(aLib.isExternal, isFalse);
   });
 
@@ -47,6 +48,7 @@ main() {
     var summary = await summarize(['a.dart'], allSources);
     var component = loadComponentFromBytes(summary);
     var coreLib = findLibrary(component, 'core');
+    // ignore: DEPRECATED_MEMBER_USE
     expect(coreLib.isExternal, isTrue);
   });
 
@@ -60,7 +62,9 @@ main() {
     var component = loadComponentFromBytes(summaryB);
     var aLib = findLibrary(component, 'a.dart');
     var bLib = findLibrary(component, 'b.dart');
+    // ignore: DEPRECATED_MEMBER_USE
     expect(aLib.isExternal, isTrue);
+    // ignore: DEPRECATED_MEMBER_USE
     expect(bLib.isExternal, isFalse);
   });
 
@@ -151,9 +155,13 @@ checkDSummary(List<int> summary) {
   var dLib = findLibrary(component, 'd.dart');
 
   // All libraries but `d.dart` are marked external.
+  // ignore: DEPRECATED_MEMBER_USE
   expect(aLib.isExternal, isTrue);
+  // ignore: DEPRECATED_MEMBER_USE
   expect(bLib.isExternal, isTrue);
+  // ignore: DEPRECATED_MEMBER_USE
   expect(cLib.isExternal, isTrue);
+  // ignore: DEPRECATED_MEMBER_USE
   expect(dLib.isExternal, isFalse);
 
   // The type-hierarchy for A, B, D is visible and correct

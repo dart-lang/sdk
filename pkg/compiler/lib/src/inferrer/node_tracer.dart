@@ -270,6 +270,14 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
+  @override
+  visitIndirectDynamicCallSiteTypeInformation(
+      IndirectDynamicCallSiteTypeInformation info) {
+    if (info.dynamicCall == currentUser) {
+      addNewEscapeInformation(info);
+    }
+  }
+
   void analyzeStoredIntoList(ListTypeInformation list) {
     inferrer.analyzeListAndEnqueue(list);
     if (list.bailedOut) {
@@ -545,6 +553,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       // [visitDynamicCallSiteTypeInformation].
       return;
     }
+    addNewEscapeInformation(info);
+  }
+
+  @override
+  void visitIndirectParameterTypeInformation(
+      IndirectParameterTypeInformation info) {
     addNewEscapeInformation(info);
   }
 }

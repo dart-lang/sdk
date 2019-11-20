@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -47,7 +48,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The object providing access to the types defined by the language.
    */
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
 
   /**
    * The type system in use for static type analysis.
@@ -70,9 +71,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   DartType thisType;
 
-  InterfaceType _iterableForSetMapDisambiguationCached;
-  InterfaceType _mapForSetMapDisambiguationCached;
-
   /**
    * The object providing promoted or declared types of variables.
    */
@@ -94,31 +92,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
-  }
-
-  InterfaceType get _iterableForSetMapDisambiguation {
-    return _iterableForSetMapDisambiguationCached ??=
-        _typeProvider.iterableElement.instantiate(
-      typeArguments: [
-        _typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get _mapForSetMapDisambiguation {
-    return _mapForSetMapDisambiguationCached ??=
-        _typeProvider.mapElement.instantiate(
-      typeArguments: [
-        _typeProvider.dynamicType,
-        _typeProvider.dynamicType,
-      ],
-      nullabilitySuffix: _nonNullableEnabled
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.star,
-    );
   }
 
   NullabilitySuffix get _noneOrStarSuffix {
@@ -1449,35 +1422,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return returnType.type;
   }
 
-  /// If [node] is a null-shorting expression, updates flow analysis as
-  /// appropriate to finish the null shorting, and returns `true`.  Otherwise
-  /// returns `false`.
-  bool _finishNullShorting(Expression node) {
-    bool nullShortingFound = false;
-    while (true) {
-      Expression next;
-      if (node is AssignmentExpression) {
-        next = node.leftHandSide;
-      } else if (node is IndexExpression) {
-        if (node.isNullAware) {
-          nullShortingFound = true;
-          _flowAnalysis?.flow?.nullAwareAccess_end();
-        }
-        next = node.target;
-      } else if (node is PropertyAccess) {
-        if (node.isNullAware) {
-          nullShortingFound = true;
-          _flowAnalysis?.flow?.nullAwareAccess_end();
-        }
-        next = node.target;
-      } else {
-        break;
-      }
-      node = next;
-    }
-    return nullShortingFound;
-  }
-
   /**
    * If the given element name can be mapped to the name of a class defined within the given
    * library, return the type specified by the argument.
@@ -1636,7 +1580,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       bool isNull = expressionType.isDartCoreNull;
       if (!isNull && expressionType is InterfaceType) {
         if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.iterableObjectType)) {
+            expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableElement);
           return _InferredCollectionElementTypeInformation(
@@ -1644,7 +1588,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.mapObjectObjectType)) {
+            expressionType, _typeProvider.mapForSetMapDisambiguation)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapElement);
           List<DartType> typeArguments = mapType.typeArguments;
@@ -1786,7 +1730,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // Get back to the uninstantiated generic constructor.
     // TODO(jmesserly): should we store this earlier in resolution?
     // Or look it up, instead of jumping backwards through the Member?
-    var rawElement = (originalElement as ConstructorMember).baseElement;
+    var rawElement = originalElement.declaration;
 
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
@@ -1899,14 +1843,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   // node's argumentList. (This likely affects only explicit calls to
   // `Object.noSuchMethod`.)
   bool _inferMethodInvocationObject(MethodInvocation node) {
-    // If we have a call like `toString()` or `libraryPrefix.toString()` don't
+    // If we have a call like `toString()` or `libraryPrefix.toString()`, don't
     // infer it.
     Expression target = node.realTarget;
     if (target == null ||
         target is SimpleIdentifier && target.staticElement is PrefixElement) {
       return false;
     }
-
+    DartType nodeType = node.staticInvokeType;
+    if (nodeType == null ||
+        !nodeType.isDynamic ||
+        node.argumentList.arguments.isNotEmpty) {
+      return false;
+    }
     // Object methods called on dynamic targets can have their types improved.
     String name = node.methodName.name;
     MethodElement inferredElement =
@@ -1915,16 +1864,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return false;
     }
     DartType inferredType = inferredElement.type;
-    DartType nodeType = node.staticInvokeType;
-    if (nodeType != null &&
-        nodeType.isDynamic &&
-        inferredType is FunctionType &&
-        inferredType.parameters.isEmpty &&
-        node.argumentList.arguments.isEmpty &&
-        _typeProvider.nonSubtypableTypes.contains(inferredType.returnType)) {
-      node.staticInvokeType = inferredType;
-      _recordStaticType(node, inferredType.returnType);
-      return true;
+    if (inferredType is FunctionType) {
+      DartType returnType = inferredType.returnType;
+      if (inferredType.parameters.isEmpty &&
+          returnType is InterfaceType &&
+          _typeProvider.nonSubtypableClasses.contains(returnType.element)) {
+        node.staticInvokeType = inferredType;
+        _recordStaticType(node, inferredType.returnType);
+        return true;
+      }
     }
     return false;
   }
@@ -1953,8 +1901,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     DartType inferredType = inferredElement.type.returnType;
     if (nodeType != null &&
         nodeType.isDynamic &&
-        inferredType != null &&
-        _typeProvider.nonSubtypableTypes.contains(inferredType)) {
+        inferredType is InterfaceType &&
+        _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
       _recordStaticType(id, inferredType);
       _recordStaticType(node, inferredType);
       return true;
@@ -1995,9 +1943,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     bool contextProvidesAmbiguityResolutionClues =
         contextType != null && contextType is! UnknownInferredType;
     bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _iterableForSetMapDisambiguation);
+        _typeSystem.isSubtypeOf(
+            contextType, _typeProvider.iterableForSetMapDisambiguation);
     bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _mapForSetMapDisambiguation);
+        _typeSystem.isSubtypeOf(
+            contextType, _typeProvider.mapForSetMapDisambiguation);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
     } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {
@@ -2084,20 +2034,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _nullShortingTermination(Expression node) {
     if (!_nonNullableEnabled) return;
 
-    var parent = node.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
-      return;
-    }
-    if (parent is PropertyAccess) {
-      return;
-    }
-    if (parent is IndexExpression && parent.target == node) {
-      return;
-    }
-
-    if (_finishNullShorting(node)) {
-      var type = node.staticType;
-      node.staticType = _typeSystem.makeNullable(type);
+    if (identical(_resolver.unfinishedNullShorts.last, node)) {
+      do {
+        _resolver.unfinishedNullShorts.removeLast();
+        _flowAnalysis.flow.nullAwareAccess_end();
+      } while (identical(_resolver.unfinishedNullShorts.last, node));
+      node.staticType = _typeSystem.makeNullable(node.staticType);
     }
   }
 
@@ -2112,7 +2054,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       expression.staticType = _dynamicType;
     } else {
       expression.staticType = type;
-      if (identical(type, BottomTypeImpl.instance)) {
+      if (identical(type, NeverTypeImpl.instance)) {
         _flowAnalysis?.flow?.handleExit();
       }
     }
@@ -2236,10 +2178,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return constructor.type;
     }
 
-    return FunctionTypeImpl.synthetic(
-      constructor.returnType,
-      typeParameters,
-      constructor.parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: constructor.parameters,
+      returnType: constructor.returnType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }

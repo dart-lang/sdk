@@ -1202,6 +1202,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_formalParameters;
 
+  @VariantId(31, variant: LinkedNodeKind.methodDeclaration)
+  bool get methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
+
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
 

@@ -917,26 +917,6 @@ dart_executable("dart_precompiled_runtime") {
   }
 }
 
-dart_executable("dartaotruntime") {
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "..:libdart_precompiled_runtime",
-    "../platform:libdart_platform_precompiled_runtime",
-  ]
-  extra_sources = [
-    "builtin.cc",
-    "gzip.cc",
-    "gzip.h",
-    "loader.cc",
-    "loader.h",
-    "main.cc",
-    "observatory_assets_empty.cc",
-    "snapshot_empty.cc",
-  ]
-
-  extra_deps += [ ":elf_loader" ]
-}
-
 executable("process_test") {
   sources = [
     "process_test.cc",

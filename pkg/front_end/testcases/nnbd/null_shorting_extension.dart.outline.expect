@@ -14,6 +14,7 @@ extension Extension on self::Class {
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
   operator + = self::Extension|+;
+  operator unary- = self::Extension|unary-;
   set field = self::Extension|set#field;
 }
 static method Extension|get#field(final self::Class #this) → self::Class?
@@ -30,6 +31,8 @@ static method Extension|[]=(final self::Class #this, self::Class? key, self::Cla
   ;
 static method Extension|+(final self::Class #this, core::int value) → self::Class?
   ;
+static method Extension|unary-(final self::Class #this) → self::Class?
+  ;
 static method main() → dynamic
   ;
 static method propertyAccess(self::Class? c) → void
@@ -39,4 +42,6 @@ static method indexAccess(self::Class? c) → void
 static method operatorAccess(self::Class? c) → void
   ;
 static method ifNull(self::Class? c) → void
+  ;
+static method throws(() → void f) → void
   ;

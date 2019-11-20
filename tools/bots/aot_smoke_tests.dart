@@ -10,9 +10,7 @@
 // run the resulting AOT blob with the AOT runtime.
 
 import 'dart:io';
-import 'dart:convert';
 
-import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

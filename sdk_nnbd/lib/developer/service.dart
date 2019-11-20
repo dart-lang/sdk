@@ -19,7 +19,7 @@ class ServiceProtocolInfo {
 
   /// The Uri to access the service. If the web server is not running, this
   /// will be null.
-  final Uri serverUri;
+  final Uri? serverUri;
 
   ServiceProtocolInfo(this.serverUri);
 
@@ -77,7 +77,7 @@ class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
-  static String getIsolateID(Isolate isolate) {
+  static String? getIsolateID(Isolate isolate) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIDFromSendPort(isolate.controlPort);
@@ -97,4 +97,4 @@ external int _getServiceMajorVersion();
 external int _getServiceMinorVersion();
 
 /// Returns the service id for the isolate that owns [sendPort].
-external String _getIsolateIDFromSendPort(SendPort sendPort);
+external String? _getIsolateIDFromSendPort(SendPort sendPort);

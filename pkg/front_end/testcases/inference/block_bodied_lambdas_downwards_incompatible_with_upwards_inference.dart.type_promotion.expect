@@ -1,3 +1,0 @@
-pkg/front_end/testcases/inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference.dart:11:5: Context: Write to g@326
-  g = /*@ returnType=String* */ () {
-    ^

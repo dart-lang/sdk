@@ -20,7 +20,7 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -243,6 +243,7 @@ class ClassInferenceInfo {
 }
 
 enum InternalExpressionKind {
+  Binary,
   Cascade,
   CompoundExtensionIndexSet,
   CompoundExtensionSet,
@@ -250,6 +251,7 @@ enum InternalExpressionKind {
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  Equals,
   ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
@@ -268,10 +270,12 @@ enum InternalExpressionKind {
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
+  Parenthesized,
   PropertyPostIncDec,
   StaticPostIncDec,
   SuperIndexSet,
   SuperPostIncDec,
+  Unary,
 }
 
 /// Common base class for internal expressions.
@@ -279,15 +283,19 @@ abstract class InternalExpression extends Expression {
   InternalExpressionKind get kind;
 
   @override
-  R accept<R>(ExpressionVisitor<R> visitor) => visitor.defaultExpression(this);
+  R accept<R>(ExpressionVisitor<R> visitor) =>
+      unsupported("${runtimeType}.accept", -1, null);
 
   @override
   R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) =>
-      visitor.defaultExpression(this, arg);
+      unsupported("${runtimeType}.accept1", -1, null);
 
   @override
   DartType getStaticType(types) =>
       unsupported("${runtimeType}.getStaticType", -1, null);
+
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext);
 }
 
 /// Front end specific implementation of [Argument].
@@ -384,6 +392,12 @@ class Cascade extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCascade(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.Cascade;
 
   /// Adds [expression] to the list of [expressions] performed on [variable].
@@ -418,6 +432,12 @@ class DeferredCheck extends InternalExpression {
   DeferredCheck(this.variable, this.expression) {
     variable?.parent = this;
     expression?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitDeferredCheck(this, typeContext);
   }
 
   InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
@@ -511,6 +531,12 @@ class IfNullExpression extends InternalExpression {
   IfNullExpression(this.left, this.right) {
     left?.parent = this;
     right?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullExpression(this, typeContext);
   }
 
   @override
@@ -692,6 +718,12 @@ class NullAwareMethodInvocation extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwareMethodInvocation(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.NullAwareMethodInvocation;
 
@@ -733,6 +765,12 @@ class NullAwarePropertyGet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwarePropertyGet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.NullAwarePropertyGet;
 
@@ -771,6 +809,12 @@ class NullAwarePropertySet extends InternalExpression {
   NullAwarePropertySet(this.variable, this.write) {
     variable?.parent = this;
     write?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwarePropertySet(this, typeContext);
   }
 
   @override
@@ -974,6 +1018,12 @@ class LoadLibraryTearOff extends InternalExpression {
   LoadLibraryTearOff(this.import, this.target);
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitLoadLibraryTearOff(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.LoadLibraryTearOff;
 
   @override
@@ -1022,6 +1072,12 @@ class IfNullPropertySet extends InternalExpression {
     variable?.parent = this;
     read?.parent = this;
     write?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullPropertySet(this, typeContext);
   }
 
   @override
@@ -1076,6 +1132,12 @@ class IfNullSet extends InternalExpression {
       : assert(forEffect != null) {
     read?.parent = this;
     write?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullSet(this, typeContext);
   }
 
   @override
@@ -1189,6 +1251,12 @@ class CompoundExtensionSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCompoundExtensionSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.CompoundExtensionSet;
 
@@ -1268,6 +1336,12 @@ class CompoundPropertySet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCompoundPropertySet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.CompoundPropertySet;
 
   @override
@@ -1321,6 +1395,12 @@ class PropertyPostIncDec extends InternalExpression {
       : this(null, read, write);
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitPropertyPostIncDec(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
 
   @override
@@ -1361,6 +1441,12 @@ class LocalPostIncDec extends InternalExpression {
   LocalPostIncDec(this.read, this.write) {
     read?.parent = this;
     write?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitLocalPostIncDec(this, typeContext);
   }
 
   @override
@@ -1406,6 +1492,12 @@ class StaticPostIncDec extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitStaticPostIncDec(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.StaticPostIncDec;
 
   @override
@@ -1445,6 +1537,12 @@ class SuperPostIncDec extends InternalExpression {
   SuperPostIncDec(this.read, this.write) {
     read?.parent = this;
     write?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitSuperPostIncDec(this, typeContext);
   }
 
   @override
@@ -1492,11 +1590,23 @@ class IndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
-  // TODO(johnniwinther): Add `readOnlyReceiver` capability.
-  IndexSet(this.receiver, this.index, this.value) {
+  final bool forEffect;
+
+  final bool readOnlyReceiver;
+
+  IndexSet(this.receiver, this.index, this.value,
+      {this.forEffect, this.readOnlyReceiver})
+      : assert(forEffect != null),
+        assert(readOnlyReceiver != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIndexSet(this, typeContext);
   }
 
   @override
@@ -1552,6 +1662,12 @@ class SuperIndexSet extends InternalExpression {
   SuperIndexSet(this.setter, this.index, this.value) {
     index?.parent = this;
     value?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitSuperIndexSet(this, typeContext);
   }
 
   @override
@@ -1621,6 +1737,12 @@ class ExtensionIndexSet extends InternalExpression {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExtensionIndexSet(this, typeContext);
   }
 
   @override
@@ -1715,6 +1837,12 @@ class IfNullIndexSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullIndexSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.IfNullIndexSet;
 
   @override
@@ -1793,6 +1921,12 @@ class IfNullSuperIndexSet extends InternalExpression {
         assert(forEffect != null) {
     index?.parent = this;
     value?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullSuperIndexSet(this, typeContext);
   }
 
   @override
@@ -1883,6 +2017,12 @@ class IfNullExtensionIndexSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIfNullExtensionIndexSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.IfNullExtensionIndexSet;
 
@@ -1968,6 +2108,12 @@ class CompoundIndexSet extends InternalExpression {
     index?.parent = this;
     rhs?.parent = this;
     fileOffset = binaryOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCompoundIndexSet(this, typeContext);
   }
 
   @override
@@ -2076,6 +2222,12 @@ class NullAwareCompoundSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwareCompoundSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.NullAwareCompoundSet;
 
@@ -2150,6 +2302,12 @@ class NullAwareIfNullSet extends InternalExpression {
         assert(forEffect != null) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwareIfNullSet(this, typeContext);
   }
 
   @override
@@ -2229,6 +2387,12 @@ class CompoundSuperIndexSet extends InternalExpression {
     index?.parent = this;
     rhs?.parent = this;
     fileOffset = binaryOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCompoundSuperIndexSet(this, typeContext);
   }
 
   @override
@@ -2338,6 +2502,12 @@ class CompoundExtensionIndexSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitCompoundExtensionIndexSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.CompoundExtensionIndexSet;
 
@@ -2420,6 +2590,12 @@ class ExtensionSet extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExtensionSet(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.ExtensionSet;
 
   @override
@@ -2457,6 +2633,12 @@ class NullAwareExtension extends InternalExpression {
   NullAwareExtension(this.variable, this.expression) {
     variable?.parent = this;
     expression?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitNullAwareExtension(this, typeContext);
   }
 
   @override
@@ -2520,6 +2702,12 @@ class ExtensionTearOff extends InternalExpression {
   }
 
   @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExtensionTearOff(this, typeContext);
+  }
+
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.ExtensionTearOff;
 
   @override
@@ -2532,6 +2720,148 @@ class ExtensionTearOff extends InternalExpression {
     if (arguments != null) {
       arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for an equals or not-equals expression.
+class EqualsExpression extends InternalExpression {
+  Expression left;
+  Expression right;
+  bool isNot;
+
+  EqualsExpression(this.left, this.right, {this.isNot})
+      : assert(isNot != null) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitEquals(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Equals;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a binary expression.
+class BinaryExpression extends InternalExpression {
+  Expression left;
+  Name binaryName;
+  Expression right;
+
+  BinaryExpression(this.left, this.binaryName, this.right) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitBinary(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Binary;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a unary expression.
+class UnaryExpression extends InternalExpression {
+  Name unaryName;
+  Expression expression;
+
+  UnaryExpression(this.unaryName, this.expression) {
+    expression?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitUnary(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Unary;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+}
+
+/// Internal expression for a parenthesized expression.
+class ParenthesizedExpression extends InternalExpression {
+  Expression expression;
+
+  ParenthesizedExpression(this.expression) {
+    expression?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitParenthesized(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Parenthesized;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
     }
   }
 }

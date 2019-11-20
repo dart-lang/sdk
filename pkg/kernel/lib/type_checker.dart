@@ -426,7 +426,8 @@ class TypeCheckingVisitor
     Class class_ = target.enclosingClass;
     handleCall(arguments, target.function.thisFunctionType,
         typeParameters: class_.typeParameters);
-    return new InterfaceType(target.enclosingClass, arguments.types);
+    return new InterfaceType(
+        target.enclosingClass, Nullability.legacy, arguments.types);
   }
 
   @override
@@ -729,7 +730,8 @@ class TypeCheckingVisitor
       DartType valueType = visitExpression(value);
       checkAssignable(node, fieldType, valueType);
     });
-    return new InterfaceType(node.classNode, node.typeArguments);
+    return new InterfaceType(
+        node.classNode, Nullability.legacy, node.typeArguments);
   }
 
   @override

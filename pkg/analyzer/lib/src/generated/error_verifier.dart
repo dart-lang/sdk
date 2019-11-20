@@ -16,7 +16,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -274,12 +273,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   HiddenElements _hiddenElements;
 
-  /**
-   * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
-   * and [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
-   */
-  List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
-
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
   /// Setting this flag to `true` disables the check for conflicting generics.
@@ -318,7 +311,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
@@ -953,6 +945,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
+      if (importElement.isDeferred) {
+        _checkForDeferredImportOfExtensions(node, importElement);
+      }
     }
     super.visitImportDirective(node);
   }
@@ -2624,6 +2619,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
+   * Report a diagnostic if there are any extensions in the imported library
+   * that are not hidden.
+   */
+  void _checkForDeferredImportOfExtensions(
+      ImportDirective directive, ImportElement importElement) {
+    List<String> shownNames = [];
+    List<String> hiddenNames = [];
+
+    Iterable<String> namesOf(List<SimpleIdentifier> identifiers) =>
+        identifiers.map((identifier) => identifier.name);
+    for (Combinator combinator in directive.combinators) {
+      if (combinator is HideCombinator) {
+        hiddenNames.addAll(namesOf(combinator.hiddenNames));
+      } else if (combinator is ShowCombinator) {
+        shownNames.addAll(namesOf(combinator.shownNames));
+      }
+    }
+    for (Element element in importElement.importedLibrary.topLevelElements) {
+      if (element is ExtensionElement) {
+        String name = element.name;
+        if (name != null &&
+            name.isNotEmpty &&
+            (shownNames.contains(name) ||
+                (shownNames.isEmpty && !hiddenNames.contains(name)))) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, directive.uri);
+          return;
+        }
+      }
+    }
+  }
+
+  /**
    * Verify that any deferred imports in the given compilation [unit] have a
    * unique prefix.
    *
@@ -2876,7 +2904,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
+    return typeName.type is InterfaceType &&
+        _typeProvider.nonSubtypableClasses.contains(typeName.type.element);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
@@ -3130,7 +3159,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Similar logic applies for sync* and async*.
     //
     var lowerBound = expectedElement.instantiate(
-      typeArguments: [BottomTypeImpl.instance],
+      typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
     if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
@@ -5092,7 +5121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
-        !identical(expression.staticType, BottomTypeImpl.instance)) {
+        !identical(expression.staticType, NeverTypeImpl.instance)) {
       return false;
     }
 
@@ -5274,9 +5303,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     void checkOne(DartType superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass.typeParameters) {
-          var variance = computeVariance(typeParameter, superInterface);
-          if (variance == Variance.contravariant ||
-              variance == Variance.invariant) {
+          var variance = Variance(typeParameter, superInterface);
+          if (variance.isContravariant || variance.isInvariant) {
             _errorReporter.reportErrorForElement(
               CompileTimeErrorCode
                   .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
@@ -5744,12 +5772,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * indirectly.
    */
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    ConstructorElement nonMember(ConstructorElement constructor) {
-      return constructor is ConstructorMember
-          ? constructor.baseElement
-          : constructor;
-    }
-
     Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
     while (current != null) {
@@ -5757,7 +5779,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return identical(current, constructor);
       }
       constructors.add(current);
-      current = nonMember(current.redirectedConstructor);
+      current = current.redirectedConstructor?.declaration;
     }
     return false;
   }

@@ -20,7 +20,8 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
-        VariableDeclaration;
+        VariableDeclaration,
+        Variance;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -43,32 +44,15 @@ import 'type_inferrer.dart';
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
-enum Variance {
-  covariant,
-  contravariant,
-  invariant,
-}
-
-Variance invertVariance(Variance variance) {
-  switch (variance) {
-    case Variance.covariant:
-      return Variance.contravariant;
-    case Variance.contravariant:
-      return Variance.covariant;
-    case Variance.invariant:
-  }
-  return variance;
-}
-
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
 class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
-  Variance _variance;
+  int _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
   IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
-      {Variance initialVariance})
+      {int initialVariance})
       : _variance = initialVariance;
 
   @override
@@ -77,12 +61,12 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
-    Variance oldVariance = _variance;
+    int oldVariance = _variance;
     _variance = Variance.invariant;
     for (TypeParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
-    _variance = invertVariance(oldVariance);
+    _variance = Variance.combine(Variance.contravariant, oldVariance);
     for (DartType parameter in node.positionalParameters) {
       if (parameter.accept(this)) return true;
     }
@@ -95,9 +79,13 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    for (DartType argument in node.typeArguments) {
-      if (argument.accept(this)) return true;
+    int oldVariance = _variance;
+    for (int i = 0; i < node.typeArguments.length; i++) {
+      _variance = Variance.combine(
+          node.classNode.typeParameters[i].variance, oldVariance);
+      if (node.typeArguments[i].accept(this)) return true;
     }
+    _variance = oldVariance;
     return false;
   }
 
@@ -108,7 +96,7 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return _variance != Variance.covariant &&
+    return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 }
@@ -307,10 +295,15 @@ class TypeOperationsCfe
   DartType variableType(VariableDeclaration variable) => variable.type;
 
   @override
-  DartType tryPromoteToType(DartType from, DartType to) {
-    if (from is TypeParameterType) {
-      return new TypeParameterType(from.parameter, to, from.nullability);
+  DartType tryPromoteToType(DartType to, DartType from) {
+    if (isSubtypeOf(to, from)) {
+      return to;
     }
-    return to;
+    if (from is TypeParameterType) {
+      if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
+        return new TypeParameterType(from.parameter, from.nullability, to);
+      }
+    }
+    return from;
   }
 }

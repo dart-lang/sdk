@@ -132,6 +132,12 @@ claim
 clarification
 clashes
 class's
+class3a
+class3b
+class4a
+class4b
+class4c
+class4d
 clazz
 cls
 cn
@@ -448,7 +454,6 @@ json
 juxtaposition
 juxtapositions
 k
-k’s
 kallentu
 kernel's
 kernel2kernel
@@ -456,6 +461,7 @@ klass
 kmillikin
 kustermann
 kv
+k’s
 l
 lacks
 lang
@@ -633,13 +639,14 @@ queries
 quick
 quoted
 r
+r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
-r'$creation
+ra
 radix
 raises
 ran
@@ -700,6 +707,7 @@ restriction
 resumed
 rewrites
 rewrote
+rf
 rhs
 ri
 rightmost
@@ -711,6 +719,7 @@ rooted
 roughly
 rounding
 rparen
+rs
 runnable
 s
 sb

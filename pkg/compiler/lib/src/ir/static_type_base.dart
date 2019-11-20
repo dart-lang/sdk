@@ -22,7 +22,7 @@ class DoesNotCompleteType extends ir.BottomType {
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
   ThisInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
-      : super(classNode, typeArguments);
+      : super(classNode, ir.Nullability.legacy, typeArguments);
 
   factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
       ? new ThisInterfaceType(type.classNode, type.typeArguments)
@@ -36,7 +36,7 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
   ExactInterfaceType(ir.Class classNode, [List<ir.DartType> typeArguments])
-      : super(classNode, typeArguments);
+      : super(classNode, ir.Nullability.legacy, typeArguments);
 
   factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
       ? new ExactInterfaceType(type.classNode, type.typeArguments)

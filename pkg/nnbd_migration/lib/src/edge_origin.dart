@@ -3,8 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+
+/// Edge origin resulting from a type in already-migrated code.
+///
+/// For example, in the Map class in dart:core:
+///   V? operator [](Object key);
+///
+/// this class is used for the edge connecting `always` to the return type of
+/// `operator []`, due to the fact that dart:core has already been migrated and
+/// the type is explicitly nullable.
+///
+/// Note that since a single element can have a complex type, it is likely that
+/// multiple edges will be created with an [AlreadyMigratedTypeOrigin] pointing
+/// to the same type.  To distinguish which edge corresponds to which part of
+/// the element's type, use the callbacks
+/// [NullabilityMigrationInstrumentation.externalDecoratedType] and
+/// [NullabilityMigrationInstrumentation.externalDecoratedTypeParameterBound].
+class AlreadyMigratedTypeOrigin extends EdgeOrigin {
+  AlreadyMigratedTypeOrigin.forElement(Element element)
+      : super.forElement(element);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.alreadyMigratedType;
+}
 
 /// Edge origin resulting from the use of a type that is always nullable.
 ///
@@ -16,6 +40,9 @@ import 'package:nnbd_migration/instrumentation.dart';
 /// nullable.
 class AlwaysNullableTypeOrigin extends EdgeOrigin {
   AlwaysNullableTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  AlwaysNullableTypeOrigin.forElement(Element element)
+      : super.forElement(element);
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
@@ -43,6 +70,15 @@ class DefaultValueOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.defaultValue;
 }
 
+/// An edge origin used for edges that originated because of an assignment
+/// involving a value with a dynamic type.
+class DynamicAssignmentOrigin extends EdgeOrigin {
+  DynamicAssignmentOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.dynamicAssignment;
+}
+
 /// Common interface for classes providing information about how an edge came
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.
@@ -53,7 +89,14 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
   @override
   final AstNode node;
 
-  EdgeOrigin(this.source, this.node);
+  @override
+  final Element element;
+
+  EdgeOrigin(this.source, this.node) : element = null;
+
+  EdgeOrigin.forElement(this.element)
+      : source = null,
+        node = null;
 }
 
 /// Edge origin resulting from the relationship between a field formal parameter

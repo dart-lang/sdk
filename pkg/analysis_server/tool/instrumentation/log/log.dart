@@ -658,57 +658,48 @@ abstract class LogEntry {
       }
       timeStamp = int.parse(component);
       String entryKind = components[1];
-      if (entryKind == InstrumentationService.TAG_ANALYSIS_TASK) {
-        return new TaskEntry(index, timeStamp, components[2], components[3]);
-      } else if (entryKind == InstrumentationService.TAG_ERROR) {
+      if (entryKind == InstrumentationLogAdapter.TAG_ERROR) {
         return new ErrorEntry(
             index, timeStamp, entryKind, components.sublist(2));
-      } else if (entryKind == InstrumentationService.TAG_EXCEPTION) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_EXCEPTION) {
         return new ExceptionEntry(
             index, timeStamp, entryKind, components.sublist(2));
-      } else if (entryKind == InstrumentationService.TAG_FILE_READ) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_LOG_ENTRY) {
         // Fall through
-      } else if (entryKind == InstrumentationService.TAG_LOG_ENTRY) {
-        // Fall through
-      } else if (entryKind == InstrumentationService.TAG_NOTIFICATION) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_NOTIFICATION) {
         Map requestData = json.decode(components[2]);
         return new NotificationEntry(index, timeStamp, requestData);
-      } else if (entryKind == InstrumentationService.TAG_PERFORMANCE) {
-        // Fall through
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_ERROR) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_ERROR) {
         return new PluginErrorEntry(index, timeStamp, entryKind,
             components.sublist(2, 4), components.sublist(4));
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_EXCEPTION) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION) {
         return new PluginExceptionEntry(index, timeStamp, entryKind,
             components.sublist(2, 5), components.sublist(5));
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_NOTIFICATION) {
+      } else if (entryKind ==
+          InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION) {
         Map requestData = json.decode(components[2]);
         return new PluginNotificationEntry(
             index, timeStamp, requestData, components.sublist(3));
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_REQUEST) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_REQUEST) {
         Map requestData = json.decode(components[2]);
         return new PluginRequestEntry(
             index, timeStamp, requestData, components.sublist(3));
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_RESPONSE) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE) {
         Map responseData = json.decode(components[2]);
         return new PluginResponseEntry(
             index, timeStamp, responseData, components.sublist(3));
-      } else if (entryKind == InstrumentationService.TAG_PLUGIN_TIMEOUT) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT) {
         return new PluginErrorEntry(index, timeStamp, entryKind,
             components.sublist(2, 3), components.sublist(3));
-      } else if (entryKind == InstrumentationService.TAG_REQUEST) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_REQUEST) {
         Map requestData = json.decode(components[2]);
         return new RequestEntry(index, timeStamp, requestData);
-      } else if (entryKind == InstrumentationService.TAG_RESPONSE) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_RESPONSE) {
         Map responseData = json.decode(components[2]);
         return new ResponseEntry(index, timeStamp, responseData);
-      } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_START) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_VERSION) {
         // Fall through
-      } else if (entryKind == InstrumentationService.TAG_SUBPROCESS_RESULT) {
-        // Fall through
-      } else if (entryKind == InstrumentationService.TAG_VERSION) {
-        // Fall through
-      } else if (entryKind == InstrumentationService.TAG_WATCH_EVENT) {
+      } else if (entryKind == InstrumentationLogAdapter.TAG_WATCH_EVENT) {
         // Fall through
       }
       return new GenericEntry(

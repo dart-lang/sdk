@@ -1091,10 +1091,11 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
   // Check that all non-Smi objects are heap allocated and in old space.
   ASSERT(value.IsSmi() || value.IsOld());
 #if defined(DEBUG)
-  // Generally, instances in the flow graph should be canonical. Smis and
-  // null values are canonical by construction and so we skip them here.
+  // Generally, instances in the flow graph should be canonical. Smis, null
+  // values, and sentinel values are canonical by construction and so we skip
+  // them here.
   if (!value.IsNull() && !value.IsSmi() && value.IsInstance() &&
-      !value.IsCanonical()) {
+      !value.IsCanonical() && (value.raw() != Object::sentinel().raw())) {
     // The only allowed type for which IsCanonical() never answers true is
     // TypeParameter. (They are treated as canonical due to how they are
     // created, but there is no way to canonicalize a new TypeParameter

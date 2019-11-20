@@ -1229,6 +1229,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "modifier.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode DEFERRED_IMPORT_OF_EXTENSION =
+      const CompileTimeErrorCode('DEFERRED_IMPORT_OF_EXTENSION',
+          "Imports of deferred libraries must hide all extensions",
+          correction:
+              "Try adding either a show combinator listing the names you need "
+              "to reference or a hide combinator listing all of the "
+              "extensions.");
+
+  /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity
    * with the same name declared in the same scope.
    */

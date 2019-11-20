@@ -644,6 +644,13 @@ void Elf::WriteProgramTable() {
 
     ASSERT(kNumImplicitSegments == 3);
     const intptr_t start = stream_->position();
+
+    // The Android dynamic linker in Jelly Bean incorrectly assumes that all
+    // non-writable segments are continguous. We put BSS first, so we must make
+    // this segment writable so it does not mark the BSS as read-only.
+    //
+    // The bug is here:
+    //   https://github.com/aosp-mirror/platform_bionic/blob/94963af28e445384e19775a838a29e6a71708179/linker/linker.c#L1991-L2001
 #if defined(TARGET_ARCH_IS_32_BIT)
     WriteWord(elf::PT_LOAD);
     WriteOff(0);   // File offset.
@@ -651,11 +658,11 @@ void Elf::WriteProgramTable() {
     WriteAddr(0);  // Physical address, not used.
     WriteWord(program_table_file_offset_ + program_table_file_size_);
     WriteWord(program_table_file_offset_ + program_table_file_size_);
-    WriteWord(elf::PF_R);
+    WriteWord(elf::PF_R | elf::PF_W);
     WriteWord(kPageSize);
 #else
     WriteWord(elf::PT_LOAD);
-    WriteWord(elf::PF_R);
+    WriteWord(elf::PF_R | elf::PF_W);
     WriteOff(0);   // File offset.
     WriteAddr(0);  // Virtual address.
     WriteAddr(0);  // Physical address, not used.

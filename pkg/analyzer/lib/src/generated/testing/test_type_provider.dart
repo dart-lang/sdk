@@ -15,12 +15,10 @@ import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
  * for the core library.
  */
 class TestTypeProvider extends TypeProviderImpl {
-  factory TestTypeProvider([
-    AnalysisContext context,
-    Object analysisDriver,
+  factory TestTypeProvider({
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  ]) {
-    context ??= _MockAnalysisContext();
+  }) {
+    var context = _MockAnalysisContext();
     var sdkElements = MockSdkElements(context, nullabilitySuffix);
     return TestTypeProvider._(
       nullabilitySuffix,

@@ -7,12 +7,19 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
   DynamicTypeImpl get dynamicType => typeProvider.dynamicType;
+
+  NeverTypeImpl get neverNone => NeverTypeImpl.instance;
+
+  NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
+
+  NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
   TypeProvider get typeProvider;
 
@@ -40,10 +47,10 @@ mixin ElementsTypesMixin {
     @required DartType returnType,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeFormals,
-      parameters,
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -161,6 +168,16 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
+  ParameterElement namedRequiredParameter({
+    @required String name,
+    @required DartType type,
+  }) {
+    var parameter = ParameterElementImpl(name, 0);
+    parameter.parameterKind = ParameterKind.NAMED_REQUIRED;
+    parameter.type = type;
+    return parameter;
+  }
+
   ParameterElement positionalParameter({String name, @required DartType type}) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
@@ -175,9 +192,11 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  TypeParameterElementImpl typeParameter(String name, {DartType bound}) {
+  TypeParameterElementImpl typeParameter(String name,
+      {DartType bound, Variance variance}) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound;
+    element.variance = variance;
     return element;
   }
 
@@ -189,5 +208,18 @@ mixin ElementsTypesMixin {
       element,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+  }
+
+  TypeParameterTypeImpl typeParameterTypeQuestion(
+      TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.question);
+  }
+
+  TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
+    return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
   }
 }

@@ -1,0 +1,15 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method main() → dynamic
+  ;
+static method noErrors() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method errors() → dynamic
+  ;

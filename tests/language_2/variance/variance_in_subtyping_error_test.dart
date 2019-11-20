@@ -23,16 +23,17 @@ class A {
 class B extends A {
   @override
   Contravariant<Lower> method1() {
-  //                   ^
-  // [analyzer] unspecified
+  //                   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   // [cfe] The return type of the method 'B.method1' is 'Contravariant<Lower>', which does not match the return type, 'Contravariant<Middle>', of the overridden method, 'A.method1'.
     return new Contravariant<Lower>();
   }
 
   @override
   void method2(Contravariant<Upper> x) {}
+  //   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   //                                ^
-  // [analyzer] unspecified
   // [cfe] The parameter 'x' of the method 'B.method2' has type 'Contravariant<Upper>', which does not match the corresponding type, 'Contravariant<Middle>', in the overridden method, 'A.method2'.
 }
 
@@ -40,13 +41,15 @@ class C<out T extends Contravariant<Middle>> {}
 
 class D {
   C<Contravariant<Lower>> method1() {
+  //^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                             ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C' in the return type.
     return C<Contravariant<Lower>>();
     //     ^
-    // [analyzer] unspecified
     // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
+    //       ^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }
 
@@ -54,22 +57,24 @@ void testCall(Iterable<Contravariant<Middle>> x) {}
 
 main() {
   C<Contravariant<Lower>> c = new C<Contravariant<Lower>>();
+  //^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   //                      ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
   //                              ^
-  // [analyzer] unspecified
   // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
+  //                                ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
   Iterable<Contravariant<Middle>> iterableMiddle = [new Contravariant<Middle>()];
   List<Contravariant<Lower>> listLower = [new Contravariant<Lower>()];
   iterableMiddle = listLower;
-  //               ^
-  // [analyzer] unspecified
+  //               ^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'List<Contravariant<Lower>>' can't be assigned to a variable of type 'Iterable<Contravariant<Middle>>'.
 
   testCall(listLower);
-  //       ^
-  // [analyzer] unspecified
+  //       ^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'List<Contravariant<Lower>>' can't be assigned to the parameter type 'Iterable<Contravariant<Middle>>'.
 }

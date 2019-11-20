@@ -238,7 +238,8 @@ class _ServiceTesteeLauncher {
           .listen((line) {
         print('>testee>err> $line');
       });
-      process.exitCode.then((exitCode) {
+      process.exitCode.then((exitCode) async {
+        await serviceInfoDir.delete(recursive: true);
         if ((exitCode != 0) && !killedByTester) {
           throw "Testee exited with $exitCode";
         }
@@ -255,7 +256,6 @@ class _ServiceTesteeLauncher {
       uri = Uri.parse(infoJson['uri']);
       completer.complete(uri);
       print('** Signaled to run test queries on $uri');
-      await serviceInfoDir.delete(recursive: true);
     });
     return completer.future;
   }

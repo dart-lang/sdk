@@ -114,7 +114,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       growable: true);
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+    map[typeParameters[i]] =
+        new TypeParameterType(freshParameters[i], Nullability.legacy);
   }
   CloneVisitor cloner;
   for (int i = 0; i < typeParameters.length; ++i) {
@@ -125,6 +126,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
     freshTypeParameter.defaultType = typeParameter.defaultType != null
         ? substitute(typeParameter.defaultType, map)
         : null;
+    freshTypeParameter.variance =
+        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     if (typeParameter.annotations.isNotEmpty) {
       // Annotations can't refer to type parameters, so the cloner shouldn't
       // perform the substitution.
@@ -148,12 +151,12 @@ class FreshTypeParameters {
   FunctionType applyToFunctionType(FunctionType type) => new FunctionType(
       type.positionalParameters.map(substitute).toList(),
       substitute(type.returnType),
+      type.nullability,
       namedParameters: type.namedParameters.map(substituteNamed).toList(),
       typeParameters: freshTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
       typedefType:
-          type.typedefType == null ? null : substitute(type.typedefType),
-      nullability: type.nullability);
+          type.typedefType == null ? null : substitute(type.typedefType));
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 
@@ -290,7 +293,7 @@ class _NullSubstitution extends Substitution {
   const _NullSubstitution();
 
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return new TypeParameterType(parameter);
+    return new TypeParameterType(parameter, Nullability.legacy);
   }
 
   @override
@@ -385,7 +388,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType(fresh);
+    substitution[node] = new TypeParameterType(fresh, Nullability.legacy);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
@@ -492,7 +495,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new InterfaceType(node.classNode, typeArguments, node.nullability);
+    return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -500,7 +503,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new TypedefType(node.typedefNode, typeArguments, node.nullability);
+    return new TypedefType(node.typedefNode, node.nullability, typeArguments);
   }
 
   List<TypeParameter> freshTypeParameters(List<TypeParameter> parameters) {
@@ -545,12 +548,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     DartType typedefType =
         node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType,
-        nullability: node.nullability);
+        typedefType: typedefType);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -717,7 +719,8 @@ class _TypeUnification {
       var rightInstance = <TypeParameter, DartType>{};
       for (int i = 0; i < type1.typeParameters.length; ++i) {
         var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType = new TypeParameterType(instantiator);
+        var instantiatorType =
+            new TypeParameterType(instantiator, Nullability.legacy);
         leftInstance[type1.typeParameters[i]] = instantiatorType;
         rightInstance[type2.typeParameters[i]] = instantiatorType;
         _universallyQuantifiedVariables.add(instantiator);

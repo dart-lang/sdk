@@ -120,10 +120,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         options = oldState.options;
         processedOpts = oldState.processedOpts;
         Component sdkComponent = cachedSdkInput.component;
-        // Reset the state of the component.
-        for (Library lib in sdkComponent.libraries) {
-          lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
-        }
 
         // Make sure the canonical name root knows about the sdk - otherwise we
         // won't be able to link to it when loading more outlines.
@@ -185,9 +181,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         } else {
           // Need to reset cached components so they are usable again.
           Component component = cachedInput.component;
-          for (Library lib in component.libraries) {
-            lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
-            if (trackNeededDillLibraries) {
+          if (trackNeededDillLibraries) {
+            for (Library lib in component.libraries) {
               libraryToInputDill[lib.importUri] = summaryUri;
             }
           }

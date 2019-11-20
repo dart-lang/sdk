@@ -25,6 +25,7 @@ import 'package:kernel/ast.dart'
         Library,
         Name,
         NamedExpression,
+        Nullability,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
@@ -558,9 +559,11 @@ class KernelTarget extends TargetImplementation {
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(new TypeParameterType(typeParameter));
+      typeParameterTypes
+          .add(new TypeParameterType(typeParameter, Nullability.legacy));
     }
-    return new InterfaceType(enclosingClass, typeParameterTypes);
+    return new InterfaceType(
+        enclosingClass, Nullability.legacy, typeParameterTypes);
   }
 
   void setupTopAndBottomTypes() {

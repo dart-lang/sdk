@@ -15,17 +15,17 @@ class Class extends core::Object {
 static method main() → dynamic {
   self::Class? c = new self::Class::•();
   c!;
-  c!.{self::Class::field};
-  c!.{self::Class::field} = 42;
-  c!.{self::Class::method};
-  c!.{self::Class::method}();
-  c!.{self::Class::field}!.{core::int::toString}();
-  c!.{self::Class::method}()!.{core::int::toString}();
-  c!.{self::Class::+}(c);
-  c!.{self::Class::+}(c!);
-  c.{self::Class::+}(c!);
-  c.{self::Class::+}(c)!;
+  c{self::Class}!.{self::Class::field};
+  c{self::Class}!.{self::Class::field} = 42;
+  c{self::Class}!.{self::Class::method};
+  c{self::Class}!.{self::Class::method}();
+  c{self::Class}!.{self::Class::field}!.{core::int::toString}();
+  c{self::Class}!.{self::Class::method}()!.{core::int::toString}();
+  c{self::Class}!.{self::Class::+}(c{self::Class});
+  c{self::Class}!.{self::Class::+}(c{self::Class}!);
+  c{self::Class}.{self::Class::+}(c{self::Class}!);
+  c{self::Class}.{self::Class::+}(c{self::Class})!;
   core::bool? o = true;
-  !o! ?{core::bool} !o! : !!o!!;
-  !o! ?{core::bool} (!o)! : (!(!o)!)!;
+  !o! ?{core::bool} !o{core::bool}! : !!o{core::bool}!!;
+  !o{core::bool}! ?{core::bool} (!o{core::bool})! : (!(!o{core::bool})!)!;
 }

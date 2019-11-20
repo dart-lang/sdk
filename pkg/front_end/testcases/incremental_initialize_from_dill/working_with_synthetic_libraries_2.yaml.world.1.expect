@@ -1,0 +1,9 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "dart:foo/nonexisting.dart";
+
+}
+
+And 1 platform libraries:
+ - dart:foo/nonexisting.dart

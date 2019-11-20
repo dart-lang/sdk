@@ -213,6 +213,50 @@ class IsolateGroupSource {
   intptr_t script_kernel_size;
 };
 
+// Tracks idle time and notifies heap when idle time expired.
+class IdleTimeHandler : public ValueObject {
+ public:
+  IdleTimeHandler() {}
+
+  // Initializes the idle time handler with the given [heap], to which
+  // idle notifications will be sent.
+  void InitializeWithHeap(Heap* heap);
+
+  // Returns whether the caller should check for idle timeouts.
+  bool ShouldCheckForIdle();
+
+  // Declares that the idle time should be reset to now.
+  void UpdateStartIdleTime();
+
+  // Returns whether idle time expired and [NotifyIdle] should be called.
+  bool ShouldNotifyIdle(int64_t* expiry);
+
+  // Notifies the heap that now is a good time to do compactions and indicates
+  // we have time for the GC until [deadline].
+  void NotifyIdle(int64_t deadline);
+
+  // Calls [NotifyIdle] with the default deadline.
+  void NotifyIdleUsingDefaultDeadline();
+
+ private:
+  friend class DisableIdleTimerScope;
+
+  Mutex mutex_;
+  Heap* heap_ = nullptr;
+  intptr_t disabled_counter_ = 0;
+  int64_t idle_start_time_ = 0;
+};
+
+// Disables firing of the idle timer while this object is alive.
+class DisableIdleTimerScope : public ValueObject {
+ public:
+  explicit DisableIdleTimerScope(IdleTimeHandler* handler);
+  ~DisableIdleTimerScope();
+
+ private:
+  IdleTimeHandler* handler_;
+};
+
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
@@ -440,8 +484,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
 
+  IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
+
   Heap* heap() const { return heap_; }
-  void set_heap(Heap* value) { heap_ = value; }
+  void set_heap(Heap* value) {
+    idle_time_handler_.InitializeWithHeap(value);
+    heap_ = value;
+  }
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
@@ -511,8 +560,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     }
 #endif
   }
-
-  void NotifyIdle(int64_t deadline);
 
   bool compaction_in_progress() const {
     return CompactionInProgressBit::decode(isolate_flags_);
@@ -1082,6 +1129,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MarkingStack* deferred_marking_stack_ = nullptr;
   Heap* heap_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
+  IdleTimeHandler idle_time_handler_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;

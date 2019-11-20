@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
@@ -31,10 +32,21 @@ main() {
 class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
-  static LinkedNodeBundle _sdkBundle;
+  static LinkedNodeBundle _sdkBundleNnbd;
+
+  /// The shared SDK bundle, computed once and shared among test invocations.
+  static LinkedNodeBundle _sdkBundleLegacy;
 
   LinkedNodeBundle get sdkBundle {
-    if (_sdkBundle != null) return _sdkBundle;
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      if (_sdkBundleNnbd != null) {
+        return _sdkBundleNnbd;
+      }
+    } else {
+      if (_sdkBundleLegacy != null) {
+        return _sdkBundleLegacy;
+      }
+    }
 
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
@@ -64,7 +76,12 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var sdkLinkResult = link(elementFactory, inputLibraries);
 
     var bytes = sdkLinkResult.bundle.toBuffer();
-    return _sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
+    var sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      return _sdkBundleNnbd = sdkBundle;
+    } else {
+      return _sdkBundleLegacy = sdkBundle;
+    }
   }
 
   @override

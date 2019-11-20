@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -145,13 +144,8 @@ class LiteralElementVerifier {
     }
 
     InterfaceType iterableType;
-    var iterableDynamicType = (typeProvider.iterableDynamicType as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
-    if (expressionType is InterfaceTypeImpl &&
-        typeSystem.isSubtypeOf(expressionType, iterableDynamicType)) {
-      iterableType = expressionType.asInstanceOf(
-        iterableDynamicType.element,
-      );
+    if (expressionType is InterfaceTypeImpl) {
+      iterableType = expressionType.asInstanceOf(typeProvider.iterableElement);
     }
 
     if (iterableType == null) {
@@ -192,10 +186,8 @@ class LiteralElementVerifier {
     }
 
     InterfaceType mapType;
-    var mapObjectObjectType = typeProvider.mapObjectObjectType;
-    if (expressionType is InterfaceTypeImpl &&
-        typeSystem.isSubtypeOf(expressionType, mapObjectObjectType)) {
-      mapType = expressionType.asInstanceOf(mapObjectObjectType.element);
+    if (expressionType is InterfaceTypeImpl) {
+      mapType = expressionType.asInstanceOf(typeProvider.mapElement);
     }
 
     if (mapType == null) {

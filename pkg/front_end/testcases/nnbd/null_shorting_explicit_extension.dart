@@ -20,6 +20,8 @@ extension Extension on Class {
   }
 
   Class? operator +(int value) => field;
+
+  Class? operator -() => field;
 }
 
 main() {
@@ -37,6 +39,9 @@ void propertyAccess(Class? c) {
 
   Extension(c)?.field.field;
   Extension(c)?.field.field = new Class();
+  throws(() => (Extension(c)?.field).field);
+  throws(() => (Extension(c)?.field = new Class()).field);
+  throws(() => (Extension(c)?.method()).field);
   c = Extension(c)?.field.field = new Class();
   Extension(c)?.field.method();
   Extension(c)?.field = new Class().field;
@@ -117,8 +122,8 @@ void indexAccess(Class? c) {
 }
 
 void operatorAccess(Class? c) {
-  // TODO(johnniwinther): + should _not_ be null-shortened.
-  Extension(c)?.field + 0;
+  throws(() => Extension(c)?.field + 0);
+  throws(() => -Extension(c)?.field);
   Extension(c)?.field += 0;
   c = Extension(c)?.field += 0;
   Extension(c)?.field.field += 0;
@@ -135,4 +140,13 @@ void ifNull(Class? c) {
   Extension(c)?.field ??= c;
   c = Extension(c)?.field ??= c;
   Extension(c)?.field[c] ??= c;
+}
+
+void throws(void Function() f) {
+  try {
+    f();
+  } catch (_) {
+    return;
+  }
+  throw 'Expected exception.';
 }

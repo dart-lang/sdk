@@ -107,11 +107,6 @@ class LibraryIndex {
     return -1;
   }
 
-  bool HasSourceReferences() {
-    if (binary_version_ < 25) return false;
-    return true;
-  }
-
   intptr_t SourceReferencesOffset() { return source_references_offset_; }
 
  private:
@@ -283,10 +278,8 @@ class KernelLoader : public ValueObject {
     // Start reading library.
     // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
-    if (program_->binary_version() >= 27) {
-      reader.ReadUInt();  // Read major language version.
-      reader.ReadUInt();  // Read minor language version.
-    }
+    reader.ReadUInt();  // Read major language version.
+    reader.ReadUInt();  // Read minor language version.
     return reader.ReadCanonicalNameReference();
   }
 

@@ -8233,7 +8233,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
-  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (Dart::non_nullable_flag()) {
     // The non-nullable experiment changes the fingerprints, and we only track
     // one fingerprint set.
     return true;
@@ -8698,6 +8698,7 @@ void Field::InitializeNew(const Field& result,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
+  result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(!is_final);
   result.set_initializer_changed_after_initialization(false);
@@ -8950,7 +8951,7 @@ bool Field::IsUninitialized() const {
 }
 
 RawFunction* Field::EnsureInitializerFunction() const {
-  ASSERT(has_initializer());
+  ASSERT(has_nontrivial_initializer());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& initializer = Function::Handle(zone, InitializerFunction());
@@ -8979,7 +8980,7 @@ RawError* Field::InitializeInstance(const Instance& instance) const {
   ASSERT(is_instance());
   ASSERT(instance.GetField(*this) == Object::sentinel().raw());
   Object& value = Object::Handle();
-  if (has_initializer()) {
+  if (has_nontrivial_initializer()) {
     const Function& initializer = Function::Handle(EnsureInitializerFunction());
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, instance);
@@ -10684,14 +10685,9 @@ RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // TODO(jensj): Once minimum kernel support is >= 25 this can be cleaned up.
+    // TODO(jensj): This can be cleaned up.
     // It really should just return the content of `owned_scripts`, and there
     // should be no need to do the O(n) call to `AddScriptIfUnique` per script.
-    static_assert(
-        kernel::kMinSupportedKernelFormatVersion < 25,
-        "Once minimum kernel support is >= 25 this can be cleaned up.");
-#endif
 
     // Iterate over the library dictionary and collect all scripts.
     const GrowableObjectArray& scripts =

@@ -2924,8 +2924,11 @@ class TypeSerializationCluster : public SerializationCluster {
       AutoTraceObject(type);
       WriteFromTo(type);
       s->WriteTokenPosition(type->ptr()->token_pos_);
-      s->Write<int8_t>(type->ptr()->type_state_);
-      s->Write<int8_t>(type->ptr()->nullability_);
+      const uint8_t combined =
+          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
+      ASSERT(type->ptr()->type_state_ == (combined >> 4));
+      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+      s->Write<uint8_t>(combined);
     }
     count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
@@ -2933,8 +2936,11 @@ class TypeSerializationCluster : public SerializationCluster {
       AutoTraceObject(type);
       WriteFromTo(type);
       s->WriteTokenPosition(type->ptr()->token_pos_);
-      s->Write<int8_t>(type->ptr()->type_state_);
-      s->Write<int8_t>(type->ptr()->nullability_);
+      const uint8_t combined =
+          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
+      ASSERT(type->ptr()->type_state_ == (combined >> 4));
+      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+      s->Write<uint8_t>(combined);
     }
   }
 
@@ -2975,8 +2981,9 @@ class TypeDeserializationCluster : public DeserializationCluster {
                                      is_canonical);
       ReadFromTo(type);
       type->ptr()->token_pos_ = d->ReadTokenPosition();
-      type->ptr()->type_state_ = d->Read<int8_t>();
-      type->ptr()->nullability_ = d->Read<int8_t>();
+      const uint8_t combined = d->Read<uint8_t>();
+      type->ptr()->type_state_ = combined >> 4;
+      type->ptr()->nullability_ = combined & 0xf;
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -2986,8 +2993,9 @@ class TypeDeserializationCluster : public DeserializationCluster {
                                      is_canonical);
       ReadFromTo(type);
       type->ptr()->token_pos_ = d->ReadTokenPosition();
-      type->ptr()->type_state_ = d->Read<int8_t>();
-      type->ptr()->nullability_ = d->Read<int8_t>();
+      const uint8_t combined = d->Read<uint8_t>();
+      type->ptr()->type_state_ = combined >> 4;
+      type->ptr()->nullability_ = combined & 0xf;
     }
   }
 
@@ -3141,8 +3149,11 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
-      s->Write<uint8_t>(type->ptr()->flags_);
-      s->Write<int8_t>(type->ptr()->nullability_);
+      const uint8_t combined =
+          (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
+      ASSERT(type->ptr()->flags_ == (combined >> 4));
+      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+      s->Write<uint8_t>(combined);
     }
   }
 
@@ -3176,8 +3187,9 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
-      type->ptr()->flags_ = d->Read<uint8_t>();
-      type->ptr()->nullability_ = d->Read<int8_t>();
+      const uint8_t combined = d->Read<uint8_t>();
+      type->ptr()->flags_ = combined >> 4;
+      type->ptr()->nullability_ = combined & 0xf;
     }
   }
 

@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
@@ -23,34 +20,17 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const TypePromotionDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true})
-      ]),
+      runTest: runTestFor(
+          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
-        // TODO(dmitryas): Run all type promotion tests.
-        'as.dart',
-        'assert.dart',
-        'assignment.dart',
+        // TODO(johnniwinther): Run all type promotion tests.
         'assignment_promoted.dart',
-        'assigned_anywhere.dart',
-        'binary.dart',
         'bug39178.dart',
-        'conditional.dart',
         'constructor_initializer.dart',
-        'do.dart',
         'for.dart',
-        'function_expression.dart',
-        'if.dart',
-        'initialization.dart',
-        'inside_closure.dart',
         'not_promoted.dart',
         'null_aware_assignment.dart',
-        'null_check.dart',
-        'potentially_mutated.dart',
         'switch.dart',
-        'try_catch.dart',
-        'try_catch_finally.dart',
         'try_finally.dart',
         'type_parameter.dart',
         'while.dart',
@@ -94,7 +74,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData) =>
-      typeToText(actualData, isNonNullableByDefault: true);
+      typeToText(actualData, TypeRepresentation.nonNullableByDefault);
 
   @override
   String isAsExpected(DartType actualData, String expectedData) {

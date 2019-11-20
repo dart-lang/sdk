@@ -461,29 +461,7 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
   sample->Clear();
 }
 
-static void DumpStackFrame(intptr_t frame_index,
-                           uword pc,
-                           uword fp,
-                           bool try_symbolize_dart_frames) {
-  Thread* thread = Thread::Current();
-  if ((thread != NULL) && !thread->IsAtSafepoint() &&
-      try_symbolize_dart_frames) {
-    Isolate* isolate = thread->isolate();
-    if ((isolate != NULL) && isolate->is_runnable()) {
-      // Only attempt to symbolize Dart frames if we can safely iterate the
-      // current isolate's heap.
-      Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
-      if (code.IsNull()) {
-        code = Code::LookupCode(pc);  // In current isolate.
-      }
-      if (!code.IsNull()) {
-        OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
-                     code.QualifiedName());
-        return;
-      }
-    }
-  }
-
+static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
   uintptr_t start = 0;
   char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name != NULL) {
@@ -511,16 +489,14 @@ class ProfilerStackWalker : public ValueObject {
   ProfilerStackWalker(Dart_Port port_id,
                       Sample* head_sample,
                       SampleBuffer* sample_buffer,
-                      intptr_t skip_count = 0,
-                      bool try_symbolize_dart_frames = true)
+                      intptr_t skip_count = 0)
       : port_id_(port_id),
         sample_(head_sample),
         sample_buffer_(sample_buffer),
         skip_count_(skip_count),
         frames_skipped_(0),
         frame_index_(0),
-        total_frames_(0),
-        try_symbolize_dart_frames_(try_symbolize_dart_frames) {
+        total_frames_(0) {
     if (sample_ == NULL) {
       ASSERT(sample_buffer_ == NULL);
     } else {
@@ -536,7 +512,7 @@ class ProfilerStackWalker : public ValueObject {
     }
 
     if (sample_ == NULL) {
-      DumpStackFrame(frame_index_, pc, fp, try_symbolize_dart_frames_);
+      DumpStackFrame(frame_index_, pc, fp);
       frame_index_++;
       total_frames_++;
       return true;
@@ -571,7 +547,6 @@ class ProfilerStackWalker : public ValueObject {
   intptr_t frames_skipped_;
   intptr_t frame_index_;
   intptr_t total_frames_;
-  const bool try_symbolize_dart_frames_;
 };
 
 // Executing Dart code, walk the stack.
@@ -768,13 +743,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
                             uword pc,
                             uword fp,
                             uword sp,
-                            intptr_t skip_count = 0,
-                            bool try_symbolize_dart_frames = true)
-      : ProfilerStackWalker(port_id,
-                            sample,
-                            sample_buffer,
-                            skip_count,
-                            try_symbolize_dart_frames),
+                            intptr_t skip_count = 0)
+      : ProfilerStackWalker(port_id, sample, sample_buffer, skip_count),
         counters_(counters),
         stack_upper_(stack_upper),
         original_pc_(pc),
@@ -1190,13 +1160,19 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     return;
   }
 
-  ProfilerNativeStackWalker native_stack_walker(
-      &counters_, ILLEGAL_PORT, NULL, NULL, stack_lower, stack_upper, pc, fp,
-      sp,
-      /*skip_count=*/0,
-      /*try_symbolize_dart_frames=*/!for_crash);
+  ProfilerNativeStackWalker native_stack_walker(&counters_, ILLEGAL_PORT, NULL,
+                                                NULL, stack_lower, stack_upper,
+                                                pc, fp, sp,
+                                                /*skip_count=*/0);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
+
+  if (thread->execution_state() == Thread::kThreadInNative) {
+    TransitionNativeToVM transition(thread);
+    StackFrame::DumpCurrentTrace();
+  } else if (thread->execution_state() == Thread::kThreadInVM) {
+    StackFrame::DumpCurrentTrace();
+  }
 }
 
 void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {

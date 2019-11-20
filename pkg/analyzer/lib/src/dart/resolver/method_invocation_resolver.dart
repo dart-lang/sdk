@@ -159,7 +159,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiverType == BottomTypeImpl.instance) {
+    if (receiverType == NeverTypeImpl.instance) {
       _reportUseOfNeverType(node, receiver);
       return;
     }
@@ -885,7 +885,7 @@ class MethodInvocationResolver {
       return _reportUseOfVoidType(node, node.methodName);
     }
 
-    if (type == BottomTypeImpl.instance) {
+    if (type == NeverTypeImpl.instance) {
       return _reportUseOfNeverType(node, node.methodName);
     }
 

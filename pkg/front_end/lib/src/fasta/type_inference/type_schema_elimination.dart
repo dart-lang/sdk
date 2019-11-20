@@ -88,11 +88,11 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
       return new FunctionType(
           newPositionalParameters ?? node.positionalParameters,
           newReturnType ?? node.returnType,
+          node.nullability,
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: node.typeParameters,
           requiredParameterCount: node.requiredParameterCount,
-          typedefType: typedefType,
-          nullability: node.nullability);
+          typedefType: typedefType);
     }
   }
 
@@ -111,7 +111,7 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
       return null;
     } else {
       return new InterfaceType(
-          node.classNode, newTypeArguments, node.nullability);
+          node.classNode, node.nullability, newTypeArguments);
     }
   }
 
@@ -135,8 +135,8 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
     if (node.promotedBound != null) {
       DartType newPromotedBound = node.promotedBound.accept(this);
       if (newPromotedBound != null) {
-        return new TypeParameterType(node.parameter, newPromotedBound,
-            node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter,
+            node.typeParameterTypeNullability, newPromotedBound);
       }
     }
     return null;
@@ -157,7 +157,7 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
       return null;
     } else {
       return new TypedefType(
-          node.typedefNode, newTypeArguments, node.nullability);
+          node.typedefNode, node.nullability, newTypeArguments);
     }
   }
 

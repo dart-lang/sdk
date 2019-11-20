@@ -1,0 +1,16 @@
+main = <No Member>;
+library from "org-dartlang-malformed-uri:?+package%3Afoo%2Fbar.dart" as ?+p {
+
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:2:7: Error: Couldn't parse URI ' package:foo/bar.dart':
+//   Scheme not starting with alphabetic character.
+// part ' package:foo/bar.dart';
+//       ^
+//
+
+  part  package:foo/bar.dart;
+}

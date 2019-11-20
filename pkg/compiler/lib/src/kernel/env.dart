@@ -614,6 +614,7 @@ abstract class KClassData {
   InterfaceType get thisType;
   InterfaceType get jsInteropType;
   InterfaceType get rawType;
+  InterfaceType get instantiationToBounds;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
@@ -642,6 +643,8 @@ class KClassDataImpl implements KClassData {
   InterfaceType jsInteropType;
   @override
   InterfaceType rawType;
+  @override
+  InterfaceType instantiationToBounds;
   @override
   InterfaceType supertype;
   @override
@@ -744,8 +747,8 @@ abstract class KFunctionDataMixin implements KFunctionData {
         } else {
           _typeVariables = functionNode.typeParameters
               .map<TypeVariableType>((ir.TypeParameter typeParameter) {
-            return elementMap
-                .getDartType(new ir.TypeParameterType(typeParameter));
+            return elementMap.getDartType(
+                new ir.TypeParameterType(typeParameter, ir.Nullability.legacy));
           }).toList();
         }
       }

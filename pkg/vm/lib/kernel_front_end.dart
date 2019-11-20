@@ -106,7 +106,7 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
-  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: null);
+  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
       valueHelp: 'opt1,opt2,...',
@@ -157,7 +157,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
-  final bool genBytecode = options['gen-bytecode'] ?? aot;
+  final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
@@ -167,6 +167,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
     return badUsageExitCode;
+  }
+
+  if (aot) {
+    if (!linkPlatform) {
+      print('Error: --no-link-platform option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (splitOutputByPackages) {
+      print(
+          'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
   }
 
   final BytecodeOptions bytecodeOptions = new BytecodeOptions(
@@ -308,12 +320,10 @@ Future<KernelCompilationResults> compileToKernel(
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
-    await _runGlobalTransformations(
-        source,
-        options,
+    await runGlobalTransformations(
+        options.target,
         component,
         useGlobalTypeFlowAnalysis,
-        environmentDefines,
         enableAsserts,
         useProtobufTreeShaker,
         errorDetector);
@@ -363,12 +373,10 @@ void setVMEnvironmentDefines(
   options.environmentDefines = environmentDefines;
 }
 
-Future _runGlobalTransformations(
-    Uri source,
-    CompilerOptions compilerOptions,
+Future runGlobalTransformations(
+    Target target,
     Component component,
     bool useGlobalTypeFlowAnalysis,
-    Map<String, String> environmentDefines,
     bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
@@ -389,8 +397,7 @@ Future _runGlobalTransformations(
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -404,8 +411,7 @@ Future _runGlobalTransformations(
     protobuf_tree_shaker.removeUnusedProtoReferences(
         component, coreTypes, null);
 
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -669,6 +675,7 @@ Future writeOutputSplitByPackages(
 
 String packageFor(Library lib) {
   // Core libraries are not written into any package kernel binaries.
+  // ignore: DEPRECATED_MEMBER_USE
   if (lib.isExternal) return null;
 
   // Packages are written into their own kernel binaries.

@@ -776,6 +776,34 @@ var c = 3;
 ''');
   }
 
+  test_featureSet_add() async {
+    assertNotSameSignature(r'''
+class A {}
+''', r'''
+// @dart = 2.5
+class A {}
+''');
+  }
+
+  test_featureSet_change() async {
+    assertNotSameSignature(r'''
+// @dart = 2.6
+class A {}
+''', r'''
+// @dart = 2.5
+class A {}
+''');
+  }
+
+  test_featureSet_remove() async {
+    assertNotSameSignature(r'''
+// @dart = 2.5
+class A {}
+''', r'''
+class A {}
+''');
+  }
+
   test_function_annotation() {
     assertNotSameSignature(r'''
 const a = 0;

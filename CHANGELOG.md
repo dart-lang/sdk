@@ -41,8 +41,83 @@ The Linter was updated to `0.1.103`, which includes:
 
 ### Language
 
-*   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
-    specially declared static functions to be invoked
+* **Breaking Change**: [Static extension members][] are accessible when
+imported with a prefix (issue [671][]). In the extension method **preview**
+launch, importing a library with a prefix hid all extension members in
+addition to hiding the extension name, thereby making them inaccessible
+in the importing library except via the explicit override syntax. Based
+on user feedback, we have changed this to make extensions methods accessible
+even when imported with a prefix.
+
+    ```dart
+      // "thing.dart"
+      class Thing {
+      }
+      extension Show on Thing {
+        void show() {
+          print("This is a thing");
+        }
+     }
+     // "client.dart"
+     import "thing.dart" as p;
+     void test() {
+       p.Thing().show(); // Previously an error, now resolves to Show.show
+     }
+    ```
+
+[Static extension members]: https://github.com/dart-lang/language/blob/master/accepted/2.6/static-extension-members/feature-specification.md
+[671]: https://github.com/dart-lang/language/issues/671
+
+### Core libraries
+
+#### `dart:io`
+
+* **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
+  tests that wish to mock `ServerSocket.bind`.
+
+### Dart VM
+
+* New fields added to existing instances by a reload will now be initialized
+lazily, as if the field was a late field. This makes the initialization order
+program-defined, whereas previously it was undefined.
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.103`, which includes:
+
+* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
+* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
+  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
+
+#### Pub
+
+* `pub get` generates [`.dart_tools/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
+  in addition to `.packages` to support language versioning.
+
+* `pub publish` now warns about the old flutter plugin registration format.
+
+* `pub publish` now warns about the `author` field in pubspec.yaml being.
+  obsolete.
+
+* Show a proper error message when `git` is not installed.
+
+## 2.6.1 - 2019-11-11
+
+This is a patch release that reduces dart2js memory usage (issue [27883][]),
+improves stability on arm64 (issue [39090][]) and updates the Dart FFI
+documentation.
+
+[27883]: https://github.com/dart-lang/sdk/issues/27883
+[39090]: https://github.com/dart-lang/sdk/issues/39090
+
+## 2.6.0 - 2019-11-05
+
+### Language
+
+*   **[IN PREVIEW]** [Static extension members][]: A new language feature
+    allowing specially declared static functions to be invoked
     like instance members on expressions of appropriate static types
     is available in preview.
 
@@ -133,7 +208,7 @@ executables. See https://dart.dev/tools/dart2native for additional details.
     for accessing the value in native memory and `[]` and `[]=` for indexed access.
     The method `asExternalTypedData` has been replaced with `asTypedList` extension
     methods. And finally, `Structs` do no longer have a type argument and are
-    accessed the extension member `.ref` on `Pointer`.
+    accessed using the extension member `.ref` on `Pointer`.
     These changes makes the code using `dart:ffi` much more concise.
 *   **Breaking change**: The memory management has been removed (`Pointer.allocate`
     and `Pointer.free`). Instead, memory management is available in
@@ -142,7 +217,7 @@ executables. See https://dart.dev/tools/dart2native for additional details.
     instead.
 *   Faster memory load and stores.
 *   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
-*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
+*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
 
 ### Dart for the Web
 

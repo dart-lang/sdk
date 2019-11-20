@@ -116,8 +116,7 @@ class TypeGraphInferrer implements TypesInferrer {
           returnType != null &&
               abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
-      bool isCalledOnce =
-          typeInformation.isCalledOnce(); //isMemberCalledOnce(member);
+      bool isCalledOnce = typeInformation.isCalledOnce();
 
       memberResults[member] = new GlobalTypeInferenceMemberResultImpl(
           data, returnType, type,

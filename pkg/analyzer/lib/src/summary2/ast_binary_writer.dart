@@ -945,6 +945,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_returnType: node.returnType?.accept(this),
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
       methodDeclaration_formalParameters: node.parameters?.accept(this),
+      methodDeclaration_hasOperatorEqualWithParameterTypeFromObject:
+          LazyAst.hasOperatorEqualParameterTypeFromObject(node),
     );
     builder.name = node.name.name;
     builder.flags = AstBinaryFlags.encode(
@@ -1463,12 +1465,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   _ElementComponents _componentsOfElement(Element element) {
-    while (element is ParameterMember) {
-      element = (element as ParameterMember).baseElement;
+    if (element is ParameterMember) {
+      element = element.declaration;
     }
 
     if (element is Member) {
-      var elementIndex = _indexOfElement(element.baseElement);
+      var elementIndex = _indexOfElement(element.declaration);
       var substitution = element.substitution.map;
       var substitutionBuilder = LinkedNodeTypeSubstitutionBuilder(
         typeParameters: substitution.keys.map(_indexOfElement).toList(),

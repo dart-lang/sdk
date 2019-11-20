@@ -1336,7 +1336,8 @@ class FlowModel<Variable, Type> {
     if (newType == null || typeOperations.isSameType(newType, previousType)) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
-    assert(typeOperations.isSubtypeOf(newType, previousType));
+    assert(typeOperations.isSubtypeOf(newType, previousType),
+        "Expected $newType to be a subtype of $previousType.");
     return _finishTypeTest(typeOperations, variable, info, newType);
   }
 

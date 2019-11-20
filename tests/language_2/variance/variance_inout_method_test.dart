@@ -116,6 +116,39 @@ class C<inout T> {
   }
 }
 
+class D<T> {
+  T method() => null;
+  void method2(T x) {}
+  void method3(covariant T x) {}
+}
+
+class E<inout T> extends D<T> {
+  @override
+  T method() => null;
+
+  @override
+  void method2(T x) {}
+
+  @override
+  void method3(covariant T x) {}
+}
+
+abstract class F<T> {
+  int method(T x);
+}
+
+class G<inout T> {
+  final void Function(T) f;
+  G(this.f);
+  int method(T x) {
+    f(x);
+  }
+}
+
+class H<inout T> extends G<T> implements F<T> {
+  H(void Function(T) f) : super(f);
+}
+
 void testClass() {
   A<int> a = new A();
 
@@ -228,8 +261,23 @@ void testClassInMethods() {
   Expect.type<A<int>>(c.method3());
 }
 
+void testOverrideLegacyMethods() {
+  E<int> e = new E();
+  Expect.isNull(e.method());
+  e.method2(3);
+  e.method3(3);
+
+  D<Object> d = e;
+  Expect.throws(() => d.method2("test"));
+  Expect.throws(() => d.method3("test"));
+
+  F<Object> f = new H<String>((String s) {});
+  Expect.throws(() => f.method(3));
+}
+
 main() {
   testClass();
   testMixin();
   testClassInMethods();
+  testOverrideLegacyMethods();
 }

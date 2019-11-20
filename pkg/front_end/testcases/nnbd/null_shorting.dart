@@ -12,6 +12,8 @@ class Class {
   }
 
   Class? operator +(int value) => field;
+
+  Class? operator -() => field;
 }
 
 main() {
@@ -29,6 +31,9 @@ void propertyAccess(Class? c) {
 
   c?.field.field;
   c?.field.field = new Class();
+  throws(() => (c?.field).field);
+  throws(() => (c?.field = new Class()).field);
+  throws(() => (c?.method()).field);
   c = c?.field.field = new Class();
   c?.field.method();
   c?.field = new Class().field;
@@ -109,8 +114,8 @@ void indexAccess(Class? c) {
 }
 
 void operatorAccess(Class? c) {
-  // TODO(johnniwinther): + should _not_ be null-shortened.
-  c?.field + 0;
+  throws(() => c?.field + 0);
+  throws(() => -c?.field);
   c?.field += 0;
   c = c?.field += 0;
   c?.field.field += 0;
@@ -127,4 +132,13 @@ void ifNull(Class? c) {
   c?.field ??= c;
   c = c?.field ??= c;
   c?.field[c] ??= c;
+}
+
+void throws(void Function() f) {
+  try {
+    f();
+  } catch (_) {
+    return;
+  }
+  throw 'Expected exception.';
 }

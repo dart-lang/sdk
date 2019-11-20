@@ -890,8 +890,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // This member will need a check, however, because we are calling through
       // an unsafe target.
       if (element.isPrivate && element.parameters.isNotEmpty) {
-        _covariantPrivateMembers
-            .add(element is ExecutableMember ? element.baseElement : element);
+        _covariantPrivateMembers.add(element.declaration);
       }
 
       // Get the lower bound of the declared return type (e.g. `F<bottom>`) and
@@ -903,16 +902,14 @@ class CodeChecker extends RecursiveAstVisitor {
       // parameters are properly substituted.
       var classElement = targetType.element;
 
-      var rawElement =
-          (element is ExecutableMember) ? element.baseElement : element;
+      var rawElement = element.declaration;
       var rawReturnType = rawElement.returnType;
 
       // Check if the return type uses a class type parameter contravariantly.
       bool needsCheck = false;
       for (var typeParameter in classElement.typeParameters) {
-        var variance = computeVariance(typeParameter, rawReturnType);
-        if (variance == Variance.contravariant ||
-            variance == Variance.invariant) {
+        var variance = Variance(typeParameter, rawReturnType);
+        if (variance.isContravariant || variance.isInvariant) {
           needsCheck = true;
           break;
         }
@@ -1692,17 +1689,9 @@ class _OverrideChecker {
 
   static Set<Element> _createCovariantCheckSet() {
     return new LinkedHashSet(
-        equals: _equalMemberElements, hashCode: _hashCodeMemberElements);
-  }
-
-  /// When finding superclass covariance checks, we need to track the
-  /// substituted member/parameter type, but we don't want this type to break
-  /// equality, because [Member] does not implement equality/hashCode, so
-  /// instead we jump to the declaring element.
-  static bool _equalMemberElements(Element x, Element y) {
-    x = x is Member ? x.baseElement : x;
-    y = y is Member ? y.baseElement : y;
-    return x == y;
+      equals: (a, b) => a.declaration == b.declaration,
+      hashCode: (e) => e.declaration.hashCode,
+    );
   }
 
   /// Find all generic interfaces that are implemented by [element], including
@@ -1765,11 +1754,6 @@ class _OverrideChecker {
       }
     }
     return members;
-  }
-
-  static int _hashCodeMemberElements(Element x) {
-    x = x is Member ? x.baseElement : x;
-    return x.hashCode;
   }
 }
 

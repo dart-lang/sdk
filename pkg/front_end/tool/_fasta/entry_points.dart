@@ -344,6 +344,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   }
 
   await writeComponentToFile(component, fullOutput,
+      // ignore: DEPRECATED_MEMBER_USE
       filter: (lib) => !lib.isExternal);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");

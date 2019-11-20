@@ -731,6 +731,10 @@ class LinkedUnitContext {
     return LazyVariableDeclaration.hasInitializer(node);
   }
 
+  bool hasOperatorEqualParameterTypeFromObject(MethodDeclaration node) {
+    return LazyAst.hasOperatorEqualParameterTypeFromObject(node);
+  }
+
   bool hasOverrideInferenceDone(AstNode node) {
     // Only nodes in the libraries being linked might be not inferred yet.
     if (_astReader.isLazy) return true;
@@ -743,6 +747,8 @@ class LinkedUnitContext {
       return node.abstractKeyword != null;
     } else if (node is ClassTypeAlias) {
       return node.abstractKeyword != null;
+    } else if (node is ConstructorDeclaration) {
+      return false;
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
@@ -902,7 +908,7 @@ class LinkedUnitContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.bottom) {
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
@@ -947,13 +953,13 @@ class LinkedUnitContext {
 
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
 
-      return FunctionTypeImpl.synthetic(
-        returnType,
-        typeParameters,
-        formalParameters,
+      return FunctionTypeImpl(
+        typeFormals: typeParameters,
+        parameters: formalParameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
         element: typedefElement,
         typeArguments: typedefTypeArguments,
-        nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
@@ -995,6 +1001,10 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
+  }
+
+  void setOperatorEqualParameterTypeFromObject(AstNode node, bool value) {
+    LazyAst.setOperatorEqualParameterTypeFromObject(node, value);
   }
 
   void setOverrideInferenceDone(AstNode node) {

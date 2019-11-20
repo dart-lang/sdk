@@ -23,8 +23,6 @@ export 'kernel_variable_builder.dart' show VariableBuilderImpl;
 
 export 'load_library_builder.dart' show LoadLibraryBuilder;
 
-export 'unlinked_scope.dart' show UnlinkedDeclaration;
-
 int compareProcedures(Procedure a, Procedure b) {
   int i = "${a.fileUri}".compareTo("${b.fileUri}");
   if (i != 0) return i;

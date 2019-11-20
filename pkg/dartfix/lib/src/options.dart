@@ -9,13 +9,16 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
+// TODO(brianwilkerson) Deprecate 'excludeFix' and replace it with 'exclude-fix'
 const excludeFixOption = 'excludeFix';
 const forceOption = 'force';
 const includeFixOption = 'fix';
-const outputDirOption = 'outputDir';
 const overwriteOption = 'overwrite';
 const pedanticOption = 'pedantic';
+const previewDirOption = 'preview-dir';
+const previewPortOption = 'preview-port';
 const requiredOption = 'required';
+const sdkOption = 'sdk';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
@@ -41,8 +44,9 @@ class Options {
 
   final bool force;
   final bool showHelp;
-  final String outputDir;
   final bool overwrite;
+  final String previewDir;
+  final String previewPort;
   final bool useColor;
   final bool verbose;
 
@@ -50,11 +54,12 @@ class Options {
       : force = results[forceOption] as bool,
         includeFixes = (results[includeFixOption] as List ?? []).cast<String>(),
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
-        outputDir = results[outputDirOption] as String,
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
+        previewDir = results[previewDirOption] as String,
+        previewPort = results[previewPortOption] as String,
         requiredFixes = results[requiredOption] as bool,
-        sdkPath = _getSdkPath(),
+        sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
@@ -98,6 +103,10 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
+      ..addOption(sdkOption,
+          help: 'Path to the SDK to analyze against.',
+          valueHelp: 'path',
+          hide: true)
       ..addOption(_serverSnapshot,
           help: 'Path to the analysis server snapshot file.',
           valueHelp: 'path',
@@ -113,8 +122,10 @@ class Options {
       //
       // Hidden options.
       //
-      ..addOption(outputDirOption,
-          help: 'Path to the output directory', hide: true);
+      ..addOption(previewDirOption,
+          help: 'Path to the preview directory', hide: true)
+      ..addOption(previewPortOption,
+          help: 'The port used by the preview tool', hide: true);
 
     context ??= Context();
 

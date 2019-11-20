@@ -23,7 +23,6 @@ namespace bin {
   V(snapshot_depfile, snapshot_deps_filename)                                  \
   V(depfile, depfile)                                                          \
   V(depfile_output_filename, depfile_output_filename)                          \
-  V(shared_blobs, shared_blobs_filename)                                       \
   V(save_compilation_trace, save_compilation_trace_filename)                   \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(save_type_feedback, save_type_feedback_filename)                           \

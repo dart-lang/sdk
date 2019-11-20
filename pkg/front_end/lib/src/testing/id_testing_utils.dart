@@ -233,17 +233,59 @@ MemberBuilder lookupExtensionMemberBuilder(
 
 /// Returns a textual representation of the constant [node] to be used in
 /// testing.
-String constantToText(Constant node, {bool isNonNullableByDefault: false}) {
+String constantToText(Constant node,
+    {TypeRepresentation typeRepresentation: TypeRepresentation.legacy}) {
   StringBuffer sb = new StringBuffer();
-  new ConstantToTextVisitor(sb, isNonNullableByDefault).visit(node);
+  new ConstantToTextVisitor(sb, typeRepresentation).visit(node);
   return sb.toString();
+}
+
+enum TypeRepresentation {
+  legacy,
+  explicit,
+  implicitUndetermined,
+  nonNullableByDefault,
 }
 
 /// Returns a textual representation of the type [node] to be used in
 /// testing.
-String typeToText(DartType node, {bool isNonNullableByDefault: false}) {
+String typeToText(DartType node,
+    [TypeRepresentation typeRepresentation = TypeRepresentation.legacy]) {
   StringBuffer sb = new StringBuffer();
-  new DartTypeToTextVisitor(sb, isNonNullableByDefault).visit(node);
+  new DartTypeToTextVisitor(sb, typeRepresentation).visit(node);
+  return sb.toString();
+}
+
+Set<Class> computeAllSuperclasses(Class node) {
+  Set<Class> set = <Class>{};
+  _getAllSuperclasses(node, set);
+  return set;
+}
+
+void _getAllSuperclasses(Class node, Set<Class> set) {
+  if (set.add(node)) {
+    if (node.supertype != null) {
+      _getAllSuperclasses(node.supertype.classNode, set);
+    }
+    if (node.mixedInType != null) {
+      _getAllSuperclasses(node.mixedInType.classNode, set);
+    }
+    for (Supertype interface in node.implementedTypes) {
+      _getAllSuperclasses(interface.classNode, set);
+    }
+  }
+}
+
+String supertypeToText(Supertype node,
+    [TypeRepresentation typeRepresentation = TypeRepresentation.legacy]) {
+  StringBuffer sb = new StringBuffer();
+  sb.write(node.classNode.name);
+  if (node.typeArguments.isNotEmpty) {
+    sb.write('<');
+    new DartTypeToTextVisitor(sb, typeRepresentation)
+        .visitList(node.typeArguments);
+    sb.write('>');
+  }
   return sb.toString();
 }
 
@@ -251,8 +293,8 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   final StringBuffer sb;
   final DartTypeToTextVisitor typeToText;
 
-  ConstantToTextVisitor(this.sb, bool isNonNullableByDefault)
-      : typeToText = new DartTypeToTextVisitor(sb, isNonNullableByDefault);
+  ConstantToTextVisitor(this.sb, TypeRepresentation typeRepresentation)
+      : typeToText = new DartTypeToTextVisitor(sb, typeRepresentation);
 
   void visit(Constant node) => node.accept(this);
 
@@ -375,9 +417,9 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
 class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   final StringBuffer sb;
-  final bool isNonNullableByDefault;
+  final TypeRepresentation typeRepresentation;
 
-  DartTypeToTextVisitor(this.sb, this.isNonNullableByDefault);
+  DartTypeToTextVisitor(this.sb, this.typeRepresentation);
 
   void visit(DartType node) => node.accept(this);
 
@@ -421,8 +463,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('>');
     }
     if (!isNull(node)) {
-      sb.write(nullabilityToText(node.nullability,
-          isNonNullableByDefault: isNonNullableByDefault));
+      sb.write(nullabilityToText(node.nullability, typeRepresentation));
     }
   }
 
@@ -454,18 +495,16 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('}');
     }
     sb.write(')');
-    sb.write(nullabilityToText(node.nullability,
-        isNonNullableByDefault: isNonNullableByDefault));
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
     sb.write('->');
     visit(node.returnType);
   }
 
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
-    sb.write(nullabilityToText(node.nullability,
-        isNonNullableByDefault: isNonNullableByDefault));
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
     if (node.promotedBound != null) {
-      sb.write(' extends ');
+      sb.write(' & ');
       visit(node.promotedBound);
     }
   }
@@ -477,8 +516,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       visitList(node.typeArguments);
       sb.write('>');
     }
-    sb.write(nullabilityToText(node.nullability,
-        isNonNullableByDefault: isNonNullableByDefault));
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
   }
 }
 
@@ -546,8 +584,12 @@ String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
 }
 
 /// Returns a textual representation of [errors] to be used in testing.
-String errorsToText(List<FormattedMessage> errors) {
-  return errors.map((m) => m.message).join(',');
+String errorsToText(List<FormattedMessage> errors, {bool useCodes: false}) {
+  if (useCodes) {
+    return errors.map((m) => m.code).join(',');
+  } else {
+    return errors.map((m) => m.message).join(',');
+  }
 }
 
 /// Returns a textual representation of [descriptor] to be used in testing.
@@ -588,18 +630,39 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
 }
 
 /// Returns a textual representation of [nullability] to be used in testing.
-String nullabilityToText(Nullability nullability,
-    {bool isNonNullableByDefault}) {
-  assert(isNonNullableByDefault != null);
+String nullabilityToText(
+    Nullability nullability, TypeRepresentation typeRepresentation) {
   switch (nullability) {
     case Nullability.nonNullable:
-      return isNonNullableByDefault ? '' : '!';
+      switch (typeRepresentation) {
+        case TypeRepresentation.explicit:
+        case TypeRepresentation.legacy:
+        case TypeRepresentation.implicitUndetermined:
+          return '!';
+        case TypeRepresentation.nonNullableByDefault:
+          return '';
+      }
+      break;
     case Nullability.nullable:
       return '?';
     case Nullability.undetermined:
-      return '%';
+      switch (typeRepresentation) {
+        case TypeRepresentation.implicitUndetermined:
+          return '';
+        default:
+          return '%';
+      }
+      break;
     case Nullability.legacy:
-      return isNonNullableByDefault ? '*' : '';
+      switch (typeRepresentation) {
+        case TypeRepresentation.legacy:
+          return '';
+        case TypeRepresentation.explicit:
+        case TypeRepresentation.nonNullableByDefault:
+        case TypeRepresentation.implicitUndetermined:
+          return '*';
+      }
+      break;
   }
   throw new UnsupportedError('Unexpected nullability: $nullability.');
 }

@@ -2571,6 +2571,8 @@ abstract class ModularNamer {
         return asName(fixedNames.deferredAction);
       case JsGetName.OPERATOR_AS_PREFIX:
         return asName(fixedNames.operatorAsPrefix);
+      case JsGetName.OPERATOR_IS_PREFIX:
+        return asName(fixedNames.operatorIsPrefix);
       case JsGetName.SIGNATURE_NAME:
         return asName(fixedNames.operatorSignature);
       case JsGetName.RTI_NAME:

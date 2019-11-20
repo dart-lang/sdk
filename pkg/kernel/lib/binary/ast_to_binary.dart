@@ -54,6 +54,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
   Set<CanonicalName> _reindexedCanonicalNames = new Set<CanonicalName>();
 
+  Library _currentLibrary;
+
   /// Create a printer that writes to the given [sink].
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
@@ -930,6 +932,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitLibrary(Library node) {
+    _currentLibrary = node;
+
+    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
@@ -991,6 +996,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
+
+    _currentLibrary = null;
   }
 
   void writeLibraryDependencies(Library library) {
@@ -2067,11 +2074,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // requires the nullability byte.
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
-      writeByte(Nullability.nonNullable.index);
+      writeByte(_currentLibrary.nonNullable.index);
       writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
-      writeByte(Nullability.nonNullable.index);
+      writeByte(_currentLibrary.nonNullable.index);
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -24,14 +23,6 @@ main() {
 DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
 VoidTypeImpl get voidType => VoidTypeImpl.instance;
-
-Element getBaseElement(Element e) {
-  if (e is Member) {
-    return e.baseElement;
-  } else {
-    return e;
-  }
-}
 
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {
@@ -111,9 +102,195 @@ class FunctionTypeTest with ElementsTypesMixin {
         nullabilitySuffix: NullabilitySuffix.star,
       );
 
+  test_equality_leftRequired_rightPositional() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        positionalParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_differentName() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'b', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_differentType() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_equal() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, f2);
+  }
+
+  test_equality_namedParameters_extraLeft() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_extraRight() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_required_left() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedRequiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_namedParameters_required_right() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        namedRequiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_requiredParameters_extraLeft() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        requiredParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_equality_requiredParameters_extraRight() {
+    var f1 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+      ],
+    );
+    var f2 = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        requiredParameter(name: 'b', type: typeProvider.doubleType),
+      ],
+    );
+    expect(f1, isNot(equals(f2)));
+  }
+
+  test_new_sortsNamedParameters() {
+    var f = functionTypeNone(
+      returnType: typeProvider.voidType,
+      parameters: [
+        requiredParameter(name: 'a', type: typeProvider.intType),
+        namedParameter(name: 'c', type: typeProvider.intType),
+        namedParameter(name: 'b', type: typeProvider.intType),
+      ],
+    );
+    var parameters = f.parameters;
+    expect(parameters, hasLength(3));
+    expect(parameters[0].name, 'a');
+    expect(parameters[1].name, 'b');
+    expect(parameters[2].name, 'c');
+  }
+
   test_synthetic() {
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f, element: isNull);
   }
 
@@ -121,9 +298,12 @@ class FunctionTypeTest with ElementsTypesMixin {
     // T Function<T>(T x)
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: typeParameterType(t));
-    FunctionType f = new FunctionTypeImpl.synthetic(
-        typeParameterType(t), [t], [x],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: [t],
+      parameters: [x],
+      returnType: typeParameterType(t),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: isNull,
@@ -137,14 +317,22 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate_argument_length_mismatch() {
     // dynamic Function<T>()
     var t = typeParameter('T');
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [t], [],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: [t],
+      parameters: const [],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     expect(() => f.instantiate([]), throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_synthetic_instantiate_no_type_formals() {
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     expect(f.instantiate([]), same(f));
   }
 
@@ -152,9 +340,12 @@ class FunctionTypeTest with ElementsTypesMixin {
     // T Function<T>(int x)
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: intType);
-    FunctionType f = new FunctionTypeImpl.synthetic(
-        typeParameterType(t), [t], [x],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: [t],
+      parameters: [x],
+      returnType: typeParameterType(t),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: isNull,
@@ -167,8 +358,12 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_namedParameter() {
     var p = namedParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: [p],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f,
         element: isNull,
         displayName: 'dynamic Function({x: Object})',
@@ -181,8 +376,12 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_normalParameter() {
     var p = requiredParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: [p],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f,
         element: isNull,
         displayName: 'dynamic Function(Object)',
@@ -196,8 +395,12 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_optionalParameter() {
     var p = positionalParameter(name: 'x', type: objectType);
-    FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: [p],
+      returnType: dynamicType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f,
         element: isNull,
         displayName: 'dynamic Function([Object])',
@@ -210,8 +413,12 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic_returnType() {
-    FunctionType f = new FunctionTypeImpl.synthetic(objectType, [], [],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: objectType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f,
         element: isNull,
         displayName: 'Object Function()',
@@ -269,9 +476,12 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   test_synthetic_typeFormals() {
     var t = typeParameter('T');
-    FunctionType f = new FunctionTypeImpl.synthetic(
-        typeParameterType(t), [t], [],
-        nullabilitySuffix: NullabilitySuffix.star);
+    FunctionType f = new FunctionTypeImpl(
+      typeFormals: [t],
+      parameters: const [],
+      returnType: typeParameterType(t),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     basicChecks(f,
         element: isNull,
         displayName: 'T Function<T>()',

@@ -329,7 +329,7 @@ class Members extends BytecodeDeclaration {
 }
 
 class FieldDeclaration {
-  static const hasInitializerFlag = 1 << 0;
+  static const hasNontrivialInitializerFlag = 1 << 0;
   static const hasGetterFlag = 1 << 1;
   static const hasSetterFlag = 1 << 2;
   static const isReflectableFlag = 1 << 3;
@@ -346,6 +346,7 @@ class FieldDeclaration {
   static const hasAttributesFlag = 1 << 14;
   static const isLateFlag = 1 << 15;
   static const isExtensionMemberFlag = 1 << 16;
+  static const hasInitializerFlag = 1 << 17;
 
   final int flags;
   final ObjectHandle name;
@@ -389,7 +390,7 @@ class FieldDeclaration {
     if ((flags & hasInitializerCodeFlag) != 0) {
       writer.writeLinkOffset(initializerCode);
     }
-    if ((flags & hasInitializerFlag) == 0) {
+    if ((flags & hasNontrivialInitializerFlag) == 0) {
       writer.writePackedObject(value);
     }
     if ((flags & hasGetterFlag) != 0) {
@@ -421,8 +422,9 @@ class FieldDeclaration {
     final initializerCode = ((flags & hasInitializerCodeFlag) != 0)
         ? reader.readLinkOffset<Code>()
         : null;
-    final value =
-        ((flags & hasInitializerFlag) == 0) ? reader.readPackedObject() : null;
+    final value = ((flags & hasNontrivialInitializerFlag) == 0)
+        ? reader.readPackedObject()
+        : null;
     final getterName =
         ((flags & hasGetterFlag) != 0) ? reader.readPackedObject() : null;
     final setterName =
@@ -484,11 +486,14 @@ class FieldDeclaration {
     if ((flags & hasSourcePositionsFlag) != 0) {
       sb.write(', pos = $position, end-pos = $endPosition');
     }
+    if ((flags & hasInitializerFlag) != 0) {
+      sb.write(', has-initializer');
+    }
     sb.writeln();
     if ((flags & hasInitializerCodeFlag) != 0) {
       sb.write('    initializer\n$initializerCode\n');
     }
-    if ((flags & hasInitializerFlag) == 0) {
+    if ((flags & hasNontrivialInitializerFlag) == 0) {
       sb.write('    value = $value\n');
     }
     if ((flags & hasAnnotationsFlag) != 0) {

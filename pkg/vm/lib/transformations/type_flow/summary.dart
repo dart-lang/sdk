@@ -403,7 +403,7 @@ class CreateRuntimeType extends Statement {
       if (computed is AnyType) return const AnyType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass), types);
+    return new RuntimeType(new InterfaceType(klass, Nullability.legacy), types);
   }
 }
 

@@ -138,6 +138,71 @@ static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
   }
 }
 
+void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
+  MutexLocker ml(&mutex_);
+  ASSERT(heap_ == nullptr && heap != nullptr);
+  heap_ = heap;
+}
+
+bool IdleTimeHandler::ShouldCheckForIdle() {
+  MutexLocker ml(&mutex_);
+  return idle_start_time_ > 0 && FLAG_idle_timeout_micros != 0 &&
+         disabled_counter_ == 0;
+}
+
+void IdleTimeHandler::UpdateStartIdleTime() {
+  MutexLocker ml(&mutex_);
+  if (disabled_counter_ == 0) {
+    idle_start_time_ = OS::GetCurrentMonotonicMicros();
+  }
+}
+
+bool IdleTimeHandler::ShouldNotifyIdle(int64_t* expiry) {
+  const int64_t now = OS::GetCurrentMonotonicMicros();
+
+  MutexLocker ml(&mutex_);
+  if (idle_start_time_ > 0 && disabled_counter_ == 0) {
+    const int64_t expiry_time = idle_start_time_ + FLAG_idle_timeout_micros;
+    if (expiry_time < now) {
+      idle_start_time_ = 0;
+      return true;
+    }
+  }
+
+  *expiry = now + FLAG_idle_timeout_micros;
+  return false;
+}
+
+void IdleTimeHandler::NotifyIdle(int64_t deadline) {
+  MutexLocker ml(&mutex_, /*no_safepoint_scope=*/false);
+  if (heap_ != nullptr) {
+    heap_->NotifyIdle(deadline);
+  }
+  idle_start_time_ = 0;
+}
+
+void IdleTimeHandler::NotifyIdleUsingDefaultDeadline() {
+  const int64_t now = OS::GetCurrentMonotonicMicros();
+  NotifyIdle(now + FLAG_idle_timeout_micros);
+}
+
+DisableIdleTimerScope::DisableIdleTimerScope(IdleTimeHandler* handler)
+    : handler_(handler) {
+  if (handler_ != nullptr) {
+    MutexLocker ml(&handler_->mutex_);
+    ++handler_->disabled_counter_;
+    handler_->idle_start_time_ = 0;
+  }
+}
+
+DisableIdleTimerScope::~DisableIdleTimerScope() {
+  if (handler_ != nullptr) {
+    MutexLocker ml(&handler_->mutex_);
+    --handler_->disabled_counter_;
+    ASSERT(handler_->disabled_counter_ >= 0);
+  }
+}
+
 IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
                            void* embedder_data)
     : embedder_data_(embedder_data),
@@ -1959,10 +2024,6 @@ void Isolate::SetStickyError(RawError* sticky_error) {
 void Isolate::Run() {
   message_handler()->Run(Dart::thread_pool(), RunIsolate, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
-}
-
-void Isolate::NotifyIdle(int64_t deadline) {
-  heap()->NotifyIdle(deadline);
 }
 
 void Isolate::AddClosureFunction(const Function& function) const {

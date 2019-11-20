@@ -366,35 +366,35 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   }
 }
 
-/// Remove [HTypeKnown] instructions from the graph, to make codegen
-/// analysis easier.
+/// Remove [HTypeKnown] instructions from the graph, to make codegen analysis
+/// easier.
 class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
   @override
   void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
+    // Visit bottom-up to visit uses before instructions and capture refined
+    // input types.
+    visitPostDominatorTree(graph);
   }
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction instruction = block.last;
     while (instruction != null) {
-      HInstruction next = instruction.next;
+      HInstruction previous = instruction.previous;
       instruction.accept(this);
-      instruction = next;
+      instruction = previous;
     }
   }
 
   @override
   void visitTypeKnown(HTypeKnown instruction) {
-    for (HInstruction user in instruction.usedBy) {
-      if (user is HTypeConversion) {
-        user.inputType = instruction.instructionType;
-      } else if (user is HPrimitiveCheck) {
-        user.inputType = instruction.instructionType;
-      }
-    }
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
+  }
+
+  @override
+  void visitInstanceEnvironment(HInstanceEnvironment instruction) {
+    instruction.codegenInputType = instruction.inputs.single.instructionType;
   }
 }
 

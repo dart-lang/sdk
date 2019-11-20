@@ -59,6 +59,7 @@ class DeduplicateMixinsTransformer extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
+    // ignore: DEPRECATED_MEMBER_USE
     if (!node.isExternal) {
       transformList(node.classes, this, node);
     }
@@ -67,6 +68,7 @@ class DeduplicateMixinsTransformer extends Transformer {
 
   @override
   TreeNode visitClass(Class c) {
+    // ignore: DEPRECATED_MEMBER_USE
     if (c.enclosingLibrary.isExternal) {
       return c;
     }

@@ -615,6 +615,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
 class AssignmentExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
     implements AssignmentExpression {
   /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
@@ -647,8 +648,9 @@ class AssignmentExpressionImpl extends ExpressionImpl
       } else {
         message = "The right-hand size is null";
       }
+      // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException(new AnalysisException(message), null),
+          new SilentException(message, new AnalysisException(message), null),
           StackTrace.current);
     }
     _leftHandSide = _becomeParentOf(leftHandSide);
@@ -685,6 +687,9 @@ class AssignmentExpressionImpl extends ExpressionImpl
   void set rightHandSide(Expression expression) {
     _rightHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
+
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
 
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
@@ -726,6 +731,10 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _leftHandSide?.accept(visitor);
     _rightHandSide?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) =>
+      identical(child, _leftHandSide);
 }
 
 /// A node in the AST structure for a Dart program.
@@ -5750,7 +5759,9 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 ///
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
-class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
+class IndexExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements IndexExpression {
   /// The expression used to compute the object being indexed, or `null` if this
   /// index expression is part of a cascade expression.
   ExpressionImpl _target;
@@ -5861,6 +5872,9 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     _target = _becomeParentOf(expression as ExpressionImpl);
   }
 
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
   /// representing the parameter to which the value of the index expression will
@@ -5912,6 +5926,9 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     _target?.accept(visitor);
     _index?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _target);
 }
 
 /// An instance creation expression.
@@ -7718,6 +7735,33 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
+/// Mixin that can be used to implement [NullShortableExpression].
+mixin NullShortableExpressionImpl implements NullShortableExpression {
+  @override
+  Expression get nullShortingTermination {
+    var result = this;
+    while (true) {
+      var parent = result._nullShortingExtensionCandidate;
+      if (parent is NullShortableExpressionImpl &&
+          parent._extendsNullShorting(result)) {
+        result = parent;
+      } else {
+        return result;
+      }
+    }
+  }
+
+  /// Gets the ancestor of this node to which null-shorting might be extended.
+  /// Usually this is just the node's parent, however if `this` is the base of
+  /// a cascade section, it will be the cascade expression itself, which may be
+  /// a more distant ancestor.
+  AstNode get _nullShortingExtensionCandidate;
+
+  /// Indicates whether the effect of any null-shorting within [descendant]
+  /// (which should be a descendant of `this`) should extend to include `this`.
+  bool _extendsNullShorting(Expression descendant);
+}
+
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
@@ -8184,7 +8228,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
 ///
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
-class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
+class PropertyAccessImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements PropertyAccess {
   /// The expression computing the object defining the property being accessed.
   ExpressionImpl _target;
 
@@ -8266,6 +8312,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   }
 
   @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
@@ -8273,6 +8322,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
     _target?.accept(visitor);
     _propertyName?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _target);
 }
 
 /// The invocation of a constructor in the same class from within a
@@ -9969,10 +10021,16 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 /// A type parameter.
 ///
 ///    typeParameter ::=
-///        [SimpleIdentifier] ('extends' [TypeName])?
+///        typeParameterVariance? [SimpleIdentifier] ('extends' [TypeName])?
+///
+///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// The name of the type parameter.
   SimpleIdentifierImpl _name;
+
+  /// The token representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  Token varianceKeyword;
 
   /// The token representing the 'extends' keyword, or `null` if there is no
   /// explicit upper bound.

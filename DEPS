@@ -54,7 +54,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.5.0",
+  "args_tag": "1.5.2",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
@@ -84,8 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "args_tag" : "1.5.2",
-  "dartdoc_tag" : "v0.29.0",
+  "dartdoc_tag" : "v0.29.1",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -118,7 +117,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "80ac76400ff58fde3c5a335d860d196c3febe837",
+  "pub_rev": "d15067931a6b671a1c9dcc98b5923347676269cf",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -176,14 +175,14 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.6.0-dev.4.0",
+          "version": "version:2.6.0",
       }],
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
-          "version": "version:7.5.149",
+          "version": "version:7.8.279",
       }],
       "dep_type": "cipd",
   },
@@ -427,7 +426,7 @@ deps = {
     "packages": [
       {
         "package": "dart/language_model",
-        "version": "9fJQZ0TrnAGQKrEtuL3-AXbUfPzYxqpN_OBHr9P4hE4C",
+        "version": "lIRt14qoA1Cocb8j3yw_Fx5cfYou2ddam6ArBm4AI6QC",
       }
     ],
     "dep_type": "cipd",
@@ -468,7 +467,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:36",
+        "version": "binary_version:29_36",
       }
     ],
     "dep_type": "cipd",

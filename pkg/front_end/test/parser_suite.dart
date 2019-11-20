@@ -26,7 +26,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/source/stack_listener.dart'
+import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
 import 'package:kernel/ast.dart';
@@ -74,6 +74,11 @@ ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
     enableExtensionMethods: true,
     enableNonNullable: true);
 
+ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
+    enableTripleShift: true,
+    enableExtensionMethods: true,
+    enableNonNullable: false);
+
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
   final bool addTrace;
@@ -100,7 +105,9 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = new List<int>();
-    Token firstToken = scanUri(description.uri, lineStarts: lineStarts);
+
+    Token firstToken =
+        scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
@@ -137,7 +144,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
-    Token firstToken = scanUri(description.uri);
+    Token firstToken = scanUri(description.uri, description.shortName);
 
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
@@ -166,7 +173,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = new List<int>();
-    Token firstToken = scanUri(description.uri, lineStarts: lineStarts);
+    Token firstToken =
+        scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
@@ -261,15 +269,24 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
   }
 }
 
-Token scanUri(Uri uri, {List<int> lineStarts}) {
+Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
+  ScannerConfiguration config;
+
+  String firstDir = shortName.split("/")[0];
+  if (firstDir == "non-nnbd") {
+    config = scannerConfigurationNonNNBD;
+  } else {
+    config = scannerConfiguration;
+  }
+
   File f = new File.fromUri(uri);
   List<int> rawBytes = f.readAsBytesSync();
 
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
-      includeComments: true, configuration: scannerConfiguration);
+  Utf8BytesScanner scanner =
+      new Utf8BytesScanner(bytes, includeComments: true, configuration: config);
   Token firstToken = scanner.tokenize();
   if (lineStarts != null) {
     lineStarts.addAll(scanner.lineStarts);

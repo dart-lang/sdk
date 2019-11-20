@@ -1556,7 +1556,8 @@ class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
     }
 
     if (createRuntimeType) {
-      return new RuntimeType(new InterfaceType(type.classNode),
+      return new RuntimeType(
+          new InterfaceType(type.classNode, Nullability.legacy),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
       final instantiate =
@@ -1606,14 +1607,13 @@ class EmptyEntryPointsListener implements EntryPointsListener {
 }
 
 class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
-  final TypeEnvironment _environment;
   final SummaryCollector _summaryCollector;
 
-  CreateAllSummariesVisitor(Target target, this._environment,
+  CreateAllSummariesVisitor(Target target, TypeEnvironment environment,
       ClassHierarchy hierarchy, GenericInterfacesInfo genericInterfacesInfo)
       : _summaryCollector = new SummaryCollector(
             target,
-            _environment,
+            environment,
             hierarchy,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(null, null),

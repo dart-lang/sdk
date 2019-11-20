@@ -219,10 +219,6 @@ parseFull(Uri uri, List<int> source) {
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
       : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
-
-  // Note: this method converts the body to kernel, so we skip that here.
-  @override
-  finishFunction(formals, asyncModifier, body) {}
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

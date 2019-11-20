@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -29,6 +30,9 @@ abstract class KernelToElementMap {
 
   /// Access to the [DartTypes] object.
   DartTypes get types;
+
+  /// Returns the core types for the underlying kernel model.
+  ir.CoreTypes get coreTypes;
 
   /// Returns the type environment for the underlying kernel model.
   ir.TypeEnvironment get typeEnvironment;

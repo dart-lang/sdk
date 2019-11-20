@@ -95,13 +95,19 @@ class Class {
     /*cfe:nnbd.update: num!*/
     /*cfe|dart2js.num*/
     /*cfe:nnbd.num!*/
-    numInstance /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++;
+    numInstance
+        /*cfe|dart2js.invoke: num*/
+        /*cfe:nnbd.invoke: num!*/
+        /*int*/ ++;
 
     /*cfe|dart2js.update: num*/
     /*cfe:nnbd.update: num!*/
     /*cfe|dart2js.num*/
     /*cfe:nnbd.num!*/
-    numInstance /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ --;
+    numInstance
+        /*cfe|dart2js.invoke: num*/
+        /*cfe:nnbd.invoke: num!*/
+        /*int*/ --;
 
     /*cfe|dart2js.invoke: num*/ /*cfe:nnbd.invoke: num!*/ /*int*/ ++
         /*cfe|dart2js.update: num*/

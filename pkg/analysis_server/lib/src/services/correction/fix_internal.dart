@@ -2092,10 +2092,10 @@ class FixProcessor extends BaseProcessor {
       // should be parameter of function type
       DartType parameterType = parameterElement.type;
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
-        parameterType = FunctionTypeImpl.synthetic(
-          typeProvider.dynamicType,
-          [],
-          [],
+        parameterType = FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: typeProvider.dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
@@ -4376,10 +4376,10 @@ class FixProcessor extends BaseProcessor {
     SdkConstraintExtractor extractor = new SdkConstraintExtractor(pubspecFile);
     String text = extractor.constraintText();
     int offset = extractor.constraintOffset();
-    int length = text.length;
     if (text == null || offset < 0) {
       return;
     }
+    int length = text.length;
     String newText;
     int spaceOffset = text.indexOf(' ');
     if (spaceOffset >= 0) {

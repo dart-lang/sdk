@@ -298,3 +298,15 @@ class B<out T> {
     return null;
   }
 }
+
+class C<T> {
+  void method(T x) {}
+}
+
+class D<out T> extends C<T> {
+  @override
+  void method(T x) {}
+  //            ^
+  // [analyzer] unspecified
+  // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
+}

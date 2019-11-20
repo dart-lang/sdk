@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -35,6 +35,7 @@ import 'class_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -63,10 +64,6 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   bool get isRedirectingGenerativeConstructor;
 
   bool get isEligibleForTopLevelInference;
-
-  Constructor build(SourceLibraryBuilder libraryBuilder);
-
-  FunctionNode buildFunction(LibraryBuilder library);
 
   /// The [Constructor] built by this builder.
   Constructor get constructor;
@@ -126,6 +123,15 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => constructor;
+
+  @override
   ConstructorBuilder get origin => actualOrigin ?? this;
 
   @override
@@ -159,6 +165,13 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       }
     }
     return false;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(member, BuiltMemberKind.Constructor);
   }
 
   @override
@@ -213,10 +226,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(new TypeParameterType(typeParameter));
+      typeParameterTypes
+          .add(new TypeParameterType(typeParameter, Nullability.legacy));
     }
-    functionNode.returnType =
-        new InterfaceType(enclosingClass, typeParameterTypes);
+    functionNode.returnType = new InterfaceType(
+        enclosingClass, Nullability.legacy, typeParameterTypes);
     return functionNode;
   }
 

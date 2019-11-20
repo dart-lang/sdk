@@ -104,6 +104,20 @@ class C<out T> {
   }
 }
 
+class D<T> {
+  T method() => null;
+  void method2(T x) {}
+  void method3(covariant T x) {}
+}
+
+class E<out T> extends D<T> {
+  @override
+  T method() => null;
+
+  @override
+  void method3(covariant T x) {}
+}
+
 void testClass() {
   A<int> a = new A();
 
@@ -200,8 +214,20 @@ void testClassInMethods() {
   Expect.type<A<int>>(c.method2());
 }
 
+void testOverrideLegacyMethods() {
+  E<int> e = new E();
+  Expect.isNull(e.method());
+  e.method2(3);
+  e.method3(3);
+
+  D<Object> d = e;
+  Expect.throws(() => d.method2("test"));
+  Expect.throws(() => d.method3("test"));
+}
+
 main() {
   testClass();
   testMixin();
   testClassInMethods();
+  testOverrideLegacyMethods();
 }

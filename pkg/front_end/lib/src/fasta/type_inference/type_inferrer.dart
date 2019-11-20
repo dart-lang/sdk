@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -298,7 +298,10 @@ class ClosureContext {
 
   void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
       ExpressionInferenceResult expressionResult) {
-    if (!isGenerator) return;
+    if (!isGenerator) {
+      node.expression = expressionResult.expression..parent = node;
+      return;
+    }
     DartType expectedType = node.isYieldStar
         ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
         : returnOrYieldContext;
@@ -406,7 +409,7 @@ abstract class TypeInferrer {
 
   /// Performs type inference on the given function body.
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body);
+      AsyncMarker asyncMarker, FunctionNode function, Statement body);
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(InferenceHelper helper, Initializer initializer);
@@ -432,7 +435,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Marker object to indicate that a function takes an unknown number
   /// of arguments.
   static final FunctionType unknownFunction =
-      new FunctionType(const [], const DynamicType());
+      new FunctionType(const [], const DynamicType(), Nullability.legacy);
 
   final TypeInferenceEngine engine;
 
@@ -782,7 +785,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
       ExtensionAccessCandidate bestSoFar;
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
-      library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
+      library.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
         MemberBuilder thisBuilder =
             extensionBuilder.lookupLocalMemberByName(name, setter: setter);
         MemberBuilder otherBuilder = extensionBuilder
@@ -834,8 +837,10 @@ class TypeInferrerImpl implements TypeInferrer {
                         !thisBuilder.isField &&
                         !thisBuilder.isStatic
                     ? new ObjectAccessTarget.extensionMember(
-                        thisBuilder.procedure,
-                        thisBuilder.extensionTearOff,
+                        setter
+                            ? thisBuilder.writeTarget
+                            : thisBuilder.invokeTarget,
+                        thisBuilder.readTarget,
                         thisBuilder.kind,
                         inferredTypeArguments)
                     : const ObjectAccessTarget.missing(),
@@ -944,6 +949,7 @@ class TypeInferrerImpl implements TypeInferrer {
             return substitution.substituteType(new FunctionType(
                 functionType.positionalParameters.skip(1).toList(),
                 functionType.returnType,
+                Nullability.legacy,
                 namedParameters: functionType.namedParameters,
                 typeParameters: functionType.typeParameters
                     .skip(target.inferredExtensionTypeArguments.length)
@@ -1441,6 +1447,8 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
       result = expression.acceptInference(visitor, typeContext);
+    } else if (expression is InternalExpression) {
+      result = expression.acceptInference(visitor, typeContext);
     } else {
       result = expression.accept1(visitor, typeContext);
     }
@@ -1477,10 +1485,18 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, Statement body) {
+      AsyncMarker asyncMarker, FunctionNode function, Statement body) {
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
+    if (function != null) {
+      for (VariableDeclaration parameter in function.positionalParameters) {
+        flowAnalysis.initialize(parameter);
+      }
+      for (VariableDeclaration parameter in function.namedParameters) {
+        flowAnalysis.initialize(parameter);
+      }
+    }
     inferStatement(body);
     closureContext = null;
     this.helper = null;
@@ -1538,7 +1554,9 @@ class TypeInferrerImpl implements TypeInferrer {
       bool isConst: false,
       bool isImplicitExtensionMember: false}) {
     FunctionType extensionFunctionType = new FunctionType(
-        [calleeType.positionalParameters.first], const DynamicType(),
+        [calleeType.positionalParameters.first],
+        const DynamicType(),
+        Nullability.legacy,
         requiredParameterCount: 1,
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
@@ -1560,7 +1578,9 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeType.typeParameters.skip(extensionTypeParameterCount).toList();
     }
     FunctionType targetFunctionType = new FunctionType(
-        calleeType.positionalParameters.skip(1).toList(), calleeType.returnType,
+        calleeType.positionalParameters.skip(1).toList(),
+        calleeType.returnType,
+        Nullability.legacy,
         requiredParameterCount: calleeType.requiredParameterCount - 1,
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
@@ -1841,6 +1861,7 @@ class TypeInferrerImpl implements TypeInferrer {
           function.positionalParameters;
       for (int i = 0; i < positionalParameters.length; i++) {
         VariableDeclaration parameter = positionalParameters[i];
+        flowAnalysis.initialize(parameter);
         inferMetadataKeepingHelper(parameter, parameter.annotations);
         if (parameter.initializer != null) {
           ExpressionInferenceResult initializerResult = inferExpression(
@@ -1850,6 +1871,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
       }
       for (VariableDeclaration parameter in function.namedParameters) {
+        flowAnalysis.initialize(parameter);
         inferMetadataKeepingHelper(parameter, parameter.annotations);
         ExpressionInferenceResult initializerResult =
             inferExpression(parameter.initializer, parameter.type, !isTopLevel);
@@ -1899,7 +1921,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (int i = 0; i < typeContext.typeParameters.length; i++) {
         substitutionMap[typeContext.typeParameters[i]] =
             i < typeParameters.length
-                ? new TypeParameterType(typeParameters[i])
+                ? new TypeParameterType(typeParameters[i], Nullability.legacy)
                 : const DynamicType();
       }
       substitution = Substitution.fromMap(substitutionMap);
@@ -1994,14 +2016,14 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  StaticInvocation transformExtensionMethodInvocation(ObjectAccessTarget target,
-      Expression expression, Expression receiver, Arguments arguments) {
+  StaticInvocation transformExtensionMethodInvocation(int fileOffset,
+      ObjectAccessTarget target, Expression receiver, Arguments arguments) {
     assert(target.isExtensionMember);
     Procedure procedure = target.member;
     return engine.forest.createStaticInvocation(
-        expression.fileOffset,
+        fileOffset,
         target.member,
-        arguments = engine.forest.createArgumentsForExtensionMethod(
+        engine.forest.createArgumentsForExtensionMethod(
             arguments.fileOffset,
             target.inferredExtensionTypeArguments.length,
             procedure.function.typeParameters.length -
@@ -2084,7 +2106,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Arguments arguments = node.arguments;
     if (target.isExtensionMember) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
-          target, node, receiver, node.arguments);
+          node.fileOffset, target, receiver, node.arguments);
       arguments = staticInvocation.arguments;
       replacement = staticInvocation;
     } else {
@@ -2396,18 +2418,19 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    return new InterfaceType(
-        coreTypes.futureOrClass, <DartType>[type ?? const DynamicType()]);
+    return new InterfaceType(coreTypes.futureOrClass, Nullability.legacy,
+        <DartType>[type ?? const DynamicType()]);
   }
 
   DartType wrapFutureType(DartType type) {
     DartType typeWithoutFutureOr = type ?? const DynamicType();
-    return new InterfaceType(
-        coreTypes.futureClass, <DartType>[typeWithoutFutureOr]);
+    return new InterfaceType(coreTypes.futureClass, Nullability.legacy,
+        <DartType>[typeWithoutFutureOr]);
   }
 
   DartType wrapType(DartType type, Class class_) {
-    return new InterfaceType(class_, <DartType>[type ?? const DynamicType()]);
+    return new InterfaceType(
+        class_, Nullability.legacy, <DartType>[type ?? const DynamicType()]);
   }
 
   Member _getInterfaceMember(
@@ -2577,6 +2600,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Expression createMissingBinary(int fileOffset, Expression left,
       DartType leftType, Name binaryName, Expression right) {
+    assert(binaryName != equalsName);
     if (isTopLevel) {
       return engine.forest.createMethodInvocation(fileOffset, left, binaryName,
           engine.forest.createArguments(fileOffset, <Expression>[right]));
@@ -2586,6 +2610,20 @@ class TypeInferrerImpl implements TypeInferrer {
               binaryName.name, resolveTypeParameter(leftType)),
           fileOffset,
           binaryName.name.length);
+    }
+  }
+
+  Expression createMissingUnary(int fileOffset, Expression expression,
+      DartType expressionType, Name unaryName) {
+    if (isTopLevel) {
+      return new UnaryExpression(unaryName, expression)
+        ..fileOffset = fileOffset;
+    } else {
+      return helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              unaryName.name, resolveTypeParameter(expressionType)),
+          fileOffset,
+          unaryName.name == unaryMinusName.name ? 1 : unaryName.name.length);
     }
   }
 }
@@ -2721,7 +2759,9 @@ abstract class MixinInferrer {
     // substitute them before calling instantiate to bounds.
     Substitution substitution = Substitution.fromPairs(
         mixinClass.typeParameters,
-        parameters.map((p) => new TypeParameterType(p)).toList());
+        parameters
+            .map((p) => new TypeParameterType(p, Nullability.legacy))
+            .toList());
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }
@@ -2975,7 +3015,8 @@ class ExtensionAccessCandidate {
 
   ExtensionAccessCandidate(
       this.onType, this.onTypeInstantiateToBounds, this.target,
-      {this.isPlatform});
+      {this.isPlatform})
+      : assert(isPlatform != null);
 
   bool isMoreSpecificThan(TypeSchemaEnvironment typeSchemaEnvironment,
       ExtensionAccessCandidate other) {

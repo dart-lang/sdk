@@ -1971,8 +1971,8 @@ SwitchDispatch:
       RawObject** call_top = SP + 1;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      RawString* target_name = RAW_CAST(String, LOAD_CONSTANT(kidx));
-      argdesc_ = RAW_CAST(Array, LOAD_CONSTANT(kidx + 1));
+      RawString* target_name = String::RawCast(LOAD_CONSTANT(kidx));
+      argdesc_ = Array::RawCast(LOAD_CONSTANT(kidx + 1));
       if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
                         &SP)) {
         HANDLE_EXCEPTION;
@@ -2235,6 +2235,20 @@ SwitchDispatch:
                 static_cast<int>(argc));
     }
 #endif
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(InitLateField, D);
+    RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
+    RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
+
+    instance->StorePointer(
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+        Object::RawCast(Object::sentinel().raw()), thread);
+
+    SP -= 1;  // Drop instance.
     DISPATCH();
   }
 

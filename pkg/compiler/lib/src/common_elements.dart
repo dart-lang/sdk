@@ -2289,6 +2289,9 @@ abstract class ElementEnvironment {
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
 
+  /// Returns the instantiation of [cls] to bounds.
+  InterfaceType getClassInstantiationToBounds(ClassEntity cls);
+
   /// Returns `true` if [cls] is generic.
   bool isGenericClass(ClassEntity cls);
 

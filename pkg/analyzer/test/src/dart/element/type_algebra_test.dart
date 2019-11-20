@@ -101,7 +101,7 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
 
     var result = Substitution.fromUpperAndLowerBounds(
       {T: typeProvider.intType},
-      {T: BottomTypeImpl.instance},
+      {T: NeverTypeImpl.instance},
     ).substituteType(type);
     expect(result.toString(), 'int Function(Never)');
   }
@@ -200,13 +200,13 @@ class SubstituteTest extends _Base {
 
     assertElementTypeString(
       type,
-      'bool Function<T extends Triple<T, U, V>,U>()',
+      'bool Function<T extends Triple<T, U, V>, U>()',
     );
 
     var result = substitute(type, {V: intType}) as FunctionType;
     assertElementTypeString(
       result,
-      'bool Function<T extends Triple<T, U, int>,U>()',
+      'bool Function<T extends Triple<T, U, int>, U>()',
     );
     var T2 = result.typeFormals[0];
     var U2 = result.typeFormals[1];
@@ -387,8 +387,9 @@ class _Base with ElementsTypesMixin {
   final bool useNnbd;
 
   _Base({this.useNnbd = false})
-      : typeProvider = TestTypeProvider(null, null,
-            useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
+      : typeProvider = TestTypeProvider(
+            nullabilitySuffix:
+                useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
 
   InterfaceType get boolType => typeProvider.boolType;
 

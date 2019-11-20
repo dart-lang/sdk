@@ -207,6 +207,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitLibrary(Library node) {
+    // ignore: DEPRECATED_MEMBER_USE
     if (node.isExternal) {
       return;
     }
@@ -574,21 +575,24 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         value = _getConstant(field.initializer);
       }
     } else {
-      flags |= FieldDeclaration.hasInitializerFlag;
+      flags |= FieldDeclaration.hasNontrivialInitializerFlag;
     }
     if (initializer != null) {
       flags |= FieldDeclaration.hasInitializerCodeFlag;
+    }
+    if (field.initializer != null) {
+      flags |= FieldDeclaration.hasInitializerFlag;
     }
     final name = objectTable.getNameHandle(
         field.name.library, objectTable.mangleMemberName(field, false, false));
     ObjectHandle getterName;
     ObjectHandle setterName;
-    if (!field.isStatic || (initializer != null)) {
+    if (_needsGetter(field)) {
       flags |= FieldDeclaration.hasGetterFlag;
       getterName = objectTable.getNameHandle(
           field.name.library, objectTable.mangleMemberName(field, true, false));
     }
-    if (!field.isStatic && !field.isFinal) {
+    if (_needsSetter(field)) {
       flags |= FieldDeclaration.hasSetterFlag;
       setterName = objectTable.getNameHandle(
           field.name.library, objectTable.mangleMemberName(field, false, true));
@@ -949,8 +953,34 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   bool hasInitializerCode(Field field) =>
-      (field.isStatic || options.emitInstanceFieldInitializers) &&
+      (field.isStatic ||
+          field.isLate ||
+          options.emitInstanceFieldInitializers) &&
       !_hasTrivialInitializer(field);
+
+  bool _needsGetter(Field field) {
+    // All instance fields need a getter.
+    if (!field.isStatic) return true;
+
+    // Static fields also need a getter if they have a non-trivial initializer,
+    // because it needs to be initialized lazily.
+    if (!_hasTrivialInitializer(field)) return true;
+
+    // Static late fields with no initializer also need a getter, to check if
+    // it's been initialized.
+    return field.isLate && field.initializer == null;
+  }
+
+  bool _needsSetter(Field field) {
+    // Static fields never need a setter.
+    if (field.isStatic) return false;
+
+    // Late instance fields always need a setter.
+    if (field.isLate) return true;
+
+    // Otherwise, the field only needs a setter if it isn't final.
+    return !field.isFinal;
+  }
 
   void _genNativeCall(String nativeName) {
     final function = enclosingMember.function;
@@ -1120,14 +1150,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!isRedirecting) {
       initializedFields = new Set<Field>();
       for (var field in node.enclosingClass.fields) {
-        if (!field.isStatic && field.initializer != null) {
-          if (initializedInInitializersList.contains(field)) {
-            // Do not store a value into the field as it is going to be
-            // overwritten by initializers list.
-            _generateNode(field.initializer);
-            asm.emitDrop1();
-          } else {
-            _genFieldInitializer(field, field.initializer);
+        if (!field.isStatic) {
+          if (field.isLate) {
+            if (!initializedInInitializersList.contains(field)) {
+              _genLateFieldInitializer(field);
+            }
+          } else if (field.initializer != null) {
+            if (initializedInInitializersList.contains(field)) {
+              // Do not store a value into the field as it is going to be
+              // overwritten by initializers list.
+              _generateNode(field.initializer);
+              asm.emitDrop1();
+            } else {
+              _genFieldInitializer(field, field.initializer);
+            }
           }
         }
       }
@@ -1138,7 +1174,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!isRedirecting) {
       nullableFields = <ObjectHandle>[];
       for (var field in node.enclosingClass.fields) {
-        if (!field.isStatic && !initializedFields.contains(field)) {
+        if (!field.isStatic &&
+            !field.isLate &&
+            !initializedFields.contains(field)) {
           nullableFields.add(objectTable.getHandle(field));
         }
       }
@@ -1158,6 +1196,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final int cpIndex = cp.addInstanceField(field);
     asm.emitStoreFieldTOS(cpIndex);
+
+    initializedFields.add(field);
+  }
+
+  void _genLateFieldInitializer(Field field) {
+    assert(!field.isStatic);
+
+    if (field.initializer != null && _hasTrivialInitializer(field)) {
+      _genFieldInitializer(field, field.initializer);
+      return;
+    }
+
+    _genPushReceiver();
+
+    final int cpIndex = cp.addInstanceField(field);
+    asm.emitInitLateField(cpIndex);
 
     initializedFields.add(field);
   }
@@ -1893,6 +1947,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _handleDefaultTypeArguments(function, done);
 
       asm.bind(done);
+    } else if (isClosure &&
+        !(parentFunction != null &&
+            parentFunction.dartAsyncMarker != AsyncMarker.Sync)) {
+      // Closures can be called dynamically with arbitrary arguments,
+      // so they should check number of type arguments, even if
+      // closure is not generic.
+      // Synthetic async_op closures don't need this check.
+      asm.emitCheckFunctionTypeArgs(0, locals.scratchVarIndexInFrame);
     }
 
     // Open initial scope before the first CheckStack, as VM might
@@ -1906,7 +1968,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.localVariableTable
             .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
       }
-      if (locals.hasReceiver) {
+      if (locals.hasReceiver &&
+          (!isClosure || locals.isCaptured(locals.receiverVar))) {
         _declareLocalVariable(locals.receiverVar, function.fileOffset);
       }
       for (var v in function.positionalParameters) {
@@ -2116,7 +2179,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       assert(host.typeParameters.length == targetTypeParameters.length);
       for (int i = 0; i < targetTypeParameters.length; ++i) {
         map[targetTypeParameters[i]] =
-            new TypeParameterType(host.typeParameters[i]);
+            new TypeParameterType(host.typeParameters[i], Nullability.legacy);
       }
     }
     return Substitution.fromMap(map);
@@ -2304,7 +2367,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]
         : typeParam.bound;
-    final DartType type = new TypeParameterType(typeParam);
+    final DartType type = new TypeParameterType(typeParam, Nullability.legacy);
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
     asm.emitPushConstant(cp.addType(bound));
@@ -3529,7 +3592,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (target is Field) {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
-      } else if (_hasTrivialInitializer(target)) {
+      } else if (!_needsGetter(target)) {
         asm.emitLoadStatic(cp.addStaticField(target));
       } else {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0,

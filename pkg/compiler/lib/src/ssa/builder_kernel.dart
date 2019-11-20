@@ -1484,7 +1484,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = _localsMap.getLocalTypeVariable(
-            new ir.TypeParameterType(typeParameter), _elementMap);
+            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy),
+            _elementMap);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
         if (!bound.isDynamic &&

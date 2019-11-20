@@ -1511,6 +1511,20 @@ class OutputUnitData {
     return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
   }
 
+  /// Returns `true` if class [to] is reachable from element [from] without
+  /// crossing a deferred import.
+  ///
+  /// For example, if we have two deferred libraries `A` and `B` that both
+  /// import a library `C`, then even though elements from `A` and `C` end up in
+  /// different output units, there is a non-deferred path between `A` and `C`.
+  bool hasOnlyNonDeferredImportPathsToClass(MemberEntity from, ClassEntity to) {
+    OutputUnit outputUnitFrom = outputUnitForMember(from);
+    OutputUnit outputUnitTo = outputUnitForClass(to);
+    if (outputUnitTo == mainOutputUnit) return true;
+    if (outputUnitFrom == mainOutputUnit) return false;
+    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+  }
+
   /// Registers that a constant is used in the same deferred output unit as
   /// [field].
   void registerConstantDeferredUse(DeferredGlobalConstantValue constant) {

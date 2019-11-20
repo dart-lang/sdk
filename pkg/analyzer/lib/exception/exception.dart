@@ -68,12 +68,6 @@ class CaughtException implements Exception {
   CaughtException.withMessage(this.message, this.exception, stackTrace)
       : this.stackTrace = stackTrace ?? StackTrace.current;
 
-  /**
-   * Create a [CaughtException] to wrap a prior one, adding a [message].
-   */
-  CaughtException.wrapInMessage(String message, CaughtException exception)
-      : this.withMessage(message, exception, null);
-
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -107,4 +101,21 @@ class CaughtException implements Exception {
       }
     }
   }
+}
+
+/**
+ * A form of [CaughtException] that should be silent to users.
+ *
+ * This is still considered an exceptional situation and will be sent to crash
+ * reporting.
+ */
+class SilentException extends CaughtException {
+  SilentException(String message, exception, stackTrace)
+      : super.withMessage(message, exception, stackTrace);
+
+  /**
+   * Create a [SilentException] to wrap a [CaughtException], adding a [message].
+   */
+  SilentException.wrapInMessage(String message, CaughtException exception)
+      : this(message, exception, null);
 }

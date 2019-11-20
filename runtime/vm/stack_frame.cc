@@ -532,6 +532,17 @@ bool StackFrame::IsValid() const {
   return (LookupDartCode() != Code::null());
 }
 
+void StackFrame::DumpCurrentTrace() {
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != nullptr) {
+    OS::PrintErr("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
+}
+
 void StackFrameIterator::SetupLastExitFrameData() {
   ASSERT(thread_ != NULL);
   uword exit_marker = thread_->top_exit_frame_info();

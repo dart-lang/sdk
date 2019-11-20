@@ -23,41 +23,65 @@ import 'package:meta/meta.dart';
 class ConstructorMember extends ExecutableMember implements ConstructorElement {
   /**
    * Initialize a newly created element to represent a constructor, based on
-   * the [baseElement], and applied [substitution].
+   * the [declaration], and applied [substitution].
    */
   ConstructorMember(
-    ConstructorElement baseElement,
+    ConstructorElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
+
+  @deprecated
+  @override
+  ConstructorElement get baseElement => declaration;
 
   @override
-  ConstructorElement get baseElement => super.baseElement as ConstructorElement;
+  ConstructorElement get declaration => super.declaration as ConstructorElement;
 
   @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
+  ClassElement get enclosingElement => declaration.enclosingElement;
 
   @override
-  bool get isConst => baseElement.isConst;
+  bool get isConst => declaration.isConst;
 
   @override
-  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
+  bool get isConstantEvaluated => declaration.isConstantEvaluated;
 
   @override
-  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
+  bool get isDefaultConstructor => declaration.isDefaultConstructor;
 
   @override
-  bool get isFactory => baseElement.isFactory;
+  bool get isFactory => declaration.isFactory;
 
   @override
-  int get nameEnd => baseElement.nameEnd;
+  int get nameEnd => declaration.nameEnd;
 
   @override
-  int get periodOffset => baseElement.periodOffset;
+  int get periodOffset => declaration.periodOffset;
 
   @override
   ConstructorElement get redirectedConstructor {
-    var definingType = _substitution.substituteType(enclosingElement.thisType);
-    return from(baseElement.redirectedConstructor, definingType);
+    var element = this.declaration.redirectedConstructor;
+    if (element == null) {
+      return null;
+    }
+
+    ConstructorElement declaration;
+    MapSubstitution substitution;
+    if (element is ConstructorMember) {
+      declaration = element._declaration;
+      var map = <TypeParameterElement, DartType>{};
+      var elementMap = element._substitution.map;
+      for (var typeParameter in elementMap.keys) {
+        var type = elementMap[typeParameter];
+        map[typeParameter] = _substitution.substituteType(type);
+      }
+      substitution = Substitution.fromMap(map);
+    } else {
+      declaration = element;
+      substitution = _substitution;
+    }
+
+    return ConstructorMember(declaration, substitution);
   }
 
   @override
@@ -66,7 +90,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   String toString() {
-    ConstructorElement baseElement = this.baseElement;
+    ConstructorElement declaration = this.declaration;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
@@ -75,7 +99,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
       buffer.write(type.returnType);
       buffer.write(' ');
     }
-    buffer.write(baseElement.enclosingElement.displayName);
+    buffer.write(declaration.enclosingElement.displayName);
     String name = displayName;
     if (name != null && name.isNotEmpty) {
       buffer.write('.');
@@ -126,47 +150,51 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   /**
    * Initialize a newly created element to represent a callable element (like a
-   * method or function or property), based on the [baseElement], and applied
+   * method or function or property), based on the [declaration], and applied
    * [substitution].
    */
   ExecutableMember(
-    ExecutableElement baseElement,
+    ExecutableElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
+
+  @deprecated
+  @override
+  ExecutableElement get baseElement => declaration;
 
   @override
-  ExecutableElement get baseElement => super.baseElement as ExecutableElement;
+  ExecutableElement get declaration => super.declaration as ExecutableElement;
 
   @override
-  bool get hasImplicitReturnType => baseElement.hasImplicitReturnType;
+  bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
 
   @override
-  bool get isAbstract => baseElement.isAbstract;
+  bool get isAbstract => declaration.isAbstract;
 
   @override
-  bool get isAsynchronous => baseElement.isAsynchronous;
+  bool get isAsynchronous => declaration.isAsynchronous;
 
   @override
-  bool get isExternal => baseElement.isExternal;
+  bool get isExternal => declaration.isExternal;
 
   @override
-  bool get isGenerator => baseElement.isGenerator;
+  bool get isGenerator => declaration.isGenerator;
 
   @override
-  bool get isOperator => baseElement.isOperator;
+  bool get isOperator => declaration.isOperator;
 
   @override
-  bool get isSimplyBounded => baseElement.isSimplyBounded;
+  bool get isSimplyBounded => declaration.isSimplyBounded;
 
   @override
-  bool get isStatic => baseElement.isStatic;
+  bool get isStatic => declaration.isStatic;
 
   @override
-  bool get isSynchronous => baseElement.isSynchronous;
+  bool get isSynchronous => declaration.isSynchronous;
 
   @override
   List<ParameterElement> get parameters {
-    return baseElement.parameters.map((p) {
+    return declaration.parameters.map((p) {
       if (p is FieldFormalParameterElement) {
         return FieldFormalParameterMember(p, _substitution);
       }
@@ -181,13 +209,13 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   FunctionType get type {
     if (_type != null) return _type;
 
-    return _type = _substitution.substituteType(baseElement.type);
+    return _type = _substitution.substituteType(declaration.type);
   }
 
   @override
   List<TypeParameterElement> get typeParameters {
     return TypeParameterMember.from(
-      baseElement.typeParameters,
+      declaration.typeParameters,
       _substitution,
     );
   }
@@ -207,7 +235,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     var combined = substitution;
     if (element is ExecutableMember) {
       ExecutableMember member = element;
-      element = member.baseElement;
+      element = member.declaration;
       var map = <TypeParameterElement, DartType>{};
       map.addAll(member._substitution.map);
       map.addAll(substitution.map);
@@ -238,16 +266,16 @@ class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   /**
    * Initialize a newly created element to represent a field formal parameter,
-   * based on the [baseElement], with applied [substitution].
+   * based on the [declaration], with applied [substitution].
    */
   FieldFormalParameterMember(
-    FieldFormalParameterElement baseElement,
+    FieldFormalParameterElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
 
   @override
   FieldElement get field {
-    var field = (baseElement as FieldFormalParameterElement).field;
+    var field = (declaration as FieldFormalParameterElement).field;
     if (field == null) {
       return null;
     }
@@ -256,7 +284,7 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
-  bool get isCovariant => baseElement.isCovariant;
+  bool get isCovariant => declaration.isCovariant;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -270,22 +298,26 @@ class FieldFormalParameterMember extends ParameterMember
 class FieldMember extends VariableMember implements FieldElement {
   /**
    * Initialize a newly created element to represent a field, based on the
-   * [baseElement], with applied [substitution].
+   * [declaration], with applied [substitution].
    */
   FieldMember(
-    FieldElement baseElement,
+    FieldElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
+
+  @deprecated
+  @override
+  FieldElement get baseElement => declaration;
 
   @override
-  FieldElement get baseElement => super.baseElement as FieldElement;
+  FieldElement get declaration => super.declaration as FieldElement;
 
   @override
-  Element get enclosingElement => baseElement.enclosingElement;
+  Element get enclosingElement => declaration.enclosingElement;
 
   @override
   PropertyAccessorElement get getter {
-    var baseGetter = baseElement.getter;
+    var baseGetter = declaration.getter;
     if (baseGetter == null) {
       return null;
     }
@@ -293,14 +325,14 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
-  bool get isCovariant => baseElement.isCovariant;
+  bool get isCovariant => declaration.isCovariant;
 
   @override
-  bool get isEnumConstant => baseElement.isEnumConstant;
+  bool get isEnumConstant => declaration.isEnumConstant;
 
   @override
   PropertyAccessorElement get setter {
-    var baseSetter = baseElement.setter;
+    var baseSetter = declaration.setter;
     if (baseSetter == null) {
       return null;
     }
@@ -349,7 +381,7 @@ abstract class Member implements Element {
   /**
    * The element on which the parameterized element was created.
    */
-  final Element _baseElement;
+  final Element _declaration;
 
   /**
    * The substitution for type parameters referenced in the base element.
@@ -358,113 +390,121 @@ abstract class Member implements Element {
 
   /**
    * Initialize a newly created element to represent a member, based on the
-   * [baseElement], and applied [_substitution].
+   * [declaration], and applied [_substitution].
    */
-  Member(this._baseElement, this._substitution);
+  Member(this._declaration, this._substitution) {
+    if (_declaration is Member) {
+      throw StateError('Members must be created from a declarations.');
+    }
+  }
 
   /**
    * Return the element on which the parameterized element was created.
    */
-  Element get baseElement => _baseElement;
+  @Deprecated('Use Element.declaration instead')
+  Element get baseElement => _declaration;
 
   @override
-  AnalysisContext get context => _baseElement.context;
+  AnalysisContext get context => _declaration.context;
 
   @override
-  String get displayName => _baseElement.displayName;
+  Element get declaration => _declaration;
 
   @override
-  String get documentationComment => _baseElement.documentationComment;
+  String get displayName => _declaration.displayName;
 
   @override
-  bool get hasAlwaysThrows => _baseElement.hasAlwaysThrows;
+  String get documentationComment => _declaration.documentationComment;
 
   @override
-  bool get hasDeprecated => _baseElement.hasDeprecated;
+  bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
 
   @override
-  bool get hasFactory => _baseElement.hasFactory;
+  bool get hasDeprecated => _declaration.hasDeprecated;
 
   @override
-  bool get hasIsTest => _baseElement.hasIsTest;
+  bool get hasFactory => _declaration.hasFactory;
 
   @override
-  bool get hasIsTestGroup => _baseElement.hasIsTestGroup;
+  bool get hasIsTest => _declaration.hasIsTest;
 
   @override
-  bool get hasJS => _baseElement.hasJS;
+  bool get hasIsTestGroup => _declaration.hasIsTestGroup;
 
   @override
-  bool get hasLiteral => _baseElement.hasLiteral;
+  bool get hasJS => _declaration.hasJS;
 
   @override
-  bool get hasMustCallSuper => _baseElement.hasMustCallSuper;
+  bool get hasLiteral => _declaration.hasLiteral;
 
   @override
-  bool get hasNonVirtual => _baseElement.hasNonVirtual;
+  bool get hasMustCallSuper => _declaration.hasMustCallSuper;
 
   @override
-  bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
+  bool get hasNonVirtual => _declaration.hasNonVirtual;
 
   @override
-  bool get hasOverride => _baseElement.hasOverride;
+  bool get hasOptionalTypeArgs => _declaration.hasOptionalTypeArgs;
 
   @override
-  bool get hasProtected => _baseElement.hasProtected;
+  bool get hasOverride => _declaration.hasOverride;
 
   @override
-  bool get hasRequired => _baseElement.hasRequired;
+  bool get hasProtected => _declaration.hasProtected;
 
   @override
-  bool get hasSealed => _baseElement.hasSealed;
+  bool get hasRequired => _declaration.hasRequired;
 
   @override
-  bool get hasVisibleForTemplate => _baseElement.hasVisibleForTemplate;
+  bool get hasSealed => _declaration.hasSealed;
 
   @override
-  bool get hasVisibleForTesting => _baseElement.hasVisibleForTesting;
+  bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override
-  int get id => _baseElement.id;
+  bool get hasVisibleForTesting => _declaration.hasVisibleForTesting;
 
   @override
-  bool get isPrivate => _baseElement.isPrivate;
+  int get id => _declaration.id;
 
   @override
-  bool get isPublic => _baseElement.isPublic;
+  bool get isPrivate => _declaration.isPrivate;
 
   @override
-  bool get isSynthetic => _baseElement.isSynthetic;
+  bool get isPublic => _declaration.isPublic;
 
   @override
-  ElementKind get kind => _baseElement.kind;
+  bool get isSynthetic => _declaration.isSynthetic;
 
   @override
-  LibraryElement get library => _baseElement.library;
+  ElementKind get kind => _declaration.kind;
 
   @override
-  Source get librarySource => _baseElement.librarySource;
+  LibraryElement get library => _declaration.library;
 
   @override
-  ElementLocation get location => _baseElement.location;
+  Source get librarySource => _declaration.librarySource;
 
   @override
-  List<ElementAnnotation> get metadata => _baseElement.metadata;
+  ElementLocation get location => _declaration.location;
 
   @override
-  String get name => _baseElement.name;
+  List<ElementAnnotation> get metadata => _declaration.metadata;
 
   @override
-  int get nameLength => _baseElement.nameLength;
+  String get name => _declaration.name;
 
   @override
-  int get nameOffset => _baseElement.nameOffset;
+  int get nameLength => _declaration.nameLength;
 
   @override
-  AnalysisSession get session => _baseElement.session;
+  int get nameOffset => _declaration.nameOffset;
 
   @override
-  Source get source => _baseElement.source;
+  AnalysisSession get session => _declaration.session;
+
+  @override
+  Source get source => _declaration.source;
 
   /**
    * The substitution for type parameters referenced in the base element.
@@ -473,15 +513,15 @@ abstract class Member implements Element {
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) =>
-      baseElement.getAncestor(predicate);
+      declaration.getAncestor(predicate);
 
   @override
   String getExtendedDisplayName(String shortName) =>
-      _baseElement.getExtendedDisplayName(shortName);
+      _declaration.getExtendedDisplayName(shortName);
 
   @override
   bool isAccessibleIn(LibraryElement library) =>
-      _baseElement.isAccessibleIn(library);
+      _declaration.isAccessibleIn(library);
 
   /**
    * Use the given [visitor] to visit all of the [children].
@@ -508,25 +548,29 @@ abstract class Member implements Element {
 class MethodMember extends ExecutableMember implements MethodElement {
   /**
    * Initialize a newly created element to represent a method, based on the
-   * [baseElement], with applied [substitution].
+   * [declaration], with applied [substitution].
    */
   MethodMember(
-    MethodElement baseElement,
+    MethodElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
+
+  @deprecated
+  @override
+  MethodElement get baseElement => declaration;
 
   @override
-  MethodElement get baseElement => super.baseElement as MethodElement;
+  MethodElement get declaration => super.declaration as MethodElement;
 
   @override
-  Element get enclosingElement => baseElement.enclosingElement;
+  Element get enclosingElement => declaration.enclosingElement;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
   @override
   String toString() {
-    MethodElement baseElement = this.baseElement;
+    MethodElement declaration = this.declaration;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
@@ -535,9 +579,9 @@ class MethodMember extends ExecutableMember implements MethodElement {
       buffer.write(type.returnType);
       buffer.write(' ');
     }
-    buffer.write(baseElement.enclosingElement.displayName);
+    buffer.write(declaration.enclosingElement.displayName);
     buffer.write('.');
-    buffer.write(baseElement.displayName);
+    buffer.write(declaration.displayName);
     int typeParameterCount = typeParameters.length;
     if (typeParameterCount > 0) {
       buffer.write('<');
@@ -627,36 +671,38 @@ class ParameterMember extends VariableMember
     implements ParameterElement {
   /**
    * Initialize a newly created element to represent a parameter, based on the
-   * [baseElement], with applied [substitution]. If [type] is passed it will
-   * represent the already substituted type.
+   * [declaration], with applied [substitution].
    */
   ParameterMember(
-    ParameterElement baseElement,
-    MapSubstitution substitution, [
-    DartType type,
-  ]) : super._(baseElement, substitution, type);
-
-  @override
-  ParameterElement get baseElement => super.baseElement as ParameterElement;
-
-  @override
-  String get defaultValueCode => baseElement.defaultValueCode;
-
-  @override
-  Element get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  int get hashCode => baseElement.hashCode;
-
-  @override
-  bool get isCovariant => baseElement.isCovariant;
-
-  @override
-  bool get isInitializingFormal => baseElement.isInitializingFormal;
+    ParameterElement declaration,
+    MapSubstitution substitution,
+  ) : super(declaration, substitution);
 
   @deprecated
   @override
-  ParameterKind get parameterKind => baseElement.parameterKind;
+  ParameterElement get baseElement => declaration;
+
+  @override
+  ParameterElement get declaration => super.declaration as ParameterElement;
+
+  @override
+  String get defaultValueCode => declaration.defaultValueCode;
+
+  @override
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  int get hashCode => declaration.hashCode;
+
+  @override
+  bool get isCovariant => declaration.isCovariant;
+
+  @override
+  bool get isInitializingFormal => declaration.isInitializingFormal;
+
+  @deprecated
+  @override
+  ParameterKind get parameterKind => declaration.parameterKind;
 
   @override
   List<ParameterElement> get parameters {
@@ -670,7 +716,7 @@ class ParameterMember extends VariableMember
   @override
   List<TypeParameterElement> get typeParameters {
     return TypeParameterMember.from(
-      baseElement.typeParameters,
+      declaration.typeParameters,
       _substitution,
     );
   }
@@ -680,7 +726,7 @@ class ParameterMember extends VariableMember
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    Element element = baseElement.getAncestor(predicate);
+    Element element = declaration.getAncestor(predicate);
     if (element is ExecutableElement) {
       return ExecutableMember.from2(element, _substitution) as E;
     }
@@ -689,20 +735,20 @@ class ParameterMember extends VariableMember
 
   @override
   String toString() {
-    ParameterElement baseElement = this.baseElement;
+    ParameterElement declaration = this.declaration;
     String left = "";
     String right = "";
     while (true) {
-      if (baseElement.isNamed) {
+      if (declaration.isNamed) {
         left = "{";
         right = "}";
-      } else if (baseElement.isOptionalPositional) {
+      } else if (declaration.isOptionalPositional) {
         left = "[";
         right = "]";
       }
       break;
     }
-    return '$left$type ${baseElement.displayName}$right';
+    return '$left$type ${declaration.displayName}$right';
   }
 
   @override
@@ -720,21 +766,21 @@ class PropertyAccessorMember extends ExecutableMember
     implements PropertyAccessorElement {
   /**
    * Initialize a newly created element to represent a property, based on the
-   * [baseElement], with applied [substitution].
+   * [declaration], with applied [substitution].
    */
   PropertyAccessorMember(
-    PropertyAccessorElement baseElement,
+    PropertyAccessorElement declaration,
     MapSubstitution substitution,
-  ) : super(baseElement, substitution);
+  ) : super(declaration, substitution);
 
+  @deprecated
   @override
-  PropertyAccessorElement get baseElement =>
-      super.baseElement as PropertyAccessorElement;
+  PropertyAccessorElement get baseElement => declaration;
 
   @override
   PropertyAccessorElement get correspondingGetter {
     return PropertyAccessorMember(
-      baseElement.correspondingGetter,
+      declaration.correspondingGetter,
       _substitution,
     );
   }
@@ -742,23 +788,27 @@ class PropertyAccessorMember extends ExecutableMember
   @override
   PropertyAccessorElement get correspondingSetter {
     return PropertyAccessorMember(
-      baseElement.correspondingSetter,
+      declaration.correspondingSetter,
       _substitution,
     );
   }
 
   @override
-  Element get enclosingElement => baseElement.enclosingElement;
+  PropertyAccessorElement get declaration =>
+      super.declaration as PropertyAccessorElement;
 
   @override
-  bool get isGetter => baseElement.isGetter;
+  Element get enclosingElement => declaration.enclosingElement;
 
   @override
-  bool get isSetter => baseElement.isSetter;
+  bool get isGetter => declaration.isGetter;
+
+  @override
+  bool get isSetter => declaration.isSetter;
 
   @override
   PropertyInducingElement get variable {
-    PropertyInducingElement variable = baseElement.variable;
+    PropertyInducingElement variable = declaration.variable;
     if (variable is FieldElement) {
       return FieldMember(variable, _substitution);
     }
@@ -771,7 +821,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   String toString() {
-    PropertyAccessorElement baseElement = this.baseElement;
+    PropertyAccessorElement declaration = this.declaration;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
@@ -785,9 +835,9 @@ class PropertyAccessorMember extends ExecutableMember
     } else {
       builder.write('set ');
     }
-    builder.write(baseElement.enclosingElement.displayName);
+    builder.write(declaration.enclosingElement.displayName);
     builder.write('.');
-    builder.write(baseElement.displayName);
+    builder.write(declaration.displayName);
     builder.write('(');
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
@@ -839,33 +889,36 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   DartType _bound;
   DartType _type;
 
-  TypeParameterMember(TypeParameterElement baseElement,
+  TypeParameterMember(TypeParameterElement declaration,
       MapSubstitution substitution, this._bound)
-      : super(baseElement, substitution) {
+      : super(declaration, substitution) {
     _type = TypeParameterTypeImpl(this);
   }
 
+  @deprecated
   @override
-  TypeParameterElement get baseElement =>
-      super.baseElement as TypeParameterElement;
+  TypeParameterElement get baseElement => declaration;
 
   @override
   DartType get bound => _bound;
 
   @override
-  Element get enclosingElement => baseElement.enclosingElement;
+  TypeParameterElement get declaration =>
+      super.declaration as TypeParameterElement;
 
   @override
-  int get hashCode => baseElement.hashCode;
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  int get hashCode => declaration.hashCode;
 
   @override
   TypeParameterType get type => _type;
 
   @override
-  bool operator ==(Object other) =>
-      other is TypeParameterMember &&
-      other.baseElement == baseElement &&
-      other._bound == _bound;
+  bool operator ==(Object other) {
+    return declaration == other;
+  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -938,29 +991,23 @@ abstract class VariableMember extends Member implements VariableElement {
 
   /**
    * Initialize a newly created element to represent a variable, based on the
-   * [baseElement], with applied [substitution].
+   * [declaration], with applied [substitution].
    */
-  VariableMember(
-    VariableElement baseElement,
-    MapSubstitution substitution, [
-    DartType type,
-  ])  : _type = type,
-        super(baseElement, substitution);
+  VariableMember(VariableElement declaration, MapSubstitution substitution)
+      : super(declaration, substitution);
 
-  // TODO(jmesserly): this is temporary to allow the ParameterMember subclass.
-  // Apparently mixins don't work with optional params.
-  VariableMember._(VariableElement baseElement, MapSubstitution substitution,
-      [DartType type])
-      : this(baseElement, substitution, type);
+  @deprecated
+  @override
+  VariableElement get baseElement => declaration;
 
   @override
-  VariableElement get baseElement => super.baseElement as VariableElement;
+  DartObject get constantValue => declaration.constantValue;
 
   @override
-  DartObject get constantValue => baseElement.constantValue;
+  VariableElement get declaration => super.declaration as VariableElement;
 
   @override
-  bool get hasImplicitType => baseElement.hasImplicitType;
+  bool get hasImplicitType => declaration.hasImplicitType;
 
   @override
   FunctionElement get initializer {
@@ -973,35 +1020,35 @@ abstract class VariableMember extends Member implements VariableElement {
   }
 
   @override
-  bool get isConst => baseElement.isConst;
+  bool get isConst => declaration.isConst;
 
   @override
-  bool get isConstantEvaluated => baseElement.isConstantEvaluated;
+  bool get isConstantEvaluated => declaration.isConstantEvaluated;
 
   @override
-  bool get isFinal => baseElement.isFinal;
+  bool get isFinal => declaration.isFinal;
 
   @override
-  bool get isLate => baseElement.isLate;
+  bool get isLate => declaration.isLate;
 
   @override
-  bool get isStatic => baseElement.isStatic;
+  bool get isStatic => declaration.isStatic;
 
   @override
   DartType get type {
     if (_type != null) return _type;
 
-    return _type = _substitution.substituteType(baseElement.type);
+    return _type = _substitution.substituteType(declaration.type);
   }
 
   @override
-  DartObject computeConstantValue() => baseElement.computeConstantValue();
+  DartObject computeConstantValue() => declaration.computeConstantValue();
 
   @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
     super.visitChildren(visitor);
-    baseElement.initializer?.accept(visitor);
+    declaration.initializer?.accept(visitor);
   }
 }

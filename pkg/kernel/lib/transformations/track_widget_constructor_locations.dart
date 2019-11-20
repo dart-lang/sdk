@@ -345,7 +345,7 @@ class WidgetCreatorTracker {
       _hasCreationLocationClass.enclosingLibrary,
     );
     final Field locationField = new Field(fieldName,
-        type: new InterfaceType(_locationClass),
+        type: new InterfaceType(_locationClass, Nullability.legacy),
         isFinal: true,
         reference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
@@ -433,6 +433,7 @@ class WidgetCreatorTracker {
       ..addAll(libraries);
 
     for (Library library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) {
         continue;
       }
@@ -453,6 +454,7 @@ class WidgetCreatorTracker {
             tracker: this);
 
     for (Library library in libraries) {
+      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
       if (library.isExternal) {
         continue;
       }

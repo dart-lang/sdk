@@ -10,11 +10,10 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/field_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
@@ -121,19 +120,15 @@ class SourceClassBuilder extends ClassBuilderImpl
             unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is FieldBuilder) {
-          // TODO(ahe): It would be nice to have a common interface for the
-          // build method to avoid duplicating these two cases.
-          Member field = declaration.build(library);
-          if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(field);
-          }
-        } else if (declaration is FunctionBuilder) {
-          Member member = declaration.build(library);
-          member.parent = cls;
-          if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(member);
-          }
+        } else if (declaration is MemberBuilderImpl) {
+          MemberBuilderImpl memberBuilder = declaration;
+          memberBuilder.buildMembers(library,
+              (Member member, BuiltMemberKind memberKind) {
+            member.parent = cls;
+            if (!memberBuilder.isPatch && !memberBuilder.isDuplicate) {
+              cls.addMember(member);
+            }
+          });
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
               declaration.charOffset, declaration.fileUri);

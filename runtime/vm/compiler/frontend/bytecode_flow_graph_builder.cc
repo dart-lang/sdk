@@ -696,7 +696,6 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
 
   const intptr_t expected_num_type_args = DecodeOperandA().value();
   LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
-  ASSERT(function().IsGeneric());
 
   if (throw_no_such_method_ == nullptr) {
     throw_no_such_method_ = B->BuildThrowNoSuchMethod();
@@ -1313,13 +1312,30 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildInitLateField() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  LoadStackSlots(1);
+  Operand cp_index = DecodeOperandD();
+
+  const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
+  ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
+         field.Offset());
+
+  code_ += B->Constant(Object::sentinel());
+  code_ += B->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());
   // All constant expressions (including access to const fields) are evaluated
   // in bytecode. However, values of injected cid fields are only available in
   // the VM. In such case, evaluate const fields with known value here.
-  if (field.is_const() && !field.has_initializer()) {
+  if (field.is_const() && !field.has_nontrivial_initializer()) {
     const auto& value = Object::ZoneHandle(Z, field.StaticValue());
     ASSERT((value.raw() != Object::sentinel().raw()) &&
            (value.raw() != Object::transition_sentinel().raw()));

@@ -301,13 +301,13 @@ class DecoratedTypeTest extends Object
 
   test_toFinalType_bottom_non_nullable() {
     var type =
-        DecoratedType(BottomTypeImpl.instance, never).toFinalType(typeProvider);
+        DecoratedType(NeverTypeImpl.instance, never).toFinalType(typeProvider);
     assertDartType(type, 'Never');
   }
 
   test_toFinalType_bottom_nullable() {
-    var type = DecoratedType(BottomTypeImpl.instance, always)
-        .toFinalType(typeProvider);
+    var type =
+        DecoratedType(NeverTypeImpl.instance, always).toFinalType(typeProvider);
     assertDartType(type, 'Null');
   }
 
@@ -326,7 +326,7 @@ class DecoratedTypeTest extends Object
         .toFinalType(typeProvider) as FunctionType;
     assertDartType(
         type,
-        'dynamic Function<T extends List<U>,U extends Object,'
+        'dynamic Function<T extends List<U>, U extends Object, '
         'V extends List<U>>()');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(type.typeFormals[1], isNot(same(u)));
@@ -522,7 +522,7 @@ class DecoratedTypeTest extends Object
 
   test_toString_bottom() {
     var node = newNode();
-    var decoratedType = DecoratedType(BottomTypeImpl.instance, node);
+    var decoratedType = DecoratedType(NeverTypeImpl.instance, node);
     expect(decoratedType.toString(), 'Never?($node)');
   }
 

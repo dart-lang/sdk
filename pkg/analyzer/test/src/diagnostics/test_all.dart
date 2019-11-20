@@ -51,6 +51,7 @@ import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_paramter;
+import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
     as deprecated_function_class_declaration;
@@ -67,6 +68,7 @@ import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'export_suplicated_library_named_test.dart'
     as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
@@ -106,6 +108,7 @@ import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
+import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
@@ -191,6 +194,7 @@ import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'mixed_return_types_test.dart' as mixed_return_types;
+import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
@@ -397,6 +401,7 @@ main() {
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
+    deferred_import_of_extension.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
     deprecated_member_use.main();
@@ -411,6 +416,7 @@ main() {
     equal_keys_in_const_map.main();
     export_suplicated_library_named.main();
     expression_in_map.main();
+    extends_disallowed_class.main();
     extends_non_class.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
@@ -434,6 +440,7 @@ main() {
     final_not_initialized.main();
     generic_struct_subclass.main();
     if_element_condition_from_deferred_library.main();
+    implements_disallowed_class.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
@@ -491,6 +498,7 @@ main() {
     missing_required_param.main();
     missing_return.main();
     mixed_return_types.main();
+    mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();

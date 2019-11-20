@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method main() → dynamic {}
+static method noErrors() → dynamic {
+  core::String? s = null;
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:8:9: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+//   String? s = null;
+//         ^
+//
+import self as self2;
+import "dart:core" as core;
+
+static method errors() → dynamic {
+  core::String? s = null;
+}

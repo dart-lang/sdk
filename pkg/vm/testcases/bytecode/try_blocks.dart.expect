@@ -341,6 +341,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -377,6 +378,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -723,6 +725,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -831,6 +834,7 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0

@@ -339,13 +339,15 @@ class PackageUriResolver extends UriResolver {
       pkgDir = pkgDir.getCanonicalFile();
     } catch (exception, stackTrace) {
       if (!exception.toString().contains("Required key not available")) {
+        // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            new CaughtException.withMessage(
+            new SilentException(
                 "Canonical failed: $pkgDir", exception, stackTrace));
       } else if (_CanLogRequiredKeyIoException) {
         _CanLogRequiredKeyIoException = false;
+        // TODO(39284): should this exception be silent?
         AnalysisEngine.instance.instrumentationService.logException(
-            new CaughtException.withMessage(
+            new SilentException(
                 "Canonical failed: $pkgDir", exception, stackTrace));
       }
     }

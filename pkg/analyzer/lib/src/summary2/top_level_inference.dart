@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -227,12 +226,8 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.staticElement;
+    var element = node.staticElement?.declaration;
     if (element == null) return;
-
-    if (element is ConstructorMember) {
-      element = (element as ConstructorMember).baseElement;
-    }
 
     _set.add(element);
 

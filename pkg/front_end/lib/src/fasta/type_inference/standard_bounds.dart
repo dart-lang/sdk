@@ -111,14 +111,15 @@ abstract class StandardBounds {
       if (type2 is InterfaceType) {
         if (type2.classNode == futureOrClass) {
           // GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
-          return new InterfaceType(futureOrClass, <DartType>[
+          return new InterfaceType(
+              futureOrClass, Nullability.legacy, <DartType>[
             getStandardLowerBound(
                 type1.typeArguments[0], type2.typeArguments[0])
           ]);
         }
         if (type2.classNode == futureClass) {
           // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
-          return new InterfaceType(futureClass, <DartType>[
+          return new InterfaceType(futureClass, Nullability.legacy, <DartType>[
             getStandardLowerBound(
                 type1.typeArguments[0], type2.typeArguments[0])
           ]);
@@ -135,7 +136,7 @@ abstract class StandardBounds {
     if (type2 is InterfaceType && type2.classNode == futureOrClass) {
       if (type1 is InterfaceType && type1.classNode == futureClass) {
         // GLB(Future<A>, FutureOr<B>) == Future<GLB(B, A)>
-        return new InterfaceType(futureClass, <DartType>[
+        return new InterfaceType(futureClass, Nullability.legacy, <DartType>[
           getStandardLowerBound(type2.typeArguments[0], type1.typeArguments[0])
         ]);
       }
@@ -316,7 +317,8 @@ abstract class StandardBounds {
 
     // Calculate the SLB of the return type.
     DartType returnType = getStandardLowerBound(f.returnType, g.returnType);
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(
+        positionalParameters, returnType, Nullability.legacy,
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount);
   }
@@ -343,7 +345,7 @@ abstract class StandardBounds {
     //   SUB(([int]) -> void, (int) -> void) = (int) -> void
     if (f.requiredParameterCount != g.requiredParameterCount) {
       return new InterfaceType(
-          functionClass, const <DynamicType>[], Nullability.legacy);
+          functionClass, Nullability.legacy, const <DynamicType>[]);
     }
     int requiredParameterCount = f.requiredParameterCount;
 
@@ -390,7 +392,8 @@ abstract class StandardBounds {
 
     // Calculate the SUB of the return type.
     DartType returnType = getStandardUpperBound(f.returnType, g.returnType);
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(
+        positionalParameters, returnType, Nullability.legacy,
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount);
   }
@@ -450,7 +453,7 @@ abstract class StandardBounds {
           tArgs[i] = getStandardUpperBound(tArgs1[i], tArgs2[i]);
         }
       }
-      return new InterfaceType(type1.classNode, tArgs);
+      return new InterfaceType(type1.classNode, Nullability.legacy, tArgs);
     }
     return getLegacyLeastUpperBound(type1, type2);
   }

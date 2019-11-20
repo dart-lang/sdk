@@ -285,6 +285,7 @@ class _ElementWriter {
     writeIf(e.isExternal, 'external ');
     writeIf(e.isConst, 'const ');
     writeIf(e.isFactory, 'factory ');
+    expect(e.isAbstract, isFalse);
 
     buffer.write(e.enclosingElement.name);
     if (e.name.isNotEmpty) {

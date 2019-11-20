@@ -1,3 +1,0 @@
-pkg/front_end/testcases/general/fallthrough.dart:9:9: Context: Write to x@254
-      x = 4;
-        ^

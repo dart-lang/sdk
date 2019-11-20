@@ -1680,6 +1680,35 @@ const MessageCode messageDeferredAfterPrefix = const MessageCode(
 const Template<
     Message Function(
         String
+            name)> templateDeferredExtensionImport = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Extension '#name' cannot be imported through a deferred import.""",
+    tipTemplate: r"""Try adding the `hide #name` to the import.""",
+    withArguments: _withArgumentsDeferredExtensionImport);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDeferredExtensionImport =
+    const Code<Message Function(String name)>(
+  "DeferredExtensionImport",
+  templateDeferredExtensionImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeferredExtensionImport(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeDeferredExtensionImport,
+      message:
+          """Extension '${name}' cannot be imported through a deferred import.""",
+      tip: """Try adding the `hide ${name}` to the import.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateDeferredPrefixDuplicated = const Template<
         Message Function(String name)>(
     messageTemplate:

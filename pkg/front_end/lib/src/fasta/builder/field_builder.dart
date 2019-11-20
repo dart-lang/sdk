@@ -6,7 +6,7 @@ library fasta.field_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' hide MapEntry, Variance;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -30,7 +30,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrerImpl;
@@ -65,8 +65,6 @@ abstract class FieldBuilder implements MemberBuilder {
   void set initializer(Expression value);
 
   bool get isEligibleForInference;
-
-  Field build(SourceLibraryBuilder libraryBuilder);
 
   DartType get builtType;
 }
@@ -136,6 +134,26 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
       return false;
     }
     return true;
+  }
+
+  @override
+  Member get readTarget => field;
+
+  @override
+  Member get writeTarget => isAssignable ? field : null;
+
+  @override
+  Member get invokeTarget => field;
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(
+        member,
+        isExtensionMember
+            ? BuiltMemberKind.ExtensionField
+            : BuiltMemberKind.Field);
   }
 
   Field build(SourceLibraryBuilder libraryBuilder) {

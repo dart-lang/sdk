@@ -37,6 +37,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         LibraryDependency,
+        Nullability,
         ProcedureKind,
         Supertype,
         TreeNode;
@@ -114,7 +115,7 @@ import '../loader.dart' show Loader, untranslatableUriScheme;
 
 import '../problems.dart' show internalProblem;
 
-import '../source/stack_listener.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../type_inference/type_inference_engine.dart';
 
@@ -878,12 +879,12 @@ class SourceLoader extends Loader {
   void computeCoreTypes(Component component) {
     coreTypes = new CoreTypes(component);
 
-    futureOfBottom = new InterfaceType(
-        coreTypes.futureClass, <DartType>[const BottomType()]);
-    iterableOfBottom = new InterfaceType(
-        coreTypes.iterableClass, <DartType>[const BottomType()]);
-    streamOfBottom = new InterfaceType(
-        coreTypes.streamClass, <DartType>[const BottomType()]);
+    futureOfBottom = new InterfaceType(coreTypes.futureClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
+    iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
+    streamOfBottom = new InterfaceType(coreTypes.streamClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }

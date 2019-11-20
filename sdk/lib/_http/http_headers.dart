@@ -104,6 +104,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void noFolding(String name) {
+    name = _validateField(name);
     if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
     _noFoldingHeaders.add(name);
   }

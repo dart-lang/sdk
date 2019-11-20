@@ -318,6 +318,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
 
+  /// List of [PrefixBuilder]s for imports with prefixes.
+  List<PrefixBuilder> _prefixBuilders;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtensionInScope].
+  Set<ExtensionBuilder> _extensionsInScope;
+
   SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
       SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
       : this.fromScopes(
@@ -728,6 +735,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // name is unique. Only the first of duplicate extensions is accessible
       // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions.add(declaration);
+    }
+    if (declaration is PrefixBuilder) {
+      _prefixBuilders ??= <PrefixBuilder>[];
+      _prefixBuilders.add(declaration);
     }
     return members[name] = declaration;
   }
@@ -2060,23 +2071,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
-    Class cls;
-    Extension extension;
-    Member member;
-    Typedef typedef;
+    String findDuplicateSuffix(Builder declaration) {
+      if (declaration.next != null) {
+        int count = 0;
+        Builder current = declaration.next;
+        while (current != null) {
+          count++;
+          current = current.next;
+        }
+        return "#$count";
+      }
+      return "";
+    }
+
     if (declaration is SourceClassBuilder) {
-      cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(this, coreLibrary);
+      if (!declaration.isPatch) {
+        cls.name += findDuplicateSuffix(declaration);
+        library.addClass(cls);
+      }
     } else if (declaration is SourceExtensionBuilder) {
-      extension = declaration.build(this, coreLibrary,
-          addMembersToLibrary: declaration.next == null);
-    } else if (declaration is FieldBuilder) {
-      member = declaration.build(this)..isStatic = true;
-    } else if (declaration is ProcedureBuilder) {
-      member = declaration.build(this)..isStatic = true;
+      Extension extension = declaration.build(this, coreLibrary,
+          addMembersToLibrary: !declaration.isDuplicate);
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addExtension(extension);
+      }
+    } else if (declaration is MemberBuilderImpl) {
+      declaration.buildMembers(this,
+          (Member member, BuiltMemberKind memberKind) {
+        if (member is Field) {
+          member.isStatic = true;
+        } else if (member is Procedure) {
+          member.isStatic = true;
+        }
+        if (!declaration.isPatch && !declaration.isDuplicate) {
+          library.addMember(member);
+        }
+      });
     } else if (declaration is TypeAliasBuilder) {
-      typedef = declaration.build(this);
+      Typedef typedef = declaration.build(this);
+      if (!declaration.isPatch && !declaration.isDuplicate) {
+        library.addTypedef(typedef);
+      }
     } else if (declaration is EnumBuilder) {
-      cls = declaration.build(this, coreLibrary);
+      Class cls = declaration.build(this, coreLibrary);
+      if (!declaration.isPatch) {
+        cls.name += findDuplicateSuffix(declaration);
+        library.addClass(cls);
+      }
     } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
       return;
@@ -2087,38 +2129,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       unhandled("${declaration.runtimeType}", "buildBuilder",
           declaration.charOffset, declaration.fileUri);
       return;
-    }
-    if (declaration.isPatch) {
-      // The kernel node of a patch is shared with the origin declaration. We
-      // have two builders: the origin, and the patch, but only one kernel node
-      // (which corresponds to the final output). Consequently, the node
-      // shouldn't be added to its apparent kernel parent as this would create
-      // a duplicate entry in the parent's list of children/members.
-      return;
-    }
-    if (cls != null) {
-      if (declaration.next != null) {
-        int count = 0;
-        Builder current = declaration.next;
-        while (current != null) {
-          count++;
-          current = current.next;
-        }
-        cls.name += "#$count";
-      }
-      library.addClass(cls);
-    } else if (extension != null) {
-      if (declaration.next == null) {
-        library.addExtension(extension);
-      }
-    } else if (member != null) {
-      if (declaration.next == null) {
-        library.addMember(member);
-      }
-    } else if (typedef != null) {
-      if (declaration.next == null) {
-        library.addTypedef(typedef);
-      }
     }
   }
 
@@ -2795,7 +2805,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (node.arguments.types.isEmpty) return;
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
-    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    DartType constructedType =
+        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2808,7 +2819,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure factory = node.target;
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
-    DartType constructedType = new InterfaceType(klass, node.arguments.types);
+    DartType constructedType =
+        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2833,7 +2845,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (issues != null) {
       DartType targetReceiver;
       if (klass != null) {
-        targetReceiver = new InterfaceType(klass);
+        targetReceiver = new InterfaceType(klass, Nullability.legacy);
       }
       String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
@@ -2885,8 +2897,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i] =
           new TypeParameter(methodParameters[i].name);
-      substitutionMap[methodParameters[i]] =
-          new TypeParameterType(instantiatedMethodParameters[i]);
+      substitutionMap[methodParameters[i]] = new TypeParameterType(
+          instantiatedMethodParameters[i], Nullability.legacy);
     }
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i].bound =
@@ -2923,6 +2935,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<FieldBuilder> result = implicitlyTypedFields;
     implicitlyTypedFields = null;
     return result;
+  }
+
+  void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
+    if (_extensionsInScope == null) {
+      _extensionsInScope = <ExtensionBuilder>{};
+      scope.forEachExtension(_extensionsInScope.add);
+      if (_prefixBuilders != null) {
+        for (PrefixBuilder prefix in _prefixBuilders) {
+          prefix.exportScope.forEachExtension(_extensionsInScope.add);
+        }
+      }
+    }
+    _extensionsInScope.forEach(f);
   }
 }
 

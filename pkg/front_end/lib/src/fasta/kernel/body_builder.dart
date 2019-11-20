@@ -22,6 +22,17 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         lengthOfSpan,
         optional;
 
+import 'package:_fe_analyzer_shared/src/parser/quote.dart'
+    show
+        Quote,
+        analyzeQuote,
+        unescape,
+        unescapeFirstStringPart,
+        unescapeLastStringPart,
+        unescapeString;
+
+import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
@@ -81,15 +92,6 @@ import '../names.dart' show callName, emptyName, minusName, plusName;
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
 
-import '../quote.dart'
-    show
-        Quote,
-        analyzeQuote,
-        unescape,
-        unescapeFirstStringPart,
-        unescapeLastStringPart,
-        unescapeString;
-
 import '../scope.dart';
 
 import '../source/scope_listener.dart'
@@ -103,7 +105,7 @@ import '../source/scope_listener.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../source/stack_listener.dart' show offsetForToken;
+import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../source/value_kinds.dart';
 
@@ -872,9 +874,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-
-    typeInferrer?.inferFunctionBody(
-        this, _computeReturnTypeContext(member), asyncModifier, body);
+    typeInferrer?.inferFunctionBody(this, _computeReturnTypeContext(member),
+        asyncModifier, builder.member.function, body);
     if (body != null) {
       libraryBuilder.loader.transformPostInference(
           body, transformSetLiterals, transformCollections);
@@ -1256,7 +1257,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, const DynamicType(), AsyncMarker.Sync, null, fakeReturn);
 
     return fakeReturn.expression;
   }
@@ -1421,14 +1422,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSend(Token beginToken, Token endToken) {
     assert(checkState(beginToken, [
-      ValueKind.ArgumentsOrNull,
-      ValueKind.TypeArgumentsOrNull,
+      ValueKinds.ArgumentsOrNull,
+      ValueKinds.TypeArgumentsOrNull,
       unionOfKinds([
-        ValueKind.Expression,
-        ValueKind.Generator,
-        ValueKind.Identifier,
-        ValueKind.ParserRecovery,
-        ValueKind.ProblemBuilder
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Identifier,
+        ValueKinds.ParserRecovery,
+        ValueKinds.ProblemBuilder
       ])
     ]));
     debugEvent("Send");
@@ -1539,59 +1540,39 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doBinaryExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
     ]));
     Expression right = popForValue();
     Object left = pop();
-    bool negate = false;
-    String operator = token.stringValue;
-    if (identical("!=", operator)) {
-      operator = "==";
-      negate = true;
-    }
     int fileOffset = offsetForToken(token);
-    Name name = new Name(operator);
-    if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
-      if (isUserDefinableOperator(operator)) {
-        push(buildProblem(fasta.templateNotBinaryOperator.withArguments(token),
-            token.charOffset, token.length));
+    String operator = token.stringValue;
+    bool isNot = identical("!=", operator);
+    if (isNot || identical("==", operator)) {
+      if (left is Generator) {
+        push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
-        push(buildProblem(fasta.templateInvalidOperator.withArguments(token),
-            token.charOffset, token.length));
+        assert(left is Expression);
+        push(forest.createEquals(fileOffset, left, right, isNot: isNot));
       }
-    } else if (left is ExplicitExtensionAccessGenerator) {
-      // TODO(johnniwinther): Use this code path for all generators. Currently
-      // TypeUseGenerator starts complaining about `Map<` not being a method
-      // instead of `<` not defined on `Type`.
-      Object result = left.buildPropertyAccess(
-          new SendAccessGenerator(this, token, name,
-              forest.createArguments(fileOffset, <Expression>[right]),
-              isPotentiallyConstant: true),
-          fileOffset,
-          false);
-      push(negate ? forest.createNot(fileOffset, toValue(result)) : result);
     } else {
-      bool isSuper = false;
-      Expression leftValue;
-      if (left is ThisAccessGenerator && left.isSuper) {
-        ThisAccessGenerator thisAccessorReceiver = left;
-        isSuper = true;
-        leftValue =
-            forest.createThisExpression(thisAccessorReceiver.fileOffset);
+      Name name = new Name(operator);
+      if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
+        if (isUserDefinableOperator(operator)) {
+          push(buildProblem(
+              fasta.templateNotBinaryOperator.withArguments(token),
+              token.charOffset,
+              token.length));
+        } else {
+          push(buildProblem(fasta.templateInvalidOperator.withArguments(token),
+              token.charOffset, token.length));
+        }
+      } else if (left is Generator) {
+        push(left.buildBinaryOperation(token, name, right));
       } else {
-        leftValue = toValue(left);
+        assert(left is Expression);
+        push(forest.createBinary(fileOffset, left, name, right));
       }
-      Expression result = buildMethodInvocation(
-          leftValue,
-          name,
-          forest.createArguments(fileOffset, <Expression>[right]),
-          token.charOffset,
-          // This *could* be a constant expression, we can't know without
-          // evaluating [left] and [right].
-          isConstantExpression: !isSuper,
-          isSuper: isSuper);
-      push(negate ? forest.createNot(fileOffset, result) : result);
     }
   }
 
@@ -1852,9 +1833,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return new ParserErrorGenerator(this, token, fasta.messageSyntheticToken);
     }
     Builder declaration = scope.lookup(name, charOffset, uri);
-    if (declaration is UnlinkedDeclaration) {
-      return new UnlinkedGenerator(this, token, declaration);
-    }
     if (declaration == null &&
         prefix == null &&
         (classBuilder?.isPatch ?? false)) {
@@ -2566,11 +2544,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endForStatement(Token endToken) {
     assert(checkState(endToken, <ValueKind>[
-      /* body */ ValueKind.Statement,
-      /* expression count */ ValueKind.Integer,
-      /* left separator */ ValueKind.Token,
-      /* left parenthesis */ ValueKind.Token,
-      /* for keyword */ ValueKind.Token,
+      /* body */ ValueKinds.Statement,
+      /* expression count */ ValueKinds.Integer,
+      /* left separator */ ValueKinds.Token,
+      /* left parenthesis */ ValueKinds.Token,
+      /* for keyword */ ValueKinds.Token,
     ]));
     debugEvent("ForStatement");
     Statement body = popStatement();
@@ -2582,15 +2560,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     assert(checkState(endToken, <ValueKind>[
       /* expressions */ ...repeatedKinds(
-          unionOfKinds(<ValueKind>[ValueKind.Expression, ValueKind.Generator]),
+          unionOfKinds(
+              <ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
           updateExpressionCount),
-      /* condition */ ValueKind.Statement,
+      /* condition */ ValueKinds.Statement,
       /* variable or expression */ unionOfKinds(<ValueKind>[
-        ValueKind.Generator,
-        ValueKind.ExpressionOrNull,
-        ValueKind.Statement,
-        ValueKind.ObjectList,
-        ValueKind.ParserRecovery,
+        ValueKinds.Generator,
+        ValueKinds.ExpressionOrNull,
+        ValueKinds.Statement,
+        ValueKinds.ObjectList,
+        ValueKinds.ParserRecovery,
       ]),
     ]));
 
@@ -2919,7 +2898,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNonNullAssertExpression(Token bang) {
     assert(checkState(bang, [
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator])
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator])
     ]));
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
@@ -3438,9 +3417,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     assert(checkState(openSquareBracket, [
-      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       unionOfKinds(
-          [ValueKind.Expression, ValueKind.Generator, ValueKind.Initializer])
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Initializer])
     ]));
     debugEvent("IndexedExpression");
     Expression index = popForValue();
@@ -3449,11 +3428,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(receiver.buildIndexedAccess(index, openSquareBracket));
     } else if (receiver is Expression) {
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, receiver, index, null, null));
+          this, openSquareBracket, receiver, index));
     } else {
       assert(receiver is Initializer);
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, toValue(receiver), index, null, null));
+          this, openSquareBracket, toValue(receiver), index));
     }
   }
 
@@ -3461,8 +3440,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleUnaryPrefixExpression(Token token) {
     assert(checkState(token, <ValueKind>[
       unionOfKinds(<ValueKind>[
-        ValueKind.Expression,
-        ValueKind.Generator,
+        ValueKinds.Expression,
+        ValueKinds.Generator,
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
@@ -3476,33 +3455,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       int fileOffset = offsetForToken(token);
       Name name = new Name(operator);
-      if (receiver is ExplicitExtensionAccessGenerator) {
-        // TODO(johnniwinther): Use this code path for all generators. Currently
-        // TypeUseGenerator starts complaining about `-Map` not being a method
-        // instead of `unary-` not defined on `Type`.
-        push(receiver.buildPropertyAccess(
-            new SendAccessGenerator(
-                this, token, name, forest.createArgumentsEmpty(fileOffset),
-                isPotentiallyConstant: true),
-            fileOffset,
-            false));
+      if (receiver is Generator) {
+        push(receiver.buildUnaryOperation(token, name));
       } else {
-        bool isSuper = false;
-        Expression receiverValue;
-        if (receiver is ThisAccessGenerator && receiver.isSuper) {
-          ThisAccessGenerator thisAccessorReceiver = receiver;
-          isSuper = true;
-          receiverValue =
-              forest.createThisExpression(thisAccessorReceiver.fileOffset);
-        } else {
-          receiverValue = toValue(receiver);
-        }
-        push(buildMethodInvocation(receiverValue, name,
-            forest.createArgumentsEmpty(fileOffset), fileOffset,
-            // This *could* be a constant expression, we can't know without
-            // evaluating [receiver].
-            isConstantExpression: !isSuper,
-            isSuper: isSuper));
+        assert(receiver is Expression);
+        push(forest.createUnary(fileOffset, name, receiver));
       }
     }
   }
@@ -3581,13 +3538,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
     assert(checkState(start, [
-      /*suffix*/ if (periodBeforeName != null) ValueKind.Identifier,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*suffix*/ if (periodBeforeName != null) ValueKinds.Identifier,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*type*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.QualifiedName,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.QualifiedName,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ])
     ]));
     Identifier suffix = popIfNotNull(periodBeforeName);
@@ -3600,7 +3557,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Object qualifier = qualified.qualifier;
       assert(checkValue(
           start,
-          unionOfKinds([ValueKind.Generator, ValueKind.ProblemBuilder]),
+          unionOfKinds([ValueKinds.Generator, ValueKinds.ProblemBuilder]),
           qualifier));
       if (qualifier is TypeUseGenerator) {
         type = qualifier;
@@ -3635,13 +3592,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(suffix ?? identifier ?? NullValue.Identifier);
 
     assert(checkState(start, [
-      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
-      /*constructor name*/ ValueKind.Name,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
+      /*constructor name*/ ValueKinds.Name,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ]),
     ]));
   }
@@ -3871,14 +3828,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _buildConstructorReferenceInvocation(
       Token nameToken, int offset, Constness constness) {
     assert(checkState(nameToken, [
-      /*arguments*/ ValueKind.Arguments,
-      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
-      /*constructor name*/ ValueKind.Name,
-      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*arguments*/ ValueKinds.Arguments,
+      /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
+      /*constructor name*/ ValueKinds.Name,
+      /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
-        ValueKind.Generator,
-        ValueKind.ProblemBuilder,
-        ValueKind.ParserRecovery
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.ParserRecovery
       ]),
     ]));
     Arguments arguments = pop();
@@ -4293,6 +4250,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
+        // This is matched by the call to [beginNode] in [enterFunction].
+        typeInferrer?.assignedVariables
+            ?.endNode(variable.initializer, isClosure: true);
         Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
@@ -4322,9 +4282,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         } else {
           push(declaration);
         }
+        // This is matched by the call to [beginNode] in [enterFunction].
+        typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
       }
-      // This is matched by the call to [beginNode] in [enterFunction].
-      typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
     } else {
       return unhandled("${declaration.runtimeType}", "pushNamedFunction",
           token.charOffset, uri);
