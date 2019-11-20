@@ -160,8 +160,9 @@ class NullabilityGraph {
 
   /// Creates a graph edge that will try to force the given [node] to be
   /// non-nullable.
-  void makeNonNullable(NullabilityNode node, EdgeOrigin origin) {
-    connect(node, never, origin, hard: true);
+  NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
+      {bool hard: true, List<NullabilityNode> guards: const []}) {
+    return connect(node, never, origin, hard: hard, guards: guards);
   }
 
   /// Creates a graph edge that will try to force the given [node] to be
