@@ -117,7 +117,7 @@ mixin M {
   get x;
 }
 
-class X extends Object with M {
+abstract class X extends Object with M {
   const X();
 }
 ''');
