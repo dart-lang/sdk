@@ -314,23 +314,9 @@ class JSModuleFile {
     String mapPath = jsPath + '.map';
     var code = getCode(
         format, p.toUri(jsPath).toString(), p.toUri(mapPath).toString());
-    var c = code.code;
-    if (format == ModuleFormat.amdConcat ||
-        format == ModuleFormat.legacyConcat) {
-      // In single-out-file mode we wrap each module in an eval statement to
-      // leverage sourceURL to improve the debugging experience when source maps
-      // are not enabled.
-      //
-      // Note: We replace all `/` with `.` so that we don't break relative urls
-      // to sources in the original sourcemap. The name of this file is bogus
-      // anyways, so it has very little effect on things.
-      c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
-      c = 'eval(${json.encode(c)});\n';
-    }
-
     var file = File(jsPath);
     if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    file.writeAsStringSync(c);
+    file.writeAsStringSync(code.code);
 
     // TODO(jacobr): it is a bit strange we are writing the source map to a file
     // even when options.inlineSourceMap is true. To be consistent perhaps we
