@@ -58,9 +58,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created class element to have the given [name].
-  AbstractClassElementImpl.forNode(Identifier name) : super.forNode(name);
-
   /// Initialize using the given serialized information.
   AbstractClassElementImpl.forSerialized(
       CompilationUnitElementImpl enclosingUnit)
@@ -455,9 +452,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   ClassElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
       Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created class element to have the given [name].
-  ClassElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1787,9 +1781,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created field element to have the given [name].
-  ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 }
 
 /// A field element representing an enum constant.
@@ -1937,10 +1928,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   /// Initialize a newly created local variable element to have the given [name]
   /// and [offset].
   ConstLocalVariableElementImpl(String name, int offset) : super(name, offset);
-
-  /// Initialize a newly created local variable element to have the given
-  /// [name].
-  ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 }
 
 /// A concrete implementation of a [ConstructorElement].
@@ -1975,9 +1962,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
       Reference reference, ConstructorDeclaration linkedNode)
       : super.forLinkedNode(enclosingClass, reference, linkedNode);
-
-  /// Initialize a newly created constructor element to have the given [name].
-  ConstructorElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -2223,11 +2207,6 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   ConstTopLevelVariableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created top-level variable element to have the given
-  /// [name].
-  ConstTopLevelVariableElementImpl.forNode(Identifier name)
-      : super.forNode(name);
 }
 
 /// Mixin used by elements that represent constant variables and have
@@ -2300,10 +2279,6 @@ class DefaultFieldFormalParameterElementImpl
   DefaultFieldFormalParameterElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created parameter element to have the given [name].
-  DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
-      : super.forNode(name);
 }
 
 /// A [ParameterElement] for parameters that have an initializer.
@@ -2317,9 +2292,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created parameter element to have the given [name].
-  DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -2665,10 +2637,6 @@ abstract class ElementImpl implements Element {
       this._enclosingElement, this.reference, this.linkedNode) {
     reference?.element ??= this;
   }
-
-  /// Initialize a newly created element to have the given [name].
-  ElementImpl.forNode(Identifier name)
-      : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
 
   /// Initialize from serialized information.
   ElementImpl.forSerialized(this._enclosingElement)
@@ -3317,9 +3285,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
       Reference reference, EnumDeclaration linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created class element to have the given [name].
-  EnumElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
@@ -3566,9 +3531,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   ExecutableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created executable element to have the given [name].
-  ExecutableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Set whether this executable element's body is asynchronous.
   void set asynchronous(bool isAsynchronous) {
@@ -3980,9 +3942,6 @@ class ExtensionElementImpl extends ElementImpl
       Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created extension element to have the given [name].
-  ExtensionElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors != null) {
@@ -4333,9 +4292,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return FieldElementImpl.forLinkedNode(enclosing, reference, linkedNode);
   }
 
-  /// Initialize a newly created field element to have the given [name].
-  FieldElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   FieldElement get declaration => this;
 
@@ -4395,10 +4351,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created parameter element to have the given [name].
-  FieldFormalParameterElementImpl.forNode(Identifier name)
-      : super.forNode(name);
-
   @override
   FieldElement get field {
     if (_field == null) {
@@ -4449,9 +4401,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   FunctionElementImpl.forLinkedNode(ElementImpl enclosing, Reference reference,
       FunctionDeclaration linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created function element to have the given [name].
-  FunctionElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -4697,9 +4646,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       Reference reference,
       AstNode linkedNode)
       : super.forLinkedNode(enclosingUnit, reference, linkedNode);
-
-  /// Initialize a newly created type alias element to have the given [name].
-  GenericTypeAliasElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   int get codeLength {
@@ -5197,14 +5143,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
       this._onSwitchMember)
       : super(name, nameOffset);
 
-  /// Initialize a newly created label element to have the given [name].
-  /// [_onSwitchStatement] should be `true` if this label is associated with a
-  /// `switch` statement and [_onSwitchMember] should be `true` if this label is
-  /// associated with a `switch` member.
-  LabelElementImpl.forNode(
-      Identifier name, this._onSwitchStatement, this._onSwitchMember)
-      : super.forNode(name);
-
   @override
   String get displayName => name;
 
@@ -5306,14 +5244,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     setResolutionCapability(
         LibraryResolutionCapability.constantExpressions, true);
   }
-
-  /// Initialize a newly created library element in the given [context] to have
-  /// the given [name].
-  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name,
-      this.isNonNullableByDefault)
-      : nameLength = name != null ? name.length : 0,
-        linkedContext = null,
-        super.forNode(name);
 
   @override
   int get codeLength {
@@ -5810,10 +5740,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   /// [offset].
   LocalVariableElementImpl(String name, int offset) : super(name, offset);
 
-  /// Initialize a newly created local variable element to have the given
-  /// [name].
-  LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   String get identifier {
     return '$name$nameOffset';
@@ -5853,9 +5779,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
       Reference reference, MethodDeclaration linkedNode)
       : super.forLinkedNode(enclosingClass, reference, linkedNode);
-
-  /// Initialize a newly created method element to have the given [name].
-  MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   MethodElement get declaration => this;
@@ -5955,9 +5878,6 @@ class MixinElementImpl extends ClassElementImpl {
   MixinElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
       Reference reference, MixinDeclaration linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created class element to have the given [name].
-  MixinElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
   bool get isAbstract => true;
@@ -6399,10 +6319,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created variable element to have the given [name].
-  NonParameterVariableElementImpl.forNode(Identifier name)
-      : super.forNode(name);
-
   @override
   int get codeLength {
     if (linkedNode != null) {
@@ -6543,9 +6459,6 @@ class ParameterElementImpl extends VariableElementImpl
       throw UnimplementedError('${node.runtimeType}');
     }
   }
-
-  /// Initialize a newly created parameter element to have the given [name].
-  ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Creates a synthetic parameter with [name], [type] and [kind].
   factory ParameterElementImpl.synthetic(
@@ -7002,9 +6915,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       ElementImpl enclosing, Reference reference, SimpleIdentifier linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created prefix element to have the given [name].
-  PrefixElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   String get displayName => name;
 
@@ -7054,10 +6964,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created property accessor element to have the given
-  /// [name].
-  PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
@@ -7306,9 +7212,6 @@ abstract class PropertyInducingElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Initialize a newly created element to have the given [name].
-  PropertyInducingElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   bool get isConstantEvaluated => true;
 
@@ -7461,10 +7364,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     );
   }
 
-  /// Initialize a newly created top-level variable element to have the given
-  /// [name].
-  TopLevelVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
   @override
   TopLevelVariableElement get declaration => this;
 
@@ -7505,10 +7404,6 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, TypeParameter linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created type parameter element to have the given
-  /// [name].
-  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [synthetic] set to true.
@@ -7753,9 +7648,6 @@ abstract class VariableElementImpl extends ElementImpl
   VariableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
-
-  /// Initialize a newly created variable element to have the given [name].
-  VariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize using the given serialized information.
   VariableElementImpl.forSerialized(ElementImpl enclosingElement)

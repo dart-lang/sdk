@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
@@ -1263,8 +1262,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType =
         typeParameterType(definingClass.typeParameters[0]);
-    MethodElementImpl functionElement =
-        new MethodElementImpl.forNode(AstTestFactory.identifier3("m"));
+    MethodElementImpl functionElement = new MethodElementImpl('m', -1);
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement>[
       ElementFactory.requiredParameter2("a", parameterType),
@@ -1274,8 +1272,8 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     functionElement.returnType = parameterType;
     definingClass.methods = <MethodElement>[functionElement];
     FunctionTypeImpl functionType = functionElement.type;
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
+    InterfaceTypeImpl argumentType =
+        new InterfaceTypeImpl(new ClassElementImpl('D', -1));
     FunctionType result = functionType
         .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
     expect(result.returnType, argumentType);
@@ -1292,16 +1290,14 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 
   @deprecated
   void test_substitute2_notEqual() {
-    DartType returnType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("R")));
-    DartType normalParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("A")));
-    DartType optionalParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("B")));
-    DartType namedParameterType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("C")));
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
+    DartType returnType = new InterfaceTypeImpl(new ClassElementImpl('R', -1));
+    DartType normalParameterType =
+        new InterfaceTypeImpl(new ClassElementImpl('A', -1));
+    DartType optionalParameterType =
+        new InterfaceTypeImpl(new ClassElementImpl('B', -1));
+    DartType namedParameterType =
+        new InterfaceTypeImpl(new ClassElementImpl('C', -1));
+    FunctionElementImpl functionElement = new FunctionElementImpl('f', -1);
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement>[
       ElementFactory.requiredParameter2("a", normalParameterType),
@@ -1310,10 +1306,10 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     ];
     functionElement.returnType = returnType;
     FunctionTypeImpl functionType = functionElement.type;
-    InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
-    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E")));
+    InterfaceTypeImpl argumentType =
+        new InterfaceTypeImpl(new ClassElementImpl('D', -1));
+    TypeParameterTypeImpl parameterType =
+        new TypeParameterTypeImpl(new TypeParameterElementImpl('E', -1));
     FunctionType result = functionType
         .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
     expect(result.returnType, returnType);
@@ -2156,14 +2152,14 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // implementation.
     var classA = class_(name: 'A');
     TypeParameterElementImpl parameterElement =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+        new TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl parameter =
         new TypeParameterTypeImpl(parameterElement);
     InterfaceTypeImpl type =
         new InterfaceTypeImpl.explicit(classA, <DartType>[parameter]);
     InterfaceType argumentType = interfaceTypeStar(class_(name: 'B'));
-    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("F")));
+    TypeParameterTypeImpl parameterType =
+        new TypeParameterTypeImpl(new TypeParameterElementImpl('F', -1));
     InterfaceType result =
         type.substitute2(<DartType>[argumentType], <DartType>[parameterType]);
     expect(result.element, classA);
@@ -2175,23 +2171,14 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
 
 @reflectiveTest
 class LibraryElementImplTest {
-  void test_creation() {
-    expect(
-        new LibraryElementImpl.forNode(TestAnalysisContext(), null,
-            AstTestFactory.libraryIdentifier2(["l"]), true),
-        isNotNull);
-  }
-
   void test_getImportedLibraries() {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library1 = ElementFactory.library(context, "l1");
     LibraryElementImpl library2 = ElementFactory.library(context, "l2");
     LibraryElementImpl library3 = ElementFactory.library(context, "l3");
     LibraryElementImpl library4 = ElementFactory.library(context, "l4");
-    PrefixElement prefixA =
-        new PrefixElementImpl.forNode(AstTestFactory.identifier3("a"));
-    PrefixElement prefixB =
-        new PrefixElementImpl.forNode(AstTestFactory.identifier3("b"));
+    PrefixElement prefixA = new PrefixElementImpl('a', -1);
+    PrefixElement prefixB = new PrefixElementImpl('b', -1);
     List<ImportElementImpl> imports = [
       ElementFactory.importFor(library2, null),
       ElementFactory.importFor(library2, prefixB),
@@ -2209,10 +2196,8 @@ class LibraryElementImplTest {
   void test_getPrefixes() {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "l1");
-    PrefixElement prefixA =
-        new PrefixElementImpl.forNode(AstTestFactory.identifier3("a"));
-    PrefixElement prefixB =
-        new PrefixElementImpl.forNode(AstTestFactory.identifier3("b"));
+    PrefixElement prefixA = new PrefixElementImpl('a', -1);
+    PrefixElement prefixB = new PrefixElementImpl('b', -1);
     List<ImportElementImpl> imports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null),
@@ -2246,8 +2231,8 @@ class LibraryElementImplTest {
 
   void test_setImports() {
     AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["l1"]), true);
+    LibraryElementImpl library =
+        new LibraryElementImpl(context, null, 'l1', -1, 0, true);
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)
@@ -2288,23 +2273,19 @@ main() {
 @reflectiveTest
 class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_creation() {
-    expect(
-        new TypeParameterTypeImpl(new TypeParameterElementImpl.forNode(
-            AstTestFactory.identifier3("E"))),
+    expect(new TypeParameterTypeImpl(new TypeParameterElementImpl('E', -1)),
         isNotNull);
   }
 
   void test_getElement() {
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     expect(type.element, element);
   }
 
   void test_resolveToBound_bound() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), interfaceTypeStar(classS));
@@ -2312,8 +2293,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_nullableInner() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = (interfaceTypeStar(classS) as TypeImpl)
         .withNullability(NullabilitySuffix.question);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
@@ -2322,8 +2302,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_nullableInnerOuter() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = (interfaceTypeStar(classS) as TypeImpl)
         .withNullability(NullabilitySuffix.question);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
@@ -2333,8 +2312,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_nullableInnerStarOuter() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = (interfaceTypeStar(classS) as TypeImpl)
         .withNullability(NullabilitySuffix.star);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
@@ -2347,8 +2325,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_nullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
         .withNullability(NullabilitySuffix.question);
@@ -2360,8 +2337,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_starInner() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = (interfaceTypeStar(classS) as TypeImpl)
         .withNullability(NullabilitySuffix.star);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
@@ -2370,8 +2346,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_starInnerNullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = (interfaceTypeStar(classS) as TypeImpl)
         .withNullability(NullabilitySuffix.question);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
@@ -2381,8 +2356,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_bound_starOuter() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
         .withNullability(NullabilitySuffix.star);
@@ -2394,20 +2368,18 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = class_(name: 'A');
-    TypeParameterElementImpl elementE =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl elementE = new TypeParameterElementImpl('E', -1);
     elementE.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl typeE = new TypeParameterTypeImpl(elementE);
-    TypeParameterElementImpl elementF =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("F"));
+    TypeParameterElementImpl elementF = new TypeParameterElementImpl('F', -1);
     elementF.bound = typeE;
     TypeParameterTypeImpl typeF = new TypeParameterTypeImpl(elementE);
     expect(typeF.resolveToBound(null), interfaceTypeStar(classS));
   }
 
   void test_resolveToBound_unbound() {
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E")));
+    TypeParameterTypeImpl type =
+        new TypeParameterTypeImpl(new TypeParameterElementImpl('E', -1));
     // Returns whatever type is passed to resolveToBound().
     expect(type.resolveToBound(VoidTypeImpl.instance),
         same(VoidTypeImpl.instance));
@@ -2415,11 +2387,10 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   @deprecated
   void test_substitute_equal() {
-    TypeParameterElementImpl element =
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    TypeParameterElementImpl element = new TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    InterfaceTypeImpl argument = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("A")));
+    InterfaceTypeImpl argument =
+        new InterfaceTypeImpl(new ClassElementImpl('A', -1));
     TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(element);
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
         same(argument));
@@ -2427,12 +2398,12 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
   @deprecated
   void test_substitute_notEqual() {
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E")));
-    InterfaceTypeImpl argument = new InterfaceTypeImpl(
-        new ClassElementImpl.forNode(AstTestFactory.identifier3("A")));
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("F")));
+    TypeParameterTypeImpl type =
+        new TypeParameterTypeImpl(new TypeParameterElementImpl('E', -1));
+    InterfaceTypeImpl argument =
+        new InterfaceTypeImpl(new ClassElementImpl('A', -1));
+    TypeParameterTypeImpl parameter =
+        new TypeParameterTypeImpl(new TypeParameterElementImpl('F', -1));
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
         same(type));
   }

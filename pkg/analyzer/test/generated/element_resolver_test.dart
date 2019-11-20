@@ -496,8 +496,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstTestFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement =
+        new LabelElementImpl(label, -1, false, false);
     BreakStatement breakStatement = AstTestFactory.breakStatement2(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -610,8 +610,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstTestFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement =
+        new LabelElementImpl(label, -1, false, false);
     ContinueStatement continueStatement =
         AstTestFactory.continueStatement(label);
     Expression condition = AstTestFactory.booleanLiteral(true);

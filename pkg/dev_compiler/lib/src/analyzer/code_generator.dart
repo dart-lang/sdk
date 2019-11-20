@@ -4879,7 +4879,7 @@ class CodeGenerator extends Object
     variable ??= js_ast.TemporaryId(name);
 
     var idElement =
-        TemporaryVariableElement.forNode(id, variable, _currentElement);
+        TemporaryVariableElement(name, -1, variable, _currentElement);
     id.staticElement = idElement;
     id.staticType = type;
     setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);
@@ -6687,9 +6687,9 @@ class CodeGenerator extends Object
 class TemporaryVariableElement extends LocalVariableElementImpl {
   final js_ast.Expression jsVariable;
 
-  TemporaryVariableElement.forNode(
-      Identifier name, this.jsVariable, Element enclosingElement)
-      : super.forNode(name) {
+  TemporaryVariableElement(
+      String name, int offset, this.jsVariable, Element enclosingElement)
+      : super(name, offset) {
     this.enclosingElement = enclosingElement;
   }
 

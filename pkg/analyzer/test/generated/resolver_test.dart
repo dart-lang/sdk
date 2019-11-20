@@ -137,8 +137,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   void test_creation_nonEmpty() {
     AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl.forNode(
-        AstTestFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl(importedTypeName, -1);
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];
@@ -224,8 +223,7 @@ class LibraryScopeTest extends ResolverTestCase {
   void test_creation_nonEmpty() {
     AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
-    ClassElement importedType = new ClassElementImpl.forNode(
-        AstTestFactory.identifier3(importedTypeName));
+    ClassElement importedType = new ClassElementImpl(importedTypeName, -1);
     LibraryElement importedLibrary = createTestLibrary(context, "imported");
     (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
         .types = <ClassElement>[importedType];

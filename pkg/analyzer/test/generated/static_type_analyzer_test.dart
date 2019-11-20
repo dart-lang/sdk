@@ -1321,8 +1321,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
-    LibraryElementImpl definingLibrary = new LibraryElementImpl.forNode(
-        context, null, null, featureSet.isEnabled(Feature.non_nullable));
+    LibraryElementImpl definingLibrary = new LibraryElementImpl(
+        context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
@@ -1369,17 +1369,18 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
       FormalParameterList parameters, FunctionBody body) {
     List<ParameterElement> parameterElements = new List<ParameterElement>();
     for (FormalParameter parameter in parameters.parameters) {
+      var nameNode = parameter.identifier;
       ParameterElementImpl element =
-          new ParameterElementImpl.forNode(parameter.identifier);
+          new ParameterElementImpl(nameNode.name, nameNode.offset);
       // ignore: deprecated_member_use_from_same_package
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
-      parameter.identifier.staticElement = element;
+      nameNode.staticElement = element;
       parameterElements.add(element);
     }
     FunctionExpression node =
         AstTestFactory.functionExpression2(parameters, body);
-    FunctionElementImpl element = new FunctionElementImpl.forNode(null);
+    FunctionElementImpl element = new FunctionElementImpl('', -1);
     element.parameters = parameterElements;
     (node as FunctionExpressionImpl).declaredElement = element;
     return node;
@@ -1436,7 +1437,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     SimpleIdentifier identifier = parameter.identifier;
     Element element = identifier.staticElement;
     if (element is! ParameterElement) {
-      element = new ParameterElementImpl.forNode(identifier);
+      element = new ParameterElementImpl(identifier.name, identifier.offset);
       identifier.staticElement = element;
     }
     (element as ParameterElementImpl).type = type;

@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -518,8 +517,7 @@ class ResolverTestCase with ResourceProviderMixin {
       sourcedCompilationUnits = new List<CompilationUnitElement>(count);
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
-        ClassElementImpl type =
-            new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
+        ClassElementImpl type = new ClassElementImpl(typeName, -1);
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
             new CompilationUnitElementImpl();
@@ -534,10 +532,12 @@ class ResolverTestCase with ResourceProviderMixin {
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     var featureSet = context.analysisOptions.contextFeatures;
-    LibraryElementImpl library = new LibraryElementImpl.forNode(
+    LibraryElementImpl library = new LibraryElementImpl(
         context,
         driver?.currentSession,
-        AstTestFactory.libraryIdentifier2([libraryName]),
+        libraryName,
+        -1,
+        0,
         featureSet.isEnabled(Feature.non_nullable));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;

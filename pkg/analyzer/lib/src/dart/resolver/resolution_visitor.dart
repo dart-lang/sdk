@@ -165,7 +165,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withNameScope(() {
       var exceptionNode = node.exceptionParameter;
       if (exceptionNode != null) {
-        var element = LocalVariableElementImpl.forNode(exceptionNode);
+        var element = LocalVariableElementImpl(
+          exceptionNode.name,
+          exceptionNode.offset,
+        );
         _elementHolder.enclose(element);
         _nameScope.define(element);
 
@@ -185,7 +188,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       var stackTraceNode = node.stackTraceParameter;
       if (stackTraceNode != null) {
-        var element = LocalVariableElementImpl.forNode(stackTraceNode);
+        var element = LocalVariableElementImpl(
+          stackTraceNode.name,
+          stackTraceNode.offset,
+        );
         _elementHolder.enclose(element);
         _nameScope.define(element);
 
@@ -296,7 +302,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var nameNode = node.identifier;
-    var element = LocalVariableElementImpl.forNode(nameNode);
+    var element = LocalVariableElementImpl(nameNode.name, nameNode.offset);
     _elementHolder.enclose(element);
     nameNode.staticElement = element;
 
@@ -326,7 +332,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (_elementWalker != null) {
       element = _elementWalker.getParameter();
     } else {
-      element = DefaultParameterElementImpl.forNode(nameNode);
+      if (nameNode != null) {
+        element = DefaultParameterElementImpl(nameNode.name, nameNode.offset);
+      } else {
+        element = DefaultParameterElementImpl('', -1);
+      }
       _elementHolder.addParameter(element);
 
       _setCodeRange(element, node);
@@ -436,20 +446,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     FieldFormalParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement;
-    } else if (_elementWalker != null) {
-      element = _elementWalker.getParameter();
     } else {
-      // Only for recovery, this should not happen in valid code.
-      element = FieldFormalParameterElementImpl.forNode(node.identifier);
-      _elementHolder.enclose(element);
-      element.isConst = node.isConst;
-      element.isExplicitlyCovariant = node.covariantKeyword != null;
-      element.isFinal = node.isFinal;
-      // ignore: deprecated_member_use_from_same_package
-      element.parameterKind = node.kind;
-      _setCodeRange(element, node);
+      var nameNode = node.identifier;
+      if (_elementWalker != null) {
+        element = _elementWalker.getParameter();
+      } else {
+        // Only for recovery, this should not happen in valid code.
+        element = FieldFormalParameterElementImpl(
+          nameNode.name,
+          nameNode.offset,
+        );
+        _elementHolder.enclose(element);
+        element.isConst = node.isConst;
+        element.isExplicitlyCovariant = node.covariantKeyword != null;
+        element.isFinal = node.isFinal;
+        // ignore: deprecated_member_use_from_same_package
+        element.parameterKind = node.kind;
+        _setCodeRange(element, node);
+      }
+      nameNode.staticElement = element;
     }
-    node.identifier.staticElement = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -608,7 +624,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker.getParameter();
       } else {
-        element = new ParameterElementImpl.forNode(nameNode);
+        element = new ParameterElementImpl(nameNode.name, nameNode.offset);
         _elementHolder.addParameter(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
@@ -834,7 +850,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker.getParameter();
       } else {
-        element = ParameterElementImpl.forNode(nameNode);
+        if (nameNode != null) {
+          element = ParameterElementImpl(nameNode.name, nameNode.offset);
+        } else {
+          element = ParameterElementImpl('', -1);
+        }
         _elementHolder.addParameter(element);
 
         _setCodeRange(element, node);
@@ -999,8 +1019,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       List<Label> labels, bool onSwitchStatement, bool onSwitchMember) {
     for (Label label in labels) {
       var labelName = label.label;
-      var element = LabelElementImpl.forNode(
-          labelName, onSwitchStatement, onSwitchMember);
+      var element = LabelElementImpl(
+        labelName.name,
+        labelName.offset,
+        onSwitchStatement,
+        onSwitchMember,
+      );
       labelName.staticElement = element;
       _elementHolder.enclose(element);
     }
@@ -1018,8 +1042,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _buildLocalFunctionElement(FunctionDeclarationStatement statement) {
     var node = statement.functionDeclaration;
-    var element = FunctionElementImpl.forNode(node.name);
-    node.name.staticElement = element;
+    var nameNode = node.name;
+    var element = FunctionElementImpl(nameNode.name, nameNode.offset);
+    nameNode.staticElement = element;
     _nameScope.define(element);
     _elementHolder.enclose(element);
   }
@@ -1033,9 +1058,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       LocalVariableElementImpl element;
       if (isConst && variable.initializer != null) {
-        element = ConstLocalVariableElementImpl.forNode(variableName);
+        element = ConstLocalVariableElementImpl(
+          variableName.name,
+          variableName.offset,
+        );
       } else {
-        element = LocalVariableElementImpl.forNode(variableName);
+        element = LocalVariableElementImpl(
+          variableName.name,
+          variableName.offset,
+        );
       }
       variableName.staticElement = element;
       _elementHolder.enclose(element);
@@ -1060,7 +1091,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker.getTypeParameter();
       } else {
-        element = TypeParameterElementImpl.forNode(name);
+        element = TypeParameterElementImpl(name.name, name.offset);
         _elementHolder.addTypeParameter(element);
 
         element.metadata = _createElementAnnotations(typeParameter.metadata);
