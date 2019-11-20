@@ -6,14 +6,10 @@
 
 class MapLiteral2NegativeTest<T> {
   test() {
-    var m = const <String, T>{"a": 0};
-    //      ^
-    // [cfe] Constant evaluation error:
+    var m = const <String, T>{};
     //                     ^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_TYPE_ARGUMENT_IN_CONST_MAP
     // [cfe] Type variables can't be used as constants.
-    //                             ^
-    // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
   }
 }
 
