@@ -407,7 +407,7 @@ abstract class TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+  Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
       AsyncMarker asyncMarker, FunctionNode function, Statement body);
 
   /// Performs type inference on the given constructor initializer.
@@ -1418,6 +1418,19 @@ class TypeInferrerImpl implements TypeInferrer {
     return initializerType;
   }
 
+  void inferSyntheticVariable(VariableDeclarationImpl variable) {
+    assert(variable.implicitlyTyped);
+    assert(variable.initializer != null);
+    ExpressionInferenceResult result = inferExpression(
+        variable.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
+    variable.initializer = result.expression..parent = variable;
+    DartType inferredType = inferDeclarationType(result.inferredType);
+    instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
+        new InstrumentationValueForType(inferredType));
+    variable.type = inferredType;
+  }
+
   /// Performs type inference on the given [expression].
   ///
   /// [typeContext] is the expected type of the expression, based on surrounding
@@ -1487,8 +1500,9 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  void inferFunctionBody(InferenceHelper helper, DartType returnType,
+  Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
       AsyncMarker asyncMarker, FunctionNode function, Statement body) {
+    assert(body != null);
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
@@ -1500,7 +1514,7 @@ class TypeInferrerImpl implements TypeInferrer {
         flowAnalysis.initialize(parameter);
       }
     }
-    inferStatement(body);
+    StatementInferenceResult result = inferStatement(body);
     closureContext = null;
     this.helper = null;
     if (dataForTesting != null) {
@@ -1510,6 +1524,7 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     flowAnalysis.finish();
+    return result.hasChanged ? result.statement : body;
   }
 
   DartType inferInvocation(DartType typeContext, int offset,
@@ -2620,15 +2635,13 @@ class TypeInferrerImpl implements TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement(Statement statement) {
+  StatementInferenceResult inferStatement(Statement statement) {
     registerIfUnreachableForTesting(statement);
 
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);
-    if (statement != null) {
-      statement.accept(new InferenceVisitor(this));
-    }
+    return statement.accept(new InferenceVisitor(this));
   }
 
   /// Performs the type inference steps necessary to instantiate a tear-off
@@ -3132,6 +3145,55 @@ abstract class MixinInferrer {
       mixedInType.typeArguments[i] = bounds[i];
     }
   }
+}
+
+/// The result of a statement inference.
+class StatementInferenceResult {
+  const StatementInferenceResult();
+
+  factory StatementInferenceResult.single(Statement statement) =
+      SingleStatementInferenceResult;
+
+  factory StatementInferenceResult.multiple(
+          int fileOffset, List<Statement> statements) =
+      MultipleStatementInferenceResult;
+
+  bool get hasChanged => false;
+
+  Statement get statement =>
+      throw new UnsupportedError('StatementInferenceResult.statement');
+
+  int get statementCount =>
+      throw new UnsupportedError('StatementInferenceResult.statementCount');
+
+  List<Statement> get statements =>
+      throw new UnsupportedError('StatementInferenceResult.statements');
+}
+
+class SingleStatementInferenceResult implements StatementInferenceResult {
+  final Statement statement;
+
+  SingleStatementInferenceResult(this.statement);
+
+  bool get hasChanged => true;
+
+  int get statementCount => 1;
+
+  List<Statement> get statements =>
+      throw new UnsupportedError('SingleStatementInferenceResult.statements');
+}
+
+class MultipleStatementInferenceResult implements StatementInferenceResult {
+  final int fileOffset;
+  final List<Statement> statements;
+
+  MultipleStatementInferenceResult(this.fileOffset, this.statements);
+
+  bool get hasChanged => true;
+
+  Statement get statement => new Block(statements)..fileOffset = fileOffset;
+
+  int get statementCount => statements.length;
 }
 
 /// The result of an expression inference.

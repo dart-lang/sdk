@@ -887,9 +887,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    typeInferrer?.inferFunctionBody(this, _computeReturnTypeContext(member),
-        asyncModifier, builder.member.function, body);
     if (body != null) {
+      body = typeInferrer?.inferFunctionBody(
+          this,
+          _computeReturnTypeContext(member),
+          asyncModifier,
+          builder.member.function,
+          body);
       libraryBuilder.loader.transformPostInference(
           body, transformSetLiterals, transformCollections);
     }
