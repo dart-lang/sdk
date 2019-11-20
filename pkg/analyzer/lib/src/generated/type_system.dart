@@ -19,8 +19,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:meta/meta.dart';
@@ -3341,16 +3339,6 @@ abstract class TypeSystem implements public.TypeSystem {
    * specific manner.
    */
   DartType _typeParameterLeastUpperBound(DartType type1, DartType type2);
-
-  /**
-   * Create either a strong mode or regular type system based on context.
-   */
-  static TypeSystem create(AnalysisContext context) {
-    var options = context.analysisOptions as AnalysisOptionsImpl;
-    return new Dart2TypeSystem(context.typeProvider,
-        implicitCasts: options.implicitCasts,
-        strictInference: options.strictInference);
-  }
 }
 
 /// A type that is being inferred but is not currently known.
