@@ -1999,7 +1999,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64,arm,arm64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
@@ -2049,7 +2049,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
@@ -2086,7 +2086,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
