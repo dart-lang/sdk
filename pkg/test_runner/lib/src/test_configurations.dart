@@ -129,7 +129,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
 
       for (var key in configuration.selectors.keys) {
-        if (key == 'co19_2') {
+        if (key == 'co19_2' || key == 'co19') {
           testSuites.add(Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
                 configuration.compiler == Compiler.dartk ||
