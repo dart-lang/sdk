@@ -2220,13 +2220,13 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
-            "language_2"]
+            "language"]
         },
         {
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
-            "language_2"]
+            "language"]
         }
       ]
     },
