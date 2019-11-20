@@ -1354,6 +1354,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.typeParameter(
       typeParameter_bound: node.bound?.accept(this),
       typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
+      typeParameter_variance: _getVarianceToken(node),
       informativeId: getInformativeId(node),
     );
     builder.name = node.name.name;
@@ -1676,6 +1677,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   LinkedNodeTypeBuilder _writeType(DartType type) {
     return _linkingContext.writeType(type);
+  }
+
+  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    var parameterImpl = parameter as TypeParameterImpl;
+    return parameterImpl.varianceKeyword != null
+        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
+        : null;
   }
 
   /// Return `true` if the expression might be successfully serialized.

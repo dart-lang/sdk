@@ -7464,7 +7464,12 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get displayName => name;
 
-  bool get isLegacyCovariant => _variance == null;
+  bool get isLegacyCovariant {
+    if (linkedNode != null) {
+      return linkedContext.getTypeParameterVariance(linkedNode) == null;
+    }
+    return _variance == null;
+  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
@@ -7501,7 +7506,18 @@ class TypeParameterElementImpl extends ElementImpl
     _type = type;
   }
 
-  Variance get variance => _variance ?? Variance.covariant;
+  Variance get variance {
+    if (_variance != null) return _variance;
+
+    if (linkedNode != null) {
+      var varianceKeyword = linkedContext.getTypeParameterVariance(linkedNode);
+      if (varianceKeyword != null) {
+        _variance = Variance.fromKeywordString(varianceKeyword.lexeme);
+      }
+    }
+
+    return _variance ?? Variance.covariant;
+  }
 
   void set variance(Variance newVariance) => _variance = newVariance;
 

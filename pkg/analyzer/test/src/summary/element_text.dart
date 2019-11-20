@@ -1078,6 +1078,12 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeMetadata(e, '', '\n');
+    // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+    // variance is added to the interface.
+    if (!(e as TypeParameterElementImpl).isLegacyCovariant) {
+      buffer.write(
+          (e as TypeParameterElementImpl).variance.toKeywordString() + ' ');
+    }
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -91,6 +92,13 @@ class AstBinaryReader {
         ..offset = informativeData.directiveKeywordOffset;
     }
     return def;
+  }
+
+  Token _varianceKeyword(LinkedNode data) {
+    if (data.typeParameter_variance != UnlinkedTokenType.NOTHING) {
+      return _Tokens.fromType(data.typeParameter_variance);
+    }
+    return null;
   }
 
   Element _elementOfComponents(
@@ -1572,13 +1580,15 @@ class AstBinaryReader {
   }
 
   TypeParameter _read_typeParameter(LinkedNode data) {
-    var node = astFactory.typeParameter(
-      _readDocumentationComment(data),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
-      _Tokens.EXTENDS,
-      _readNodeLazy(data.typeParameter_bound),
-    );
+    // TODO (kallentu) : Clean up AstFactoryImpl casting once variance is
+    // added to the interface.
+    var node = (astFactory as AstFactoryImpl).typeParameter2(
+        comment: _readDocumentationComment(data),
+        metadata: _readNodeListLazy(data.annotatedNode_metadata),
+        name: _declaredIdentifier(data),
+        extendsKeyword: _Tokens.EXTENDS,
+        bound: _readNodeLazy(data.typeParameter_bound),
+        varianceKeyword: _varianceKeyword(data));
     LazyTypeParameter.setData(node, data);
     return node;
   }
