@@ -1389,7 +1389,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     bool isTopLevel =
         parent is FieldDeclaration || parent is TopLevelVariableDeclaration;
     node.metadata.accept(this);
-    var typeAnnotation = node.type;
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var initializer = variable.initializer;
