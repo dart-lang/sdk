@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._debugger;
 
 import 'dart:_foreign_helper' show JS;
@@ -172,7 +170,7 @@ bool hasMethod(object, String name) {
 /// [JsonMLFormatter] consumes [NameValuePair] objects and
 class NameValuePair {
   NameValuePair(
-      {this.name,
+      {this.name = '',
       this.value,
       this.config = JsonMLConfig.none,
       this.hideName = false});
@@ -188,7 +186,7 @@ class NameValuePair {
   int get hashCode => name.hashCode;
 
   final String name;
-  final Object value;
+  final Object? value;
   final JsonMLConfig config;
   final bool hideName;
 
@@ -198,8 +196,8 @@ class NameValuePair {
 class MapEntry {
   MapEntry({this.key, this.value});
 
-  final Object key;
-  final Object value;
+  final Object? key;
+  final Object? value;
 }
 
 class IterableSpan {
@@ -217,7 +215,7 @@ class IterableSpan {
   /// 10000-length subset and 1 1-length subset.
   int get maxPowerOfSubsetSize =>
       (log(length - .5) / log(_maxSpanLength)).truncate();
-  int get subsetSize => pow(_maxSpanLength, maxPowerOfSubsetSize);
+  int get subsetSize => pow(_maxSpanLength, maxPowerOfSubsetSize).toInt();
 
   Map<int, dynamic> asMap() =>
       iterable.skip(start).take(length).toList().asMap();
@@ -285,7 +283,7 @@ safeProperties(object) => Map.fromIterable(
 /// Devtools Formatter API.
 class JsonMLElement {
   dynamic _attributes;
-  List _jsonML;
+  late List _jsonML;
 
   JsonMLElement(tagName) {
     _attributes = JS('', '{}');
@@ -409,7 +407,7 @@ class JsonMLFormatter {
       // The value is indented when it is on a different line from the name
       // by setting right padding of the name to -13px and the padding of the
       // value to 13px.
-      JsonMLElement nameSpan;
+      JsonMLElement? nameSpan;
       var valueStyle = '';
       if (!child.hideName) {
         nameSpan = JsonMLElement('span')
@@ -445,38 +443,36 @@ class JsonMLFormatter {
 
 abstract class Formatter {
   bool accept(object, config);
-  String preview(object);
+  String? preview(object);
   bool hasChildren(object);
-  List<NameValuePair> children(object);
+  List<NameValuePair>? children(object);
 }
 
 class DartFormatter {
-  List<Formatter> _formatters;
+  final List<Formatter> _formatters;
 
-  DartFormatter() {
-    // The order of formatters matters as formatters earlier in the list take
-    // precedence.
-    _formatters = [
-      ObjectInternalsFormatter(),
-      ClassFormatter(),
-      TypeFormatter(),
-      NamedConstructorFormatter(),
-      MapFormatter(),
-      MapOverviewFormatter(),
-      IterableFormatter(),
-      IterableSpanFormatter(),
-      MapEntryFormatter(),
-      StackTraceFormatter(),
-      ErrorAndExceptionFormatter(),
-      FunctionFormatter(),
-      HeritageClauseFormatter(),
-      LibraryModuleFormatter(),
-      LibraryFormatter(),
-      ObjectFormatter(),
-    ];
-  }
+  DartFormatter()
+      : _formatters = [
+          // Formatters earlier in the list take precedence.
+          ObjectInternalsFormatter(),
+          ClassFormatter(),
+          TypeFormatter(),
+          NamedConstructorFormatter(),
+          MapFormatter(),
+          MapOverviewFormatter(),
+          IterableFormatter(),
+          IterableSpanFormatter(),
+          MapEntryFormatter(),
+          StackTraceFormatter(),
+          ErrorAndExceptionFormatter(),
+          FunctionFormatter(),
+          HeritageClauseFormatter(),
+          LibraryModuleFormatter(),
+          LibraryFormatter(),
+          ObjectFormatter(),
+        ];
 
-  String preview(object, config) {
+  String? preview(object, config) {
     try {
       if (object == null ||
           object is num ||
@@ -511,7 +507,7 @@ class DartFormatter {
     return false;
   }
 
-  List<NameValuePair> children(object, config) {
+  List<NameValuePair>? children(object, config) {
     try {
       if (object != null) {
         for (var formatter in _formatters) {
@@ -557,7 +553,7 @@ class ObjectFormatter extends Formatter {
 
   bool hasChildren(object) => true;
 
-  List<NameValuePair> children(object) {
+  children(object) {
     var type = dart.getType(object);
     var ret = LinkedHashSet<NameValuePair>();
     // We use a Set rather than a List to avoid duplicates.
@@ -590,7 +586,7 @@ class ObjectInternalsFormatter extends ObjectFormatter {
 
 /// Formatter for module Dart Library objects.
 class LibraryModuleFormatter implements Formatter {
-  accept(object, config) => dart.getModuleName(object) != null;
+  bool accept(object, config) => dart.getModuleName(object) != null;
 
   bool hasChildren(object) => true;
 
@@ -621,7 +617,7 @@ class LibraryModuleFormatter implements Formatter {
 class LibraryFormatter implements Formatter {
   var genericParameters = HashMap<String, String>();
 
-  accept(object, config) => object is Library;
+  bool accept(object, config) => object is Library;
 
   bool hasChildren(object) => true;
 
@@ -656,7 +652,7 @@ class LibraryFormatter implements Formatter {
 /// we can distinguish them based on whether they have been tagged with
 /// runtime type information.
 class FunctionFormatter implements Formatter {
-  accept(object, config) {
+  bool accept(object, config) {
     if (_typeof(object) != 'function') return false;
     return dart.getReifiedType(object) != null;
   }
@@ -689,7 +685,7 @@ class FunctionFormatter implements Formatter {
 class MapOverviewFormatter implements Formatter {
   // Because this comes after MapFormatter in the list, internal
   // maps will be picked up by that formatter.
-  accept(object, config) => object is Map;
+  bool accept(object, config) => object is Map;
 
   bool hasChildren(object) => true;
 
@@ -717,7 +713,7 @@ class MapOverviewFormatter implements Formatter {
 /// This is only used for internal maps, or when shown as [[entries]]
 /// from MapOverViewFormatter.
 class MapFormatter implements Formatter {
-  accept(object, config) =>
+  bool accept(object, config) =>
       object is InternalMap || config == JsonMLConfig.asMap;
 
   bool hasChildren(object) => true;
@@ -778,7 +774,7 @@ class IterableFormatter implements Formatter {
 }
 
 class NamedConstructorFormatter implements Formatter {
-  accept(object, config) => object is NamedConstructor;
+  bool accept(object, config) => object is NamedConstructor;
 
   // TODO(bmilligan): Display the signature of the named constructor as the
   // preview.
@@ -797,7 +793,7 @@ class NamedConstructorFormatter implements Formatter {
 /// Formatter for synthetic MapEntry objects used to display contents of a Map
 /// cleanly.
 class MapEntryFormatter implements Formatter {
-  accept(object, config) => object is MapEntry;
+  bool accept(object, config) => object is MapEntry;
 
   String preview(object) {
     MapEntry entry = object;
@@ -838,7 +834,7 @@ class HeritageClauseFormatter implements Formatter {
 /// Formatter for synthetic IterableSpan objects used to display contents of
 /// an Iterable cleanly.
 class IterableSpanFormatter implements Formatter {
-  accept(object, config) => object is IterableSpan;
+  bool accept(object, config) => object is IterableSpan;
 
   String preview(object) {
     return '[${object.start}...${object.end - 1}]';
@@ -853,7 +849,7 @@ class IterableSpanFormatter implements Formatter {
 class ErrorAndExceptionFormatter extends ObjectFormatter {
   static final RegExp _pattern = RegExp(r'\d+\:\d+');
 
-  accept(object, config) => object is Error || object is Exception;
+  bool accept(object, config) => object is Error || object is Exception;
 
   bool hasChildren(object) => true;
 
@@ -866,8 +862,8 @@ class ErrorAndExceptionFormatter extends ObjectFormatter {
             l.contains(_pattern) &&
             !l.contains('dart:sdk') &&
             !l.contains('dart_sdk'),
-        orElse: () => null);
-    return line != null ? '${object} at ${line}' : '${object}';
+        orElse: () => '');
+    return line != '' ? '${object} at ${line}' : '${object}';
   }
 
   List<NameValuePair> children(object) {
@@ -889,7 +885,7 @@ class ErrorAndExceptionFormatter extends ObjectFormatter {
 }
 
 class StackTraceFormatter implements Formatter {
-  accept(object, config) => object is StackTrace;
+  bool accept(object, config) => object is StackTrace;
 
   String preview(object) => 'StackTrace';
 
@@ -907,7 +903,7 @@ class StackTraceFormatter implements Formatter {
 }
 
 class ClassFormatter implements Formatter {
-  accept(object, config) => config == JsonMLConfig.asClass;
+  bool accept(object, config) => config == JsonMLConfig.asClass;
 
   String preview(type) {
     var implements = dart.getImplements(type);
@@ -978,7 +974,7 @@ class ClassFormatter implements Formatter {
 }
 
 class TypeFormatter implements Formatter {
-  accept(object, config) => object is Type;
+  bool accept(object, config) => object is Type;
 
   String preview(object) => object.toString();
 
@@ -994,7 +990,7 @@ typedef String StackTraceMapper(String stackTrace);
 ///
 /// Raw JS stack traces are used if $dartStackTraceUtility has not been
 /// specified.
-StackTraceMapper get stackTraceMapper {
+StackTraceMapper? get stackTraceMapper {
   var _util = JS('', r'#.$dartStackTraceUtility', dart.global_);
   return _util != null ? JS('!', '#.mapper', _util) : null;
 }
