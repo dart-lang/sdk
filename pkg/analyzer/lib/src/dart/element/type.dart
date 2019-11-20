@@ -2021,9 +2021,7 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isVoid => false;
 
-  /**
-   * Return the nullability suffix of this type.
-   */
+  @override
   NullabilitySuffix get nullabilitySuffix;
 
   /**

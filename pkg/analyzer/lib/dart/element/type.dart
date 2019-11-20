@@ -20,6 +20,7 @@
 /// type parameters. But if we declare a variable as `Pair<String, int> pair;`
 /// the references to `String` and `int` are type arguments.
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 
 /// The type associated with elements in the element model.
@@ -110,6 +111,9 @@ abstract class DartType {
   /// Return the name of this type, or `null` if the type does not have a name,
   /// such as when the type represents the type of an unnamed function.
   String get name;
+
+  /// Return the nullability suffix of this type.
+  NullabilitySuffix get nullabilitySuffix;
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or
   /// [objectType] otherwise.
