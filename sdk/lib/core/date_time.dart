@@ -240,7 +240,8 @@ class DateTime implements Comparable<DateTime> {
    *   The time part is a two digit hour,
    *   then optionally a two digit minutes value,
    *   then optionally a two digit seconds value, and
-   *   then optionally a '.' or ',' followed by a one-to-six digit second fraction.
+   *   then optionally a '.' or ',' followed by at least a one digit
+   *   second fraction.
    *   The minutes and seconds may be separated from the previous parts by a
    *   ':'.
    *   Examples: "12", "12:30:24.124", "12:30:24,124", "123010.50".
@@ -263,8 +264,8 @@ class DateTime implements Comparable<DateTime> {
    * Examples of accepted strings:
    *
    * * `"2012-02-27 13:27:00"`
-   * * `"2012-02-27 13:27:00.123456z"`
-   * * `"2012-02-27 13:27:00,123456z"`
+   * * `"2012-02-27 13:27:00.123456789z"`
+   * * `"2012-02-27 13:27:00,123456789z"`
    * * `"20120227 13:27:00"`
    * * `"20120227T132700"`
    * * `"20120227"`
@@ -285,14 +286,13 @@ class DateTime implements Comparable<DateTime> {
         return int.parse(matched);
       }
 
-      // Parses fractional second digits of '.(\d{1,6})' into the combined
-      // microseconds.
+      // Parses fractional second digits of '.(\d+)' into the combined
+      // microseconds. We only use the first 6 digits because of DateTime
+      // precision of 999 milliseconds and 999 microseconds.
       int parseMilliAndMicroseconds(String matched) {
         if (matched == null) return 0;
         int length = matched.length;
         assert(length >= 1);
-        assert(length <= 6);
-
         int result = 0;
         for (int i = 0; i < 6; i++) {
           result *= 10;
@@ -309,7 +309,6 @@ class DateTime implements Comparable<DateTime> {
       int hour = parseIntOrZero(match[4]);
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);
-      bool addOneMillisecond = false;
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
           milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
@@ -862,7 +861,7 @@ class DateTime implements Comparable<DateTime> {
    * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
    * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
    * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-   * micros_opt ::= <empty> | ('.' | ',') digit{1,6}
+   * micros_opt ::= <empty> | ('.' | ',') digit+
    * timezone_opt ::= <empty> | space_opt timezone
    * space_opt :: ' ' | <empty>
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
@@ -870,6 +869,6 @@ class DateTime implements Comparable<DateTime> {
    */
   static final RegExp _parseFormat = RegExp(
       r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d{1,6}))?)?)?' // Time part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
       r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }
