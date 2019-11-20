@@ -20,6 +20,9 @@ function onMessage(event) {
   var params = request['params'];
   console.log('method: ' + method)
   switch (method) {
+    case 'loading':
+      showLoadingOverlay('Fetching timeline...');
+    break;
     case 'refresh':
       traceObject = params;
       if (typeof populateTimeline != 'undefined') {
