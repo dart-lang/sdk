@@ -21,7 +21,7 @@ part of dart.collection;
 /// repeatedly increasing the length of a growable list is not efficient.
 /// To avoid this, either override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, preferably, use `DelegatingList` from
-/// "package:collection/wrappers.dart" instead.
+/// "package:collection/collection.dart" instead.
 abstract class ListBase<E> extends Object with ListMixin<E> {
   /// Converts a [List] to a [String].
   ///
