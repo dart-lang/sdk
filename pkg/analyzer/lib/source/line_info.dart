@@ -86,7 +86,7 @@ class LineInfo {
       }
     }
 
-    // Binary search to fine the line containing this offset.
+    // Binary search to find the line containing this offset.
     while (min < max) {
       var midpoint = (max - min + 1) ~/ 2 + min;
 
