@@ -724,7 +724,11 @@ enum UnlinkedTokenType : byte {
 
   WITH,
 
-  YIELD
+  YIELD,
+
+  INOUT,
+
+  OUT
 }
 
 /// Information about the context of an exception in analysis driver.
