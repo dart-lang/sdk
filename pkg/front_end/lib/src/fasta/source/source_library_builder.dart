@@ -2799,8 +2799,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (node.arguments.types.isEmpty) return;
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
-    DartType constructedType =
-        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
+    DartType constructedType = new InterfaceType(
+        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2813,8 +2813,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure factory = node.target;
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
-    DartType constructedType =
-        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
+    DartType constructedType = new InterfaceType(
+        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2839,7 +2839,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (issues != null) {
       DartType targetReceiver;
       if (klass != null) {
-        targetReceiver = new InterfaceType(klass, Nullability.legacy);
+        targetReceiver =
+            new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
       String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,

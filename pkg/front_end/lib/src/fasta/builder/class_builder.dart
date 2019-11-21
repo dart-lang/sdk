@@ -806,7 +806,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         new InterfaceType(
-            supertype.classNode, Nullability.legacy, supertype.typeArguments),
+            supertype.classNode, library.nonNullable, supertype.typeArguments),
         typeEnvironment,
         allowSuperBounded: false);
     if (issues != null) {

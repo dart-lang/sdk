@@ -5751,8 +5751,7 @@ class FunctionType extends DartType {
   /// type.
   FunctionType get withoutTypeParameters {
     if (typeParameters.isEmpty) return this;
-    return new FunctionType(
-        positionalParameters, returnType, Nullability.legacy,
+    return new FunctionType(positionalParameters, returnType, nullability,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
         typedefType: null);
