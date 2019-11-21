@@ -54,4 +54,17 @@ main() {
   Expect.equals(0, initCalls);
   Expect.equals(null, varWithInit3);
   Expect.equals(0, initCalls);
+
+  late int varWithCondInit = null ?? init();
+  var lambda = () {
+    Expect.equals(123, varWithCondInit);
+    Expect.equals(1, initCalls);
+  };
+  lambda();
+  lambda();
+  lambda();
+  initCalls = 0;
+
+  if (true) late int varNotInBlock = init();
+  Expect.equals(0, initCalls);
 }

@@ -3781,9 +3781,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitJumpIfInitialized(done);
 
       if (v.initializer != null) {
+        final init = v.initializer;
         _genPushContextIfCaptured(v);
-        // TODO(dartbug.com/38841): Make this work for all initializers.
-        _generateNode(v.initializer);
+        // Late local variable initializers are transformed to wrap the
+        // initializer in a closure (see late_var_init_transformer.dart). The
+        // closure call needs one temporary, so withTemp lets us use this
+        // VariableGet's temporary when visiting the initializer.
+        assert(init is MethodInvocation &&
+            init.name.name == "call" &&
+            init.arguments.positional.length == 0);
+        locals.withTemp(
+            init, locals.tempIndexInFrame(node), () => _generateNode(init));
         _genStoreVar(v);
       } else {
         asm.emitPushConstant(cp.addName(v.name));

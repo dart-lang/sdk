@@ -208,6 +208,14 @@ class LocalVariables {
     _currentScope = _currentScope.parent;
     _currentFrame = _currentScope?.frame;
   }
+
+  void withTemp(TreeNode node, int temp, void action()) {
+    final old = _temps[node];
+    assert(old == null || old.length == 1);
+    _temps[node] = [temp];
+    action();
+    _temps[node] = old;
+  }
 }
 
 class VarDesc {
@@ -595,6 +603,9 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitVariableGet(VariableGet node) {
     _useVariable(node.variable);
+    if (node.variable.isLate && node.variable.initializer != null) {
+      node.variable.initializer.accept(this);
+    }
   }
 
   @override
@@ -1280,6 +1291,11 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitSwitchStatement(SwitchStatement node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitVariableGet(VariableGet node) {
+    _visit(node, temps: node.variable.isLate ? 1 : 0);
   }
 
   @override
