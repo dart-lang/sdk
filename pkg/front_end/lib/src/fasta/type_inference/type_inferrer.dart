@@ -2166,7 +2166,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(isImplicitCall != null);
     assert(target.isInstanceMember);
     Procedure method = target.member;
-    assert(method.kind == ProcedureKind.Method || method.name == indexGetName,
+    assert(method.kind == ProcedureKind.Method,
         "Unexpected instance method $method");
     Name methodName = method.name;
 
@@ -2218,14 +2218,6 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType inferredType = inferInvocation(
         typeContext, fileOffset, functionType, arguments,
         receiverType: receiverType);
-
-    if (isImplicitCall && method.kind != ProcedureKind.Method) {
-      Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(receiverType),
-          fileOffset,
-          noLength);
-      return new ExpressionInferenceResult(const DynamicType(), error);
-    }
 
     Expression replacement;
     if (contravariantCheck) {
@@ -2939,11 +2931,7 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression createMissingIndexGet(int fileOffset, Expression receiver,
       DartType receiverType, Expression index) {
     if (isTopLevel) {
-      return engine.forest.createMethodInvocation(
-          fileOffset,
-          receiver,
-          indexGetName,
-          engine.forest.createArguments(fileOffset, <Expression>[index]));
+      return engine.forest.createIndexGet(fileOffset, receiver, index);
     } else {
       return helper.buildProblem(
           templateUndefinedMethod.withArguments(
@@ -2954,14 +2942,13 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   Expression createMissingIndexSet(int fileOffset, Expression receiver,
-      DartType receiverType, Expression index, Expression value) {
+      DartType receiverType, Expression index, Expression value,
+      {bool forEffect, bool readOnlyReceiver}) {
+    assert(forEffect != null);
+    assert(readOnlyReceiver != null);
     if (isTopLevel) {
-      return engine.forest.createMethodInvocation(
-          fileOffset,
-          receiver,
-          indexSetName,
-          engine.forest
-              .createArguments(fileOffset, <Expression>[index, value]));
+      return engine.forest.createIndexSet(fileOffset, receiver, index, value,
+          forEffect: forEffect, readOnlyReceiver: readOnlyReceiver);
     } else {
       return helper.buildProblem(
           templateUndefinedMethod.withArguments(

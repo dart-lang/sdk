@@ -140,8 +140,10 @@ main() {
         " getter: $uri::myGetter, setter: $uri::mySetter)",
         new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
-        "IndexedAccessGenerator(offset: 4, receiver: expression, index: index)",
-        new IndexedAccessGenerator(helper, token, expression, index));
+        "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
+        " isNullAware: false)",
+        new IndexedAccessGenerator(helper, token, expression, index,
+            isNullAware: false));
     check("ThisIndexedAccessGenerator(offset: 4, index: index)",
         new ThisIndexedAccessGenerator(helper, token, index));
     check(

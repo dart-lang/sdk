@@ -174,7 +174,8 @@ abstract class Generator {
   /// Returns a [Generator] or [Expression] representing an index access
   /// (e.g. `a[b]`) with the generator on the receiver and [index] as the
   /// index expression.
-  Generator buildIndexedAccess(Expression index, Token token);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware});
 
   /// Returns a [Expression] representing a compile-time error.
   ///
@@ -411,8 +412,11 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -538,8 +542,11 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   /// Creates a [Generator] for the access of property [name] on [receiver].
@@ -676,8 +683,11 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -772,8 +782,11 @@ class NullAwarePropertyAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -888,8 +901,11 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -913,8 +929,9 @@ class IndexedAccessGenerator extends Generator {
 
   IndexedAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.receiver, this.index,
-      {this.isNullAware: false})
-      : super(helper, token);
+      {this.isNullAware})
+      : assert(isNullAware != null),
+        super(helper, token);
 
   @override
   String get _plainNameForRead => "[]";
@@ -924,29 +941,73 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _helper.buildMethodInvocation(
-        receiver,
-        indexGetName,
-        _helper.forest.createArguments(fileOffset, <Expression>[index]),
-        fileOffset);
+    VariableDeclaration variable;
+    Expression receiverValue;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+    } else {
+      receiverValue = receiver;
+    }
+    Expression result =
+        _forest.createIndexGet(fileOffset, receiverValue, index);
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return new IndexSet(receiver, index, value,
-        forEffect: voidContext, readOnlyReceiver: false)
-      ..fileOffset = fileOffset;
+    VariableDeclaration variable;
+    Expression receiverValue;
+    bool readOnlyReceiver;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      readOnlyReceiver = true;
+    } else {
+      receiverValue = receiver;
+      readOnlyReceiver = false;
+    }
+    Expression result = _forest.createIndexSet(
+        fileOffset, receiverValue, index, value,
+        forEffect: voidContext, readOnlyReceiver: readOnlyReceiver);
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return new IfNullIndexSet(receiver, index, value,
+    VariableDeclaration variable;
+    Expression receiverValue;
+    bool readOnlyReceiver;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      readOnlyReceiver = true;
+    } else {
+      receiverValue = receiver;
+      readOnlyReceiver = false;
+    }
+
+    Expression result = new IfNullIndexSet(receiverValue, index, value,
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext)
+        forEffect: voidContext,
+        readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = offset;
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
@@ -954,12 +1015,31 @@ class IndexedAccessGenerator extends Generator {
       bool voidContext: false,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return new CompoundIndexSet(receiver, index, binaryOperator, value,
+    VariableDeclaration variable;
+    Expression receiverValue;
+    bool readOnlyReceiver;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      readOnlyReceiver = true;
+    } else {
+      receiverValue = receiver;
+      readOnlyReceiver = false;
+    }
+
+    Expression result = new CompoundIndexSet(
+        receiverValue, index, binaryOperator, value,
         readOffset: fileOffset,
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
+        forPostIncDec: isPostIncDec,
+        readOnlyReceiver: readOnlyReceiver);
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
@@ -978,9 +1058,11 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
-        isNullAware: false);
+        isNullAware: isNullAware);
   }
 
   @override
@@ -990,14 +1072,18 @@ class IndexedAccessGenerator extends Generator {
     printNodeOn(receiver, sink, syntheticNames: syntheticNames);
     sink.write(", index: ");
     printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", isNullAware: ${isNullAware}");
   }
 
   static Generator make(ExpressionGeneratorHelper helper, Token token,
-      Expression receiver, Expression index) {
+      Expression receiver, Expression index,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     if (helper.forest.isThisExpression(receiver)) {
       return new ThisIndexedAccessGenerator(helper, token, index);
     } else {
-      return new IndexedAccessGenerator(helper, token, receiver, index);
+      return new IndexedAccessGenerator(helper, token, receiver, index,
+          isNullAware: isNullAware);
     }
   }
 }
@@ -1020,19 +1106,14 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
-    return _helper.buildMethodInvocation(
-        receiver,
-        indexGetName,
-        _helper.forest.createArguments(fileOffset, <Expression>[index]),
-        fileOffset);
+    return _forest.createIndexGet(fileOffset, receiver, index);
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
-    return new IndexSet(receiver, index, value,
-        forEffect: voidContext, readOnlyReceiver: true)
-      ..fileOffset = fileOffset;
+    return _forest.createIndexSet(fileOffset, receiver, index, value,
+        forEffect: voidContext, readOnlyReceiver: true);
   }
 
   @override
@@ -1079,8 +1160,11 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -1176,8 +1260,11 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -1354,8 +1441,11 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -1624,8 +1714,11 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2027,8 +2120,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2074,6 +2170,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   /// The number of type parameters declared on the extension declaration.
   final int extensionTypeParameterCount;
 
+  final bool isNullAware;
+
   ExplicitExtensionIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
@@ -2084,9 +2182,11 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       this.receiver,
       this.index,
       this.explicitTypeArguments,
-      this.extensionTypeParameterCount)
+      this.extensionTypeParameterCount,
+      {this.isNullAware})
       : assert(readTarget != null || writeTarget != null),
         assert(receiver != null),
+        assert(isNullAware != null),
         super(helper, token);
 
   factory ExplicitExtensionIndexedAccessGenerator.fromBuilder(
@@ -2099,7 +2199,9 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       Expression receiver,
       Expression index,
       List<DartType> explicitTypeArguments,
-      int extensionTypeParameterCount) {
+      int extensionTypeParameterCount,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     Procedure readTarget;
     if (getterBuilder != null) {
       if (getterBuilder is AccessErrorBuilder) {
@@ -2134,7 +2236,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         receiver,
         index,
         explicitTypeArguments,
-        extensionTypeParameterCount);
+        extensionTypeParameterCount,
+        isNullAware: isNullAware);
   }
 
   List<DartType> _createExtensionTypeArguments() {
@@ -2150,15 +2253,28 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     if (readTarget == null) {
       return _makeInvalidRead();
     }
-    return _helper.buildExtensionMethodInvocation(
+    VariableDeclaration variable;
+    Expression receiverValue;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+    } else {
+      receiverValue = receiver;
+    }
+    Expression result = _helper.buildExtensionMethodInvocation(
         fileOffset,
         readTarget,
         _forest.createArgumentsForExtensionMethod(
-            fileOffset, extensionTypeParameterCount, 0, receiver,
+            fileOffset, extensionTypeParameterCount, 0, receiverValue,
             extensionTypeArguments: _createExtensionTypeArguments(),
             extensionTypeArgumentOffset: extensionTypeArgumentOffset,
             positionalArguments: <Expression>[index]),
         isTearOff: false);
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
@@ -2166,33 +2282,70 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     if (writeTarget == null) {
       return _makeInvalidWrite(value);
     }
+    VariableDeclaration variable;
+    Expression receiverValue;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+    } else {
+      receiverValue = receiver;
+    }
+    Expression result;
     if (voidContext) {
-      return _helper.buildExtensionMethodInvocation(
+      result = _helper.buildExtensionMethodInvocation(
           fileOffset,
           writeTarget,
           _forest.createArgumentsForExtensionMethod(
-              fileOffset, extensionTypeParameterCount, 0, receiver,
+              fileOffset, extensionTypeParameterCount, 0, receiverValue,
               extensionTypeArguments: _createExtensionTypeArguments(),
               extensionTypeArgumentOffset: extensionTypeArgumentOffset,
               positionalArguments: <Expression>[index, value]),
           isTearOff: false);
     } else {
-      return new ExtensionIndexSet(
-          extension, explicitTypeArguments, receiver, writeTarget, index, value)
+      result = new ExtensionIndexSet(extension, explicitTypeArguments,
+          receiverValue, writeTarget, index, value)
         ..fileOffset = fileOffset;
     }
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return new IfNullExtensionIndexSet(extension, explicitTypeArguments,
-        receiver, readTarget, writeTarget, index, value,
+    VariableDeclaration variable;
+    Expression receiverValue;
+    bool readOnlyReceiver;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      readOnlyReceiver = true;
+    } else {
+      receiverValue = receiver;
+      readOnlyReceiver = false;
+    }
+    Expression result = new IfNullExtensionIndexSet(
+        extension,
+        explicitTypeArguments,
+        receiverValue,
+        readTarget,
+        writeTarget,
+        index,
+        value,
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext)
+        forEffect: voidContext,
+        readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = offset;
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
@@ -2200,13 +2353,37 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       bool voidContext: false,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return new CompoundExtensionIndexSet(extension, explicitTypeArguments,
-        receiver, readTarget, writeTarget, index, binaryOperator, value,
+    VariableDeclaration variable;
+    Expression receiverValue;
+    bool readOnlyReceiver;
+    if (isNullAware) {
+      variable = _forest.createVariableDeclarationForValue(receiver);
+      receiverValue = _helper.createVariableGet(variable, fileOffset);
+      readOnlyReceiver = true;
+    } else {
+      receiverValue = receiver;
+      readOnlyReceiver = false;
+    }
+    Expression result = new CompoundExtensionIndexSet(
+        extension,
+        explicitTypeArguments,
+        receiverValue,
+        readTarget,
+        writeTarget,
+        index,
+        binaryOperator,
+        value,
         readOffset: fileOffset,
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec);
+        forPostIncDec: isPostIncDec,
+        readOnlyReceiver: readOnlyReceiver);
+    if (isNullAware) {
+      result = new NullAwareMethodInvocation(variable, result)
+        ..fileOffset = fileOffset;
+    }
+    return result;
   }
 
   @override
@@ -2225,8 +2402,11 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2396,7 +2576,9 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     Builder getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
     Builder setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
@@ -2416,7 +2598,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
         receiver,
         index,
         explicitTypeArguments,
-        extensionBuilder.typeParameters?.length ?? 0);
+        extensionBuilder.typeParameters?.length ?? 0,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2494,8 +2677,11 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2644,8 +2830,11 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -2966,10 +3155,13 @@ class ReadOnlyAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     // TODO(johnniwinther): The read-only quality of the variable should be
     // passed on to the generator.
-    return new IndexedAccessGenerator(_helper, token, _createRead(), index);
+    return new IndexedAccessGenerator(_helper, token, _createRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -3097,8 +3289,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 }
 
@@ -3173,8 +3368,11 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 }
 
@@ -3239,8 +3437,11 @@ abstract class ContextAwareGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 }
 
@@ -3472,8 +3673,11 @@ class PrefixUseGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) => _makeInvalidRead();
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -3559,8 +3763,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -3662,8 +3869,11 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index);
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
+    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
+        isNullAware: isNullAware);
   }
 }
 
@@ -3940,7 +4150,9 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     if (isSuper) {
       return new SuperIndexedAccessGenerator(
           _helper,
@@ -4088,7 +4300,9 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
   }
 
@@ -4162,7 +4376,9 @@ class IncompletePropertyAccessGenerator extends Generator
   }
 
   @override
-  Generator buildIndexedAccess(Expression index, Token token) {
+  Generator buildIndexedAccess(Expression index, Token token,
+      {bool isNullAware}) {
+    assert(isNullAware != null);
     return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
   }
 

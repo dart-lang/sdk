@@ -103,10 +103,9 @@ void propertyAccess(Class? c) {
 }
 
 void indexAccess(Class? c) {
-  // TODO(johnniwinther): Handle null aware index access.
-  //Extension(c)?.[c];
-  //Extension(c)?.[c] = new Class();
-  //Extension(c)?.[c].method();
+  Extension(c)?.[c];
+  Extension(c)?.[c] = new Class();
+  Extension(c)?.[c].method();
   Extension(c)?.field[c];
   Extension(c)?.field[c] = new Class();
   c = Extension(c)?.field[c] = new Class();

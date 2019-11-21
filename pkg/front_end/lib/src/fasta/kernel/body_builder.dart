@@ -3466,15 +3466,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     Object receiver = pop();
+    bool isNullAware = optional('?.[', openSquareBracket);
     if (receiver is Generator) {
-      push(receiver.buildIndexedAccess(index, openSquareBracket));
+      push(receiver.buildIndexedAccess(index, openSquareBracket,
+          isNullAware: isNullAware));
     } else if (receiver is Expression) {
-      push(IndexedAccessGenerator.make(
-          this, openSquareBracket, receiver, index));
+      push(IndexedAccessGenerator.make(this, openSquareBracket, receiver, index,
+          isNullAware: isNullAware));
     } else {
       assert(receiver is Initializer);
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, toValue(receiver), index));
+          this, openSquareBracket, toValue(receiver), index,
+          isNullAware: isNullAware));
     }
   }
 

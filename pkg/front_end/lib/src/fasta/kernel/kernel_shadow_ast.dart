@@ -26,8 +26,6 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'package:kernel/type_environment.dart';
 
-import 'package:kernel/clone.dart';
-
 import 'package:kernel/core_types.dart';
 
 import '../../base/instrumentation.dart'
@@ -267,6 +265,7 @@ enum InternalExpressionKind {
   IfNullPropertySet,
   IfNullSet,
   IfNullSuperIndexSet,
+  IndexGet,
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
@@ -1578,6 +1577,47 @@ class SuperPostIncDec extends InternalExpression {
   }
 }
 
+/// Internal expression representing an index get expression.
+class IndexGet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  IndexGet(this.receiver, this.index) {
+    receiver?.parent = this;
+    index?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitIndexGet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IndexGet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an index set expression.
 ///
 /// An index set expression of the form `o[a] = b` used for value is encoded as
@@ -2013,15 +2053,24 @@ class IfNullExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
   IfNullExtensionIndexSet(this.extension, this.explicitTypeArguments,
       this.receiver, this.getter, this.setter, this.index, this.value,
-      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      {this.readOffset,
+      this.testOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.readOnlyReceiver})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
         assert(readOffset != null),
         assert(testOffset != null),
         assert(writeOffset != null),
-        assert(forEffect != null) {
+        assert(forEffect != null),
+        assert(readOnlyReceiver != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
@@ -2485,6 +2534,10 @@ class CompoundExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
+  /// If `true` the receiver can be cloned instead of creating a temporary
+  /// variable.
+  final bool readOnlyReceiver;
+
   CompoundExtensionIndexSet(
       this.extension,
       this.explicitTypeArguments,
@@ -2498,14 +2551,16 @@ class CompoundExtensionIndexSet extends InternalExpression {
       this.binaryOffset,
       this.writeOffset,
       this.forEffect,
-      this.forPostIncDec})
+      this.forPostIncDec,
+      this.readOnlyReceiver})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
         assert(readOffset != null),
         assert(binaryOffset != null),
         assert(writeOffset != null),
         assert(forEffect != null),
-        assert(forPostIncDec != null) {
+        assert(forPostIncDec != null),
+        assert(readOnlyReceiver != null) {
     receiver?.parent = this;
     index?.parent = this;
     rhs?.parent = this;

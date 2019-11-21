@@ -683,6 +683,23 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  IndexGet createIndexGet(
+      int fileOffset, Expression receiver, Expression index) {
+    assert(fileOffset != null);
+    return new IndexGet(receiver, index)..fileOffset = fileOffset;
+  }
+
+  IndexSet createIndexSet(
+      int fileOffset, Expression receiver, Expression index, Expression value,
+      {bool forEffect, bool readOnlyReceiver}) {
+    assert(fileOffset != null);
+    assert(forEffect != null);
+    assert(readOnlyReceiver != null);
+    return new IndexSet(receiver, index, value,
+        forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
+      ..fileOffset = fileOffset;
+  }
+
   EqualsExpression createEquals(
       int fileOffset, Expression left, Expression right,
       {bool isNot}) {

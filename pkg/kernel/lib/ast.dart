@@ -2642,7 +2642,7 @@ class VariableGet extends Expression {
   VariableDeclaration variable;
   DartType promotedType; // Null if not promoted.
 
-  VariableGet(this.variable, [this.promotedType]);
+  VariableGet(this.variable, [this.promotedType]) : assert(variable != null);
 
   DartType getStaticType(StaticTypeContext context) {
     return promotedType ?? variable.type;
@@ -2670,7 +2670,7 @@ class VariableSet extends Expression {
   VariableDeclaration variable;
   Expression value;
 
-  VariableSet(this.variable, this.value) {
+  VariableSet(this.variable, this.value) : assert(variable != null) {
     value?.parent = this;
   }
 
