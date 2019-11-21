@@ -89,6 +89,9 @@ class Tag {
 /// Enum used for identifying [DartType] subclasses in serialization.
 enum DartTypeKind {
   none,
+  legacyType,
+  nullableType,
+  neverType,
   voidType,
   typeVariable,
   functionTypeVariable,
@@ -119,6 +122,26 @@ class DartTypeWriter
     for (DartType type in types) {
       _sink._writeDartType(type, functionTypeVariables);
     }
+  }
+
+  @override
+  void visitLegacyType(covariant LegacyType type,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    _sink.writeEnum(DartTypeKind.legacyType);
+    _sink._writeDartType(type.baseType, functionTypeVariables);
+  }
+
+  @override
+  void visitNullableType(covariant NullableType type,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    _sink.writeEnum(DartTypeKind.nullableType);
+    _sink._writeDartType(type.baseType, functionTypeVariables);
+  }
+
+  @override
+  void visitNeverType(covariant NeverType type,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    _sink.writeEnum(DartTypeKind.neverType);
   }
 
   @override

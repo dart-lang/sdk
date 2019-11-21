@@ -24,6 +24,23 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   }
 
   @override
+  void visitLegacyType(LegacyType type, StringBuffer sb) {
+    visit(type.baseType, sb);
+    sb.write('*');
+  }
+
+  @override
+  void visitNullableType(NullableType type, StringBuffer sb) {
+    visit(type.baseType, sb);
+    sb.write('?');
+  }
+
+  @override
+  void visitNeverType(NeverType type, StringBuffer sb) {
+    sb.write('Never');
+  }
+
+  @override
   void visitVoidType(VoidType type, StringBuffer sb) {
     sb.write('void');
   }

@@ -1023,6 +1023,22 @@ class TypeRepresentationGenerator
   }
 
   @override
+  jsAst.Expression visitLegacyType(LegacyType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support legacy types');
+  }
+
+  @override
+  jsAst.Expression visitNullableType(
+      NullableType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support nullable types');
+  }
+
+  @override
+  jsAst.Expression visitNeverType(NeverType type, ModularEmitter emitter) {
+    throw UnsupportedError('Legacy RTI does not support the Never type');
+  }
+
+  @override
   jsAst.Expression visitFunctionTypeVariable(
       FunctionTypeVariable type, ModularEmitter emitter) {
     int position = functionTypeVariables.indexOf(type);
@@ -1290,81 +1306,53 @@ class TypeCheckMapping implements TypeChecks {
   }
 }
 
-class ArgumentCollector extends DartTypeVisitor<dynamic, bool> {
+class ArgumentCollector extends DartTypeVisitor<void, void> {
   final Set<ClassEntity> classes = new Set<ClassEntity>();
 
   void addClass(ClassEntity cls) {
     classes.add(cls);
   }
 
-  collect(DartType type, {bool isTypeArgument: false}) {
-    visit(type, isTypeArgument);
+  void collect(DartType type) {
+    visit(type, null);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
-  collectAll(List<DartType> types, {bool isTypeArgument: false}) {
-    for (DartType type in types) {
-      visit(type, true);
-    }
+  void collectAll(List<DartType> types) => types.forEach(collect);
+
+  @override
+  void visitLegacyType(LegacyType type, _) {
+    collect(type.baseType);
   }
 
   @override
-  visitTypedefType(TypedefType type, bool isTypeArgument) {
-    collect(type.unaliased, isTypeArgument: isTypeArgument);
+  void visitNullableType(NullableType type, _) {
+    collect(type.baseType);
   }
 
   @override
-  visitInterfaceType(InterfaceType type, bool isTypeArgument) {
-    if (isTypeArgument) addClass(type.element);
-    collectAll(type.typeArguments, isTypeArgument: true);
+  void visitFutureOrType(FutureOrType type, _) {
+    collect(type.typeArgument);
   }
 
   @override
-  visitFunctionType(FunctionType type, _) {
-    collect(type.returnType, isTypeArgument: true);
-    collectAll(type.parameterTypes, isTypeArgument: true);
-    collectAll(type.optionalParameterTypes, isTypeArgument: true);
-    collectAll(type.namedParameterTypes, isTypeArgument: true);
-  }
-}
-
-class FunctionArgumentCollector extends DartTypeVisitor<dynamic, bool> {
-  final Set<ClassEntity> classes = new Set<ClassEntity>();
-
-  FunctionArgumentCollector();
-
-  collect(DartType type, {bool inFunctionType: false}) {
-    visit(type, inFunctionType);
-  }
-
-  collectAll(Iterable<DartType> types, {bool inFunctionType: false}) {
-    for (DartType type in types) {
-      visit(type, inFunctionType);
-    }
+  void visitTypedefType(TypedefType type, _) {
+    collect(type.unaliased);
   }
 
   @override
-  visitTypedefType(TypedefType type, bool inFunctionType) {
-    collect(type.unaliased, inFunctionType: inFunctionType);
+  void visitInterfaceType(InterfaceType type, _) {
+    addClass(type.element);
+    collectAll(type.typeArguments);
   }
 
   @override
-  visitInterfaceType(InterfaceType type, bool inFunctionType) {
-    if (inFunctionType) {
-      classes.add(type.element);
-    }
-    collectAll(type.typeArguments, inFunctionType: inFunctionType);
-  }
-
-  @override
-  visitFunctionType(FunctionType type, _) {
-    collect(type.returnType, inFunctionType: true);
-    collectAll(type.parameterTypes, inFunctionType: true);
-    collectAll(type.optionalParameterTypes, inFunctionType: true);
-    collectAll(type.namedParameterTypes, inFunctionType: true);
-    collectAll(type.typeVariables.map((type) => type.bound),
-        inFunctionType: true);
+  void visitFunctionType(FunctionType type, _) {
+    collect(type.returnType);
+    collectAll(type.parameterTypes);
+    collectAll(type.optionalParameterTypes);
+    collectAll(type.namedParameterTypes);
   }
 }
 
@@ -1387,7 +1375,8 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
 
   TypeVisitor({this.onClass, this.onTypeVariable, this.onFunctionType});
 
-  visitType(DartType type, TypeVisitorState state) => type.accept(this, state);
+  void visitType(DartType type, TypeVisitorState state) =>
+      type.accept(this, state);
 
   TypeVisitorState covariantArgument(TypeVisitorState state) {
     switch (state) {
@@ -1417,11 +1406,23 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     throw new UnsupportedError("Unexpected TypeVisitorState $state");
   }
 
-  visitTypes(List<DartType> types, TypeVisitorState state) {
+  void visitTypes(List<DartType> types, TypeVisitorState state) {
     for (DartType type in types) {
       visitType(type, state);
     }
   }
+
+  @override
+  void visitLegacyType(LegacyType type, TypeVisitorState state) =>
+      visitType(type.baseType, state);
+
+  @override
+  void visitNullableType(NullableType type, TypeVisitorState state) =>
+      visitType(type.baseType, state);
+
+  @override
+  void visitFutureOrType(FutureOrType type, TypeVisitorState state) =>
+      visitType(type.typeArgument, state);
 
   @override
   void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {

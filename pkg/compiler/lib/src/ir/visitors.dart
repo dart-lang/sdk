@@ -664,6 +664,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitBottomType(ir.BottomType node) {
+    // TODO(fishythefish): Change `Null` to `Never` for NNBD.
     return elementMap.commonElements.nullType;
   }
 }

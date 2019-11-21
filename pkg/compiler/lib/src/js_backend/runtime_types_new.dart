@@ -226,6 +226,23 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visit(DartType type, _) => type.accept(this, _);
 
   @override
+  void visitLegacyType(LegacyType type, _) {
+    visit(type.baseType, _);
+    _emitCode(Recipe.wrapStar);
+  }
+
+  @override
+  void visitNullableType(NullableType type, _) {
+    visit(type.baseType, _);
+    _emitCode(Recipe.wrapQuestion);
+  }
+
+  @override
+  void visitNeverType(NeverType type, _) {
+    _emitExtensionOp(Recipe.pushNeverExtension);
+  }
+
+  @override
   void visitTypeVariableType(TypeVariableType type, _) {
     TypeEnvironmentStructure environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {

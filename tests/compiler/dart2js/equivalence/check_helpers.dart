@@ -441,6 +441,23 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
+  visitLegacyType(LegacyType type, _) {
+    visit(type.baseType);
+    sb.write('*');
+  }
+
+  @override
+  visitNullableType(NullableType type, _) {
+    visit(type.baseType);
+    sb.write('?');
+  }
+
+  @override
+  visitNeverType(NeverType type, _) {
+    sb.write('Never');
+  }
+
+  @override
   visitDynamicType(DynamicType type, _) {
     sb.write('dynamic');
   }
