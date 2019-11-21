@@ -644,8 +644,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Initialize a new postDominator scope that contains only the parameters.
       try {
         node.functionExpression.accept(this);
-      } finally {
         _flowAnalysis.finish();
+      } finally {
         _flowAnalysis = null;
         _assignedVariables = null;
       }
@@ -1391,9 +1391,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var destinationType = getOrComputeElementType(declaredElement);
           _handleAssignment(initializer, destinationType: destinationType);
         }
-      } finally {
         if (isTopLevel) {
           _flowAnalysis.finish();
+        }
+      } finally {
+        if (isTopLevel) {
           _flowAnalysis = null;
           _assignedVariables = null;
         }
@@ -1838,8 +1840,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           }
         }
       }
-    } finally {
       _flowAnalysis.finish();
+    } finally {
       _flowAnalysis = null;
       _assignedVariables = null;
       _currentFunctionType = null;
