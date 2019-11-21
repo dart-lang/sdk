@@ -1,5 +1,5 @@
 ## 0.2.2
-- Bump maximum supported version of the analyzer to `<0.40.0`
+- Change supported analyzer version to `^0.39.0`
 
 ## 0.2.1
 - Bump maximum supported version of the analyzer to `<0.39.0`.

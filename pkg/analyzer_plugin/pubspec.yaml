@@ -8,7 +8,7 @@ environment:
   sdk: '>=2.0.0 <3.0.0'
 
 dependencies:
-  analyzer: '>=0.35.3 <0.40.0'
+  analyzer: '^0.39.0'
   charcode: '^1.1.0'
   dart_style: '^1.2.0'
   html: '>=0.13.1 <0.15.0'
