@@ -940,10 +940,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ blr(TMP);
   }
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         compiler::Address(
-             THR, compiler::target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);
@@ -1102,10 +1100,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that we have THR, we can set CSP.
   __ SetupCSPFromThread(THR);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         compiler::Address(
-             THR, compiler::target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::vm_tag_offset());

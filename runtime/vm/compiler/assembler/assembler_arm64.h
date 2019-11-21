@@ -1515,8 +1515,12 @@ class Assembler : public AssemblerBase {
                                     uint32_t offset);
 
   void PushObject(const Object& object) {
-    LoadObject(TMP, object);
-    Push(TMP);
+    if (IsSameObject(compiler::NullObject(), object)) {
+      Push(NULL_REG);
+    } else {
+      LoadObject(TMP, object);
+      Push(TMP);
+    }
   }
   void PushImmediate(int64_t immediate) {
     LoadImmediate(TMP, immediate);
@@ -1555,6 +1559,10 @@ class Assembler : public AssemblerBase {
 
   void CheckCodePointer();
   void RestoreCodePointer();
+
+  // Restores the values of the registers that are blocked to cache some values
+  // e.g. BARRIER_MASK and NULL_REG.
+  void RestorePinnedRegisters();
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);

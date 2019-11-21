@@ -475,7 +475,9 @@ void Assembler::LoadObjectHelper(Register dst,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
+  if (IsSameObject(compiler::NullObject(), object)) {
+    mov(dst, NULL_REG);
+  } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(dst, Address(THR, offset));
   } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset = target::ObjectPool::element_offset(
@@ -499,7 +501,9 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
+  if (IsSameObject(compiler::NullObject(), object)) {
+    CompareRegisters(reg, NULL_REG);
+  } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(TMP, Address(THR, offset));
     CompareRegisters(reg, TMP);
   } else if (CanLoadFromObjectPool(object)) {
@@ -1083,8 +1087,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
-  LoadObject(TMP2, value);
-  str(TMP2, dest);
+  if (IsSameObject(compiler::NullObject(), value)) {
+    str(NULL_REG, dest);
+  } else {
+    LoadObject(TMP2, value);
+    str(TMP2, dest);
+  }
 }
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
@@ -1180,6 +1188,12 @@ void Assembler::RestoreCodePointer() {
   ldr(CODE_REG,
       Address(FP, target::frame_layout.code_from_fp * target::kWordSize));
   CheckCodePointer();
+}
+
+void Assembler::RestorePinnedRegisters() {
+  ldr(BARRIER_MASK,
+      compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
+  ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
 }
 
 void Assembler::CheckCodePointer() {

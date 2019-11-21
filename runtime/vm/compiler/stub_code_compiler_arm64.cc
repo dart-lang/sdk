@@ -147,9 +147,8 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -624,9 +623,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
@@ -1179,13 +1177,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ AddImmediate(R1, R0, target::Array::data_offset() - kHeapObjectTag);
   // R1: iterator which initially points to the start of the variable
   // data area to be initialized.
-  __ LoadObject(TMP, NullObject());
   Label loop, done;
   __ Bind(&loop);
   // TODO(cshapiro): StoreIntoObjectNoBarrier
   __ CompareRegisters(R1, R7);
   __ b(&done, CS);
-  __ str(TMP, Address(R1));  // Store if unsigned lower.
+  __ str(NULL_REG, Address(R1));  // Store if unsigned lower.
   __ AddImmediate(R1, target::kWordSize);
   __ b(&loop);  // Loop until R1 == R7.
   __ Bind(&done);
@@ -1257,9 +1254,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ mov(THR, R3);
   }
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
@@ -1409,9 +1405,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     __ mov(THR, R3);
   }
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
@@ -2583,9 +2578,8 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
@@ -3072,8 +3066,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
