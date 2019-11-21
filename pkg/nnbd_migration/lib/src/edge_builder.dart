@@ -1770,7 +1770,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (declaredElement is! ConstructorElement) {
         var classElement = declaredElement.enclosingElement as ClassElement;
-        var origin = InheritanceOrigin(source, node);
         for (var overriddenElement in _inheritanceManager.getOverridden(
                 classElement.thisType,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
@@ -1786,10 +1785,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var overriddenFunctionType =
               decoratedOverriddenFunctionType.substitute(substitution);
           if (returnType == null) {
-            _unionDecoratedTypes(_currentFunctionType.returnType,
-                overriddenFunctionType.returnType, origin);
+            _unionDecoratedTypes(
+                _currentFunctionType.returnType,
+                overriddenFunctionType.returnType,
+                ReturnTypeInheritanceOrigin(source, node));
           } else {
-            _checkAssignment(origin,
+            _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
                 source: _currentFunctionType.returnType,
                 destination: overriddenFunctionType.returnType,
                 hard: true);
@@ -1826,6 +1827,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 positionalParameterCount++;
               }
               if (overriddenParameterType != null) {
+                var origin = ParameterInheritanceOrigin(source, node);
                 if (_isUntypedParameter(normalParameter)) {
                   _unionDecoratedTypes(
                       overriddenParameterType, currentParameterType, origin);

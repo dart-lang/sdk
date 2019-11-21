@@ -763,7 +763,6 @@ void f([String? s]) {}
         details: ["This parameter has an implicit default value of 'null'"]);
   }
 
-  @failingTest
   test_return_fromOverriden() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 abstract class A {
@@ -786,6 +785,7 @@ class B implements A {
         region: regions[0],
         offset: 27,
         details: ["An overridding method has a nullable return value"]);
+    assertDetail(detail: regions[0].details[0], offset: 60, length: 6);
   }
 
   test_return_multipleReturns() async {
@@ -1009,10 +1009,10 @@ void g(int i) => print(i.isEven);
 ''');
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    assertRegion(region: regions[0], offset: 16, details: [
-      "This variable could not be made \'late\' because it is used on line 4, "
-          "when it is possibly uninitialized"
-    ]);
+    assertRegion(
+        region: regions[0],
+        offset: 16,
+        details: ["Used on line 4, when it is possibly uninitialized"]);
     // regions[1] is the `v1!` fix.
   }
 }

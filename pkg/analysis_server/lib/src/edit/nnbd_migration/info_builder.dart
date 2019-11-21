@@ -129,8 +129,6 @@ class InfoBuilder {
     }
 
     if (node is DefaultFormalParameter) {
-      // TODO(srawlins): Is there an enum of fixes I can use? The fix classes
-      //  are subclasses of PotentialModification, e.g. PotentiallyAddRequired.
       if (fixKind == NullabilityFixKind.addRequired) {
         return "This parameter is non-nullable, so cannot have "
             "${aNullableDefault(node)}";
@@ -162,9 +160,13 @@ class InfoBuilder {
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 
-    if (origin.kind == EdgeOriginKind.uninitializedRead) {
-      return "This variable could not be made 'late' because it is used on "
-          "line $lineNumber, when it is possibly uninitialized";
+    if (origin.kind == EdgeOriginKind.parameterInheritance) {
+      return "The corresponding parameter in the overridden method is "
+          "nullable";
+    } else if (origin.kind == EdgeOriginKind.returnTypeInheritance) {
+      return "An overridding method has a nullable return value";
+    } else if (origin.kind == EdgeOriginKind.uninitializedRead) {
+      return "Used on line $lineNumber, when it is possibly uninitialized";
     }
 
     if (parent is ArgumentList) {
@@ -263,25 +265,20 @@ class InfoBuilder {
     if (node is DefaultFormalParameter && node.defaultValue == null) {
       target = null;
     } else {
-      if (origin.kind == EdgeOriginKind.inheritance) {
+      if (origin.kind == EdgeOriginKind.parameterInheritance ||
+          origin.kind == EdgeOriginKind.returnTypeInheritance) {
         // The node is the method declaration in the subclass and we want to
-        // link to the corresponding parameter in the declaration in the
-        // superclass.
+        // link to the either the corresponding parameter in the declaration in
+        // the superclass, or the return type in the declaration in that
+        // subclass.
         TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
         if (type != null) {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _targetForNode(unit.declaredElement.source.fullName, type);
-          return RegionDetail(
-              "The corresponding parameter in the overridden method is "
-              "nullable",
-              target);
-          // TODO(srawlins): Also, this could be where a return type in an
-          //  overridden method is made nullable because an overriding method
-          //  was found with a nullable return type. Figure out how to tell
-          //  which situation we are in.
         }
+      } else {
+        target = _targetForNode(origin.source.fullName, node);
       }
-      target = _targetForNode(origin.source.fullName, node);
     }
     return RegionDetail(_buildDescriptionForOrigin(origin, fixKind), target);
   }
@@ -402,13 +399,6 @@ class InfoBuilder {
         details.add(RegionDetail(
             'This value is unconditionally used in a non-nullable context',
             target));
-      } else if (origin.kind == EdgeOriginKind.inheritance) {
-        // TODO(srawlins): Figure out why this EdgeOriginKind is used.
-        details.add(RegionDetail('Something about inheritance', target));
-      } else if (origin.kind == EdgeOriginKind.initializerInference) {
-        // TODO(srawlins): Figure out why this EdgeOriginKind is used.
-        details.add(
-            RegionDetail('Something about initializer inheritance', target));
       } else if (origin.kind == EdgeOriginKind.nonNullAssertion) {
         details
             .add(RegionDetail('This value is asserted to be non-null', target));

@@ -183,14 +183,6 @@ class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.implicitMixinSuperCall;
 }
 
-/// Edge origin resulting from an inheritance relationship between two methods.
-class InheritanceOrigin extends EdgeOrigin {
-  InheritanceOrigin(Source source, AstNode node) : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.inheritance;
-}
-
 /// Edge origin resulting from a type that is inferred from its initializer.
 class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, VariableDeclaration node)
@@ -343,6 +335,25 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
+}
+
+/// Edge origin resulting from an inheritance relationship between two method
+/// parameters.
+class ParameterInheritanceOrigin extends EdgeOrigin {
+  ParameterInheritanceOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.parameterInheritance;
+}
+
+/// Edge origin resulting from an inheritance relationship between two method
+/// return types.
+class ReturnTypeInheritanceOrigin extends EdgeOrigin {
+  ReturnTypeInheritanceOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.returnTypeInheritance;
 }
 
 /// Edge origin resulting from the use of `this` or `super`.
