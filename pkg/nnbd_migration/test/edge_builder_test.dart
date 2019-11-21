@@ -622,8 +622,9 @@ abstract class C {
 C f(C y, C z) => (y += z);
 ''';
     await analyze(code);
-    var targetEdge =
-        assertEdge(decoratedTypeAnnotation('C y').node, never, hard: true);
+    var targetEdge = assertEdge(
+        decoratedTypeAnnotation('C y').node, inSet(pointsToNever),
+        hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
             .node
@@ -660,8 +661,9 @@ abstract class C<T> {
 C<int> f(C<int> y, C<int> z) => (y += z);
 ''';
     await analyze(code);
-    var targetEdge =
-        assertEdge(decoratedTypeAnnotation('C<int> y').node, never, hard: true);
+    var targetEdge = assertEdge(
+        decoratedTypeAnnotation('C<int> y').node, inSet(pointsToNever),
+        hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
             .node
@@ -4422,7 +4424,7 @@ bool f(bool b) {
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
 
     var return_f = decoratedTypeAnnotation('bool f').node;
-    assertEdge(never, return_f, hard: false);
+    assertEdge(inSet(pointsToNever), return_f, hard: false);
   }
 
   test_prefixExpression_bang_dynamic() async {
@@ -4432,7 +4434,7 @@ Object f(dynamic d) {
 }
 ''');
     var return_f = decoratedTypeAnnotation('Object f').node;
-    assertEdge(never, return_f, hard: false);
+    assertEdge(inSet(pointsToNever), return_f, hard: false);
   }
 
   test_prefixExpression_minus() async {
@@ -5371,7 +5373,8 @@ Type f() {
 import 'dart:async' as a;
 Type f() => a.Future;
 ''');
-    assertEdge(never, decoratedTypeAnnotation('Type').node, hard: false);
+    assertEdge(inSet(neverClosure), decoratedTypeAnnotation('Type').node,
+        hard: false);
   }
 
   test_typeName_functionTypeAlias() async {

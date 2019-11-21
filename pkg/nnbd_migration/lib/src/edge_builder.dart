@@ -120,15 +120,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// information  used in flow analysis.  Otherwise `null`.
   AssignedVariables<AstNode, PromotableElement> _assignedVariables;
 
-  /// For convenience, a [DecoratedType] representing non-nullable `Object`.
-  final DecoratedType _notNullType;
-
-  /// For convenience, a [DecoratedType] representing non-nullable `bool`.
-  final DecoratedType _nonNullableBoolType;
-
-  /// For convenience, a [DecoratedType] representing non-nullable `Type`.
-  final DecoratedType _nonNullableTypeType;
-
   /// The [DecoratedType] of the innermost function or method being visited, or
   /// `null` if the visitor is not inside any function or method.
   ///
@@ -201,12 +192,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
-      : _inheritanceManager = InheritanceManager3(_typeSystem),
-        _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
-        _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, _graph.never),
-        _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, _graph.never);
+      : _inheritanceManager = InheritanceManager3(_typeSystem);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -360,7 +346,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             falseDemonstratesNonNullIntent: leftType.node);
         _conditionInfo = notEqual ? conditionInfo.not(node) : conditionInfo;
       }
-      return _nonNullableBoolType;
+      return _makeNonNullableBoolType(node);
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
@@ -369,7 +355,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _postDominatedLocals.doScoped(
           action: () => _checkExpressionNotNull(rightOperand));
       _flowAnalysis.logicalBinaryOp_end(node, rightOperand, isAnd: isAnd);
-      return _nonNullableBoolType;
+      return _makeNonNullableBoolType(node);
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
       var leftType = leftOperand.accept(this);
@@ -872,10 +858,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     expression.accept(this);
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
-    var nullabilityNode = NullabilityNode.forInferredType();
-    _graph.makeNonNullable(
-        nullabilityNode, IsCheckResultTypeOrigin(source, node));
-    return DecoratedType(node.staticType, nullabilityNode);
+    return _makeNonNullableBoolType(node);
   }
 
   @override
@@ -1059,7 +1042,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var operatorType = node.operator.type;
     if (operatorType == TokenType.BANG) {
       _flowAnalysis.logicalNot_end(node, operand);
-      return _nonNullableBoolType;
+      return _makeNonNullableBoolType(node);
     } else {
       var callee = node.staticElement;
       var isIncrementOrDecrement = operatorType.isIncrementOperator;
@@ -1226,7 +1209,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           ? elementType.returnType
           : elementType.positionalParameters[0];
     } else if (staticElement is TypeDefiningElement) {
-      return _nonNullableTypeType;
+      return _makeNonNullLiteralType(node);
     } else {
       // TODO(paulberry)
       _unimplemented(node,
@@ -1456,10 +1439,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   ///
   /// Returns the decorated type of [expression].
   DecoratedType _checkExpressionNotNull(Expression expression) {
-    // Note: it's not necessary for `destinationType` to precisely match the
-    // type of the expression, since all we are doing is causing a single graph
-    // edge to be built; it is sufficient to pass in any decorated type whose
-    // node is `never`.
     if (_isPrefix(expression)) {
       throw ArgumentError('cannot check non-nullability of a prefix');
     }
@@ -1503,6 +1482,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.initialize(parameter.declaredElement);
       }
     }
+  }
+
+  /// Creates a type that can be used to check that an expression's value is
+  /// non-nullable.
+  DecoratedType _createNonNullableType(Expression expression) {
+    // Note: it's not necessary for the type to precisely match the type of the
+    // expression, since all we are going to do is cause a single graph edge to
+    // be built; it is sufficient to pass in any decorated type whose node is
+    // non-nullable.  So we use `Object`.
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(
+        nullabilityNode, NonNullableUsageOrigin(source, expression));
+    return DecoratedType(typeProvider.objectType, nullabilityNode);
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1668,7 +1660,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _checkAssignment(
               CompoundAssignmentOrigin(source, compoundOperatorInfo),
               source: destinationType,
-              destination: _notNullType,
+              destination: _createNonNullableType(compoundOperatorInfo),
               hard: _postDominatedLocals
                   .isReferenceInScope(destinationExpression));
           DecoratedType compoundOperatorType = getOrComputeElementType(
@@ -2118,6 +2110,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           source, expression, expressionChecksOrigin);
       return expressionChecksOrigin;
     }
+  }
+
+  DecoratedType _makeNonNullableBoolType(Expression expression) {
+    assert(expression.staticType.isDartCoreBool);
+    var nullabilityNode = NullabilityNode.forInferredType();
+    _graph.makeNonNullable(
+        nullabilityNode, NonNullableBoolTypeOrigin(source, expression));
+    return DecoratedType(typeProvider.boolType, nullabilityNode);
   }
 
   DecoratedType _makeNonNullLiteralType(Expression expression,

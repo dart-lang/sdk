@@ -251,14 +251,6 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
-/// Edge origin for the nullability of the result of an 'is' check.
-class IsCheckResultTypeOrigin extends EdgeOrigin {
-  IsCheckResultTypeOrigin(Source source, AstNode node) : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.isCheckResultType;
-}
-
 /// An edge origin used for edges that originated because a literal expression
 /// has a known nullability.
 class LiteralOrigin extends EdgeOrigin {
@@ -286,6 +278,24 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.namedParameterNotSupplied;
+}
+
+/// Edge origin for the nullability of an expression that whose type is fixed by
+/// the language definition to be non-nullable `bool`.
+class NonNullableBoolTypeOrigin extends EdgeOrigin {
+  NonNullableBoolTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableBoolType;
+}
+
+/// Edge origin resulting from the usage of a value in a circumstance that
+/// requires it to be non-nullable
+class NonNullableUsageOrigin extends EdgeOrigin {
+  NonNullableUsageOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableUsage;
 }
 
 /// Edge origin resulting from the presence of a non-null assertion.
