@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         SimpleIdentifierImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -89,11 +88,6 @@ import 'package:analyzer/src/task/strong/checker.dart';
  */
 class ElementResolver extends SimpleAstVisitor<void> {
   /**
-   * The manager for the inheritance mappings.
-   */
-  final InheritanceManager3 _inheritance;
-
-  /**
    * The resolver driving this participant.
    */
   final ResolverVisitor _resolver;
@@ -127,8 +121,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * resolve the nodes in a compilation unit.
    */
   ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
-      : _inheritance = _resolver.inheritance,
-        _definingLibrary = _resolver.definingLibrary,
+      : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
         _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
     _dynamicType = _resolver.typeProvider.dynamicType;
@@ -1245,7 +1238,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   _PropertyResolver _newPropertyResolver() {
-    return _PropertyResolver(_resolver, _resolver.typeProvider, _inheritance,
+    return _PropertyResolver(_resolver, _resolver.typeProvider,
         _definingLibrary, _extensionResolver);
   }
 
@@ -2019,7 +2012,6 @@ class SyntheticIdentifier extends IdentifierImpl {
 class _PropertyResolver {
   final ResolverVisitor _resolver;
   final TypeProvider _typeProvider;
-  final InheritanceManager3 _inheritance;
   final LibraryElement _definingLibrary;
   final ExtensionMemberResolver _extensionResolver;
 
@@ -2028,7 +2020,6 @@ class _PropertyResolver {
   _PropertyResolver(
     this._resolver,
     this._typeProvider,
-    this._inheritance,
     this._definingLibrary,
     this._extensionResolver,
   );

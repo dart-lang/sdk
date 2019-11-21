@@ -2217,8 +2217,6 @@ mixin _AssignmentChecker {
 
   DecoratedClassHierarchy get _decoratedClassHierarchy;
 
-  NullabilityGraph get _graph;
-
   TypeSystem get _typeSystem;
 
   /// Creates the necessary constraint(s) for an assignment from [source] to

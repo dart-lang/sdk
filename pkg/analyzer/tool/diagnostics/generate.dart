@@ -163,12 +163,6 @@ class DocumentationGenerator {
     _writeDiagnostics(sink);
   }
 
-  /// Return a version of the [text] in which characters that have special
-  /// meaning in markdown have been escaped.
-  String _escape(String text) {
-    return text.replaceAll('_', '\\_');
-  }
-
   /// Extract documentation from all of the files containing the definitions of
   /// diagnostics.
   void _extractAllDocs() {

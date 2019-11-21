@@ -54,7 +54,7 @@ class SocketServerTest {
 
   static Future createAnalysisServer_successful() {
     MockServerChannel channel = new MockServerChannel();
-    SocketServer server = _createSocketServer(channel);
+    _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);

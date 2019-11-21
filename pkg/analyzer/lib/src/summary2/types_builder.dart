@@ -174,12 +174,6 @@ class TypesBuilder {
     LazyAst.setType(node, type);
   }
 
-  NullabilitySuffix _noneOrStarSuffix(AstNode node) {
-    return _nonNullableEnabled(node)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
-
   bool _nonNullableEnabled(AstNode node) {
     var unit = node.thisOrAncestorOfType<CompilationUnit>();
     return unit.featureSet.isEnabled(Feature.non_nullable);

@@ -1750,20 +1750,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     manager.callbacks = callbacks;
   }
 
-  /**
-   * Verify that package URI's for source files in [path] will be resolved
-   * using a package root matching [expectation].
-   */
-  void _checkPackageRoot(String path, expectation) {
-    // TODO(brianwilkerson) Figure out how to test this. Possibly by comparing
-    // the contents of the package map (although that approach doesn't work at
-    // the moment).
-//    FolderDisposition disposition = callbacks.currentContextDispositions[path];
-//    expect(disposition.packageRoot, expectation);
-    // TODO(paulberry): we should also verify that the package map itself is
-    // correct.  See dartbug.com/23909.
-  }
-
   Map<String, List<Folder>> _packageMap(String contextPath) {
     Folder folder = resourceProvider.getFolder(contextPath);
     ContextInfo info = manager.getContextInfoFor(folder);

@@ -2803,8 +2803,7 @@ class InterfaceLeastUpperBoundHelper {
           args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
         } else if (parameterVariance.isContravariant) {
           if (typeSystem is TypeSystemImpl) {
-            args[i] = (typeSystem as TypeSystemImpl)
-                .getGreatestLowerBound(args1[i], args2[i]);
+            args[i] = typeSystem.getGreatestLowerBound(args1[i], args2[i]);
           } else {
             args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
           }
