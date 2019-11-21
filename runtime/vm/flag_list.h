@@ -31,13 +31,15 @@ constexpr bool kDartUseBytecode = false;
 #define DISASSEMBLE_FLAGS(P, R, C, D)                                          \
   P(disassemble, bool, false, "Disassemble dart code.")                        \
   P(disassemble_optimized, bool, false, "Disassemble optimized code.")         \
-  P(disassemble_relative, bool, false, "Use offsets instead of absolute PCs")
+  P(disassemble_relative, bool, false, "Use offsets instead of absolute PCs")  \
+  P(support_disassembler, bool, true, "Support the disassembler.")
 #else
 #define DISASSEMBLE_FLAGS(P, R, C, D)                                          \
   R(disassemble, false, bool, false, "Disassemble dart code.")                 \
   R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
   R(disassemble_relative, false, bool, false,                                  \
-    "Use offsets instead of absolute PCs")
+    "Use offsets instead of absolute PCs")                                     \
+  R(support_disassembler, false, bool, true, "Support the disassembler.")
 #endif
 
 // List of all flags in the VM.
@@ -172,7 +174,6 @@ constexpr bool kDartUseBytecode = false;
     "Show invisible frames in stack traces.")                                  \
   R(show_invisible_isolates, false, bool, false,                               \
     "Show invisible isolates in the vm-service.")                              \
-  R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \
   R(support_service, false, bool, true, "Support the service protocol.")       \

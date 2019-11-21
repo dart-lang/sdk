@@ -5601,7 +5601,7 @@ class Code : public Object {
 
   NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* object) const);
   void DumpInlineIntervals() const;
-  void DumpSourcePositions() const;
+  void DumpSourcePositions(bool relative_addresses = false) const;
 
   RawLocalVarDescriptors* var_descriptors() const {
 #if defined(PRODUCT)

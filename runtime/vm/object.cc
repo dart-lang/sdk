@@ -15267,7 +15267,7 @@ void Code::DumpInlineIntervals() const {
   reader.DumpInlineIntervals(PayloadStart());
 }
 
-void Code::DumpSourcePositions() const {
+void Code::DumpSourcePositions(bool relative_addresses) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
     // Stub code.
@@ -15276,7 +15276,7 @@ void Code::DumpSourcePositions() const {
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
   CodeSourceMapReader reader(map, id_map, root);
-  reader.DumpSourcePositions(PayloadStart());
+  reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
 }
 
 bool Code::VerifyBSSRelocations() const {

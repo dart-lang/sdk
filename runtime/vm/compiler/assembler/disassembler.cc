@@ -250,6 +250,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     }
   }
 
+  code.DumpSourcePositions(/*relative_addresses=*/FLAG_disassemble_relative);
+
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
   const PcDescriptors& descriptors =
