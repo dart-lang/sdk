@@ -14,7 +14,54 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
-  DynamicTypeImpl get dynamicType => typeProvider.dynamicType;
+  InterfaceType get doubleNone {
+    var element = typeProvider.doubleType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get doubleQuestion {
+    var element = typeProvider.doubleType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get doubleStar {
+    var element = typeProvider.doubleType.element;
+    return interfaceTypeStar(element);
+  }
+
+  DartType get dynamicNone => DynamicTypeImpl.instance;
+
+  DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
+
+  InterfaceType get functionNone {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get functionQuestion {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get functionStar {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeStar(element);
+  }
+
+  InterfaceType get intNone {
+    var element = typeProvider.intType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get intQuestion {
+    var element = typeProvider.intType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get intStar {
+    var element = typeProvider.intType.element;
+    return interfaceTypeStar(element);
+  }
 
   NeverTypeImpl get neverNone => NeverTypeImpl.instance;
 
@@ -22,7 +69,69 @@ mixin ElementsTypesMixin {
 
   NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
+  InterfaceType get nullNone {
+    var element = typeProvider.nullType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get nullQuestion {
+    var element = typeProvider.nullType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get nullStar {
+    var element = typeProvider.nullType.element;
+    return interfaceTypeStar(element);
+  }
+
+  InterfaceType get numNone {
+    var element = typeProvider.numType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get numQuestion {
+    var element = typeProvider.numType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get numStar {
+    var element = typeProvider.numType.element;
+    return interfaceTypeStar(element);
+  }
+
+  InterfaceType get objectNone {
+    var element = typeProvider.objectType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get objectQuestion {
+    var element = typeProvider.objectType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get objectStar {
+    var element = typeProvider.objectType.element;
+    return interfaceTypeStar(element);
+  }
+
+  InterfaceType get stringNone {
+    var element = typeProvider.stringType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get stringQuestion {
+    var element = typeProvider.stringType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get stringStar {
+    var element = typeProvider.stringType.element;
+    return interfaceTypeStar(element);
+  }
+
   TypeProvider get typeProvider;
+
+  VoidType get voidNone => typeProvider.voidType;
 
   ClassElementImpl class_({
     @required String name,
@@ -40,6 +149,33 @@ mixin ElementsTypesMixin {
     element.mixins = mixins;
     element.methods = methods;
     return element;
+  }
+
+  InterfaceType comparableNone(DartType type) {
+    var coreLibrary = typeProvider.intElement.library;
+    var element = coreLibrary.getType('Comparable');
+    return element.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType comparableQuestion(DartType type) {
+    var coreLibrary = typeProvider.intElement.library;
+    var element = coreLibrary.getType('Comparable');
+    return element.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType comparableStar(DartType type) {
+    var coreLibrary = typeProvider.intElement.library;
+    var element = coreLibrary.getType('Comparable');
+    return element.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   FunctionTypeImpl functionType({
@@ -102,6 +238,48 @@ mixin ElementsTypesMixin {
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl futureNone(DartType type) {
+    return typeProvider.futureElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl futureOrNone(DartType type) {
+    return typeProvider.futureOrElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl futureOrQuestion(DartType type) {
+    return typeProvider.futureOrElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl futureOrStar(DartType type) {
+    return typeProvider.futureOrElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl futureQuestion(DartType type) {
+    return typeProvider.futureElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl futureStar(DartType type) {
+    return typeProvider.futureElement.instantiate(
+      typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -170,6 +348,48 @@ mixin ElementsTypesMixin {
   }) {
     return element.instantiate(
       typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceType iterableNone(DartType type) {
+    return typeProvider.iterableElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType iterableQuestion(DartType type) {
+    return typeProvider.iterableElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType iterableStar(DartType type) {
+    return typeProvider.iterableElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceType listNone(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType listQuestion(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType listStar(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }

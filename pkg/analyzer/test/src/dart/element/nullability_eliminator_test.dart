@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -21,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
+class NullabilityEliminatorTest with ElementsTypesMixin {
   @override
   TypeProvider typeProvider;
 
@@ -41,17 +40,17 @@ class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
 
   test_functionType() {
     _verify(
-      functionTypeNone(returnType: voidType),
-      functionTypeStar(returnType: voidType),
+      functionTypeNone(returnType: voidNone),
+      functionTypeStar(returnType: voidNone),
     );
 
     _verify(
-      functionTypeQuestion(returnType: voidType),
-      functionTypeStar(returnType: voidType),
+      functionTypeQuestion(returnType: voidNone),
+      functionTypeStar(returnType: voidNone),
     );
 
     _verifySame(
-      functionTypeStar(returnType: voidType),
+      functionTypeStar(returnType: voidNone),
     );
   }
 
@@ -61,13 +60,13 @@ class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
         parameters: [
           requiredParameter(type: intNone),
         ],
-        returnType: voidType,
+        returnType: voidNone,
       ),
       functionTypeStar(
         parameters: [
           requiredParameter(type: intStar),
         ],
-        returnType: voidType,
+        returnType: voidNone,
       ),
     );
 
@@ -76,13 +75,13 @@ class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
         parameters: [
           requiredParameter(type: intQuestion),
         ],
-        returnType: voidType,
+        returnType: voidNone,
       ),
       functionTypeStar(
         parameters: [
           requiredParameter(type: intStar),
         ],
-        returnType: voidType,
+        returnType: voidNone,
       ),
     );
 
@@ -91,7 +90,7 @@ class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
         parameters: [
           requiredParameter(type: intStar),
         ],
-        returnType: voidType,
+        returnType: voidNone,
       ),
     );
   }
@@ -262,55 +261,5 @@ class NullabilityEliminatorTest with ElementsTypesMixin, TypeProviderTypes {
     var result = NullabilityEliminator.perform(input);
     expect(result, isNot(same(input)));
     expect(_typeToString(result), expectedStr);
-  }
-}
-
-mixin TypeProviderTypes {
-  DynamicTypeImpl get dynamicType => typeProvider.dynamicType;
-
-  InterfaceType get intNone {
-    return typeProvider.intElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get intQuestion {
-    return typeProvider.intElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get intStar {
-    return typeProvider.intElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  TypeProvider get typeProvider;
-
-  VoidTypeImpl get voidType => typeProvider.voidType;
-
-  InterfaceType listNone(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType listQuestion(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType listStar(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 }
