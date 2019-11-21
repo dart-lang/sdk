@@ -25,7 +25,7 @@ git checkout cl-co19-roll-co19-to-$NEW
 BUILD_ID=$(bb add \
               -commit https://dart.googlesource.com/co19/+/$NEW \
               -json \
-              -p variant=legacy
+              -p variant=legacy \
               dart/ci/co19-roller \
              | jq '.id' \
              | tr -d '"')
