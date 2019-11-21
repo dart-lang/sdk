@@ -808,10 +808,9 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   @override
   void finish() {
     if (_exceptionOccurred) {
-      print('finish() (skipped)');
+      _wrap('finish() (skipped)', () {}, isPure: true);
     } else {
-      print('finish()');
-      _wrapped.finish();
+      _wrap('finish()', () => _wrapped.finish(), isPure: true);
     }
   }
 
