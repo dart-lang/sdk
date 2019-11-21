@@ -118,7 +118,13 @@ class ConstantEvaluator {
    */
   ConstantEvaluator(this._source, TypeProvider typeProvider,
       {TypeSystemImpl typeSystem})
-      : _typeSystem = typeSystem ?? TypeSystemImpl(typeProvider),
+      : _typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: typeProvider,
+            ),
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {

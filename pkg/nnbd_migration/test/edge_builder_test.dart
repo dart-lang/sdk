@@ -48,8 +48,16 @@ class AssignmentCheckerTest extends Object
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
-    var checker = AssignmentCheckerForTesting(TypeSystemImpl(typeProvider),
-        typeProvider, graph, decoratedClassHierarchy);
+    var checker = AssignmentCheckerForTesting(
+        TypeSystemImpl(
+          implicitCasts: true,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: typeProvider,
+        ),
+        typeProvider,
+        graph,
+        decoratedClassHierarchy);
     var assignmentCheckerTest =
         AssignmentCheckerTest._(typeProvider, graph, checker);
     decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;

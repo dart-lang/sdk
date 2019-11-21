@@ -38,7 +38,12 @@ class TestAnalysisContext implements AnalysisContext {
       _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
     }
 
-    _typeSystem = TypeSystemImpl(typeProvider);
+    _typeSystem = TypeSystemImpl(
+      implicitCasts: true,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
   }
 
   @override

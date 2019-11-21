@@ -111,7 +111,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem ?? TypeSystemImpl(typeProvider),
+        _typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: typeProvider,
+            ),
         _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
@@ -1533,7 +1539,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// provided.
   DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
       {TypeSystemImpl typeSystem})
-      : this._typeSystem = typeSystem ?? TypeSystemImpl(null),
+      : this._typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: null,
+            ),
         _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override

@@ -84,7 +84,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   TypeSystemImpl get typeSystem {
-    return _typeSystem ??= TypeSystemImpl(typeProvider);
+    return _typeSystem ??= TypeSystemImpl(
+      implicitCasts: true,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
   }
 }
 

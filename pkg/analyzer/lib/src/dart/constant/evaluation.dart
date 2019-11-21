@@ -90,7 +90,13 @@ class ConstantEvaluationEngine {
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? TypeSystemImpl(typeProvider),
+        typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: typeProvider,
+            ),
         experimentStatus = experimentStatus ?? new ExperimentStatus();
 
   /// Check that the arguments to a call to fromEnvironment() are correct. The

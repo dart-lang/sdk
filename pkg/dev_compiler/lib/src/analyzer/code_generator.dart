@@ -196,7 +196,12 @@ class CodeGenerator extends Object
 
   CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
       this.options, this._extensionTypes, this.errors)
-      : rules = TypeSystemImpl(types),
+      : rules = TypeSystemImpl(
+          implicitCasts: true,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: types,
+        ),
         declaredVariables = driver.declaredVariables,
         _asyncStreamIterator = getLegacyRawClassType(
             driver.getClass('dart:async', 'StreamIterator')),

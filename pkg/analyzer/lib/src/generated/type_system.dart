@@ -102,6 +102,10 @@ class Dart2TypeSystem extends TypeSystem {
    */
   final bool implicitCasts;
 
+  /// If `true`, then NNBD type rules should be used.
+  /// If `false`, then legacy type rules should be used.
+  final bool isNonNullableByDefault;
+
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
   /// This option is experimental and subject to change.
@@ -118,8 +122,12 @@ class Dart2TypeSystem extends TypeSystem {
   /// The cached instance of `Null!`.
   InterfaceTypeImpl _nullNoneCached;
 
-  Dart2TypeSystem(this.typeProvider,
-      {this.implicitCasts: true, this.strictInference: false});
+  Dart2TypeSystem({
+    @required this.implicitCasts,
+    @required this.isNonNullableByDefault,
+    @required this.strictInference,
+    @required this.typeProvider,
+  });
 
   InterfaceTypeImpl get _nullNone =>
       _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
@@ -3346,12 +3354,18 @@ abstract class TypeSystem implements public.TypeSystem {
 /**
  * The [public.TypeSystem] implementation.
  */
-// ignore: deprecated_member_use_from_same_package
 class TypeSystemImpl extends Dart2TypeSystem {
-  TypeSystemImpl(TypeProvider typeProvider,
-      {bool implicitCasts: true, bool strictInference: false})
-      : super(typeProvider,
-            implicitCasts: implicitCasts, strictInference: strictInference);
+  TypeSystemImpl({
+    @required bool implicitCasts,
+    @required bool isNonNullableByDefault,
+    @required bool strictInference,
+    @required TypeProvider typeProvider,
+  }) : super(
+          implicitCasts: implicitCasts,
+          isNonNullableByDefault: isNonNullableByDefault,
+          strictInference: strictInference,
+          typeProvider: typeProvider,
+        );
 }
 
 /// A type that is being inferred but is not currently known.

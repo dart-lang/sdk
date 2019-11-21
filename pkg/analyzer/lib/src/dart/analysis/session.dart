@@ -69,7 +69,13 @@ class AnalysisSessionImpl implements AnalysisSession {
     await null;
     _checkConsistency();
     if (_typeSystem == null) {
-      _typeSystem = TypeSystemImpl(await typeProvider);
+      var typeProvider = await this.typeProvider;
+      _typeSystem = TypeSystemImpl(
+        implicitCasts: true,
+        isNonNullableByDefault: false,
+        strictInference: false,
+        typeProvider: typeProvider,
+      );
     }
     return _typeSystem;
   }
@@ -217,9 +223,10 @@ class SynchronousSession {
 
   TypeSystemImpl get typeSystem {
     return _typeSystem ??= TypeSystemImpl(
-      typeProvider,
       implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: false,
       strictInference: analysisOptions.strictInference,
+      typeProvider: typeProvider,
     );
   }
 
