@@ -92,6 +92,10 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     typeProvider = typeProvider;
     typeSystem = typeSystem;
   }
+
+  String _typeString(TypeImpl type) {
+    return type.toString(withNullability: true);
+  }
 }
 
 @reflectiveTest
@@ -458,18 +462,27 @@ abstract class BoundTestBase extends AbstractTypeSystemTest {
     expect(glb, expectedResult);
   }
 
-  void _checkLeastUpperBound(
-      DartType type1, DartType type2, DartType expectedResult) {
-    var lub = typeSystem.getLeastUpperBound(type1, type2);
-    expect(lub, expectedResult);
+  void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
+    var expectedStr = _typeString(expected);
+
+    var result = typeSystem.getLeastUpperBound(T1, T2);
+    var resultStr = _typeString(result);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
 
     // Check that the result is an upper bound.
-    expect(typeSystem.isSubtypeOf(type1, lub), true);
-    expect(typeSystem.isSubtypeOf(type2, lub), true);
+    expect(typeSystem.isSubtypeOf(T1, result), true);
+    expect(typeSystem.isSubtypeOf(T2, result), true);
 
-    // Check for symmetry while we're at it.
-    lub = typeSystem.getLeastUpperBound(type2, type1);
-    expect(lub, expectedResult);
+    // Check for symmetry.
+    result = typeSystem.getLeastUpperBound(T2, T1);
+    resultStr = _typeString(result);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
   }
 }
 
@@ -1432,6 +1445,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       contextReturnType: returnType,
       errorReporter: reporter,
       errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)),
+      isNonNullableByDefault: false,
     );
 
     if (expectError) {
@@ -2325,17 +2339,20 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
 
 @reflectiveTest
 class LeastUpperBoundTest extends BoundTestBase {
+  @FailingTest(reason: 'With new rules UP(Never*, T)=T?')
   void test_bottom_function() {
     _checkLeastUpperBound(neverStar, functionTypeStar(returnType: voidType),
         functionTypeStar(returnType: voidType));
   }
 
+  @FailingTest(reason: 'With new rules UP(Never*, T)=T?')
   void test_bottom_interface() {
     var A = class_(name: 'A');
     var typeA = interfaceTypeStar(A);
     _checkLeastUpperBound(neverStar, typeA, typeA);
   }
 
+  @FailingTest(reason: 'With new rules UP(Never*, T)=T?')
   void test_bottom_typeParam() {
     var T = typeParameter('T');
     var typeT = typeParameterTypeStar(T);

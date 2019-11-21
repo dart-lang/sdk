@@ -19,6 +19,7 @@ import '../../../generated/test_analysis_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BoundsHelperPredicatesTest);
+    defineReflectiveTests(UpperBoundTest);
   });
 }
 
@@ -562,32 +563,780 @@ class BoundsHelperPredicatesTest extends _SubtypingTestBase {
 }
 
 @reflectiveTest
+class UpperBoundTest extends _SubtypingTestBase {
+  test_bottom_any() {
+    void check(DartType T1, DartType T2) {
+      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
+      expect(typeSystem.isBottom(T2), isFalse, reason: _typeString(T2));
+      _checkLeastUpperBound(T1, T2, T2);
+    }
+
+    check(neverNone, objectNone);
+    check(neverNone, objectStar);
+    check(neverNone, objectQuestion);
+
+    check(neverNone, intNone);
+    check(neverNone, intQuestion);
+    check(neverNone, intStar);
+
+    check(neverNone, listNone(intNone));
+    check(neverNone, listQuestion(intNone));
+    check(neverNone, listStar(intNone));
+
+    check(neverNone, futureOrNone(intNone));
+    check(neverNone, futureOrQuestion(intNone));
+    check(neverNone, futureOrStar(intNone));
+
+    {
+      var T = typeParameterTypeNone(
+        typeParameter('T', bound: neverNone),
+      );
+      check(T, intNone);
+      check(T, intQuestion);
+      check(T, intStar);
+    }
+
+    {
+      var T = typeParameterTypeNone(
+        promoteTypeParameter(
+          typeParameter('T', bound: objectQuestion),
+          neverNone,
+        ),
+      );
+      check(T, intNone);
+      check(T, intQuestion);
+      check(T, intStar);
+    }
+  }
+
+  test_bottom_bottom() {
+    void check(DartType T1, DartType T2) {
+      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
+      expect(typeSystem.isBottom(T2), isTrue, reason: _typeString(T2));
+      _checkLeastUpperBound(T1, T2, T2);
+    }
+
+    check(
+      neverNone,
+      typeParameterTypeNone(
+        typeParameter('T', bound: neverNone),
+      ),
+    );
+
+    check(
+      neverNone,
+      typeParameterTypeNone(
+        promoteTypeParameter(
+          typeParameter('T', bound: objectQuestion),
+          neverNone,
+        ),
+      ),
+    );
+  }
+
+  test_functionType2_parameters_named() {
+    FunctionType build(Map<String, DartType> namedTypes) {
+      return functionTypeNone(
+        returnType: voidNone,
+        parameters: namedTypes.entries.map((entry) {
+          return namedParameter(name: entry.key, type: entry.value);
+        }).toList(),
+      );
+    }
+
+    void check(Map<String, DartType> T1_named, Map<String, DartType> T2_named,
+        Map<String, DartType> expected_named) {
+      var T1 = build(T1_named);
+      var T2 = build(T2_named);
+      var expected = build(expected_named);
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check({'a': intNone}, {}, {});
+    check({'a': intNone}, {'b': intNone}, {});
+
+    check({'a': intNone}, {'a': intNone}, {'a': intNone});
+    check({'a': intNone}, {'a': intQuestion}, {'a': intNone});
+
+    check({'a': intNone, 'b': doubleNone}, {'a': intNone}, {'a': intNone});
+  }
+
+  test_functionType2_parameters_optionalPositional() {
+    FunctionType build(List<DartType> positionalTypes) {
+      return functionTypeNone(
+        returnType: voidNone,
+        parameters: positionalTypes.map((type) {
+          return positionalParameter(type: type);
+        }).toList(),
+      );
+    }
+
+    void check(List<DartType> T1_positional, List<DartType> T2_positional,
+        DartType expected) {
+      var T1 = build(T1_positional);
+      var T2 = build(T2_positional);
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check([intNone], [], build([]));
+    check([intNone, doubleNone], [intNone], build([intNone]));
+
+    check([intNone], [intNone], build([intNone]));
+    check([intNone], [intQuestion], build([intNone]));
+
+    // TODO(scheglov) Uncomment when DOWN is NNBD based.
+//    check([intNone], [intStar], build([intNone]));
+//    check([intNone], [doubleNone], build([neverNone]));
+
+    check([intNone], [numNone], build([intNone]));
+
+    check(
+      [doubleNone, numNone],
+      [numNone, intNone],
+      build([doubleNone, intNone]),
+    );
+  }
+
+  test_functionType2_parameters_required() {
+    FunctionType build(List<DartType> requiredTypes) {
+      return functionTypeNone(
+        returnType: voidNone,
+        parameters: requiredTypes.map((type) {
+          return requiredParameter(type: type);
+        }).toList(),
+      );
+    }
+
+    void check(List<DartType> T1_required, List<DartType> T2_required,
+        DartType expected) {
+      var T1 = build(T1_required);
+      var T2 = build(T2_required);
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check([intNone], [], functionNone);
+
+    check([intNone], [intNone], build([intNone]));
+    check([intNone], [intQuestion], build([intNone]));
+
+    // TODO(scheglov) Uncomment when DOWN is NNBD based.
+//    check([intNone], [intStar], build([intNone]));
+//    check([intNone], [doubleNone], build([neverNone]));
+
+    check([intNone], [numNone], build([intNone]));
+
+    check(
+      [doubleNone, numNone],
+      [numNone, intNone],
+      build([doubleNone, intNone]),
+    );
+  }
+
+  test_functionType2_returnType() {
+    void check(DartType T1_ret, DartType T2_ret, DartType expected_ret) {
+      _checkLeastUpperBound(
+        functionTypeNone(returnType: T1_ret),
+        functionTypeNone(returnType: T2_ret),
+        functionTypeNone(returnType: expected_ret),
+      );
+    }
+
+    check(intNone, intNone, intNone);
+    check(intNone, intQuestion, intQuestion);
+    check(intNone, intStar, intStar);
+
+    check(intNone, numNone, numNone);
+    check(intQuestion, numNone, numQuestion);
+    check(intStar, numNone, numStar);
+
+    check(intNone, dynamicNone, dynamicNone);
+    check(intNone, neverNone, intNone);
+  }
+
+  test_functionType2_typeParameters() {
+    void check(FunctionType T1, FunctionType T2, DartType expected) {
+      _assertNullabilityNone(T1);
+      _assertNullabilityNone(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [
+          typeParameter('T'),
+        ],
+      ),
+      functionTypeNone(returnType: voidNone),
+      functionNone,
+    );
+
+    check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [
+          typeParameter('T', bound: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [
+          typeParameter('T', bound: numNone),
+        ],
+      ),
+      functionNone,
+    );
+
+    {
+      var T = typeParameter('T', bound: numNone);
+      var U = typeParameter('U', bound: numNone);
+      var R = typeParameter('R', bound: numNone);
+      check(
+        functionTypeNone(
+          returnType: typeParameterTypeNone(T),
+          typeFormals: [T],
+        ),
+        functionTypeNone(
+          returnType: typeParameterTypeNone(U),
+          typeFormals: [U],
+        ),
+        functionTypeNone(
+          returnType: typeParameterTypeNone(R),
+          typeFormals: [R],
+        ),
+      );
+    }
+  }
+
+  test_functionType_interfaceType() {
+    void check(FunctionType T1, InterfaceType T2, InterfaceType expected) {
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(
+      functionTypeNone(returnType: voidNone),
+      intNone,
+      objectNone,
+    );
+  }
+
+  test_functionType_interfaceType_Function() {
+    void check(FunctionType T1, InterfaceType T2, InterfaceType expected) {
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    void checkNone(FunctionType T1) {
+      _assertNullabilityNone(T1);
+      check(T1, functionNone, functionNone);
+    }
+
+    checkNone(functionTypeNone(returnType: voidNone));
+
+    checkNone(
+      functionTypeNone(
+        returnType: intNone,
+        parameters: [
+          requiredParameter(type: numQuestion),
+        ],
+      ),
+    );
+
+    check(
+      functionTypeQuestion(returnType: voidNone),
+      functionNone,
+      functionQuestion,
+    );
+  }
+
+  test_identical() {
+    void check(DartType type) {
+      _checkLeastUpperBound(type, type, type);
+    }
+
+    check(intNone);
+    check(intQuestion);
+    check(intStar);
+    check(listNone(intNone));
+  }
+
+  test_none_question() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _assertNullabilityNone(T1);
+      _assertNullabilityQuestion(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(doubleNone, intQuestion, numQuestion);
+    check(numNone, doubleQuestion, numQuestion);
+    check(numNone, intQuestion, numQuestion);
+  }
+
+  test_none_star() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _assertNullabilityNone(T1);
+      _assertNullabilityStar(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(doubleNone, intStar, numStar);
+    check(numNone, doubleStar, numStar);
+    check(numNone, intStar, numStar);
+  }
+
+  test_null_any() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      var T1_str = _typeString(T1);
+      var T2_str = _typeString(T2);
+
+      expect(typeSystem.isNull(T1), isTrue, reason: 'isNull: $T1_str');
+      expect(typeSystem.isNull(T2), isFalse, reason: 'isNull: $T2_str');
+
+      expect(typeSystem.isTop(T1), isFalse, reason: 'isTop: $T1_str');
+      expect(typeSystem.isTop(T2), isFalse, reason: 'isTop: $T2_str');
+
+      expect(typeSystem.isBottom(T1), isFalse, reason: 'isBottom: $T1_str');
+      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(nullNone, objectNone, objectQuestion);
+
+    check(nullNone, intNone, intQuestion);
+    check(nullNone, intQuestion, intQuestion);
+    check(nullNone, intStar, intQuestion);
+
+    check(nullQuestion, intNone, intQuestion);
+    check(nullQuestion, intQuestion, intQuestion);
+    check(nullQuestion, intStar, intQuestion);
+
+    check(nullStar, intNone, intQuestion);
+    check(nullStar, intQuestion, intQuestion);
+    check(nullStar, intStar, intQuestion);
+
+    check(nullNone, listNone(intNone), listQuestion(intNone));
+    check(nullNone, listQuestion(intNone), listQuestion(intNone));
+    check(nullNone, listStar(intNone), listQuestion(intNone));
+
+    check(nullNone, futureOrNone(intNone), futureOrQuestion(intNone));
+    check(nullNone, futureOrQuestion(intNone), futureOrQuestion(intNone));
+    check(nullNone, futureOrStar(intNone), futureOrQuestion(intNone));
+
+    check(nullNone, futureOrNone(intQuestion), futureOrNone(intQuestion));
+    check(nullNone, futureOrStar(intQuestion), futureOrStar(intQuestion));
+
+    check(
+      nullNone,
+      functionTypeNone(returnType: intNone),
+      functionTypeQuestion(returnType: intNone),
+    );
+  }
+
+  test_null_null() {
+    void check(DartType T1, DartType T2) {
+      var T1_str = _typeString(T1);
+      var T2_str = _typeString(T2);
+
+      expect(typeSystem.isNull(T1), isTrue, reason: 'isNull: $T1_str');
+      expect(typeSystem.isNull(T2), isTrue, reason: 'isNull: $T2_str');
+
+      expect(typeSystem.isBottom(T1), isFalse, reason: 'isBottom: $T1_str');
+      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+
+      _checkLeastUpperBound(T1, T2, T2);
+    }
+
+    check(nullNone, nullQuestion);
+    check(nullNone, nullStar);
+  }
+
+  test_object_any() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      var T1_str = _typeString(T1);
+      var T2_str = _typeString(T2);
+
+      expect(typeSystem.isObject(T1), isTrue, reason: 'isObject: $T1_str');
+      expect(typeSystem.isObject(T2), isFalse, reason: 'isObject: $T2_str');
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(objectNone, intNone, objectNone);
+    check(objectNone, intQuestion, objectQuestion);
+    check(objectNone, intStar, objectNone);
+
+    check(objectNone, futureOrNone(intQuestion), objectQuestion);
+
+    check(futureOrNone(objectNone), intNone, futureOrNone(objectNone));
+    check(futureOrNone(objectNone), intQuestion, futureOrQuestion(objectNone));
+    check(futureOrNone(objectNone), intStar, futureOrNone(objectNone));
+  }
+
+  test_object_object() {
+    void check(DartType T1, DartType T2) {
+      var T1_str = _typeString(T1);
+      var T2_str = _typeString(T2);
+
+      expect(typeSystem.isObject(T1), isTrue, reason: 'isObject: $T1_str');
+      expect(typeSystem.isObject(T2), isTrue, reason: 'isObject: $T2_str');
+
+      _checkLeastUpperBound(T1, T2, T2);
+    }
+
+    check(futureOrNone(objectNone), objectNone);
+
+    check(
+      futureOrNone(
+        futureOrNone(objectNone),
+      ),
+      futureOrNone(objectNone),
+    );
+  }
+
+  test_question_question() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _assertNullabilityQuestion(T1);
+      _assertNullabilityQuestion(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(doubleQuestion, intQuestion, numQuestion);
+    check(numQuestion, doubleQuestion, numQuestion);
+    check(numQuestion, intQuestion, numQuestion);
+  }
+
+  test_question_star() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _assertNullabilityQuestion(T1);
+      _assertNullabilityStar(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(doubleQuestion, intStar, numQuestion);
+    check(numQuestion, doubleStar, numQuestion);
+    check(numQuestion, intStar, numQuestion);
+  }
+
+  test_star_star() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _assertNullabilityStar(T1);
+      _assertNullabilityStar(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    check(doubleStar, intStar, numStar);
+    check(numStar, doubleStar, numStar);
+    check(numStar, intStar, numStar);
+  }
+
+  test_top_any() {
+    void check(DartType T1, DartType T2) {
+      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
+      expect(typeSystem.isTop(T2), isFalse, reason: _typeString(T2));
+      _checkLeastUpperBound(T1, T2, T1);
+    }
+
+    check(voidNone, objectNone);
+    check(voidNone, intNone);
+    check(voidNone, intQuestion);
+    check(voidNone, intStar);
+    check(voidNone, listNone(intNone));
+    check(voidNone, futureOrNone(intNone));
+
+    check(dynamicNone, objectNone);
+    check(dynamicNone, intNone);
+    check(dynamicNone, intQuestion);
+    check(dynamicNone, intStar);
+    check(dynamicNone, listNone(intNone));
+    check(dynamicNone, futureOrNone(intNone));
+
+    check(objectQuestion, objectNone);
+    check(objectQuestion, intNone);
+    check(objectQuestion, intQuestion);
+    check(objectQuestion, intStar);
+    check(objectQuestion, listNone(intNone));
+    check(objectQuestion, futureOrNone(intNone));
+
+    check(objectStar, objectNone);
+    check(objectStar, intNone);
+    check(objectStar, intQuestion);
+    check(objectStar, intStar);
+    check(objectStar, listNone(intNone));
+    check(objectStar, futureOrNone(intNone));
+
+    check(futureOrNone(voidNone), intNone);
+    check(futureOrQuestion(voidNone), intNone);
+    check(futureOrStar(voidNone), intNone);
+  }
+
+  test_top_top() {
+    void check(DartType T1, DartType T2) {
+      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
+      expect(typeSystem.isTop(T2), isTrue, reason: _typeString(T2));
+      _checkLeastUpperBound(T1, T2, T1);
+    }
+
+    check(voidNone, dynamicNone);
+    check(voidNone, objectStar);
+    check(voidNone, objectQuestion);
+    check(voidNone, futureOrNone(voidNone));
+    check(voidNone, futureOrNone(dynamicNone));
+    check(voidNone, futureOrNone(objectQuestion));
+    check(voidNone, futureOrNone(objectStar));
+
+    check(dynamicNone, objectStar);
+    check(dynamicNone, objectQuestion);
+    check(dynamicNone, futureOrNone(voidNone));
+    check(dynamicNone, futureOrNone(dynamicNone));
+    check(dynamicNone, futureOrNone(objectQuestion));
+    check(dynamicNone, futureOrNone(objectStar));
+    check(
+      dynamicNone,
+      futureOrStar(objectStar),
+    );
+
+    check(objectQuestion, futureOrQuestion(voidNone));
+    check(objectQuestion, futureOrQuestion(dynamicNone));
+    check(objectQuestion, futureOrQuestion(objectNone));
+    check(objectQuestion, futureOrQuestion(objectQuestion));
+    check(objectQuestion, futureOrQuestion(objectStar));
+
+    check(objectQuestion, futureOrStar(voidNone));
+    check(objectQuestion, futureOrStar(dynamicNone));
+    check(objectQuestion, futureOrStar(objectNone));
+    check(objectQuestion, futureOrStar(objectQuestion));
+    check(objectQuestion, futureOrStar(objectStar));
+
+    check(objectStar, futureOrStar(voidNone));
+    check(objectStar, futureOrStar(dynamicNone));
+    check(objectStar, futureOrStar(objectNone));
+    check(objectStar, futureOrStar(objectQuestion));
+    check(objectStar, futureOrStar(objectStar));
+
+    check(futureOrNone(voidNone), objectQuestion);
+    check(futureOrNone(dynamicNone), objectQuestion);
+    check(futureOrNone(objectQuestion), objectQuestion);
+    check(futureOrNone(objectStar), objectQuestion);
+
+    check(futureOrNone(voidNone), futureOrNone(dynamicNone));
+    check(futureOrNone(voidNone), futureOrNone(objectQuestion));
+    check(futureOrNone(voidNone), futureOrNone(objectStar));
+    check(futureOrNone(dynamicNone), futureOrNone(objectQuestion));
+    check(futureOrNone(dynamicNone), futureOrNone(objectStar));
+  }
+
+  test_typeParameter_bound() {
+    void check(TypeParameterType T1, DartType T2, DartType expected) {
+      _assertNullabilityNone(T1);
+      _assertNullabilityNone(T2);
+
+      _assertNotSpecial(T1);
+      _assertNotSpecial(T2);
+
+      _checkLeastUpperBound(T1, T2, expected);
+    }
+
+    {
+      var T = typeParameter('T', bound: intNone);
+      check(typeParameterTypeNone(T), numNone, numNone);
+    }
+
+    {
+      var T = typeParameter('T', bound: intNone);
+      var U = typeParameter('U', bound: numNone);
+      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numNone);
+    }
+
+    {
+      var T = typeParameter('T', bound: intNone);
+      var U = typeParameter('U', bound: numQuestion);
+      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numQuestion);
+    }
+
+    {
+      var T = typeParameter('T', bound: intQuestion);
+      var U = typeParameter('U', bound: numNone);
+      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numQuestion);
+    }
+
+    {
+      var T = typeParameter('T', bound: numNone);
+      var T_none = typeParameterTypeNone(T);
+      var U = typeParameter('U', bound: T_none);
+      check(T_none, typeParameterTypeNone(U), T_none);
+    }
+  }
+
+  void _assertNotBottom(DartType type) {
+    if (typeSystem.isBottom(type)) {
+      fail('isBottom must be false: ' + _typeString(type));
+    }
+  }
+
+  void _assertNotNull(DartType type) {
+    if (typeSystem.isNull(type)) {
+      fail('isNull must be false: ' + _typeString(type));
+    }
+  }
+
+  void _assertNotObject(DartType type) {
+    if (typeSystem.isObject(type)) {
+      fail('isObject must be false: ' + _typeString(type));
+    }
+  }
+
+  void _assertNotSpecial(DartType type) {
+    _assertNotBottom(type);
+    _assertNotNull(type);
+    _assertNotObject(type);
+    _assertNotTop(type);
+  }
+
+  void _assertNotTop(DartType type) {
+    if (typeSystem.isTop(type)) {
+      fail('isTop must be false: ' + _typeString(type));
+    }
+  }
+
+  void _assertNullability(DartType type, NullabilitySuffix expected) {
+    if ((type as TypeImpl).nullabilitySuffix != expected) {
+      fail('Expected $expected in ' + _typeString(type));
+    }
+  }
+
+  void _assertNullabilityNone(DartType type) {
+    _assertNullability(type, NullabilitySuffix.none);
+  }
+
+  void _assertNullabilityQuestion(DartType type) {
+    _assertNullability(type, NullabilitySuffix.question);
+  }
+
+  void _assertNullabilityStar(DartType type) {
+    _assertNullability(type, NullabilitySuffix.star);
+  }
+
+  void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
+    var expectedStr = _typeString(expected);
+
+    var result = typeSystem.getLeastUpperBound(T1, T2);
+    var resultStr = _typeString(result);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
+
+    // Check that the result is an upper bound.
+    expect(typeSystem.isSubtypeOf(T1, result), true);
+    expect(typeSystem.isSubtypeOf(T2, result), true);
+
+    // Check for symmetry.
+    result = typeSystem.getLeastUpperBound(T2, T1);
+    resultStr = _typeString(result);
+    expect(result, expected, reason: '''
+expected: $expectedStr
+actual: $resultStr
+''');
+  }
+}
+
+@reflectiveTest
 class _SubtypingTestBase with ElementsTypesMixin {
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;
 
-  DartType get dynamicNone => typeProvider.dynamicType;
+  InterfaceType _intNone;
+  InterfaceType _intQuestion;
+  InterfaceType _intStar;
 
-  InterfaceType get intNone {
-    var element = typeProvider.intType.element;
+  InterfaceType get doubleNone {
+    var element = typeProvider.doubleType.element;
     return element.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceType get intQuestion {
-    var element = typeProvider.intType.element;
+  InterfaceType get doubleQuestion {
+    var element = typeProvider.doubleType.element;
     return element.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
-  InterfaceType get intStar {
-    var element = typeProvider.intType.element;
+  InterfaceType get doubleStar {
+    var element = typeProvider.doubleType.element;
     return element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  DartType get dynamicNone => typeProvider.dynamicType;
+
+  InterfaceType get functionNone {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get functionQuestion {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get functionStar {
+    var element = typeProvider.functionType.element;
+    return interfaceTypeStar(element);
+  }
+
+  InterfaceType get intNone {
+    if (_intNone != null) return _intNone;
+
+    var element = typeProvider.intType.element;
+    return _intNone = element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType get intQuestion {
+    if (_intQuestion != null) return _intQuestion;
+
+    var element = typeProvider.intType.element;
+    return _intQuestion = element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType get intStar {
+    if (_intStar != null) return _intStar;
+
+    var element = typeProvider.intType.element;
+    return _intStar = element.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.star,
     );
@@ -692,6 +1441,27 @@ class _SubtypingTestBase with ElementsTypesMixin {
     );
   }
 
+  InterfaceType listNone(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceType listQuestion(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceType listStar(DartType type) {
+    return typeProvider.listElement.instantiate(
+      typeArguments: [type],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
   void setUp() {
     var analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
@@ -729,6 +1499,7 @@ class _SubtypingTestBase with ElementsTypesMixin {
   }
 
   String _typeString(TypeImpl type) {
+    if (type == null) return null;
     return type.toString(withNullability: true) + _typeParametersStr(type);
   }
 }

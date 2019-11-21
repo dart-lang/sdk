@@ -1477,7 +1477,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     var returnType =
         _inAsync ? _typeSystem.flatten(expectedReturnType) : expectedReturnType;
-    if (returnType.isDynamic ||
+    if (returnType.isBottom ||
+        returnType.isDynamic ||
         returnType.isDartCoreNull ||
         returnType.isVoid) {
       return;

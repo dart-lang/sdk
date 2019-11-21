@@ -774,7 +774,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElementImpl pFresh =
           new TypeParameterElementImpl.synthetic(p2.name);
 
-      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+      DartType variableFresh = pFresh.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
 
       variables1.add(p1);
       variables2.add(p2);

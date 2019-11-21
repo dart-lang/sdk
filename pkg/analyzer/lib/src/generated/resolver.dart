@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, ExecutableMember, Member;
+import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -1084,7 +1085,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (flattenedType.isDartAsyncFutureOr) {
         flattenedType = (flattenedType as InterfaceType).typeArguments[0];
       }
-      if (flattenedType.isDynamic ||
+      if (flattenedType.isBottom ||
+          flattenedType.isDynamic ||
           flattenedType.isDartCoreNull ||
           flattenedType.isVoid) {
         return;
@@ -2178,6 +2180,8 @@ class InferenceContext {
   static const String _typeProperty =
       'analyzer.src.generated.InferenceContext.contextType';
 
+  final ResolverVisitor _resolver;
+
   /// The error listener on which to record inference information.
   final ErrorReporter _errorReporter;
 
@@ -2200,9 +2204,13 @@ class InferenceContext {
   /// functions and methods.
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(TypeProvider typeProvider, this._typeSystem,
-      this._inferenceHints, this._errorReporter)
-      : _typeProvider = typeProvider;
+  InferenceContext._(
+    ResolverVisitor resolver,
+    this._inferenceHints,
+  )   : _resolver = resolver,
+        _typeProvider = resolver.typeProvider,
+        _errorReporter = resolver.errorReporter,
+        _typeSystem = resolver.typeSystem;
 
   /// Get the return type of the current enclosing function, if any.
   ///
@@ -2225,6 +2233,7 @@ class InferenceContext {
 
     DartType inferred = _inferredReturn.last;
     inferred = _typeSystem.getLeastUpperBound(type, inferred);
+    inferred = _resolver.toLegacyTypeIfOptOut(inferred);
     _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
@@ -2249,7 +2258,11 @@ class InferenceContext {
   /// Push a block function body's return type onto the return stack.
   void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
-    _inferredReturn.add(_typeProvider.nullType);
+    if (_resolver._nonNullableEnabled) {
+      _inferredReturn.add(_typeProvider.neverType);
+    } else {
+      _inferredReturn.add(_typeProvider.nullType);
+    }
   }
 
   /// Place an info node into the error stream indicating that a
@@ -2800,8 +2813,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
-    this.inferenceContext = new InferenceContext._(
-        typeProvider, typeSystem, strongModeHints, errorReporter);
+    this.inferenceContext = new InferenceContext._(this, strongModeHints);
     this.typeAnalyzer = new StaticTypeAnalyzer(this, featureSet, _flowAnalysis);
   }
 
@@ -2944,6 +2956,13 @@ class ResolverVisitor extends ScopedVisitor {
   T toLegacyElement<T extends Element>(T element) {
     if (_nonNullableEnabled) return element;
     return Member.legacy(element);
+  }
+
+  /// If in a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType toLegacyTypeIfOptOut(DartType type) {
+    if (_nonNullableEnabled) return type;
+    return NullabilityEliminator.perform(type);
   }
 
   @override
@@ -4587,6 +4606,7 @@ class ResolverVisitor extends ScopedVisitor {
         isConst: isConst,
         errorReporter: errorReporter,
         errorNode: errorNode,
+        isNonNullableByDefault: _nonNullableEnabled,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
@@ -6114,6 +6134,7 @@ class TypeNameResolver {
           declaredReturnType: typeElement.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClassElement.thisType,
+          isNonNullableByDefault: isNonNullableUnit,
         );
       }
     }

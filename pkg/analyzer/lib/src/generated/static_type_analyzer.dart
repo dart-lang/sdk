@@ -250,6 +250,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -274,6 +275,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -297,6 +299,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -1279,6 +1282,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
             _dynamicType;
 
+    staticType = _resolver.toLegacyTypeIfOptOut(staticType);
+
     _recordStaticType(node, staticType);
   }
 
@@ -1679,6 +1684,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         isConst: isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: errorNode,
+        isNonNullableByDefault: _nonNullableEnabled,
       );
       if (node is InvocationExpressionImpl) {
         node.typeArgumentTypes = typeArgs;
@@ -2124,6 +2130,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -2155,6 +2162,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,

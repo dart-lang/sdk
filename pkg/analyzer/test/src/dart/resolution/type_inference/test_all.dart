@@ -8,6 +8,7 @@ import 'collection_elements_test.dart' as collection_elements;
 import 'conditional_expression_test.dart' as conditional_expression;
 import 'equality_expressions_test.dart' as equality_expressions;
 import 'extension_methods_test.dart' as extension_methods;
+import 'function_expression_test.dart' as function_expression;
 import 'list_literal_test.dart' as list_literal;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
 import 'map_literal_test.dart' as map_literal;
@@ -24,6 +25,7 @@ main() {
     conditional_expression.main();
     equality_expressions.main();
     extension_methods.main();
+    function_expression.main();
     list_literal.main();
     logical_boolean_expressions.main();
     map_literal.main();
