@@ -583,8 +583,10 @@ class ResolverTestCase with ResourceProviderMixin {
     if (experiments != null) {
       (options as AnalysisOptionsImpl).enabledExperiments = experiments;
     }
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
-      ..context.analysisOptions = options;
+    DartSdk sdk = new MockSdk(
+      resourceProvider: resourceProvider,
+      analysisOptions: options,
+    );
 
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(sdk),

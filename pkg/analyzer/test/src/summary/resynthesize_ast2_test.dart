@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -62,7 +62,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     }
 
     var elementFactory = LinkedElementFactory(
-      RestrictedAnalysisContext(
+      AnalysisContextImpl(
         SynchronousSession(
           AnalysisOptionsImpl(),
           declaredVariables,
@@ -92,7 +92,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries(Set(), inputLibraries, source);
 
-    var analysisContext = RestrictedAnalysisContext(
+    var analysisContext = AnalysisContextImpl(
       SynchronousSession(
         AnalysisOptionsImpl()..contextFeatures = featureSet,
         declaredVariables,

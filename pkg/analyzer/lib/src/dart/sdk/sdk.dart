@@ -83,9 +83,8 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext(_analysisOptions);
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
-      _analysisContext.sourceFactory = factory;
+      var factory = SourceFactory([DartUriResolver(this)]);
+      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
     }
     return _analysisContext;
   }

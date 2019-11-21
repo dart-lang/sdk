@@ -6,8 +6,8 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -38,7 +38,7 @@ class DevCompilerResynthesizerBuilder {
   final PackageBundleAssembler _assembler;
   List<int> summaryBytes;
 
-  RestrictedAnalysisContext context;
+  AnalysisContextImpl context;
   summary2.LinkedElementFactory elementFactory;
 
   DevCompilerResynthesizerBuilder({
@@ -80,7 +80,7 @@ class DevCompilerResynthesizerBuilder {
       _analysisOptions,
       _declaredVariables,
     );
-    context = RestrictedAnalysisContext(synchronousSession, _sourceFactory);
+    context = AnalysisContextImpl(synchronousSession, _sourceFactory);
 
     _createElementFactory(bundle);
   }
@@ -157,7 +157,7 @@ class DevCompilerResynthesizerBuilder {
       );
     }
 
-    var analysisContext = RestrictedAnalysisContext(
+    var analysisContext = AnalysisContextImpl(
       SynchronousSession(_analysisOptions, _declaredVariables),
       _sourceFactory,
     );

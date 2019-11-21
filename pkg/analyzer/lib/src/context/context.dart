@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -12,84 +13,48 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
-  /**
-   * The set of analysis options controlling the behavior of this context.
-   */
-  AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
-
-  /**
-   * The source factory used to create the sources that can be analyzed in this
-   * context.
-   */
-  SourceFactory _sourceFactory;
-
-  /**
-   * The set of declared variables used when computing constant values.
-   */
-  DeclaredVariables _declaredVariables = new DeclaredVariables();
-
-  /**
-   * The [TypeProvider] for this context, `null` if not yet created.
-   */
-  TypeProvider _typeProvider;
-
-  /**
-   * The [TypeSystem] for this context, `null` if not yet created.
-   */
-  TypeSystemImpl _typeSystem;
-
-  /**
-   * Initialize a newly created analysis context.
-   */
-  AnalysisContextImpl();
+  final SynchronousSession _synchronousSession;
 
   @override
-  AnalysisOptions get analysisOptions => _options;
+  final SourceFactory sourceFactory;
+
+  AnalysisContextImpl(this._synchronousSession, this.sourceFactory);
 
   @override
-  void set analysisOptions(AnalysisOptions options) {
-    this._options = options;
+  AnalysisOptionsImpl get analysisOptions {
+    return _synchronousSession.analysisOptions;
   }
 
   @override
-  DeclaredVariables get declaredVariables => _declaredVariables;
-
-  /**
-   * Set the declared variables to the give collection of declared [variables].
-   */
-  void set declaredVariables(DeclaredVariables variables) {
-    _declaredVariables = variables;
-  }
-
-  @override
-  SourceFactory get sourceFactory => _sourceFactory;
-
-  @override
-  void set sourceFactory(SourceFactory factory) {
-    _sourceFactory = factory;
+  DeclaredVariables get declaredVariables {
+    return _synchronousSession.declaredVariables;
   }
 
   @override
   TypeProvider get typeProvider {
-    return _typeProvider;
-  }
-
-  /**
-   * Sets the [TypeProvider] for this context.
-   */
-  @override
-  void set typeProvider(TypeProvider typeProvider) {
-    _typeProvider = typeProvider;
+    return _synchronousSession.typeProvider;
   }
 
   @override
-  TypeSystemImpl get typeSystem {
-    return _typeSystem ??= TypeSystemImpl(
-      implicitCasts: true,
-      isNonNullableByDefault: false,
-      strictInference: false,
-      typeProvider: typeProvider,
-    );
+  set typeProvider(TypeProvider typeProvider) {
+    _synchronousSession.typeProvider = typeProvider;
+  }
+
+  @override
+  TypeSystemImpl get typeSystem => _synchronousSession.typeSystem;
+
+  void clearTypeProvider() {
+    _synchronousSession.clearTypeProvider();
+  }
+
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    throw StateError('Cannot be changed.');
+  }
+
+  @override
+  void set sourceFactory(SourceFactory factory) {
+    throw StateError('Cannot be changed.');
   }
 }
 
@@ -102,14 +67,6 @@ class SdkAnalysisContext extends AnalysisContextImpl {
    * Analysis options cannot be changed afterwards.  If the given [options] are
    * `null`, then default options are used.
    */
-  SdkAnalysisContext(AnalysisOptions options) {
-    if (options != null) {
-      super.analysisOptions = options;
-    }
-  }
-
-  @override
-  void set analysisOptions(AnalysisOptions options) {
-    throw new StateError('AnalysisOptions of SDK context cannot be changed.');
-  }
+  SdkAnalysisContext(AnalysisOptions options, SourceFactory sourceFactory)
+      : super(SynchronousSession(options, DeclaredVariables()), sourceFactory);
 }
