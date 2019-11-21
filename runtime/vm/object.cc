@@ -10246,9 +10246,10 @@ void Library::AddFieldMetadata(const Field& field,
                                intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  AddMetadata(Object::Handle(zone, field.RawOwner()),
-              String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset, bytecode_offset);
+  const auto& owner = Object::Handle(zone, field.RawOwner());
+  const auto& name =
+      String::Handle(zone, MakeFieldMetaName(thread, zone, field));
+  AddMetadata(owner, name, token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
@@ -10257,19 +10258,20 @@ void Library::AddFunctionMetadata(const Function& func,
                                   intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  AddMetadata(Object::Handle(zone, func.RawOwner()),
-              String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset, bytecode_offset);
+  const auto& owner = Object::Handle(zone, func.RawOwner());
+  const auto& name =
+      String::Handle(zone, MakeFunctionMetaName(thread, zone, func));
+  AddMetadata(owner, name, token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
                                        TokenPosition token_pos) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  AddMetadata(
-      Class::Handle(zone, param.parameterized_class()),
-      String::Handle(zone, MakeTypeParameterMetaName(thread, zone, param)),
-      token_pos, 0, 0);
+  const auto& owner = Class::Handle(zone, param.parameterized_class());
+  const auto& name =
+      String::Handle(zone, MakeTypeParameterMetaName(thread, zone, param));
+  AddMetadata(owner, name, token_pos, 0, 0);
 }
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
