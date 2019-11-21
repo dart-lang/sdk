@@ -23,8 +23,8 @@ Options _options;
 String _dartdevcScript;
 String _buildSdkScript;
 String _patchSdkScript;
-String _librariesJson;
-String _librariesJsonNnbd;
+String _sdkDevRuntime;
+String _sdkDevRuntimeNnbd;
 
 main(List<String> args) async {
   _options = Options.parse(args);
@@ -90,13 +90,10 @@ class DDCStep implements IOModularStep {
           Platform.resolvedExecutable,
           [
             _patchSdkScript,
-            '--target',
-            'dartdevc',
-            '--libraries',
-            if (nnbd) _librariesJsonNnbd else _librariesJson,
-            '--out',
-            'patched_sdk/',
-            if (nnbd) '--nnbd'
+            sdkRoot.toFilePath(),
+            if (nnbd) _sdkDevRuntimeNnbd else _sdkDevRuntime,
+            'patched_sdk',
+            if (nnbd) 'sdk_nnbd'
           ],
           root.toFilePath());
       _checkExitCode(result, this, module);
@@ -323,6 +320,6 @@ Future<void> _resolveScripts() async {
       'pkg/dev_compiler/bin/dartdevc.dart', 'snapshots/dartdevc.dart.snapshot');
   _buildSdkScript = await resolve('pkg/dev_compiler/tool/build_sdk.dart');
   _patchSdkScript = await resolve('pkg/dev_compiler/tool/patch_sdk.dart');
-  _librariesJson = await resolve('sdk/lib/libraries.json');
-  _librariesJsonNnbd = await resolve('sdk_nnbd/lib/libraries.json');
+  _sdkDevRuntime = await resolve('sdk/lib/_internal/js_dev_runtime');
+  _sdkDevRuntimeNnbd = await resolve('sdk_nnbd/lib/_internal/js_dev_runtime');
 }
