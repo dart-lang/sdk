@@ -161,6 +161,7 @@ class FastaContext extends ChainContext with MatchContext {
   final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
+  final bool verify;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -190,7 +191,8 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       bool kernelTextSerialization,
       this.uriTranslator,
-      bool fullCompile)
+      bool fullCompile,
+      this.verify)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
@@ -340,6 +342,7 @@ class FastaContext extends ChainContext with MatchContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
         environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String platformBinaries = environment["platformBinaries"];
@@ -359,7 +362,8 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         kernelTextSerialization,
         uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE));
+        environment.containsKey(ENABLE_FULL_COMPILE),
+        verify);
   }
 }
 
@@ -452,7 +456,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       context.componentToDiagnostics.clear();
       context.componentToDiagnostics[p] = errors;
       if (fullCompile) {
-        p = await sourceTarget.buildComponent();
+        p = await sourceTarget.buildComponent(verify: context.verify);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {

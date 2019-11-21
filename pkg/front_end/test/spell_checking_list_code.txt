@@ -141,6 +141,7 @@ class4d
 clazz
 cls
 cn
+cnt
 co
 codebase
 codec
@@ -425,6 +426,7 @@ initializer's
 insertion
 inspector
 inspired
+inst
 instanceof
 instantiator
 intentionally

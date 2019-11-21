@@ -2981,6 +2981,11 @@ class SuperPropertyGet extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
+    if (interfaceTarget == null) {
+      // TODO(johnniwinther): SuperPropertyGet without a target should be
+      // replaced by invalid expressions.
+      return const DynamicType();
+    }
     Class declaringClass = interfaceTarget.enclosingClass;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
@@ -3241,9 +3246,22 @@ class MethodInvocation extends InvocationExpression {
       var getterType = Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is FunctionType) {
-        return Substitution.fromPairs(
-                getterType.typeParameters, arguments.types)
-            .substituteType(getterType.returnType);
+        Substitution substitution;
+        if (getterType.typeParameters.length == arguments.types.length) {
+          substitution = Substitution.fromPairs(
+              getterType.typeParameters, arguments.types);
+        } else {
+          // TODO(johnniwinther): The front end should normalize the type
+          //  argument count or create an invalid expression in case of method
+          //  invocations with invalid type argument count.
+          substitution = Substitution.fromPairs(
+              getterType.typeParameters,
+              getterType.typeParameters
+                  .map((TypeParameter typeParameter) =>
+                      typeParameter.defaultType)
+                  .toList());
+        }
+        return substitution.substituteType(getterType.returnType);
       }
       // The front end currently do not replace a property call `o.foo()`, where
       // `foo` is a field or getter, with a function call on the property,

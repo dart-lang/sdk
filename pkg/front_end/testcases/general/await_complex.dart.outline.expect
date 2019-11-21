@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class C extends core::Object {
+  static field core::int* staticField;
+  field core::int* field;
+  synthetic constructor •() → self::C*
+    ;
+  static get staticGetter() → core::int*
+    ;
+  static set staticSetter(dynamic val) → void
+    ;
+  static method staticFoo(core::int* param) → core::int*
+    ;
+  get getter() → core::int*
+    ;
+  set setter(dynamic val) → void
+    ;
+  method foo(core::int* param) → core::int*
+    ;
+}
+static field core::int* globalVariable;
+static final field core::bool* assertStatementsEnabled;
+static method topLevelFoo(core::int* param) → core::int*
+  ;
+static get topLevelGetter() → core::int*
+  ;
+static set topLevelSetter(dynamic val) → void
+  ;
+static method dummy() → dynamic
+  ;
+static method staticMembers() → dynamic
+  ;
+static method topLevelMembers() → dynamic
+  ;
+static method instanceMembers() → dynamic
+  ;
+static method others() → dynamic
+  ;
+static method conditionals() → dynamic
+  ;
+static method asserts() → dynamic
+  ;
+static method controlFlow() → dynamic
+  ;
+static method future<T extends core::Object* = dynamic>(self::future::T* value) → asy::FutureOr<self::future::T*>*
+  ;
+static method id<T extends core::Object* = dynamic>(self::id::T* value) → asy::FutureOr<self::id::T*>*
+  ;
+static method intStream() → asy::Stream<core::int*>*
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method expectList(core::List<dynamic>* expected, core::List<dynamic>* actual) → dynamic
+  ;

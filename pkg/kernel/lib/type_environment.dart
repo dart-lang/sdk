@@ -667,6 +667,11 @@ class StaticTypeContext {
   ///
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nonNullable => _library.nonNullable;
+
+  /// The [Nullability] used for nullable types.
+  ///
+  /// For opt out libraries this is [Nullability.legacy].
+  Nullability get nullable => _library.nullable;
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -742,6 +747,9 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   Nullability get nonNullable => _library?.nonNullable;
 
+  @override
+  Nullability get nullable => _library?.nullable;
+
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
   ///
@@ -809,19 +817,22 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   Library get _library {
     assert(_contextStack.isNotEmpty,
-        "Not library currently associated with StaticTypeContext.");
+        "No library currently associated with StaticTypeContext.");
     return _contextStack.last._library;
   }
 
   @override
   InterfaceType get thisType {
     assert(_contextStack.isNotEmpty,
-        "Not this type currently associated with StaticTypeContext.");
+        "No this type currently associated with StaticTypeContext.");
     return _contextStack.last._thisType;
   }
 
   @override
-  Nullability get nonNullable => _library.nonNullable;
+  Nullability get nonNullable => _library?.nonNullable;
+
+  @override
+  Nullability get nullable => _library?.nullable;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

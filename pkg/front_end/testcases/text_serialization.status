@@ -88,6 +88,8 @@ general/assign_to_initializing_formal: TextSerializationFailure
 general/async_function: TextSerializationFailure # Was: Pass
 general/async_nested: TextSerializationFailure # Was: Pass
 general/await: TextSerializationFailure # Was: Pass
+general/await_complex: TextSerializationFailure
+general/await_in_cascade: TextSerializationFailure
 general/await_in_non_async: TextSerializationFailure
 general/bad_setter_abstract: TextSerializationFailure # Was: Pass
 general/bad_store: TextSerializationFailure # Was: Pass
@@ -168,6 +170,7 @@ general/expressions: TextSerializationFailure # Was: RuntimeError
 general/external: TextSerializationFailure # Was: Pass
 general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: TextSerializationFailure
+general/ffi_sample: TextSerializationFailure
 general/fibonacci: TextSerializationFailure # Was: Pass
 general/for_in_scope: TextSerializationFailure # Was: Pass
 general/for_in_without_declaration: TextSerializationFailure

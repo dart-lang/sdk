@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import '../ast.dart';
 import '../core_types.dart';
+import '../type_environment.dart';
 import '../visitor.dart';
 
 import 'async.dart';
@@ -25,30 +26,36 @@ class ContinuationVariables {
   static String stackTraceVar(int depth) => ':stack_trace$depth';
 }
 
-void transformLibraries(CoreTypes coreTypes, List<Library> libraries,
+void transformLibraries(
+    TypeEnvironment typeEnvironment, List<Library> libraries,
     {bool productMode}) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(helper);
+  var helper =
+      new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
+  var rewriter = new RecursiveContinuationRewriter(
+      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
   for (var library in libraries) {
     rewriter.rewriteLibrary(library);
   }
 }
 
-Component transformComponent(CoreTypes coreTypes, Component component,
+Component transformComponent(
+    TypeEnvironment typeEnvironment, Component component,
     {bool productMode}) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(helper);
+  var helper =
+      new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
+  var rewriter = new RecursiveContinuationRewriter(
+      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
   return rewriter.rewriteComponent(component);
 }
 
-Procedure transformProcedure(CoreTypes coreTypes, Procedure procedure,
+Procedure transformProcedure(
+    TypeEnvironment typeEnvironment, Procedure procedure,
     {bool productMode}) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
-  var rewriter = new RecursiveContinuationRewriter(helper);
-  rewriter.enterLibrary(procedure.enclosingLibrary);
-  Procedure result = rewriter.visitProcedure(procedure);
-  rewriter.exitLibrary();
-  return result;
+  var helper =
+      new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
+  var rewriter = new RecursiveContinuationRewriter(
+      helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
+  return rewriter.visitProcedure(procedure);
 }
 
 class RecursiveContinuationRewriter extends Transformer {
@@ -60,13 +67,9 @@ class RecursiveContinuationRewriter extends Transformer {
   final VariableDeclaration asyncContextVariable =
       new VariableDeclaration(ContinuationVariables.awaitContextVar);
 
-  /// Library that contains the transformed nodes.
-  ///
-  /// The transformation of the nodes is affected by the NNBD opt-in status of
-  /// the library.
-  Library _currentLibrary;
+  StatefulStaticTypeContext staticTypeContext;
 
-  RecursiveContinuationRewriter(this.helper);
+  RecursiveContinuationRewriter(this.helper, this.staticTypeContext);
 
   Component rewriteComponent(Component node) {
     return node.accept<TreeNode>(this);
@@ -76,17 +79,34 @@ class RecursiveContinuationRewriter extends Transformer {
     return node.accept<TreeNode>(this);
   }
 
-  @override
-  visitLibrary(Library node) {
-    enterLibrary(node);
-    Library result = super.visitLibrary(node);
-    exitLibrary();
+  visitField(Field node) {
+    staticTypeContext.enterMember(node);
+    final result = super.visitField(node);
+    staticTypeContext.leaveMember(node);
+    return result;
+  }
+
+  visitConstructor(Constructor node) {
+    staticTypeContext.enterMember(node);
+    final result = super.visitConstructor(node);
+    staticTypeContext.leaveMember(node);
     return result;
   }
 
   @override
   visitProcedure(Procedure node) {
-    return node.isAbstract ? node : super.visitProcedure(node);
+    staticTypeContext.enterMember(node);
+    final result = node.isAbstract ? node : super.visitProcedure(node);
+    staticTypeContext.leaveMember(node);
+    return result;
+  }
+
+  @override
+  visitLibrary(Library node) {
+    staticTypeContext.enterLibrary(node);
+    Library result = super.visitLibrary(node);
+    staticTypeContext.leaveLibrary(node);
+    return result;
   }
 
   @override
@@ -94,35 +114,21 @@ class RecursiveContinuationRewriter extends Transformer {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.SyncYielding:
-        node.transformChildren(new RecursiveContinuationRewriter(helper)
-          ..enterLibrary(_currentLibrary));
+        node.transformChildren(
+            new RecursiveContinuationRewriter(helper, staticTypeContext));
         return node;
       case AsyncMarker.SyncStar:
-        return new SyncStarFunctionRewriter(helper, node, _currentLibrary)
+        return new SyncStarFunctionRewriter(helper, node, staticTypeContext)
             .rewrite();
       case AsyncMarker.Async:
-        return new AsyncFunctionRewriter(helper, node, _currentLibrary)
+        return new AsyncFunctionRewriter(helper, node, staticTypeContext)
             .rewrite();
       case AsyncMarker.AsyncStar:
-        return new AsyncStarFunctionRewriter(helper, node, _currentLibrary)
+        return new AsyncStarFunctionRewriter(helper, node, staticTypeContext)
             .rewrite();
       default:
         return null;
     }
-  }
-
-  void enterLibrary(Library library) {
-    assert(
-        _currentLibrary == null,
-        "Attempting to enter library '${library.fileUri}' "
-        "without having exited library '${_currentLibrary.fileUri}'.");
-    _currentLibrary = library;
-  }
-
-  void exitLibrary() {
-    assert(_currentLibrary != null,
-        "Attempting to exit a library without having entered one.");
-    _currentLibrary = null;
   }
 }
 
@@ -134,15 +140,9 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   int capturedTryDepth = 0; // Deepest yield point within a try-block.
   int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
-  ContinuationRewriterBase(
-      HelperNodes helper, this.enclosingFunction, Library enclosingLibrary)
-      : super(helper) {
-    assert(
-        enclosingLibrary != null,
-        "Attempting to create a continuation rewriter "
-        "without the client library.");
-    _currentLibrary = enclosingLibrary;
-  }
+  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction,
+      StatefulStaticTypeContext staticTypeContext)
+      : super(helper, staticTypeContext);
 
   /// Given a container [type], which is an instantiation of the given
   /// [containerClass] extract its element type.
@@ -219,24 +219,27 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
             new VariableDeclaration(ContinuationVariables.stackTraceVar(depth)),
           ]);
 
-  List<VariableDeclaration> variableDeclarations() =>
-      [asyncJumpVariable, asyncContextVariable]
-        ..addAll(createCapturedTryVariables())
-        ..addAll(createCapturedCatchVariables());
+  List<VariableDeclaration> variableDeclarations() {
+    asyncJumpVariable.type = staticTypeContext.typeEnvironment.coreTypes
+        .intRawType(staticTypeContext.nonNullable);
+    return [asyncJumpVariable, asyncContextVariable]
+      ..addAll(createCapturedTryVariables())
+      ..addAll(createCapturedCatchVariables());
+  }
 }
 
 class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   final VariableDeclaration iteratorVariable;
 
   SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      Library enclosingLibrary)
+      StatefulStaticTypeContext staticTypeContext)
       : iteratorVariable = new VariableDeclaration(':iterator')
           ..type = new InterfaceType(
-              helper.syncIteratorClass, enclosingLibrary.nullable, [
+              helper.syncIteratorClass, staticTypeContext.nullable, [
             ContinuationRewriterBase.elementTypeFrom(
                 helper.iterableClass, enclosingFunction.returnType)
           ]),
-        super(helper, enclosingFunction, enclosingLibrary);
+        super(helper, enclosingFunction, staticTypeContext);
 
   FunctionNode rewrite() {
     // :sync_op(:iterator) {
@@ -332,11 +335,11 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
-      Library enclosingLibrary)
-      : super(helper, enclosingFunction, enclosingLibrary);
+      StaticTypeContext staticTypeContext)
+      : super(helper, enclosingFunction, staticTypeContext) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
-    expressionRewriter = new ExpressionLifter(this, _currentLibrary);
+    expressionRewriter = new ExpressionLifter(this);
 
     // var :async_stack_trace;
     statements.add(stackTraceVariable);
@@ -797,7 +800,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
               new Arguments(<Expression>[new VariableGet(streamVariable)],
                   types: [valueVariable.type])),
           type: new InterfaceType(helper.streamIteratorClass,
-              _currentLibrary.nullable, [valueVariable.type]));
+              staticTypeContext.nullable, [valueVariable.type]));
 
       // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
@@ -952,8 +955,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration controllerVariable;
 
   AsyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      Library enclosingLibrary)
-      : super(helper, enclosingFunction, enclosingLibrary);
+      StaticTypeContext staticTypeContext)
+      : super(helper, enclosingFunction, staticTypeContext);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];
@@ -963,7 +966,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // _AsyncStarStreamController<T> :controller;
     controllerVariable = new VariableDeclaration(":controller",
         type: new InterfaceType(helper.asyncStarStreamControllerClass,
-            _currentLibrary.nullable, [elementType]));
+            staticTypeContext.nullable, [elementType]));
     statements.add(controllerVariable);
 
     // dynamic :controller_stream;
@@ -1070,8 +1073,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration returnVariable;
 
   AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
-      Library enclosingLibrary)
-      : super(helper, enclosingFunction, enclosingLibrary);
+      StaticTypeContext staticTypeContext)
+      : super(helper, enclosingFunction, staticTypeContext);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];
@@ -1085,12 +1088,12 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     if (valueType == const DynamicType()) {
       valueType = elementTypeFromReturnType(helper.futureOrClass);
     }
-    final DartType returnType = new InterfaceType(
-        helper.futureOrClass, _currentLibrary.nullable, <DartType>[valueType]);
+    final DartType returnType = new InterfaceType(helper.futureOrClass,
+        staticTypeContext.nullable, <DartType>[valueType]);
     var completerTypeArguments = <DartType>[valueType];
 
     final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
-        _currentLibrary.nonNullable, completerTypeArguments);
+        staticTypeContext.nonNullable, completerTypeArguments);
     // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
     completerVariable = new VariableDeclaration(":async_completer",
         initializer: new ConstructorInvocation(
@@ -1198,6 +1201,7 @@ class HelperNodes {
   final Member syncIteratorCurrent;
   final Member syncIteratorYieldEachIterable;
   final Class boolClass;
+  final Procedure unsafeCast;
 
   bool productMode;
 
@@ -1237,7 +1241,8 @@ class HelperNodes {
       this.syncIteratorCurrent,
       this.syncIteratorYieldEachIterable,
       this.boolClass,
-      this.productMode);
+      this.productMode,
+      this.unsafeCast);
 
   factory HelperNodes.fromCoreTypes(CoreTypes coreTypes, bool productMode) {
     return new HelperNodes._(
@@ -1276,6 +1281,7 @@ class HelperNodes {
         coreTypes.syncIteratorCurrent,
         coreTypes.syncIteratorYieldEachIterable,
         coreTypes.boolClass,
-        productMode);
+        productMode,
+        coreTypes.index.getTopLevelMember('dart:_internal', 'unsafeCast'));
   }
 }

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static method test() → dynamic {
   () →* core::Iterable<core::num*>* f = () → core::Iterable<core::num*>* /* originally sync* */ {
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :sync_op(core::_SyncIterator<core::num*>* :iterator) → core::bool* yielding {
       {

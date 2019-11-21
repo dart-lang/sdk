@@ -14,6 +14,7 @@ Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
   environment["skipVm"] = "true";
+  environment["verify"] = "false";
   return FastaContext.create(suite, environment);
 }
 

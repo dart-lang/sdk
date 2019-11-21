@@ -53,6 +53,7 @@ actually
 acyclic
 ad
 adapt
+adapted
 add
 added
 adding
@@ -533,6 +534,7 @@ concretely
 concurrent
 condition
 conditional
+conditionals
 conditionally
 conditions
 configurable
@@ -616,6 +618,7 @@ convertible
 converting
 converts
 cookie
+coordinate
 cope
 copied
 copier
@@ -2458,6 +2461,8 @@ safety
 said
 sake
 same
+sample
+samples
 sanity
 satisfied
 satisfies
