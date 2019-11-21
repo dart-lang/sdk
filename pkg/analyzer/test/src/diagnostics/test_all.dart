@@ -195,7 +195,6 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
-import 'mixed_return_types_test.dart' as mixed_return_types;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
@@ -500,7 +499,6 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
-    mixed_return_types.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();

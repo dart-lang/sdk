@@ -7127,16 +7127,10 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try adding a case clause for the missing constant, or "
               "adding a default clause.");
 
-  /**
-   * 13.12 Return: It is a static warning if a function contains both one or
-   * more return statements of the form <i>return;</i> and one or more return
-   * statements of the form <i>return e;</i>.
-   */
+  @Deprecated('No longer an error in the spec and no longer generated')
   static const StaticWarningCode MIXED_RETURN_TYPES = const StaticWarningCode(
       'MIXED_RETURN_TYPES',
       "Functions can't include return statements both with and without values.",
-      // TODO(brianwilkerson) Split this error code depending on whether the
-      // function declares a return type.
       correction: "Try making all the return statements consistent "
           "(either include a value or not).");
 

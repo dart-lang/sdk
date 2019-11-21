@@ -182,16 +182,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _hasExtUri = false;
 
   /**
-   * This is set to `false` on the entry of every [BlockFunctionBody], and is
-   * restored to the enclosing value on exit. The value is used in
-   * [_checkForMixedReturns] to prevent both
-   * [StaticWarningCode.MIXED_RETURN_TYPES] and
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE] from being generated in the same
-   * function body.
-   */
-  bool _hasReturnWithoutValue = false;
-
-  /**
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
@@ -447,8 +437,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     bool wasInAsync = _inAsync;
     bool wasInGenerator = _inGenerator;
-    bool previousHasReturnWithoutValue = _hasReturnWithoutValue;
-    _hasReturnWithoutValue = false;
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
     try {
@@ -457,13 +445,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _returnsWith = new List<ReturnStatement>();
       _returnsWithout = new List<ReturnStatement>();
       super.visitBlockFunctionBody(node);
-      _checkForMixedReturns(node);
     } finally {
       _inAsync = wasInAsync;
       _inGenerator = wasInGenerator;
       _returnsWith = previousReturnsWith;
       _returnsWithout = previousReturnsWithout;
-      _hasReturnWithoutValue = previousHasReturnWithoutValue;
     }
   }
 
@@ -1497,7 +1483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // If we reach here, this is an invalid return
-    _hasReturnWithoutValue = true;
     _errorReporter.reportErrorForNode(
         StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
     return;
@@ -3786,30 +3771,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (_currentLibrary.hasJS != true) {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_JS_LIB_ANNOTATION, node);
-      }
-    }
-  }
-
-  /**
-   * Verify that the given function [body] does not contain return statements
-   * that both have and do not have return values.
-   *
-   * See [StaticWarningCode.MIXED_RETURN_TYPES].
-   */
-  void _checkForMixedReturns(BlockFunctionBody body) {
-    if (_hasReturnWithoutValue) {
-      return;
-    }
-    var nonVoidReturnsWith =
-        _returnsWith.where((stmt) => !getStaticType(stmt.expression).isVoid);
-    if (nonVoidReturnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
-      for (ReturnStatement returnWith in nonVoidReturnsWith) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWith.returnKeyword);
-      }
-      for (ReturnStatement returnWithout in _returnsWithout) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWithout.returnKeyword);
       }
     }
   }
