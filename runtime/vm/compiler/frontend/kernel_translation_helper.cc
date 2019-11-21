@@ -1966,8 +1966,10 @@ void KernelReaderHelper::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kNeverType:
       // those contain nothing.
+      return;
+    case kNeverType:
+      ReadNullability();
       return;
     case kInterfaceType:
       SkipInterfaceType(false);
@@ -2771,6 +2773,8 @@ void TypeTranslator::BuildTypeInternal() {
       ASSERT(result_.IsNullable());
       break;
     case kNeverType:
+      helper_->ReadNullability();
+      // Ignore nullability, as Never type is non-nullable.
       result_ = Object::never_type().raw();
       break;
     case kInterfaceType:

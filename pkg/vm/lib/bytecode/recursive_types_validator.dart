@@ -108,6 +108,9 @@ class _RecursiveTypesVisitor extends DartTypeVisitor<void> {
   void visitBottomType(BottomType node) {}
 
   @override
+  void visitNeverType(NeverType node) {}
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {}
 
   @override

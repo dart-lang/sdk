@@ -153,6 +153,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
   bool visitBottomType(BottomType node) => false;
 
   @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) =>
       _declaredTypeParameters == null ||
       !_declaredTypeParameters.contains(node.parameter);

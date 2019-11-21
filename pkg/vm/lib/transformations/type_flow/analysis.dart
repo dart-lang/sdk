@@ -1082,12 +1082,14 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
     if (superType is DynamicType ||
         superType is VoidType ||
-        subType is BottomType) {
+        subType is BottomType ||
+        subType is NeverType) {
       return true;
     }
     if (subType is DynamicType ||
         subType is VoidType ||
-        superType is BottomType) {
+        superType is BottomType ||
+        superType is NeverType) {
       return false;
     }
 
