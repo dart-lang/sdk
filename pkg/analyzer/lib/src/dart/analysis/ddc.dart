@@ -203,7 +203,11 @@ class DevCompilerResynthesizerBuilder {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = TypeProviderImpl(dartCore, dartAsync);
+    var typeProvider = TypeProviderImpl(
+      coreLibrary: dartCore,
+      asyncLibrary: dartAsync,
+      isNonNullableByDefault: false,
+    );
     context.typeProvider = typeProvider;
 
     dartCore.createLoadLibraryFunction(typeProvider);

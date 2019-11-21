@@ -30,12 +30,13 @@ class TestAnalysisContext implements AnalysisContext {
     );
 
     _typeProvider = TypeProviderImpl(
-      sdkElements.coreLibrary,
-      sdkElements.asyncLibrary,
+      coreLibrary: sdkElements.coreLibrary,
+      asyncLibrary: sdkElements.asyncLibrary,
+      isNonNullableByDefault: false,
     );
 
     if (_analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+      _typeProvider = _typeProvider.asNonNullableByDefault;
     }
 
     _typeSystem = TypeSystemImpl(

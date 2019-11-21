@@ -58,7 +58,11 @@ class AnalysisSessionImpl implements AnalysisSession {
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
       LibraryElement asyncLibrary = await _driver.getLibraryByUri('dart:async');
-      _typeProvider = new TypeProviderImpl(coreLibrary, asyncLibrary);
+      _typeProvider = new TypeProviderImpl(
+        coreLibrary: coreLibrary,
+        asyncLibrary: asyncLibrary,
+        isNonNullableByDefault: false,
+      );
     }
     return _typeProvider;
   }

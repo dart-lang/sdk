@@ -212,7 +212,11 @@ class Linker {
 
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
-    analysisContext.typeProvider = TypeProviderImpl(coreLib, asyncLib);
+    analysisContext.typeProvider = TypeProviderImpl(
+      coreLibrary: coreLib,
+      asyncLibrary: asyncLib,
+      isNonNullableByDefault: false,
+    );
 
     inheritance = InheritanceManager3(typeSystem);
   }

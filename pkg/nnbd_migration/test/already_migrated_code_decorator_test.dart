@@ -39,8 +39,13 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   Element element = _MockElement();
 
   _AlreadyMigratedCodeDecoratorTestBase(NullabilitySuffix nullabilitySuffix)
-      : this._(nullabilitySuffix, NullabilityGraphForTesting(),
-            TestTypeProvider(nullabilitySuffix: nullabilitySuffix));
+      : this._(
+          nullabilitySuffix,
+          NullabilityGraphForTesting(),
+          TestTypeProvider(
+              isNonNullableByDefault:
+                  nullabilitySuffix == NullabilitySuffix.none),
+        );
 
   _AlreadyMigratedCodeDecoratorTestBase._(
       this.suffix, this.graph, this.typeProvider)

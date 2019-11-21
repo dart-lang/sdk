@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -135,9 +134,9 @@ class LibraryAnalyzer {
     FeatureSet featureSet = units[_library].featureSet;
     _typeProvider = _context.typeProvider;
     if (featureSet.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+      _typeProvider = _typeProvider.asNonNullableByDefault;
     } else {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.star);
+      _typeProvider = _typeProvider.asLegacy;
     }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
