@@ -540,7 +540,6 @@ void Isolate::RehashConstants() {
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
-  // Clear any old hashes, which may have become invalid.
   thread->heap()->ResetCanonicalHashTable();
 
   Class& cls = Class::Handle(zone);
@@ -558,12 +557,6 @@ void Isolate::RehashConstants() {
     cls = class_table()->At(cid);
     cls.RehashConstants(zone);
   }
-
-  // Canonical hashes are only stored during a round of canonicalization to
-  // avoid expontential time in cases such as those in
-  // tests/language_2/canonicalization_hasing_*. Clear them after
-  // canonicalization is done so the GC won't need to update them.
-  thread->heap()->ResetCanonicalHashTable();
 }
 
 #if defined(DEBUG)

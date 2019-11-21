@@ -3766,11 +3766,6 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
       UNREACHABLE();
     }
   }
-  // Canonical hashes are only stored during a round of canonicalization to
-  // avoid expontential time in cases such as those in
-  // tests/language_2/canonicalization_hasing_*. Clear them after
-  // canonicalization is done so the GC won't need to update them.
-  thread->heap()->ResetCanonicalHashTable();
   return error.raw();
 }
 

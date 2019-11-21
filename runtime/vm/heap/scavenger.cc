@@ -831,8 +831,6 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 void Scavenger::ProcessWeakReferences() {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessWeakReferences");
-
   auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
                               WeakTable* replacement_old) {
     intptr_t size = table->size();

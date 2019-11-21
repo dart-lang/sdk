@@ -497,8 +497,6 @@ void GCMarker::IterateWeakRoots(HandleVisitor* visitor) {
 }
 
 void GCMarker::ProcessWeakTables(PageSpace* page_space) {
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessWeakTables");
-
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     WeakTable* table =
         heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
