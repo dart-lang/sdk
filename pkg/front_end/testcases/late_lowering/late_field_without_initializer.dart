@@ -38,6 +38,12 @@ main() {
 
   Class.staticMethod();
   new Class().instanceMethod();
+
+  var c = new Class();
+  throws(() => c.lateInstanceField,
+      'Read value from uninitialized Class.lateInstanceField');
+  c.lateInstanceField = 16;
+  expect(16, c.lateInstanceField);
 }
 
 expect(expected, actual) {

@@ -441,6 +441,46 @@ method() {
 }
 ```
 
+##### Instance field initialization
+A field initialization of late _nullable_ instance field
+```
+class Class {
+  late T? x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  bool _#x#isSet = false;
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x#isSet true, _#x = x;
+  Class.c() : _#x#isSet = true, _#x = <exp>;
+}
+```
+
+A field initialization of late _non-nullable_ instance field
+```
+class Class {
+  late T x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x = x;
+  Class.b() : _#x = <exp>;
+}
+```
+
 
 ### The Null Check Operator
 

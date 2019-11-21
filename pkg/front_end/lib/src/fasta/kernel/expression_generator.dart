@@ -200,11 +200,13 @@ abstract class Generator {
 
   Expression buildForEffect() => buildSimpleRead();
 
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return _helper.buildInvalidInitializer(
-        _helper.buildProblem(
-            messageInvalidInitializer, fileOffset, lengthForToken(token)),
-        fileOffset);
+  List<Initializer> buildFieldInitializer(Map<String, int> initializedFields) {
+    return <Initializer>[
+      _helper.buildInvalidInitializer(
+          _helper.buildProblem(
+              messageInvalidInitializer, fileOffset, lengthForToken(token)),
+          fileOffset)
+    ];
   }
 
   /// Returns an expression, generator or initializer for an invocation of this
@@ -3000,9 +3002,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return _helper.buildInvalidInitializer(
-        buildError(_forest.createArgumentsEmpty(fileOffset), isSetter: true));
+  List<Initializer> buildFieldInitializer(Map<String, int> initializedFields) {
+    return <Initializer>[
+      _helper.buildInvalidInitializer(
+          buildError(_forest.createArgumentsEmpty(fileOffset), isSetter: true))
+    ];
   }
 
   @override
@@ -3316,7 +3320,7 @@ class DelayedAssignment extends ContextAwareGenerator {
   }
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  List<Initializer> buildFieldInitializer(Map<String, int> initializedFields) {
     if (!identical("=", assignmentOperator) ||
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
@@ -3620,8 +3624,8 @@ class ParserErrorGenerator extends Generator {
 
   Expression _makeInvalidWrite(Expression value) => buildProblem();
 
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return _helper.buildInvalidInitializer(buildProblem());
+  List<Initializer> buildFieldInitializer(Map<String, int> initializedFields) {
+    return <Initializer>[_helper.buildInvalidInitializer(buildProblem())];
   }
 
   Expression doInvocation(int offset, Arguments arguments) {
@@ -3757,9 +3761,11 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  List<Initializer> buildFieldInitializer(Map<String, int> initializedFields) {
     Expression error = buildFieldInitializerError(initializedFields);
-    return _helper.buildInvalidInitializer(error, error.fileOffset);
+    return <Initializer>[
+      _helper.buildInvalidInitializer(error, error.fileOffset)
+    ];
   }
 
   buildPropertyAccess(

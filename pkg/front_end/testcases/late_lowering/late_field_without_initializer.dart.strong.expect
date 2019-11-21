@@ -46,6 +46,10 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::Class::staticMethod();
   new self::Class::•().{self::Class::instanceMethod}();
+  self::Class c = new self::Class::•();
+  self::throws(() → core::int => c.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
+  c.{self::Class::lateInstanceField} = 16;
+  self::expect(16, c.{self::Class::lateInstanceField});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

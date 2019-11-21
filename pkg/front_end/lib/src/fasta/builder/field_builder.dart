@@ -72,6 +72,12 @@ abstract class FieldBuilder implements MemberBuilder {
   /// expression.
   void buildBody(Expression initializer);
 
+  /// Builds the field initializers for each field used to encode this field
+  /// using the [fileOffset] for the created nodes and [value] as the initial
+  /// field value.
+  List<Initializer> buildInitializer(int fileOffset, Expression value,
+      {bool isSynthetic});
+
   bool get isEligibleForInference;
 
   DartType get builtType;
@@ -147,6 +153,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   @override
   bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
+  @override
   void buildBody(Expression initializer) {
     assert(!hasBodyBeenBuilt);
     hasBodyBeenBuilt = true;
@@ -159,6 +166,13 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
     _fieldEncoding.createBodies(initializer);
+  }
+
+  @override
+  List<Initializer> buildInitializer(int fileOffset, Expression value,
+      {bool isSynthetic}) {
+    return _fieldEncoding.createInitializer(fileOffset, value,
+        isSynthetic: isSynthetic);
   }
 
   bool get isEligibleForInference {
@@ -362,6 +376,9 @@ abstract class FieldEncoding {
   /// or part of a const constructor.
   void createBodies(Expression initializer);
 
+  List<Initializer> createInitializer(int fileOffset, Expression value,
+      {bool isSynthetic});
+
   /// Registers that the (implicit) setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   void setGenericCovariantImpl();
@@ -416,6 +433,16 @@ class RegularFieldEncoding implements FieldEncoding {
     if (initializer != null) {
       _field.initializer = initializer..parent = _field;
     }
+  }
+
+  @override
+  List<Initializer> createInitializer(int fileOffset, Expression value,
+      {bool isSynthetic}) {
+    return <Initializer>[
+      new FieldInitializer(_field, value)
+        ..fileOffset = fileOffset
+        ..isSynthetic = isSynthetic
+    ];
   }
 
   @override
@@ -525,6 +552,22 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           name, _lateSetter.function.positionalParameters.first)
         ..parent = _lateSetter.function;
     }
+  }
+
+  @override
+  List<Initializer> createInitializer(int fileOffset, Expression value,
+      {bool isSynthetic}) {
+    List<Initializer> initializers = <Initializer>[];
+    if (_lateIsSetField != null) {
+      initializers.add(new FieldInitializer(
+          _lateIsSetField, new BoolLiteral(true)..fileOffset = fileOffset)
+        ..fileOffset = fileOffset
+        ..isSynthetic = isSynthetic);
+    }
+    initializers.add(new FieldInitializer(_field, value)
+      ..fileOffset = fileOffset
+      ..isSynthetic = isSynthetic);
+    return initializers;
   }
 
   Expression _createFieldGet(Field field) {
