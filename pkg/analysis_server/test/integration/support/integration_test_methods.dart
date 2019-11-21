@@ -1105,6 +1105,7 @@ abstract class IntegrationTestMixin {
    *   If one configured path is beneath another, the descendent will override
    *   the ancestors' configured libraries of interest.
    */
+  @deprecated
   Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
     var params = new CompletionRegisterLibraryPathsParams(paths).toJson();
     var result = await server.send("completion.registerLibraryPaths", params);

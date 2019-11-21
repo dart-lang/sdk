@@ -439,6 +439,8 @@ public interface AnalysisServer {
    *         the client is interested in receiving completion suggestions. If one configured path is
    *         beneath another, the descendent will override the ancestors' configured libraries of
    *         interest.
+   *
+   * @deprecated
    */
   public void completion_registerLibraryPaths(List<LibraryPathSet> paths);
 
