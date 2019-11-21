@@ -45,7 +45,10 @@ Procedure transformProcedure(CoreTypes coreTypes, Procedure procedure,
     {bool productMode}) {
   var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
   var rewriter = new RecursiveContinuationRewriter(helper);
-  return rewriter.visitProcedure(procedure);
+  rewriter.enterLibrary(procedure.enclosingLibrary);
+  Procedure result = rewriter.visitProcedure(procedure);
+  rewriter.exitLibrary();
+  return result;
 }
 
 class RecursiveContinuationRewriter extends Transformer {
@@ -57,6 +60,12 @@ class RecursiveContinuationRewriter extends Transformer {
   final VariableDeclaration asyncContextVariable =
       new VariableDeclaration(ContinuationVariables.awaitContextVar);
 
+  /// Library that contains the transformed nodes.
+  ///
+  /// The transformation of the nodes is affected by the NNBD opt-in status of
+  /// the library.
+  Library _currentLibrary;
+
   RecursiveContinuationRewriter(this.helper);
 
   Component rewriteComponent(Component node) {
@@ -67,25 +76,53 @@ class RecursiveContinuationRewriter extends Transformer {
     return node.accept<TreeNode>(this);
   }
 
+  @override
+  visitLibrary(Library node) {
+    enterLibrary(node);
+    Library result = super.visitLibrary(node);
+    exitLibrary();
+    return result;
+  }
+
+  @override
   visitProcedure(Procedure node) {
     return node.isAbstract ? node : super.visitProcedure(node);
   }
 
+  @override
   visitFunctionNode(FunctionNode node) {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.SyncYielding:
-        node.transformChildren(new RecursiveContinuationRewriter(helper));
+        node.transformChildren(new RecursiveContinuationRewriter(helper)
+          ..enterLibrary(_currentLibrary));
         return node;
       case AsyncMarker.SyncStar:
-        return new SyncStarFunctionRewriter(helper, node).rewrite();
+        return new SyncStarFunctionRewriter(helper, node, _currentLibrary)
+            .rewrite();
       case AsyncMarker.Async:
-        return new AsyncFunctionRewriter(helper, node).rewrite();
+        return new AsyncFunctionRewriter(helper, node, _currentLibrary)
+            .rewrite();
       case AsyncMarker.AsyncStar:
-        return new AsyncStarFunctionRewriter(helper, node).rewrite();
+        return new AsyncStarFunctionRewriter(helper, node, _currentLibrary)
+            .rewrite();
       default:
         return null;
     }
+  }
+
+  void enterLibrary(Library library) {
+    assert(
+        _currentLibrary == null,
+        "Attempting to enter library '${library.fileUri}' "
+        "without having exited library '${_currentLibrary.fileUri}'.");
+    _currentLibrary = library;
+  }
+
+  void exitLibrary() {
+    assert(_currentLibrary != null,
+        "Attempting to exit a library without having entered one.");
+    _currentLibrary = null;
   }
 }
 
@@ -97,8 +134,15 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   int capturedTryDepth = 0; // Deepest yield point within a try-block.
   int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
-  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction)
-      : super(helper);
+  ContinuationRewriterBase(
+      HelperNodes helper, this.enclosingFunction, Library enclosingLibrary)
+      : super(helper) {
+    assert(
+        enclosingLibrary != null,
+        "Attempting to create a continuation rewriter "
+        "without the client library.");
+    _currentLibrary = enclosingLibrary;
+  }
 
   /// Given a container [type], which is an instantiation of the given
   /// [containerClass] extract its element type.
@@ -184,14 +228,15 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
 class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   final VariableDeclaration iteratorVariable;
 
-  SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction)
+  SyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
+      Library enclosingLibrary)
       : iteratorVariable = new VariableDeclaration(':iterator')
-          ..type =
-              new InterfaceType(helper.syncIteratorClass, Nullability.legacy, [
+          ..type = new InterfaceType(
+              helper.syncIteratorClass, enclosingLibrary.nullable, [
             ContinuationRewriterBase.elementTypeFrom(
                 helper.iterableClass, enclosingFunction.returnType)
           ]),
-        super(helper, enclosingFunction);
+        super(helper, enclosingFunction, enclosingLibrary);
 
   FunctionNode rewrite() {
     // :sync_op(:iterator) {
@@ -286,11 +331,12 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   ExpressionLifter expressionRewriter;
 
-  AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction)
-      : super(helper, enclosingFunction) {}
+  AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
+      Library enclosingLibrary)
+      : super(helper, enclosingFunction, enclosingLibrary);
 
   void setupAsyncContinuations(List<Statement> statements) {
-    expressionRewriter = new ExpressionLifter(this);
+    expressionRewriter = new ExpressionLifter(this, _currentLibrary);
 
     // var :async_stack_trace;
     statements.add(stackTraceVariable);
@@ -751,7 +797,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
               new Arguments(<Expression>[new VariableGet(streamVariable)],
                   types: [valueVariable.type])),
           type: new InterfaceType(helper.streamIteratorClass,
-              Nullability.legacy, [valueVariable.type]));
+              _currentLibrary.nullable, [valueVariable.type]));
 
       // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
@@ -905,8 +951,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration controllerVariable;
 
-  AsyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction)
-      : super(helper, enclosingFunction);
+  AsyncStarFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
+      Library enclosingLibrary)
+      : super(helper, enclosingFunction, enclosingLibrary);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];
@@ -916,7 +963,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // _AsyncStarStreamController<T> :controller;
     controllerVariable = new VariableDeclaration(":controller",
         type: new InterfaceType(helper.asyncStarStreamControllerClass,
-            Nullability.legacy, [elementType]));
+            _currentLibrary.nullable, [elementType]));
     statements.add(controllerVariable);
 
     // dynamic :controller_stream;
@@ -1022,8 +1069,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration completerVariable;
   VariableDeclaration returnVariable;
 
-  AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction)
-      : super(helper, enclosingFunction);
+  AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
+      Library enclosingLibrary)
+      : super(helper, enclosingFunction, enclosingLibrary);
 
   FunctionNode rewrite() {
     var statements = <Statement>[];
@@ -1038,11 +1086,11 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
       valueType = elementTypeFromReturnType(helper.futureOrClass);
     }
     final DartType returnType = new InterfaceType(
-        helper.futureOrClass, Nullability.legacy, <DartType>[valueType]);
+        helper.futureOrClass, _currentLibrary.nullable, <DartType>[valueType]);
     var completerTypeArguments = <DartType>[valueType];
 
     final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
-        Nullability.legacy, completerTypeArguments);
+        _currentLibrary.nonNullable, completerTypeArguments);
     // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
     completerVariable = new VariableDeclaration(":async_completer",
         initializer: new ConstructorInvocation(

@@ -553,8 +553,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void inferAnnotations(TreeNode parent, List<Expression> annotations) {
     if (annotations != null) {
       typeInferrer?.inferMetadata(this, parent, annotations);
-      libraryBuilder.loader.transformListPostInference(
-          annotations, transformSetLiterals, transformCollections);
+      libraryBuilder.loader.transformListPostInference(annotations,
+          transformSetLiterals, transformCollections, libraryBuilder.library);
     }
   }
 
@@ -692,7 +692,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             // transformations need a parent relation.
             Not wrapper = new Not(initializer);
             libraryBuilder.loader.transformPostInference(
-                wrapper, transformSetLiterals, transformCollections);
+                wrapper,
+                transformSetLiterals,
+                transformCollections,
+                libraryBuilder.library);
             initializer = wrapper.operand;
           }
           fieldBuilder.buildBody(initializer);
@@ -869,7 +872,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 this, initializer, originParameter.type);
             originParameter.initializer = initializer..parent = originParameter;
             libraryBuilder.loader.transformPostInference(
-                originParameter, transformSetLiterals, transformCollections);
+                originParameter,
+                transformSetLiterals,
+                transformCollections,
+                libraryBuilder.library);
           }
 
           VariableDeclaration extensionTearOffParameter =
@@ -882,7 +888,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             libraryBuilder.loader.transformPostInference(
                 extensionTearOffParameter,
                 transformSetLiterals,
-                transformCollections);
+                transformCollections,
+                libraryBuilder.library);
           }
         }
       }
@@ -894,8 +901,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           asyncModifier,
           builder.member.function,
           body);
-      libraryBuilder.loader.transformPostInference(
-          body, transformSetLiterals, transformCollections);
+      libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
+          transformCollections, libraryBuilder.library);
     }
 
     if (builder.returnType != null) {
@@ -1351,8 +1358,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       constructor.initializers.add(initializer);
     }
     setParents(constructor.initializers, constructor);
-    libraryBuilder.loader.transformListPostInference(
-        constructor.initializers, transformSetLiterals, transformCollections);
+    libraryBuilder.loader.transformListPostInference(constructor.initializers,
+        transformSetLiterals, transformCollections, libraryBuilder.library);
     if (constructor.function.body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.

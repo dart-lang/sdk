@@ -438,7 +438,7 @@ class TypeCheckingVisitor
     handleCall(arguments, target.function.thisFunctionType,
         typeParameters: class_.typeParameters);
     return new InterfaceType(
-        target.enclosingClass, Nullability.legacy, arguments.types);
+        target.enclosingClass, currentLibrary.nonNullable, arguments.types);
   }
 
   @override
@@ -748,7 +748,7 @@ class TypeCheckingVisitor
       checkAssignable(node, fieldType, valueType);
     });
     return new InterfaceType(
-        node.classNode, Nullability.legacy, node.typeArguments);
+        node.classNode, currentLibrary.nonNullable, node.typeArguments);
   }
 
   @override

@@ -1046,31 +1046,44 @@ class SourceLoader extends Loader {
     ticker.logMs("Performed top level inference");
   }
 
-  void transformPostInference(
-      TreeNode node, bool transformSetLiterals, bool transformCollections) {
+  void transformPostInference(TreeNode node, bool transformSetLiterals,
+      bool transformCollections, Library clientLibrary) {
     if (transformCollections) {
-      node.accept(collectionTransformer ??= new CollectionTransformer(this));
+      collectionTransformer ??= new CollectionTransformer(this);
+      collectionTransformer.enterLibrary(clientLibrary);
+      node.accept(collectionTransformer);
+      collectionTransformer.exitLibrary();
     }
     if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
+      setLiteralTransformer ??= new SetLiteralTransformer(this);
+      setLiteralTransformer.enterLibrary(clientLibrary);
+      node.accept(setLiteralTransformer);
+      setLiteralTransformer.exitLibrary();
     }
   }
 
-  void transformListPostInference(List<TreeNode> list,
-      bool transformSetLiterals, bool transformCollections) {
+  void transformListPostInference(
+      List<TreeNode> list,
+      bool transformSetLiterals,
+      bool transformCollections,
+      Library clientLibrary) {
     if (transformCollections) {
       CollectionTransformer transformer =
           collectionTransformer ??= new CollectionTransformer(this);
+      transformer.enterLibrary(clientLibrary);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
+      transformer.exitLibrary();
     }
     if (transformSetLiterals) {
       SetLiteralTransformer transformer =
           setLiteralTransformer ??= new SetLiteralTransformer(this);
+      transformer.enterLibrary(clientLibrary);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
+      transformer.exitLibrary();
     }
   }
 

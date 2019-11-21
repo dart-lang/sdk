@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
         IfStatement,
         InterfaceType,
         Let,
+        Library,
         ListConcatenation,
         ListLiteral,
         MapConcatenation,
@@ -32,7 +33,6 @@ import 'package:kernel/ast.dart'
         MethodInvocation,
         Name,
         Not,
-        Nullability,
         NullLiteral,
         Procedure,
         PropertyGet,
@@ -85,6 +85,12 @@ class CollectionTransformer extends Transformer {
   final Field mapEntryValue;
   final SourceLoaderDataForTesting dataForTesting;
 
+  /// Library that contains the transformed nodes.
+  ///
+  /// The transformation of the nodes is affected by the NNBD opt-in status of
+  /// the library.
+  Library _currentLibrary;
+
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
     RedirectingFactoryBody body = factory?.function?.body;
@@ -132,13 +138,13 @@ class CollectionTransformer extends Transformer {
           new StaticInvocation(
               setFactory, new Arguments([], types: [elementType])),
           type: new InterfaceType(
-              coreTypes.setClass, Nullability.legacy, [elementType]),
+              coreTypes.setClass, _currentLibrary.nonNullable, [elementType]),
           isFinal: true);
     } else {
       result = new VariableDeclaration.forValue(
           new ListLiteral([], typeArgument: elementType),
           type: new InterfaceType(
-              coreTypes.listClass, Nullability.legacy, [elementType]),
+              coreTypes.listClass, _currentLibrary.nonNullable, [elementType]),
           isFinal: true);
     }
     List<Statement> body = [result];
@@ -335,7 +341,7 @@ class CollectionTransformer extends Transformer {
     // Build a block expression and create an empty map.
     VariableDeclaration result = new VariableDeclaration.forValue(
         new MapLiteral([], keyType: node.keyType, valueType: node.valueType),
-        type: new InterfaceType(coreTypes.mapClass, Nullability.legacy,
+        type: new InterfaceType(coreTypes.mapClass, _currentLibrary.nonNullable,
             [node.keyType, node.valueType]),
         isFinal: true);
     List<Statement> body = [result];
@@ -448,14 +454,16 @@ class CollectionTransformer extends Transformer {
     }
 
     DartType entryType = new InterfaceType(
-        mapEntryClass, Nullability.legacy, <DartType>[keyType, valueType]);
+        mapEntryClass,
+        _currentLibrary.nullableIfTrue(entry.isNullAware),
+        <DartType>[keyType, valueType]);
     VariableDeclaration elt;
     Statement loopBody;
     if (entry.entryType == null ||
         !typeEnvironment.isSubtypeOf(entry.entryType, entryType,
             SubtypeCheckMode.ignoringNullabilities)) {
       elt = new VariableDeclaration(null,
-          type: new InterfaceType(mapEntryClass, Nullability.legacy,
+          type: new InterfaceType(mapEntryClass, _currentLibrary.nonNullable,
               <DartType>[const DynamicType(), const DynamicType()]),
           isFinal: true);
       VariableDeclaration keyVar = new VariableDeclaration.forValue(
@@ -652,5 +660,19 @@ class CollectionTransformer extends Transformer {
     }
     return new MapConcatenation(parts,
         keyType: node.keyType, valueType: node.valueType);
+  }
+
+  void enterLibrary(Library library) {
+    assert(
+        _currentLibrary == null,
+        "Attempting to enter library '${library.fileUri}' "
+        "without having exited library '${_currentLibrary.fileUri}'.");
+    _currentLibrary = library;
+  }
+
+  void exitLibrary() {
+    assert(_currentLibrary != null,
+        "Attempting to exit a library without having entered one.");
+    _currentLibrary = null;
   }
 }

@@ -238,7 +238,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         Not wrapper = new Not(initializer);
         SourceLoader loader = library.loader;
         loader.transformPostInference(wrapper, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections);
+            bodyBuilder.transformCollections, library.library);
         initializer = wrapper.operand;
       }
       buildBody(initializer);

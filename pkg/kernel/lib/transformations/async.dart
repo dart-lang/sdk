@@ -78,7 +78,18 @@ class ExpressionLifter extends Transformer {
   final VariableDeclaration asyncResult = new VariableDeclaration(':result');
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
-  ExpressionLifter(this.continuationRewriter);
+  /// Library that contains the transformed nodes.
+  ///
+  /// The transformation of the nodes is affected by the NNBD opt-in status of
+  /// the library.
+  Library _currentLibrary;
+
+  ExpressionLifter(this.continuationRewriter, this._currentLibrary) {
+    assert(
+        _currentLibrary != null,
+        "Attempting to create an expression lifter "
+        "without the client library.");
+  }
 
   Block blockOf(List<Statement> statements) {
     return new Block(statements.reversed.toList());
@@ -506,7 +517,10 @@ class ExpressionLifter extends Transformer {
   visitFunctionNode(FunctionNode node) {
     var nestedRewriter =
         new RecursiveContinuationRewriter(continuationRewriter.helper);
-    return node.accept(nestedRewriter);
+    nestedRewriter.enterLibrary(_currentLibrary);
+    TreeNode result = node.accept(nestedRewriter);
+    nestedRewriter.exitLibrary();
+    return result;
   }
 
   TreeNode visitBlockExpression(BlockExpression expr) {

@@ -73,6 +73,7 @@ advances
 advancing
 advice
 affect
+affected
 affects
 after
 again

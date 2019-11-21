@@ -184,8 +184,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       variable.initializer = initializer..parent = variable;
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
-        loader.transformPostInference(variable,
-            bodyBuilder.transformSetLiterals, bodyBuilder.transformCollections);
+        loader.transformPostInference(
+            variable,
+            bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections,
+            library.library);
       }
       initializerWasInferred = true;
       bodyBuilder.resolveRedirectingFactoryTargets();

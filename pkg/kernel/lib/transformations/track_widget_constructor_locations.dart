@@ -129,6 +129,12 @@ class _WidgetCallSiteTransformer extends Transformer {
 
   WidgetCreatorTracker _tracker;
 
+  /// Library that contains the transformed call sites.
+  ///
+  /// The transformation of the call sites is affected by the NNBD opt-in status
+  /// of the library.
+  Library _currentLibrary;
+
   _WidgetCallSiteTransformer(
       {@required Class widgetClass,
       @required Class locationClass,
@@ -271,10 +277,25 @@ class _WidgetCallSiteTransformer extends Transformer {
       location,
       parameterLocations: new ListLiteral(
         parameterLocations,
-        typeArgument: new InterfaceType(_locationClass, Nullability.legacy),
+        typeArgument:
+            new InterfaceType(_locationClass, _currentLibrary.nonNullable),
         isConst: true,
       ),
     );
+  }
+
+  void enterLibrary(Library library) {
+    assert(
+        _currentLibrary == null,
+        "Attempting to enter library '${library.fileUri}' "
+        "without having exited library '${_currentLibrary.fileUri}'.");
+    _currentLibrary = library;
+  }
+
+  void exitLibrary() {
+    assert(_currentLibrary != null,
+        "Attempting to exit a library without having entered one.");
+    _currentLibrary = null;
   }
 }
 
@@ -345,7 +366,8 @@ class WidgetCreatorTracker {
       _hasCreationLocationClass.enclosingLibrary,
     );
     final Field locationField = new Field(fieldName,
-        type: new InterfaceType(_locationClass, Nullability.legacy),
+        type: new InterfaceType(
+            _locationClass, clazz.enclosingLibrary.nonNullable),
         isFinal: true,
         reference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
@@ -365,7 +387,8 @@ class WidgetCreatorTracker {
       ));
       final VariableDeclaration variable = new VariableDeclaration(
         _creationLocationParameterName,
-        type: new InterfaceType(_locationClass, Nullability.legacy),
+        type: new InterfaceType(
+            _locationClass, clazz.enclosingLibrary.nonNullable),
       );
       if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
@@ -458,7 +481,9 @@ class WidgetCreatorTracker {
       if (library.isExternal) {
         continue;
       }
+      callsiteTransformer.enterLibrary(library);
       library.transformChildren(callsiteTransformer);
+      callsiteTransformer.exitLibrary();
     }
   }
 
@@ -497,10 +522,10 @@ class WidgetCreatorTracker {
       if (procedure.isFactory) {
         _maybeAddNamedParameter(
           procedure.function,
-          new VariableDeclaration(
-            _creationLocationParameterName,
-            type: new InterfaceType(_locationClass, Nullability.legacy),
-          ),
+          new VariableDeclaration(_creationLocationParameterName,
+              type: new InterfaceType(
+                  _locationClass, clazz.enclosingLibrary.nonNullable),
+              isRequired: clazz.enclosingLibrary.isNonNullableByDefault),
         );
       }
     }
@@ -521,9 +546,10 @@ class WidgetCreatorTracker {
       }
 
       final VariableDeclaration variable = new VariableDeclaration(
-        _creationLocationParameterName,
-        type: new InterfaceType(_locationClass, Nullability.legacy),
-      );
+          _creationLocationParameterName,
+          type: new InterfaceType(
+              _locationClass, clazz.enclosingLibrary.nonNullable),
+          isRequired: clazz.enclosingLibrary.isNonNullableByDefault);
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {
         // Constructor was already rewritten. TODO(jacobr): is this case actually hit?
