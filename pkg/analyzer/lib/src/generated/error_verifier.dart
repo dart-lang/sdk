@@ -2612,29 +2612,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForDeferredImportOfExtensions(
       ImportDirective directive, ImportElement importElement) {
-    List<String> shownNames = [];
-    List<String> hiddenNames = [];
-
-    Iterable<String> namesOf(List<SimpleIdentifier> identifiers) =>
-        identifiers.map((identifier) => identifier.name);
-    for (Combinator combinator in directive.combinators) {
-      if (combinator is HideCombinator) {
-        hiddenNames.addAll(namesOf(combinator.hiddenNames));
-      } else if (combinator is ShowCombinator) {
-        shownNames.addAll(namesOf(combinator.shownNames));
-      }
-    }
-    for (Element element in importElement.importedLibrary.topLevelElements) {
+    for (var element in importElement.namespace.definedNames.values) {
       if (element is ExtensionElement) {
-        String name = element.name;
-        if (name != null &&
-            name.isNotEmpty &&
-            (shownNames.contains(name) ||
-                (shownNames.isEmpty && !hiddenNames.contains(name)))) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, directive.uri);
-          return;
-        }
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
+          directive.uri,
+        );
+        return;
       }
     }
   }
