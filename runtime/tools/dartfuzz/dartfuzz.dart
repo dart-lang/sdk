@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.69';
+const String version = '1.70';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -333,8 +333,8 @@ class DartFuzz {
       DartType type}) {
     final List<Method> list = <Method>[];
     for (int i = 0, n = chooseOneUpTo(maxMethods); i < n; i++) {
-      final List<DartType> params =
-          fillTypes1(limit: maxParams, isFfi: type == MethodType.ffiMethod);
+      final List<DartType> params = fillTypes1(
+          limit: maxParams, isFfi: methodType == MethodType.ffiMethod);
       switch (methodType) {
         case MethodType.globalMethod:
           list.add(GlobalMethod("${namePrefix}${i}", params, this));
