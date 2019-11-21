@@ -22,7 +22,56 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
+   *
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when code is found that won't be
+  // executed because execution will never reach the code.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the invocation of
+  // `print` occurs after the function has returned:
+  //
+  // ```dart
+  // void f() {
+  //   return;
+  //   [!print('here');!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the code isn't needed, then remove it:
+  //
+  // ```dart
+  // void f() {
+  //   return;
+  // }
+  // ```
+  //
+  // If the code needs to be executed, then either move the code to a place
+  // where it will be executed:
+  //
+  // ```dart
+  // void f() {
+  //   print('here');
+  //   return;
+  // }
+  // ```
+  //
+  // Or, rewrite the code before it, so that it can be reached:
+  //
+  // ```dart
+  // void f({bool skipPrinting = true}) {
+  //   if (skipPrinting) {
+  //     return;
+  //   }
+  //   print('here');
+  // }
+  // ```
   static const HintCode DEAD_CODE = const HintCode('DEAD_CODE', "Dead code.",
       correction: "Try removing the code, or "
           "fixing the code before it so that it can be reached.");
@@ -30,11 +79,57 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * Dead code is code that is never reached. This case covers cases where the
    * user has catch clauses after `catch (e)` or `on Object catch (e)`.
+   *
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a catch clause is found that
+  // can't be executed because it’s after a catch clause of the form `catch (e)`
+  // or `on Object catch (e)`. The first catch clause that matches the thrown
+  // object is selected, and both of those forms will match any object, so no
+  // catch clauses that follow them will be selected.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } catch (e) {
+  //   } [!on String {
+  //   }!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the clause should be selectable, then move the clause before the general
+  // clause:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } on String {
+  //   } catch (e) {
+  //   }
+  // }
+  // ```
+  //
+  // If the clause doesn't need to be selectable, then remove it:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } catch (e) {
+  //   }
+  // }
+  // ```
   static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = const HintCode(
       'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-      "Dead code: catch clauses after a 'catch (e)' or "
-          "an 'on Object catch (e)' are never reached.",
+      "Dead code: Catch clauses after a 'catch (e)' or an "
+          "'on Object catch (e)' are never reached.",
       correction:
           "Try reordering the catch clauses so that they can be reached, or "
           "removing the unreachable catch clauses.");
@@ -48,10 +143,55 @@ class HintCode extends AnalyzerErrorCode {
    * 0: name of the subtype
    * 1: name of the supertype
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a catch clause is found that
+  // can't be executed because it is after a catch clause that catches either
+  // the same type or a supertype of the clause's type. The first catch clause
+  // that matches the thrown object is selected, and the earlier clause l always
+  // matches anything matchable by the highlighted clause, so the highlighted
+  // clause will never be selected.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } on num {
+  //   } [!on int {
+  //   }!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the clause should be selectable, then move the clause before the general
+  // clause:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } on int {
+  //   } on num {
+  //   }
+  // }
+  // ```
+  //
+  // If the clause doesn't need to be selectable, then remove it:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //   } on num {
+  //   }
+  // }
+  // ```
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = const HintCode(
       'DEAD_CODE_ON_CATCH_SUBTYPE',
-      "Dead code: this on-catch block will never be executed because '{0}' is "
-          "a subtype of '{1}' and hence will have been caught above.",
+      "Dead code: This on-catch block won’t be executed because '{0}' is a "
+          "subtype of '{1}' and hence will have been caught already.",
       correction:
           "Try reordering the catch clauses so that this block can be reached, "
           "or removing the unreachable catch clause.");
@@ -177,7 +317,35 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * Duplicate imports.
+   *
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an import directive is found
+  // that is the same as an import before it in the file. The second import
+  // doesn’t add value and should be removed.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  // import [!'package:meta/meta.dart'!];
+  //
+  // @sealed class C {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the unnecessary import:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @sealed class C {}
+  // ```
   static const HintCode DUPLICATE_IMPORT = const HintCode(
       'DUPLICATE_IMPORT', "Duplicate import.",
       correction: "Try removing all but one import of the library.");
@@ -330,10 +498,22 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The meaning of the `@literal` annotation is only defined when it's applied
-  // to a const constructor.
+  // The analyzer produces this diagnostic when the `@literal` annotation is
+  // applied to anything other than a const constructor.
   //
   // #### Example
+  //
+  // The following code produces this diagnostic because the constructor is not
+  // a `const` constructor:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class C {
+  //   [!@literal!]
+  //   C();
+  // }
+  // ```
   //
   // The following code produces this diagnostic because `x` isn't a
   // constructor:
@@ -347,7 +527,23 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Remove the annotation:
+  // If the annotation is on a constructor and the constructor should always be
+  // invoked with `const`, when possible, then mark the constructor with the
+  // `const` keyword:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class C {
+  //   @literal
+  //   const C();
+  // }
+  // ```
+  //
+  // If the constructor can't be marked as `const`, then remove the annotation.
+  //
+  // If the annotation is on anything other than a constructor, then remove the
+  // annotation:
   //
   // ```dart
   // var x;
@@ -468,34 +664,79 @@ class HintCode extends AnalyzerErrorCode {
       "The member '{0}' can only be used within instance members of subclasses "
           "of '{1}'.");
 
-  /// This hint is generated anywhere where a member annotated with
-  /// `@visibleForTemplate` is used outside of a "template" Dart file.
-  ///
-  /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /**
+   * This hint is generated anywhere where a member annotated with
+   * `@visibleForTemplate` is used outside of a "template" Dart file.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
   static const HintCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
       const HintCode(
           'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
           "The member '{0}' can only be used within '{1}' or a template "
               "library.");
 
-  /// This hint is generated anywhere where a member annotated with
-  /// `@visibleForTesting` is used outside the defining library, or a test.
-  ///
-  /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the defining class
+  /**
+   * This hint is generated anywhere where a member annotated with
+   * `@visibleForTesting` is used outside the defining library, or a test.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
   static const HintCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER =
       const HintCode('INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
           "The member '{0}' can only be used within '{1}' or a test.");
 
-  /// This hint is generated anywhere where a private declaration is annotated
-  /// with `@visibleForTemplate` or `@visibleForTesting`.
-  ///
-  /// Parameters:
-  /// 0: the name of the member
-  /// 1: the name of the annotation
+  /**
+   * This hint is generated anywhere where a private declaration is annotated
+   * with `@visibleForTemplate` or `@visibleForTesting`.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the annotation
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when either the `@visibleForTemplate`
+  // or `@visibleForTesting` annotation is applied to a non-public declaration.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // [!@visibleForTesting!]
+  // void _someFunction() {}
+  //
+  // void f() => _someFunction();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the declaration doesn't need to be used by test code, then remove the
+  // annotation:
+  //
+  // ```dart
+  // void _someFunction() {}
+  //
+  // void f() => _someFunction();
+  // ```
+  //
+  // If it does, then make it public:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // @visibleForTesting
+  // void someFunction() {}
+  //
+  // void f() => someFunction();
+  // ```
   static const HintCode INVALID_VISIBILITY_ANNOTATION = const HintCode(
       'INVALID_VISIBILITY_ANNOTATION',
       "The member '{0}' is annotated with '{1}', but this annotation is only "
@@ -558,6 +799,40 @@ class HintCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function with a
+  // named parameter that is annotated as being required is invoked without
+  // providing a value for the parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the named parameter `x`
+  // is required:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // void f({@required int x}) {}
+  //
+  // void g() {
+  //   [!f!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Provide the required value:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // void f({@required int x}) {}
+  //
+  // void g() {
+  //   f(x: 2);
+  // }
+  // ```
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
 
@@ -569,9 +844,11 @@ class HintCode extends AnalyzerErrorCode {
    * 0: the name of the parameter
    * 1: message details
    */
-  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = const HintCode(
-      'MISSING_REQUIRED_PARAM_WITH_DETAILS',
-      "The parameter '{0}' is required. {1}.");
+  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS =
+      const HintCodeWithUniqueName(
+          'MISSING_REQUIRED_PARAM',
+          'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
+          "The parameter '{0}' is required. {1}.");
 
   /**
    * Parameters:
@@ -611,11 +888,47 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * This hint is generated anywhere where a `@sealed` class is used as a
    * a superclass constraint of a mixin.
+   *
+   * Parameters:
+   * 0: the name of the sealed class
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the superclass constraint of a
+  // mixin is a class from a different package that was marked as `@sealed`.
+  // Classes that are sealed can't be extended, implemented, mixed in, or used
+  // as a superclass constraint.
+  //
+  // #### Example
+  //
+  // If the package 'p' defines a sealed class:
+  //
+  // ```dart
+  // %uri="package:p/p.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // @sealed
+  // class C {}
+  // ```
+  //
+  // Then, the following code, when in a package other than 'p', produces this
+  // diagnostic:
+  //
+  // ```dart
+  // import 'package:p/p.dart';
+  //
+  // [!mixin M on C {}!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the classes that use the mixin don't need to be subclasses of the sealed
+  // class, then consider adding a field and delegating to the wrapped instance
+  // of the sealed class.
   static const HintCode MIXIN_ON_SEALED_CLASS = const HintCode(
       'MIXIN_ON_SEALED_CLASS',
       "The class '{0}' shouldn't be used as a mixin constraint because it is "
-          "sealed, and any class mixing in this mixin has '{0}' as a "
+          "sealed, and any class mixing in this mixin must have '{0}' as a "
           "superclass.",
       correction:
           "Try composing with this class, or refer to its documentation for "
@@ -646,7 +959,47 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * Generate a hint for non-const instance creation using a constructor
    * annotated with `@literal`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the annotated constructor
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor that has the
+  // `@literal` annotation is invoked without using the `const` keyword, but all
+  // of the arguments to the constructor are constants. The annotation indicates
+  // that the constructor should be used to create a constant value whenever
+  // possible.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class C {
+  //   @literal
+  //   const C();
+  // }
+  //
+  // C f() => [!C()!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add the keyword `const` before the constructor invocation:
+  //
+  // ```dart
+  // import 'package:meta/meta.dart';
+  //
+  // class C {
+  //   @literal
+  //   const C();
+  // }
+  //
+  // void f() => const C();
+  // ```
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = const HintCode(
       'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
       "This instance creation must be 'const', because the {0} constructor is "
@@ -656,10 +1009,14 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * Generate a hint for non-const instance creation (with the `new` keyword)
    * using a constructor annotated with `@literal`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the annotated constructor
    */
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
-      const HintCode(
-          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
+      const HintCodeWithUniqueName(
+          'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
+          'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
           "This instance creation must be 'const', because the {0} constructor "
               "is marked as '@literal'.",
           correction: "Try replacing the 'new' keyword with 'const'.");
@@ -708,39 +1065,89 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * A getter with the override annotation does not override an existing getter.
+   *
+   * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER = const HintCode(
-      'OVERRIDE_ON_NON_OVERRIDING_GETTER',
-      "Getter doesn't override an inherited getter.",
-      correction: "Try updating this class to match the superclass, or "
-          "removing the override annotation.");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER =
+      const HintCodeWithUniqueName(
+          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+          'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
+          "The getter doesn't override an inherited getter.",
+          correction: "Try updating this class to match the superclass, or "
+              "removing the override annotation.");
 
   /**
    * A field with the override annotation does not override a getter or setter.
+   *
+   * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD = const HintCode(
-      'OVERRIDE_ON_NON_OVERRIDING_FIELD',
-      "Field doesn't override an inherited getter or setter.",
-      correction: "Try updating this class to match the superclass, or "
-          "removing the override annotation.");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_FIELD =
+      const HintCodeWithUniqueName(
+          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+          'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
+          "The field doesn't override an inherited getter or setter.",
+          correction: "Try updating this class to match the superclass, or "
+              "removing the override annotation.");
 
   /**
    * A method with the override annotation does not override an existing method.
+   *
+   * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD = const HintCode(
-      'OVERRIDE_ON_NON_OVERRIDING_METHOD',
-      "Method doesn't override an inherited method.",
-      correction: "Try updating this class to match the superclass, or "
-          "removing the override annotation.");
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class member is annotated with
+  // the `@override` annotation, but the member isn’t declared in any of the
+  // supertypes of the class.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `m` isn't declared in
+  // any of the supertypes of `C`:
+  //
+  // ```dart
+  // class C {
+  //   @override
+  //   String [!m!]() => '';
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the member is intended to override a member with a different name, then
+  // update the member to have the same name:
+  //
+  // ```dart
+  // class C {
+  //   @override
+  //   String toString() => '';
+  // }
+  // ```
+  //
+  // If the member is intended to override a member that was removed from the
+  // superclass, then consider removing the member from the subclass.
+  //
+  // If the member can't be removed, then remove the annotation.
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_METHOD =
+      const HintCodeWithUniqueName(
+          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+          'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
+          "The method doesn't override an inherited method.",
+          correction: "Try updating this class to match the superclass, or "
+              "removing the override annotation.");
 
   /**
    * A setter with the override annotation does not override an existing setter.
+   *
+   * No parameters.
    */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER = const HintCode(
-      'OVERRIDE_ON_NON_OVERRIDING_SETTER',
-      "Setter doesn't override an inherited setter.",
-      correction: "Try updating this class to match the superclass, or "
-          "removing the override annotation.");
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_SETTER =
+      const HintCodeWithUniqueName(
+          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+          'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
+          "The setter doesn't override an inherited setter.",
+          correction: "Try updating this class to match the superclass, or "
+              "removing the override annotation.");
 
   /**
    * It is a bad practice for a package import to reference anything outside the

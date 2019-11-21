@@ -36,7 +36,12 @@ class DocumentationValidator {
   /// A list of the diagnostic codes that are not being verified. These should
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
-  static const List<String> unverifiedDocs = ['HintCode.DEPRECATED_MEMBER_USE'];
+  static const List<String> unverifiedDocs = [
+    // The code has been replaced but is not yet removed.
+    'HintCode.DEPRECATED_MEMBER_USE',
+    // Needs two expected errors.
+    'StaticWarningCode.AMBIGUOUS_IMPORT',
+  ];
 
   /// The prefix used on directive lines to indicate the uri of an auxiliary
   /// file that is needed for testing purposes.
@@ -231,14 +236,24 @@ class DocumentationValidator {
 
               List<_SnippetData> exampleSnippets =
                   _extractSnippets(docs, exampleStart + 1, fixesStart, true);
-              for (_SnippetData snippet in exampleSnippets) {
-                await _validateSnippet(snippet);
+              _SnippetData firstExample;
+              if (exampleSnippets.isEmpty) {
+                _reportProblem('No example.');
+              } else {
+                firstExample = exampleSnippets[0];
+              }
+              for (int i = 0; i < exampleSnippets.length; i++) {
+                await _validateSnippet('example', i, exampleSnippets[i]);
               }
 
               List<_SnippetData> fixesSnippets =
                   _extractSnippets(docs, fixesStart + 1, docs.length, false);
-              for (_SnippetData snippet in fixesSnippets) {
-                await _validateSnippet(snippet);
+              for (int i = 0; i < fixesSnippets.length; i++) {
+                _SnippetData snippet = fixesSnippets[i];
+                if (firstExample != null) {
+                  snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
+                }
+                await _validateSnippet('fixes', i, snippet);
               }
             }
           }
@@ -251,7 +266,8 @@ class DocumentationValidator {
   /// verify that no diagnostics are reported. If the offset is greater than or
   /// equal to zero, verify that one error whose name matches the current code
   /// is reported at that offset with the expected length.
-  Future<void> _validateSnippet(_SnippetData snippet) async {
+  Future<void> _validateSnippet(
+      String section, int index, _SnippetData snippet) async {
     _SnippetTest test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
@@ -259,28 +275,30 @@ class DocumentationValidator {
     int errorCount = errors.length;
     if (snippet.offset < 0) {
       if (errorCount > 0) {
-        _reportProblem('Expected no errors but found $errorCount:',
+        _reportProblem(
+            'Expected no errors but found $errorCount ($section $index):',
             errors: errors);
       }
     } else {
       if (errorCount == 0) {
-        _reportProblem('Expected one error but found none.');
+        _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         AnalysisError error = errors[0];
         if (error.errorCode.uniqueName != codeName) {
-          _reportProblem(
-              'Expected an error with code $codeName, found ${error.errorCode}.');
+          _reportProblem('Expected an error with code $codeName, '
+              'found ${error.errorCode} ($section $index).');
         }
         if (error.offset != snippet.offset) {
-          _reportProblem(
-              'Expected an error at ${snippet.offset}, found ${error.offset}.');
+          _reportProblem('Expected an error at ${snippet.offset}, '
+              'found ${error.offset} ($section $index).');
         }
         if (error.length != snippet.length) {
-          _reportProblem(
-              'Expected an error of length ${snippet.length}, found ${error.length}.');
+          _reportProblem('Expected an error of length ${snippet.length}, '
+              'found ${error.length} ($section $index).');
         }
       } else {
-        _reportProblem('Expected one error but found $errorCount:',
+        _reportProblem(
+            'Expected one error but found $errorCount ($section $index):',
             errors: errors);
       }
     }

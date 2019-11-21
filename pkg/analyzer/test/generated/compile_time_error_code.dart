@@ -4350,7 +4350,7 @@ typedef A(A b());
   test_typeAliasCannotReferenceItself_generic() async {
     List<ExpectedError> expectedErrors = [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
     ];
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);

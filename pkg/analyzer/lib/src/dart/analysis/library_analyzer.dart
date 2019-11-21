@@ -430,8 +430,17 @@ class LibraryAnalyzer {
 
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String errorCode = error.errorCode.name.toLowerCase();
-      return ignoreInfo.ignoredAt(errorCode, errorLine);
+      String name = error.errorCode.name.toLowerCase();
+      if (ignoreInfo.ignoredAt(name, errorLine)) {
+        return true;
+      }
+      String uniqueName = error.errorCode.uniqueName;
+      int period = uniqueName.indexOf('.');
+      if (period >= 0) {
+        uniqueName = uniqueName.substring(period + 1);
+      }
+      return uniqueName != name &&
+          ignoreInfo.ignoredAt(uniqueName.toLowerCase(), errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();

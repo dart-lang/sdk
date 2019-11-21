@@ -529,7 +529,7 @@ dynamic main() {
   return x;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 36, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 

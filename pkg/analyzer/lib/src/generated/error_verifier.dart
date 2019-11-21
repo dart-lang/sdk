@@ -1483,10 +1483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * constructor and the return type is not assignable to `null`; that is, we
    * don't have `return;` if the enclosing method has a non-void containing
    * return type.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllEmptyReturnStatementErrorCodes(
       ReturnStatement statement, DartType expectedReturnType) {
@@ -1784,10 +1780,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * Check that the return type matches the type of the declared return type in
    * the enclosing method or function.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
     FunctionType functionType = _enclosingFunction?.type;
@@ -4727,8 +4719,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * This method is called both by [_checkForAllReturnStatementErrorCodes]
    * and [visitExpressionFunctionBody].
-   *
-   * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForReturnOfInvalidType(
       Expression returnExpression, DartType expectedType,
@@ -4756,9 +4746,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
             returnExpression,
             [expressionType, expectedType]);
+      } else if (_enclosingFunction is MethodElement) {
+        _errorReporter.reportTypeErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+            returnExpression,
+            [expressionType, expectedType, displayName]);
       } else {
         _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
             returnExpression,
             [expressionType, expectedType, displayName]);
       }

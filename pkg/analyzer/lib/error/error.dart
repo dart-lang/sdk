@@ -673,8 +673,11 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
   StaticTypeWarningCode.NON_BOOL_OPERAND,
   StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+  // ignore: deprecated_member_use_from_same_package
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+  StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+  StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT,
   StaticTypeWarningCode.UNDEFINED_FUNCTION,
