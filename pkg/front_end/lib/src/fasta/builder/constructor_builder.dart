@@ -231,7 +231,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
               typeParameter, library.library));
     }
     functionNode.returnType = new InterfaceType(
-        enclosingClass, Nullability.legacy, typeParameterTypes);
+        enclosingClass, library.nonNullable, typeParameterTypes);
     return functionNode;
   }
 

@@ -5,16 +5,16 @@ import "dart:core" as core;
 class Class extends core::Object {
   field core::int? _#field = null;
   field dynamic _#field#isSet = false;
-  constructor constructor1() → self::Class*
+  constructor constructor1() → self::Class
     : super core::Object::•()
     ;
-  constructor constructor2(core::int field) → self::Class*
+  constructor constructor2(core::int field) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
     ;
-  constructor constructor3(core::int value) → self::Class*
+  constructor constructor3(core::int value) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = value.{core::num::+}(1), super core::Object::•()
     ;
-  constructor constructor4([core::int field = #C1]) → self::Class*
+  constructor constructor4([core::int field = #C1]) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
     ;
   get field() → core::int?
@@ -25,16 +25,16 @@ class Class extends core::Object {
   }
 }
 class Subclass extends self::Class {
-  constructor constructor1() → self::Subclass*
+  constructor constructor1() → self::Subclass
     : super self::Class::constructor1()
     ;
-  constructor constructor2(core::int value) → self::Subclass*
+  constructor constructor2(core::int value) → self::Subclass
     : super self::Class::constructor2(value)
     ;
-  constructor constructor3(core::int value) → self::Subclass*
+  constructor constructor3(core::int value) → self::Subclass
     : super self::Class::constructor3(value)
     ;
-  constructor constructor4([core::int value = #C2]) → self::Subclass*
+  constructor constructor4([core::int value = #C2]) → self::Subclass
     : super self::Class::constructor4(value)
     ;
 }
