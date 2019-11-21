@@ -4,11 +4,12 @@
 
 library fasta.function_type_alias_builder;
 
+import 'package:front_end/src/fasta/builder/fixed_type_builder.dart';
+import 'package:front_end/src/fasta/builder/named_type_builder.dart';
 import 'package:kernel/ast.dart'
     show
         DartType,
         DynamicType,
-        FunctionType,
         InvalidType,
         Nullability,
         TypeParameter,
@@ -88,6 +89,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
           }
         }
       }
+    } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {
+      // No error, but also no additional setup work.
     } else if (type != null) {
       unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
     }
@@ -141,9 +144,9 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = cyclicTypeAliasMarker;
     TypeBuilder type = this.type;
-    if (type is FunctionTypeBuilder) {
-      FunctionType builtType =
-          type?.build(library, thisTypedefType(typedef, library));
+    if (type != null) {
+      DartType builtType =
+          type.build(library, thisTypedefType(typedef, library));
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables) {
@@ -155,12 +158,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       } else {
         return thisType = const InvalidType();
       }
-    } else if (type == null) {
-      return thisType = const InvalidType();
-    } else {
-      return unhandled(
-          "${type.fullNameForErrors}", "buildThisType", charOffset, fileUri);
     }
+    return thisType = const InvalidType();
   }
 
   /// [arguments] have already been built.
@@ -168,7 +167,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       Nullability nullability, List<DartType> arguments) {
     DartType thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
-    FunctionType result = thisType.withNullability(nullability);
+    DartType result = thisType.withNullability(nullability);
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {

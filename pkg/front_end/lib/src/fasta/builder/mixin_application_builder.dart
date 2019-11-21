@@ -4,7 +4,7 @@
 
 library fasta.mixin_application_builder;
 
-import 'package:kernel/ast.dart' show InterfaceType, Supertype;
+import 'package:kernel/ast.dart' show InterfaceType, Supertype, TypedefType;
 
 import '../problems.dart' show unsupported;
 
@@ -43,7 +43,7 @@ class MixinApplicationBuilder extends TypeBuilder {
   }
 
   @override
-  InterfaceType build(LibraryBuilder library) {
+  InterfaceType build(LibraryBuilder library, [TypedefType origin]) {
     int charOffset = -1; // TODO(ahe): Provide these.
     Uri fileUri = null; // TODO(ahe): Provide these.
     return unsupported("build", charOffset, fileUri);

@@ -2119,6 +2119,10 @@ TypedefNotFunction:
   template: "Can't create typedef from non-function type."
   analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
 
+TypedefNotType:
+  template: "Can't create typedef from non-type."
+  analyzerCode: INVALID_TYPE_IN_TYPEDEF
+
 LibraryDirectiveNotFirst:
   index: 37
   template: "The library directive must appear before all other directives."

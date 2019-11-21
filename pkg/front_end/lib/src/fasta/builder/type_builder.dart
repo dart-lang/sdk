@@ -4,7 +4,7 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
 
 import '../scope.dart';
 import 'library_builder.dart';
@@ -58,7 +58,7 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
-  DartType build(LibraryBuilder library);
+  DartType build(LibraryBuilder library, [TypedefType origin]);
 
   Supertype buildSupertype(LibraryBuilder library, int charOffset, Uri fileUri);
 

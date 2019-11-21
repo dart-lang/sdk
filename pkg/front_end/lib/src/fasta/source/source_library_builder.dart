@@ -2009,7 +2009,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      FunctionTypeBuilder type,
+      TypeBuilder type,
       int charOffset) {
     if (typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {

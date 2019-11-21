@@ -7889,6 +7889,14 @@ const MessageCode messageTypedefNotFunction = const MessageCode(
     message: r"""Can't create typedef from non-function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefNotType = messageTypedefNotType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefNotType = const MessageCode("TypedefNotType",
+    analyzerCodes: <String>["INVALID_TYPE_IN_TYPEDEF"],
+    message: r"""Can't create typedef from non-type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

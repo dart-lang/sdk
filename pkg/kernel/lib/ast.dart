@@ -706,8 +706,10 @@ class Typedef extends NamedNode implements FileUriNode {
   final List<TypeParameter> typeParameters;
   DartType type;
 
-  // The following two fields describe parameters of the underlying function
-  // type.  They are needed to keep such attributes as names and annotations.
+  // The following two fields describe parameters of the underlying type when
+  // that is a function type.  They are needed to keep such attributes as names
+  // and annotations. When the underlying type is not a function type, they are
+  // empty.
   final List<TypeParameter> typeParametersOfFunctionType;
   final List<VariableDeclaration> positionalParameters;
   final List<VariableDeclaration> namedParameters;

@@ -6,7 +6,7 @@ library fasta.named_type_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
 
 import '../fasta_codes.dart'
     show
@@ -204,7 +204,8 @@ class NamedTypeBuilder extends TypeBuilder {
     return null;
   }
 
-  DartType build(LibraryBuilder library) {
+  // TODO(johnniwinther): Store [origin] on the built type.
+  DartType build(LibraryBuilder library, [TypedefType origin]) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     return declaration.buildType(library, nullabilityBuilder, arguments);
   }

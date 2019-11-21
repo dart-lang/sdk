@@ -56,6 +56,7 @@ import '../fasta_codes.dart'
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
+        messageTypedefNotType,
         Template,
         templateCycleInTypeVariables,
         templateDirectCycleInTypeVariables,
@@ -1440,7 +1441,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder> typeVariables;
     Object name;
     int charOffset;
-    FunctionTypeBuilder functionType;
+    TypeBuilder aliasedType;
     if (equals == null) {
       List<FormalParameterBuilder> formals = pop();
       pop(); // formals offset
@@ -1460,7 +1461,7 @@ class OutlineBuilder extends StackListenerImpl {
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
       // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
-      functionType = library.addFunctionType(returnType, null, formals,
+      aliasedType = library.addFunctionType(returnType, null, formals,
           const NullabilityBuilder.omitted(), charOffset);
     } else {
       Object type = pop();
@@ -1479,7 +1480,13 @@ class OutlineBuilder extends StackListenerImpl {
         // `type.typeVariables`. A typedef can have type variables, and a new
         // function type can also have type variables (representing the type of
         // a generic function).
-        functionType = type;
+        aliasedType = type;
+      } else if (library.loader.target.enableNonfunctionTypeAliases) {
+        if (type is TypeBuilder) {
+          aliasedType = type;
+        } else {
+          addProblem(messageTypedefNotType, equals.charOffset, equals.length);
+        }
       } else {
         // TODO(ahe): Improve this error message.
         addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
@@ -1488,7 +1495,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(typedefKeyword.charOffset);
     library.addFunctionTypeAlias(documentationComment, metadata, name,
-        typeVariables, functionType, charOffset);
+        typeVariables, aliasedType, charOffset);
   }
 
   @override
