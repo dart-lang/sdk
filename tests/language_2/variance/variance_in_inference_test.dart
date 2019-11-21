@@ -15,10 +15,16 @@ class Upper {}
 class Middle extends Upper {}
 class Lower extends Middle {}
 
+class ContraBound<in T> {
+  ContraBound(T x, void Function(T) y) {}
+}
+
 Exactly<T> inferCovContra<T>(Covariant<T> x, Contravariant<T> y) => new Exactly<T>();
 Exactly<T> inferContraContra<T>(Contravariant<T> x, Contravariant<T> y) => new Exactly<T>();
+Exactly<T> inferContraBound<T>(ContraBound<T> x) => new Exactly<T>();
 
 main() {
+  Exactly<Upper> upper;
   Exactly<Middle> middle;
   Exactly<Lower> lower;
 
@@ -57,4 +63,14 @@ main() {
   // Choose Lower since it is the greatest lower bound of Middle and Lower.
   var inferredLower5 = inferContraContra(Contravariant<Lower>(), Contravariant<Middle>());
   lower = inferredLower5;
+
+  // Lower <: T <: Upper
+  // Choose Upper.
+  var inferredContraUpper = inferContraBound(ContraBound(Lower(), (Upper x) {}));
+  upper = inferredContraUpper;
+
+  // Lower <: T <: Middle
+  // Choose Middle.
+  var inferredContraMiddle = inferContraBound(ContraBound(Lower(), (Middle x) {}));
+  middle = inferredContraMiddle;
 }

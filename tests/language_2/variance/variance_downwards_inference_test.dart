@@ -26,6 +26,11 @@ class C<out T, S> {
   void set y(S _value) {}
 }
 
+class D<in T> {
+  D(T x, void Function(T) y) {}
+  void set x(T val) {}
+}
+
 main() {
   // int <: T <: Object
   // Choose int
@@ -41,4 +46,8 @@ main() {
   // int <: S <: Object
   // Choose Object
   C<Object, Object> c = new C(3, 3)..x+=1..y="hello";
+
+  // int <: T <: num
+  // Choose num due to contravariant heuristic.
+  D<int> d = new D(3, (num x) {})..x=2.2;
 }

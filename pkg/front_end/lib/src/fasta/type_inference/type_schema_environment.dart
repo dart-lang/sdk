@@ -12,7 +12,8 @@ import 'package:kernel/ast.dart'
         NamedType,
         Nullability,
         Procedure,
-        TypeParameter;
+        TypeParameter,
+        Variance;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -255,8 +256,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
       TypeConstraint constraint = constraints[typeParam];
       if (downwardsInferPhase || !typeParam.isLegacyCovariant) {
-        inferredTypes[i] =
-            _inferTypeParameterFromContext(constraint, extendsConstraint);
+        inferredTypes[i] = _inferTypeParameterFromContext(
+            constraint, extendsConstraint,
+            isContravariant: typeParam.variance == Variance.contravariant);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
             typesFromDownwardsInference[i], constraint, extendsConstraint);
@@ -357,21 +359,44 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   ///
   /// If [grounded] is `true`, then the returned type is guaranteed to be a
   /// known type (i.e. it will not contain any instances of `?`).
+  ///
+  /// If [isContravariant] is `true`, then we are solving for a contravariant
+  /// type parameter which means we choose the upper bound rather than the
+  /// lower bound for normally covariant type parameters.
   DartType solveTypeConstraint(TypeConstraint constraint,
-      {bool grounded: false}) {
-    // Prefer the known bound, if any.
-    if (isKnown(constraint.lower)) return constraint.lower;
-    if (isKnown(constraint.upper)) return constraint.upper;
+      {bool grounded: false, bool isContravariant: false}) {
+    if (!isContravariant) {
+      // Prefer the known bound, if any.
+      if (isKnown(constraint.lower)) return constraint.lower;
+      if (isKnown(constraint.upper)) return constraint.upper;
 
-    // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
-    if (constraint.lower is! UnknownType) {
-      return grounded
-          ? leastClosure(coreTypes, constraint.lower)
-          : constraint.lower;
+      // Otherwise take whatever bound has partial information,
+      // e.g. `Iterable<?>`
+      if (constraint.lower is! UnknownType) {
+        return grounded
+            ? leastClosure(coreTypes, constraint.lower)
+            : constraint.lower;
+      } else {
+        return grounded
+            ? greatestClosure(coreTypes, constraint.upper)
+            : constraint.upper;
+      }
     } else {
-      return grounded
-          ? greatestClosure(coreTypes, constraint.upper)
-          : constraint.upper;
+      // Prefer the known bound, if any.
+      if (isKnown(constraint.upper)) return constraint.upper;
+      if (isKnown(constraint.lower)) return constraint.lower;
+
+      // Otherwise take whatever bound has partial information,
+      // e.g. `Iterable<?>`
+      if (constraint.upper is! UnknownType) {
+        return grounded
+            ? greatestClosure(coreTypes, constraint.upper)
+            : constraint.upper;
+      } else {
+        return grounded
+            ? leastClosure(coreTypes, constraint.lower)
+            : constraint.lower;
+      }
     }
   }
 
@@ -400,8 +425,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType _inferTypeParameterFromContext(
-      TypeConstraint constraint, DartType extendsConstraint) {
-    DartType t = solveTypeConstraint(constraint);
+      TypeConstraint constraint, DartType extendsConstraint,
+      {bool isContravariant: false}) {
+    DartType t =
+        solveTypeConstraint(constraint, isContravariant: isContravariant);
     if (!isKnown(t)) {
       return t;
     }

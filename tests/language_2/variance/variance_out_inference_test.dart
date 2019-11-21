@@ -14,10 +14,16 @@ class Upper {}
 class Middle extends Upper {}
 class Lower extends Middle {}
 
+class CovBound<out T> {
+  CovBound(T x, void Function(T) y) {}
+}
+
 Exactly<T> inferCovCov<T>(Covariant<T> x, Covariant<T> y) => new Exactly<T>();
+Exactly<T> inferCovBound<T>(CovBound<T> x) => new Exactly<T>();
 
 main() {
   Exactly<Upper> upper;
+  Exactly<Lower> lower;
 
   // Upper <: T
   // Upper <: T
@@ -36,4 +42,14 @@ main() {
   // Choose Upper since it is the lowest upper bound of Upper and Lower.
   var inferredUpper3 = inferCovCov(Covariant<Upper>(), Covariant<Lower>());
   upper = inferredUpper3;
+
+  // Lower <: T <: Upper
+  // Choose Lower.
+  var inferredCovLower = inferCovBound(CovBound(Lower(), (Upper x) {}));
+  lower = inferredCovLower;
+
+  // Lower <: T <: Middle
+  // Choose Lower.
+  var inferredCovLower2 = inferCovBound(CovBound(Lower(), (Middle x) {}));
+  lower = inferredCovLower2;
 }
