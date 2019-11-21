@@ -80,20 +80,12 @@ class DeduplicateMixinsTransformer extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    // ignore: DEPRECATED_MEMBER_USE
-    if (!node.isExternal) {
-      transformList(node.classes, this, node);
-    }
+    transformList(node.classes, this, node);
     return node;
   }
 
   @override
   TreeNode visitClass(Class c) {
-    // ignore: DEPRECATED_MEMBER_USE
-    if (c.enclosingLibrary.isExternal) {
-      return c;
-    }
-
     if (_duplicatedMixins.containsKey(c)) {
       return null; // Class was de-duplicated already, just remove it.
     }

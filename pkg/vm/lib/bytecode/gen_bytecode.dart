@@ -221,12 +221,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitLibrary(Library node) {
-    // ignore: DEPRECATED_MEMBER_USE
-    if (node.isExternal) {
-      return;
-    }
-
     staticTypeContext.enterLibrary(node);
+
     startMembers();
     visitList(node.procedures, this);
     visitList(node.fields, this);

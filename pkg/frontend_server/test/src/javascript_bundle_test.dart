@@ -69,7 +69,7 @@ void main() {
     );
     final testComponent = Component(libraries: [library, ...testCoreLibraries]);
     final strongComponents =
-        StrongComponents(testComponent, Uri.file('/c.dart'));
+        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
     final javaScriptBundler =
         JavaScriptBundler(testComponent, strongComponents);
@@ -78,7 +78,7 @@ void main() {
     final sourcemapSink = _MemorySink();
 
     javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), codeSink, manifestSink, sourcemapSink);
+        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -117,7 +117,7 @@ void main() {
         libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries]);
 
     final strongComponents =
-        StrongComponents(testComponent, Uri.file('/a.dart'));
+        StrongComponents(testComponent, {}, Uri.file('/a.dart'));
     strongComponents.computeModules();
     final javaScriptBundler =
         JavaScriptBundler(testComponent, strongComponents);
@@ -126,7 +126,7 @@ void main() {
     final sourcemapSink = _MemorySink();
 
     javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), codeSink, manifestSink, sourcemapSink);
+        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));

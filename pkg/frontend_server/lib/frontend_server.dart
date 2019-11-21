@@ -428,6 +428,7 @@ class FrontendCompiler implements CompilerInterface {
           await _runWithPrintRedirection(() => _generator.compile());
       results = KernelCompilationResults(
           component,
+          const {},
           _generator.getClassHierarchy(),
           _generator.getCoreTypes(),
           component.uriToSource.keys);
@@ -444,6 +445,7 @@ class FrontendCompiler implements CompilerInterface {
       // No bytecode at this step. Bytecode is generated later in _writePackage.
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
+          includePlatform: options['link-platform'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
@@ -528,8 +530,12 @@ class FrontendCompiler implements CompilerInterface {
       KernelCompilationResults results, String filename) async {
     final Component component = results.component;
     // Compute strongly connected components.
-    final strongComponents = StrongComponents(component, _mainSource,
-        _compilerOptions.packagesFileUri, _compilerOptions.fileSystem);
+    final strongComponents = StrongComponents(
+        component,
+        results.loadedLibraries,
+        _mainSource,
+        _compilerOptions.packagesFileUri,
+        _compilerOptions.fileSystem);
     await strongComponents.computeModules();
 
     // Create JavaScript bundler.
@@ -543,8 +549,13 @@ class FrontendCompiler implements CompilerInterface {
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
-    bundler.compile(results.classHierarchy, results.coreTypes, sourceFileSink,
-        manifestFileSink, sourceMapsFileSink);
+    bundler.compile(
+        results.classHierarchy,
+        results.coreTypes,
+        results.loadedLibraries,
+        sourceFileSink,
+        manifestFileSink,
+        sourceMapsFileSink);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
@@ -569,7 +580,7 @@ class FrontendCompiler implements CompilerInterface {
           if (_options['incremental']) {
             // When loading a single kernel buffer with multiple sub-components,
             // the VM expects 'main' to be the first sub-component.
-            await forEachPackage(component,
+            await forEachPackage(results,
                 (String package, List<Library> libraries) async {
               _writePackage(results, package, libraries, sink);
             }, mainFirst: true);
@@ -597,11 +608,11 @@ class FrontendCompiler implements CompilerInterface {
         final file = new File(_initializeFromDill);
         await file.create(recursive: true);
         final IOSink sink = file.openWrite();
+        final Set<Library> loadedLibraries = results.loadedLibraries;
         final BinaryPrinter printer = filterExternal
             ? LimitedBinaryPrinter(
                 sink,
-                // ignore: DEPRECATED_MEMBER_USE
-                (lib) => !lib.isExternal,
+                (lib) => !loadedLibraries.contains(lib),
                 true /* excludeUriToSource */)
             : printerFactory.newBinaryPrinter(sink);
 
@@ -613,11 +624,9 @@ class FrontendCompiler implements CompilerInterface {
     } else {
       // Generate AST as the output proper.
       final IOSink sink = File(filename).openWrite();
+      final Set<Library> loadedLibraries = results.loadedLibraries;
       final BinaryPrinter printer = filterExternal
-          ? LimitedBinaryPrinter(
-              sink,
-              // ignore: DEPRECATED_MEMBER_USE
-              (lib) => !lib.isExternal,
+          ? LimitedBinaryPrinter(sink, (lib) => !loadedLibraries.contains(lib),
               true /* excludeUriToSource */)
           : printerFactory.newBinaryPrinter(sink);
 
@@ -636,12 +645,7 @@ class FrontendCompiler implements CompilerInterface {
 
     if (_options['split-output-by-packages']) {
       await writeOutputSplitByPackages(
-          _mainSource,
-          _compilerOptions,
-          results.component,
-          results.coreTypes,
-          results.classHierarchy,
-          filename,
+          _mainSource, _compilerOptions, results, filename,
           genBytecode: _compilerOptions.bytecode,
           bytecodeOptions: _bytecodeOptions,
           dropAST: _options['drop-ast']);
@@ -731,9 +735,16 @@ class FrontendCompiler implements CompilerInterface {
 
     Component partComponent = result.component;
     if (_compilerOptions.bytecode && errors.isEmpty) {
+      final List<Library> librariesFiltered = new List<Library>();
+      final Set<Library> loadedLibraries = result.loadedLibraries;
+      for (Library library in libraries) {
+        if (loadedLibraries.contains(library)) continue;
+        librariesFiltered.add(library);
+      }
+
       generateBytecode(partComponent,
           options: _bytecodeOptions,
-          libraries: libraries,
+          libraries: librariesFiltered,
           coreTypes: _generator?.getCoreTypes(),
           hierarchy: _generator?.getClassHierarchy());
 
@@ -743,8 +754,10 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     final byteSink = ByteSink();
-    final BinaryPrinter printer = LimitedBinaryPrinter(byteSink,
-        (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
+    final BinaryPrinter printer = LimitedBinaryPrinter(
+        byteSink,
+        (lib) => packageFor(lib, result.loadedLibraries) == package,
+        false /* excludeUriToSource */);
     printer.writeComponentFile(partComponent);
 
     final bytes = byteSink.builder.takeBytes();
@@ -771,6 +784,7 @@ class FrontendCompiler implements CompilerInterface {
 
     KernelCompilationResults results = KernelCompilationResults(
         deltaProgram,
+        const {},
         _generator.getClassHierarchy(),
         _generator.getCoreTypes(),
         deltaProgram.uriToSource.keys);

@@ -50,15 +50,20 @@ class JavaScriptBundler {
   Map<Uri, Component> _uriToComponent;
 
   /// Compile each component into a single JavaScript module.
-  void compile(ClassHierarchy classHierarchy, CoreTypes coreTypes,
-      IOSink codeSink, IOSink manifestSink, IOSink sourceMapsSink) {
+  void compile(
+      ClassHierarchy classHierarchy,
+      CoreTypes coreTypes,
+      Set<Library> loadedLibraries,
+      IOSink codeSink,
+      IOSink manifestSink,
+      IOSink sourceMapsSink) {
     var codeOffset = 0;
     var sourceMapOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
     for (Library library in _originalComponent.libraries) {
-      // ignore: DEPRECATED_MEMBER_USE
-      if (library.isExternal || library.importUri.scheme == 'dart') {
+      if (loadedLibraries.contains(library) ||
+          library.importUri.scheme == 'dart') {
         continue;
       }
       final Uri moduleUri = _strongComponents.moduleAssignment[library.fileUri];

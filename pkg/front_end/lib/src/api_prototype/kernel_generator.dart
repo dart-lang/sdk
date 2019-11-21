@@ -109,6 +109,11 @@ abstract class CompilerResult {
   /// The generated component, if it was requested.
   Component get component;
 
+  Component get sdkComponent;
+
+  /// The components loaded from dill (excluding the sdk).
+  List<Component> get loadedComponents;
+
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
   /// Note this might be removed when we switch to compute dependencies without

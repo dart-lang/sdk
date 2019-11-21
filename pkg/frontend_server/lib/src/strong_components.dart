@@ -29,6 +29,7 @@ import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 class StrongComponents {
   StrongComponents(
     this.component,
+    this.loadedLibraries,
     this.mainUri, [
     this.packagesUri,
     this.fileSystem,
@@ -39,6 +40,9 @@ class StrongComponents {
   /// On incremental compiles, this will only contain the invalidated
   /// lbraries.
   final Component component;
+
+  /// The libraries loaded from a dill file that should not be processed.
+  final Set<Library> loadedLibraries;
 
   /// The main URI for thiis application.
   final Uri mainUri;
@@ -90,7 +94,7 @@ class StrongComponents {
     }
 
     final List<List<Library>> results =
-        computeStrongComponents(_LibraryGraph(entrypoint));
+        computeStrongComponents(_LibraryGraph(entrypoint, loadedLibraries));
     for (List<Library> component in results) {
       assert(component.length > 0);
       final Uri moduleUri = component.first.fileUri;
@@ -149,16 +153,16 @@ class StrongComponents {
 }
 
 class _LibraryGraph implements Graph<Library> {
-  _LibraryGraph(this.library);
+  _LibraryGraph(this.library, this.loadedLibraries);
 
   final Library library;
+  final Set<Library> loadedLibraries;
 
   @override
   Iterable<Library> neighborsOf(Library vertex) {
     return <Library>[
       for (LibraryDependency dependency in vertex.dependencies)
-        // ignore: DEPRECATED_MEMBER_USE
-        if (!dependency.targetLibrary.isExternal &&
+        if (!loadedLibraries.contains(dependency.targetLibrary) &&
             dependency.targetLibrary.importUri.scheme != 'dart')
           dependency.targetLibrary
     ];

@@ -230,6 +230,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   final results = await compileToKernel(mainUri, compilerOptions,
+      includePlatform: linkedDependencies.isNotEmpty,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -267,9 +268,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await writeOutputSplitByPackages(
       mainUri,
       compilerOptions,
-      results.component,
-      results.coreTypes,
-      results.classHierarchy,
+      results,
       outputFileName,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
@@ -284,12 +283,16 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 /// collection of compiled sources.
 class KernelCompilationResults {
   final Component component;
+
+  /// Set of libraries loaded from .dill, with or without the SDK depending on
+  /// the compilation settings.
+  final Set<Library> loadedLibraries;
   final ClassHierarchy classHierarchy;
   final CoreTypes coreTypes;
   final Iterable<Uri> compiledSources;
 
-  KernelCompilationResults(this.component, this.classHierarchy, this.coreTypes,
-      this.compiledSources);
+  KernelCompilationResults(this.component, this.loadedLibraries,
+      this.classHierarchy, this.coreTypes, this.compiledSources);
 }
 
 /// Generates a kernel representation of the program whose main library is in
@@ -299,7 +302,8 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {bool aot: false,
+    {bool includePlatform: false,
+    bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool enableAsserts: true,
@@ -314,9 +318,12 @@ Future<KernelCompilationResults> compileToKernel(
 
   setVMEnvironmentDefines(environmentDefines, options);
   CompilerResult compilerResult = await kernelForProgram(source, options);
-
   Component component = compilerResult?.component;
   final compiledSources = component?.uriToSource?.keys;
+
+  Set<Library> loadedLibraries = createLoadedLibrariesSet(
+      compilerResult?.loadedComponents, compilerResult?.sdkComponent,
+      includePlatform: includePlatform);
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -330,8 +337,15 @@ Future<KernelCompilationResults> compileToKernel(
   }
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
+    List<Library> libraries = new List<Library>();
+    for (Library library in component.libraries) {
+      if (loadedLibraries.contains(library)) continue;
+      libraries.add(library);
+    }
+
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
+          libraries: libraries,
           hierarchy: compilerResult.classHierarchy,
           coreTypes: compilerResult.coreTypes,
           options: bytecodeOptions);
@@ -345,8 +359,37 @@ Future<KernelCompilationResults> compileToKernel(
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return new KernelCompilationResults(component, compilerResult?.classHierarchy,
-      compilerResult?.coreTypes, compiledSources);
+  return new KernelCompilationResults(
+      component,
+      loadedLibraries,
+      compilerResult?.classHierarchy,
+      compilerResult?.coreTypes,
+      compiledSources);
+}
+
+Set<Library> createLoadedLibrariesSet(
+    List<Component> loadedComponents, Component sdkComponent,
+    {bool includePlatform: false}) {
+  final Set<Library> loadedLibraries = {};
+  if (loadedComponents != null) {
+    for (Component c in loadedComponents) {
+      for (Library lib in c.libraries) {
+        loadedLibraries.add(lib);
+      }
+    }
+  }
+  if (sdkComponent != null) {
+    if (includePlatform) {
+      for (Library lib in sdkComponent.libraries) {
+        loadedLibraries.remove(lib);
+      }
+    } else {
+      for (Library lib in sdkComponent.libraries) {
+        loadedLibraries.add(lib);
+      }
+    }
+  }
+  return loadedLibraries;
 }
 
 void setVMEnvironmentDefines(
@@ -618,9 +661,7 @@ Future<Uri> convertToPackageUri(
 Future writeOutputSplitByPackages(
   Uri source,
   CompilerOptions compilerOptions,
-  Component component,
-  CoreTypes coreTypes,
-  ClassHierarchy hierarchy,
+  KernelCompilationResults compilationResults,
   String outputFileName, {
   bool genBytecode: false,
   BytecodeOptions bytecodeOptions,
@@ -631,31 +672,34 @@ Future writeOutputSplitByPackages(
   }
 
   final packages = new List<String>();
-  await runWithFrontEndCompilerContext(source, compilerOptions, component,
-      () async {
+  await runWithFrontEndCompilerContext(
+      source, compilerOptions, compilationResults.component, () async {
     // When loading a kernel file list, flutter_runner and dart_runner expect
     // 'main' to be last.
-    await forEachPackage(component,
+    await forEachPackage(compilationResults,
         (String package, List<Library> libraries) async {
       packages.add(package);
       final String filename = '$outputFileName-$package.dilp';
       final IOSink sink = new File(filename).openWrite();
 
-      Component partComponent = component;
+      Component partComponent = compilationResults.component;
       if (genBytecode) {
         generateBytecode(partComponent,
             options: bytecodeOptions,
             libraries: libraries,
-            hierarchy: hierarchy,
-            coreTypes: coreTypes);
+            hierarchy: compilationResults.classHierarchy,
+            coreTypes: compilationResults.coreTypes);
 
         if (dropAST) {
           partComponent = createFreshComponentWithBytecode(partComponent);
         }
       }
 
-      final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
-          (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
+      final BinaryPrinter printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package,
+          false /* excludeUriToSource */);
       printer.writeComponentFile(partComponent);
 
       await sink.close();
@@ -673,10 +717,9 @@ Future writeOutputSplitByPackages(
   await packagesList.close();
 }
 
-String packageFor(Library lib) {
+String packageFor(Library lib, Set<Library> loadedLibraries) {
   // Core libraries are not written into any package kernel binaries.
-  // ignore: DEPRECATED_MEMBER_USE
-  if (lib.isExternal) return null;
+  if (loadedLibraries.contains(lib)) return null;
 
   // Packages are written into their own kernel binaries.
   Uri uri = lib.importUri;
@@ -702,15 +745,20 @@ void sortComponent(Component component) {
   }
 }
 
-Future<Null> forEachPackage<T>(
-    Component component, T action(String package, List<Library> libraries),
+Future<Null> forEachPackage<T>(KernelCompilationResults results,
+    T action(String package, List<Library> libraries),
     {bool mainFirst}) async {
+  final Component component = results.component;
+  final Set<Library> loadedLibraries = results.loadedLibraries;
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
   packages['main'] = new List<Library>(); // Always create 'main'.
   for (Library lib in component.libraries) {
-    packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
+    packages
+        .putIfAbsent(
+            packageFor(lib, loadedLibraries), () => new List<Library>())
+        .add(lib);
   }
   packages.remove(null); // Ignore external libraries.
 

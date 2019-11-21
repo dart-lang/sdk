@@ -9,7 +9,7 @@ import 'dart:async' show Future;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart' show Component, CanonicalName;
+import 'package:kernel/kernel.dart' show CanonicalName, Component;
 
 import 'base/processed_options.dart' show ProcessedOptions;
 
@@ -81,6 +81,8 @@ Future<CompilerResult> generateKernelInternal(
           .toSet();
     }
 
+    List<Component> loadedComponents = new List<Component>();
+
     Component sdkSummary = await options.loadSdkSummary(null);
     // By using the nameRoot of the the summary, we enable sharing the
     // sdkSummary between multiple invocations.
@@ -95,6 +97,7 @@ Future<CompilerResult> generateKernelInternal(
     // linked dependencies were listed out of order (or provide mechanism to
     // sort them).
     for (Component inputSummary in await options.loadInputSummaries(nameRoot)) {
+      loadedComponents.add(inputSummary);
       Set<Uri> excluded = externalLibs(inputSummary);
       dillTarget.loader.appendLibraries(inputSummary,
           filter: (uri) => !excluded.contains(uri));
@@ -110,6 +113,7 @@ Future<CompilerResult> generateKernelInternal(
     // Linked dependencies are meant to be part of the component so they are not
     // marked external.
     for (Component dependency in await options.loadLinkDependencies(nameRoot)) {
+      loadedComponents.add(dependency);
       Set<Uri> excluded = externalLibs(dependency);
       dillTarget.loader.appendLibraries(dependency,
           filter: (uri) => !excluded.contains(uri));
@@ -174,6 +178,8 @@ Future<CompilerResult> generateKernelInternal(
     return new InternalCompilerResult(
         summary: summary,
         component: component,
+        sdkComponent: sdkSummary,
+        loadedComponents: loadedComponents,
         classHierarchy:
             includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
         coreTypes:
@@ -190,6 +196,10 @@ class InternalCompilerResult implements CompilerResult {
 
   /// The generated component, if it was requested.
   final Component component;
+
+  final Component sdkComponent;
+
+  final List<Component> loadedComponents;
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
@@ -209,6 +219,8 @@ class InternalCompilerResult implements CompilerResult {
   InternalCompilerResult(
       {this.summary,
       this.component,
+      this.sdkComponent,
+      this.loadedComponents,
       this.deps,
       this.classHierarchy,
       this.coreTypes,
