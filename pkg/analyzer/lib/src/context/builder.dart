@@ -15,7 +15,6 @@ import 'package:analyzer/src/command_line/arguments.dart'
         applyAnalysisOptionFlags,
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
@@ -151,23 +150,6 @@ class ContextBuilder {
       : builderOptions = options ?? new ContextBuilderOptions();
 
   /**
-   * Return an analysis context that is configured correctly to analyze code in
-   * the directory with the given [path].
-   *
-   * *Note:* This method is not yet fully implemented and should not be used.
-   */
-  AnalysisContext buildContext(String path) {
-    InternalAnalysisContext context =
-        AnalysisEngine.instance.createAnalysisContext();
-    AnalysisOptionsImpl options = getAnalysisOptions(path);
-    context.sourceFactory = createSourceFactory(path, options);
-    context.analysisOptions = options;
-    //_processAnalysisOptions(context, optionMap);
-    declareVariables(context);
-    return context;
-  }
-
-  /**
    * Return an analysis driver that is configured correctly to analyze code in
    * the directory with the given [path].
    */
@@ -288,17 +270,6 @@ class ContextBuilder {
       summaryData.addBundle(null, sdk.bundle);
     }
     return workspace.createSourceFactory(sdk, summaryData);
-  }
-
-  /**
-   * Add any [declaredVariables] to the list of declared variables used by the
-   * given [context].
-   */
-  void declareVariables(AnalysisContextImpl context) {
-    Map<String, String> variables = builderOptions.declaredVariables;
-    if (variables != null && variables.isNotEmpty) {
-      context.declaredVariables = new DeclaredVariables.fromMap(variables);
-    }
   }
 
   /**
@@ -647,23 +618,6 @@ class ContextBuilder {
     return null;
   }
 
-  /**
-   * Return `true` if either the directory at [rootPath] or a parent of that
-   * directory contains a `.packages` file.
-   */
-  static bool _hasPackageFileInPath(
-      ResourceProvider resourceProvider, String rootPath) {
-    Folder folder = resourceProvider.getFolder(rootPath);
-    while (folder != null) {
-      File file = folder.getChildAssumingFile('.packages');
-      if (file.exists) {
-        return true;
-      }
-      folder = folder.parent;
-    }
-    return false;
-  }
-
   static Workspace createWorkspace(ResourceProvider resourceProvider,
       String rootPath, ContextBuilder contextBuilder) {
     if (_hasPackageFileInPath(resourceProvider, rootPath)) {
@@ -682,6 +636,23 @@ class ContextBuilder {
     workspace ??= PubWorkspace.find(resourceProvider, rootPath, contextBuilder);
     return workspace ??
         BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+  }
+
+  /**
+   * Return `true` if either the directory at [rootPath] or a parent of that
+   * directory contains a `.packages` file.
+   */
+  static bool _hasPackageFileInPath(
+      ResourceProvider resourceProvider, String rootPath) {
+    Folder folder = resourceProvider.getFolder(rootPath);
+    while (folder != null) {
+      File file = folder.getChildAssumingFile('.packages');
+      if (file.exists) {
+        return true;
+      }
+      folder = folder.parent;
+    }
+    return false;
   }
 }
 

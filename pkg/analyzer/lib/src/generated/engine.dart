@@ -10,7 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -149,11 +148,6 @@ class AnalysisEngine {
   void clearCaches() {
     // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
-  }
-
-  /// Create and return a new context in which analysis can be performed.
-  AnalysisContext createAnalysisContext() {
-    return new AnalysisContextImpl();
   }
 
   /// A utility method that clients can use to process all of the required
