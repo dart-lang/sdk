@@ -81,7 +81,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * The type system primitives
    */
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * The manager for the inheritance mappings.

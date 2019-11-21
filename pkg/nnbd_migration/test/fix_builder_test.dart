@@ -2152,12 +2152,8 @@ class _FixBuilder extends FixBuilder {
 
   final Map<AstNode, Set<Problem>> problems = {};
 
-  _FixBuilder(
-      Source source,
-      DecoratedClassHierarchy decoratedClassHierarchy,
-      TypeProvider typeProvider,
-      Dart2TypeSystem typeSystem,
-      Variables variables)
+  _FixBuilder(Source source, DecoratedClassHierarchy decoratedClassHierarchy,
+      TypeProvider typeProvider, TypeSystemImpl typeSystem, Variables variables)
       : super(source, decoratedClassHierarchy, typeProvider, typeSystem,
             variables);
 

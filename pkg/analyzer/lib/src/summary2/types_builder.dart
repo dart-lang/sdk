@@ -28,7 +28,7 @@ class NodesToBuildType {
 }
 
 class TypesBuilder {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   TypesBuilder(this.typeSystem);
 
@@ -207,7 +207,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
 
@@ -347,7 +347,7 @@ class _MixinInference {
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   _MixinsInference(this.typeSystem);
 

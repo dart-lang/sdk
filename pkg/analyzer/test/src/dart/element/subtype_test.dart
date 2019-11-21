@@ -6123,7 +6123,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
 class _SubtypingTestBase with ElementsTypesMixin {
   TypeProvider typeProvider;
 
-  Dart2TypeSystem typeSystem;
+  TypeSystemImpl typeSystem;
 
   ClassElement _comparableElement;
 

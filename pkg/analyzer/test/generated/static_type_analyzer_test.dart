@@ -220,7 +220,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The type system used to analyze the test cases.
    */
-  TypeSystem get _typeSystem => _visitor.typeSystem;
+  TypeSystemImpl get _typeSystem => _visitor.typeSystem;
 
   void fail_visitFunctionExpressionInvocation() {
     _fail("Not yet tested");

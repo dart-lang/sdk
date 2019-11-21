@@ -48,7 +48,7 @@ class AssignmentCheckerTest extends Object
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
-    var checker = AssignmentCheckerForTesting(Dart2TypeSystem(typeProvider),
+    var checker = AssignmentCheckerForTesting(TypeSystemImpl(typeProvider),
         typeProvider, graph, decoratedClassHierarchy);
     var assignmentCheckerTest =
         AssignmentCheckerTest._(typeProvider, graph, checker);

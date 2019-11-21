@@ -349,8 +349,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
-  Dart2TypeSystem get typeSystem =>
-      testAnalysisResult.typeSystem as Dart2TypeSystem;
+  TypeSystemImpl get typeSystem =>
+      testAnalysisResult.typeSystem as TypeSystemImpl;
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);

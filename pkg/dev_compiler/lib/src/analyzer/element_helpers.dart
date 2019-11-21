@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
 import 'type_utilities.dart';
 
@@ -48,7 +48,7 @@ InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
 /// `element.type`, but unfortunately typedef elements do not return a
 /// meaningful type, so we need to work around that.
 DartType instantiateElementTypeToBounds(
-    Dart2TypeSystem rules, TypeDefiningElement element) {
+    TypeSystemImpl rules, TypeDefiningElement element) {
   if (element is TypeParameterizedElement) {
     if (element is ClassElement) {
       var typeArguments = rules.instantiateTypeFormalsToBounds2(element);

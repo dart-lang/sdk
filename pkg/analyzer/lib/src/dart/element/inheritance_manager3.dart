@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// Description of a failure to find a valid override from superinterfaces.
@@ -32,7 +33,7 @@ class Conflict {
 class InheritanceManager3 {
   static final _noSuchMethodName = Name(null, 'noSuchMethod');
 
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// Cached instance interfaces for [InterfaceType].
   final Map<InterfaceType, Interface> _interfaces = {};
@@ -41,7 +42,7 @@ class InheritanceManager3 {
   /// self-referencing cycles.
   final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
-  InheritanceManager3(this._typeSystem);
+  InheritanceManager3(TypeSystem typeSystem) : _typeSystem = typeSystem;
 
   /// Return the most specific signature of the member with the given [name]
   /// that the [type] inherits from the mixins, superclasses, or interfaces;

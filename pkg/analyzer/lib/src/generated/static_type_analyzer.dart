@@ -53,7 +53,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The type system in use for static type analysis.
    */
-  Dart2TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * The type representing the type 'dynamic'.
@@ -2205,7 +2205,7 @@ class _InferredCollectionElementTypeInformation {
       {this.elementType, this.keyType, this.valueType});
 
   factory _InferredCollectionElementTypeInformation.forIfElement(
-      TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       _InferredCollectionElementTypeInformation thenInfo,
       _InferredCollectionElementTypeInformation elseInfo) {
     if (thenInfo.isDynamic) {
@@ -2259,7 +2259,7 @@ class _InferredCollectionElementTypeInformation {
   }
 
   static DartType _leastUpperBoundOfTypes(
-      TypeSystem typeSystem, DartType first, DartType second) {
+      TypeSystemImpl typeSystem, DartType first, DartType second) {
     if (first == null) {
       return second;
     } else if (second == null) {

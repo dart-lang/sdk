@@ -4,8 +4,9 @@
 
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
 /**
  * An [AnalysisContext] in which analysis can be performed.
@@ -35,7 +36,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * The [TypeSystem] for this context, `null` if not yet created.
    */
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * Initialize a newly created analysis context.
@@ -82,8 +83,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  TypeSystem get typeSystem {
-    return _typeSystem ??= Dart2TypeSystem(typeProvider);
+  TypeSystemImpl get typeSystem {
+    return _typeSystem ??= TypeSystemImpl(typeProvider);
   }
 }
 

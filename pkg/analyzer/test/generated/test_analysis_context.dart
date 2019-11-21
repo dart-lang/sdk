@@ -16,7 +16,7 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisOptions _analysisOptions;
   TypeProviderImpl _typeProvider;
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   TestAnalysisContext({FeatureSet featureSet}) {
     _analysisOptions = AnalysisOptionsImpl()
@@ -38,7 +38,7 @@ class TestAnalysisContext implements AnalysisContext {
       _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
     }
 
-    _typeSystem = Dart2TypeSystem(typeProvider);
+    _typeSystem = TypeSystemImpl(typeProvider);
   }
 
   @override
@@ -48,7 +48,7 @@ class TestAnalysisContext implements AnalysisContext {
   TypeProvider get typeProvider => _typeProvider;
 
   @override
-  TypeSystem get typeSystem => _typeSystem;
+  TypeSystemImpl get typeSystem => _typeSystem;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

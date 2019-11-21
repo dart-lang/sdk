@@ -355,7 +355,7 @@ class ResolverTestCase with ResourceProviderMixin {
   /**
    * Return a type system that can be used to test the results of resolution.
    */
-  TypeSystem get typeSystem {
+  TypeSystemImpl get typeSystem {
     if (analysisResults.isEmpty) {
       fail('typeSystem called before computing an analysis result.');
     }
@@ -812,7 +812,7 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   TestAnalysisResult(this.source, this.unit, this.errors, this.typeSystem);
 }

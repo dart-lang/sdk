@@ -90,6 +90,8 @@ bool _isTop(DartType t) {
 
 /**
  * A type system that implements the type semantics for Dart 2.0.
+ *
+ * TODO(scheglov) Merge it into TypeSystemImpl.
  */
 class Dart2TypeSystem extends TypeSystem {
   /**
@@ -1639,7 +1641,7 @@ class Dart2TypeSystem extends TypeSystem {
 /// As currently designed, an instance of this class should only be used to
 /// infer a single call and discarded immediately afterwards.
 class GenericInferrer {
-  final Dart2TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   final TypeProvider typeProvider;
   final Map<TypeParameterElement, List<_TypeConstraint>> constraints = {};
 
@@ -2437,7 +2439,7 @@ class InstantiatedClass {
 }
 
 class InterfaceLeastUpperBoundHelper {
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   InterfaceLeastUpperBoundHelper(this.typeSystem);
 
@@ -2495,8 +2497,8 @@ class InterfaceLeastUpperBoundHelper {
         if (parameterVariance.isCovariant) {
           args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
         } else if (parameterVariance.isContravariant) {
-          if (typeSystem is Dart2TypeSystem) {
-            args[i] = (typeSystem as Dart2TypeSystem)
+          if (typeSystem is TypeSystemImpl) {
+            args[i] = (typeSystem as TypeSystemImpl)
                 .getGreatestLowerBound(args1[i], args2[i]);
           } else {
             args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
@@ -3341,6 +3343,17 @@ abstract class TypeSystem implements public.TypeSystem {
   DartType _typeParameterLeastUpperBound(DartType type1, DartType type2);
 }
 
+/**
+ * The [public.TypeSystem] implementation.
+ */
+// ignore: deprecated_member_use_from_same_package
+class TypeSystemImpl extends Dart2TypeSystem {
+  TypeSystemImpl(TypeProvider typeProvider,
+      {bool implicitCasts: true, bool strictInference: false})
+      : super(typeProvider,
+            implicitCasts: implicitCasts, strictInference: strictInference);
+}
+
 /// A type that is being inferred but is not currently known.
 ///
 /// This type will only appear in a downward inference context for type
@@ -3463,7 +3476,7 @@ class _TypeConstraint extends _TypeRange {
 
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
 
-  bool isSatisifedBy(TypeSystem ts, DartType type) =>
+  bool isSatisifedBy(TypeSystemImpl ts, DartType type) =>
       ts.isSubtypeOf(lowerBound, type) && ts.isSubtypeOf(type, upperBound);
 
   /// Converts this constraint to a message suitable for a type inference error.

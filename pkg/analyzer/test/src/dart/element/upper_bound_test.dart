@@ -509,14 +509,14 @@ class BoundsHelperPredicatesTest extends _SubtypingTestBase {
     isNotTop(neverStar);
   }
 
-  /// [Dart2TypeSystem.isMoreBottom] can be used only for `BOTTOM` or `NULL`
+  /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
   /// types. No need to check other types.
   void _assertIsBottomOrNull(DartType type) {
     expect(typeSystem.isBottom(type) || typeSystem.isNull(type), isTrue,
         reason: _typeString(type));
   }
 
-  /// [Dart2TypeSystem.isMoreTop] can be used only for `TOP` or `OBJECT`
+  /// [TypeSystemImpl.isMoreTop] can be used only for `TOP` or `OBJECT`
   /// types. No need to check other types.
   void _assertIsTopOrObject(DartType type) {
     expect(typeSystem.isTop(type) || typeSystem.isObject(type), isTrue,
@@ -565,7 +565,7 @@ class BoundsHelperPredicatesTest extends _SubtypingTestBase {
 class _SubtypingTestBase with ElementsTypesMixin {
   TypeProvider typeProvider;
 
-  Dart2TypeSystem typeSystem;
+  TypeSystemImpl typeSystem;
 
   DartType get dynamicNone => typeProvider.dynamicType;
 

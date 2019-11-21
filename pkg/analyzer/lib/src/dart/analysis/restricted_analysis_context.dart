@@ -38,7 +38,7 @@ class RestrictedAnalysisContext implements AnalysisContextImpl {
   }
 
   @override
-  TypeSystem get typeSystem => synchronousSession.typeSystem;
+  TypeSystemImpl get typeSystem => synchronousSession.typeSystem;
 
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

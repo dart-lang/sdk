@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -58,7 +57,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
           <KytheGetKytheEntriesResult>[];
       ResolvedUnitResult result = await server.getResolvedUnit(file);
       if (result?.state == ResultState.VALID) {
-        TypeSystem typeSystem = await result.libraryElement.session.typeSystem;
+        var typeSystem = await result.libraryElement.session.typeSystem;
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         List<String> files = <String>[];

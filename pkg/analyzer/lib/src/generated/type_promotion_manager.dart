@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 /// types of local variables and formal parameters from their declared types
 /// based on control flow.
 class TypePromotionManager {
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// The current promotion scope, or `null` if no scope has been entered.
   _TypePromoteScope _currentScope;

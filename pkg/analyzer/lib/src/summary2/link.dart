@@ -71,7 +71,7 @@ class Linker {
 
   TypeProvider get typeProvider => analysisContext.typeProvider;
 
-  Dart2TypeSystem get typeSystem => analysisContext.typeSystem;
+  TypeSystemImpl get typeSystem => analysisContext.typeSystem;
 
   void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {

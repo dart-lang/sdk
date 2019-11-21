@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -1652,7 +1652,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * types in [types], return it.  Otherwise return `null`.
    */
   static DartType findMostSpecificType(
-      List<DartType> types, TypeSystem typeSystem) {
+      List<DartType> types, TypeSystemImpl typeSystem) {
     // The << relation ("more specific than") is a partial ordering on types,
     // so to find the most specific type of a set, we keep a bucket of the most
     // specific types seen so far such that no type in the bucket is more
@@ -2075,7 +2075,7 @@ abstract class TypeImpl implements DartType {
    * so it is what you want if you are constructing a fresh type and want it to
    * have the correct nullability suffix, but it is generally *not* what you
    * want if you're manipulating existing types.  For manipulating existing
-   * types, please use the methods in [TypeSystem].
+   * types, please use the methods in [TypeSystemImpl].
    */
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 

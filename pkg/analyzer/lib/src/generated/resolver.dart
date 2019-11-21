@@ -74,7 +74,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final InterfaceType _nullType;
 
   /// The type system primitives
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// The inheritance manager to access interface type hierarchy.
   final InheritanceManager3 _inheritanceManager;
@@ -105,13 +105,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     CompilationUnit unit,
     String content, {
-    TypeSystem typeSystem,
+    TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        _typeSystem = typeSystem ?? TypeSystemImpl(typeProvider),
         _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
@@ -1520,7 +1520,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   ///  The type system for this visitor
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
@@ -1532,8 +1532,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
-      {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null),
+      {TypeSystemImpl typeSystem})
+      : this._typeSystem = typeSystem ?? TypeSystemImpl(null),
         _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
@@ -2176,7 +2176,7 @@ class InferenceContext {
   final TypeProvider _typeProvider;
 
   /// The type system in use.
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// When no context type is available, this will track the least upper bound
   /// of all return statements in a lambda.
@@ -2271,8 +2271,8 @@ class InferenceContext {
   ///
   /// The returned type may be partially or completely unknown, denoted with an
   /// unknown type `?`, for example `List<?>` or `(?, int) -> void`.
-  /// You can use [Dart2TypeSystem.upperBoundForType] or
-  /// [Dart2TypeSystem.lowerBoundForType] if you would prefer a known type
+  /// You can use [TypeSystemImpl.upperBoundForType] or
+  /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
   static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
 
@@ -2677,7 +2677,7 @@ class ResolverVisitor extends ScopedVisitor {
   StaticTypeAnalyzer typeAnalyzer;
 
   /// The type system in use during resolution.
-  Dart2TypeSystem typeSystem;
+  TypeSystemImpl typeSystem;
 
   /// The class declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a class.
@@ -5616,7 +5616,7 @@ class ToDoFinder {
 ///
 /// The client must set [nameScope] before calling [resolveTypeName].
 class TypeNameResolver {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;

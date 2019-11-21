@@ -28,7 +28,7 @@ class ExtensionMemberResolver {
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
-  TypeSystem get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   /// Return the most specific extension in the current scope for this [type],
   /// that defines the member with the given [name].

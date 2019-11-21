@@ -12,8 +12,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/type_system.dart'
-    show Dart2TypeSystem, TypeSystem;
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
 export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
@@ -110,7 +109,7 @@ class ConstantEvaluator {
   /**
    * The type system primitives.
    */
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /**
    * Initialize a newly created evaluator to evaluate expressions in the given
@@ -118,8 +117,8 @@ class ConstantEvaluator {
    * types.
    */
   ConstantEvaluator(this._source, TypeProvider typeProvider,
-      {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+      {TypeSystemImpl typeSystem})
+      : _typeSystem = typeSystem ?? TypeSystemImpl(typeProvider),
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {

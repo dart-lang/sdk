@@ -75,7 +75,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   final TypeProvider typeProvider;
 
   /// The type system.
-  final Dart2TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// Variables for this migration run.
   final Variables _variables;

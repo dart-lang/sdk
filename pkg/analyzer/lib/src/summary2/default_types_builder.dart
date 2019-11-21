@@ -16,7 +16,7 @@ import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
 class DefaultTypesBuilder {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   DefaultTypesBuilder(this.typeSystem);
 

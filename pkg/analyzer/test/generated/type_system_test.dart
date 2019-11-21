@@ -42,7 +42,7 @@ main() {
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
+  TypeSystemImpl typeSystem;
 
   InterfaceType get doubleType => typeProvider.doubleType;
 

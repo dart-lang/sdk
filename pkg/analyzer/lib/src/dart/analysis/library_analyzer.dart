@@ -72,7 +72,7 @@ class LibraryAnalyzer {
   final LinkedElementFactory _elementFactory;
   TypeProviderImpl _typeProvider;
 
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;

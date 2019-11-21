@@ -27,7 +27,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   TypeProvider _typeProvider;
 
   /// The type system being used by the analysis driver.
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /// The URI converter used to convert between URI's and file paths.
   UriConverter _uriConverter;
@@ -64,12 +64,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<TypeSystem> get typeSystem async {
+  Future<TypeSystemImpl> get typeSystem async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     _checkConsistency();
     if (_typeSystem == null) {
-      _typeSystem = new Dart2TypeSystem(await typeProvider);
+      _typeSystem = TypeSystemImpl(await typeProvider);
     }
     return _typeSystem;
   }
@@ -202,7 +202,7 @@ class SynchronousSession {
 
   TypeProvider _typeProvider;
 
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
@@ -215,8 +215,8 @@ class SynchronousSession {
     _typeProvider = typeProvider;
   }
 
-  TypeSystem get typeSystem {
-    return _typeSystem ??= Dart2TypeSystem(
+  TypeSystemImpl get typeSystem {
+    return _typeSystem ??= TypeSystemImpl(
       typeProvider,
       implicitCasts: analysisOptions.implicitCasts,
       strictInference: analysisOptions.strictInference,
