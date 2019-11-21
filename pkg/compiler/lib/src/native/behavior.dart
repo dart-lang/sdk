@@ -815,7 +815,7 @@ abstract class BehaviorBuilder {
         }
 
         if (!trustJSInteropTypeAnnotations ||
-            type.isDynamic ||
+            type is DynamicType ||
             type == commonElements.objectType) {
           // By saying that only JS-interop types can be created, we prevent
           // pulling in every other native type (e.g. all of dart:html) when a
@@ -882,7 +882,7 @@ abstract class BehaviorBuilder {
     _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
         ? returnType
         : commonElements.dynamicType);
-    if (!type.returnType.isVoid) {
+    if (type.returnType is! VoidType) {
       // Declared types are nullable.
       _behavior.typesReturned.add(commonElements.nullType);
     }

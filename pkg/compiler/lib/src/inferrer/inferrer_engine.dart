@@ -387,11 +387,11 @@ class InferrerEngineImpl extends InferrerEngine {
         mappedType = types.boolType;
       } else if (type == commonElements.nullType) {
         mappedType = types.nullType;
-      } else if (type.isVoid) {
+      } else if (type is VoidType) {
         mappedType = types.nullType;
-      } else if (type.isDynamic) {
+      } else if (type is DynamicType) {
         return types.dynamicType;
-      } else if (type.isInterfaceType) {
+      } else if (type is InterfaceType) {
         mappedType = types.nonNullSubtype(type.element);
       } else {
         mappedType = types.dynamicType;

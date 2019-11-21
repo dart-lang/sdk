@@ -44,39 +44,6 @@ abstract class DartType {
   /// Is `true` if this type should be treated as the dynamic type.
   bool get treatAsDynamic => false;
 
-  /// Is `true` if this type is the dynamic type.
-  bool get isDynamic => false;
-
-  /// Is `true` if this type is an erased type.
-  bool get isErased => false;
-
-  /// Is `true` if this type is the any type.
-  bool get isAny => false;
-
-  /// Is `true` if this type is the void type.
-  bool get isVoid => false;
-
-  /// Is `true` if this type is an interface type.
-  bool get isInterfaceType => false;
-
-  /// Is `true` if this type is a typedef.
-  bool get isTypedef => false;
-
-  /// Is `true` if this type is a function type.
-  bool get isFunctionType => false;
-
-  /// Is `true` if this type is a type variable.
-  bool get isTypeVariable => false;
-
-  /// Is `true` if this type is a type variable declared on a function type
-  ///
-  /// For instance `T` in
-  ///     void Function<T>(T t)
-  bool get isFunctionTypeVariable => false;
-
-  /// Is `true` if this type is a `FutureOr` type.
-  bool get isFutureOr => false;
-
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
 
@@ -187,9 +154,6 @@ class InterfaceType extends DartType {
   bool get isTop => isObject;
 
   @override
-  bool get isInterfaceType => true;
-
-  @override
   bool get isObject {
     return element.name == 'Object' &&
         element.library.canonicalUri == Uris.dart_core;
@@ -258,9 +222,6 @@ class TypedefType extends DartType {
   bool get isTop => unaliased.isTop;
 
   @override
-  bool get isTypedef => true;
-
-  @override
   bool get containsTypeVariables =>
       typeArguments.any((type) => type.containsTypeVariables);
 
@@ -315,9 +276,6 @@ class TypeVariableType extends DartType {
   final TypeVariableEntity element;
 
   TypeVariableType(this.element);
-
-  @override
-  bool get isTypeVariable => true;
 
   @override
   bool get containsTypeVariables => true;
@@ -379,9 +337,6 @@ class FunctionTypeVariable extends DartType {
   }
 
   @override
-  bool get isFunctionTypeVariable => true;
-
-  @override
   int get hashCode => index.hashCode * 19;
 
   @override
@@ -413,9 +368,6 @@ class VoidType extends DartType {
   bool get isTop => true;
 
   @override
-  bool get isVoid => true;
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitVoidType(this, argument);
 
@@ -435,9 +387,6 @@ class DynamicType extends DartType {
 
   @override
   bool get isTop => true;
-
-  @override
-  bool get isDynamic => true;
 
   @override
   bool get treatAsDynamic => true;
@@ -465,9 +414,6 @@ class ErasedType extends DartType {
 
   @override
   bool get treatAsDynamic => true;
-
-  @override
-  bool get isErased => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -499,9 +445,6 @@ class AnyType extends DartType {
 
   @override
   bool get isTop => true;
-
-  @override
-  bool get isAny => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -564,9 +507,6 @@ class FunctionType extends DartType {
     optionalParameterTypes.forEach((type) => type.forEachTypeVariable(f));
     namedParameterTypes.forEach((type) => type.forEachTypeVariable(f));
   }
-
-  @override
-  bool get isFunctionType => true;
 
   FunctionType instantiate(List<DartType> arguments) {
     return subst(arguments, typeVariables);
@@ -646,9 +586,6 @@ class FutureOrType extends DartType {
 
   @override
   bool get isTop => typeArgument.isTop;
-
-  @override
-  bool get isFutureOr => true;
 
   @override
   bool get containsTypeVariables => typeArgument.containsTypeVariables;
@@ -1573,11 +1510,11 @@ abstract class AbstractTypeRelation<T extends DartType>
   bool visitTypeVariableType(TypeVariableType t, T s) {
     // Identity check is handled in [isSubtype].
     DartType bound = getTypeVariableBound(t.element);
-    if (bound.isTypeVariable) {
+    if (bound is TypeVariableType) {
       // The bound is potentially cyclic so we need to be extra careful.
       Set<TypeVariableEntity> seenTypeVariables = new Set<TypeVariableEntity>();
       seenTypeVariables.add(t.element);
-      while (bound.isTypeVariable) {
+      while (bound is TypeVariableType) {
         TypeVariableType typeVariable = bound;
         if (bound == s) {
           // [t] extends [s].
@@ -1599,7 +1536,7 @@ abstract class AbstractTypeRelation<T extends DartType>
 
   @override
   bool visitFunctionTypeVariable(FunctionTypeVariable t, DartType s) {
-    if (!s.isFunctionTypeVariable) return false;
+    if (s is! FunctionTypeVariable) return false;
     return assumptions.isAssumed(t, s);
   }
 }
@@ -1608,10 +1545,10 @@ abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
     if (identical(t, s) ||
-        t.isAny ||
-        s.isAny ||
+        t is AnyType ||
+        s is AnyType ||
         s.treatAsDynamic ||
-        s.isVoid ||
+        s is VoidType ||
         s == commonElements.objectType ||
         t == commonElements.nullType) {
       return true;
@@ -1633,8 +1570,8 @@ abstract class MoreSpecificVisitor<T extends DartType>
 
   @override
   bool invalidFunctionReturnTypes(T t, T s) {
-    if (s.treatAsDynamic && t.isVoid) return true;
-    return !s.isVoid && !isMoreSpecific(t, s);
+    if (s.treatAsDynamic && t is VoidType) return true;
+    return s is! VoidType && !isMoreSpecific(t, s);
   }
 
   @override
@@ -1662,12 +1599,12 @@ abstract class MoreSpecificVisitor<T extends DartType>
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
-    if (t.isAny || s.isAny) return true;
-    if (s.isFutureOr) {
+    if (t is AnyType || s is AnyType) return true;
+    if (s is FutureOrType) {
       FutureOrType sFutureOr = s;
       if (isSubtype(t, sFutureOr.typeArgument)) {
         return true;
-      } else if (t.isInterfaceType) {
+      } else if (t is InterfaceType) {
         InterfaceType tInterface = t;
         if (tInterface.element == commonElements.futureClass &&
             isSubtype(
@@ -1710,7 +1647,7 @@ abstract class SubtypeVisitor<T extends DartType>
 
   @override
   bool visitFutureOrType(FutureOrType t, covariant DartType s) {
-    if (s.isFutureOr) {
+    if (s is FutureOrType) {
       FutureOrType sFutureOr = s;
       return isSubtype(t.typeArgument, sFutureOr.typeArgument);
     }
@@ -1727,7 +1664,7 @@ abstract class PotentialSubtypeVisitor<T extends DartType>
 
   @override
   bool isSubtype(DartType t, DartType s) {
-    if (t.isAny || s.isAny) return true;
+    if (t is AnyType || s is AnyType) return true;
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }

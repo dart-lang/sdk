@@ -1055,7 +1055,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
     void processChecks(Set<DartType> checks) {
       checks.forEach((DartType type) {
-        if (type.isInterfaceType) {
+        if (type is InterfaceType) {
           InterfaceType itf = type;
           if (!itf.treatAsRaw) {
             potentiallyNeedTypeArguments(itf.element);
@@ -1067,7 +1067,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             potentiallyNeedTypeArguments(typeDeclaration);
           });
-          if (type.isFunctionType) {
+          if (type is FunctionType) {
             checkClosures(potentialSubtypeOf: type);
           }
           if (type is FutureOrType) {
@@ -1100,8 +1100,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     void checkFunction(Entity function, FunctionType type) {
       for (FunctionTypeVariable typeVariable in type.typeVariables) {
         DartType bound = typeVariable.bound;
-        if (!bound.isDynamic &&
-            !bound.isVoid &&
+        if (bound is! DynamicType &&
+            bound is! VoidType &&
             bound != closedWorld.commonElements.objectType) {
           potentiallyNeedTypeArguments(function);
           break;

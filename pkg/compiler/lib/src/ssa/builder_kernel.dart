@@ -1488,8 +1488,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             _elementMap);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
-        if (!bound.isDynamic &&
-            !bound.isVoid &&
+        if (bound is! DynamicType &&
+            bound is! VoidType &&
             bound != _commonElements.objectType) {
           if (options.experimentNewRti) {
             _checkTypeBound(newParameter, bound, local.name);
@@ -5525,7 +5525,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// Returns `true` if the checking of [type] is performed directly on the
   /// object and not on an interceptor.
   bool _hasDirectCheckFor(DartType type) {
-    if (!type.isInterfaceType) return false;
+    if (type is! InterfaceType) return false;
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     return element == _commonElements.stringClass ||

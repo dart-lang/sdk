@@ -258,11 +258,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitTypeLiteral(ir.TypeLiteral node) {
     String name;
     DartType type = elementMap.getDartType(node.type);
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       name = 'dynamic';
     } else if (type is InterfaceType) {
       name = type.element.name;
-    } else if (type.isTypedef) {
+    } else if (type is TypedefType) {
       // TODO(johnniwinther): Compute a name for the type literal? It is only
       // used in error messages in the old SSA builder.
       name = '?';

@@ -183,20 +183,11 @@
   "third_party/pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/inferrer_engine.dart": {
-    "Dynamic access of 'isVoid'.": 1,
-    "Dynamic access of 'isDynamic'.": 1,
-    "Dynamic access of 'isInterfaceType'.": 1,
-    "Dynamic access of 'element'.": 1
-  },
   "pkg/compiler/lib/src/js_backend/checked_mode_helpers.dart": {
     "Dynamic access of 'name'.": 1
   },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
     "Dynamic access of 'universe.side_effects::_flags'.": 1
-  },
-  "pkg/compiler/lib/src/native/enqueue.dart": {
-    "Dynamic access of 'isDynamic'.": 1
   },
   "pkg/compiler/lib/src/ssa/builder_kernel.dart": {
     "Dynamic update to 'instantiatedTypes'.": 1,
@@ -206,8 +197,6 @@
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic access of 'isVoid'.": 1,
-    "Dynamic access of 'isDynamic'.": 1,
     "Dynamic access of 'treatAsDynamic'.": 1,
     "Dynamic access of 'element'.": 1
   },

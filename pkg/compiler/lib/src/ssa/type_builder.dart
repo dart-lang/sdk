@@ -53,8 +53,8 @@ abstract class TypeBuilder {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     type = type.unaliased;
-    if (type.isDynamic) return null;
-    if (!type.isInterfaceType) return null;
+    if (type is DynamicType) return null;
+    if (type is! InterfaceType) return null;
     if (type == _closedWorld.commonElements.objectType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
@@ -229,10 +229,10 @@ abstract class TypeBuilder {
   HInstruction buildTypeArgumentRepresentations(
       DartType type, MemberEntity sourceElement,
       [SourceInformation sourceInformation]) {
-    assert(!type.isTypeVariable);
+    assert(type is! TypeVariableType);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    assert(type.isInterfaceType);
+    assert(type is InterfaceType);
     InterfaceType interface = type;
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType argument in interface.typeArguments) {
@@ -261,7 +261,7 @@ abstract class TypeBuilder {
       return builder.graph.addConstantNull(_closedWorld);
     }
 
-    if (argument.isTypeVariable) {
+    if (argument is TypeVariableType) {
       return addTypeVariableReference(argument, sourceElement,
           sourceInformation: sourceInformation);
     }
@@ -433,7 +433,7 @@ abstract class TypeBuilder {
 
     if (type == null) return original;
     type = type.unaliased;
-    if (type.isInterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;
       AbstractValue subtype =
           _abstractValueDomain.createNullableSubtype(interfaceType.element);
@@ -443,14 +443,14 @@ abstract class TypeBuilder {
       return new HTypeConversion.withTypeRepresentation(
           type, kind, subtype, original, representations)
         ..sourceInformation = sourceInformation;
-    } else if (type.isTypeVariable) {
+    } else if (type is TypeVariableType) {
       AbstractValue subtype = original.instructionType;
       HInstruction typeVariable =
           addTypeVariableReference(type, builder.sourceElement);
       return new HTypeConversion.withTypeRepresentation(
           type, kind, subtype, original, typeVariable)
         ..sourceInformation = sourceInformation;
-    } else if (type.isFunctionType || type.isFutureOr) {
+    } else if (type is FunctionType || type is FutureOrType) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
       // TypeMasks don't encode function types or FutureOr types.
@@ -473,8 +473,8 @@ abstract class TypeBuilder {
     if (type == null) return original;
     type = type.unaliased;
 
-    if (type.isDynamic) return original;
-    if (type.isVoid) return original;
+    if (type is DynamicType) return original;
+    if (type is VoidType) return original;
     if (type == _closedWorld.commonElements.objectType) return original;
 
     HInstruction reifiedType = analyzeTypeArgumentNewRti(

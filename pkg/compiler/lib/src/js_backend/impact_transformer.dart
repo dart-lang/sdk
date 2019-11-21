@@ -185,7 +185,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          if (type.isTypeVariable) {
+          if (type is TypeVariableType) {
             TypeVariableType typeVariable = type;
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
@@ -332,9 +332,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    if (!type.treatAsRaw || type.containsTypeVariables || type.isFunctionType) {
+    if (!type.treatAsRaw ||
+        type.containsTypeVariables ||
+        type is FunctionType) {
       registerImpact(_impacts.genericTypeCheck);
-      if (type.isTypeVariable) {
+      if (type is TypeVariableType) {
         registerImpact(_impacts.typeVariableTypeCheck);
       }
     }
@@ -377,8 +379,8 @@ class CodegenImpactTransformer {
       this._nativeEmitter);
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
-    if (type.isDynamic) return;
-    if (type.isVoid) return;
+    if (type is DynamicType) return;
+    if (type is VoidType) return;
     type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 

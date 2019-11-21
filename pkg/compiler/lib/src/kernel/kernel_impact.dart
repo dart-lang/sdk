@@ -145,7 +145,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerParameterCheck(ir.DartType irType) {
     DartType type = elementMap.getDartType(irType);
-    if (!type.isDynamic) {
+    if (type is! DynamicType) {
       impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
     }
   }

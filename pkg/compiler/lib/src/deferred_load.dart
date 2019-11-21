@@ -317,7 +317,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              if (type.isInterfaceType) {
+              if (type is InterfaceType) {
                 InterfaceType interface = type;
                 dependencies.addClass(
                     interface.element, typeUse.deferredImport);

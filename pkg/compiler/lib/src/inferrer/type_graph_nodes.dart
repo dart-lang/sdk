@@ -2275,21 +2275,21 @@ AbstractValue _narrowType(
   AbstractValue otherType;
   if (annotation.treatAsDynamic) {
     return type;
-  } else if (annotation.isInterfaceType) {
-    InterfaceType interfaceType = annotation;
-    if (interfaceType.element == closedWorld.commonElements.objectClass) {
+  } else if (annotation is InterfaceType) {
+    if (annotation.element == closedWorld.commonElements.objectClass) {
       return type;
     }
-    otherType = abstractValueDomain.createNonNullSubtype(interfaceType.element);
-  } else if (annotation.isVoid) {
+    otherType = abstractValueDomain.createNonNullSubtype(annotation.element);
+  } else if (annotation is VoidType) {
     return type;
-  } else if (annotation.isTypedef || annotation.isFunctionType) {
+  } else if (annotation is TypedefType || annotation is FunctionType) {
     otherType = closedWorld.abstractValueDomain.functionType;
-  } else if (annotation.isFutureOr) {
+  } else if (annotation is FutureOrType) {
     // TODO(johnniwinther): Narrow FutureOr types.
     return type;
   } else {
-    assert(annotation.isTypeVariable || annotation.isFunctionTypeVariable);
+    assert(
+        annotation is TypeVariableType || annotation is FunctionTypeVariable);
     // TODO(ngeoffray): Narrow to bound.
     return type;
   }

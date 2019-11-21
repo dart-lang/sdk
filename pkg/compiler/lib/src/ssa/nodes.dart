@@ -1404,16 +1404,16 @@ abstract class HInstruction implements Spannable {
     // Only the builder knows how to create [HTypeConversion]
     // instructions with generics. It has the generic type context
     // available.
-    assert(!type.isTypeVariable);
-    assert(type.treatAsRaw || type.isFunctionType);
-    if (type.isDynamic) return this;
-    if (type.isVoid) return this;
+    assert(type is! TypeVariableType);
+    assert(type.treatAsRaw || type is FunctionType);
+    if (type is DynamicType) return this;
+    if (type is VoidType) return this;
     if (type == closedWorld.commonElements.objectType) return this;
-    if (type.isFunctionType || type.isFutureOr) {
+    if (type is FunctionType || type is FutureOrType) {
       return new HTypeConversion(type, kind,
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
-    assert(type.isInterfaceType);
+    assert(type is InterfaceType);
     if (kind == HTypeConversion.TYPE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
@@ -3427,7 +3427,7 @@ class HIs extends HInstruction {
     // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
     // equivalent (which started failing once we allowed typeExpressions that
     // contain type parameters matching the original bounds of the type).
-    assert((typeExpression.isFunctionType || typeExpression.isInterfaceType),
+    assert((typeExpression is FunctionType || typeExpression is InterfaceType),
         "Unexpected raw is-test type: $typeExpression");
     return new HIs.internal(typeExpression, [expression, interceptor],
         RAW_CHECK, type, sourceInformation);
@@ -3554,7 +3554,7 @@ class HTypeConversion extends HCheck {
       HInstruction input, SourceInformation sourceInformation)
       : checkedType = type,
         super(<HInstruction>[input], type) {
-    assert(typeExpression == null || !typeExpression.isTypedef);
+    assert(typeExpression == null || typeExpression is! TypedefType);
     this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
   }
@@ -3563,13 +3563,13 @@ class HTypeConversion extends HCheck {
       AbstractValue type, HInstruction input, HInstruction typeRepresentation)
       : checkedType = type,
         super(<HInstruction>[input, typeRepresentation], type) {
-    assert(!typeExpression.isTypedef);
+    assert(typeExpression is! TypedefType);
     sourceElement = input.sourceElement;
   }
 
   bool get hasTypeRepresentation {
     return typeExpression != null &&
-        typeExpression.isInterfaceType &&
+        typeExpression is InterfaceType &&
         inputs.length > 1;
   }
 
@@ -3615,10 +3615,10 @@ class HTypeConversion extends HCheck {
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     DartType type = typeExpression;
     if (type != null) {
-      if (type.isTypeVariable) {
+      if (type is TypeVariableType) {
         return false;
       }
-      if (type.isFutureOr) {
+      if (type is FutureOrType) {
         // `null` always passes type conversion.
         if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
           return true;
@@ -3633,7 +3633,7 @@ class HTypeConversion extends HCheck {
         }
         return false;
       }
-      if (type.isFunctionType) {
+      if (type is FunctionType) {
         // `null` always passes type conversion.
         if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
           return true;

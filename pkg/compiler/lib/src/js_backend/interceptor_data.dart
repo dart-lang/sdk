@@ -278,7 +278,7 @@ class InterceptorDataImpl implements InterceptorData {
     // is mixed-in or in an implements clause.
 
     if (!type.treatAsRaw) return false;
-    if (type.isFutureOr) return false;
+    if (type is FutureOrType) return false;
     InterfaceType interfaceType = type;
     ClassEntity classElement = interfaceType.element;
     if (isInterceptedClass(classElement)) return false;

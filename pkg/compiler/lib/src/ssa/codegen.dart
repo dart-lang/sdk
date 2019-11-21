@@ -2891,7 +2891,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkType(HInstruction input, HInstruction interceptor, DartType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
-    if (type.isInterfaceType) {
+    if (type is InterfaceType) {
       InterfaceType interfaceType = type;
       ClassEntity element = interfaceType.element;
       if (element == _commonElements.jsArrayClass) {
@@ -3102,7 +3102,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           _commonElements.isListSupertype(element)) {
         handleListOrSupertypeCheck(input, interceptor, type, sourceInformation,
             negative: negative);
-      } else if (type.isFunctionType) {
+      } else if (type is FunctionType) {
         checkType(input, interceptor, type, sourceInformation,
             negative: negative);
       } else if ((input.isPrimitive(_abstractValueDomain).isPotentiallyTrue &&
@@ -3133,10 +3133,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeConversion(HTypeConversion node) {
     assert(node.isTypeCheck || node.isCastCheck);
     DartType type = node.typeExpression;
-    assert(!type.isTypedef);
-    assert(!type.isDynamic);
-    assert(!type.isVoid);
-    if (type.isFunctionType) {
+    assert(type is! TypedefType);
+    assert(type is! DynamicType);
+    assert(type is! VoidType);
+    if (type is FunctionType) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
       _registry
@@ -3546,7 +3546,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     TypeRecipe typeExpression = node.typeExpression;
     if (envStructure is FullTypeEnvironmentStructure &&
         typeExpression is TypeExpressionRecipe) {
-      if (typeExpression.type.isTypeVariable) {
+      if (typeExpression.type is TypeVariableType) {
         TypeVariableType type = typeExpression.type;
         int index = indexTypeVariable(
             _closedWorld, _rtiSubstitutions, envStructure, type);
