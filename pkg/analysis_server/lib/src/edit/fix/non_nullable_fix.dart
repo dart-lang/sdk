@@ -99,16 +99,11 @@ class NonNullableFix extends FixCodeTask {
       MigrationInfo migrationInfo = MigrationInfo(
           unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
       PathMapper pathMapper = PathMapper(provider, outputDir, includedRoot);
-      // TODO(brianwilkerson) Print a URL that users can paste into the browser.
-      //  The code below is close to right, but computes the wrong path. We
-      //  don't have enough information to pick a single library inside `lib`,
-      //  so we might want to consider alternatives, such as a directory listing
-      //  page or an empty file page.
-//      print(Uri(
-//          scheme: 'http',
-//          host: 'localhost',
-//          port: 10501,
-//          path: pathMapper.map('$includedRoot/lib/logging.dart')));
+
+      List<String> paths = unitInfos.map((info) => info.path).toList();
+      paths.sort((first, second) => first.length - second.length);
+      print(Uri(scheme: 'http', host: 'localhost', port: port, path: paths[0]));
+
       // TODO(brianwilkerson) Capture the server so that it can be closed
       //  cleanly.
       HttpPreviewServer(migrationInfo, pathMapper).serveHttp(port);
