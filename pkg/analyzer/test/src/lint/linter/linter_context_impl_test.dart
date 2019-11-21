@@ -16,6 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CanBeConstConstructorTest);
     defineReflectiveTests(CanBeConstTest);
+    defineReflectiveTests(EvaluateExpressionTest);
   });
 }
 
@@ -241,5 +242,40 @@ import 'a.dart';
 A f() => A();
 ''');
     assertCanBeConst("A();", true);
+  }
+}
+
+@reflectiveTest
+class EvaluateExpressionTest extends AbstractLinterContextTest {
+  test_hasError_methodInvocation() async {
+    await resolve('''
+var x = 42.abs();
+''');
+    var result = _evaluateX();
+    expect(result.errors, isNotNull);
+    expect(result.value, isNull);
+  }
+
+  test_hasValue_binaryExpression() async {
+    await resolve('''
+var x = 1 + 2;
+''');
+    var result = _evaluateX();
+    expect(result.errors, isEmpty);
+    expect(result.value.toIntValue(), 3);
+  }
+
+  test_hasValue_intLiteral() async {
+    await resolve('''
+var x = 42;
+''');
+    var result = _evaluateX();
+    expect(result.errors, isEmpty);
+    expect(result.value.toIntValue(), 42);
+  }
+
+  LinterConstantEvaluationResult _evaluateX() {
+    var node = findNode.topVariableDeclarationByName('x').initializer;
+    return context.evaluateConstant(node);
   }
 }
