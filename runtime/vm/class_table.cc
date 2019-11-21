@@ -361,10 +361,6 @@ void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
   table_[index] = raw_cls;
 }
 
-ClassAndSize::ClassAndSize(RawClass* clazz) : class_(clazz) {
-  size_ = clazz == NULL ? 0 : Class::instance_size(clazz);
-}
-
 #ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
   if (!FLAG_support_service) {

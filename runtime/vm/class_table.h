@@ -28,22 +28,6 @@ class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
 
-class ClassAndSize {
- public:
-  ClassAndSize() : class_(NULL), size_(0) {}
-  explicit ClassAndSize(RawClass* clazz);
-  ClassAndSize(RawClass* clazz, intptr_t size) : class_(clazz), size_(size) {}
-  RawClass* get_raw_class() const { return class_; }
-  intptr_t size() const { return size_; }
-
- private:
-  RawClass* class_;
-  intptr_t size_;
-
-  friend class ClassTable;
-  friend class IsolateReloadContext;  // For VisitObjectPointers.
-};
-
 // Registry of all known classes and their sizes.
 //
 // The GC will only need the information in this shared class table to scan
