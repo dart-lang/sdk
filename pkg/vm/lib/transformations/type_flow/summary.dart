@@ -317,7 +317,7 @@ class Extract extends Statement {
         extractedType = const AnyType();
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
-            c.classNode, referenceClass);
+            c.cls.classNode, referenceClass);
         final extract = c.typeArgs[interfaceOffset + paramIndex];
         assertx(extract is AnyType || extract is RuntimeType);
         if (extractedType == null || extract == extractedType) {
@@ -345,10 +345,10 @@ class Extract extends Statement {
 // The type arguments are factored against the generic interfaces; for more
 // details see 'ClassHierarchyCache.factoredGenericInterfacesOf'.
 class CreateConcreteType extends Statement {
-  final ConcreteType type;
+  final TFClass cls;
   final List<TypeExpr> flattenedTypeArgs;
 
-  CreateConcreteType(this.type, this.flattenedTypeArgs);
+  CreateConcreteType(this.cls, this.flattenedTypeArgs);
 
   @override
   void accept(StatementVisitor visitor) =>
@@ -356,8 +356,8 @@ class CreateConcreteType extends Statement {
 
   @override
   String dump() {
-    int numImmediateTypeArgs = type.classNode.typeParameters.length;
-    return "$label = _CreateConcreteType (${type.classNode} @ "
+    int numImmediateTypeArgs = cls.classNode.typeParameters.length;
+    return "$label = _CreateConcreteType ($cls @ "
         "${flattenedTypeArgs.take(numImmediateTypeArgs)})";
   }
 
@@ -372,8 +372,7 @@ class CreateConcreteType extends Statement {
       if (computed is RuntimeType) hasRuntimeType = true;
       types[i] = computed;
     }
-    return new ConcreteType(
-        type.classId, type.classNode, hasRuntimeType ? types : null);
+    return new ConcreteType(cls, hasRuntimeType ? types : null);
   }
 }
 
@@ -465,7 +464,8 @@ class TypeCheck extends Statement {
     } else if (checkType is RuntimeType) {
       canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
       argType = argType.intersection(
-          Type.fromStatic(checkType.representedTypeRaw), typeHierarchy);
+          typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
+          typeHierarchy);
     } else {
       assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
     }
