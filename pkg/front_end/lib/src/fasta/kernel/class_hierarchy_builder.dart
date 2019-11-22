@@ -1795,8 +1795,8 @@ class ClassHierarchyNode {
     return result..last = this;
   }
 
-  String toString([StringBuffer sb]) {
-    sb ??= new StringBuffer();
+  String toString() {
+    StringBuffer sb = new StringBuffer();
     sb
       ..write(classBuilder.fullNameForErrors)
       ..writeln(":");

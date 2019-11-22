@@ -579,8 +579,7 @@ class MatchHierarchy extends Step<Component, Component, FastaContext> {
     ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
-      node.toString(sb);
-      sb.writeln();
+      sb.writeln(node);
     }
     return context.match<Component>(".hierarchy.expect", "$sb", uri, component);
   }
