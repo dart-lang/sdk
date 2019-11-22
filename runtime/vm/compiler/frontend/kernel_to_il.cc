@@ -443,18 +443,15 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     if (is_static) {
       initialize += StaticCall(position, init_function,
                                /* argument_count = */ 0, ICData::kStatic);
-      initialize += StoreLocal(position, temp);
-      initialize += StoreStaticField(position, field);
     } else {
-      initialize += LoadLocal(instance);  // For the store.
-      initialize += LoadLocal(instance);  // For the init call.
+      initialize += LoadLocal(instance);
       initialize += PushArgument();
       initialize += StaticCall(position, init_function,
                                /* argument_count = */ 1, ICData::kStatic);
-      initialize += StoreLocal(position, temp);
-      initialize += StoreInstanceFieldGuarded(
-          field, StoreInstanceFieldInstr::Kind::kInitializing);
     }
+    initialize += StoreLocal(position, temp);
+    initialize += Drop();
+    initialize += StoreLateField(field, instance, temp);
     initialize += Goto(join);
   } else {
     // The field has no initializer, so throw a LateInitializationError.
@@ -471,70 +468,6 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
   }
 
   // Now that the field has been initialized, load it.
-  instructions = Fragment(instructions.entry, join);
-
-  return instructions;
-}
-
-Fragment FlowGraphBuilder::StoreLateFinalField(const Field& field,
-                                               LocalVariable* instance,
-                                               LocalVariable* setter_value) {
-  // If a late final field has an initializer, the setter always throws. This
-  // case is typically caught as a compile error, but there are ways to avoid
-  // that error, so we also need this runtime error.
-  const bool is_static = field.is_static();
-  const TokenPosition position = field.token_pos();
-  if (field.has_initializer()) {
-    Fragment instructions;
-    if (!is_static) {
-      instructions += Drop();
-    }
-    instructions += Drop();
-    instructions += ThrowLateInitializationError(
-        position, String::ZoneHandle(Z, field.name()));
-    return instructions;
-  }
-
-  // Late final fields with no initializer can be written to once.
-  Fragment instructions;
-  TargetEntryInstr *is_uninitialized, *is_initialized;
-
-  // Check whether the field has been initialized already.
-  instructions += Drop();
-  if (is_static) {
-    instructions += Constant(field);
-    instructions += LoadStaticField();
-  } else {
-    instructions += LoadField(field);
-  }
-  instructions += Constant(Object::sentinel());
-  instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
-  JoinEntryInstr* join = BuildJoinEntry();
-
-  {
-    // If the field isn't initialized, set it to the new value.
-    Fragment initialize(is_uninitialized);
-    if (!is_static) {
-      initialize += LoadLocal(instance);
-    }
-    initialize += LoadLocal(setter_value);
-    if (is_static) {
-      initialize += StoreStaticField(position, field);
-    } else {
-      initialize += StoreInstanceFieldGuarded(
-          field, StoreInstanceFieldInstr::Kind::kOther);
-    }
-    initialize += Goto(join);
-  }
-
-  {
-    // If the field is already initialized, throw a LateInitializationError.
-    Fragment already_initialized(is_initialized);
-    already_initialized += ThrowLateInitializationError(
-        position, String::ZoneHandle(Z, field.name()));
-    already_initialized += Goto(join);
-  }
-
   return Fragment(instructions.entry, join);
 }
 
@@ -558,6 +491,59 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
   instructions += StaticCall(position, throw_new,
                              /* argument_count = */ 1, ICData::kStatic);
   instructions += Drop();
+
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::StoreLateField(const Field& field,
+                                          LocalVariable* instance,
+                                          LocalVariable* setter_value) {
+  Fragment instructions;
+  TargetEntryInstr *is_uninitialized, *is_initialized;
+  const TokenPosition position = field.token_pos();
+  const bool is_static = field.is_static();
+  const bool is_final = field.is_final();
+
+  if (is_final) {
+    // Check whether the field has been initialized already.
+    if (is_static) {
+      instructions += Constant(field);
+      instructions += LoadStaticField();
+    } else {
+      instructions += LoadLocal(instance);
+      instructions += LoadField(field);
+    }
+    instructions += Constant(Object::sentinel());
+    instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
+    JoinEntryInstr* join = BuildJoinEntry();
+
+    {
+      // If the field isn't initialized, do nothing.
+      Fragment initialize(is_uninitialized);
+      initialize += Goto(join);
+    }
+
+    {
+      // If the field is already initialized, throw a LateInitializationError.
+      Fragment already_initialized(is_initialized);
+      already_initialized += ThrowLateInitializationError(
+          position, String::ZoneHandle(Z, field.name()));
+      already_initialized += Goto(join);
+    }
+
+    instructions = Fragment(instructions.entry, join);
+  }
+
+  if (!is_static) {
+    instructions += LoadLocal(instance);
+  }
+  instructions += LoadLocal(setter_value);
+  if (is_static) {
+    instructions += StoreStaticField(position, field);
+  } else {
+    instructions += StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
+  }
 
   return instructions;
 }
@@ -2643,19 +2629,23 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
-    if (is_method) {
-      if (field.is_late() && field.is_final()) {
-        body += StoreLateFinalField(
-            field, parsed_function_->ParameterVariable(0), setter_value);
+    if (field.is_late()) {
+      if (is_method) {
+        body += Drop();
+      }
+      body += Drop();
+      if (field.is_final() && field.has_initializer()) {
+        body += ThrowLateInitializationError(
+            field.token_pos(), String::ZoneHandle(Z, field.name()));
       } else {
-        body += StoreInstanceFieldGuarded(
-            field, StoreInstanceFieldInstr::Kind::kOther);
+        body += StoreLateField(
+            field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
+            setter_value);
       }
     } else {
-      if (field.is_late()) {
-        ASSERT(field.is_final());
-        body +=
-            StoreLateFinalField(field, /* instance = */ nullptr, setter_value);
+      if (is_method) {
+        body += StoreInstanceFieldGuarded(
+            field, StoreInstanceFieldInstr::Kind::kOther);
       } else {
         body += StoreStaticField(TokenPosition::kNoSource, field);
       }
