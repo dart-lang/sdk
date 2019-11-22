@@ -63,19 +63,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final TypeProvider _typeProvider;
 
-  /// For convenience, a [DecoratedType] representing non-nullable `Object`.
-  final DecoratedType _nonNullableObjectType;
-
-  /// For convenience, a [DecoratedType] representing non-nullable `StackTrace`.
-  final DecoratedType _nonNullableStackTraceType;
-
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
       this._typeProvider,
-      {this.instrumentation})
-      : _nonNullableObjectType =
-            DecoratedType(_typeProvider.objectType, _graph.never),
-        _nonNullableStackTraceType =
-            DecoratedType(_typeProvider.stackTraceType, _graph.never);
+      {this.instrumentation});
 
   @override
   DecoratedType visitCatchClause(CatchClause node) {
@@ -93,7 +83,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
-      var stackTraceType = _nonNullableStackTraceType;
+      var nullabilityNode = NullabilityNode.forInferredType();
+      _graph.makeNonNullable(nullabilityNode,
+          StackTraceTypeOrigin(source, node.stackTraceParameter));
+      var stackTraceType =
+          DecoratedType(_typeProvider.stackTraceType, nullabilityNode);
       _variables.recordDecoratedElementType(
           node.stackTraceParameter.staticElement, stackTraceType);
       instrumentation?.implicitType(
@@ -112,7 +106,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.nativeClause?.accept(this);
     node.members.accept(this);
     var classElement = node.declaredElement;
-    _handleSupertypeClauses(classElement, node.extendsClause?.superclass,
+    _handleSupertypeClauses(node, classElement, node.extendsClause?.superclass,
         node.withClause, node.implementsClause, null);
     var constructors = classElement.constructors;
     if (constructors.length == 1) {
@@ -137,8 +131,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name.accept(this);
     node.typeParameters?.accept(this);
     var classElement = node.declaredElement;
-    _handleSupertypeClauses(classElement, node.superclass, node.withClause,
-        node.implementsClause, null);
+    _handleSupertypeClauses(node, classElement, node.superclass,
+        node.withClause, node.implementsClause, null);
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var decoratedReturnType =
@@ -322,8 +316,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.name?.accept(this);
     node.typeParameters?.accept(this);
     node.members.accept(this);
-    _handleSupertypeClauses(
-        node.declaredElement, null, null, node.implementsClause, node.onClause);
+    _handleSupertypeClauses(node, node.declaredElement, null, null,
+        node.implementsClause, node.onClause);
     return null;
   }
 
@@ -426,13 +420,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var commentToken = node.endToken.next.precedingComments;
     switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
-        _graph.connect(decoratedType.node, _graph.never,
-            NullabilityCommentOrigin(source, node),
-            hard: true);
+        _graph.makeNonNullable(
+            decoratedType.node, NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.question:
-        _graph.union(_graph.always, decoratedType.node,
-            NullabilityCommentOrigin(source, node));
+        _graph.makeNullableUnion(
+            decoratedType.node, NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.none:
         break;
@@ -616,6 +609,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   void _handleSupertypeClauses(
+      NamedCompilationUnitMember astNode,
       ClassElement declaredElement,
       TypeName superclass,
       WithClause withClause,
@@ -636,7 +630,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var supertype in supertypes) {
       DecoratedType decoratedSupertype;
       if (supertype == null) {
-        decoratedSupertype = _nonNullableObjectType;
+        var nullabilityNode = NullabilityNode.forInferredType();
+        _graph.makeNonNullable(
+            nullabilityNode, NonNullableObjectSuperclass(source, astNode));
+        decoratedSupertype =
+            DecoratedType(_typeProvider.objectType, nullabilityNode);
       } else {
         decoratedSupertype = supertype.accept(this);
       }

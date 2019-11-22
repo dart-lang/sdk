@@ -281,6 +281,16 @@ class NonNullableBoolTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.nonNullableBoolType;
 }
 
+/// Edge origin resulting from the class/superclass relationship for a class
+/// whose superclass is implicitly `Object`.
+class NonNullableObjectSuperclass extends EdgeOrigin {
+  NonNullableObjectSuperclass(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableObjectSuperclass;
+}
+
 /// Edge origin resulting from the usage of a value in a circumstance that
 /// requires it to be non-nullable
 class NonNullableUsageOrigin extends EdgeOrigin {
@@ -354,6 +364,16 @@ class ReturnTypeInheritanceOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.returnTypeInheritance;
+}
+
+/// Edge origin resulting from the use of a stacktrace parameter in a catch
+/// directive.  The type of such parameters is fixed by the language as
+/// non-nullable `StackTrace`.
+class StackTraceTypeOrigin extends EdgeOrigin {
+  StackTraceTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.stackTraceTypeOrigin;
 }
 
 /// Edge origin resulting from the use of `this` or `super`.

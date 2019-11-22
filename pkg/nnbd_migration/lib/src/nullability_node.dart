@@ -172,6 +172,13 @@ class NullabilityGraph {
     connect(always, node, origin, guards: guards);
   }
 
+  /// Creates a `union` graph edge that will try to force the given [node] to be
+  /// nullable.  This is a stronger signal than [makeNullable] (it overrides
+  /// [makeNonNullable]).
+  void makeNullableUnion(NullabilityNode node, EdgeOrigin origin) {
+    union(always, node, origin);
+  }
+
   /// Record source as code that is being migrated.
   void migrating(Source source) {
     _sourcesBeingMigrated.add(source);
