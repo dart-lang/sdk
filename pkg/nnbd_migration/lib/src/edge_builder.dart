@@ -192,7 +192,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
-      : _inheritanceManager = InheritanceManager3(_typeSystem);
+      : _inheritanceManager = InheritanceManager3();
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.

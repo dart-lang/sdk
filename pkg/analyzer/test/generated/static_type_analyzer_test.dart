@@ -1314,7 +1314,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   StaticTypeAnalyzer _createAnalyzer() {
     var context = TestAnalysisContext();
-    var inheritance = new InheritanceManager3(context.typeSystem);
+    var inheritance = new InheritanceManager3();
     Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();

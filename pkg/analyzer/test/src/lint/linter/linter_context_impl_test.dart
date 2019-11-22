@@ -42,7 +42,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
       result.session.declaredVariables,
       result.typeProvider,
       result.typeSystem,
-      InheritanceManager3(result.typeSystem),
+      InheritanceManager3(),
       analysisOptions,
       // todo (pq): test package or consider passing in null
       workspacePackage,

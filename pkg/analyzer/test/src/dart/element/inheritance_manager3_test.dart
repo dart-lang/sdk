@@ -1114,9 +1114,7 @@ class _InheritanceManager3Base extends DriverResolutionTest {
   @override
   Future<void> resolveTestFile() async {
     await super.resolveTestFile();
-    manager = new InheritanceManager3(
-      result.unit.declaredElement.context.typeSystem,
-    );
+    manager = new InheritanceManager3();
   }
 
   void _assertExecutable(ExecutableElement element, String expected) {

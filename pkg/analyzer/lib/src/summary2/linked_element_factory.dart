@@ -79,8 +79,14 @@ class LinkedElementFactory {
       ),
     );
 
-    setLibraryTypeSystem(dartCore);
-    setLibraryTypeSystem(dartAsync);
+    // During linking we create libraries when typeProvider is not ready.
+    // Update these libraries now, when typeProvider is ready.
+    for (var reference in rootReference.children) {
+      var libraryElement = reference.element as LibraryElementImpl;
+      if (libraryElement != null && libraryElement.typeProvider == null) {
+        _setLibraryTypeSystem(libraryElement);
+      }
+    }
 
     dartCore.createLoadLibraryFunction(dartCore.typeProvider);
     dartAsync.createLoadLibraryFunction(dartAsync.typeProvider);
@@ -155,10 +161,11 @@ class LinkedElementFactory {
     }
   }
 
-  void setLibraryTypeSystem(LibraryElementImpl libraryElement) {
-    // During dart:core and dart:async linking we don't have it yet.
-    // It will be set later, once linking of these two is done.
-    if (analysisContext.typeProvider == null) {
+  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    // During linking we create libraries when typeProvider is not ready.
+    // And if we link dart:core and dart:async, we cannot create it.
+    // We will set typeProvider later, during [createTypeProviders].
+    if (analysisContext.typeProviderLegacy == null) {
       return;
     }
 
@@ -344,7 +351,7 @@ class _ElementRequest {
       reference,
       definingUnitContext.unit_withDeclarations,
     );
-    elementFactory.setLibraryTypeSystem(libraryElement);
+    elementFactory._setLibraryTypeSystem(libraryElement);
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');

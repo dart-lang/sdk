@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -2831,8 +2830,7 @@ class B extends A {
       nullabilitySuffix: NullabilitySuffix.star,
     );
 
-    TypeSystem typeSystem = await session.typeSystem;
-    var inherited = new InheritanceManager3(typeSystem).getInherited(
+    var inherited = new InheritanceManager3().getInherited(
       targetType,
       new Name(null, nameToOverride),
     );

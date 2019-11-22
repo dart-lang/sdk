@@ -205,7 +205,7 @@ class Linker {
 
   void _createTypeSystem() {
     if (typeProvider != null) {
-      inheritance = InheritanceManager3(typeSystem);
+      inheritance = InheritanceManager3();
       return;
     }
 
@@ -213,7 +213,7 @@ class Linker {
     var asyncLib = elementFactory.libraryOfUri('dart:async');
     elementFactory.createTypeProviders(coreLib, asyncLib);
 
-    inheritance = InheritanceManager3(typeSystem);
+    inheritance = InheritanceManager3();
   }
 
   void _performTopLevelInference() {

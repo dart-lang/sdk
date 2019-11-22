@@ -57,16 +57,11 @@ class KytheDomainHandler extends AbstractRequestHandler {
           <KytheGetKytheEntriesResult>[];
       ResolvedUnitResult result = await server.getResolvedUnit(file);
       if (result?.state == ResultState.VALID) {
-        var typeSystem = await result.libraryElement.session.typeSystem;
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         List<String> files = <String>[];
-        result.unit.accept(new KytheDartVisitor(
-            server.resourceProvider,
-            entries,
-            file,
-            new InheritanceManager3(typeSystem),
-            result.content));
+        result.unit.accept(new KytheDartVisitor(server.resourceProvider,
+            entries, file, new InheritanceManager3(), result.content));
         allResults.add(new KytheGetKytheEntriesResult(entries, files));
       }
       //

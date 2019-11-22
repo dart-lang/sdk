@@ -1122,13 +1122,17 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     AnalysisContext context = TestAnalysisContext();
     _typeProvider = context.typeProvider;
 
-    var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary =
         ElementFactory.library(context, "test", isNonNullableByDefault: false);
     _definingLibrary.definingCompilationUnit = unit;
+
+    _definingLibrary.typeProvider = context.typeProvider;
+    _definingLibrary.typeSystem = context.typeSystem;
+    var inheritance = new InheritanceManager3();
+
     _visitor = new ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: FeatureSet.forTesting(),

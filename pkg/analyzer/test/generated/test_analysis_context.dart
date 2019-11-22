@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -45,6 +46,9 @@ class TestAnalysisContext implements AnalysisContext {
       strictInference: false,
       typeProvider: typeProvider,
     );
+
+    _setLibraryTypeSystem(sdkElements.coreLibrary);
+    _setLibraryTypeSystem(sdkElements.asyncLibrary);
   }
 
   @override
@@ -57,6 +61,11 @@ class TestAnalysisContext implements AnalysisContext {
   TypeSystemImpl get typeSystem => _typeSystem;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    libraryElement.typeProvider = _typeProvider;
+    libraryElement.typeSystem = _typeSystem;
+  }
 }
 
 class _MockSource implements Source {

@@ -79,7 +79,7 @@ class LibraryContext {
     _createElementFactory();
     load2(targetLibrary);
 
-    inheritanceManager = new InheritanceManager3(analysisContext.typeSystem);
+    inheritanceManager = new InheritanceManager3();
   }
 
   /**
