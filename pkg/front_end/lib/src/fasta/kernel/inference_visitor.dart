@@ -2,7 +2,73 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "kernel_shadow_ast.dart";
+import 'dart:core' hide MapEntry;
+
+import 'package:kernel/ast.dart';
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart';
+
+import '../../base/instrumentation.dart'
+    show
+        InstrumentationValueForMember,
+        InstrumentationValueForType,
+        InstrumentationValueForTypeArgs;
+
+import '../builder/library_builder.dart';
+
+import '../fasta_codes.dart'
+    show
+        messageCantDisambiguateAmbiguousInformation,
+        messageCantDisambiguateNotEnoughInformation,
+        messageNonNullAwareSpreadIsNull,
+        messageSwitchExpressionNotAssignableCause,
+        noLength,
+        templateCantInferTypeDueToCircularity,
+        templateForInLoopElementTypeNotAssignable,
+        templateForInLoopTypeNotIterable,
+        templateIntegerLiteralIsOutOfRange,
+        templateSpreadElementTypeMismatch,
+        templateSpreadMapEntryElementKeyTypeMismatch,
+        templateSpreadMapEntryElementValueTypeMismatch,
+        templateSpreadMapEntryTypeMismatch,
+        templateSpreadTypeMismatch,
+        templateSwitchExpressionNotAssignable,
+        templateUndefinedSetter;
+
+import '../names.dart';
+
+import '../problems.dart' show unhandled;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_engine.dart';
+import '../type_inference/type_inferrer.dart';
+
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import '../type_inference/type_schema_elimination.dart' show greatestClosure;
+
+import 'body_builder.dart' show combineStatements;
+
+import 'collections.dart'
+    show
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry,
+        convertToElement;
+
+import 'implicit_type_argument.dart' show ImplicitTypeArgument;
+
+import 'internal_ast.dart';
+
+import 'late_lowering.dart' as late_lowering;
 
 class InferenceVisitor
     implements
@@ -701,7 +767,7 @@ class InferenceVisitor
     DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    if (VariableDeclarationImpl.isImplicitlyTyped(variable)) {
+    if (variable is VariableDeclarationImpl && variable.isImplicitlyTyped) {
       typeNeeded = true;
       elementType = const UnknownType();
     } else {
@@ -1047,7 +1113,7 @@ class InferenceVisitor
     inferrer.inferMetadataKeepingHelper(
         node.variable, node.variable.annotations);
     DartType returnContext =
-        node._hasImplicitReturnType ? null : node.function.returnType;
+        node.hasImplicitReturnType ? null : node.function.returnType;
     DartType inferredType =
         visitFunctionNode(node.function, null, returnContext, node.fileOffset);
     node.variable.type = inferredType;
@@ -4958,12 +5024,12 @@ class InferenceVisitor
   StatementInferenceResult visitVariableDeclaration(
       covariant VariableDeclarationImpl node) {
     DartType declaredType =
-        node.implicitlyTyped ? const UnknownType() : node.type;
+        node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult initializerResult;
     if (node.initializer != null) {
       initializerResult = inferrer.inferExpression(node.initializer,
-          declaredType, !inferrer.isTopLevel || node.implicitlyTyped,
+          declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
       inferredType =
           inferrer.inferDeclarationType(initializerResult.inferredType);
@@ -4971,7 +5037,7 @@ class InferenceVisitor
     } else {
       inferredType = const DynamicType();
     }
-    if (node.implicitlyTyped) {
+    if (node.isImplicitlyTyped) {
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
           node.fileOffset,
@@ -4987,7 +5053,7 @@ class InferenceVisitor
     }
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
-      if (node.implicitlyTyped) {
+      if (node.isImplicitlyTyped) {
         library.checkBoundsInVariableDeclaration(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
@@ -5095,9 +5161,9 @@ class InferenceVisitor
     if (inferrer.isNonNullableByDefault) {
       promotedType = inferrer.flowAnalysis.variableRead(node, variable);
     } else {
-      bool mutatedInClosure = variable._mutatedInClosure;
+      bool mutatedInClosure = variable.mutatedInClosure;
       promotedType = inferrer.typePromoter
-          .computePromotedType(node._fact, node._scope, mutatedInClosure);
+          .computePromotedType(node.fact, node.scope, mutatedInClosure);
     }
     if (promotedType != null) {
       inferrer.instrumentation?.record(
@@ -5108,7 +5174,7 @@ class InferenceVisitor
     }
     node.promotedType = promotedType;
     DartType type = promotedType ?? declaredOrInferredType;
-    if (variable._isLocalFunction) {
+    if (variable.isLocalFunction) {
       return inferrer.instantiateTearOff(type, typeContext, node);
     } else if (variable.lateGetter != null) {
       return new ExpressionInferenceResult(

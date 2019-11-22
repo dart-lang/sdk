@@ -29,7 +29,7 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 
 import 'builder.dart';
 import 'class_builder.dart';

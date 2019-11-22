@@ -81,7 +81,7 @@ import 'kernel_ast_api.dart'
 
 import 'kernel_builder.dart' show LoadLibraryBuilder;
 
-import 'kernel_shadow_ast.dart';
+import 'internal_ast.dart';
 
 /// A generator represents a subexpression for which we can't yet build an
 /// expression because we don't yet know the context in which it's used.

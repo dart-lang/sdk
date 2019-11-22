@@ -170,7 +170,7 @@ import '../kernel/kernel_builder.dart'
         compareProcedures,
         toKernelCombinators;
 
-import '../kernel/kernel_shadow_ast.dart';
+import '../kernel/internal_ast.dart';
 
 import '../kernel/metadata_collector.dart';
 

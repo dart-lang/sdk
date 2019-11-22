@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
 
 import 'package:kernel/ast.dart';
@@ -33,11 +33,13 @@ import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/kernel_shadow_ast.dart'
+import '../kernel/internal_ast.dart'
     show
         VariableDeclarationImpl,
         getExplicitTypeArguments,
         getExtensionTypeParameterCount;
+
+import '../kernel/inference_visitor.dart';
 
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
@@ -1425,7 +1427,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   void inferSyntheticVariable(VariableDeclarationImpl variable) {
-    assert(variable.implicitlyTyped);
+    assert(variable.isImplicitlyTyped);
     assert(variable.initializer != null);
     ExpressionInferenceResult result = inferExpression(
         variable.initializer, const UnknownType(), true,
@@ -1969,7 +1971,7 @@ class TypeInferrerImpl implements TypeInferrer {
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
       VariableDeclarationImpl formal = formals[i];
-      if (VariableDeclarationImpl.isImplicitlyTyped(formal)) {
+      if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] == coreTypes.nullType) {
           inferredType = coreTypes.objectRawType(library.nullable);
@@ -2840,8 +2842,7 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     if (expression is VariableGet) {
       VariableDeclaration variable = expression.variable;
-      if (variable is VariableDeclarationImpl &&
-          VariableDeclarationImpl.isLocalFunction(variable)) {
+      if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return templateInvalidCastLocalFunction;
       }
     }

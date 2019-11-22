@@ -140,7 +140,7 @@ import 'kernel_api.dart';
 
 import 'kernel_ast_api.dart';
 
-import 'kernel_shadow_ast.dart';
+import 'internal_ast.dart';
 
 import 'kernel_builder.dart';
 

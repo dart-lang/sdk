@@ -15,7 +15,7 @@ import '../identifiers.dart';
 import '../scope.dart';
 
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;

@@ -22,7 +22,7 @@ import 'collections.dart'
         IfMapEntry,
         SpreadElement;
 
-import 'kernel_shadow_ast.dart';
+import 'internal_ast.dart';
 
 /// A shadow tree factory.
 class Forest {

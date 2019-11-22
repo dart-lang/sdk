@@ -11,7 +11,7 @@ import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
 
 import '../problems.dart' show internalProblem;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypePromoter;
+import '../kernel/internal_ast.dart' show ShadowTypePromoter;
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 

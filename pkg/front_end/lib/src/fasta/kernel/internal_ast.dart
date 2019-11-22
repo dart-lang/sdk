@@ -22,47 +22,16 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/type_algebra.dart' show Substitution;
-
-import 'package:kernel/type_environment.dart';
-
 import 'package:kernel/core_types.dart';
 
-import '../../base/instrumentation.dart'
-    show
-        InstrumentationValueForMember,
-        InstrumentationValueForType,
-        InstrumentationValueForTypeArgs;
-
-import '../builder/library_builder.dart';
-
 import '../fasta_codes.dart'
-    show
-        messageCantDisambiguateAmbiguousInformation,
-        messageCantDisambiguateNotEnoughInformation,
-        messageNonNullAwareSpreadIsNull,
-        messageSwitchExpressionNotAssignableCause,
-        noLength,
-        templateCantInferTypeDueToCircularity,
-        templateForInLoopElementTypeNotAssignable,
-        templateForInLoopTypeNotIterable,
-        templateIntegerLiteralIsOutOfRange,
-        templateSpreadElementTypeMismatch,
-        templateSpreadMapEntryElementKeyTypeMismatch,
-        templateSpreadMapEntryElementValueTypeMismatch,
-        templateSpreadMapEntryTypeMismatch,
-        templateSpreadTypeMismatch,
-        templateSwitchExpressionNotAssignable,
-        templateUndefinedSetter,
-        templateWebLiteralCannotBeRepresentedExactly;
+    show noLength, templateWebLiteralCannotBeRepresentedExactly;
 
 import '../names.dart';
 
-import '../problems.dart' show unhandled, unsupported;
+import '../problems.dart' show unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
@@ -72,30 +41,10 @@ import '../type_inference/type_promotion.dart'
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
-import '../type_inference/type_schema_elimination.dart' show greatestClosure;
-
 import '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 
-import 'body_builder.dart' show combineStatements;
-
-import 'collections.dart'
-    show
-        ForElement,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        IfElement,
-        IfMapEntry,
-        SpreadElement,
-        SpreadMapEntry,
-        convertToElement;
-
-import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
-import 'late_lowering.dart' as late_lowering;
-
-part "inference_visitor.dart";
+import 'inference_visitor.dart';
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(
@@ -497,7 +446,7 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
 
 /// Front end specific implementation of [FunctionDeclaration].
 class FunctionDeclarationImpl extends FunctionDeclaration {
-  bool _hasImplicitReturnType = false;
+  bool hasImplicitReturnType = false;
 
   FunctionDeclarationImpl(
       VariableDeclarationImpl variable, FunctionNode function)
@@ -505,7 +454,7 @@ class FunctionDeclarationImpl extends FunctionDeclaration {
 
   static void setHasImplicitReturnType(
       FunctionDeclarationImpl declaration, bool hasImplicitReturnType) {
-    declaration._hasImplicitReturnType = hasImplicitReturnType;
+    declaration.hasImplicitReturnType = hasImplicitReturnType;
   }
 }
 
@@ -864,7 +813,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
-      return variable._functionNestingLevel;
+      return variable.functionNestingLevel;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
       // VariableDeclaration objects sometimes.
@@ -878,7 +827,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
   bool isPromotionCandidate(VariableDeclaration variable) {
     assert(variable is VariableDeclarationImpl);
     VariableDeclarationImpl kernelVariableDeclaration = variable;
-    return !kernelVariableDeclaration._isLocalFunction;
+    return !kernelVariableDeclaration.isLocalFunction;
   }
 
   @override
@@ -889,7 +838,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
   @override
   void setVariableMutatedAnywhere(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
-      variable._mutatedAnywhere = true;
+      variable.mutatedAnywhere = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
       // VariableDeclaration objects sometimes.
@@ -901,7 +850,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
   @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
-      variable._mutatedInClosure = true;
+      variable.mutatedInClosure = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
       // VariableDeclaration objects sometimes.
@@ -913,7 +862,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
   @override
   bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
-      return variable._mutatedAnywhere;
+      return variable.mutatedAnywhere;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
       // VariableDeclaration objects sometimes.
@@ -928,25 +877,35 @@ class ShadowTypePromoter extends TypePromoterImpl {
 class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
 
-  final bool implicitlyTyped;
+  /// Determine whether the given [VariableDeclarationImpl] had an implicit
+  /// type.
+  ///
+  /// This is static to avoid introducing a method that would be visible to
+  /// the kernel.
+  final bool isImplicitlyTyped;
 
   // TODO(ahe): Remove this field. We can get rid of it by recording closure
   // mutation in [BodyBuilder].
-  final int _functionNestingLevel;
+  final int functionNestingLevel;
 
   // TODO(ahe): Remove this field. It's only used locally when compiling a
   // method, and this can thus be tracked in a [Set] (actually, tracking this
   // information in a [List] is probably even faster as the average size will
   // be close to zero).
-  bool _mutatedInClosure = false;
+  bool mutatedInClosure = false;
 
   // TODO(ahe): Investigate if this can be removed.
-  bool _mutatedAnywhere = false;
+  bool mutatedAnywhere = false;
 
+  /// Determines whether the given [VariableDeclarationImpl] represents a
+  /// local function.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
   // TODO(ahe): Investigate if this can be removed.
-  final bool _isLocalFunction;
+  final bool isLocalFunction;
 
-  VariableDeclarationImpl(String name, this._functionNestingLevel,
+  VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
       Expression initializer,
       DartType type,
@@ -957,8 +916,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false})
-      : implicitlyTyped = type == null,
-        _isLocalFunction = isLocalFunction,
+      : isImplicitlyTyped = type == null,
+        isLocalFunction = isLocalFunction,
         super(name,
             initializer: initializer,
             type: type ?? const DynamicType(),
@@ -971,45 +930,29 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
-        _functionNestingLevel = 0,
-        implicitlyTyped = false,
-        _isLocalFunction = false,
+        functionNestingLevel = 0,
+        isImplicitlyTyped = false,
+        isLocalFunction = false,
         super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
       : forSyntheticToken = false,
-        _functionNestingLevel = 0,
-        implicitlyTyped = true,
-        _isLocalFunction = false,
+        functionNestingLevel = 0,
+        isImplicitlyTyped = true,
+        isLocalFunction = false,
         super.forValue(initializer);
 
   VariableDeclaration lateGetter;
   VariableDeclaration lateSetter;
-
-  /// Determine whether the given [VariableDeclarationImpl] had an implicit
-  /// type.
-  ///
-  /// This is static to avoid introducing a method that would be visible to
-  /// the kernel.
-  static bool isImplicitlyTyped(VariableDeclarationImpl variable) =>
-      variable.implicitlyTyped;
-
-  /// Determines whether the given [VariableDeclarationImpl] represents a
-  /// local function.
-  ///
-  /// This is static to avoid introducing a method that would be visible to the
-  /// kernel.
-  static bool isLocalFunction(VariableDeclarationImpl variable) =>
-      variable._isLocalFunction;
 }
 
 /// Front end specific implementation of [VariableGet].
 class VariableGetImpl extends VariableGet {
-  final TypePromotionFact _fact;
+  final TypePromotionFact fact;
 
-  final TypePromotionScope _scope;
+  final TypePromotionScope scope;
 
-  VariableGetImpl(VariableDeclaration variable, this._fact, this._scope)
+  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope)
       : super(variable);
 }
 

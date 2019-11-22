@@ -84,7 +84,7 @@ import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
 
-import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
+import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
