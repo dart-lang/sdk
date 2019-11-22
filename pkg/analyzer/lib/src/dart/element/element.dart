@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
@@ -5171,6 +5172,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   final AnalysisSession session;
+
+  @override
+  TypeProviderImpl typeProvider;
+
+  @override
+  TypeSystemImpl typeSystem;
 
   /// The context of the defining unit.
   final LinkedUnitContext linkedContext;

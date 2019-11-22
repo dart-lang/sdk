@@ -5,9 +5,10 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -16,7 +17,7 @@ import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
-  final AnalysisContext analysisContext;
+  final AnalysisContextImpl analysisContext;
   final AnalysisSession analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
@@ -59,6 +60,30 @@ class LinkedElementFactory {
     }
 
     return Namespace(exportedNames);
+  }
+
+  void createTypeProviders(
+    LibraryElementImpl dartCore,
+    LibraryElementImpl dartAsync,
+  ) {
+    analysisContext.setTypeProviders(
+      legacy: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: false,
+      ),
+      nonNullableByDefault: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: true,
+      ),
+    );
+
+    setLibraryTypeSystem(dartCore);
+    setLibraryTypeSystem(dartAsync);
+
+    dartCore.createLoadLibraryFunction(dartCore.typeProvider);
+    dartAsync.createLoadLibraryFunction(dartAsync.typeProvider);
   }
 
   Element elementOfReference(Reference reference) {
@@ -128,6 +153,22 @@ class LinkedElementFactory {
         }
       }
     }
+  }
+
+  void setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    // During dart:core and dart:async linking we don't have it yet.
+    // It will be set later, once linking of these two is done.
+    if (analysisContext.typeProvider == null) {
+      return;
+    }
+
+    var isNonNullable = libraryElement.isNonNullableByDefault;
+    libraryElement.typeProvider = isNonNullable
+        ? analysisContext.typeProviderNonNullableByDefault
+        : analysisContext.typeProviderLegacy;
+    libraryElement.typeSystem = isNonNullable
+        ? analysisContext.typeSystemNonNullableByDefault
+        : analysisContext.typeSystemLegacy;
   }
 }
 
@@ -303,6 +344,7 @@ class _ElementRequest {
       reference,
       definingUnitContext.unit_withDeclarations,
     );
+    elementFactory.setLibraryTypeSystem(libraryElement);
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');

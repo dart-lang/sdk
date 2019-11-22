@@ -38,11 +38,13 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart'
+    show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
@@ -1311,6 +1313,12 @@ abstract class LibraryElement implements Element {
   /// that are included in this library. This includes both public and private
   /// elements, but does not include imports, exports, or synthetic elements.
   Iterable<Element> get topLevelElements;
+
+  /// Return the [TypeProvider] that is used in this library.
+  TypeProvider get typeProvider;
+
+  /// Return the [TypeSystem] that is used in this library.
+  TypeSystem get typeSystem;
 
   /// Return a list containing all of the compilation units this library
   /// consists of. This includes the defining compilation unit and units

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -138,15 +137,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     if (analysisContext.typeProvider == null) {
       var dartCore = elementFactory.libraryOfUri('dart:core');
       var dartAsync = elementFactory.libraryOfUri('dart:async');
-      var typeProvider = TypeProviderImpl(
-        coreLibrary: dartCore,
-        asyncLibrary: dartAsync,
-        isNonNullableByDefault: false,
-      );
-      analysisContext.typeProvider = typeProvider;
-
-      dartCore.createLoadLibraryFunction(typeProvider);
-      dartAsync.createLoadLibraryFunction(typeProvider);
+      elementFactory.createTypeProviders(dartCore, dartAsync);
     }
 
     return elementFactory.libraryOfUri('${source.uri}');

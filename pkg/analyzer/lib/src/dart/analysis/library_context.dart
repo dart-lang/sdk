@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -278,14 +277,6 @@ class LibraryContext {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = TypeProviderImpl(
-      coreLibrary: dartCore,
-      asyncLibrary: dartAsync,
-      isNonNullableByDefault: false,
-    );
-    analysisContext.typeProvider = typeProvider;
-
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+    elementFactory.createTypeProviders(dartCore, dartAsync);
   }
 }

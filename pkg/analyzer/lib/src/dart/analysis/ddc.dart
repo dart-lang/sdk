@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -203,15 +202,7 @@ class DevCompilerResynthesizerBuilder {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = TypeProviderImpl(
-      coreLibrary: dartCore,
-      asyncLibrary: dartAsync,
-      isNonNullableByDefault: false,
-    );
-    context.typeProvider = typeProvider;
-
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+    elementFactory.createTypeProviders(dartCore, dartAsync);
   }
 }
 

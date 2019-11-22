@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -847,8 +848,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 /// Additional behavior for an analysis context that is required by internal
 /// users of the context.
 abstract class InternalAnalysisContext implements AnalysisContext {
-  /// Sets the [TypeProvider] for this context.
-  void set typeProvider(TypeProvider typeProvider);
+  /// Sets the [TypeProvider]s for this context.
+  void setTypeProviders({
+    @required TypeProvider legacy,
+    @required TypeProvider nonNullableByDefault,
+  });
 }
 
 /// Container with global [AnalysisContext] performance statistics.

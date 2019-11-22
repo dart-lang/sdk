@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
+import 'package:meta/meta.dart';
 
 /**
  * An [AnalysisContext] in which analysis can be performed.
@@ -26,8 +28,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void set analysisOptions(AnalysisOptions options) {
+    throw StateError('Cannot be changed.');
+  }
+
+  @override
   DeclaredVariables get declaredVariables {
     return _synchronousSession.declaredVariables;
+  }
+
+  @override
+  void set sourceFactory(SourceFactory factory) {
+    throw StateError('Cannot be changed.');
   }
 
   @override
@@ -35,26 +47,40 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return _synchronousSession.typeProvider;
   }
 
-  @override
-  set typeProvider(TypeProvider typeProvider) {
-    _synchronousSession.typeProvider = typeProvider;
+  TypeProviderImpl get typeProviderLegacy {
+    return _synchronousSession.typeProviderLegacy;
+  }
+
+  TypeProviderImpl get typeProviderNonNullableByDefault {
+    return _synchronousSession.typeProviderNonNullableByDefault;
   }
 
   @override
-  TypeSystemImpl get typeSystem => _synchronousSession.typeSystem;
+  TypeSystemImpl get typeSystem {
+    return _synchronousSession.typeSystem;
+  }
+
+  TypeSystemImpl get typeSystemLegacy {
+    return _synchronousSession.typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemNonNullableByDefault {
+    return _synchronousSession.typeSystemNonNullableByDefault;
+  }
 
   void clearTypeProvider() {
     _synchronousSession.clearTypeProvider();
   }
 
   @override
-  void set analysisOptions(AnalysisOptions options) {
-    throw StateError('Cannot be changed.');
-  }
-
-  @override
-  void set sourceFactory(SourceFactory factory) {
-    throw StateError('Cannot be changed.');
+  void setTypeProviders({
+    @required TypeProvider legacy,
+    @required TypeProvider nonNullableByDefault,
+  }) {
+    _synchronousSession.setTypeProviders(
+      legacy: legacy,
+      nonNullableByDefault: nonNullableByDefault,
+    );
   }
 }
 

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -210,32 +211,68 @@ class SynchronousSession {
 
   final DeclaredVariables declaredVariables;
 
-  TypeProvider _typeProvider;
+  TypeProvider _typeProviderLegacy;
+  TypeProvider _typeProviderNonNullableByDefault;
 
-  TypeSystemImpl _typeSystem;
+  TypeSystemImpl _typeSystemLegacy;
+  TypeSystemImpl _typeSystemNonNullableByDefault;
 
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
-  TypeProvider get typeProvider => _typeProvider;
+  TypeProvider get typeProvider => _typeProviderLegacy;
 
-  set typeProvider(TypeProvider typeProvider) {
-    if (_typeProvider != null) {
-      throw StateError('TypeProvider can be set only once.');
-    }
-    _typeProvider = typeProvider;
+  TypeProvider get typeProviderLegacy {
+    return _typeProviderLegacy;
+  }
+
+  TypeProvider get typeProviderNonNullableByDefault {
+    return _typeProviderNonNullableByDefault;
   }
 
   TypeSystemImpl get typeSystem {
-    return _typeSystem ??= TypeSystemImpl(
+    return typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemLegacy {
+    return _typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemNonNullableByDefault {
+    return _typeSystemNonNullableByDefault;
+  }
+
+  void clearTypeProvider() {
+    _typeProviderLegacy = null;
+    _typeProviderNonNullableByDefault = null;
+
+    _typeSystemLegacy = null;
+    _typeSystemNonNullableByDefault = null;
+  }
+
+  void setTypeProviders({
+    @required TypeProvider legacy,
+    @required TypeProvider nonNullableByDefault,
+  }) {
+    if (_typeProviderLegacy != null ||
+        _typeProviderNonNullableByDefault != null) {
+      throw StateError('TypeProvider(s) can be set only once.');
+    }
+
+    _typeProviderLegacy = legacy;
+    _typeProviderNonNullableByDefault = nonNullableByDefault;
+
+    _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictInference: analysisOptions.strictInference,
       typeProvider: typeProvider,
     );
-  }
 
-  void clearTypeProvider() {
-    _typeProvider = null;
-    _typeSystem = null;
+    _typeSystemNonNullableByDefault = TypeSystemImpl(
+      implicitCasts: analysisOptions.implicitCasts,
+      isNonNullableByDefault: true,
+      strictInference: analysisOptions.strictInference,
+      typeProvider: typeProvider,
+    );
   }
 }
