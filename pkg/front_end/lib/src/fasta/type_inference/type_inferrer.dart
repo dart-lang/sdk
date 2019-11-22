@@ -302,7 +302,8 @@ class ClosureContext {
       return;
     }
     DartType expectedType = node.isYieldStar
-        ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
+        ? _wrapAsyncOrGenerator(
+            inferrer, returnOrYieldContext, inferrer.library.nonNullable)
         : returnOrYieldContext;
     Expression expression = inferrer.ensureAssignableResult(
         expectedType, expressionResult,
@@ -343,7 +344,8 @@ class ClosureContext {
       inferredType = greatestClosure(inferrer.coreTypes, returnOrYieldContext);
     }
 
-    inferredType = _wrapAsyncOrGenerator(inferrer, inferredType);
+    inferredType = _wrapAsyncOrGenerator(
+        inferrer, inferredType, inferrer.library.nonNullable);
     for (int i = 0; i < returnStatements.length; ++i) {
       checkValidReturn(inferrer, inferredType, returnStatements[i],
           returnExpressionTypes[i]);
@@ -352,15 +354,18 @@ class ClosureContext {
     return inferredType;
   }
 
-  DartType _wrapAsyncOrGenerator(TypeInferrerImpl inferrer, DartType type) {
+  DartType _wrapAsyncOrGenerator(
+      TypeInferrerImpl inferrer, DartType type, Nullability nullability) {
     if (isGenerator) {
       if (isAsync) {
-        return inferrer.wrapType(type, inferrer.coreTypes.streamClass);
+        return inferrer.wrapType(
+            type, inferrer.coreTypes.streamClass, nullability);
       } else {
-        return inferrer.wrapType(type, inferrer.coreTypes.iterableClass);
+        return inferrer.wrapType(
+            type, inferrer.coreTypes.iterableClass, nullability);
       }
     } else if (isAsync) {
-      return inferrer.wrapFutureType(type);
+      return inferrer.wrapFutureType(type, nullability);
     } else {
       return type;
     }
@@ -577,7 +582,8 @@ class TypeInferrerImpl implements TypeInferrer {
       // and Future<T>.
       DartType unfuturedExpectedType =
           typeSchemaEnvironment.unfutureType(expectedType);
-      DartType futuredExpectedType = wrapFutureType(unfuturedExpectedType);
+      DartType futuredExpectedType =
+          wrapFutureType(unfuturedExpectedType, library.nonNullable);
       if (isAssignable(unfuturedExpectedType, actualType)) {
         expectedType = unfuturedExpectedType;
       } else if (isAssignable(futuredExpectedType, actualType)) {
@@ -705,8 +711,8 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType onType = extension.onType;
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
-    typeSchemaEnvironment.inferGenericFunctionOrType(
-        null, typeParameters, [onType], [receiverType], null, inferredTypes);
+    typeSchemaEnvironment.inferGenericFunctionOrType(null, typeParameters,
+        [onType], [receiverType], null, inferredTypes, library.library);
     return inferredTypes;
   }
 
@@ -952,7 +958,7 @@ class TypeInferrerImpl implements TypeInferrer {
             return substitution.substituteType(new FunctionType(
                 functionType.positionalParameters.skip(1).toList(),
                 functionType.returnType,
-                Nullability.legacy,
+                library.nonNullable,
                 namedParameters: functionType.namedParameters,
                 typeParameters: functionType.typeParameters
                     .skip(target.inferredExtensionTypeArguments.length)
@@ -1574,7 +1580,7 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType extensionFunctionType = new FunctionType(
         [calleeType.positionalParameters.first],
         const DynamicType(),
-        Nullability.legacy,
+        library.nonNullable,
         requiredParameterCount: 1,
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
@@ -1598,7 +1604,7 @@ class TypeInferrerImpl implements TypeInferrer {
     FunctionType targetFunctionType = new FunctionType(
         calleeType.positionalParameters.skip(1).toList(),
         calleeType.returnType,
-        Nullability.legacy,
+        library.nonNullable,
         requiredParameterCount: calleeType.requiredParameterCount - 1,
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
@@ -1686,7 +1692,8 @@ class TypeInferrerImpl implements TypeInferrer {
           null,
           null,
           typeContext,
-          inferredTypes);
+          inferredTypes,
+          library.library);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1800,7 +1807,8 @@ class TypeInferrerImpl implements TypeInferrer {
           formalTypes,
           actualTypes,
           typeContext,
-          inferredTypes);
+          inferredTypes,
+          library.library);
       assert(inferredTypes.every((type) => isKnown(type)),
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
@@ -2649,8 +2657,8 @@ class TypeInferrerImpl implements TypeInferrer {
         List<DartType> inferredTypes = new List<DartType>.filled(
             typeParameters.length, const UnknownType());
         FunctionType instantiatedType = functionType.withoutTypeParameters;
-        typeSchemaEnvironment.inferGenericFunctionOrType(
-            instantiatedType, typeParameters, [], [], context, inferredTypes);
+        typeSchemaEnvironment.inferGenericFunctionOrType(instantiatedType,
+            typeParameters, [], [], context, inferredTypes, library.library);
         if (!isTopLevel) {
           expression = new Instantiation(expression, inferredTypes)
             ..fileOffset = expression.fileOffset;
@@ -2767,19 +2775,22 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     // TODO(paulberry): If [type] is a subtype of `Future`, should we just
     // return it unmodified?
-    return new InterfaceType(coreTypes.futureOrClass, Nullability.legacy,
-        <DartType>[type ?? const DynamicType()]);
-  }
-
-  DartType wrapFutureType(DartType type) {
-    DartType typeWithoutFutureOr = type ?? const DynamicType();
-    return new InterfaceType(coreTypes.futureClass, Nullability.legacy,
-        <DartType>[typeWithoutFutureOr]);
-  }
-
-  DartType wrapType(DartType type, Class class_) {
+    if (type == null) {
+      return coreTypes.futureRawType(library.nullable);
+    }
     return new InterfaceType(
-        class_, Nullability.legacy, <DartType>[type ?? const DynamicType()]);
+        coreTypes.futureOrClass, library.nonNullable, <DartType>[type]);
+  }
+
+  DartType wrapFutureType(DartType type, Nullability nullability) {
+    DartType typeWithoutFutureOr = type ?? const DynamicType();
+    return new InterfaceType(
+        coreTypes.futureClass, nullability, <DartType>[typeWithoutFutureOr]);
+  }
+
+  DartType wrapType(DartType type, Class class_, Nullability nullability) {
+    return new InterfaceType(
+        class_, nullability, <DartType>[type ?? const DynamicType()]);
   }
 
   Member _getInterfaceMember(

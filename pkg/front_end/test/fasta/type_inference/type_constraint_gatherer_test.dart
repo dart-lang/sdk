@@ -232,7 +232,7 @@ class TypeConstraintGathererTest {
     var typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(component));
     var typeConstraintGatherer = new TypeConstraintGatherer(
-        typeSchemaEnvironment, [T1.parameter, T2.parameter]);
+        typeSchemaEnvironment, [T1.parameter, T2.parameter], testLib);
     var constraints = typeConstraintGatherer.trySubtypeMatch(a, b)
         ? typeConstraintGatherer.computeConstraints()
         : null;

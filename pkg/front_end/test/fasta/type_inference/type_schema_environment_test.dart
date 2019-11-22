@@ -283,12 +283,12 @@ class TypeSchemaEnvironmentTest {
       // as List<?> during downwards inference.
       var inferredTypes = <DartType>[unknownType];
       TypeParameterType T = listClassThisType.typeArguments[0];
-      env.inferGenericFunctionOrType(
-          listClassThisType, [T.parameter], null, null, null, inferredTypes);
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
+          null, null, inferredTypes, testLib);
       expect(inferredTypes[0], unknownType);
       // And upwards inference should refine it to List<num>.
       env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
-          [intType, doubleType], null, inferredTypes);
+          [intType, doubleType], null, inferredTypes, testLib);
       expect(inferredTypes[0], numType);
     }
     {
@@ -297,11 +297,11 @@ class TypeSchemaEnvironmentTest {
       var inferredTypes = <DartType>[unknownType];
       TypeParameterType T = listClassThisType.typeArguments[0];
       env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
-          null, _list(objectType), inferredTypes);
+          null, _list(objectType), inferredTypes, testLib);
       expect(inferredTypes[0], objectType);
       // And upwards inference should preserve the type.
       env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
-          [intType, doubleType], _list(objectType), inferredTypes);
+          [intType, doubleType], _list(objectType), inferredTypes, testLib);
       expect(inferredTypes[0], objectType);
     }
   }

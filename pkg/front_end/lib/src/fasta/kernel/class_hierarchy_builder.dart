@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         InterfaceType,
         InvalidType,
+        Library,
         Member,
         Name,
         Nullability,
@@ -1689,8 +1690,8 @@ class ClassHierarchyNodeBuilder {
     new BuilderMixinInferrer(
             classBuilder,
             hierarchy.coreTypes,
-            new TypeBuilderConstraintGatherer(
-                hierarchy, mixedInType.classNode.typeParameters))
+            new TypeBuilderConstraintGatherer(hierarchy,
+                mixedInType.classNode.typeParameters, cls.enclosingLibrary))
         .infer(cls);
     List<TypeBuilder> inferredArguments =
         new List<TypeBuilder>(typeArguments.length);
@@ -1979,9 +1980,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
     with StandardBounds {
   final ClassHierarchyBuilder hierarchy;
 
-  TypeBuilderConstraintGatherer(
-      this.hierarchy, Iterable<TypeParameter> typeParameters)
-      : super.subclassing(typeParameters);
+  TypeBuilderConstraintGatherer(this.hierarchy,
+      Iterable<TypeParameter> typeParameters, Library currentLibrary)
+      : super.subclassing(typeParameters, currentLibrary);
 
   @override
   Class get objectClass => hierarchy.objectClass;

@@ -86,8 +86,8 @@ algebra
 algorithm
 algorithms
 alias
-aliases
 aliased
+aliases
 alignment
 all
 allocated
@@ -1097,6 +1097,7 @@ feature
 features
 feed
 feel
+fetch
 few
 fewer
 field

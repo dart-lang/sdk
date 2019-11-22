@@ -9,8 +9,8 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InterfaceType,
+        Library,
         NamedType,
-        Nullability,
         Procedure,
         TypeParameter,
         Variance;
@@ -45,7 +45,7 @@ FunctionType substituteTypeParams(
   return new FunctionType(
       type.positionalParameters.map(substitution.substituteType).toList(),
       substitution.substituteType(type.returnType),
-      Nullability.legacy,
+      type.nullability,
       namedParameters: type.namedParameters
           .map((named) => new NamedType(
               named.name, substitution.substituteType(named.type),
@@ -170,6 +170,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<DartType> actualTypes,
       DartType returnContextType,
       List<DartType> inferredTypes,
+      Library currentLibrary,
       {bool isConst: false}) {
     if (typeParametersToInfer.isEmpty) {
       return;
@@ -180,7 +181,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     TypeConstraintGatherer gatherer =
-        new TypeConstraintGatherer(this, typeParametersToInfer);
+        new TypeConstraintGatherer(this, typeParametersToInfer, currentLibrary);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {

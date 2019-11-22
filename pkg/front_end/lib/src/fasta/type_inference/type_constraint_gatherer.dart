@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InterfaceType,
+        Library,
         Member,
         Name,
         NamedType,
@@ -21,10 +22,11 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show substitute, Substitution;
 
-import 'type_schema.dart' show UnknownType;
+import 'package:kernel/type_environment.dart';
 
-import 'type_schema_environment.dart'
-    show TypeConstraint, TypeSchemaEnvironment, substituteTypeParams;
+import 'package:kernel/src/future_or.dart';
+
+import 'type_schema.dart' show UnknownType;
 
 import '../names.dart' show callName;
 
@@ -39,14 +41,18 @@ abstract class TypeConstraintGatherer {
 
   final List<TypeParameter> _parametersToConstrain;
 
+  final Library _currentLibrary;
+
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  TypeConstraintGatherer.subclassing(Iterable<TypeParameter> typeParameters)
+  TypeConstraintGatherer.subclassing(
+      Iterable<TypeParameter> typeParameters, this._currentLibrary)
       : _parametersToConstrain = typeParameters.toList();
 
   factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
-      Iterable<TypeParameter> typeParameters) {
-    return new TypeSchemaConstraintGatherer(environment, typeParameters);
+      Iterable<TypeParameter> typeParameters, Library currentLibrary) {
+    return new TypeSchemaConstraintGatherer(
+        environment, typeParameters, currentLibrary);
   }
 
   Class get objectClass;
@@ -298,9 +304,12 @@ abstract class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      InterfaceType subtypeFuture = futureType(subtypeArg, Nullability.legacy);
+      InterfaceType subtypeFuture =
+          futureType(subtypeArg, _currentLibrary.nonNullable);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
-          _isSubtypeMatch(subtypeArg, supertype);
+          _isSubtypeMatch(subtypeArg, supertype) &&
+          new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
+              .isSubtypeWhenUsingNullabilities();
     }
 
     if (supertype is InterfaceType &&
@@ -313,8 +322,24 @@ abstract class TypeConstraintGatherer {
       //   under constraints `C`
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
-      DartType supertypeArg = supertype.typeArguments[0];
-      DartType supertypeFuture = futureType(supertypeArg, Nullability.legacy);
+
+      // Since FutureOr<S> is a union type Future<S> U S where U denotes the
+      // union operation on types, T? is T U Null, T U T = T, S U T = T U S, and
+      // S U (T U V) = (S U T) U V, the following is true:
+      //
+      //   - FutureOr<S?> = S? U Future<S?>?
+      //   - FutureOr<S>? = S? U Future<S>?
+      //
+      // To compute the nullabilities for the two types in the union, the
+      // nullability of the argument and the declared nullability of FutureOr
+      // should be united.  Also, computeNullability is used to fetch the
+      // nullability of the argument because it can be a FutureOr itself.
+      Nullability unitedNullability = uniteNullabilities(
+          computeNullability(supertype.typeArguments[0], futureOrClass),
+          supertype.nullability);
+      DartType supertypeArg =
+          supertype.typeArguments[0].withNullability(unitedNullability);
+      DartType supertypeFuture = futureType(supertypeArg, unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
       // Future<X> or X succeeds.  If they both succeed, the one adding new
@@ -434,9 +459,9 @@ abstract class TypeConstraintGatherer {
 class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   final TypeSchemaEnvironment environment;
 
-  TypeSchemaConstraintGatherer(
-      this.environment, Iterable<TypeParameter> typeParameters)
-      : super.subclassing(typeParameters);
+  TypeSchemaConstraintGatherer(this.environment,
+      Iterable<TypeParameter> typeParameters, Library currentLibrary)
+      : super.subclassing(typeParameters, currentLibrary);
 
   @override
   Class get objectClass => environment.coreTypes.objectClass;
