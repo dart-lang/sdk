@@ -87,15 +87,15 @@ main() {
   // Since T is contravariant, we choose Upper as the solution.
   var inferredContraUpper = inferContraBound(ContraBound(Lower(), (Upper x) {}));
   lower = inferredContraUpper;
-  //      ^
-  // [analyzer] unspecified
+  //      ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Upper>' can't be assigned to a variable of type 'Exactly<Lower>'.
 
   // Inference for Contrabound(...) produces Lower <: T <: Middle.
   // Since T is contravariant, we choose Middle as the solution.
   var inferredContraMiddle = inferContraBound(ContraBound(Lower(), (Middle x) {}));
   lower = inferredContraMiddle;
-  //      ^
-  // [analyzer] unspecified
+  //      ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Middle>' can't be assigned to a variable of type 'Exactly<Lower>'.
 }

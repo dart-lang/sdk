@@ -2009,13 +2009,11 @@ class GenericInferrer {
     // degradation for f-bounded type parameters.
     var inferredTypes = new List<DartType>.filled(
         typeFormals.length, UnknownInferredType.instance);
-    var _inferTypeParameter = downwardsInferPhase
-        ? _inferTypeParameterFromContext
-        : _inferTypeParameterFromAll;
 
     for (int i = 0; i < typeFormals.length; i++) {
-      TypeParameterElement typeParam = typeFormals[i];
-
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      TypeParameterElementImpl typeParam = typeFormals[i];
       _TypeConstraint extendsClause;
       if (considerExtendsClause && typeParam.bound != null) {
         extendsClause = new _TypeConstraint.fromExtends(
@@ -2024,8 +2022,12 @@ class GenericInferrer {
                 .substituteType(typeParam.bound));
       }
 
-      inferredTypes[i] =
-          _inferTypeParameter(constraints[typeParam], extendsClause);
+      inferredTypes[i] = downwardsInferPhase || !typeParam.isLegacyCovariant
+          ? _inferTypeParameterFromContext(
+              constraints[typeParam], extendsClause,
+              isContravariant: typeParam.variance.isContravariant)
+          : _inferTypeParameterFromAll(constraints[typeParam], extendsClause,
+              isContravariant: typeParam.variance.isContravariant);
     }
 
     // If the downwards infer phase has failed, we'll catch this in the upwards
@@ -2166,8 +2168,12 @@ class GenericInferrer {
   /// * `int <: T`
   ///
   /// ... and no upper bound. Therefore the lower bound is the best choice.
+  ///
+  /// If [isContravariant] is `true`, then we are solving for a contravariant
+  /// type parameter which means we choose the upper bound rather than the
+  /// lower bound for normally covariant type parameters.
   DartType _chooseTypeFromConstraints(Iterable<_TypeConstraint> constraints,
-      {bool toKnownType: false}) {
+      {bool toKnownType: false, @required bool isContravariant}) {
     DartType lower = UnknownInferredType.instance;
     DartType upper = UnknownInferredType.instance;
     for (var constraint in constraints) {
@@ -2193,20 +2199,37 @@ class GenericInferrer {
     // Prefer the known bound, if any.
     // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
     //
-    // For both of those, prefer the lower bound (arbitrary heuristic).
-    if (UnknownInferredType.isKnown(lower)) {
+    // For both of those, prefer the lower bound (arbitrary heuristic) or upper
+    // bound if [isContravariant] is `true`
+    if (isContravariant) {
+      if (UnknownInferredType.isKnown(upper)) {
+        return upper;
+      }
+      if (UnknownInferredType.isKnown(lower)) {
+        return lower;
+      }
+      if (!identical(UnknownInferredType.instance, upper)) {
+        return toKnownType ? _typeSystem.upperBoundForType(upper) : upper;
+      }
+      if (!identical(UnknownInferredType.instance, lower)) {
+        return toKnownType ? _typeSystem.lowerBoundForType(lower) : lower;
+      }
+      return upper;
+    } else {
+      if (UnknownInferredType.isKnown(lower)) {
+        return lower;
+      }
+      if (UnknownInferredType.isKnown(upper)) {
+        return upper;
+      }
+      if (!identical(UnknownInferredType.instance, lower)) {
+        return toKnownType ? _typeSystem.lowerBoundForType(lower) : lower;
+      }
+      if (!identical(UnknownInferredType.instance, upper)) {
+        return toKnownType ? _typeSystem.upperBoundForType(upper) : upper;
+      }
       return lower;
     }
-    if (UnknownInferredType.isKnown(upper)) {
-      return upper;
-    }
-    if (!identical(UnknownInferredType.instance, lower)) {
-      return toKnownType ? _typeSystem.lowerBoundForType(lower) : lower;
-    }
-    if (!identical(UnknownInferredType.instance, upper)) {
-      return toKnownType ? _typeSystem.upperBoundForType(upper) : upper;
-    }
-    return lower;
   }
 
   String _formatError(TypeParameterElement typeParam, DartType inferred,
@@ -2280,11 +2303,13 @@ class GenericInferrer {
   }
 
   DartType _inferTypeParameterFromAll(
-      List<_TypeConstraint> constraints, _TypeConstraint extendsClause) {
+      List<_TypeConstraint> constraints, _TypeConstraint extendsClause,
+      {@required bool isContravariant}) {
     // See if we already fixed this type from downwards inference.
     // If so, then we aren't allowed to change it based on argument types.
     DartType t = _inferTypeParameterFromContext(
-        constraints.where((c) => c.isDownwards), extendsClause);
+        constraints.where((c) => c.isDownwards), extendsClause,
+        isContravariant: isContravariant);
     if (UnknownInferredType.isKnown(t)) {
       // Remove constraints that aren't downward ones; we'll ignore these for
       // error reporting, because inference already succeeded.
@@ -2296,13 +2321,16 @@ class GenericInferrer {
       constraints = constraints.toList()..add(extendsClause);
     }
 
-    var choice = _chooseTypeFromConstraints(constraints, toKnownType: true);
+    var choice = _chooseTypeFromConstraints(constraints,
+        toKnownType: true, isContravariant: isContravariant);
     return choice;
   }
 
   DartType _inferTypeParameterFromContext(
-      Iterable<_TypeConstraint> constraints, _TypeConstraint extendsClause) {
-    DartType t = _chooseTypeFromConstraints(constraints);
+      Iterable<_TypeConstraint> constraints, _TypeConstraint extendsClause,
+      {@required bool isContravariant}) {
+    DartType t = _chooseTypeFromConstraints(constraints,
+        isContravariant: isContravariant);
     if (UnknownInferredType.isUnknown(t)) {
       return t;
     }
@@ -2316,7 +2344,8 @@ class GenericInferrer {
     // If we consider the `T extends num` we conclude `<num>`, which works.
     if (extendsClause != null) {
       constraints = constraints.toList()..add(extendsClause);
-      return _chooseTypeFromConstraints(constraints);
+      return _chooseTypeFromConstraints(constraints,
+          isContravariant: isContravariant);
     }
     return t;
   }

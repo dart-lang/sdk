@@ -1191,6 +1191,50 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     expect(_inferCall(f, [intType]), [intType]);
   }
 
+  void test_parameter_contravariantUseUpperBound() {
+    // <T>(T x, void Function(T) y) -> T
+    // Generates constraints int <: T <: num.
+    // Since T is contravariant, choose num.
+    var T = typeParameter('T', variance: Variance.contravariant);
+    var tFunction = functionTypeStar(
+        parameters: [requiredParameter(type: typeParameterTypeStar(T))],
+        returnType: voidType);
+    var numFunction = functionTypeStar(
+        parameters: [requiredParameter(type: numType)], returnType: voidType);
+    var function = functionTypeStar(
+      typeFormals: [T],
+      parameters: [
+        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: tFunction)
+      ],
+      returnType: typeParameterTypeStar(T),
+    );
+
+    expect(_inferCall(function, [intType, numFunction]), [numType]);
+  }
+
+  void test_parameter_covariantUseLowerBound() {
+    // <T>(T x, void Function(T) y) -> T
+    // Generates constraints int <: T <: num.
+    // Since T is covariant, choose int.
+    var T = typeParameter('T', variance: Variance.covariant);
+    var tFunction = functionTypeStar(
+        parameters: [requiredParameter(type: typeParameterTypeStar(T))],
+        returnType: voidType);
+    var numFunction = functionTypeStar(
+        parameters: [requiredParameter(type: numType)], returnType: voidType);
+    var function = functionTypeStar(
+      typeFormals: [T],
+      parameters: [
+        requiredParameter(type: typeParameterTypeStar(T)),
+        requiredParameter(type: tFunction)
+      ],
+      returnType: typeParameterTypeStar(T),
+    );
+
+    expect(_inferCall(function, [intType, numFunction]), [intType]);
+  }
+
   void test_returnFunctionWithGenericParameter() {
     // <T>(T -> T) -> (T -> void)
     var T = typeParameter('T');
