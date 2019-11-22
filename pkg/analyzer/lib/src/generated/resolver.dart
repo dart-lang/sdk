@@ -2232,8 +2232,12 @@ class InferenceContext {
     }
 
     DartType inferred = _inferredReturn.last;
-    inferred = _typeSystem.getLeastUpperBound(type, inferred);
-    inferred = _resolver.toLegacyTypeIfOptOut(inferred);
+    if (inferred == null) {
+      inferred = type;
+    } else {
+      inferred = _typeSystem.getLeastUpperBound(type, inferred);
+      inferred = _resolver.toLegacyTypeIfOptOut(inferred);
+    }
     _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
@@ -2244,8 +2248,21 @@ class InferenceContext {
   /// bound of all types added with [addReturnOrYieldType].
   void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
-      DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
+      // If NNBD, and the function body end is reachable, infer nullable.
+      // If legacy, we consider the end as always reachable, and return Null.
+      if (_resolver._nonNullableEnabled) {
+        var flow = _resolver._flowAnalysis?.flow;
+        if (flow != null && flow.isReachable) {
+          addReturnOrYieldType(_typeProvider.nullType);
+        }
+      } else {
+        addReturnOrYieldType(_typeProvider.nullType);
+      }
+
+      DartType context = _returnStack.removeLast();
       DartType inferred = _inferredReturn.removeLast();
+      context ??= DynamicTypeImpl.instance;
+      inferred ??= DynamicTypeImpl.instance;
 
       if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
@@ -2258,11 +2275,7 @@ class InferenceContext {
   /// Push a block function body's return type onto the return stack.
   void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
-    if (_resolver._nonNullableEnabled) {
-      _inferredReturn.add(_typeProvider.neverType);
-    } else {
-      _inferredReturn.add(_typeProvider.nullType);
-    }
+    _inferredReturn.add(null);
   }
 
   /// Place an info node into the error stream indicating that a
