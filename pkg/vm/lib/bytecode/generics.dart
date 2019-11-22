@@ -188,15 +188,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns static type of [expr].
-DartType getStaticType(Expression expr, StaticTypeContext staticTypeContext) {
-  // TODO(dartbug.com/34496): Remove this try/catch once
-  // getStaticType() is reliable.
-  try {
-    return expr.getStaticType(staticTypeContext);
-  } catch (e) {
-    return const DynamicType();
-  }
-}
+DartType getStaticType(Expression expr, StaticTypeContext staticTypeContext) =>
+    expr.getStaticType(staticTypeContext);
 
 /// Returns `true` if [type] cannot be extended in user code.
 bool isSealedType(DartType type, CoreTypes coreTypes) {

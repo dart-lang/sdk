@@ -701,15 +701,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
   }
 
-  DartType _staticDartType(Expression node) {
-    // TODO(dartbug.com/34496): Remove this try/catch once
-    // getStaticType() is reliable.
-    try {
-      return node.getStaticType(_staticTypeContext);
-    } catch (e) {
-      return const DynamicType();
-    }
-  }
+  DartType _staticDartType(Expression node) =>
+      node.getStaticType(_staticTypeContext);
 
   Type _staticType(Expression node) =>
       _typesBuilder.fromStaticType(_staticDartType(node), true);

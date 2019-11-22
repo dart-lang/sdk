@@ -41,28 +41,15 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
         env = new TypeEnvironment(coreTypes, hierarchy);
 
   @override
-  visitProcedure(Procedure proc) {
-    _staticTypeContext = new StaticTypeContext(proc, env);
-    super.visitProcedure(proc);
-    _staticTypeContext = null;
-  }
-
-  @override
-  visitConstructor(Constructor proc) {
-    _staticTypeContext = new StaticTypeContext(proc, env);
-    super.visitConstructor(proc);
+  defaultMember(Member node) {
+    _staticTypeContext = new StaticTypeContext(node, env);
+    super.defaultMember(node);
     _staticTypeContext = null;
   }
 
   void annotateWithType(TreeNode node, Expression receiver) {
-    try {
-      _metadata.mapping[node] = new CallSiteAttributesMetadata(
-          receiverType: receiver.getStaticType(_staticTypeContext));
-    } catch (e) {
-      // TODO(dartbug.com/34496) Currently getStaticType is unreliable due to
-      // various issues with AST welltypedness. As a workaround we just
-      // swallow the exception.
-    }
+    _metadata.mapping[node] = new CallSiteAttributesMetadata(
+        receiverType: receiver.getStaticType(_staticTypeContext));
   }
 
   @override
