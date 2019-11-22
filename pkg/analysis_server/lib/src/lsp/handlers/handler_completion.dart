@@ -136,15 +136,18 @@ class CompletionHandler
         new CompletionRequestImpl(unit, offset, performance);
 
     Set<ElementKind> includedElementKinds;
+    Set<ElementKind> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (includeSuggestionSets) {
       includedElementKinds = Set<ElementKind>();
+      includedElementKinds = Set<String>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
     try {
       CompletionContributor contributor = new DartCompletionManager(
         includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
       final suggestions =
@@ -167,7 +170,6 @@ class CompletionHandler
 
       // Now compute items in suggestion sets.
       List<IncludedSuggestionSet> includedSuggestionSets = [];
-      Set<String> includedElementNames = Set<String>();
       if (includedElementKinds != null && unit != null) {
         computeIncludedSetList(
           server.declarationsTracker,
