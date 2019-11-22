@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dartfuzz_type_table.dart";
+
 /// Class that represents Dart library methods.
 ///
 /// The invididual lists are organized by return type.
@@ -24,7 +26,23 @@
 ///   L List<int>
 ///   X Set<int>
 ///   M Map<int, String>
-///
+///   A Int8List
+///   C Int16List
+///   E Int32List
+///   F Int32x4
+///   G Int32x4List
+///   H Int64List
+///   J Float32List
+///   K Float32x4
+///   N Float32x4List
+///   O Float64List
+///   P Float64x2
+///   Q Float64x2List
+///   R uint8ClampedList
+///   T uint8List
+///   U uint16List
+///   W uint32List
+///   Y uint64List
 /// NOTE: this code has been generated automatically.
 ///
 class DartLib {
@@ -32,6 +50,68 @@ class DartLib {
   final String proto;
   const DartLib(this.name, this.proto);
 
+  static const stringToType = {
+    'V': DartType.VOID,
+    'B': DartType.BOOL,
+    'I': DartType.INT,
+    'D': DartType.DOUBLE,
+    'S': DartType.STRING,
+    'L': DartType.LIST_INT,
+    'X': DartType.SET_INT,
+    'M': DartType.MAP_INT_STRING,
+    'A': DartType.INT8LIST,
+    'C': DartType.INT16LIST,
+    'E': DartType.INT32LIST,
+    'F': DartType.INT32X4,
+    'G': DartType.INT32X4LIST,
+    'H': DartType.INT64LIST,
+    'J': DartType.FLOAT32LIST,
+    'K': DartType.FLOAT32X4,
+    'N': DartType.FLOAT32X4LIST,
+    'O': DartType.FLOAT64LIST,
+    'P': DartType.FLOAT64X2,
+    'Q': DartType.FLOAT64X2LIST,
+    'R': DartType.UINT8CLAMPEDLIST,
+    'T': DartType.UINT8LIST,
+    'U': DartType.UINT16LIST,
+    'W': DartType.UINT32LIST,
+    'Y': DartType.UINT64LIST,
+  };
+  static final typeToLibraryMethods = {
+    DartType.VOID: voidLibs,
+    DartType.BOOL: boolLibs,
+    DartType.INT: intLibs,
+    DartType.DOUBLE: doubleLibs,
+    DartType.STRING: stringLibs,
+    DartType.LIST_INT: listLibs,
+    DartType.SET_INT: setLibs,
+    DartType.MAP_INT_STRING: mapLibs,
+    DartType.INT8LIST: int8ListLibs,
+    DartType.INT16LIST: int16ListLibs,
+    DartType.INT32LIST: int32ListLibs,
+    DartType.INT32X4: int32x4Libs,
+    DartType.INT32X4LIST: int32x4ListLibs,
+    DartType.INT64LIST: int64ListLibs,
+    DartType.FLOAT32LIST: float32ListLibs,
+    DartType.FLOAT32X4: float32x4Libs,
+    DartType.FLOAT32X4LIST: float32x4ListLibs,
+    DartType.FLOAT64LIST: float64ListLibs,
+    DartType.FLOAT64X2: float64x2Libs,
+    DartType.FLOAT64X2LIST: float64x2ListLibs,
+    DartType.UINT8CLAMPEDLIST: uint8ClampedListLibs,
+    DartType.UINT8LIST: uint8ListLibs,
+    DartType.UINT16LIST: uint16ListLibs,
+    DartType.UINT32LIST: uint32ListLibs,
+    DartType.UINT64LIST: uint64ListLibs,
+  };
+  static const typedDataFloatTypes = [
+    'J',
+    'K',
+    'N',
+    'O',
+    'P',
+    'Q',
+  ];
   static const voidLibs = [
     DartLib('RangeError.checkNotNegative', 'VISS'),
     DartLib('RangeError.checkValueInInterval', 'VIIISS'),
@@ -50,6 +130,10 @@ class DartLib {
     DartLib('add', 'XI'),
     DartLib('bool.fromEnvironment', 'VS'),
     DartLib('endsWith', 'SS'),
+    DartLib('flagW', 'Fv'),
+    DartLib('flagX', 'Fv'),
+    DartLib('flagY', 'Fv'),
+    DartLib('flagZ', 'Fv'),
     DartLib('isEmpty', 'Mv'),
     DartLib('isEmpty', 'Sv'),
     DartLib('isEven', 'Iv'),
@@ -670,8 +754,8 @@ class DartLib {
     DartLib('ceil', 'DV'),
     DartLib('ceil', 'IV'),
     DartLib('codeUnitAt', 'SI'),
-    DartLib('compareTo', 'DD'),
     DartLib('compareTo', 'SS'),
+    DartLib('compareTo', 'DD'),
     DartLib('floor', 'IV'),
     DartLib('floor', 'DV'),
     DartLib('floor', 'DV'),
@@ -682,8 +766,8 @@ class DartLib {
     DartLib('int.tryParse', 'VS'),
     DartLib('lastIndexOf', 'LII'),
     DartLib('length', 'Mv'),
-    DartLib('length', 'Lv'),
     DartLib('length', 'Sv'),
+    DartLib('length', 'Lv'),
     DartLib('modInverse', 'II'),
     DartLib('modPow', 'III'),
     DartLib('removeAt', 'LI'),
@@ -692,14 +776,21 @@ class DartLib {
     DartLib('round', 'IV'),
     DartLib('round', 'DV'),
     DartLib('sign', 'Iv'),
+    DartLib('signMask', 'Pv'),
+    DartLib('signMask', 'Kv'),
+    DartLib('signMask', 'Fv'),
     DartLib('toInt', 'DV'),
     DartLib('toSigned', 'II'),
     DartLib('toUnsigned', 'II'),
-    DartLib('truncate', 'DV'),
     DartLib('truncate', 'IV'),
+    DartLib('truncate', 'DV'),
     DartLib('truncate', 'DV'),
     DartLib('unicodeBomCharacterRune', 'Vv'),
     DartLib('unicodeReplacementCharacterRune', 'Vv'),
+    DartLib('w', 'Fv'),
+    DartLib('x', 'Fv'),
+    DartLib('y', 'Fv'),
+    DartLib('z', 'Fv'),
   ];
   static const doubleLibs = [
     DartLib('abs', 'DV'),
@@ -709,8 +800,8 @@ class DartLib {
     DartLib('atan', 'VD'),
     DartLib('atan2', 'VDD'),
     DartLib('ceilToDouble', 'DV'),
-    DartLib('ceilToDouble', 'DV'),
     DartLib('ceilToDouble', 'IV'),
+    DartLib('ceilToDouble', 'DV'),
     DartLib('clamp', 'DDD'),
     DartLib('cos', 'VD'),
     DartLib('double.infinity', 'Vv'),
@@ -745,9 +836,15 @@ class DartLib {
     DartLib('sqrt2', 'Vv'),
     DartLib('tan', 'VD'),
     DartLib('toDouble', 'DV'),
+    DartLib('truncateToDouble', 'DV'),
     DartLib('truncateToDouble', 'IV'),
     DartLib('truncateToDouble', 'DV'),
-    DartLib('truncateToDouble', 'DV'),
+    DartLib('w', 'Kv'),
+    DartLib('x', 'Kv'),
+    DartLib('x', 'Pv'),
+    DartLib('y', 'Pv'),
+    DartLib('y', 'Kv'),
+    DartLib('z', 'Kv'),
   ];
   static const stringLibs = [
     DartLib('ListBase.listToString', 'VL'),
@@ -801,5 +898,111 @@ class DartLib {
     DartLib('Map<int, String>.identity', 'VV'),
     DartLib('Map<int, String>.of', 'VM'),
     DartLib('Map<int, String>.unmodifiable', 'VM'),
+  ];
+  static const int8ListLibs = [
+    DartLib('Int8List.fromList', 'VL'),
+    DartLib('sublist', 'AII'),
+  ];
+  static const int16ListLibs = [
+    DartLib('Int16List.fromList', 'VL'),
+    DartLib('sublist', 'CII'),
+  ];
+  static const int32ListLibs = [
+    DartLib('Int32List.fromList', 'VL'),
+    DartLib('sublist', 'EII'),
+  ];
+  static const int32x4Libs = [
+    DartLib('Int32x4.bool', 'VBBBB'),
+    DartLib('Int32x4.fromFloat32x4Bits', 'VK'),
+    DartLib('equal', 'KK'),
+    DartLib('greaterThan', 'KK'),
+    DartLib('greaterThanOrEqual', 'KK'),
+    DartLib('lessThan', 'KK'),
+    DartLib('lessThanOrEqual', 'KK'),
+    DartLib('notEqual', 'KK'),
+    DartLib('shuffle', 'FI'),
+    DartLib('shuffleMix', 'FFI'),
+    DartLib('withFlagW', 'FB'),
+    DartLib('withFlagX', 'FB'),
+    DartLib('withFlagY', 'FB'),
+    DartLib('withFlagZ', 'FB'),
+    DartLib('withW', 'FI'),
+    DartLib('withX', 'FI'),
+    DartLib('withY', 'FI'),
+    DartLib('withZ', 'FI'),
+  ];
+  static const int32x4ListLibs = [
+    DartLib('sublist', 'GII'),
+  ];
+  static const int64ListLibs = [
+    DartLib('Int64List.fromList', 'VL'),
+    DartLib('sublist', 'HII'),
+  ];
+  static const float32ListLibs = [
+    DartLib('sublist', 'JII'),
+  ];
+  static const float32x4Libs = [
+    DartLib('Float32x4.fromFloat64x2', 'VP'),
+    DartLib('Float32x4.fromInt32x4Bits', 'VF'),
+    DartLib('Float32x4.splat', 'VD'),
+    DartLib('Float32x4.zero', 'VV'),
+    DartLib('abs', 'KV'),
+    DartLib('clamp', 'KKK'),
+    DartLib('max', 'KK'),
+    DartLib('min', 'KK'),
+    DartLib('reciprocal', 'KV'),
+    DartLib('reciprocalSqrt', 'KV'),
+    DartLib('scale', 'KD'),
+    DartLib('select', 'FKK'),
+    DartLib('shuffle', 'KI'),
+    DartLib('shuffleMix', 'KKI'),
+    DartLib('sqrt', 'KV'),
+    DartLib('withW', 'KD'),
+    DartLib('withX', 'KD'),
+    DartLib('withY', 'KD'),
+    DartLib('withZ', 'KD'),
+  ];
+  static const float32x4ListLibs = [
+    DartLib('sublist', 'NII'),
+  ];
+  static const float64ListLibs = [
+    DartLib('sublist', 'OII'),
+  ];
+  static const float64x2Libs = [
+    DartLib('Float64x2.fromFloat32x4', 'VK'),
+    DartLib('Float64x2.splat', 'VD'),
+    DartLib('Float64x2.zero', 'VV'),
+    DartLib('abs', 'PV'),
+    DartLib('clamp', 'PPP'),
+    DartLib('max', 'PP'),
+    DartLib('min', 'PP'),
+    DartLib('scale', 'PD'),
+    DartLib('sqrt', 'PV'),
+    DartLib('withX', 'PD'),
+    DartLib('withY', 'PD'),
+  ];
+  static const float64x2ListLibs = [
+    DartLib('sublist', 'QII'),
+  ];
+  static const uint8ClampedListLibs = [
+    DartLib('Uint8ClampedList.fromList', 'VL'),
+    DartLib('sublist', 'RII'),
+  ];
+  static const uint8ListLibs = [
+    DartLib('Uint8List.fromList', 'VL'),
+    DartLib('base64Decode', 'VS'),
+    DartLib('sublist', 'TII'),
+  ];
+  static const uint16ListLibs = [
+    DartLib('Uint16List.fromList', 'VL'),
+    DartLib('sublist', 'UII'),
+  ];
+  static const uint32ListLibs = [
+    DartLib('Uint32List.fromList', 'VL'),
+    DartLib('sublist', 'WII'),
+  ];
+  static const uint64ListLibs = [
+    DartLib('Uint64List.fromList', 'VL'),
+    DartLib('sublist', 'YII'),
   ];
 }

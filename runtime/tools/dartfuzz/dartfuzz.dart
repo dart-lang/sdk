@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.70';
+const String version = '1.71';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -217,55 +217,52 @@ class RhsFilter {
 /// Class that specifies the api for calling library and ffi functions (if
 /// enabled).
 class DartApi {
-  DartApi(bool ffi)
-      : intLibs = [
-          if (ffi) ...const [
-            DartLib('intComputation', 'VIIII'),
-            DartLib('takeMaxUint16', 'VI'),
-            DartLib('sumPlus42', 'VII'),
-            DartLib('returnMaxUint8', 'VV'),
-            DartLib('returnMaxUint16', 'VV'),
-            DartLib('returnMaxUint32', 'VV'),
-            DartLib('returnMinInt8', 'VV'),
-            DartLib('returnMinInt16', 'VV'),
-            DartLib('returnMinInt32', 'VV'),
-            DartLib('takeMinInt16', 'VI'),
-            DartLib('takeMinInt32', 'VI'),
-            DartLib('uintComputation', 'VIIII'),
-            DartLib('sumSmallNumbers', 'VIIIIII'),
-            DartLib('takeMinInt8', 'VI'),
-            DartLib('takeMaxUint32', 'VI'),
-            DartLib('takeMaxUint8', 'VI'),
-            DartLib('minInt64', 'VV'),
-            DartLib('minInt32', 'VV'),
-            // Use small int to avoid overflow divergences due to size
-            // differences in intptr_t on 32-bit and 64-bit platforms.
-            DartLib('sumManyIntsOdd', 'Viiiiiiiiiii'),
-            DartLib('sumManyInts', 'Viiiiiiiiii'),
-            DartLib('regress37069', 'Viiiiiiiiiii'),
-          ],
-          ...DartLib.intLibs,
+  DartApi(bool ffi) : typeToLibraryMethods = DartLib.typeToLibraryMethods {
+    if (ffi) {
+      typeToLibraryMethods[DartType.INT] = [
+        ...const [
+          DartLib('intComputation', 'VIIII'),
+          DartLib('takeMaxUint16', 'VI'),
+          DartLib('sumPlus42', 'VII'),
+          DartLib('returnMaxUint8', 'VV'),
+          DartLib('returnMaxUint16', 'VV'),
+          DartLib('returnMaxUint32', 'VV'),
+          DartLib('returnMinInt8', 'VV'),
+          DartLib('returnMinInt16', 'VV'),
+          DartLib('returnMinInt32', 'VV'),
+          DartLib('takeMinInt16', 'VI'),
+          DartLib('takeMinInt32', 'VI'),
+          DartLib('uintComputation', 'VIIII'),
+          DartLib('sumSmallNumbers', 'VIIIIII'),
+          DartLib('takeMinInt8', 'VI'),
+          DartLib('takeMaxUint32', 'VI'),
+          DartLib('takeMaxUint8', 'VI'),
+          DartLib('minInt64', 'VV'),
+          DartLib('minInt32', 'VV'),
+          // Use small int to avoid overflow divergences due to size
+          // differences in intptr_t on 32-bit and 64-bit platforms.
+          DartLib('sumManyIntsOdd', 'Viiiiiiiiiii'),
+          DartLib('sumManyInts', 'Viiiiiiiiii'),
+          DartLib('regress37069', 'Viiiiiiiiiii'),
         ],
-        doubleLibs = [
-          if (ffi) ...const [
-            DartLib('times1_337Float', 'VD'),
-            DartLib('sumManyDoubles', 'VDDDDDDDDDD'),
-            DartLib('times1_337Double', 'VD'),
-            DartLib('sumManyNumbers', 'VIDIDIDIDIDIDIDIDIDID'),
-            DartLib('inventFloatValue', 'VV'),
-            DartLib('smallDouble', 'VV'),
-          ],
-          ...DartLib.doubleLibs,
-        ];
+        ...DartLib.intLibs,
+      ];
 
-  final voidLibs = DartLib.voidLibs;
-  final boolLibs = DartLib.boolLibs;
-  final stringLibs = DartLib.stringLibs;
-  final listLibs = DartLib.listLibs;
-  final setLibs = DartLib.setLibs;
-  final mapLibs = DartLib.mapLibs;
-  final List<DartLib> intLibs;
-  final List<DartLib> doubleLibs;
+      typeToLibraryMethods[DartType.DOUBLE] = [
+        if (ffi) ...const [
+          DartLib('times1_337Float', 'VD'),
+          DartLib('sumManyDoubles', 'VDDDDDDDDDD'),
+          DartLib('times1_337Double', 'VD'),
+          DartLib('sumManyNumbers', 'VIDIDIDIDIDIDIDIDIDID'),
+          DartLib('inventFloatValue', 'VV'),
+          DartLib('smallDouble', 'VV'),
+        ],
+        ...DartLib.doubleLibs,
+      ];
+    }
+  }
+
+  final typeToLibraryMethods;
 }
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
@@ -1790,34 +1787,45 @@ class DartFuzz {
     }
   }
 
+  bool isTypedDataFloatType(String proto) {
+    for (int i = 0; i < proto.length; ++i) {
+      if (DartLib.typedDataFloatTypes.contains(proto[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Emit library call.
   void emitLibraryCall(int depth, DartType tp,
       {RhsFilter rhsFilter, bool includeSemicolon = false}) {
     DartLib lib = getLibraryMethod(tp);
-    if (lib == null) {
-      // We cannot find a library method. This can only happen for non-void
-      // types. In those cases, we resort to a literal.
+    if (lib == null || (!fp && isTypedDataFloatType(lib.proto))) {
+      // We cannot find a library method, or we found a library method but its
+      // prototype has a floating point type, and fp is disabled. This can only
+      // happen for non-void types. In those cases, we resort to a literal.
       assert(tp != DartType.VOID);
       emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
       return;
     }
     emitParenWrapped(() {
-      String proto = lib.proto;
+      String prototype = lib.proto;
       // Receiver.
-      if (proto[0] != 'V') {
+      if (prototype[0] != 'V') {
         emitParenWrapped(
-            () => emitArg(depth + 1, proto[0], rhsFilter: rhsFilter));
+            () => emitArg(depth + 1, prototype[0], rhsFilter: rhsFilter));
         emit('.');
       }
       // Call.
       emit('${lib.name}');
       // Parameters.
-      if (proto[1] != 'v') {
+      if (prototype[1] != 'v') {
         emitParenWrapped(() {
-          if (proto[1] != 'V') {
+          if (prototype[1] != 'V') {
             emitCommaSeparated(
-                (int i) => emitArg(depth + 1, proto[i], rhsFilter: rhsFilter),
-                proto.length,
+                (int i) =>
+                    emitArg(depth + 1, prototype[i], rhsFilter: rhsFilter),
+                prototype.length,
                 start: 1);
           }
         });
@@ -1950,60 +1958,29 @@ class DartFuzz {
   //
 
   // Get a library method that returns given type.
-  DartLib getLibraryMethod(DartType tp) {
-    if (tp == DartType.VOID) {
-      return oneOf(api.voidLibs);
-    } else if (tp == DartType.BOOL) {
-      return oneOf(api.boolLibs);
-    } else if (tp == DartType.INT) {
-      return oneOf(api.intLibs);
-    } else if (tp == DartType.DOUBLE) {
-      return oneOf(api.doubleLibs);
-    } else if (tp == DartType.STRING) {
-      return oneOf(DartLib.stringLibs);
-    } else if (tp == DartType.LIST_INT) {
-      return oneOf(DartLib.listLibs);
-    } else if (tp == DartType.SET_INT) {
-      return oneOf(DartLib.setLibs);
-    } else if (tp == DartType.MAP_INT_STRING) {
-      return oneOf(DartLib.mapLibs);
-    }
-    // No library method available that returns this type.
-    return null;
-  }
+  DartLib getLibraryMethod(DartType tp) =>
+      api.typeToLibraryMethods.containsKey(tp)
+          ? oneOf(api.typeToLibraryMethods[tp])
+          : null;
 
   // Emit a library argument, possibly subject to restrictions.
   void emitArg(int depth, String p, {RhsFilter rhsFilter}) {
     switch (p) {
-      case 'B':
-        emitExpr(depth, DartType.BOOL);
-        break;
       case 'i': // emit small int
         emitSmallPositiveInt();
         break;
-      case 'I':
-        emitExpr(depth, DartType.INT);
-        break;
-      case 'D':
+      case 'D': // resort to INT if floating point is disabled
         emitExpr(depth, fp ? DartType.DOUBLE : DartType.INT);
-        break;
-      case 'S':
-        emitExpr(depth, DartType.STRING, rhsFilter: rhsFilter);
         break;
       case 's': // emit small string
         emitString(length: 2);
         break;
-      case 'L':
-        emitExpr(depth, DartType.LIST_INT, rhsFilter: rhsFilter);
-        break;
-      case 'X':
-        emitExpr(depth, DartType.SET_INT, rhsFilter: rhsFilter);
-        break;
-      case 'M':
-        emitExpr(depth, DartType.MAP_INT_STRING, rhsFilter: rhsFilter);
-        break;
       default:
-        throw ArgumentError('Invalid p value: $p');
+        DartType type = DartLib.stringToType[p];
+        if (type == null) {
+          throw ArgumentError('Invalid p value: $p');
+        }
+        emitExpr(depth, type, rhsFilter: rhsFilter);
     }
   }
 
