@@ -98,6 +98,14 @@ h2 {
   top: 0.5em;
 }
 
+.navigationHeader {
+  padding-left: 1em;
+}
+
+.navigationLinks {
+  padding-left: 2em;
+}
+
 .regions {
   padding: 0.5em;
   position: absolute;
@@ -180,6 +188,10 @@ h2 {
   visibility: visible;
 }
 
+.selectedFile {
+  font-weight: bold;
+}
+
 .target {
   background-color: #FFFF99;
   position: relative;
@@ -188,17 +200,25 @@ h2 {
     </style>
   </head>
   <body>
-    <h1>Non-nullable migration preview</h1>
-    <p>Migrated files:</p>
-    <div class="navigation">
+    <h1>Preview of NNBD migration</h1>
+    <p><b>
+    Select a migrated file to see the suggested modifications below.
+    </b></p>
+    <div class="navigationHeader">
+    {{ root }}
+    </div>
+    <div class="navigationLinks">
       {{# links }}
         {{# isLink }}<a href="{{ href }}">{{ name }}</a>{{/ isLink }}
-        {{^ isLink }}{{ name }}{{/ isLink }}
-        <br />
+        {{^ isLink }}<span class="selectedFile">{{ name }}</span>{{/ isLink }}
+        {{ modificationCount }}
+        <br/>
       {{/ links }}
     </div>
-    {{# units }}'''
-    '<h2>{{{ path }}}</h2>'
+    {{# units }}
+    <p><b>
+    Hover over modified regions to see why the modification is suggested.
+    </b></p>'''
     '<div class="content">'
     '<div class="code">'
     '{{! Write the file content, modified to include navigation information, }}'
@@ -251,6 +271,7 @@ class InstrumentationRenderer {
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
     Map<String, dynamic> mustacheContext = {
+      'root': migrationInfo.includedRoot,
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.unitLinks(unitInfo),
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
@@ -496,16 +517,22 @@ class MigrationInfo {
   }
 
   /// Generate mustache context for unit links, for navigation in the
-  /// instrumentation document for [thisUnit].
-  List<Map<String, Object>> unitLinks(UnitInfo thisUnit) {
-    return [
-      for (var unit in units)
-        {
-          'name': _computeName(unit),
-          'isLink': unit != thisUnit,
-          if (unit != thisUnit) 'href': _pathTo(target: unit, source: thisUnit)
-        }
-    ];
+  /// instrumentation document for [currentUnit].
+  List<Map<String, Object>> unitLinks(UnitInfo currentUnit) {
+    List<Map<String, Object>> links = [];
+    for (UnitInfo unit in units) {
+      int count = unit.fixRegions.length;
+      String modificationCount =
+          count == 1 ? '(1 modification)' : '($count modifications)';
+      bool isNotCurrent = unit != currentUnit;
+      links.add({
+        'name': _computeName(unit),
+        'modificationCount': modificationCount,
+        'isLink': isNotCurrent,
+        if (isNotCurrent) 'href': _pathTo(target: unit, source: currentUnit)
+      });
+    }
+    return links;
   }
 
   /// Return the path to [unit] from [includedRoot], to be used as a display

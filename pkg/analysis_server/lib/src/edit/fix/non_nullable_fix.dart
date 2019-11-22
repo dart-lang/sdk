@@ -8,6 +8,7 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/index_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
@@ -100,9 +101,8 @@ class NonNullableFix extends FixCodeTask {
           unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
       PathMapper pathMapper = PathMapper(provider, outputDir, includedRoot);
 
-      List<String> paths = unitInfos.map((info) => info.path).toList();
-      paths.sort((first, second) => first.length - second.length);
-      print(Uri(scheme: 'http', host: 'localhost', port: port, path: paths[0]));
+      print(Uri(
+          scheme: 'http', host: 'localhost', port: port, path: includedRoot));
 
       // TODO(brianwilkerson) Capture the server so that it can be closed
       //  cleanly.
@@ -262,11 +262,23 @@ analyzer:
       output.writeAsStringSync(rendered);
     }
 
+    //
+    // Generate the index file.
+    //
+    String indexPath = pathContext.join(folder.path, 'index.html');
+    File output = provider.getFile(indexPath);
+    output.parent.create();
+    String rendered = IndexRenderer(migrationInfo, writeToDisk: true).render();
+    output.writeAsStringSync(rendered);
+    //
     // Generate the files in the package being migrated.
+    //
     for (UnitInfo unitInfo in unitInfos) {
       render(unitInfo);
     }
+    //
     // Generate other dart files.
+    //
     for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
       if (!unitInfos.contains(unitInfo)) {
         if (unitInfo.content == null) {

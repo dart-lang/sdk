@@ -23,8 +23,8 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   // TODO(srawlins): Add tests for navigation links, which use multiple
   // libraries.
   List<String> renderLibrary(LibraryInfo libraryInfo) {
-    String packageRoot = resourceProvider.convertPath('/package');
-    String outputDir = resourceProvider.convertPath('/output');
+    String packageRoot = convertPath('/package');
+    String outputDir = convertPath('/output');
     MigrationInfo migrationInfo = MigrationInfo(
         libraryInfo.units, {}, resourceProvider.pathContext, packageRoot);
     List<String> contents = [];
@@ -37,6 +37,8 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   }
 
   test_outputContainsEachPath() async {
+    String convert(String path) => path.replaceAll('/', '&#x2F;');
+
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
@@ -46,11 +48,9 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
           regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
     });
     List<String> contents = renderLibrary(info);
-    expect(contents[0], contains(resourceProvider.convertPath('lib/a.dart')));
-    expect(
-        contents[1], contains(resourceProvider.convertPath('lib/part1.dart')));
-    expect(
-        contents[2], contains(resourceProvider.convertPath('lib/part2.dart')));
+    expect(contents[0], contains(convert('lib/a.dart')));
+    expect(contents[1], contains(convert('lib/part1.dart')));
+    expect(contents[2], contains(convert('lib/part2.dart')));
   }
 
   test_outputContainsEscapedHtml() async {
@@ -89,7 +89,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   }
 
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
-    return UnitInfo(resourceProvider.convertPath(path))
+    return UnitInfo(convertPath(path))
       ..content = content
       ..regions.addAll(regions);
   }

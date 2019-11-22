@@ -13,6 +13,7 @@ import 'package:analysis_server/src/edit/preview/exception_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_css_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_js_page.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
+import 'package:analysis_server/src/edit/preview/index_file_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -94,6 +95,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
         return respond(request, HighlightCssPage(this));
       } else if (path == highlightJSPagePath) {
         return respond(request, HighlightJSPage(this));
+      } else if (path == migrationInfo.includedRoot) {
+        return respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
