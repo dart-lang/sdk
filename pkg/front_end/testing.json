@@ -187,7 +187,7 @@
       "exclude": []
     },
     {
-      "name": "old_dill_test",
+      "name": "old_dill",
       "kind": "Chain",
       "source": "test/old_dill_suite.dart",
       "path": "testcases/old_dills/dills/",
@@ -198,7 +198,7 @@
       "exclude": []
     },
     {
-      "name": "parser_test",
+      "name": "parser",
       "kind": "Chain",
       "source": "test/parser_suite.dart",
       "path": "parser_testcases/",
@@ -210,7 +210,7 @@
       "exclude": []
     },
     {
-      "name": "lint_test",
+      "name": "lint",
       "kind": "Chain",
       "source": "test/lint_suite.dart",
       "path": "lib/",
@@ -223,7 +223,7 @@
       ]
     },
     {
-      "name": "spelling_test_src_test",
+      "name": "spelling_test_src",
       "kind": "Chain",
       "source": "test/spelling_test_src_suite.dart",
       "path": "../",
@@ -238,7 +238,7 @@
       ]
     },
     {
-      "name": "spelling_test_not_src_test",
+      "name": "spelling_test_not_src",
       "kind": "Chain",
       "source": "test/spelling_test_not_src_suite.dart",
       "path": ".",

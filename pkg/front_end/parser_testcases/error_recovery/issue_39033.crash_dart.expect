@@ -1,14 +1,14 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39033.crash:1:11: Expected '>' after this.
+parser/error_recovery/issue_39033.crash:1:11: Expected '>' after this.
 typedef F<Glib.=
           ^^^^
 
-parser_test/error_recovery/issue_39033.crash:1:17: Expected a type, but got ''.
+parser/error_recovery/issue_39033.crash:1:17: Expected a type, but got ''.
 typedef F<Glib.=
                 ^...
 
-parser_test/error_recovery/issue_39033.crash:1:17: Expected ';' after this.
+parser/error_recovery/issue_39033.crash:1:17: Expected ';' after this.
 typedef F<Glib.=
                 ^...
 

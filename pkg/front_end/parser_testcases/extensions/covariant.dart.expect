@@ -1,6 +1,6 @@
 Problems reported:
 
-parser_test/extensions/covariant:6:12: Can't have modifier 'covariant' in an extension.
+parser/extensions/covariant:6:12: Can't have modifier 'covariant' in an extension.
   addChild(covariant A child) {}
            ^^^^^^^^^
 

@@ -1,6 +1,6 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39058_prime.crash:1:1: Expected a declaration, but got '{'.
+parser/error_recovery/issue_39058_prime.crash:1:1: Expected a declaration, but got '{'.
 {<[]()>}
 ^
 

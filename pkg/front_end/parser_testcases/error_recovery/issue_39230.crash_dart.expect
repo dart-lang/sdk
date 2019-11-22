@@ -1,14 +1,14 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39230.crash:3:5: Expected a function body, but got '/'.
+parser/error_recovery/issue_39230.crash:3:5: Expected a function body, but got '/'.
     /
     ^
 
-parser_test/error_recovery/issue_39230.crash:3:5: Operator declarations must be preceded by the keyword 'operator'.
+parser/error_recovery/issue_39230.crash:3:5: Operator declarations must be preceded by the keyword 'operator'.
     /
     ^
 
-parser_test/error_recovery/issue_39230.crash:3:5: A method declaration needs an explicit list of parameters.
+parser/error_recovery/issue_39230.crash:3:5: A method declaration needs an explicit list of parameters.
     /
     ^
 

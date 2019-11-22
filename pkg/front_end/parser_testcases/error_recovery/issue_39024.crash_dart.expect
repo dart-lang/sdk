@@ -1,18 +1,18 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39024.crash:1:3: Expected '>' after this.
+parser/error_recovery/issue_39024.crash:1:3: Expected '>' after this.
 n<S e(
   ^
 
-parser_test/error_recovery/issue_39024.crash:1:7: Expected an identifier, but got ''.
+parser/error_recovery/issue_39024.crash:1:7: Expected an identifier, but got ''.
 n<S e(
       ^...
 
-parser_test/error_recovery/issue_39024.crash:1:7: A function declaration needs an explicit list of parameters.
+parser/error_recovery/issue_39024.crash:1:7: A function declaration needs an explicit list of parameters.
 n<S e(
       ^...
 
-parser_test/error_recovery/issue_39024.crash:1:7: Expected a function body, but got ''.
+parser/error_recovery/issue_39024.crash:1:7: Expected a function body, but got ''.
 n<S e(
       ^...
 

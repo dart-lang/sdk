@@ -1,6 +1,6 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39026_prime.crash:2:17: A method declaration needs an explicit list of parameters.
+parser/error_recovery/issue_39026_prime.crash:2:17: A method declaration needs an explicit list of parameters.
     co operator <{
                 ^
 
