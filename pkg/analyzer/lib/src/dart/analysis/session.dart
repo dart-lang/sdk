@@ -265,14 +265,14 @@ class SynchronousSession {
       implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictInference: analysisOptions.strictInference,
-      typeProvider: typeProvider,
+      typeProvider: _typeProviderLegacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictInference: analysisOptions.strictInference,
-      typeProvider: typeProvider,
+      typeProvider: _typeProviderNonNullableByDefault,
     );
   }
 }
