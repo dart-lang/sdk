@@ -166,11 +166,6 @@ abstract class TestSuite {
       return false;
     }
 
-    if (isNegative(testFile) &&
-        configuration.runtimeConfiguration.shouldSkipNegativeTests) {
-      return false;
-    }
-
     // Handle sharding based on the original test path. All multitests of a
     // given original test belong to the same shard.
     if (configuration.shardCount > 1 &&
@@ -211,10 +206,6 @@ abstract class TestSuite {
 
     return false;
   }
-
-  bool isNegative(TestFile testFile) =>
-      testFile.hasCompileError ||
-      testFile.hasRuntimeError && configuration.runtime != Runtime.none;
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
@@ -880,8 +871,7 @@ class StandardTestSuite extends TestSuite {
     var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
     var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
-    commands.add(BrowserTestCommand(fullHtmlPath, configuration,
-        retry: !isNegative(testFile)));
+    commands.add(BrowserTestCommand(fullHtmlPath, configuration));
 
     var fullName = testName;
     if (subtestName != null) fullName += "/$subtestName";
@@ -971,8 +961,7 @@ class PackageTestSuite extends StandardTestSuite {
       super._enqueueBrowserTest(testFile, expectations, onTest);
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-      var command = BrowserTestCommand(fullPath, configuration,
-          retry: !isNegative(testFile));
+      var command = BrowserTestCommand(fullPath, configuration);
       _addTestCase(testFile, testFile.name, [command],
           expectations[testFile.name], onTest);
     }

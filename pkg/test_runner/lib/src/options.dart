@@ -330,7 +330,7 @@ has been specified on the command line.''',
         '''
 Skip the compilation step, using the compilation artifacts left in
 the output folder from a previous run. This flag will often cause
-false positves and negatives, but can be useful for quick and
+false positives and negatives, but can be useful for quick and
 dirty offline testing when not making changes that affect the
 compiler.''',
         hide: true),
