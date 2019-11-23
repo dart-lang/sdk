@@ -10,8 +10,11 @@ import("../create_timestamp.gni")
 
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
-sdk_outline_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
-sdk_full_dill = "$target_gen_dir/kernel/ddc_sdk_full.dill"
+
+# TODO(sigmund): rename to ddc_outline.dill to be consistent with the naming
+# convention from other tools.
+sdk_outline_dill = "$root_out_dir/ddc_sdk.dill"
+sdk_full_dill = "$root_out_dir/ddc_platform.dill"
 
 if (use_nnbd) {
   libraries_specification_path = "sdk_nnbd/lib/libraries.json"
