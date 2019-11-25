@@ -2429,8 +2429,13 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!use_shared_stub) {
     compiler->SaveLiveRegisters(locs);
   }
-  for (intptr_t i = 0; i < num_args_; ++i) {
+  intptr_t i = 0;
+  if (num_args_ % 2 != 0) {
     __ PushRegister(locs->in(i).reg());
+    ++i;
+  }
+  for (; i < num_args_; i += 2) {
+    __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
   }
   if (use_shared_stub) {
     EmitSharedStubCall(compiler, live_fpu_registers);
