@@ -33,7 +33,7 @@ void main() {
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
-      await sender.sendReport('test-error', stackTrace: StackTrace.current);
+      await sender.sendReport('test-error', StackTrace.current);
 
       String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String')); // error.runtimeType

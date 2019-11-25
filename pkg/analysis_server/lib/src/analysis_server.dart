@@ -416,26 +416,20 @@ class AnalysisServer extends AbstractAnalysisServer {
     /*StackTrace*/ stackTrace, {
     bool fatal = false,
   }) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(exception ?? 'null exception');
-    if (stackTrace != null) {
-      buffer.writeln();
-      buffer.write(stackTrace);
-    } else if (exception is! CaughtException) {
+    String msg = exception == null ? message : '$message: $exception';
+    if (stackTrace != null && exception is! CaughtException) {
       stackTrace = StackTrace.current;
-      buffer.writeln();
-      buffer.write(stackTrace);
     }
 
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(fatal, message, buffer.toString())
-            .toNotification());
+        new ServerErrorParams(fatal, msg, '$stackTrace').toNotification());
 
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
+
     exceptions.add(new ServerException(
       message,
       exception,

@@ -16,24 +16,28 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   void logException(dynamic exception, [StackTrace stackTrace]) {
     if (exception is CaughtException) {
       // Get the root CaughtException, which matters most for debugging.
-      exception = exception.rootCaughtException;
-      // Report the root exception stack trace.
-      stackTrace = exception.stackTrace;
-      // Report the dynamic exception object that the CaughtException holds.
-      exception = exception.exception;
+      CaughtException root = exception.rootCaughtException;
+
+      reporter.sendReport(root.exception, root.stackTrace).catchError((error) {
+        // We silently ignore errors sending crash reports (network issues, ...).
+      });
+    } else {
+      reporter
+          .sendReport(exception, stackTrace ?? StackTrace.current)
+          .catchError((error) {
+        // We silently ignore errors sending crash reports (network issues, ...).
+      });
     }
-    reporter
-        .sendReport(exception, stackTrace: stackTrace ?? StackTrace.current)
-        .catchError((error) {
-      // We silently ignore errors sending crash reports (network issues, ...).
-    });
   }
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace stackTrace) {
+    PluginData plugin,
+    dynamic exception,
+    StackTrace stackTrace,
+  ) {
     // TODO(mfairhurst): send plugin information too.
-    reporter.sendReport(exception, stackTrace: stackTrace).catchError((error) {
+    reporter.sendReport(exception, stackTrace).catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });
   }

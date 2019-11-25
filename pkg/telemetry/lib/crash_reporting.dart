@@ -56,7 +56,7 @@ class CrashReportSender {
   /// Sends one crash report.
   ///
   /// The report is populated from data in [error] and [stackTrace].
-  Future sendReport(dynamic error, {StackTrace stackTrace}) async {
+  Future sendReport(dynamic error, StackTrace stackTrace) async {
     if (!shouldSend()) {
       return;
     }
