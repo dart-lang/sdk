@@ -32,7 +32,7 @@ main(List<String> args) async {
     'pkg/meta',
     'third_party/pkg/path',
     'third_party/pkg/term_glyph',
-//    'third_party/pkg/typed_data', - TODO(paulberry): fatal exception
+    'third_party/pkg/typed_data',
     'third_party/pkg/async',
     'third_party/pkg/source_span',
     'third_party/pkg/stack_trace',
