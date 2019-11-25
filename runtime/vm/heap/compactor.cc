@@ -610,6 +610,9 @@ uword CompactorTask::SlideBlock(uword first_object,
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
         extra_size = old_obj->ReallocationExtraSize();
 		old_obj->Reallocate(new_addr, size);
+        if (extra_size > 0) {
+		  OS::Print("Compactor reallocated %X, hash: %X, to %X, with trailing hash: %X, cid: %d\n", old_addr, old_obj->GetHash(), new_addr, new_obj->GetHash(), old_obj->GetClassId());
+		}
 #else
         old_obj->MoveTo(new_addr, size);
 #endif
@@ -629,13 +632,12 @@ uword CompactorTask::SlideBlock(uword first_object,
       free_current_ += size;
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       free_current_ += extra_size;
-      if (extra_size > 0) {
+      if (extra_size > 0 && new_addr!=old_addr) {
         if (new_obj->HasTrailingHashCode()) {
-          OS::Print("Good. Added trailing hashCode. 0x%X == 0x%X\n",
+          OS::Print("Good. Compactor added trailing hashCode. 0x%X == 0x%X\n",
                     new_obj->GetHash(), old_obj->GetHash());
-
         } else {
-          OS::PrintErr("Bad. Didn't add trailing hashCode. 0x%X != 0x%X\n",
+          OS::PrintErr("Bad. Compactor didn't add trailing hashCode. 0x%X != 0x%X\n",
                        new_obj->GetHash(), old_obj->GetHash());
         }
       }

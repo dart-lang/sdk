@@ -265,11 +265,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 #if defined(FAST_HASH_FOR_32_BIT)
         if (raw_obj->ReallocationExtraSize() > 0) {
           if (new_obj->HasTrailingHashCode()) {
-            // OS::Print("Good. Added trailing hashCode. 0x% == 0x%\n",
-            //           new_obj->GetHash(), raw_obj->GetHash());
+             //OS::Print("Good. Scavenger added trailing hashCode. 0x%X == 0x%X\n",
+             //          new_obj->GetHash(), raw_obj->GetHash());
           } else {
-            /*OS::PrintErr("Bad. Didn't add trailing hashCode. 0x% != 0x%\n",
-                         new_obj->GetHash(), raw_obj->GetHash());*/
+            OS::PrintErr("Bad. Scavenger didn't add trailing hashCode. 0x%X != 0x%X\n",
+                         new_obj->GetHash(), raw_obj->GetHash());
           }
         }
 #endif
