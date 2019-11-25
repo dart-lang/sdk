@@ -501,7 +501,7 @@ class MigrationInfo {
     }
     // Files that aren't within the [includedRoot] are written to the top-level
     // of the output directory, next to the Javascript file.
-    return 'highlight.pack.js';
+    return pathContext.join('..', 'highlight.pack.js');
   }
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
@@ -513,7 +513,7 @@ class MigrationInfo {
     }
     // Files that aren't within the [includedRoot] are written to the top-level
     // of the output directory, next to the CSS file.
-    return 'androidstudio.css';
+    return pathContext.join('..', 'androidstudio.css');
   }
 
   /// Generate mustache context for unit links, for navigation in the

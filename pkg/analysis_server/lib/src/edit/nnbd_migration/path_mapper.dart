@@ -48,6 +48,6 @@ class PathMapper {
     //  a more readable URI. For example, have other packages and the sdk be
     //  parallel to the directory containing the files for the library being
     //  migrated.
-    return context.join(outputFolder, 'f${nextIndex++}.html');
+    return context.join(outputFolder, 'aux', 'f${nextIndex++}.html');
   }
 }
