@@ -73,4 +73,19 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     );
     expect(result, isNull);
   }
+
+  test_selectionsInSnippets_empty() async {
+    var result = lsp.buildSnippetStringWithSelection('teststring', 4, 0);
+    expect(result, equals(r'test${1:}string'));
+  }
+
+  test_selectionsInSnippets_escaping() async {
+    var result = lsp.buildSnippetStringWithSelection(r'te$tstri}ng', 4, 3);
+    expect(result, equals(r'te\$t${1:str}i\}ng'));
+  }
+
+  test_selectionsInSnippets_selection() async {
+    var result = lsp.buildSnippetStringWithSelection('teststring', 4, 3);
+    expect(result, equals(r'test${1:str}ing'));
+  }
 }
