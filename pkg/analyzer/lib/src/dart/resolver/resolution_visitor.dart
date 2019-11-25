@@ -283,7 +283,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           node.returnType.accept(this);
 
           _withElementWalker(
-            ElementWalker.forExecutable(element, _unitElement),
+            ElementWalker.forExecutable(element),
             () {
               node.parameters.accept(this);
             },
@@ -525,9 +525,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {
       _withElementWalker(
-        _elementWalker != null
-            ? ElementWalker.forExecutable(element, _unitElement)
-            : null,
+        _elementWalker != null ? ElementWalker.forExecutable(element) : null,
         () {
           _withNameScope(() {
             _buildTypeParameterElements(expression.typeParameters);
@@ -778,7 +776,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
 
-    _withElementWalker(ElementWalker.forExecutable(element, _unitElement), () {
+    _withElementWalker(ElementWalker.forExecutable(element), () {
       node.metadata.accept(this);
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
