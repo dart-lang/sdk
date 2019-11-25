@@ -188,6 +188,16 @@ h2 {
   visibility: visible;
 }
 
+.region .tooltip::after {
+  /* Make a larger hover target once the tooltip appears. */
+  content: '';
+  position: absolute;
+  top: -1em;
+  height: 2em;
+  left: -1ch;
+  width: 3ch;
+}
+
 .selectedFile {
   font-weight: bold;
 }
