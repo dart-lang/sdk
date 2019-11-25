@@ -421,7 +421,7 @@ void Dwarf::WriteConcreteFunctions() {
     if (node != NULL) {
       for (InliningNode* child = node->children_head; child != NULL;
            child = child->children_next) {
-        WriteInliningNode(child, i, script, &namer);
+        WriteInliningNode(child, i, code_offset, script, &namer);
       }
     }
 
@@ -512,6 +512,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
 
 void Dwarf::WriteInliningNode(InliningNode* node,
                               intptr_t root_code_index,
+                              intptr_t root_code_offset,
                               const Script& parent_script,
                               AssemblyCodeNamer* namer) {
   intptr_t file = LookupScript(parent_script);
@@ -541,9 +542,9 @@ void Dwarf::WriteInliningNode(InliningNode* node,
     Print(FORM_ADDR " %s + %d\n", asm_name, node->end_pc_offset);
   } else {
     // DW_AT_low_pc
-    addr(root_code_index + node->start_pc_offset);
-  // DW_AT_high_pc
-    addr(root_code_index + node->end_pc_offset);
+    addr(root_code_offset + node->start_pc_offset);
+    // DW_AT_high_pc
+    addr(root_code_offset + node->end_pc_offset);
   }
 
   // DW_AT_call_file
@@ -553,7 +554,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
-    WriteInliningNode(child, root_code_index, script, namer);
+    WriteInliningNode(child, root_code_index, root_code_offset, script, namer);
   }
 
   uleb128(0);  // End of children.

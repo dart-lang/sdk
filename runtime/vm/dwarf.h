@@ -286,6 +286,7 @@ class Dwarf : public ZoneAllocated {
   InliningNode* ExpandInliningTree(const Code& code);
   void WriteInliningNode(InliningNode* node,
                          intptr_t root_code_index,
+                         intptr_t root_code_offset,
                          const Script& parent_script,
                          AssemblyCodeNamer* namer);
   void WriteLines();
