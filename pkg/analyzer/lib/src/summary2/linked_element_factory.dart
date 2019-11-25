@@ -87,9 +87,6 @@ class LinkedElementFactory {
         _setLibraryTypeSystem(libraryElement);
       }
     }
-
-    dartCore.createLoadLibraryFunction(dartCore.typeProvider);
-    dartAsync.createLoadLibraryFunction(dartAsync.typeProvider);
   }
 
   Element elementOfReference(Reference reference) {
@@ -176,6 +173,8 @@ class LinkedElementFactory {
     libraryElement.typeSystem = isNonNullable
         ? analysisContext.typeSystemNonNullableByDefault
         : analysisContext.typeSystemLegacy;
+
+    libraryElement.createLoadLibraryFunction();
   }
 }
 
@@ -376,11 +375,6 @@ class _ElementRequest {
     libraryElement.definingCompilationUnit = units[0];
     libraryElement.parts = units.skip(1).toList();
     reference.element = libraryElement;
-
-    var typeProvider = elementFactory.analysisContext.typeProvider;
-    if (typeProvider != null) {
-      libraryElement.createLoadLibraryFunction(typeProvider);
-    }
 
     return libraryElement;
   }

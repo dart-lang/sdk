@@ -97,7 +97,6 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     TypeAliasSelfReferenceFinder().perform(this);
-    _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();
@@ -195,12 +194,6 @@ class Linker {
       references: linkingBundleContext.referencesBuilder,
       libraries: linkingLibraries,
     );
-  }
-
-  void _createLoadLibraryFunctions() {
-    for (var library in builders.values) {
-      library.element.createLoadLibraryFunction(typeProvider);
-    }
   }
 
   void _createTypeSystem() {

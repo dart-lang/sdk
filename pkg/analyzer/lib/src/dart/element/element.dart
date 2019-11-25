@@ -5596,11 +5596,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitLibraryElement(this);
 
-  /// Create the [FunctionElement] to be returned by [loadLibraryFunction],
-  /// using types provided by [typeProvider].
-  void createLoadLibraryFunction(TypeProvider typeProvider) {
+  /// Create the [FunctionElement] to be returned by [loadLibraryFunction].
+  /// The [typeProvider] must be already set.
+  void createLoadLibraryFunction() {
     _loadLibraryFunction =
-        createLoadLibraryFunctionForLibrary(typeProvider, this);
+        FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1)
+          ..enclosingElement = library
+          ..isSynthetic = true
+          ..returnType = typeProvider.futureDynamicType;
   }
 
   @override
@@ -5681,16 +5684,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return prefixes.toList(growable: false);
-  }
-
-  static FunctionElementImpl createLoadLibraryFunctionForLibrary(
-      TypeProvider typeProvider, LibraryElement library) {
-    FunctionElementImpl function =
-        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.isSynthetic = true;
-    function.enclosingElement = library;
-    function.returnType = typeProvider.futureDynamicType;
-    return function;
   }
 
   static List<ImportElement> getImportsWithPrefixFromImports(
