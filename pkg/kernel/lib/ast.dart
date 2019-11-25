@@ -190,6 +190,15 @@ abstract class NamedNode extends TreeNode {
   }
 
   CanonicalName get canonicalName => reference?.canonicalName;
+
+  /// This is an advanced feature.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure the reference in this named node points to itself.
+  void _relinkNode() {
+    this.reference.node = this;
+  }
 }
 
 abstract class FileUriNode extends TreeNode {
@@ -518,6 +527,38 @@ class Library extends NamedNode
     for (int i = 0; i < extensions.length; ++i) {
       Extension extension = extensions[i];
       canonicalName.getChild(extension.name).bindTo(extension.reference);
+    }
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this library points to said
+  /// named node.
+  void relink() {
+    _relinkNode();
+    assert(canonicalName != null);
+    for (int i = 0; i < typedefs.length; ++i) {
+      Typedef typedef_ = typedefs[i];
+      typedef_._relinkNode();
+    }
+    for (int i = 0; i < fields.length; ++i) {
+      Field field = fields[i];
+      field._relinkNode();
+    }
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < classes.length; ++i) {
+      Class class_ = classes[i];
+      class_.relink();
+    }
+    for (int i = 0; i < extensions.length; ++i) {
+      Extension extension = extensions[i];
+      extension._relinkNode();
     }
   }
 
@@ -1123,6 +1164,34 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    dirty = false;
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this class points to said
+  /// named node.
+  void relink() {
+    this.reference.node = this;
+    for (int i = 0; i < fields.length; ++i) {
+      Field member = fields[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < constructors.length; ++i) {
+      Constructor member = constructors[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
+      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+      member._relinkNode();
     }
     dirty = false;
   }
@@ -6905,6 +6974,38 @@ class Component extends TreeNode {
   void computeCanonicalNames() {
     for (int i = 0; i < libraries.length; ++i) {
       computeCanonicalNamesForLibrary(libraries[i]);
+    }
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// Makes sure all references in named nodes in this component points to said
+  /// named node.
+  ///
+  /// The use case is advanced incremental compilation, where we want to rebuild
+  /// a single library and make all other libraries use the new library and the
+  /// content therein *while* having the option to go back to pointing (be
+  /// "linked") to the old library if the delta is rejected.
+  ///
+  /// Please note that calling this is a potentially dangerous thing to do,
+  /// and that stuff *can* go wrong, and you could end up in a situation where
+  /// you point to several versions of "the same" library. Examples:
+  ///  * If you only relink part (e.g. a class) if your component you can wind
+  ///    up in an unfortunate situation where if the library (say libA) contains
+  ///    class 'B' and class 'C', you only replace 'B' (with one in library
+  ///    'libAPrime'), everything pointing to 'B' via parent pointers talks
+  ///    about 'libAPrime', whereas everything pointing to 'C' would still
+  ///    ultimately point to 'libA'.
+  ///  * If you relink to a library that doesn't have exactly the same members
+  ///    as the one you're "linking from" you can wind up in an unfortunate
+  ///    situation, e.g. if the thing you relink two is missing a static method,
+  ///    any links to that static method will still point to the old static
+  ///    method and thus (via parent pointers) to the old library.
+  ///  * (probably more).
+  void relink() {
+    for (int i = 0; i < libraries.length; ++i) {
+      libraries[i].relink();
     }
   }
 
