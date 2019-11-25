@@ -14,7 +14,7 @@ import 'package:meta/meta.dart';
 /**
  * An [AnalysisContext] in which analysis can be performed.
  */
-class AnalysisContextImpl implements InternalAnalysisContext {
+class AnalysisContextImpl implements AnalysisContext {
   final SynchronousSession _synchronousSession;
 
   @override
@@ -72,7 +72,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _synchronousSession.clearTypeProvider();
   }
 
-  @override
   void setTypeProviders({
     @required TypeProvider legacy,
     @required TypeProvider nonNullableByDefault,

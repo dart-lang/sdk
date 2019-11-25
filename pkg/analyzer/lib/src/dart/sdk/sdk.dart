@@ -54,7 +54,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * The [AnalysisContext] which is used for all of the sources in this SDK.
    */
-  InternalAnalysisContext _analysisContext;
+  SdkAnalysisContext _analysisContext;
 
   /**
    * The mapping from Dart URI's to the corresponding sources.

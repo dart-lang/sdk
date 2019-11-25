@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -58,7 +58,7 @@ class Linker {
     );
   }
 
-  InternalAnalysisContext get analysisContext {
+  AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
   }
 

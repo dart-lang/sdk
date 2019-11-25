@@ -26,7 +26,7 @@ class SummaryBasedDartSdk implements DartSdk {
   /**
    * The [AnalysisContext] which is used for all of the sources in this sdk.
    */
-  InternalAnalysisContext _analysisContext;
+  SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
     _dataStore = new SummaryDataStore(<String>[summaryPath],
