@@ -13,6 +13,7 @@ AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
+AnnotationOnFunctionTypeTypeVariable/analyzerCode: Fail
 AnonymousBreakTargetOutsideFunction/part_wrapped_statement: Fail
 AnonymousBreakTargetOutsideFunction/statement: Fail # Duplicated error as parser also complains.
 AnonymousContinueTargetOutsideFunction/part_wrapped_statement: Fail

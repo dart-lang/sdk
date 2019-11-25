@@ -2061,6 +2061,11 @@ TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
 
+AnnotationOnFunctionTypeTypeVariable:
+  template: "A type variable on a function type can't have annotations."
+  script:
+    - "main() { Function<@Object() T>() x; }"
+
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."
   tip: "An enum definition must have a body with at least one constant name."

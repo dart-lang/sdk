@@ -3041,6 +3041,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     UnresolvedType returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
+    if (typeVariables != null) {
+      for (TypeVariableBuilder builder in typeVariables) {
+        if (builder.parameter.annotations.isNotEmpty) {
+          addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
+              builder.charOffset, builder.name.length);
+          builder.parameter.annotations = const <Expression>[];
+        }
+      }
+    }
     UnresolvedType type = formals.toFunctionType(
         returnType,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
