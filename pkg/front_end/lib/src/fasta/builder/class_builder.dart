@@ -818,7 +818,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         if (argument is FunctionType && argument.typeParameters.length > 0) {
           if (inferred) {
             message = templateGenericFunctionTypeInferredAsActualTypeArgument
-                .withArguments(argument);
+                .withArguments(argument, library.isNonNullableByDefault);
           } else {
             message = messageGenericFunctionTypeUsedAsActualTypeArgument;
           }
@@ -832,7 +832,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                     typeParameter.name,
                     getGenericTypeName(issue.enclosingType),
                     supertype.classNode.name,
-                    name);
+                    name,
+                    library.isNonNullableByDefault);
           } else {
             message = templateIncorrectTypeArgumentInSupertype.withArguments(
                 argument,
@@ -840,7 +841,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 typeParameter.name,
                 getGenericTypeName(issue.enclosingType),
                 supertype.classNode.name,
-                name);
+                name,
+                library.isNonNullableByDefault);
           }
         }
 
@@ -881,7 +883,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
-                getGenericTypeName(issue.enclosingType));
+                getGenericTypeName(issue.enclosingType),
+                library.isNonNullableByDefault);
           }
 
           library.reportTypeArgumentIssue(
@@ -1510,13 +1513,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               declaredMemberName,
               declaredType,
               interfaceType,
-              interfaceMemberName);
+              interfaceMemberName,
+              library.isNonNullableByDefault);
         } else {
           message = templateOverrideTypeMismatchReturnType.withArguments(
               declaredMemberName,
               declaredType,
               interfaceType,
-              interfaceMemberName);
+              interfaceMemberName,
+              library.isNonNullableByDefault);
         }
         fileOffset = declaredMember.fileOffset;
       } else {
@@ -1525,7 +1530,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             declaredMemberName,
             declaredType,
             interfaceType,
-            interfaceMemberName);
+            interfaceMemberName,
+            library.isNonNullableByDefault);
         fileOffset = declaredParameter.fileOffset;
       }
       reportInvalidOverride(
@@ -1832,7 +1838,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           interface) {
         library.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
-                supertype, interface, cls.mixedInType.asInterfaceType),
+                supertype,
+                interface,
+                cls.mixedInType.asInterfaceType,
+                library.isNonNullableByDefault),
             cls.fileOffset,
             noLength,
             cls.fileUri);
@@ -1955,7 +1964,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             SubtypeCheckMode.ignoringNullabilities)) {
           addProblem(
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument, typeParameterBound),
+                  typeArgument,
+                  typeParameterBound,
+                  library.isNonNullableByDefault),
               redirectionTarget.charOffset,
               noLength);
           hasProblem = true;
@@ -2016,7 +2027,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
       addProblem(
           templateIncompatibleRedirecteeFunctionType.withArguments(
-              redirecteeType, factoryType),
+              redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
           noLength);
     }

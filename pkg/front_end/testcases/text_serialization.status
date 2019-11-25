@@ -925,6 +925,8 @@ nnbd/intersection_types: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
+nnbd/messages_with_types_opt_in: TypeCheckError
+nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
 nnbd/null_shorting_cascade: TextSerializationFailure

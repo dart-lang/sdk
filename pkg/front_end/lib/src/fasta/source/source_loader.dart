@@ -870,8 +870,8 @@ class SourceLoader extends Loader {
 
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
     addProblem(
-        templateAmbiguousSupertypes.withArguments(
-            cls.name, a.asInterfaceType, b.asInterfaceType),
+        templateAmbiguousSupertypes.withArguments(cls.name, a.asInterfaceType,
+            b.asInterfaceType, cls.enclosingLibrary.isNonNullableByDefault),
         cls.fileOffset,
         noLength,
         cls.fileUri);

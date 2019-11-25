@@ -2616,7 +2616,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (argument is FunctionType && argument.typeParameters.length > 0) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
-              .withArguments(argument);
+              .withArguments(argument, isNonNullableByDefault);
         } else {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
@@ -2630,14 +2630,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     typeParameter.bound,
                     typeParameter.name,
                     targetReceiver,
-                    targetName);
+                    targetName,
+                    isNonNullableByDefault);
           } else {
             message = templateIncorrectTypeArgumentQualified.withArguments(
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
                 targetReceiver,
-                targetName);
+                targetName,
+                isNonNullableByDefault);
           }
         } else {
           String enclosingName = issue.enclosingType == null
@@ -2649,10 +2651,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
-                enclosingName);
+                enclosingName,
+                isNonNullableByDefault);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(argument,
-                typeParameter.bound, typeParameter.name, enclosingName);
+            message = templateIncorrectTypeArgument.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName,
+                isNonNullableByDefault);
           }
         }
       }
@@ -2730,7 +2737,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
-                getGenericTypeName(issue.enclosingType));
+                getGenericTypeName(issue.enclosingType),
+                isNonNullableByDefault);
           }
 
           reportTypeArgumentIssue(message, fileUri, offset, typeParameter);

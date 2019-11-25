@@ -612,7 +612,7 @@ class TypeInferrerImpl implements TypeInferrer {
       {int fileOffset,
       bool isReturnFromAsync: false,
       bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType)> template}) {
+      Template<Message Function(DartType, DartType, bool)> template}) {
     assert(expectedType != null);
     fileOffset ??= expression.fileOffset;
     expectedType = greatestClosure(coreTypes, expectedType);
@@ -702,19 +702,22 @@ class TypeInferrerImpl implements TypeInferrer {
       if (expectedType is! InvalidType && actualType is! InvalidType) {
         errorNode = helper.wrapInProblem(
             errorNode,
-            (template ?? templateInvalidAssignment)
-                .withArguments(actualType, expectedType),
+            (template ?? templateInvalidAssignment).withArguments(
+                actualType, expectedType, isNonNullableByDefault),
             noLength);
       }
       return errorNode;
     } else {
-      Template<Message Function(DartType, DartType)> template =
+      Template<Message Function(DartType, DartType, bool)> template =
           _getPreciseTypeErrorTemplate(expression);
       if (template != null) {
         // The type of the expression is known precisely, so an implicit
         // downcast is guaranteed to fail.  Insert a compile-time error.
-        return helper.wrapInProblem(expression,
-            template.withArguments(actualType, expectedType), noLength);
+        return helper.wrapInProblem(
+            expression,
+            template.withArguments(
+                actualType, expectedType, isNonNullableByDefault),
+            noLength);
       } else {
         // Insert an implicit downcast.
         return new AsExpression(expression, initialExpectedType)
@@ -945,7 +948,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType receiverType,
       Name name,
       int fileOffset,
-      Template<Message Function(String, DartType)> errorTemplate) {
+      Template<Message Function(String, DartType, bool)> errorTemplate) {
     assert(receiverType != null && isKnown(receiverType));
     if (!isTopLevel && target.isMissing && errorTemplate != null) {
       int length = name.name.length;
@@ -954,8 +957,8 @@ class TypeInferrerImpl implements TypeInferrer {
         length = 1;
       }
       return helper.buildProblem(
-          errorTemplate.withArguments(
-              name.name, resolveTypeParameter(receiverType)),
+          errorTemplate.withArguments(name.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           length);
     }
@@ -2360,7 +2363,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (isImplicitCall) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(receiverType),
+          templateImplicitCallOfNonMethod.withArguments(
+              receiverType, isNonNullableByDefault),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const DynamicType(), error);
@@ -2435,7 +2439,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (isImplicitCall) {
       Expression error = helper.buildProblem(
-          templateImplicitCallOfNonMethod.withArguments(receiverType),
+          templateImplicitCallOfNonMethod.withArguments(
+              receiverType, isNonNullableByDefault),
           fileOffset,
           noLength);
       return new ExpressionInferenceResult(const DynamicType(), error);
@@ -2852,8 +2857,8 @@ class TypeInferrerImpl implements TypeInferrer {
   ///
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<Message Function(DartType, DartType)> _getPreciseTypeErrorTemplate(
-      Expression expression) {
+  Template<Message Function(DartType, DartType, bool)>
+      _getPreciseTypeErrorTemplate(Expression expression) {
     if (expression is ListLiteral) {
       return templateInvalidCastLiteralList;
     }
@@ -2942,8 +2947,8 @@ class TypeInferrerImpl implements TypeInferrer {
           .createMethodInvocation(fileOffset, receiver, name, arguments);
     } else {
       return helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              name.name, resolveTypeParameter(receiverType)),
+          templateUndefinedMethod.withArguments(name.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           isImplicitCall ? noLength : name.name.length);
     }
@@ -2956,8 +2961,8 @@ class TypeInferrerImpl implements TypeInferrer {
           .createPropertyGet(fileOffset, receiver, propertyName);
     } else {
       return helper.buildProblem(
-          templateUndefinedGetter.withArguments(
-              propertyName.name, resolveTypeParameter(receiverType)),
+          templateUndefinedGetter.withArguments(propertyName.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           propertyName.name.length);
     }
@@ -2973,8 +2978,8 @@ class TypeInferrerImpl implements TypeInferrer {
           forEffect: forEffect);
     } else {
       return helper.buildProblem(
-          templateUndefinedSetter.withArguments(
-              propertyName.name, resolveTypeParameter(receiverType)),
+          templateUndefinedSetter.withArguments(propertyName.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           propertyName.name.length);
     }
@@ -2986,8 +2991,8 @@ class TypeInferrerImpl implements TypeInferrer {
       return engine.forest.createIndexGet(fileOffset, receiver, index);
     } else {
       return helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              indexGetName.name, resolveTypeParameter(receiverType)),
+          templateUndefinedMethod.withArguments(indexGetName.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           noLength);
     }
@@ -3003,8 +3008,8 @@ class TypeInferrerImpl implements TypeInferrer {
           forEffect: forEffect, readOnlyReceiver: readOnlyReceiver);
     } else {
       return helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              indexSetName.name, resolveTypeParameter(receiverType)),
+          templateUndefinedMethod.withArguments(indexSetName.name,
+              resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           noLength);
     }
@@ -3018,8 +3023,8 @@ class TypeInferrerImpl implements TypeInferrer {
           engine.forest.createArguments(fileOffset, <Expression>[right]));
     } else {
       return helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              binaryName.name, resolveTypeParameter(leftType)),
+          templateUndefinedMethod.withArguments(binaryName.name,
+              resolveTypeParameter(leftType), isNonNullableByDefault),
           fileOffset,
           binaryName.name.length);
     }
@@ -3032,8 +3037,8 @@ class TypeInferrerImpl implements TypeInferrer {
         ..fileOffset = fileOffset;
     } else {
       return helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              unaryName.name, resolveTypeParameter(expressionType)),
+          templateUndefinedMethod.withArguments(unaryName.name,
+              resolveTypeParameter(expressionType), isNonNullableByDefault),
           fileOffset,
           unaryName.name == unaryMinusName.name ? 1 : unaryName.name.length);
     }
@@ -3118,8 +3123,11 @@ abstract class MixinInferrer {
           asInstantiationOf(baseType, mixinSupertype.classNode);
       if (supertype == null) {
         reportProblem(
-            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
-                baseType.classNode.name, mixinSupertype.asInterfaceType),
+            templateMixinInferenceNoMatchingClass.withArguments(
+                mixinClass.name,
+                baseType.classNode.name,
+                mixinSupertype.asInterfaceType,
+                mixinClass.enclosingLibrary.isNonNullableByDefault),
             mixinClass);
         return;
       }
@@ -3156,8 +3164,11 @@ abstract class MixinInferrer {
       // either unconstrained or else with identical upper and lower bounds.
       if (constraint != null && constraint.upper != constraint.lower) {
         reportProblem(
-            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
-                baseType.classNode.name, mixinSupertype.asInterfaceType),
+            templateMixinInferenceNoMatchingClass.withArguments(
+                mixinClass.name,
+                baseType.classNode.name,
+                mixinSupertype.asInterfaceType,
+                mixinClass.enclosingLibrary.isNonNullableByDefault),
             mixinClass);
         return p;
       }

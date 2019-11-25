@@ -5354,8 +5354,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
               SubtypeCheckMode.ignoringNullabilities)) {
             libraryBuilder.addProblem(
-                fasta.templateInitializingFormalTypeMismatch
-                    .withArguments(name, formalType, builder.fieldType),
+                fasta.templateInitializingFormalTypeMismatch.withArguments(
+                    name,
+                    formalType,
+                    builder.fieldType,
+                    libraryBuilder.isNonNullableByDefault),
                 assignmentOffset,
                 noLength,
                 uri,

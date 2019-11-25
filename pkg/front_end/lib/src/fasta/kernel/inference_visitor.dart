@@ -1313,7 +1313,8 @@ class InferenceVisitor
                 1);
           } else {
             replacement = inferrer.helper.buildProblem(
-                templateSpreadTypeMismatch.withArguments(spreadType),
+                templateSpreadTypeMismatch.withArguments(
+                    spreadType, inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
           }
@@ -1321,7 +1322,9 @@ class InferenceVisitor
           if (!inferrer.isAssignable(inferredTypeArgument, spreadElementType)) {
             replacement = inferrer.helper.buildProblem(
                 templateSpreadElementTypeMismatch.withArguments(
-                    spreadElementType, inferredTypeArgument),
+                    spreadElementType,
+                    inferredTypeArgument,
+                    inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
           }
@@ -1715,8 +1718,8 @@ class InferenceVisitor
           } else {
             replacement = new MapEntry(
                 inferrer.helper.buildProblem(
-                    templateSpreadMapEntryTypeMismatch
-                        .withArguments(spreadType),
+                    templateSpreadMapEntryTypeMismatch.withArguments(
+                        spreadType, inferrer.isNonNullableByDefault),
                     entry.expression.fileOffset,
                     1),
                 new NullLiteral())
@@ -1728,14 +1731,18 @@ class InferenceVisitor
           if (!inferrer.isAssignable(inferredKeyType, actualKeyType)) {
             keyError = inferrer.helper.buildProblem(
                 templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                    actualKeyType, inferredKeyType),
+                    actualKeyType,
+                    inferredKeyType,
+                    inferrer.isNonNullableByDefault),
                 entry.expression.fileOffset,
                 1);
           }
           if (!inferrer.isAssignable(inferredValueType, actualValueType)) {
             valueError = inferrer.helper.buildProblem(
                 templateSpreadMapEntryElementValueTypeMismatch.withArguments(
-                    actualValueType, inferredValueType),
+                    actualValueType,
+                    inferredValueType,
+                    inferrer.isNonNullableByDefault),
                 entry.expression.fileOffset,
                 1);
           }
@@ -1991,8 +1998,8 @@ class InferenceVisitor
     if (iterableSpreadOffset != null) {
       replacement = new MapEntry(
           inferrer.helper.buildProblem(
-              templateSpreadMapEntryTypeMismatch
-                  .withArguments(iterableSpreadType),
+              templateSpreadMapEntryTypeMismatch.withArguments(
+                  iterableSpreadType, inferrer.isNonNullableByDefault),
               iterableSpreadOffset,
               1),
           new NullLiteral());
@@ -4854,7 +4861,9 @@ class InferenceVisitor
         if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
           inferrer.helper.addProblem(
               templateSwitchExpressionNotAssignable.withArguments(
-                  expressionType, caseExpressionType),
+                  expressionType,
+                  caseExpressionType,
+                  inferrer.isNonNullableByDefault),
               caseExpression.fileOffset,
               noLength,
               context: [

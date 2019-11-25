@@ -99,15 +99,18 @@ void generateBytecode(
     final savedGlobalDebuggingNames = globalDebuggingNames;
     globalDebuggingNames = new NameSystem();
 
+    Library library;
     try {
       final bytecodeGenerator = new BytecodeGenerator(
           component, coreTypes, hierarchy, typeEnvironment, options);
-      for (var library in libraries) {
+      for (library in libraries) {
         bytecodeGenerator.visitLibrary(library);
       }
     } on IllegalRecursiveTypeException catch (e) {
       CompilerContext.current.options.report(
-          templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
+          templateIllegalRecursiveType
+              .withArguments(e.type, library.isNonNullableByDefault)
+              .withoutLocation(),
           Severity.error);
     } finally {
       globalDebuggingNames = savedGlobalDebuggingNames;

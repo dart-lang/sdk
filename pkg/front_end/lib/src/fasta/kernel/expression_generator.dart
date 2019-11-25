@@ -2790,7 +2790,8 @@ class DeferredAccessGenerator extends Generator {
       message = templateDeferredTypeAnnotation
           .withArguments(
               _helper.buildDartType(new UnresolvedType(type, charOffset, _uri)),
-              prefixGenerator._plainNameForRead)
+              prefixGenerator._plainNameForRead,
+              _helper.libraryBuilder.isNonNullableByDefault)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
