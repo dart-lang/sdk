@@ -31,7 +31,7 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
         additionalFeatures: [Feature.non_nullable],
       ),
     );
-    typeProvider = analysisContext.typeProvider;
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
   }
 
   test_dynamicType() {

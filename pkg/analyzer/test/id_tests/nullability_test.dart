@@ -56,7 +56,7 @@ class _NullabilityDataComputer extends DataComputer<String> {
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
     _NullabilityDataExtractor(unit.declaredElement.source.uri, actualMap,
-            unit.declaredElement.context.typeSystem)
+            unit.declaredElement.library.typeSystem)
         .run(unit);
   }
 }

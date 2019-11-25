@@ -854,7 +854,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type;
       }
-      return _supertype = this.context.typeProvider.objectType;
+      return _supertype = library.typeProvider.objectType;
     }
     return _supertype;
   }
@@ -1813,7 +1813,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
         name: new DartObjectImpl(
-            context.typeProvider.intType, new IntState(_index))
+            library.typeProvider.intType, new IntState(_index))
       };
       DartObjectImpl value =
           new DartObjectImpl(type, new GenericState(fieldMap));
@@ -1870,7 +1870,7 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   @override
   InterfaceType get type {
     if (_type == null) {
-      return _type = context.typeProvider.listType2(_enum.thisType);
+      return _type = library.typeProvider.listType2(_enum.thisType);
     }
     return _type;
   }
@@ -2190,7 +2190,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
       AnalysisOptionsImpl analysisOptions = context.analysisOptions;
-      computeConstants(context.typeProvider, context.typeSystem,
+      computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
   }
@@ -2262,7 +2262,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
       AnalysisOptionsImpl analysisOptions = context.analysisOptions;
-      computeConstants(context.typeProvider, context.typeSystem,
+      computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return evaluationResult?.value;
@@ -2566,7 +2566,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   DartObject computeConstantValue() {
     if (evaluationResult == null) {
       AnalysisOptionsImpl analysisOptions = context.analysisOptions;
-      computeConstants(context.typeProvider, context.typeSystem,
+      LibraryElement library = compilationUnit.library;
+      computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
     return constantValue;
@@ -3418,7 +3419,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  InterfaceType get supertype => context.typeProvider.objectType;
+  InterfaceType get supertype => library.typeProvider.objectType;
 
   @override
   @deprecated
@@ -3455,7 +3456,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     method.isSynthetic = true;
     method.enclosingElement = this;
     if (linkedNode != null) {
-      method.returnType = context.typeProvider.stringType;
+      method.returnType = library.typeProvider.stringType;
       method.reference = reference.getChild('@method').getChild('toString');
     }
     _methods = <MethodElement>[method];
@@ -3474,7 +3475,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
         ..enclosingElement = this
         ..isSynthetic = true
         ..isFinal = true
-        ..type = context.typeProvider.intType;
+        ..type = library.typeProvider.intType;
       fields.add(field);
       getters.add(PropertyAccessorElementImpl_ImplicitGetter(field,
           reference: reference.getChild('@getter').getChild('index'))
@@ -4769,8 +4770,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   DartType get returnType {
     if (function == null) {
-      // TODO(scheglov) The context is null in unit tests.
-      return context?.typeProvider?.dynamicType;
+      return DynamicTypeImpl.instance;
     }
     return function?.returnType;
   }
@@ -5903,7 +5903,7 @@ class MixinElementImpl extends ClassElementImpl {
             .toList();
       }
       if (constraints == null || constraints.isEmpty) {
-        constraints = [context.typeProvider.objectType];
+        constraints = [library.typeProvider.objectType];
       }
       return _superclassConstraints = constraints;
     }

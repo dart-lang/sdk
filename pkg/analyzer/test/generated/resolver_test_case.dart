@@ -348,8 +348,7 @@ class ResolverTestCase with ResourceProviderMixin {
     if (analysisResults.isEmpty) {
       fail('typeProvider called before computing an analysis result.');
     }
-    return analysisResults
-        .values.first.unit.declaredElement.context.typeProvider;
+    return analysisResults.values.first.typeProvider;
   }
 
   /**
@@ -467,8 +466,7 @@ class ResolverTestCase with ResourceProviderMixin {
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     ResolvedUnitResult result = await driver.getResult(source.fullName);
-    analysisResult = new TestAnalysisResult(
-        source, result.unit, result.errors, result.typeSystem);
+    analysisResult = new TestAnalysisResult(source, result.unit, result.errors);
     analysisResults[source] = analysisResult;
     return analysisResult;
   }
@@ -814,7 +812,12 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
-  final TypeSystemImpl typeSystem;
 
-  TestAnalysisResult(this.source, this.unit, this.errors, this.typeSystem);
+  TestAnalysisResult(this.source, this.unit, this.errors);
+
+  LibraryElement get libraryElement => unit.declaredElement.library;
+
+  TypeProvider get typeProvider => libraryElement.typeProvider;
+
+  TypeSystem get typeSystem => libraryElement.typeSystem;
 }

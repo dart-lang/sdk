@@ -15,9 +15,13 @@ class TestAnalysisContext implements AnalysisContext {
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
 
-  AnalysisOptions _analysisOptions;
-  TypeProviderImpl _typeProvider;
-  TypeSystemImpl _typeSystem;
+  AnalysisOptionsImpl _analysisOptions;
+
+  TypeProvider _typeProviderLegacy;
+  TypeProvider _typeProviderNonNullableByDefault;
+
+  TypeSystemImpl _typeSystemLegacy;
+  TypeSystemImpl _typeSystemNonNullableByDefault;
 
   TestAnalysisContext({FeatureSet featureSet}) {
     _analysisOptions = AnalysisOptionsImpl()
@@ -30,21 +34,30 @@ class TestAnalysisContext implements AnalysisContext {
           : NullabilitySuffix.star,
     );
 
-    _typeProvider = TypeProviderImpl(
+    _typeProviderLegacy = TypeProviderImpl(
       coreLibrary: sdkElements.coreLibrary,
       asyncLibrary: sdkElements.asyncLibrary,
       isNonNullableByDefault: false,
     );
 
-    if (_analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.asNonNullableByDefault;
-    }
+    _typeProviderNonNullableByDefault = TypeProviderImpl(
+      coreLibrary: sdkElements.coreLibrary,
+      asyncLibrary: sdkElements.asyncLibrary,
+      isNonNullableByDefault: true,
+    );
 
-    _typeSystem = TypeSystemImpl(
-      implicitCasts: true,
+    _typeSystemLegacy = TypeSystemImpl(
+      implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
-      strictInference: false,
-      typeProvider: typeProvider,
+      strictInference: _analysisOptions.strictInference,
+      typeProvider: _typeProviderLegacy,
+    );
+
+    _typeSystemNonNullableByDefault = TypeSystemImpl(
+      implicitCasts: _analysisOptions.implicitCasts,
+      isNonNullableByDefault: true,
+      strictInference: _analysisOptions.strictInference,
+      typeProvider: _typeProviderNonNullableByDefault,
     );
 
     _setLibraryTypeSystem(sdkElements.coreLibrary);
@@ -54,17 +67,35 @@ class TestAnalysisContext implements AnalysisContext {
   @override
   AnalysisOptions get analysisOptions => _analysisOptions;
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
-  TypeProvider get typeProvider => _typeProvider;
+  TypeProvider get typeProvider => typeProviderLegacy;
 
+  TypeProvider get typeProviderLegacy {
+    return _typeProviderLegacy;
+  }
+
+  TypeProvider get typeProviderNonNullableByDefault {
+    return _typeProviderNonNullableByDefault;
+  }
+
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
-  TypeSystemImpl get typeSystem => _typeSystem;
+  TypeSystemImpl get typeSystem => typeSystemLegacy;
+
+  TypeSystemImpl get typeSystemLegacy {
+    return _typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemNonNullableByDefault {
+    return _typeSystemNonNullableByDefault;
+  }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
-    libraryElement.typeProvider = _typeProvider;
-    libraryElement.typeSystem = _typeSystem;
+    libraryElement.typeProvider = _typeProviderLegacy;
+    libraryElement.typeSystem = _typeSystemLegacy;
   }
 }
 

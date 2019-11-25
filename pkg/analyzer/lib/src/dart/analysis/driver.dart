@@ -1369,7 +1369,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         library.path,
         library.uri,
         resolvedUnits.first.libraryElement,
-        libraryContext.typeProvider,
         resolvedUnits,
       );
     });
@@ -2019,10 +2018,10 @@ class AnalysisResult extends ResolvedUnitResultImpl {
   LibraryElement get libraryElement => unit.declaredElement.library;
 
   @override
-  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => unit.declaredElement.context.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class DriverPerformance {

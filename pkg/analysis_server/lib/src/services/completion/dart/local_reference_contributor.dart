@@ -118,7 +118,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   List<CompletionSuggestion> get suggestions => suggestionMap.values.toList();
 
-  TypeProvider get typeProvider => request.libraryElement.context.typeProvider;
+  TypeProvider get typeProvider => request.libraryElement.typeProvider;
 
   @override
   void declaredClass(ClassDeclaration declaration) {

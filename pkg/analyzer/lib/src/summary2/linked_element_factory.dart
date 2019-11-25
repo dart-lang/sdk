@@ -66,6 +66,10 @@ class LinkedElementFactory {
     LibraryElementImpl dartCore,
     LibraryElementImpl dartAsync,
   ) {
+    if (analysisContext.typeProviderNonNullableByDefault != null) {
+      return;
+    }
+
     analysisContext.setTypeProviders(
       legacy: TypeProviderImpl(
         coreLibrary: dartCore,
@@ -162,7 +166,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // And if we link dart:core and dart:async, we cannot create it.
     // We will set typeProvider later, during [createTypeProviders].
-    if (analysisContext.typeProviderLegacy == null) {
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
       return;
     }
 

@@ -51,7 +51,7 @@ class AstResolver {
     var variableResolverVisitor = new VariableResolverVisitor(
       _unitElement.library,
       _unitElement.source,
-      _linker.typeProvider,
+      _unitElement.library.typeProvider,
       errorListener,
       nameScope: _nameScope,
     );
@@ -61,7 +61,7 @@ class AstResolver {
       _linker.inheritance,
       _unitElement.library,
       _unitElement.source,
-      _linker.typeProvider,
+      _unitElement.library.typeProvider,
       errorListener,
       featureSet: featureSet,
       nameScope: _nameScope,

@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -1119,8 +1118,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
    * Create and return the resolver used by the tests.
    */
   void _createResolver() {
-    AnalysisContext context = TestAnalysisContext();
-    _typeProvider = context.typeProvider;
+    var context = TestAnalysisContext();
+    _typeProvider = context.typeProviderLegacy;
 
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
@@ -1129,8 +1128,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.library(context, "test", isNonNullableByDefault: false);
     _definingLibrary.definingCompilationUnit = unit;
 
-    _definingLibrary.typeProvider = context.typeProvider;
-    _definingLibrary.typeSystem = context.typeSystem;
+    _definingLibrary.typeProvider = context.typeProviderLegacy;
+    _definingLibrary.typeSystem = context.typeSystemLegacy;
     var inheritance = new InheritanceManager3();
 
     _visitor = new ResolverVisitor(

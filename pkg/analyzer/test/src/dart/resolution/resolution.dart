@@ -59,8 +59,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
-  TypeProvider get typeProvider =>
-      result.unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => result.typeProvider;
 
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => false;

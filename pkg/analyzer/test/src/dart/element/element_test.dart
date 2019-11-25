@@ -38,14 +38,14 @@ main() {
 }
 
 class AbstractTypeTest with ElementsTypesMixin {
-  AnalysisContext _analysisContext;
+  TestAnalysisContext _analysisContext;
   TypeProvider _typeProvider;
 
   TypeProvider get typeProvider => _typeProvider;
 
   void setUp() {
     _analysisContext = TestAnalysisContext();
-    _typeProvider = _analysisContext.typeProvider;
+    _typeProvider = _analysisContext.typeProviderLegacy;
   }
 }
 

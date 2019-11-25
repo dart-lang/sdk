@@ -11,8 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1721,8 +1720,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
-    AnalysisContext context = first.element.context;
-    return context.typeSystem.getLeastUpperBound(first, second);
+    TypeSystemImpl typeSystem = first.element.library.typeSystem;
+    return typeSystem.getLeastUpperBound(first, second);
   }
 
   /**

@@ -1223,7 +1223,7 @@ import 'a.dart' as p;
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder).writeType(typeProvider.dynamicType);
       });
     });
@@ -1439,7 +1439,7 @@ class B {}
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder)
             .writeType(typeProvider.dynamicType, required: true);
       });

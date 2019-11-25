@@ -94,13 +94,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ElementWalker elementWalker,
   }) {
     var libraryElement = unitElement.library;
-    var typeProvider = libraryElement.context.typeProvider;
+    var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
     var nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
     var errorReporter = ErrorReporter(errorListener, unitSource);
 
     var typeNameResolver = TypeNameResolver(
-      unitElement.context.typeSystem,
+      libraryElement.typeSystem,
       typeProvider,
       nonNullableEnabled,
       libraryElement,

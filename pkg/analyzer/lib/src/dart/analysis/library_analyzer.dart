@@ -69,9 +69,7 @@ class LibraryAnalyzer {
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final LinkedElementFactory _elementFactory;
-  TypeProviderImpl _typeProvider;
 
-  final TypeSystemImpl _typeSystem;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -104,8 +102,11 @@ class LibraryAnalyzer {
       this._library,
       this._resourceProvider,
       {TestingData testingData})
-      : _typeSystem = _context.typeSystem,
-        _testingData = testingData;
+      : _testingData = testingData;
+
+  TypeProviderImpl get _typeProvider => _libraryElement.typeProvider;
+
+  TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   /**
    * Compute analysis results for all units of the library.
@@ -132,12 +133,6 @@ class LibraryAnalyzer {
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
-    _typeProvider = _context.typeProvider;
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.asNonNullableByDefault;
-    } else {
-      _typeProvider = _typeProvider.asLegacy;
-    }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
@@ -244,7 +239,7 @@ class LibraryAnalyzer {
    * Compute [_constants] in all units.
    */
   void _computeConstants() {
-    computeConstants(_typeProvider, _context.typeSystem, _declaredVariables,
+    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
   }
 
@@ -257,7 +252,7 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     unit.accept(new DeadCodeVerifier(errorReporter, unit.featureSet,
-        typeSystem: _context.typeSystem));
+        typeSystem: _typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -266,7 +261,7 @@ class LibraryAnalyzer {
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, file.content,
-        typeSystem: _context.typeSystem,
+        typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
@@ -372,7 +367,7 @@ class LibraryAnalyzer {
 
     CodeChecker checker = new CodeChecker(
       _typeProvider,
-      _context.typeSystem,
+      _typeSystem,
       _inheritance,
       errorListener,
       _analysisOptions,
@@ -395,7 +390,7 @@ class LibraryAnalyzer {
     // Compute inheritance and override errors.
     //
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        _context.typeSystem, _inheritance, errorReporter);
+        _typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -709,7 +704,7 @@ class LibraryAnalyzer {
     FlowAnalysisHelper flowAnalysisHelper;
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
       flowAnalysisHelper =
-          FlowAnalysisHelper(_context.typeSystem, _testingData != null);
+          FlowAnalysisHelper(_typeSystem, _testingData != null);
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting);
     }

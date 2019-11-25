@@ -134,12 +134,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       }
     }
 
-    if (analysisContext.typeProvider == null) {
-      var dartCore = elementFactory.libraryOfUri('dart:core');
-      var dartAsync = elementFactory.libraryOfUri('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
-    }
-
     return elementFactory.libraryOfUri('${source.uri}');
   }
 

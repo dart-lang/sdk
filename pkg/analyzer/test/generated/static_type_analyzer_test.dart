@@ -206,6 +206,11 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   ResolverVisitor _visitor;
 
   /**
+   * The library containing the code being resolved.
+   */
+  LibraryElementImpl _definingLibrary;
+
+  /**
    * The analyzer being used to analyze the test cases.
    */
   StaticTypeAnalyzer _analyzer;
@@ -215,12 +220,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   TypeProvider _typeProvider;
 
-  TypeProvider get typeProvider => _typeProvider;
+  TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
   /**
    * The type system used to analyze the test cases.
    */
-  TypeSystemImpl get _typeSystem => _visitor.typeSystem;
+  TypeSystemImpl get _typeSystem => _definingLibrary.typeSystem;
 
   void fail_visitFunctionExpressionInvocation() {
     _fail("Not yet tested");
@@ -1321,13 +1326,18 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
-    LibraryElementImpl definingLibrary = new LibraryElementImpl(
+
+    _definingLibrary = new LibraryElementImpl(
         context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
-    definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    _typeProvider = context.typeProvider;
+    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+
+    _definingLibrary.typeProvider = context.typeProviderLegacy;
+    _definingLibrary.typeSystem = context.typeSystemLegacy;
+    _typeProvider = context.typeProviderLegacy;
+
     _visitor = new ResolverVisitor(
-        inheritance, definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: new LibraryScope(definingLibrary));
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
+        featureSet: featureSet, nameScope: new LibraryScope(_definingLibrary));
     return _visitor.typeAnalyzer;
   }
 

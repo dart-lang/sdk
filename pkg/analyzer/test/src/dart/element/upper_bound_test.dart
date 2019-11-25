@@ -1275,8 +1275,8 @@ class _SubtypingTestBase with ElementsTypesMixin {
     var analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
     );
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
+    typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 
   String _typeParametersStr(TypeImpl type) {

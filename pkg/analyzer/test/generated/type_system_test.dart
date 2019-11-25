@@ -86,8 +86,8 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     var analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
     );
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
+    typeProvider = analysisContext.typeProviderLegacy;
+    typeSystem = analysisContext.typeSystemLegacy;
 
     typeProvider = typeProvider;
     typeSystem = typeSystem;

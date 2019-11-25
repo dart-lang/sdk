@@ -194,7 +194,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var typeProvider = request.libraryElement.context.typeProvider;
+      var typeProvider = request.libraryElement.typeProvider;
       typeArguments = typeParameters.map((t) {
         return typeProvider.dynamicType;
       }).toList();

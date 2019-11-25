@@ -84,8 +84,11 @@ class LinkedUnitContext {
     return _unit.featureSet.isEnabled(Feature.non_nullable);
   }
 
-  TypeProvider get typeProvider =>
-      bundleContext.elementFactory.analysisContext.typeProvider;
+  TypeProvider get typeProvider {
+    var libraryReference = libraryContext.reference;
+    var libraryElement = libraryReference.element as LibraryElementImpl;
+    return libraryElement.typeProvider;
+  }
 
   CompilationUnit get unit => _unit;
 

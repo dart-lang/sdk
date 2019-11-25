@@ -219,6 +219,7 @@ class SynchronousSession {
 
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
+  @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider => _typeProviderLegacy;
 
   TypeProvider get typeProviderLegacy {
@@ -229,6 +230,7 @@ class SynchronousSession {
     return _typeProviderNonNullableByDefault;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   TypeSystemImpl get typeSystem {
     return typeSystemLegacy;
   }

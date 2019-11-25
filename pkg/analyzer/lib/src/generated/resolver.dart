@@ -2816,7 +2816,7 @@ class ResolverVisitor extends ScopedVisitor {
                 featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
-    this.typeSystem = definingLibrary.context.typeSystem;
+    this.typeSystem = definingLibrary.typeSystem;
     this._promoteManager = TypePromotionManager(typeSystem);
     this.extensionResolver = ExtensionMemberResolver(this);
     this.elementResolver = new ElementResolver(this,

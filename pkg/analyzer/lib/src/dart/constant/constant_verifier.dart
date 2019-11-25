@@ -61,7 +61,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             currentLibrary,
             typeProvider,
             declaredVariables,
-            currentLibrary.context.typeSystem,
+            currentLibrary.typeSystem,
             featureSet ??
                 (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
                     .contextFeatures);

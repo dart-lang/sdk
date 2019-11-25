@@ -90,9 +90,11 @@ abstract class AnalysisContext {
 
   /// Return a type provider for this context or throw [AnalysisException] if
   /// either `dart:core` or `dart:async` cannot be resolved.
+  @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider;
 
   /// Return a type system for this context.
+  @Deprecated('Use LibraryElement.typeSystem')
   TypeSystem get typeSystem;
 }
 

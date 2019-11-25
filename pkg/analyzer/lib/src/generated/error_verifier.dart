@@ -302,7 +302,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _typeSystem = _currentLibrary.context.typeSystem;
+    _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
@@ -3827,8 +3827,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _checkForMixinSuperclassConstraints(int mixinIndex, TypeName mixinName) {
     InterfaceType mixinType = mixinName.type;
     for (var constraint in mixinType.superclassConstraints) {
-      bool isSatisfied =
-          _typeSystem.isSubtypeOf(_enclosingClass.supertype, constraint);
+      var superType = _enclosingClass.supertype as InterfaceTypeImpl;
+      if (_currentLibrary.isNonNullableByDefault) {
+        superType = superType.withNullability(NullabilitySuffix.none);
+      }
+
+      bool isSatisfied = _typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
@@ -3837,12 +3841,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       if (!isSatisfied) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
-            mixinName.name, [
-          mixinName.type.displayName,
-          _enclosingClass.supertype,
-          constraint.displayName
-        ]);
+          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          mixinName.name,
+          [
+            mixinName.type.displayName,
+            superType,
+            constraint.displayName,
+          ],
+        );
         return true;
       }
     }
