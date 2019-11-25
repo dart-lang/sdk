@@ -53,18 +53,19 @@ mustache.Template _template = mustache.Template(r'''
     </script>
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
-a:link {
+.code a:link {
   color: inherit;
   text-decoration-line: none;
 }
 
-a:visited {
+.code a:visited {
   color: inherit;
   text-decoration-line: none;
 }
 
-a:hover {
+.code a:hover {
   text-decoration-line: underline;
+  font-weight: bold;
 }
 
 body {
