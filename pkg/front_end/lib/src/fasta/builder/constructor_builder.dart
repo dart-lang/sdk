@@ -63,8 +63,6 @@ abstract class ConstructorBuilder implements FunctionBuilder {
 
   bool get isRedirectingGenerativeConstructor;
 
-  bool get isEligibleForTopLevelInference;
-
   /// The [Constructor] built by this builder.
   Constructor get constructor;
 
@@ -75,6 +73,9 @@ abstract class ConstructorBuilder implements FunctionBuilder {
       Initializer initializer, ExpressionGeneratorHelper helper);
 
   void prepareInitializers();
+
+  /// Infers the types of any untyped initializing formals.
+  void inferFormalTypes();
 }
 
 class ConstructorBuilderImpl extends FunctionBuilderImpl
@@ -158,16 +159,6 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  bool get isEligibleForTopLevelInference {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.type == null && formal.isInitializingFormal) return true;
-      }
-    }
-    return false;
-  }
-
-  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -186,16 +177,35 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       _constructor.isExternal = isExternal;
       _constructor.name = new Name(name, libraryBuilder.library);
     }
-    if (isEligibleForTopLevelInference) {
+    if (formals != null) {
+      bool needsInference = false;
       for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) {
           formal.variable.type = null;
+          needsInference = true;
         }
       }
-      libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
-          libraryBuilder;
+      if (needsInference) {
+        assert(
+            library == libraryBuilder,
+            "Unexpected library builder ${libraryBuilder} for"
+            " constructor $this in ${library}.");
+        libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
+            this;
+      }
     }
     return _constructor;
+  }
+
+  @override
+  void inferFormalTypes() {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.type == null && formal.isInitializingFormal) {
+          formal.finalizeInitializingFormal(classBuilder);
+        }
+      }
+    }
   }
 
   @override

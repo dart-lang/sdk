@@ -3526,7 +3526,7 @@ class DelayedAssignment extends ContextAwareGenerator {
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
     }
-    return _helper.buildFieldInitializer(false, generator._plainNameForRead,
+    return _helper.buildFieldInitializer(generator._plainNameForRead,
         offsetForToken(generator.token), fileOffset, value);
   }
 

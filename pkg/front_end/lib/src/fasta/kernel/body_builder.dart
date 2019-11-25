@@ -758,12 +758,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               ];
             } else {
               initializers = buildFieldInitializer(
-                  true,
                   formal.name,
                   formal.charOffset,
                   formal.charOffset,
                   new VariableGet(formal.variable),
-                  formalType: formal.variable.type);
+                  formal: formal);
             }
             for (Initializer initializer in initializers) {
               member.addInitializer(initializer, this);
@@ -5290,9 +5289,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  List<Initializer> buildFieldInitializer(bool isSynthetic, String name,
-      int fieldNameOffset, int assignmentOffset, Expression expression,
-      {DartType formalType}) {
+  List<Initializer> buildFieldInitializer(String name, int fieldNameOffset,
+      int assignmentOffset, Expression expression,
+      {FormalParameterBuilder formal}) {
     Builder builder = declarationBuilder.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
@@ -5341,22 +5340,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ..fileOffset = assignmentOffset
         ];
       } else {
-        if (formalType != null &&
-            !typeEnvironment.isSubtypeOf(formalType, builder.field.type,
-                SubtypeCheckMode.ignoringNullabilities)) {
-          libraryBuilder.addProblem(
-              fasta.templateInitializingFormalTypeMismatch
-                  .withArguments(name, formalType, builder.field.type),
-              assignmentOffset,
-              noLength,
-              uri,
-              context: [
-                fasta.messageInitializingFormalTypeMismatchField
-                    .withLocation(builder.fileUri, builder.charOffset, noLength)
-              ]);
+        if (formal != null && formal.type != null) {
+          DartType formalType = formal.variable.type;
+          if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
+              SubtypeCheckMode.ignoringNullabilities)) {
+            libraryBuilder.addProblem(
+                fasta.templateInitializingFormalTypeMismatch
+                    .withArguments(name, formalType, builder.fieldType),
+                assignmentOffset,
+                noLength,
+                uri,
+                context: [
+                  fasta.messageInitializingFormalTypeMismatchField.withLocation(
+                      builder.fileUri, builder.charOffset, noLength)
+                ]);
+          }
         }
         return builder.buildInitializer(assignmentOffset, expression,
-            isSynthetic: isSynthetic);
+            isSynthetic: formal != null);
       }
     } else {
       return <Initializer>[

@@ -28,6 +28,7 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
+import '../builder/constructor_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
@@ -433,6 +434,11 @@ abstract class TypeInferrer {
   /// expression.
   Expression inferParameterInitializer(
       InferenceHelper helper, Expression initializer, DartType declaredType);
+
+  /// Ensures that all parameter types of [constructor] have been inferred.
+  // TODO(johnniwinther): We are still parameters on synthesized mixin
+  //  application constructors.
+  void inferConstructorParameterTypes(Constructor constructor);
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
@@ -510,6 +516,40 @@ class TypeInferrerImpl implements TypeInferrer {
     isReachable ??= flowAnalysis.isReachable;
     if (!isReachable) {
       dataForTesting.flowAnalysisResult.unreachableNodes.add(node);
+    }
+  }
+
+  @override
+  void inferConstructorParameterTypes(Constructor target) {
+    ConstructorBuilder constructor = engine.beingInferred[target];
+    if (constructor != null) {
+      // There is a cyclic dependency where inferring the types of the
+      // initializing formals of a constructor required us to infer the
+      // corresponding field type which required us to know the type of the
+      // constructor.
+      String name = target.enclosingClass.name;
+      if (target.name.name.isNotEmpty) {
+        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
+        // instead. However, `inferrer.helper` may be null.
+        name += ".${target.name.name}";
+      }
+      constructor.library.addProblem(
+          templateCantInferTypeDueToCircularity.withArguments(name),
+          target.fileOffset,
+          name.length,
+          target.fileUri);
+      for (VariableDeclaration declaration
+          in target.function.positionalParameters) {
+        declaration.type ??= const InvalidType();
+      }
+      for (VariableDeclaration declaration in target.function.namedParameters) {
+        declaration.type ??= const InvalidType();
+      }
+    } else if ((constructor = engine.toBeInferred[target]) != null) {
+      engine.toBeInferred.remove(target);
+      engine.beingInferred[target] = constructor;
+      constructor.inferFormalTypes();
+      engine.beingInferred.remove(target);
     }
   }
 

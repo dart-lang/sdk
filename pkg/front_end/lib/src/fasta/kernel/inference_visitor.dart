@@ -16,8 +16,6 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
-import '../builder/library_builder.dart';
-
 import '../fasta_codes.dart'
     show
         messageCantDisambiguateAmbiguousInformation,
@@ -25,7 +23,6 @@ import '../fasta_codes.dart'
         messageNonNullAwareSpreadIsNull,
         messageSwitchExpressionNotAssignableCause,
         noLength,
-        templateCantInferTypeDueToCircularity,
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
@@ -418,44 +415,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConstructorInvocation(
       ConstructorInvocation node, DartType typeContext) {
-    LibraryBuilder library = inferrer.engine.beingInferred[node.target];
-    if (library != null) {
-      // There is a cyclic dependency where inferring the types of the
-      // initializing formals of a constructor required us to infer the
-      // corresponding field type which required us to know the type of the
-      // constructor.
-      String name = node.target.enclosingClass.name;
-      if (node.target.name.name.isNotEmpty) {
-        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-        // instead. However, `inferrer.helper` may be null.
-        name += ".${node.target.name.name}";
-      }
-      library.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          node.target.fileOffset,
-          name.length,
-          node.target.fileUri);
-      for (VariableDeclaration declaration
-          in node.target.function.positionalParameters) {
-        declaration.type ??= const InvalidType();
-      }
-      for (VariableDeclaration declaration
-          in node.target.function.namedParameters) {
-        declaration.type ??= const InvalidType();
-      }
-    } else if ((library = inferrer.engine.toBeInferred[node.target]) != null) {
-      inferrer.engine.toBeInferred.remove(node.target);
-      inferrer.engine.beingInferred[node.target] = library;
-      for (VariableDeclaration declaration
-          in node.target.function.positionalParameters) {
-        inferrer.engine.inferInitializingFormal(declaration, node.target);
-      }
-      for (VariableDeclaration declaration
-          in node.target.function.namedParameters) {
-        inferrer.engine.inferInitializingFormal(declaration, node.target);
-      }
-      inferrer.engine.beingInferred.remove(node.target);
-    }
+    inferrer.inferConstructorParameterTypes(node.target);
     bool hasExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
     DartType inferredType = inferrer.inferInvocation(typeContext,
@@ -4584,6 +4544,7 @@ class InferenceVisitor
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
+    inferrer.inferConstructorParameterTypes(node.target);
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments =
@@ -4793,6 +4754,7 @@ class InferenceVisitor
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
+    inferrer.inferConstructorParameterTypes(node.target);
     Substitution substitution = Substitution.fromSupertype(
         inferrer.classHierarchy.getClassAsInstanceOf(
             inferrer.thisType.classNode, node.target.enclosingClass));

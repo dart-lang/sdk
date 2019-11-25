@@ -7,11 +7,11 @@ class Class extends core::Object {
   field dynamic _#field#isSet;
   constructor constructor1() → self::Class
     ;
-  constructor constructor2(core::int field) → self::Class
+  constructor constructor2(core::int? field) → self::Class
     ;
   constructor constructor3(core::int value) → self::Class
     ;
-  constructor constructor4([core::int field]) → self::Class
+  constructor constructor4([core::int? field]) → self::Class
     ;
   get field() → core::int?;
   set field(core::int? #t1) → void;

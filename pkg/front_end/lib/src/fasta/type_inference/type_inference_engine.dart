@@ -9,7 +9,6 @@ import 'package:kernel/ast.dart'
         Constructor,
         DartType,
         DartTypeVisitor,
-        DynamicType,
         Field,
         FunctionType,
         InterfaceType,
@@ -31,7 +30,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
-import '../builder/library_builder.dart';
+import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
 
@@ -128,14 +127,14 @@ abstract class TypeInferenceEngine {
   /// This is represented as a map from a constructor to its library
   /// builder because the builder is used to report errors due to cyclic
   /// inference dependencies.
-  final Map<Constructor, LibraryBuilder> toBeInferred = {};
+  final Map<Constructor, ConstructorBuilder> toBeInferred = {};
 
   /// A map containing constructors in the process of being inferred.
   ///
   /// This is used to detect cyclic inference dependencies.  It is represented
   /// as a map from a constructor to its library builder because the builder
   /// is used to report errors.
-  final Map<Constructor, LibraryBuilder> beingInferred = {};
+  final Map<Constructor, ConstructorBuilder> beingInferred = {};
 
   final Instrumentation instrumentation;
 
@@ -155,35 +154,12 @@ abstract class TypeInferenceEngine {
   /// constructors still needing inference and infer the types of their
   /// initializing formals from the corresponding fields.
   void finishTopLevelInitializingFormals() {
-    // Field types have all been inferred so there cannot be a cyclic
-    // dependency.
-    for (Constructor constructor in toBeInferred.keys) {
-      for (VariableDeclaration declaration
-          in constructor.function.positionalParameters) {
-        inferInitializingFormal(declaration, constructor);
-      }
-      for (VariableDeclaration declaration
-          in constructor.function.namedParameters) {
-        inferInitializingFormal(declaration, constructor);
-      }
-    }
+    // Field types have all been inferred so we don't need to guard against
+    // cyclic dependency.
+    toBeInferred.values.forEach((ConstructorBuilder builder) {
+      builder.inferFormalTypes();
+    });
     toBeInferred.clear();
-  }
-
-  void inferInitializingFormal(VariableDeclaration formal, Constructor parent) {
-    if (formal.type == null) {
-      for (Field field in parent.enclosingClass.fields) {
-        if (field.name.name == formal.name) {
-          TypeInferenceEngine.resolveInferenceNode(field);
-          formal.type = field.type;
-          return;
-        }
-      }
-      // We did not find the corresponding field, so the program is erroneous.
-      // The error should have been reported elsewhere and type inference
-      // should continue by inferring dynamic.
-      formal.type = const DynamicType();
-    }
   }
 
   /// Gets ready to do top level type inference for the component having the
