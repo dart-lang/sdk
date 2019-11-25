@@ -434,6 +434,44 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
   }
 
+  test_as_side_cast() async {
+    await analyze('''
+class A {}
+class B {}
+class C implements A, B {}
+B f(A a) {
+  // possible via f(C());
+  return a as B;
+}
+''');
+    assertEdge(
+        decoratedTypeAnnotation('A a').node, decoratedTypeAnnotation('B;').node,
+        hard: true);
+  }
+
+  test_as_side_cast_generics() async {
+    await analyze('''
+class A<T> {}
+class B<T> {}
+class C implements A<int>, B<bool> {}
+B<bool> f(A<int> a) {
+  // possible via f(C());
+  return a as B<bool>;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('A<int> a').node,
+        decoratedTypeAnnotation('B<bool>;').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('bool>;').node,
+        decoratedTypeAnnotation('bool> f').node,
+        hard: false);
+    assertNoEdge(anyNode, decoratedTypeAnnotation('bool>;').node);
+    assertNoEdge(anyNode, decoratedTypeAnnotation('int> a').node);
+    // int> a should be connected to the bound of T in A<T>, but nothing else.
+    expect(
+        decoratedTypeAnnotation('int> a').node.downstreamEdges, hasLength(1));
+  }
+
   test_assert_demonstrates_non_null_intent() async {
     await analyze('''
 void f(int i) {

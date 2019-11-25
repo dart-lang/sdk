@@ -32,6 +32,12 @@ import 'package:nnbd_migration/src/utilities/scoped_set.dart';
 
 import 'decorated_type_operations.dart';
 
+/// A potentially reversible decision is that downcasts and sidecasts should
+/// assume non-nullability. This could be changed such that we assume the
+/// widest type, or the narrowest type. For now we assume non-nullability, but
+/// have a flag to isolate that work.
+const _assumeNonNullabilityInCasts = true;
+
 /// Test class mixing in _AssignmentChecker, to allow [checkAssignment] to be
 /// more easily unit tested.
 @visibleForTesting
@@ -2236,9 +2242,13 @@ mixin _AssignmentChecker {
             source: source, destination: destination, hard: hard);
         return;
       }
-      // Neither a proper upcast assignment nor an implicit downcast (some
-      // illegal code, or we did something wrong to get here).
-      assert(false, 'side cast not supported: $sourceType to $destinationType');
+      // A side cast. This may be an explicit side cast, or illegal code. There
+      // is no nullability we can infer here.
+      assert(
+          _assumeNonNullabilityInCasts,
+          'side cast not supported without assuming non-nullability:'
+          ' $sourceType to $destinationType');
+      _connect(source.node, destination.node, origin, hard: hard);
       return;
     }
     _connect(source.node, destination.node, origin, hard: hard);
