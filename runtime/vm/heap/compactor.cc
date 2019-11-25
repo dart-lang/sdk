@@ -34,10 +34,9 @@ static const intptr_t kBitVectorWordsPerBlock = 1;
 // is defined to be 64*16 bytes (1024 bytes). In 32 bit architectures,
 // aligments are of size 8 bytes and the bit vector is of size 32, therefore
 // the block size is 32*8 (256 byes).
-// static const intptr_t kBlockSize =
-//     // kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock; // TODO: testing
-//     kWordSize * kBitsPerWord * kBitVectorWordsPerBlock;
-#if defined(HASH_IN_OBJECT_HEADER)  // TODO: testing half block size for 64 bit
+ /*static const intptr_t kBlockSize =
+      kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;*/
+#if defined(HASH_IN_OBJECT_HEADER) && defined(REALLOCATION_EXTRA_SIZE_ENABLED)
 static const intptr_t kBlockSize =
     kWordSize * kBitsPerWord * kBitVectorWordsPerBlock;
 #else
@@ -81,11 +80,9 @@ class ForwardingBlock {
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
     // In 32 bit platforms the previous objects might take one extra live space
     // to store the hashCode when reallocated. The position is duplicated to
-    // take into account this extra size. In theory a block can increase in
+    // take into account this extra size. In theory a block can duplicate in
     // size when sliding.
     position *= 2;
-#else
-    position *= 2;  // TODO: testing shift on 64bit, it worked
 #endif
     return position;
   }
@@ -548,11 +545,10 @@ uword CompactorTask::PlanBlock(uword first_object,
   PlanMoveToContiguousSize(block_live_size);
 
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-  // Because the block size could increase when an object requires extra
-  // reallocation space to store the trailing hashCode, the block is planned
-  // again when moving to a new page and the block first object address
-  // matches the page start address.
-  if (free_current_ == next_page_start && free_current_ == first_object) {
+  // If the block is reallocated to a new page, the block needs to be
+  // planned again if the block size increases. This way it is ensured that
+  // the heap never increases in size during compaction.
+  if (block_live_size > kBlockSize && free_current_ == next_page_start && free_current_==first_object) {
     forwarding_block->Clear();
     return PlanBlock(first_object, forwarding_page);
   }
@@ -572,9 +568,6 @@ uword CompactorTask::SlideBlock(uword first_object,
 
   uword old_addr = first_object;
   while (old_addr < block_end) {
-    // #if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
-    //     intptr_t extra_size = 0;
-    // #endif
     RawObject* old_obj = RawObject::FromAddr(old_addr);
     intptr_t size = old_obj->HeapSize();
     if (old_obj->IsMarked()) {
@@ -584,8 +577,6 @@ uword CompactorTask::SlideBlock(uword first_object,
         // to a new page.  But if we exactly hit the end of the previous page
         // then free_current could be at the start of the next page, so we
         // subtract 1.
-        // Question: how can that happen? Wouldn't that mean end of page was
-        // written? Isn't end of page used to store the forwarding page?
         ASSERT(HeapPage::Of(free_current_ - 1) != HeapPage::Of(new_addr));
         intptr_t free_remaining = free_end_ - free_current_;
         // Add any leftover at the end of a page to the free list.
@@ -609,17 +600,8 @@ uword CompactorTask::SlideBlock(uword first_object,
         // Slide the object down.
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
         extra_size = old_obj->ReallocationExtraSize();
-		old_obj->Reallocate(new_addr, size);
-        if (extra_size > 0) {
-		  OS::Print("Compactor reallocated %X, hash: %X, to %X, with trailing hash: %X, cid: %d\n", old_addr, old_obj->GetHash(), new_addr, new_obj->GetHash(), old_obj->GetClassId());
-		}
-#else
-        old_obj->MoveTo(new_addr, size);
 #endif
-        
-        //old_obj->Reallocate(new_addr, size);
-        // memmove(reinterpret_cast<void*>(new_addr),
-        //         reinterpret_cast<void*>(old_addr), size);
+        old_obj->Reallocate(new_addr, size);
 
         if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
           reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
@@ -632,15 +614,6 @@ uword CompactorTask::SlideBlock(uword first_object,
       free_current_ += size;
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
       free_current_ += extra_size;
-      if (extra_size > 0 && new_addr!=old_addr) {
-        if (new_obj->HasTrailingHashCode()) {
-          OS::Print("Good. Compactor added trailing hashCode. 0x%X == 0x%X\n",
-                    new_obj->GetHash(), old_obj->GetHash());
-        } else {
-          OS::PrintErr("Bad. Compactor didn't add trailing hashCode. 0x%X != 0x%X\n",
-                       new_obj->GetHash(), old_obj->GetHash());
-        }
-      }
 #endif
     } else {
       ASSERT(!forwarding_block->IsLive(old_addr));

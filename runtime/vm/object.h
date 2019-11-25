@@ -378,8 +378,7 @@ class Object {
 
 static uint32_t GetCachedHash(const RawObject* obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
-    // return obj->ptr()->hash_;  // TODO: testing address hash
-    return obj->GetHash();
+    return obj->ptr()->hash_;
 #else
     return obj->GetHash();
 #endif

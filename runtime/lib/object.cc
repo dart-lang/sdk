@@ -37,7 +37,8 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
   // The performance benefit is more than 5% when using hashCode.
 //#if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
-//#else  // 32bit architectures
+  //return Smi::New(arguments->NativeArgAt(0)->GetHash());
+  //#else  // 32bit architectures
   //intptr_t cid = arguments->NativeArgAt(0)->GetClassId();
   //OS::Print("Retrieving hash for cid %d\n", cid);
   //if (cid > 0) { //|| cid == kInstanceCid

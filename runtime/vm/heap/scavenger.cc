@@ -191,7 +191,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     } else {
       intptr_t size = raw_obj->HeapSize();
 #if defined(FAST_HASH_FOR_32_BIT)
-      intptr_t extra_size = raw_obj->ReallocationForcedExtraSize();
+      intptr_t extra_size = raw_obj->ReallocationExtraSize();
       size += extra_size;
 #endif
       // Check whether object should be promoted.
@@ -225,27 +225,12 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
 
-      if (new_addr != raw_addr) {
+
 #if defined(FAST_HASH_FOR_32_BIT)
-        raw_obj->ReallocateWithTrailingHash(
-            new_addr, size - extra_size);
+        raw_obj->Reallocate(new_addr, size - extra_size);
 #else
         raw_obj->Reallocate(new_addr, size);
 #endif
-        
-        //#if defined(FAST_HASH_FOR_32_BIT)
-        //            objcpy(
-        //                reinterpret_cast<void*>(new_addr),
-        //                reinterpret_cast<void*>(raw_addr),
-        //                size- raw_obj->ReallocationExtraSize());
-        //#else
-        //        objcpy(reinterpret_cast<void*>(new_addr),
-        //               reinterpret_cast<void*>(raw_addr), size);
-        //#endif
-      } else {
-        OS::PrintErr("Odd, didn't find new address to allocate object. 0x%X\n",
-                     raw_obj->GetHash());
-      }
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
@@ -262,17 +247,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
-#if defined(FAST_HASH_FOR_32_BIT)
-        if (raw_obj->ReallocationExtraSize() > 0) {
-          if (new_obj->HasTrailingHashCode()) {
-             //OS::Print("Good. Scavenger added trailing hashCode. 0x%X == 0x%X\n",
-             //          new_obj->GetHash(), raw_obj->GetHash());
-          } else {
-            OS::PrintErr("Bad. Scavenger didn't add trailing hashCode. 0x%X != 0x%X\n",
-                         new_obj->GetHash(), raw_obj->GetHash());
-          }
-        }
-#endif
       }
 
       if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {

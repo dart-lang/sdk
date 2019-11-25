@@ -239,7 +239,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
   intptr_t tags_size = SizeTag::decode(ptr()->tags_);
   // Special case when the trailing size couldn't be added to the size tag.
   if (HasTrailingHashCode() && (tags_size == 0 || HashCodeWasRetrieved())) {
-    instance_size += TrailingExtraSize();
+    instance_size += ExtraSize();
   } else if(tags_size>instance_size) {
     instance_size = tags_size;
   }
