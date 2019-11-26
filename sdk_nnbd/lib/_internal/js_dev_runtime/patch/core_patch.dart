@@ -188,7 +188,7 @@ class int {
   @patch
   static int parse(String source,
       {int? radix, @deprecated int onError(String source)?}) {
-    return Primitives.parseInt(source, radix, onError);
+    return Primitives.parseInt(source, radix, onError)!;
   }
 
   @patch
@@ -234,7 +234,7 @@ class double {
   @patch
   static double parse(String source,
       [@deprecated double onError(String source)?]) {
-    return Primitives.parseDouble(source, onError);
+    return Primitives.parseDouble(source, onError)!;
   }
 
   @patch

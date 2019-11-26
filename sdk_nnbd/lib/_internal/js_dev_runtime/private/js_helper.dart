@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._js_helper;
 
 import 'dart:collection';
@@ -71,13 +69,13 @@ class SyncIterable<E> extends IterableBase<E> {
 
 class Primitives {
   @NoInline()
-  static int _parseIntError(String source, int handleError(String source)) {
+  static int? _parseIntError(String source, int? handleError(String source)?) {
     if (handleError == null) throw FormatException(source);
     return handleError(source);
   }
 
-  static int parseInt(
-      @nullCheck String source, int _radix, int handleError(String source)) {
+  static int? parseInt(
+      @nullCheck String source, int? _radix, int? handleError(String source)?) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
     // long as we use it locally and don't expose it to user code.
@@ -148,16 +146,16 @@ class Primitives {
   }
 
   @NoInline()
-  static double _parseDoubleError(
-      String source, double handleError(String source)) {
+  static double? _parseDoubleError(
+      String source, double? handleError(String source)?) {
     if (handleError == null) {
       throw FormatException('Invalid double', source);
     }
     return handleError(source);
   }
 
-  static double parseDouble(
-      @nullCheck String source, double handleError(String source)) {
+  static double? parseDouble(
+      @nullCheck String source, double? handleError(String source)?) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
