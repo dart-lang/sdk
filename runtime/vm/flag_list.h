@@ -115,6 +115,7 @@ constexpr bool kDartUseBytecode = false;
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
+  P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \

@@ -1275,7 +1275,16 @@ void ScopeBuilder::VisitVariableDeclaration() {
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
-  scope_->AddVariable(variable);
+  // Lift the two special async vars out of the function body scope, into the
+  // outer function declaration scope.
+  // This way we can allocate them in the outermost context at fixed indices,
+  // allowing support for --lazy-async-stacks implementation to find awaiters.
+  if (name.Equals(Symbols::AwaitJumpVar()) ||
+      name.Equals(Symbols::AsyncCompleter())) {
+    scope_->parent()->AddVariable(variable);
+  } else {
+    scope_->AddVariable(variable);
+  }
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }

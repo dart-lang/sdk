@@ -5590,7 +5590,7 @@ class Code : public Object {
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
-  // Same as above, expect the pc is interpreted as a return address (as needed
+  // Same as above, except the pc is interpreted as a return address (as needed
   // for a stack trace or the bottom frames of a profiler sample).
   void GetInlinedFunctionsAtReturnAddress(
       intptr_t pc_offset,
@@ -6027,6 +6027,9 @@ class Context : public Object {
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static const intptr_t kAwaitJumpVarIndex = 0;
+  static const intptr_t kAsyncCompleterIndex = 1;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(RawContext, data) +

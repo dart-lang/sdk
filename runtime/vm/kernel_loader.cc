@@ -1937,11 +1937,13 @@ void KernelLoader::LoadProcedure(const Library& library,
       break;
     case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
       break;
     default:
       // no special modifier

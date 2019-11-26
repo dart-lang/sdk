@@ -489,10 +489,12 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
     closure.set_modifier(RawFunction::kSyncGen);
   } else if ((flags & kIsAsyncFlag) != 0) {
     closure.set_modifier(RawFunction::kAsync);
-    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks &&
+                             !FLAG_lazy_async_stacks);
   } else if ((flags & kIsAsyncStarFlag) != 0) {
     closure.set_modifier(RawFunction::kAsyncGen);
-    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks &&
+                             !FLAG_lazy_async_stacks);
   }
   if (Function::Cast(parent).IsAsyncOrGenerator()) {
     closure.set_is_generated_body(true);
@@ -2275,10 +2277,12 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       function.set_modifier(RawFunction::kSyncGen);
     } else if ((flags & kIsAsyncFlag) != 0) {
       function.set_modifier(RawFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
     } else if ((flags & kIsAsyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
     }
 
     if ((flags & kHasTypeParamsFlag) != 0) {

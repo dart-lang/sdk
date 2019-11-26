@@ -14,6 +14,24 @@ namespace dart {
 
 class StackTraceUtils : public AllStatic {
  public:
+  /// Collects all frames on the current stack until an async/async* frame is
+  /// hit which has yielded before (i.e. is not in sync-async case).
+  ///
+  /// From there on finds the closure of the async/async* frame and starts
+  /// traversing the listeners:
+  ///     while (closure != null) {
+  ///       yield_index = closure.context[Context::kAsyncJumpVarIndex]
+  ///       pc = closure.function.code.pc_descriptors.LookupPcFromYieldIndex(
+  ///           yield_index);
+  ///       <emit pc in frame>
+  ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
+  ///           ._resultOrListeners.callback;
+  ///     }
+  static void CollectFramesLazy(Thread* thread,
+                                const GrowableObjectArray& code_array,
+                                const GrowableObjectArray& pc_offset_array,
+                                int skip_frames);
+
   /// Counts the number of stack frames.
   /// Skips over the first |skip_frames|.
   /// If |async_function| is not null, stops at the function that has

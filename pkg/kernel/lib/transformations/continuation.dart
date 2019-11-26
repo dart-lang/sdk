@@ -15,6 +15,7 @@ import 'async.dart';
 
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
+  static const asyncCompleter = ':async_completer';
   static const awaitContextVar = ':await_ctx_var';
   static const asyncStackTraceVar = ':async_stack_trace';
   static const controllerStreamVar = ':controller_stream';

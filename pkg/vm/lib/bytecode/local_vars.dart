@@ -16,6 +16,10 @@ import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
 import '../metadata/direct_call.dart' show DirectCallMetadata;
 
+// Keep in sync with runtime/vm/object.h:Context::kAwaitJumpVarIndex.
+const int awaitJumpVarContextIndex = 0;
+const int asyncCompleterContextIndex = 1;
+
 class LocalVariables {
   final _scopes = new Map<TreeNode, Scope>();
   final _vars = new Map<VariableDeclaration, VarDesc>();
@@ -220,7 +224,7 @@ class LocalVariables {
 
 class VarDesc {
   final VariableDeclaration declaration;
-  final Scope scope;
+  Scope scope;
   bool isCaptured = false;
   int index;
   int originalParamSlotIndex;
@@ -236,6 +240,13 @@ class VarDesc {
   void capture() {
     assert(!isAllocated);
     isCaptured = true;
+  }
+
+  void moveToScope(Scope newScope) {
+    assert(index == null);
+    scope.vars.remove(this);
+    newScope.vars.add(this);
+    scope = newScope;
   }
 
   String toString() => 'var ${declaration.name}';
@@ -424,6 +435,21 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       }
 
       function.body?.accept(this);
+
+      if (_currentFrame.dartAsyncMarker == AsyncMarker.Async ||
+          _currentFrame.dartAsyncMarker == AsyncMarker.SyncStar ||
+          _currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
+        locals
+            ._getVarDesc(_currentFrame
+                .getSyntheticVar(ContinuationVariables.awaitJumpVar))
+            .moveToScope(_currentScope);
+      }
+      if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
+        locals
+            ._getVarDesc(_currentFrame
+                .getSyntheticVar(ContinuationVariables.asyncCompleter))
+            .moveToScope(_currentScope);
+      }
     }
 
     if (node is FunctionDeclaration ||
@@ -1068,6 +1094,22 @@ class _Allocator extends RecursiveVisitor<Null> {
       final FunctionNode function = (node as dynamic).function;
       assert(function != null);
 
+      if (_currentFrame.dartAsyncMarker == AsyncMarker.Async ||
+          _currentFrame.dartAsyncMarker == AsyncMarker.SyncStar ||
+          _currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
+        final awaitJumpVar =
+            _currentFrame.getSyntheticVar(ContinuationVariables.awaitJumpVar);
+        _allocateVariable(awaitJumpVar);
+        assert(
+            locals._getVarDesc(awaitJumpVar).index == awaitJumpVarContextIndex);
+      }
+      if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
+        final asyncCompleter =
+            _currentFrame.getSyntheticVar(ContinuationVariables.asyncCompleter);
+        _allocateVariable(asyncCompleter);
+        assert(locals._getVarDesc(asyncCompleter).index ==
+            asyncCompleterContextIndex);
+      }
       _allocateParameters(node, function);
       _allocateSpecialVariables();
 
@@ -1126,7 +1168,13 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    _allocateVariable(node);
+    if (node.name == ContinuationVariables.awaitJumpVar) {
+      assert(locals._getVarDesc(node).index == awaitJumpVarContextIndex);
+    } else if (node.name == ContinuationVariables.asyncCompleter) {
+      assert(locals._getVarDesc(node).index == asyncCompleterContextIndex);
+    } else {
+      _allocateVariable(node);
+    }
     node.visitChildren(this);
   }
 

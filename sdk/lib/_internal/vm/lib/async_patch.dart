@@ -20,6 +20,7 @@ import "dart:_internal" show VMLibraryHooks, patch;
 _fatal(msg) native "DartAsync_fatal";
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
+  @pragma("vm:entry-point")
   final _future = new _Future<T>();
   bool isSync;
 
