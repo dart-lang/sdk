@@ -229,11 +229,12 @@
       "path": "../",
       "status": "test/spelling_test.status",
       "pattern": [
-        "front_end/lib/.*\\.dart$",
-        "kernel/lib/.*\\.dart$"
+        "_fe_analyzer_shared/lib/.*\\.dart$",
+        "front_end/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$",
+        "src/api_unstable/.*\\.dart$",
+        "src/messages/codes_generated\\.dart$",
         "src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
