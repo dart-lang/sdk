@@ -167,6 +167,25 @@ mixin ResolutionTest implements ResourceProviderMixin {
     addTestFile(code);
     await resolveTestFile();
 
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  Future<void> assertErrorsInFile(
+    String path,
+    String content,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+    newFile(path, content: content);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  void assertErrorsInResolvedUnit(
+    ResolvedUnitResult result,
+    List<ExpectedError> expectedErrors,
+  ) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors(expectedErrors);
