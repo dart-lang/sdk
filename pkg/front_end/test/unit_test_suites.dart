@@ -22,7 +22,7 @@ import 'fasta/fast_strong_suite.dart' as fast_strong show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
-import 'fasta/text_serialization_suite.dart' as text_serialization
+import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
@@ -214,8 +214,30 @@ const List<Suite> suites = [
   const Suite(
       "fasta/incremental", incremental.createContext, "../../testing.json"),
   const Suite("fasta/messages", messages.createContext, "../../testing.json"),
-  const Suite("fasta/text_serialization", text_serialization.createContext,
-      "../../testing.json"),
+  const Suite("fasta/text_serialization1", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 0,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization2", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 1,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization3", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 2,
+      prefix: "fasta/text_serialization"),
+  const Suite("fasta/text_serialization4", text_serialization.createContext,
+      "../../testing.json",
+      path: "fasta/text_serialization_tester.dart",
+      shardCount: 4,
+      shard: 3,
+      prefix: "fasta/text_serialization"),
   const Suite("fasta/strong1", strong.createContext, "../../testing.json",
       path: "fasta/strong_tester.dart",
       shardCount: 4,
