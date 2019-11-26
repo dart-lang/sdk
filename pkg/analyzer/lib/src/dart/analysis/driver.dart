@@ -38,7 +38,6 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptions,
         AnalysisOptionsImpl,
         PerformanceStatistics;
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
@@ -1348,7 +1347,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           resolvedUnits.add(
             new AnalysisResult(
               currentSession,
-              _sourceFactory,
               unitFile.path,
               unitFile.uri,
               unitFile.exists,
@@ -1501,7 +1499,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _updateHasErrorOrWarningFlag(file, errors);
     return new AnalysisResult(
         currentSession,
-        _sourceFactory,
         file.path,
         file.uri,
         file.exists,
@@ -1593,7 +1590,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // TODO(scheglov) Find a better way to report this.
     return new AnalysisResult(
         currentSession,
-        _sourceFactory,
         file.path,
         file.uri,
         file.exists,
@@ -1985,10 +1981,7 @@ class AnalysisDriverTestView {
 /// any previously returned result, even inside of the same library.
 class AnalysisResult extends ResolvedUnitResultImpl {
   static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null, null);
-
-  /// The [SourceFactory] with which the file was analyzed.
-  final SourceFactory sourceFactory;
+      null, null, null, null, null, null, null, null, null, null, null);
 
   /// The signature of the result based on the content of the file, and the
   /// transitive closure of files imported and exported by the library of
@@ -2000,7 +1993,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
 
   AnalysisResult(
       AnalysisSession session,
-      this.sourceFactory,
       String path,
       Uri uri,
       bool exists,
@@ -2013,15 +2005,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
-
-  @override
-  LibraryElement get libraryElement => unit.declaredElement.library;
-
-  @override
-  TypeProvider get typeProvider => libraryElement.typeProvider;
-
-  @override
-  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class DriverPerformance {
