@@ -36,9 +36,11 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
-  # It requires access to the dart-build-access group, which EngProd has.
-  "co19_2_rev": "a8f7aa15ab860a309667168243bda01fda0794df",
+  # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
+  # hashes. It requires access to the dart-build-access group, which EngProd
+  # has.
+  "co19_rev": "8767031866e8243eafdb46011d4d8a7b5705019d",
+  "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -186,9 +188,16 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/tests/co19_2/src": {
+  Var("dart_root") + "/tests/co19/src": {
       "packages": [{
           "package": "dart/third_party/co19",
+          "version": "git_revision:" + Var("co19_rev"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/tests/co19_2/src": {
+      "packages": [{
+          "package": "dart/third_party/co19/legacy",
           "version": "git_revision:" + Var("co19_2_rev"),
       }],
       "dep_type": "cipd",

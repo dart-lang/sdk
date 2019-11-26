@@ -26,8 +26,7 @@ BUILD_ID=$(bb add \
               -commit https://dart.googlesource.com/co19/+/$NEW \
               -json \
               dart/ci/co19-roller \
-             | jq '.id' \
-             | tr -d '"')
+             | jq -r '.id')
 bb collect -interval 10s $BUILD_ID
 
 # Update DEPS:
