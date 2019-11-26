@@ -482,7 +482,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else {
         write(' => ');
         selectAll(() {
-          write('null');
+          write('throw UnimplementedError()');
         });
         write(';');
       }
@@ -555,7 +555,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           });
         } else {
           selectAll(() {
-            write('return null;');
+            write('throw UnimplementedError();');
           });
         }
         writeln();

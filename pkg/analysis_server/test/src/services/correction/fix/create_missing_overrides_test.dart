@@ -115,7 +115,7 @@ abstract class IterableMixin<T> {
 class Test extends IterableMixin<int> {
   @override
   // TODO: implement iterator
-  Iterator<int> get iterator => null;
+  Iterator<int> get iterator => throw UnimplementedError();
 }
 ''');
   }
@@ -138,7 +138,7 @@ class Test<V> extends ItemProvider<V> {
   @override
   List<V> getItems() {
     // TODO: implement getItems
-    return null;
+    throw UnimplementedError();
   }
 }
 ''');
@@ -163,11 +163,11 @@ abstract class A {
 class B extends A {
   @override
   // TODO: implement g1
-  get g1 => null;
+  get g1 => throw UnimplementedError();
 
   @override
   // TODO: implement g2
-  int get g2 => null;
+  int get g2 => throw UnimplementedError();
 }
 ''');
   }
@@ -192,7 +192,7 @@ class B extends A {
   @override
   Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {
     // TODO: implement g
-    return null;
+    throw UnimplementedError();
   }
 }
 ''');
@@ -264,31 +264,31 @@ class B extends A {
   @override
   int m2() {
     // TODO: implement m2
-    return null;
+    throw UnimplementedError();
   }
 
   @override
   String m3(int p1, double p2, Map<int, List<String>> p3) {
     // TODO: implement m3
-    return null;
+    throw UnimplementedError();
   }
 
   @override
   String m4(p1, p2) {
     // TODO: implement m4
-    return null;
+    throw UnimplementedError();
   }
 
   @override
   String m5(p1, [int p2 = 2, int p3, p4 = 4]) {
     // TODO: implement m5
-    return null;
+    throw UnimplementedError();
   }
 
   @override
   String m6(p1, {int p2 = 2, int p3, p4 = 4}) {
     // TODO: implement m6
-    return null;
+    throw UnimplementedError();
   }
 }
 ''';
@@ -355,7 +355,7 @@ class B implements A {
   @override
   E1 foo<E1, E2 extends C<int>>(V<E2> v) {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
   }
 }
 ''');
@@ -380,7 +380,7 @@ class B<K, V> implements A<K, V> {
   @override
   List<T> foo<T extends V>(K key) {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
   }
 }
 ''');
@@ -412,13 +412,13 @@ class X implements B<bool> {
   @override
   bool bar(double b) {
     // TODO: implement bar
-    return null;
+    throw UnimplementedError();
   }
 
   @override
   bool foo(int a) {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
   }
 }
 ''');
@@ -470,7 +470,7 @@ class B extends A {
   @override
   int operator [](int index) {
     // TODO: implement []
-    return null;
+    throw UnimplementedError();
   }
 
   @override
