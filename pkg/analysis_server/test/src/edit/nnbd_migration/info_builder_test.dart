@@ -549,7 +549,7 @@ void f(String s) {
     ]);
   }
 
-  test_nullCheck_onFunctionArgument() async {
+  test_nullCheck_onMethodCall() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int value;
@@ -570,10 +570,35 @@ class C {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(2));
     // regions[0] is `int?`.
-    assertRegion(
-        region: regions[1],
-        offset: 65,
-        details: ["A nullable value can't be used here"]);
+    assertRegion(region: regions[1], offset: 65, details: [
+      "This value must be null-checked before calling its methods."
+    ]);
+  }
+
+  test_nullCheck_onMemberAccess() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C([this.value]);
+  void f() {
+    value.sign;
+  }
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C([this.value]);
+  void f() {
+    value!.sign;
+  }
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `int?`.
+    assertRegion(region: regions[1], offset: 65, details: [
+      "This value must be null-checked before accessing its properties."
+    ]);
   }
 
   test_parameter_fromInvocation_explicit() async {

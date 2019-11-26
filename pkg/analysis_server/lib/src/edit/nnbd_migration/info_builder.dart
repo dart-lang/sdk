@@ -329,7 +329,8 @@ class InfoBuilder {
           if (destination != info.never && destination != info.always) {
             target = _targetForNode(nodeInfo.filePath, nodeInfo.astNode);
           }
-          details.add(RegionDetail(nodeInfo.descriptionForDestination, target));
+          EdgeOriginInfo edge = info.edgeOrigin[reason];
+          details.add(RegionDetail(_describeNonNullEdge(edge), target));
         } else {
           details.add(RegionDetail('node with no info ($destination)', null));
         }
@@ -409,6 +410,23 @@ class InfoBuilder {
       }
     }
     return details;
+  }
+
+  /// Describe why an edge may have gotten a '!'.
+  String _describeNonNullEdge(EdgeOriginInfo edge) {
+    // TODO(mfairhurst/paulberry): Do NOT use astNode/parent to create this
+    // description, as we are just duplicating work if we do so.
+    final astNode = edge.node;
+    final parent = astNode.parent;
+    if (parent is PropertyAccess && parent.target == astNode ||
+        parent is PrefixedIdentifier && parent.prefix == astNode) {
+      return "This value must be null-checked before accessing its properties.";
+    }
+    if (parent is MethodInvocation && parent.target == astNode) {
+      return "This value must be null-checked before calling its methods.";
+    }
+
+    return "This value must be null-checked before use here.";
   }
 
   /// Explain the type annotations that were not changed because they were
