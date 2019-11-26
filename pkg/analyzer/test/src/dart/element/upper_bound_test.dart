@@ -634,7 +634,7 @@ class UpperBoundTest extends _SubtypingTestBase {
     );
   }
 
-  test_functionType2_parameters_named() {
+  test_functionType2_parameters_optionalNamed() {
     FunctionType build(Map<String, DartType> namedTypes) {
       return functionTypeNone(
         returnType: voidNone,
@@ -697,7 +697,116 @@ class UpperBoundTest extends _SubtypingTestBase {
     );
   }
 
-  test_functionType2_parameters_required() {
+  test_functionType2_parameters_requiredNamed() {
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionNone,
+    );
+
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionNone,
+    );
+
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionNone,
+    );
+
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'b', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionNone,
+    );
+
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+          namedRequiredParameter(name: 'b', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'b', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'b', type: intNone),
+        ],
+      ),
+    );
+
+    _checkLeastUpperBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: numNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+    );
+  }
+
+  test_functionType2_parameters_requiredPositional() {
     FunctionType build(List<DartType> requiredTypes) {
       return functionTypeNone(
         returnType: voidNone,

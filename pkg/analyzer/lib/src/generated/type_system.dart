@@ -130,6 +130,13 @@ class Dart2TypeSystem extends TypeSystem {
     @required this.typeProvider,
   });
 
+  InterfaceType get _interfaceTypeFunctionNone {
+    return typeProvider.functionType.element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
   InterfaceTypeImpl get _nullNone =>
       _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
           .withNullability(NullabilitySuffix.none);
@@ -1616,10 +1623,7 @@ class Dart2TypeSystem extends TypeSystem {
     // The number of type parameters must be the same.
     // Otherwise the result is `Function`.
     if (fTypeFormals.length != gTypeFormals.length) {
-      return typeProvider.functionType.element.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return _interfaceTypeFunctionNone;
     }
 
     // The bounds of type parameters must be equal.
@@ -1627,10 +1631,7 @@ class Dart2TypeSystem extends TypeSystem {
     var freshTypeFormalTypes =
         FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
     if (freshTypeFormalTypes == null) {
-      return typeProvider.functionType.element.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      return _interfaceTypeFunctionNone;
     }
 
     var typeFormals = freshTypeFormalTypes
@@ -1640,64 +1641,99 @@ class Dart2TypeSystem extends TypeSystem {
     f = f.instantiate(freshTypeFormalTypes);
     g = g.instantiate(freshTypeFormalTypes);
 
-    List<DartType> fRequired = f.normalParameterTypes;
-    List<DartType> gRequired = g.normalParameterTypes;
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
 
-    // The number of required parameters must be the same.
-    if (fRequired.length != gRequired.length) {
-      return typeProvider.functionType.element.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-
-    // We need some parameter names for the result, so arbitrarily use F's.
-    var fRequiredNames = f.normalParameterNames;
-    var fPositionalNames = f.optionalParameterNames;
-
-    // Calculate the DOWN of each corresponding pair of parameters.
     var parameters = <ParameterElement>[];
-
-    for (int i = 0; i < fRequired.length; i++) {
-      parameters.add(
-        new ParameterElementImpl.synthetic(
-          fRequiredNames[i],
-          // TODO(scheglov) Update for NNBD aware DOWN.
-          getGreatestLowerBound(fRequired[i], gRequired[i]),
-          ParameterKind.REQUIRED,
-        ),
-      );
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isRequiredPositional) {
+        if (gParameter.isRequiredPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              // TODO(scheglov) Update for NNBD aware DOWN.
+              getGreatestLowerBound(fParameter.type, gParameter.type),
+              ParameterKind.REQUIRED,
+            ),
+          );
+        } else {
+          break;
+        }
+      } else if (fParameter.isOptionalPositional) {
+        if (gParameter.isOptionalPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              // TODO(scheglov) Update for NNBD aware DOWN.
+              getGreatestLowerBound(fParameter.type, gParameter.type),
+              ParameterKind.POSITIONAL,
+            ),
+          );
+        } else {
+          break;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            if (fParameter.isRequiredNamed == gParameter.isRequiredNamed) {
+              fIndex++;
+              gIndex++;
+              parameters.add(
+                ParameterElementImpl.synthetic(
+                  fParameter.name,
+                  // TODO(scheglov) Update for NNBD aware DOWN.
+                  getGreatestLowerBound(fParameter.type, gParameter.type),
+                  // ignore: deprecated_member_use_from_same_package
+                  fParameter.parameterKind,
+                ),
+              );
+            } else {
+              // Both must be either optional named, or required named.
+              return _interfaceTypeFunctionNone;
+            }
+          } else if (compareNames < 0) {
+            if (fParameter.isRequiredNamed) {
+              // We cannot skip required named.
+              return _interfaceTypeFunctionNone;
+            } else {
+              fIndex++;
+            }
+          } else {
+            assert(compareNames > 0);
+            if (gParameter.isRequiredNamed) {
+              // We cannot skip required named.
+              return _interfaceTypeFunctionNone;
+            } else {
+              gIndex++;
+            }
+          }
+        } else {
+          break;
+        }
+      }
     }
 
-    List<DartType> fPositional = f.optionalParameterTypes;
-    List<DartType> gPositional = g.optionalParameterTypes;
-
-    // Ignore any extra optional positional parameters.
-    int length = math.min(fPositional.length, gPositional.length);
-    for (int i = 0; i < length; i++) {
-      parameters.add(
-        new ParameterElementImpl.synthetic(
-          fPositionalNames[i],
-          // TODO(scheglov) Update for NNBD aware DOWN.
-          getGreatestLowerBound(fPositional[i], gPositional[i]),
-          ParameterKind.POSITIONAL,
-        ),
-      );
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isNotOptional) {
+        return _interfaceTypeFunctionNone;
+      }
     }
 
-    // TODO(brianwilkerson) Handle the fact that named parameters can now be
-    //  required.
-    Map<String, DartType> fNamed = f.namedParameterTypes;
-    Map<String, DartType> gNamed = g.namedParameterTypes;
-    for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {
-      parameters.add(
-        new ParameterElementImpl.synthetic(
-          name,
-          // TODO(scheglov) Update for NNBD aware DOWN.
-          getGreatestLowerBound(fNamed[name], gNamed[name]),
-          ParameterKind.NAMED,
-        ),
-      );
+    while (gIndex < gParameters.length) {
+      var gParameter = gParameters[gIndex++];
+      if (gParameter.isNotOptional) {
+        return _interfaceTypeFunctionNone;
+      }
     }
 
     var returnType = getLeastUpperBound(f.returnType, g.returnType);
