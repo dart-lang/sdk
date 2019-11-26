@@ -15,6 +15,13 @@ import 'patch_sdk.dart' as patch;
 
 void main(List<String> argv) {
   var args = _parser.parse(argv);
+  if (args['help'] as bool || argv.isEmpty) {
+    print('Apply patch file to the SDK and report analysis errors from the '
+        'resulting libraries.\n\n'
+        'Usage: ${Platform.script.pathSegments.last} [options...]\n\n'
+        '${_parser.usage}');
+    return;
+  }
   String baseDir = args['out'] as String;
   if (baseDir == null) {
     var tmp = Directory.systemTemp.createTempSync('check_sdk-');
@@ -53,6 +60,8 @@ void main(List<String> argv) {
     'machine',
     '--sdk-warnings',
     '--no-hints',
+    '--enable-experiment',
+    'non-nullable',
     emptyProgramUri.toFilePath()
   ]);
 
@@ -74,4 +83,5 @@ final _parser = ArgParser()
           'This name matches one of the possible targets in libraries.json '
           'and it is used to pick which patch files will be applied.',
       allowed: ['dartdevc', 'dart2js', 'dart2js_server', 'vm', 'flutter'],
-      defaultsTo: 'dartdevc');
+      defaultsTo: 'dartdevc')
+  ..addFlag('help', abbr: 'h', help: 'Display this message.');
