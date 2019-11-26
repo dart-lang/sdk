@@ -51,6 +51,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
   Future<TypeProvider> get typeProvider async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -68,6 +69,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _typeProvider;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
   Future<TypeSystemImpl> get typeSystem async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
