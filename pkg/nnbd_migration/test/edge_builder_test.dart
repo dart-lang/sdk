@@ -2941,7 +2941,7 @@ bool f(a) => a is List<int>;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
     assertEdge(decoratedTypeAnnotation('List').node, never, hard: true);
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertNoEdge(always, decoratedTypeAnnotation('int').node);
   }
 
   test_library_metadata() async {

@@ -1974,7 +1974,7 @@ main() {
 bool f(a) => a is List<int>;
 ''';
     var expected = '''
-bool f(a) => a is List<int?>;
+bool f(a) => a is List<int>;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

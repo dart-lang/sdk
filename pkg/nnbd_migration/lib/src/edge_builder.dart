@@ -847,14 +847,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Making it nullable could change runtime behavior.
       _graph.makeNonNullable(
           decoratedType.node, IsCheckMainTypeOrigin(source, type));
-      if (type.typeArguments != null) {
-        // TODO(mfairhurst): connect arguments to the expression type when they
-        // relate.
-        type.typeArguments.arguments.forEach((argument) {
-          _graph.makeNullable(
-              _variables.decoratedTypeAnnotation(source, argument).node,
-              IsCheckComponentTypeOrigin(source, argument));
-        });
+      if (!_assumeNonNullabilityInCasts) {
+        // TODO(mfairhurst): wire this to handleDowncast if we do not assume
+        // nullability.
+        assert(false);
       }
     } else if (type is GenericFunctionType) {
       // TODO(brianwilkerson)
