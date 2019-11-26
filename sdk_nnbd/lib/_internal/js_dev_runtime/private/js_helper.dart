@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._js_helper;
 
 import 'dart:collection';
@@ -45,11 +43,11 @@ const _Patch patch = _Patch();
 // https://github.com/dart-lang/sdk/issues/28320
 class DartIterator<E> implements Iterator<E> {
   final _jsIterator;
-  E _current;
+  E? _current;
 
   DartIterator(this._jsIterator);
 
-  E get current => _current;
+  E get current => _current!;
 
   bool moveNext() {
     final ret = JS('', '#.next()', _jsIterator);
@@ -71,17 +69,18 @@ class SyncIterable<E> extends IterableBase<E> {
 
 class Primitives {
   @NoInline()
-  static int _parseIntError(String source, int handleError(String source)) {
+  static int _parseIntError(
+      String source, int Function(String source)? handleError) {
     if (handleError == null) throw FormatException(source);
     return handleError(source);
   }
 
-  static int parseInt(
-      @nullCheck String source, int _radix, int handleError(String source)) {
+  static int parseInt(@nullCheck String source, int? _radix,
+      int Function(String source)? handleError) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
     // long as we use it locally and don't expose it to user code.
-    List<String> match = JS('', '#.exec(#)', re, source);
+    List<String>? match = JS('', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -91,7 +90,7 @@ class Primitives {
       // again.
       return _parseIntError(source, handleError);
     }
-    String decimalMatch = match[decimalIndex];
+    String? decimalMatch = match[decimalIndex];
     if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
@@ -149,7 +148,7 @@ class Primitives {
 
   @NoInline()
   static double _parseDoubleError(
-      String source, double handleError(String source)) {
+      String source, double Function(String source)? handleError) {
     if (handleError == null) {
       throw FormatException('Invalid double', source);
     }
@@ -157,7 +156,7 @@ class Primitives {
   }
 
   static double parseDouble(
-      @nullCheck String source, double handleError(String source)) {
+      @nullCheck String source, double Function(String source)? handleError) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -171,7 +170,7 @@ class Primitives {
         source)) {
       return _parseDoubleError(source, handleError);
     }
-    num result = JS('!', r'parseFloat(#)', source);
+    double result = JS('!', r'parseFloat(#)', source);
     if (result.isNaN) {
       var trimmed = source.trim();
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
@@ -202,8 +201,8 @@ class Primitives {
     timerTicks = () => (1000 * JS<num>('!', '#.now()', performance)).floor();
   }
 
-  static int timerFrequency;
-  static int Function() timerTicks;
+  static int? timerFrequency;
+  static late int Function() timerTicks;
 
   static bool get isD8 {
     return JS(
@@ -252,7 +251,7 @@ class Primitives {
   }
 
   @notNull
-  static String stringFromCodePoints(JSArray<int> codePoints) {
+  static String stringFromCodePoints(List<int> codePoints) {
     List<int> a = <int>[];
     for (@nullCheck var i in codePoints) {
       if (i <= 0xffff) {
@@ -327,7 +326,7 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    List match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    List? match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
     if (match != null) return match[1];
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
@@ -362,7 +361,7 @@ class Primitives {
     return -JS<int>('!', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static int valueFromDecomposedDate(
+  static int? valueFromDecomposedDate(
       @nullCheck int years,
       @nullCheck int month,
       @nullCheck int day,
@@ -373,7 +372,7 @@ class Primitives {
       @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
-    num value;
+    int value;
     if (isUtc) {
       value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,
           day, hours, minutes, seconds, milliseconds);
@@ -506,7 +505,7 @@ Error diagnoseIndexError(indexable, int index) {
  * describes the problem.
  */
 @NoInline()
-Error diagnoseRangeError(int start, int end, int length) {
+Error diagnoseRangeError(int? start, int? end, int length) {
   if (start == null) {
     return ArgumentError.value(start, 'start');
   }
@@ -555,9 +554,9 @@ throwConcurrentModificationError(collection) {
 }
 
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
-  final String _message;
-  final String _method;
-  final String _receiver;
+  final String? _message;
+  final String? _method;
+  final String? _receiver;
 
   JsNoSuchMethodError(this._message, match)
       : _method = match == null ? null : JS('String|Null', '#.method', match),
@@ -599,11 +598,11 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-bool jsHasOwnProperty(var jsObject, String property) {
+bool jsHasOwnProperty(jsObject, String property) {
   return JS<bool>('!', r'#.hasOwnProperty(#)', jsObject, property);
 }
 
-jsPropertyAccess(var jsObject, String property) {
+jsPropertyAccess(jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 
@@ -740,12 +739,12 @@ class RuntimeError extends Error {
 
 /// Error thrown by DDC when an `assert()` fails (with or without a message).
 class AssertionErrorImpl extends AssertionError {
-  final String _fileUri;
-  final int _line;
-  final int _column;
-  final String _conditionSource;
+  final String? _fileUri;
+  final int? _line;
+  final int? _column;
+  final String? _conditionSource;
 
-  AssertionErrorImpl(Object message,
+  AssertionErrorImpl(Object? message,
       [this._fileUri, this._line, this._column, this._conditionSource])
       : super(message);
 
@@ -811,7 +810,7 @@ class PrivateSymbol implements Symbol {
 
   static String getName(Symbol symbol) => (symbol as PrivateSymbol)._name;
 
-  static Object getNativeSymbol(Symbol symbol) {
+  static Object? getNativeSymbol(Symbol symbol) {
     if (symbol is PrivateSymbol) return symbol._nativeSymbol;
     return null;
   }
