@@ -65,7 +65,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
   attached() {
     super.attached();
     _r.enable();
-    _setupInitialState();
+    _updateRecorderUI();
   }
 
   @override
@@ -84,6 +84,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
   void render() {
     if (_frame == null) {
       _frame = new IFrameElement()..src = 'timeline.html';
+      _frame.onLoad.listen((event) {
+        _refresh();
+      });
     }
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
@@ -187,8 +190,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
                 "This VM is forwarding timeline events to Fuchsia's system tracing. See the ",
           new AnchorElement()
             ..text = "Fuchsia Tracing Usage Guide"
-            ..href =
-                "https://fuchsia.googlesource.com/garnet/+/master/docs/tracing_usage_guide.md",
+            ..href = "https://fuchsia.dev/fuchsia-src/development/tracing",
           new SpanElement()..text = ".",
         ];
     }
@@ -232,6 +234,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
+    _postMessage('loading');
     final traceData = await _repository.getTimeline(vm);
     return _postMessage('refresh', traceData);
   }
@@ -258,11 +261,6 @@ class TimelinePageElement extends CustomElement implements Renderable {
     _frame.contentWindow
         .postMessage(json.encode(message), window.location.href);
     return null;
-  }
-
-  Future _setupInitialState() async {
-    await _updateRecorderUI();
-    await _refresh();
   }
 
   void _applyPreset(M.TimelineProfile profile) {

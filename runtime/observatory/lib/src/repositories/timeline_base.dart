@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file
 
 import 'dart:async';
+import 'package:logging/logging.dart';
 import 'package:observatory/sample_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
@@ -92,11 +93,24 @@ class TimelineRepositoryBase {
         await vm.invokeRpc('getVMTimeline', {});
     final timeOriginMicros = vmTimelineResponse[kTimeOriginMicros];
     final timeExtentMicros = vmTimelineResponse[kTimeExtentMicros];
-    final traceObject = await getCpuProfileTimeline(
-      vm,
-      timeOriginMicros: timeOriginMicros,
-      timeExtentMicros: timeExtentMicros,
-    );
+    var traceObject = <String, dynamic>{
+      _kStackFrames: {},
+      _kTraceEvents: [],
+    };
+    try {
+      final cpuProfile = await getCpuProfileTimeline(
+        vm,
+        timeOriginMicros: timeOriginMicros,
+        timeExtentMicros: timeExtentMicros,
+      );
+      traceObject = cpuProfile;
+    } on S.ServerRpcException catch (e) {
+      if (e.code != S.ServerRpcException.kFeatureDisabled) {
+        rethrow;
+      }
+      Logger.root.info(
+          "CPU profiler is disabled. Creating timeline without CPU profile.");
+    }
     traceObject[_kTraceEvents].addAll(vmTimelineResponse[_kTraceEvents]);
     return traceObject;
   }
