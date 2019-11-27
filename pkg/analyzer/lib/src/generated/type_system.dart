@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
@@ -96,16 +95,11 @@ bool _isTop(DartType t) {
  */
 class Dart2TypeSystem extends TypeSystem {
   /**
-   * False if implicit casts should always be disallowed, otherwise the
-   * [FeatureSet] will be used.
+   * False if implicit casts should always be disallowed.
    *
    * This affects the behavior of [isAssignableTo].
    */
   final bool implicitCasts;
-
-  /// If `true`, then NNBD type rules should be used.
-  /// If `false`, then legacy type rules should be used.
-  final bool isNonNullableByDefault;
 
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
@@ -125,10 +119,10 @@ class Dart2TypeSystem extends TypeSystem {
 
   Dart2TypeSystem({
     @required this.implicitCasts,
-    @required this.isNonNullableByDefault,
+    @required bool isNonNullableByDefault,
     @required this.strictInference,
     @required this.typeProvider,
-  });
+  }) : super(isNonNullableByDefault: isNonNullableByDefault);
 
   InterfaceType get _interfaceTypeFunctionNone {
     return typeProvider.functionType.element.instantiate(
@@ -738,8 +732,7 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType,
-      {FeatureSet featureSet}) {
+  bool isAssignableTo(DartType fromType, DartType toType) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -748,8 +741,7 @@ class Dart2TypeSystem extends TypeSystem {
     // A call method tearoff
     if (fromType is InterfaceType && acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null &&
-          isAssignableTo(callMethodType, toType, featureSet: featureSet)) {
+      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
         return true;
       }
     }
@@ -761,7 +753,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
-    if (featureSet != null && featureSet.isEnabled(Feature.non_nullable)) {
+    if (isNonNullableByDefault) {
       return fromType.isDynamic;
     }
 
@@ -1402,7 +1394,7 @@ class Dart2TypeSystem extends TypeSystem {
 
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType, FeatureSet featureSet) {
+      DartType rightType, DartType currentType) {
     if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
       if (rightType == leftType || rightType.isDartCoreInt) {
         if (operator == TokenType.PLUS ||
@@ -1411,7 +1403,7 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.PLUS_EQ ||
             operator == TokenType.MINUS_EQ ||
             operator == TokenType.STAR_EQ) {
-          if (featureSet.isEnabled(Feature.non_nullable)) {
+          if (isNonNullableByDefault) {
             return promoteToNonNull(leftType as TypeImpl);
           }
           return leftType;
@@ -1423,7 +1415,7 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.STAR ||
             operator == TokenType.SLASH) {
           InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (featureSet.isEnabled(Feature.non_nullable)) {
+          if (isNonNullableByDefault) {
             return promoteToNonNull(doubleType);
           }
           return doubleType;
@@ -1431,8 +1423,8 @@ class Dart2TypeSystem extends TypeSystem {
       }
       return currentType;
     }
-    return super.refineBinaryExpressionType(
-        leftType, operator, rightType, currentType, featureSet);
+    return super
+        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
   }
 
   @override
@@ -3125,6 +3117,12 @@ class TypeComparison {
  */
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
 abstract class TypeSystem implements public.TypeSystem {
+  /// If `true`, then NNBD type rules should be used.
+  /// If `false`, then legacy type rules should be used.
+  final bool isNonNullableByDefault;
+
+  TypeSystem({@required this.isNonNullableByDefault});
+
   /**
    * The provider of types for the system
    */
@@ -3224,11 +3222,9 @@ abstract class TypeSystem implements public.TypeSystem {
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
-   * if leftType <==> rightType). Accepts a [FeatureSet] to correctly handle
-   * NNBD implicit downcasts.
+   * if leftType <==> rightType).
    */
-  bool isAssignableTo(DartType leftType, DartType rightType,
-      {FeatureSet featureSet});
+  bool isAssignableTo(DartType leftType, DartType rightType);
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]
@@ -3388,17 +3384,15 @@ abstract class TypeSystem implements public.TypeSystem {
    * Determine the type of a binary expression with the given [operator] whose
    * left operand has the type [leftType] and whose right operand has the type
    * [rightType], given that resolution has so far produced the [currentType].
-   * The [featureSet] is used to determine whether any features that effect the
-   * computation have been enabled.
    */
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType, FeatureSet featureSet) {
+      DartType rightType, DartType currentType) {
     // bool
     if (operator == TokenType.AMPERSAND_AMPERSAND ||
         operator == TokenType.BAR_BAR ||
         operator == TokenType.EQ_EQ ||
         operator == TokenType.BANG_EQ) {
-      if (featureSet.isEnabled(Feature.non_nullable)) {
+      if (isNonNullableByDefault) {
         return promoteToNonNull(typeProvider.boolType as TypeImpl);
       }
       return typeProvider.boolType;
@@ -3415,7 +3409,7 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.STAR_EQ) {
         if (rightType.isDartCoreDouble) {
           InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (featureSet.isEnabled(Feature.non_nullable)) {
+          if (isNonNullableByDefault) {
             return promoteToNonNull(doubleType);
           }
           return doubleType;
@@ -3434,7 +3428,7 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.TILDE_SLASH_EQ) {
         if (rightType.isDartCoreInt) {
           InterfaceTypeImpl intType = typeProvider.intType;
-          if (featureSet.isEnabled(Feature.non_nullable)) {
+          if (isNonNullableByDefault) {
             return promoteToNonNull(intType);
           }
           return intType;

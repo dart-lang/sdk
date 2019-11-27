@@ -396,8 +396,7 @@ class _ClassVerifier {
         if (setter != null && setter.parameters.length == 1) {
           var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
-          if (!typeSystem.isAssignableTo(getterType, setterType,
-              featureSet: featureSet)) {
+          if (!typeSystem.isAssignableTo(getterType, setterType)) {
             Element errorElement;
             if (getter.enclosingElement == classElement) {
               errorElement = getter;

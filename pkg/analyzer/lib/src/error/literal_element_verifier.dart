@@ -47,7 +47,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
-    if (!typeSystem.isAssignableTo(type, elementType, featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(type, elementType)) {
       var errorCode = forList
           ? StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -107,8 +107,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = entry.key.staticType;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType,
-        featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType)) {
       errorReporter.reportTypeErrorForNode(
         StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -117,8 +116,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.staticType;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType,
-        featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType)) {
       errorReporter.reportTypeErrorForNode(
         StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -156,8 +154,7 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
-    if (!typeSystem.isAssignableTo(iterableElementType, elementType,
-        featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(iterableElementType, elementType)) {
       var errorCode = forList
           ? StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -198,8 +195,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType,
-        featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType)) {
       errorReporter.reportTypeErrorForNode(
         StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -208,8 +204,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
-    if (!typeSystem.isAssignableTo(valueType, mapValueType,
-        featureSet: featureSet)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType)) {
       errorReporter.reportTypeErrorForNode(
         StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         expression,

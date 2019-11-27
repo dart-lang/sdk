@@ -1738,8 +1738,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!_typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo(
+        redirectedReturnType, constructorReturnType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
@@ -1958,8 +1958,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (expressionType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(expressionType, type,
-        featureSet: _featureSet)) {
+    if (_typeSystem.isAssignableTo(expressionType, type)) {
       return;
     }
     if (expressionType.element == type.element) {
@@ -1983,8 +1982,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
@@ -2725,8 +2723,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
           node.iterable,
           [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType,
-        featureSet: _featureSet)) {
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
           node.iterable,
@@ -2917,8 +2914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(staticType, fieldType,
-        featureSet: _featureSet)) {
+    if (_typeSystem.isAssignableTo(staticType, fieldType)) {
       return;
     }
     // report problem
@@ -3655,8 +3651,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // (if the getter is null, it is dynamic which is assignable to everything).
       if (setterType != null &&
           getterType != null &&
-          !_typeSystem.isAssignableTo(getterType, setterType,
-              featureSet: _featureSet)) {
+          !_typeSystem.isAssignableTo(getterType, setterType)) {
         _errorReporter.reportTypeErrorForNode(
             StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
             accessorDeclaration,
@@ -3681,8 +3676,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           DartType setterType = _getSetterType(setterElement);
           if (setterType != null &&
               getterType != null &&
-              !_typeSystem.isAssignableTo(getterType, setterType,
-                  featureSet: _featureSet)) {
+              !_typeSystem.isAssignableTo(getterType, setterType)) {
             SimpleIdentifier nameNode = member.name;
             String name = nameNode.name;
             _errorReporter.reportTypeErrorForNode(
@@ -4120,7 +4114,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       {@required ErrorCode errorCode}) {
     DartType type = getStaticType(expression);
     if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType, featureSet: _featureSet)) {
+        !_typeSystem.isAssignableTo(type, _boolType)) {
       if (type.element == _boolType.element) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
@@ -4738,8 +4732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!expectedType.isVoid && !fromType.isVoid) {
       var checkWithType =
           !_inAsync ? fromType : _typeProvider.futureType2(fromType);
-      if (_typeSystem.isAssignableTo(checkWithType, expectedType,
-          featureSet: _featureSet)) {
+      if (_typeSystem.isAssignableTo(checkWithType, expectedType)) {
         return;
       }
     }
@@ -4844,8 +4837,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType caseType = getStaticType(caseExpression);
 
     // check types
-    if (!_typeSystem.isAssignableTo(expressionType, caseType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -5143,8 +5135,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 [parameter.identifier.name]);
           } else if (declaredType != null &&
               fieldType != null &&
-              !_typeSystem.isAssignableTo(declaredType, fieldType,
-                  featureSet: _featureSet)) {
+              !_typeSystem.isAssignableTo(declaredType, fieldType)) {
             _errorReporter.reportTypeErrorForNode(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 parameter,
@@ -5440,8 +5431,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       } else {
         requiredReturnType = _typeProvider.iterableDynamicType;
       }
-      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType,
-          featureSet: _featureSet)) {
+      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportTypeErrorForNode(
             StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
             yieldExpression,

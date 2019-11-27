@@ -744,7 +744,11 @@ class CodeChecker extends RecursiveAstVisitor {
       var rhsType = _getExpressionType(expr.rightHandSide);
       var lhsType = _getExpressionType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
-          lhsType, op, rhsType, functionType.returnType, _featureSet);
+        lhsType,
+        op,
+        rhsType,
+        functionType.returnType,
+      );
 
       // Check the argument for an implicit cast.
       _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
@@ -976,8 +980,12 @@ class CodeChecker extends RecursiveAstVisitor {
         var functionType = element.type;
         var rhsType = typeProvider.intType;
         var lhsType = _getExpressionType(operand);
-        var returnType = rules.refineBinaryExpressionType(lhsType,
-            TokenType.PLUS, rhsType, functionType.returnType, _featureSet);
+        var returnType = rules.refineBinaryExpressionType(
+          lhsType,
+          TokenType.PLUS,
+          rhsType,
+          functionType.returnType,
+        );
 
         // Skip the argument check - `int` cannot be downcast.
         //
@@ -1135,7 +1143,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to, featureSet: _featureSet)) {
+    if (rules.isAssignableTo(from, to)) {
       return true;
     }
 
