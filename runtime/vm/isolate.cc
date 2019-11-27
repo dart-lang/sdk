@@ -65,14 +65,6 @@ DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
-// TODO(bkonyi): remove this flag around Nov 2019 after UX studies are
-// complete. See issue 38535.
-DEFINE_FLAG(int,
-            object_id_ring_size,
-            ObjectIdRing::kDefaultCapacity,
-            "(EXPERIMENTAL) Manually set the size of the service protocol's "
-            "object ID ring buffer. Set to be removed by Nov 2019.");
-
 // Reload flags.
 DECLARE_FLAG(int, reload_every);
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1475,12 +1467,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
 #ifndef PRODUCT
   if (FLAG_support_service) {
-    if (FLAG_object_id_ring_size != ObjectIdRing::kDefaultCapacity) {
-      OS::Print(
-          "WARNING: this flag is temporary, is not supported, and should"
-          " only be used for UX studies. Use at your own risk!\n");
-    }
-    ObjectIdRing::Init(result, FLAG_object_id_ring_size);
+    ObjectIdRing::Init(result);
   }
 #endif  // !PRODUCT
 
