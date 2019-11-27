@@ -1676,22 +1676,18 @@ class Dart2TypeSystem extends TypeSystem {
         if (gParameter.isNamed) {
           var compareNames = fParameter.name.compareTo(gParameter.name);
           if (compareNames == 0) {
-            if (fParameter.isRequiredNamed == gParameter.isRequiredNamed) {
-              fIndex++;
-              gIndex++;
-              parameters.add(
-                ParameterElementImpl.synthetic(
-                  fParameter.name,
-                  // TODO(scheglov) Update for NNBD aware DOWN.
-                  getGreatestLowerBound(fParameter.type, gParameter.type),
-                  // ignore: deprecated_member_use_from_same_package
-                  fParameter.parameterKind,
-                ),
-              );
-            } else {
-              // Both must be either optional named, or required named.
-              return _interfaceTypeFunctionNone;
-            }
+            fIndex++;
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                // TODO(scheglov) Update for NNBD aware DOWN.
+                getGreatestLowerBound(fParameter.type, gParameter.type),
+                fParameter.isRequiredNamed || gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
+              ),
+            );
           } else if (compareNames < 0) {
             if (fParameter.isRequiredNamed) {
               // We cannot skip required named.

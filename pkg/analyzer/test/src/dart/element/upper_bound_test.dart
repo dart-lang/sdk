@@ -734,7 +734,7 @@ class UpperBoundTest extends _SubtypingTestBase {
       functionTypeNone(
         returnType: voidNone,
         parameters: [
-          namedParameter(name: 'a', type: intNone),
+          namedParameter(name: 'b', type: intNone),
         ],
       ),
       functionTypeNone(
@@ -750,7 +750,7 @@ class UpperBoundTest extends _SubtypingTestBase {
       functionTypeNone(
         returnType: voidNone,
         parameters: [
-          namedParameter(name: 'b', type: intNone),
+          namedParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
@@ -759,7 +759,12 @@ class UpperBoundTest extends _SubtypingTestBase {
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
-      functionNone,
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
     );
 
     _checkLeastUpperBound(
