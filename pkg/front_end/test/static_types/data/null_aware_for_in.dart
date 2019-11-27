@@ -9,6 +9,7 @@ class Class {}
 
 main() {
   var o;
+  /*current: dynamic*/
   /*cfe|dart2js.as: Class*/
   /*cfe:nnbd.as: Class!*/
   for (

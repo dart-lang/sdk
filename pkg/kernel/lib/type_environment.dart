@@ -91,6 +91,25 @@ abstract class TypeEnvironment extends SubtypeTester {
     return type;
   }
 
+  /// Returns the type of the element in the for-in statement [node] with
+  /// [iterableType] as the static type of the iterable expression.
+  ///
+  /// The [iterableType] must be a subclass of `Stream` or `Iterable` depending
+  /// on whether `node.isAsync` is `true` or not.
+  DartType forInElementType(ForInStatement node, DartType iterableType) {
+    // TODO(johnniwinther): Update this to use the type of
+    //  `iterable.iterator.current` if inference is updated accordingly.
+    if (node.isAsync) {
+      InterfaceType type =
+          getTypeAsInstanceOf(iterableType, coreTypes.streamClass);
+      return type.typeArguments.single;
+    } else {
+      InterfaceType type =
+          getTypeAsInstanceOf(iterableType, coreTypes.iterableClass);
+      return type.typeArguments.single;
+    }
+  }
+
   /// Called if the computation of a static type failed due to a type error.
   ///
   /// This should never happen in production.  The frontend should report type

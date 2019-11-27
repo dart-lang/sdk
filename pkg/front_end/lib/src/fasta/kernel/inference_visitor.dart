@@ -806,6 +806,8 @@ class InferenceVisitor
     if (typeNeeded) {
       inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
+        // TODO(johnniwinther): Should we use the type of
+        //  `iterable.iterator.current` instead?
         InterfaceType supertype = inferrer.classHierarchy
             .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
         if (supertype != null) {
