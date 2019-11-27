@@ -74,7 +74,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DEAD_CODE = const HintCode('DEAD_CODE', "Dead code.",
       correction: "Try removing the code, or "
-          "fixing the code before it so that it can be reached.");
+          "fixing the code before it so that it can be reached.",
+      hasPublishedDocs: true);
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -132,7 +133,8 @@ class HintCode extends AnalyzerErrorCode {
           "'on Object catch (e)' are never reached.",
       correction:
           "Try reordering the catch clauses so that they can be reached, or "
-          "removing the unreachable catch clauses.");
+          "removing the unreachable catch clauses.",
+      hasPublishedDocs: true);
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -194,7 +196,8 @@ class HintCode extends AnalyzerErrorCode {
           "subtype of '{1}' and hence will have been caught already.",
       correction:
           "Try reordering the catch clauses so that this block can be reached, "
-          "or removing the unreachable catch clause.");
+          "or removing the unreachable catch clause.",
+      hasPublishedDocs: true);
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -348,7 +351,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DUPLICATE_IMPORT = const HintCode(
       'DUPLICATE_IMPORT', "Duplicate import.",
-      correction: "Try removing all but one import of the library.");
+      correction: "Try removing all but one import of the library.",
+      hasPublishedDocs: true);
 
   /**
    * Duplicate hidden names.
@@ -740,7 +744,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_VISIBILITY_ANNOTATION = const HintCode(
       'INVALID_VISIBILITY_ANNOTATION',
       "The member '{0}' is annotated with '{1}', but this annotation is only "
-          "meaningful on declarations of public members.");
+          "meaningful on declarations of public members.",
+      hasPublishedDocs: true);
 
   /**
    * Hint for the `x is double` type checks.
@@ -834,7 +839,8 @@ class HintCode extends AnalyzerErrorCode {
   // }
   // ```
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
-      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for a constructor, function or method invocation where a
@@ -848,7 +854,8 @@ class HintCode extends AnalyzerErrorCode {
       const HintCodeWithUniqueName(
           'MISSING_REQUIRED_PARAM',
           'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
-          "The parameter '{0}' is required. {1}.");
+          "The parameter '{0}' is required. {1}.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -932,7 +939,8 @@ class HintCode extends AnalyzerErrorCode {
           "superclass.",
       correction:
           "Try composing with this class, or refer to its documentation for "
-          "more information.");
+          "more information.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for classes that inherit from classes annotated with
@@ -1004,7 +1012,8 @@ class HintCode extends AnalyzerErrorCode {
       'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
       "This instance creation must be 'const', because the {0} constructor is "
           "marked as '@literal'.",
-      correction: "Try adding a 'const' keyword.");
+      correction: "Try adding a 'const' keyword.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for non-const instance creation (with the `new` keyword)
@@ -1019,7 +1028,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
           "This instance creation must be 'const', because the {0} constructor "
               "is marked as '@literal'.",
-          correction: "Try replacing the 'new' keyword with 'const'.");
+          correction: "Try replacing the 'new' keyword with 'const'.",
+          hasPublishedDocs: true);
 
   /**
    * When the left operand of a binary expression uses '?.' operator, it can be
@@ -1074,7 +1084,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
           "The getter doesn't override an inherited getter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A field with the override annotation does not override a getter or setter.
@@ -1087,7 +1098,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
           "The field doesn't override an inherited getter or setter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -1134,7 +1146,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
           "The method doesn't override an inherited method.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A setter with the override annotation does not override an existing setter.
@@ -1147,7 +1160,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
           "The setter doesn't override an inherited setter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * It is a bad practice for a package import to reference anything outside the

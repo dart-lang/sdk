@@ -780,6 +780,7 @@ ExtraneousModifierInExtension:
   template: "Can't have modifier '#lexeme' in an extension."
   tip: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  hasPublishedDocs: true
   script:
     - "extension on String { foo(covariant String child) {} }"
 
