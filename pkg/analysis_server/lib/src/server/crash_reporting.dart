@@ -18,7 +18,9 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
       // Get the root CaughtException, which matters most for debugging.
       CaughtException root = exception.rootCaughtException;
 
-      reporter.sendReport(root.exception, root.stackTrace).catchError((error) {
+      reporter
+          .sendReport(root.exception, root.stackTrace, comment: root.message)
+          .catchError((error) {
         // We silently ignore errors sending crash reports (network issues, ...).
       });
     } else {

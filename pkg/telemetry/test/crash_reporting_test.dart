@@ -11,8 +11,9 @@ import 'package:test/test.dart';
 import 'package:usage/usage.dart';
 
 void main() {
-  group('crash_reporting', () {
+  group('CrashReportSender', () {
     MockClient mockClient;
+    AnalyticsMock analytics;
 
     Request request;
 
@@ -21,14 +22,15 @@ void main() {
         request = r;
         return new Response('crash-report-001', 200);
       });
+
+      analytics = new AnalyticsMock()..enabled = true;
     });
 
-    test('CrashReportSender', () async {
-      EnablementCallback shouldSend = () {
-        return true;
-      };
+    EnablementCallback shouldSend = () {
+      return true;
+    };
 
-      AnalyticsMock analytics = new AnalyticsMock()..enabled = true;
+    test('general', () async {
       CrashReportSender sender = new CrashReportSender(
           analytics.trackingId, shouldSend,
           httpClient: mockClient);
@@ -38,6 +40,47 @@ void main() {
       String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String')); // error.runtimeType
       expect(body, contains('test-error'));
+    });
+
+    test('reportsSent', () async {
+      CrashReportSender sender = new CrashReportSender(
+          analytics.trackingId, shouldSend,
+          httpClient: mockClient);
+
+      expect(sender.reportsSent, 0);
+
+      await sender.sendReport('test-error', StackTrace.current);
+
+      expect(sender.reportsSent, 1);
+
+      String body = utf8.decode(request.bodyBytes);
+      expect(body, contains('String'));
+      expect(body, contains('test-error'));
+    });
+
+    test('contains message', () async {
+      CrashReportSender sender = new CrashReportSender(
+          analytics.trackingId, shouldSend,
+          httpClient: mockClient);
+
+      await sender.sendReport('test-error', StackTrace.current,
+          comment: 'additional message');
+
+      String body = utf8.decode(request.bodyBytes);
+      expect(body, contains('String'));
+      expect(body, contains('test-error'));
+      expect(body, contains('additional message'));
+    });
+
+    test('has ptime', () async {
+      CrashReportSender sender = new CrashReportSender(
+          analytics.trackingId, shouldSend,
+          httpClient: mockClient);
+
+      await sender.sendReport('test-error', StackTrace.current);
+
+      String body = utf8.decode(request.bodyBytes);
+      expect(body, contains('name="ptime"'));
     });
   });
 }

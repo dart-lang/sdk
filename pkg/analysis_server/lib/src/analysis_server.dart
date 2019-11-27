@@ -356,7 +356,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     }, onError: (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          FatalException('Failed to handle request: ${request.toJson()}',
+          FatalException('Failed to handle request: ${request.method}',
               exception, stackTrace));
     });
   }
