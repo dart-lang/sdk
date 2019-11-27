@@ -948,6 +948,7 @@ void KernelLoader::ReadInferredType(const Field& field,
 
 void KernelLoader::CheckForInitializer(const Field& field) {
   if (helper_.PeekTag() == kSomething) {
+    field.set_has_initializer(true);
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
@@ -956,6 +957,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
+  field.set_has_initializer(false);
   field.set_has_nontrivial_initializer(false);
 }
 

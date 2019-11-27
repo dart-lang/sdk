@@ -675,13 +675,13 @@ RawFunction* TranslationHelper::LookupMethodByMember(
 
   Function& function =
       Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
-  CheckStaticLookup(function);
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
               klass.ToCString());
   }
 #endif
+  CheckStaticLookup(function);
   ASSERT(!function.IsNull());
   return function.raw();
 }

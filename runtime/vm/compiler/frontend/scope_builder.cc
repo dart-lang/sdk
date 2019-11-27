@@ -184,7 +184,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           Field& class_field = Field::Handle(Z);
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
-            if (!class_field.is_static() && !class_field.is_late()) {
+            if (!class_field.is_static()) {
               ExternalTypedData& kernel_data =
                   ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
@@ -469,7 +469,7 @@ void ScopeBuilder::VisitConstructor() {
     Field& class_field = Field::Handle(Z);
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
-      if (!class_field.is_static() && !class_field.is_late()) {
+      if (!class_field.is_static()) {
         ExternalTypedData& kernel_data =
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());

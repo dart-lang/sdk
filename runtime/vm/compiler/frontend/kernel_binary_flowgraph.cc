@@ -188,6 +188,27 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
+    const Field& field,
+    bool has_initializer) {
+  if (has_initializer && PeekTag() == kNullLiteral) {
+    SkipExpression();  // read past the null literal.
+    if (H.thread()->IsMutatorThread()) {
+      field.RecordStore(Object::null_object());
+    } else {
+      ASSERT(field.is_nullable(/* silence_assert = */ true));
+    }
+    return Fragment();
+  }
+
+  Fragment instructions;
+  instructions += LoadLocal(parsed_function()->receiver_var());
+  instructions += flow_graph_builder_->Constant(Object::sentinel());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing);
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
@@ -292,7 +313,11 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         const Tag initializer_tag = ReadTag();
-        if (initializer_tag == kSomething) {
+        if (class_field.is_late()) {
+          instructions +=
+              BuildLateFieldInitializer(Field::ZoneHandle(Z, class_field.raw()),
+                                        initializer_tag == kSomething);
+        } else if (initializer_tag == kSomething) {
           EnterScope(field_offset);
           // If this field is initialized in constructor then we can ignore the
           // value produced by the field initializer. However we still need to
