@@ -1,4 +1,8 @@
 # Changelog
+## 2.1.2
+- Requests which have not yet completed when `VmService.dispose` is invoked will
+  now complete with an `RPCError` exception rather than a `String` exception.
+
 ## 2.1.1
 - Added `getLineNumberFromTokenPos` and `getColumnNumberFromTokenPos` methods
   to `Script`.

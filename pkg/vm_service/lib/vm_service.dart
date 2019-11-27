@@ -1749,7 +1749,11 @@ class VmService implements VmServiceInterface {
 
   void dispose() {
     _streamSub.cancel();
-    _completers.values.forEach((c) => c.completeError('disposed'));
+    _completers.forEach((id, c) {
+      final method = _methodCalls[id];
+      return c.completeError(
+          RPCError(method, -32000, 'Service connection disposed'));
+    });
     _completers.clear();
     if (_disposeHandler != null) {
       _disposeHandler();
