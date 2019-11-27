@@ -38,8 +38,10 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     dynamic exception,
     StackTrace stackTrace,
   ) {
-    // TODO(mfairhurst): send plugin information too.
-    reporter.sendReport(exception, stackTrace).catchError((error) {
+    String comment = 'plugin: ${plugin.name}';
+    reporter
+        .sendReport(exception, stackTrace, comment: comment)
+        .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });
   }
