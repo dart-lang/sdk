@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 // Tests that sets of enums can be set through ports.
 // https://github.com/dart-lang/sdk/issues/35626
 
