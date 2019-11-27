@@ -517,6 +517,31 @@ main() {
       'int? Function(bool, String, String?)?',
     );
   }
+
+  test_typedef_function_nullable_element() async {
+    await assertNoErrorsInCode('''
+typedef F<T> = int Function(T)?;
+
+main(F<int> a, F<double>? b) {}
+''');
+
+    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
+    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
+  }
+
+  test_typedef_function_nullable_local() async {
+    await assertNoErrorsInCode('''
+typedef F<T> = int Function(T)?;
+
+main() {
+  F<int> a;
+  F<double>? b;
+}
+''');
+
+    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
+    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
+  }
 }
 
 @reflectiveTest

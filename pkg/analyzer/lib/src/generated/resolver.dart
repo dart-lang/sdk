@@ -6015,10 +6015,10 @@ class TypeNameResolver {
         type ??= dynamicType;
       } else {
         type = typeSystem.instantiateType(type, typeArguments);
+        type = (type as TypeImpl).withNullability(
+          _getNullability(node.question != null),
+        );
       }
-      type = (type as TypeImpl).withNullability(
-        _getNullability(node.question != null),
-      );
     } else {
       if (element is GenericTypeAliasElementImpl) {
         var typeArguments = typeSystem.instantiateTypeFormalsToBounds(

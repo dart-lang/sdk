@@ -4482,6 +4482,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /// The elements representing the parameters of the function.
   List<ParameterElement> _parameters;
 
+  /// Is `true` if the type has the question mark, so is nullable.
+  bool _isNullable = false;
+
   /// The type defined by this element.
   FunctionType _type;
 
@@ -4496,6 +4499,22 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   String get identifier => '-';
+
+  bool get isNullable {
+    if (linkedNode != null) {
+      var node = linkedNode;
+      if (node is GenericFunctionType) {
+        return _isNullable = node.question != null;
+      } else {
+        return _isNullable = false;
+      }
+    }
+    return _isNullable;
+  }
+
+  void set isNullable(bool isNullable) {
+    _isNullable = isNullable;
+  }
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
@@ -4551,7 +4570,8 @@ class GenericFunctionTypeElementImpl extends ElementImpl
       typeFormals: typeParameters,
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: _noneOrStarSuffix,
+      nullabilitySuffix:
+          isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
       element: this,
     );
   }
@@ -4860,11 +4880,16 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     var type = substitution.substituteType(function.type) as FunctionType;
+
+    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
+        ? NullabilitySuffix.question
+        : nullabilitySuffix;
+
     return FunctionTypeImpl(
       typeFormals: type.typeFormals,
       parameters: type.parameters,
       returnType: type.returnType,
-      nullabilitySuffix: nullabilitySuffix,
+      nullabilitySuffix: resultNullability,
       element: this,
       typeArguments: typeArguments,
     );

@@ -674,6 +674,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _unitElement.encloseElement(element);
     (node as GenericFunctionTypeImpl).declaredElement = element;
 
+    element.isNullable = node.question != null;
+
     _setCodeRange(element, node);
 
     var holder = ElementHolder(element);
