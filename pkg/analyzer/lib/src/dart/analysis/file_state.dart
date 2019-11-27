@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -472,11 +473,13 @@ class FileState {
     _exportedFiles = <FileState>[];
     _partedFiles = <FileState>[];
     _exportFilters = <NameFilter>[];
-    for (var uri in _unlinked2.imports) {
+    for (var directive in _unlinked2.imports) {
+      var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
       _importedFiles.add(file);
     }
-    for (var uri in _unlinked2.exports) {
+    for (var directive in _unlinked2.exports) {
+      var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
       _exportedFiles.add(file);
       // TODO(scheglov) implement
@@ -597,21 +600,35 @@ class FileState {
     return unit;
   }
 
+  String _selectRelativeUri(UnlinkedNamespaceDirective directive) {
+    for (var configuration in directive.configurations) {
+      var name = configuration.name;
+      var value = configuration.value;
+      if (value.isEmpty) {
+        value = 'true';
+      }
+      if (_fsState._declaredVariables.get(name) == value) {
+        return configuration.uri;
+      }
+    }
+    return directive.uri;
+  }
+
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
-    var exports = <String>[];
-    var imports = <String>[];
+    var exports = <UnlinkedNamespaceDirectiveBuilder>[];
+    var imports = <UnlinkedNamespaceDirectiveBuilder>[];
     var parts = <String>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
-        var uriStr = directive.uri.stringValue;
-        exports.add(uriStr ?? '');
+        var builder = _serializeNamespaceDirective(directive);
+        exports.add(builder);
       } else if (directive is ImportDirective) {
-        var uriStr = directive.uri.stringValue;
-        imports.add(uriStr ?? '');
-        if (uriStr == 'dart:core') {
+        var builder = _serializeNamespaceDirective(directive);
+        imports.add(builder);
+        if (builder.uri == 'dart:core') {
           hasDartCoreImport = true;
         }
       } else if (directive is LibraryDirective) {
@@ -624,7 +641,11 @@ class FileState {
       }
     }
     if (!hasDartCoreImport) {
-      imports.add('dart:core');
+      imports.add(
+        UnlinkedNamespaceDirectiveBuilder(
+          uri: 'dart:core',
+        ),
+      );
     }
     var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
@@ -658,6 +679,22 @@ class FileState {
     }
     return true;
   }
+
+  static UnlinkedNamespaceDirectiveBuilder _serializeNamespaceDirective(
+      NamespaceDirective directive) {
+    return UnlinkedNamespaceDirectiveBuilder(
+      configurations: directive.configurations.map((configuration) {
+        var name = configuration.name.components.join('.');
+        var value = configuration.value?.stringValue ?? '';
+        return UnlinkedNamespaceDirectiveConfigurationBuilder(
+          name: name,
+          value: value,
+          uri: configuration.uri.stringValue ?? '',
+        );
+      }).toList(),
+      uri: directive.uri.stringValue ?? '',
+    );
+  }
 }
 
 @visibleForTesting
@@ -680,6 +717,7 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
+  final DeclaredVariables _declaredVariables;
   final Uint32List _unlinkedSalt;
   final Uint32List _linkedSalt;
 
@@ -760,6 +798,7 @@ class FileSystemState {
     this.contextName,
     this._sourceFactory,
     this._analysisOptions,
+    this._declaredVariables,
     this._unlinkedSalt,
     this._linkedSalt, {
     this.externalSummaries,

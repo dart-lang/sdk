@@ -280,6 +280,7 @@ class ContextBuilder {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
       driver.declaredVariables = new DeclaredVariables.fromMap(variables);
+      driver.configure();
     }
   }
 

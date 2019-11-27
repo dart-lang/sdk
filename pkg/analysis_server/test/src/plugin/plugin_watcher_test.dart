@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -143,6 +144,7 @@ class TestDriver implements AnalysisDriver {
         'contextName',
         sourceFactory,
         new AnalysisOptionsImpl(),
+        DeclaredVariables(),
         new Uint32List(0),
         new Uint32List(0));
     currentSession = new AnalysisSessionImpl(this);

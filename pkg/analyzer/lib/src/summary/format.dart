@@ -18057,14 +18057,282 @@ abstract class _UnlinkedInformativeDataMixin
   String toString() => convert.json.encode(toJson());
 }
 
+class UnlinkedNamespaceDirectiveBuilder extends Object
+    with _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  List<UnlinkedNamespaceDirectiveConfigurationBuilder> _configurations;
+  String _uri;
+
+  @override
+  List<UnlinkedNamespaceDirectiveConfigurationBuilder> get configurations =>
+      _configurations ??= <UnlinkedNamespaceDirectiveConfigurationBuilder>[];
+
+  /// The configurations that control which library will actually be used.
+  set configurations(
+      List<UnlinkedNamespaceDirectiveConfigurationBuilder> value) {
+    this._configurations = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  set uri(String value) {
+    this._uri = value;
+  }
+
+  UnlinkedNamespaceDirectiveBuilder(
+      {List<UnlinkedNamespaceDirectiveConfigurationBuilder> configurations,
+      String uri})
+      : _configurations = configurations,
+        _uri = uri;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _configurations?.forEach((b) => b.flushInformative());
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_configurations;
+    fb.Offset offset_uri;
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder
+          .writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    fbBuilder.startTable();
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(0, offset_configurations);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(1, offset_uri);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedNamespaceDirectiveReader
+    extends fb.TableReader<_UnlinkedNamespaceDirectiveImpl> {
+  const _UnlinkedNamespaceDirectiveReader();
+
+  @override
+  _UnlinkedNamespaceDirectiveImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _UnlinkedNamespaceDirectiveImpl(bc, offset);
+}
+
+class _UnlinkedNamespaceDirectiveImpl extends Object
+    with _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedNamespaceDirectiveImpl(this._bc, this._bcOffset);
+
+  List<idl.UnlinkedNamespaceDirectiveConfiguration> _configurations;
+  String _uri;
+
+  @override
+  List<idl.UnlinkedNamespaceDirectiveConfiguration> get configurations {
+    _configurations ??=
+        const fb.ListReader<idl.UnlinkedNamespaceDirectiveConfiguration>(
+                const _UnlinkedNamespaceDirectiveConfigurationReader())
+            .vTableGet(_bc, _bcOffset, 0,
+                const <idl.UnlinkedNamespaceDirectiveConfiguration>[]);
+    return _configurations;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _uri;
+  }
+}
+
+abstract class _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (configurations.isNotEmpty)
+      _result["configurations"] =
+          configurations.map((_value) => _value.toJson()).toList();
+    if (uri != '') _result["uri"] = uri;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "configurations": configurations,
+        "uri": uri,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class UnlinkedNamespaceDirectiveConfigurationBuilder extends Object
+    with _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name => _name ??= '';
+
+  /// The name of the declared variable used in the condition.
+  set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// The URI to be used if the condition is true.
+  set uri(String value) {
+    this._uri = value;
+  }
+
+  @override
+  String get value => _value ??= '';
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or empty string if the condition does not include an equality test.
+  set value(String value) {
+    this._value = value;
+  }
+
+  UnlinkedNamespaceDirectiveConfigurationBuilder(
+      {String name, String uri, String value})
+      : _name = name,
+        _uri = uri,
+        _value = value;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {}
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addString(this._value ?? '');
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    fb.Offset offset_uri;
+    fb.Offset offset_value;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    if (_value != null) {
+      offset_value = fbBuilder.writeString(_value);
+    }
+    fbBuilder.startTable();
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(2, offset_uri);
+    }
+    if (offset_value != null) {
+      fbBuilder.addOffset(1, offset_value);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedNamespaceDirectiveConfigurationReader
+    extends fb.TableReader<_UnlinkedNamespaceDirectiveConfigurationImpl> {
+  const _UnlinkedNamespaceDirectiveConfigurationReader();
+
+  @override
+  _UnlinkedNamespaceDirectiveConfigurationImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _UnlinkedNamespaceDirectiveConfigurationImpl(bc, offset);
+}
+
+class _UnlinkedNamespaceDirectiveConfigurationImpl extends Object
+    with _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedNamespaceDirectiveConfigurationImpl(this._bc, this._bcOffset);
+
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uri;
+  }
+
+  @override
+  String get value {
+    _value ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _value;
+  }
+}
+
+abstract class _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (name != '') _result["name"] = name;
+    if (uri != '') _result["uri"] = uri;
+    if (value != '') _result["value"] = value;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "name": name,
+        "uri": uri,
+        "value": value,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
 class UnlinkedUnit2Builder extends Object
     with _UnlinkedUnit2Mixin
     implements idl.UnlinkedUnit2 {
   List<int> _apiSignature;
-  List<String> _exports;
+  List<UnlinkedNamespaceDirectiveBuilder> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
-  List<String> _imports;
+  List<UnlinkedNamespaceDirectiveBuilder> _imports;
   List<UnlinkedInformativeDataBuilder> _informativeData;
   List<int> _lineStarts;
   List<String> _parts;
@@ -18080,10 +18348,11 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
-  List<String> get exports => _exports ??= <String>[];
+  List<UnlinkedNamespaceDirectiveBuilder> get exports =>
+      _exports ??= <UnlinkedNamespaceDirectiveBuilder>[];
 
   /// URIs of `export` directives.
-  set exports(List<String> value) {
+  set exports(List<UnlinkedNamespaceDirectiveBuilder> value) {
     this._exports = value;
   }
 
@@ -18104,10 +18373,11 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
-  List<String> get imports => _imports ??= <String>[];
+  List<UnlinkedNamespaceDirectiveBuilder> get imports =>
+      _imports ??= <UnlinkedNamespaceDirectiveBuilder>[];
 
   /// URIs of `import` directives.
-  set imports(List<String> value) {
+  set imports(List<UnlinkedNamespaceDirectiveBuilder> value) {
     this._imports = value;
   }
 
@@ -18138,10 +18408,10 @@ class UnlinkedUnit2Builder extends Object
 
   UnlinkedUnit2Builder(
       {List<int> apiSignature,
-      List<String> exports,
+      List<UnlinkedNamespaceDirectiveBuilder> exports,
       bool hasLibraryDirective,
       bool hasPartOfDirective,
-      List<String> imports,
+      List<UnlinkedNamespaceDirectiveBuilder> imports,
       List<UnlinkedInformativeDataBuilder> informativeData,
       List<int> lineStarts,
       List<String> parts})
@@ -18156,6 +18426,8 @@ class UnlinkedUnit2Builder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _exports?.forEach((b) => b.flushInformative());
+    _imports?.forEach((b) => b.flushInformative());
     _informativeData?.forEach((b) => b.flushInformative());
     _lineStarts = null;
   }
@@ -18175,7 +18447,7 @@ class UnlinkedUnit2Builder extends Object
     } else {
       signature.addInt(this._exports.length);
       for (var x in this._exports) {
-        signature.addString(x);
+        x?.collectApiSignature(signature);
       }
     }
     if (this._imports == null) {
@@ -18183,7 +18455,7 @@ class UnlinkedUnit2Builder extends Object
     } else {
       signature.addInt(this._imports.length);
       for (var x in this._imports) {
-        signature.addString(x);
+        x?.collectApiSignature(signature);
       }
     }
     signature.addBool(this._hasPartOfDirective == true);
@@ -18223,11 +18495,11 @@ class UnlinkedUnit2Builder extends Object
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder
-          .writeList(_exports.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder
-          .writeList(_imports.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_informativeData == null || _informativeData.isEmpty)) {
       offset_informativeData = fbBuilder
@@ -18291,10 +18563,10 @@ class _UnlinkedUnit2Impl extends Object
   _UnlinkedUnit2Impl(this._bc, this._bcOffset);
 
   List<int> _apiSignature;
-  List<String> _exports;
+  List<idl.UnlinkedNamespaceDirective> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
-  List<String> _imports;
+  List<idl.UnlinkedNamespaceDirective> _imports;
   List<idl.UnlinkedInformativeData> _informativeData;
   List<int> _lineStarts;
   List<String> _parts;
@@ -18307,9 +18579,10 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
-  List<String> get exports {
-    _exports ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+  List<idl.UnlinkedNamespaceDirective> get exports {
+    _exports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
+            const _UnlinkedNamespaceDirectiveReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedNamespaceDirective>[]);
     return _exports;
   }
 
@@ -18328,9 +18601,10 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
-  List<String> get imports {
-    _imports ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+  List<idl.UnlinkedNamespaceDirective> get imports {
+    _imports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
+            const _UnlinkedNamespaceDirectiveReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedNamespaceDirective>[]);
     return _imports;
   }
 
@@ -18362,12 +18636,14 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
-    if (exports.isNotEmpty) _result["exports"] = exports;
+    if (exports.isNotEmpty)
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (hasLibraryDirective != false)
       _result["hasLibraryDirective"] = hasLibraryDirective;
     if (hasPartOfDirective != false)
       _result["hasPartOfDirective"] = hasPartOfDirective;
-    if (imports.isNotEmpty) _result["imports"] = imports;
+    if (imports.isNotEmpty)
+      _result["imports"] = imports.map((_value) => _value.toJson()).toList();
     if (informativeData.isNotEmpty)
       _result["informativeData"] =
           informativeData.map((_value) => _value.toJson()).toList();

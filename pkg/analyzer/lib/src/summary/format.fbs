@@ -1263,6 +1263,29 @@ table UnlinkedInformativeData {
   kind:LinkedNodeKind (id: 0);
 }
 
+/// Unlinked summary information about a namespace directive.
+table UnlinkedNamespaceDirective {
+  /// The configurations that control which library will actually be used.
+  configurations:[UnlinkedNamespaceDirectiveConfiguration] (id: 0);
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  uri:string (id: 1);
+}
+
+/// Unlinked summary information about a namespace directive configuration.
+table UnlinkedNamespaceDirectiveConfiguration {
+  /// The name of the declared variable used in the condition.
+  name:string (id: 0);
+
+  /// The URI to be used if the condition is true.
+  uri:string (id: 2);
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or empty string if the condition does not include an equality test.
+  value:string (id: 1);
+}
+
 /// Unlinked summary information about a compilation unit.
 table UnlinkedUnit2 {
   /// The MD5 hash signature of the API portion of this unit. It depends on all
@@ -1270,7 +1293,7 @@ table UnlinkedUnit2 {
   apiSignature:[uint] (id: 0);
 
   /// URIs of `export` directives.
-  exports:[string] (id: 1);
+  exports:[UnlinkedNamespaceDirective] (id: 1);
 
   /// Is `true` if the unit contains a `library` directive.
   hasLibraryDirective:bool (id: 6);
@@ -1279,7 +1302,7 @@ table UnlinkedUnit2 {
   hasPartOfDirective:bool (id: 3);
 
   /// URIs of `import` directives.
-  imports:[string] (id: 2);
+  imports:[UnlinkedNamespaceDirective] (id: 2);
 
   informativeData:[UnlinkedInformativeData] (id: 7);
 

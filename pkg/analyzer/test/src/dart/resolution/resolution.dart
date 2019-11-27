@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
@@ -117,6 +118,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
     expect(actual, same(expected));
+  }
+
+  void assertElementLibraryUri(Element element, String expected) {
+    var uri = element.library.source.uri;
+    expect('$uri', expected);
   }
 
   void assertElementName(Element element, String name,
@@ -372,6 +378,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));
     assertTypeNull(ref);
+  }
+
+  void assertNamespaceDirectiveSelected(
+    NamespaceDirective directive, {
+    @required String expectedRelativeUri,
+    @required String expectedUri,
+  }) {
+    expect(directive.selectedUriContent, expectedRelativeUri);
+    expect('${directive.selectedSource.uri}', expectedUri);
   }
 
   Future<void> assertNoErrorsInCode(String code) async {

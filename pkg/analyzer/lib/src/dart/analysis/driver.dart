@@ -88,7 +88,10 @@ typedef Future<void> WorkToWaitAfterComputingResult(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 90;
+  static const int DATA_VERSION = 91;
+
+  /// The length of the list returned by [_computeDeclaredVariablesSignature].
+  static const int _declaredVariablesSignatureLength = 4;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -144,8 +147,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       new Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _linkedSalt =
-      new Uint32List(2 + AnalysisOptions.signatureLength);
+  final Uint32List _linkedSalt = new Uint32List(
+      2 + AnalysisOptions.signatureLength + _declaredVariablesSignatureLength);
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = new LinkedHashSet<String>();
@@ -1312,6 +1315,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     });
   }
 
+  Uint32List _computeDeclaredVariablesSignature() {
+    var buffer = new ApiSignature();
+
+    var variableNames = declaredVariables.variableNames;
+    buffer.addInt(variableNames.length);
+
+    for (var name in variableNames) {
+      var value = declaredVariables.get(name);
+      buffer.addString(name);
+      buffer.addString(value);
+    }
+
+    var bytes = buffer.toByteList();
+    return Uint8List.fromList(bytes).buffer.asUint32List();
+  }
+
   AnalysisDriverUnitIndex _computeIndex(String path) {
     AnalysisResult analysisResult = _computeAnalysisResult(path,
         withUnit: false, asIsIfPartWithoutLibrary: true);
@@ -1431,6 +1450,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       name,
       sourceFactory,
       analysisOptions,
+      declaredVariables,
       _unlinkedSalt,
       _linkedSalt,
       externalSummaries: _externalSummaries,
@@ -1484,9 +1504,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _unlinkedSalt[1] = enableIndex ? 1 : 0;
     _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
 
-    _linkedSalt[0] = DATA_VERSION;
-    _linkedSalt[1] = enableIndex ? 1 : 0;
-    _linkedSalt.setAll(2, _analysisOptions.signature);
+    _fillSaltLinked();
+  }
+
+  void _fillSaltLinked() {
+    var index = 0;
+
+    _linkedSalt[index] = DATA_VERSION;
+    index++;
+
+    _linkedSalt[index] = enableIndex ? 1 : 0;
+    index++;
+
+    _linkedSalt.setAll(index, _analysisOptions.signature);
+    index += AnalysisOptionsImpl.unlinkedSignatureLength;
+
+    _linkedSalt.setAll(index, _computeDeclaredVariablesSignature());
+    index += _declaredVariablesSignatureLength;
   }
 
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set

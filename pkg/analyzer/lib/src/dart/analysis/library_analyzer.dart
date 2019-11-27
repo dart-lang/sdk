@@ -753,7 +753,26 @@ class LibraryAnalyzer {
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
+      if (directive is NamespaceDirectiveImpl) {
+        var relativeUri = _selectRelativeUri(directive);
+        directive.selectedUriContent = relativeUri;
+        directive.selectedSource = _sourceFactory.resolveUri(
+          _library.source,
+          relativeUri,
+        );
+      }
     }
+  }
+
+  String _selectRelativeUri(NamespaceDirective directive) {
+    for (var configuration in directive.configurations) {
+      var name = configuration.name.components.join('.');
+      var value = configuration.value?.stringValue ?? 'true';
+      if (_declaredVariables.get(name) == value) {
+        return configuration.uri.stringValue ?? '';
+      }
+    }
+    return directive.uri?.stringValue ?? '';
   }
 
   /// Validate that the feature set associated with the compilation [unit] is
@@ -771,7 +790,15 @@ class LibraryAnalyzer {
    */
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
-    Source source = directive.uriSource;
+    String uriContent;
+    Source source;
+    if (directive is NamespaceDirectiveImpl) {
+      uriContent = directive.selectedUriContent;
+      source = directive.selectedSource;
+    } else {
+      uriContent = directive.uriContent;
+      source = directive.uriSource;
+    }
     if (source != null) {
       if (_isExistingSource(source)) {
         return;
@@ -789,7 +816,7 @@ class LibraryAnalyzer {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
-        .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
+        .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
   }
 
   /**
