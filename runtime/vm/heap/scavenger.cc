@@ -224,8 +224,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
-
-
 #if defined(FAST_HASH_FOR_32_BIT)
         raw_obj->Reallocate(new_addr, size - extra_size);
 #else

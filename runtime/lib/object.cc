@@ -13,6 +13,8 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
+//#include <easy/profiler.h>  // TODO: testing temporal remove
+
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(DartAsync_fatal, 0, 1) {
@@ -35,21 +37,24 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
   // Please note that no handle is created for the argument.
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
-//#if defined(HASH_IN_OBJECT_HEADER)
+#if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
+#elif defined(FAST_HASH_FOR_32_BIT)
+  RawObject* raw = arguments->NativeArgAt(0);
+  if (raw->HasTrailingHashCode()) {
+    return *reinterpret_cast<RawSmi**>(RawObject::LastPointerAddr(raw));
+  }
+  uintptr_t value = (reinterpret_cast<uintptr_t>(raw) << 1) >> 1;
+  if (!raw->HashCodeWasRetrieved()) {
+    raw->SetHashCodeRetrievedBit();
+  }
+  return Smi::New(static_cast<uint32_t>(value));
   //return Smi::New(arguments->NativeArgAt(0)->GetHash());
-  //#else  // 32bit architectures
-  //intptr_t cid = arguments->NativeArgAt(0)->GetClassId();
-  //OS::Print("Retrieving hash for cid %d\n", cid);
-  //if (cid > 0) { //|| cid == kInstanceCid
-  //  //OS::Print("Cached hash for cid %d\n", cid);
-  //  return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
-  //}
-  //return 0;
-   //Heap* heap = isolate->heap();
-   //ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
-   //return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
-//#endif
+#else
+  Heap* heap = isolate->heap();
+  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
+  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+#endif
 }
 
 DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {

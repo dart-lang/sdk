@@ -99,7 +99,7 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 
-#if true  //!HASH_IN_OBJECT_HEADER TODO: testing
+#if !defined(HASH_IN_OBJECT_HEADER)
 #define FAST_HASH_FOR_32_BIT 1
 #endif
 

@@ -236,12 +236,12 @@ intptr_t RawObject::HeapSizeFromClass() const {
   }
   ASSERT(instance_size != 0);
 #if defined(FAST_HASH_FOR_32_BIT)
-  intptr_t tags_size = SizeTag::decode(ptr()->tags_);
+  intptr_t t_size = SizeTag::decode(ptr()->tags_);
   // Special case when the trailing size couldn't be added to the size tag.
-  if (HasTrailingHashCode() && (tags_size == 0 || HashCodeWasRetrieved())) {
+  if (HasTrailingHashCode() && (t_size == 0 || HashCodeWasRetrieved())) {
     instance_size += ExtraSize();
-  } else if(tags_size>instance_size) {
-    instance_size = tags_size;
+  } else if (t_size > instance_size) {
+    instance_size = t_size;
   }
 #endif
 #if defined(DEBUG)

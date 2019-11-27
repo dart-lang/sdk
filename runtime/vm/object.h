@@ -376,13 +376,15 @@ class Object {
 
   static RawObject* null() { return null_; }
 
-static uint32_t GetCachedHash(const RawObject* obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
+  static uint32_t GetCachedHash(const RawObject* obj) {
     return obj->ptr()->hash_;
-#else
-    return obj->GetHash();
-#endif
   }
+#elif defined(FAST_HASH_FOR_32_BIT)
+  static uint32_t GetCachedHash(const RawObject* obj) {
+    return obj->GetHash();
+  }
+#endif
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static void SetCachedHash(RawObject* obj, uint32_t hash) {
