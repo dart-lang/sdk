@@ -1315,11 +1315,13 @@ class _Universe {
             '#: new Map(),'
             '#: {},'
             '#: {},'
+            '#: {},'
             '#: [],' // shared empty array.
             '}',
         RtiUniverseFieldNames.evalCache,
         RtiUniverseFieldNames.typeRules,
         RtiUniverseFieldNames.erasedTypes,
+        RtiUniverseFieldNames.typeParameterVariances,
         RtiUniverseFieldNames.sharedEmptyArray);
   }
 
@@ -1333,6 +1335,9 @@ class _Universe {
 
   static Object erasedTypes(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.erasedTypes);
+
+  static Object typeParameterVariances(universe) =>
+      JS('', '#.#', universe, RtiUniverseFieldNames.typeParameterVariances);
 
   static Object _findRule(universe, String targetType) =>
       JS('', '#.#', typeRules(universe), targetType);
@@ -1365,11 +1370,17 @@ class _Universe {
     }
   }
 
+  static Object findTypeParameterVariances(universe, String cls) =>
+      JS('', '#.#', typeParameterVariances(universe), cls);
+
   static void addRules(universe, rules) =>
       _Utils.objectAssign(typeRules(universe), rules);
 
   static void addErasedTypes(universe, types) =>
       _Utils.objectAssign(erasedTypes(universe), types);
+
+  static void addTypeParameterVariances(universe, variances) =>
+      _Utils.objectAssign(typeParameterVariances(universe), variances);
 
   static Object sharedEmptyArray(universe) =>
       JS('JSArray', '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
@@ -2247,6 +2258,14 @@ class TypeRule {
       JS('', '#.#', rule, supertype);
 }
 
+class Variance {
+  // TODO(fishythefish): Try bitmask representation.
+  static const legacyCovariant = 0;
+  static const covariant = 1;
+  static const contravariant = 2;
+  static const invariant = 3;
+}
+
 // -------- Subtype tests ------------------------------------------------------
 
 // Future entry point from compiled code.
@@ -2431,10 +2450,41 @@ bool _isSubtypeOfInterface(
     var sArgs = Rti._getInterfaceTypeArguments(s);
     int length = _Utils.arrayLength(sArgs);
     assert(length == _Utils.arrayLength(tArgs));
+
+    var sVariances;
+    bool hasVariances;
+    if (JS_GET_FLAG("VARIANCE")) {
+      sVariances = _Universe.findTypeParameterVariances(universe, sName);
+      hasVariances = sVariances != null;
+      assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+    }
+
     for (int i = 0; i < length; i++) {
       Rti sArg = _castToRti(_Utils.arrayAt(sArgs, i));
       Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
-      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+      if (JS_GET_FLAG("VARIANCE")) {
+        int sVariance = hasVariances
+            ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
+            : Variance.legacyCovariant;
+        switch (sVariance) {
+          case Variance.legacyCovariant:
+          case Variance.covariant:
+            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+            break;
+          case Variance.contravariant:
+            if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) return false;
+            break;
+          case Variance.invariant:
+            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
+                !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) return false;
+            break;
+          default:
+            throw StateError(
+                "Unknown variance given for subtype check: $sVariance");
+        }
+      } else {
+        if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+      }
     }
     return true;
   }
@@ -2663,6 +2713,10 @@ Object testingCreateUniverse() {
 
 void testingAddRules(universe, rules) {
   _Universe.addRules(universe, rules);
+}
+
+void testingAddTypeParameterVariances(universe, variances) {
+  _Universe.addTypeParameterVariances(universe, variances);
 }
 
 bool testingIsSubtype(universe, rti1, rti2) {

@@ -381,6 +381,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useContentSecurityPolicy;
       case 'USE_NEW_RTI':
         return options.experimentNewRti;
+      case 'VARIANCE':
+        return options.enableVariance;
       default:
         return null;
     }

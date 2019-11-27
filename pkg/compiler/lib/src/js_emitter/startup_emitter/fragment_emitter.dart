@@ -2053,6 +2053,7 @@ class FragmentEmitter {
     initField(RtiUniverseFieldNames.evalCache, 'new Map()');
     initField(RtiUniverseFieldNames.typeRules, '{}');
     initField(RtiUniverseFieldNames.erasedTypes, '{}');
+    initField(RtiUniverseFieldNames.typeParameterVariances, '{}');
     initField(RtiUniverseFieldNames.sharedEmptyArray, '[]');
 
     return js.ObjectInitializer(universeFields);

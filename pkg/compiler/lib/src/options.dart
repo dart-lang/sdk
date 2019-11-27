@@ -111,6 +111,9 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useCFEConstants =>
       languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
 
+  /// `true` if variance is enabled.
+  bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
