@@ -2134,7 +2134,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
-  if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
+  if (FieldNeedsSetter(field_helper)) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
     const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
@@ -2155,6 +2155,24 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
   }
+}
+
+bool KernelLoader::FieldNeedsSetter(FieldHelper* field_helper) {
+  // Late fields always need a setter, unless they're static and non-final.
+  if (field_helper->IsLate()) {
+    if (field_helper->IsStatic() && !field_helper->IsFinal()) {
+      return false;
+    }
+    return true;
+  }
+
+  // Non-late static fields never need a setter.
+  if (field_helper->IsStatic()) {
+    return false;
+  }
+
+  // Otherwise, the field only needs a setter if it isn't final.
+  return !field_helper->IsFinal();
 }
 
 RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {

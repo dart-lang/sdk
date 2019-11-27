@@ -333,6 +333,7 @@ class KernelLoader : public ValueObject {
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
                               FieldHelper* field_helper);
+  bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
