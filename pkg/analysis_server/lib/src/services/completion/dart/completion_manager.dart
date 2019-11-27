@@ -76,11 +76,20 @@ class DartCompletionManager implements CompletionContributor {
   /// relevance than other included suggestions.
   final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
+  /// Initialize a newly created completion manager. The parameters
+  /// [includedElementKinds], [includedElementNames], and
+  /// [includedSuggestionRelevanceTags] must either all be `null` or must all be
+  /// non-`null`.
   DartCompletionManager({
     this.includedElementKinds,
     this.includedElementNames,
     this.includedSuggestionRelevanceTags,
-  });
+  }) : assert((includedElementKinds != null &&
+                includedElementNames != null &&
+                includedSuggestionRelevanceTags != null) ||
+            (includedElementKinds == null &&
+                includedElementNames == null &&
+                includedSuggestionRelevanceTags == null));
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

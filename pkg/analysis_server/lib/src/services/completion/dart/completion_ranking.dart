@@ -13,16 +13,16 @@ import 'package:analysis_server/src/services/completion/dart/completion_ranking_
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 
+/// Number of code completion isolates.
+// TODO(devoncarew): We need to explore the memory costs of running multiple ML
+// isolates.
+const int _ISOLATE_COUNT = 2;
+
 /// Number of lookback tokens.
 const int _LOOKBACK = 100;
 
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
-
-// TODO(devoncarew): We need to explore the memory costs of running multiple ML
-// isolates.
-/// Number of code completion isolates.
-const int _ISOLATE_COUNT = 2;
 
 /// Prediction service run by the model isolate.
 void entrypoint(SendPort sendPort) {
@@ -113,6 +113,10 @@ class CompletionRanking {
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
       DartCompletionRequest request,
       FeatureSet featureSet) async {
+    assert((includedElementNames != null &&
+            includedSuggestionRelevanceTags != null) ||
+        (includedElementNames == null &&
+            includedSuggestionRelevanceTags == null));
     final probability = await probabilityFuture
         .timeout(const Duration(seconds: 1), onTimeout: () => null);
     if (probability == null || probability.isEmpty) {
@@ -153,13 +157,14 @@ class CompletionRanking {
 
     var allowModelOnlySuggestions =
         !testNamedArgument(suggestions) && !testFollowingDot(request);
-    entries.forEach((MapEntry entry) {
+    for (MapEntry entry in entries) {
       // There may be multiple like
       // CompletionSuggestion and CompletionSuggestion().
       final completionSuggestions = suggestions.where((suggestion) =>
           areCompletionsEquivalent(suggestion.completion, entry.key));
       List<IncludedSuggestionRelevanceTag> includedSuggestions;
-      final isIncludedElementName = includedElementNames.contains(entry.key);
+      final isIncludedElementName = includedElementNames != null &&
+          includedElementNames.contains(entry.key);
       if (includedSuggestionRelevanceTags != null) {
         includedSuggestions = includedSuggestionRelevanceTags
             .where((tag) => areCompletionsEquivalent(
@@ -211,8 +216,7 @@ class CompletionRanking {
               .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
         }
       }
-    });
-
+    }
     return suggestions;
   }
 
@@ -256,11 +260,11 @@ class PerformanceMetrics {
 
   List<Duration> get isolateInitTimes => _isolateInitTimes;
 
-  /// An iterable of the last `n` prediction results;
-  Iterable<PredictionResult> get predictionResults => _predictionResults;
-
   /// The total prediction requests to ML Complete.
   int get predictionRequestCount => _predictionRequestCount;
+
+  /// An iterable of the last `n` prediction results;
+  Iterable<PredictionResult> get predictionResults => _predictionResults;
 
   void _addPredictionResult(PredictionResult request) {
     _predictionResults.addFirst(request);
