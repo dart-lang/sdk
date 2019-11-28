@@ -598,6 +598,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Uri newFileUri;
     resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
     newFileUri = resolve(fileUri, uri, charOffset);
+    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
+    // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
     partOffsets.add(charOffset);
@@ -950,7 +952,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // parts, so that metadata annotations can be associated with it.
       addProblem(
           messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri);
-      return false;
     }
 
     part.validatePart(this, usedParts);
