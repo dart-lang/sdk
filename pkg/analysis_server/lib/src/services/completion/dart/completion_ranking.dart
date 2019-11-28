@@ -62,17 +62,31 @@ class CompletionRanking {
 
   CompletionRanking(this._directory);
 
-  /// Send an RPC to the isolate worker and wait for it to respond.
-  Future<Map<String, Map<String, double>>> makeRequest(
-      String method, List<String> args) async {
-    final port = ReceivePort();
-    _writes[_index].send({
-      'method': method,
+  /// Send an RPC to the isolate worker requesting that it load the model and
+  /// wait for it to respond.
+  Future<Map<String, Map<String, double>>> makeLoadRequest(
+      SendPort sendPort, List<String> args) async {
+    final receivePort = ReceivePort();
+    sendPort.send({
+      'method': 'load',
       'args': args,
-      'port': port.sendPort,
+      'port': receivePort.sendPort,
     });
-    this._index = (_index + 1) % _ISOLATE_COUNT;
-    return await port.first;
+    return await receivePort.first;
+  }
+
+  /// Send an RPC to the isolate worker requesting that it make a prediction and
+  /// wait for it to respond.
+  Future<Map<String, Map<String, double>>> makePredictRequest(
+      List<String> args) async {
+    final receivePort = ReceivePort();
+    _writes[_index].send({
+      'method': 'predict',
+      'args': args,
+      'port': receivePort.sendPort,
+    });
+    _index = (_index + 1) % _writes.length;
+    return await receivePort.first;
   }
 
   /// Makes a next-token prediction starting at the completion request cursor
@@ -88,7 +102,7 @@ class CompletionRanking {
     performanceMetrics._incrementPredictionRequestCount();
 
     final Stopwatch timer = Stopwatch()..start();
-    final response = await makeRequest('predict', query);
+    final response = await makePredictRequest(query);
     timer.stop();
 
     final Map<String, double> result = response['data'];
@@ -222,8 +236,8 @@ class CompletionRanking {
 
   /// Spin up the model isolates and load the tflite model.
   Future<void> start() async {
-    this._writes = [];
-    this._index = 0;
+    _writes = [];
+    _index = 0;
     final initializations = <Future<void>>[];
 
     // Start the first isolate.
@@ -241,10 +255,11 @@ class CompletionRanking {
     final Stopwatch timer = Stopwatch()..start();
     final port = ReceivePort();
     await Isolate.spawn(entrypoint, port.sendPort);
-    this._writes.add(await port.first);
-    return makeRequest('load', [_directory]).whenComplete(() {
+    SendPort sendPort = await port.first;
+    return makeLoadRequest(sendPort, [_directory]).whenComplete(() {
       timer.stop();
       performanceMetrics._isolateInitTimes.add(timer.elapsed);
+      _writes.add(sendPort);
     });
   }
 }

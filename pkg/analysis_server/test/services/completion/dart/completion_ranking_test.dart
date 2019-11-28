@@ -19,7 +19,7 @@ void main() {
   test('make request to isolate', () async {
     final tokens =
         tokenize('if (list == null) { return; } for (final i = 0; i < list.');
-    final response = await ranking.makeRequest('predict', tokens);
+    final response = await ranking.makePredictRequest(tokens);
     expect(response['data']['length'], greaterThan(0.9));
   });
 }
