@@ -271,7 +271,7 @@ const List<Suite> suites = [
       "spelling_test_src", spelling_src.createContext, "../testing.json"),
 ];
 
-const Duration timeoutDuration = Duration(minutes: 10);
+const Duration timeoutDuration = Duration(minutes: 15);
 
 class SuiteConfiguration {
   final String name;
