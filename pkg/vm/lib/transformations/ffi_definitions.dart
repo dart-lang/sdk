@@ -217,7 +217,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         name: Name("#fromPointer"),
         initializers: [
           SuperInitializer(structFromPointer, Arguments([VariableGet(pointer)]))
-        ]);
+        ],
+        fileUri: node.fileUri)
+      ..fileOffset = node.fileOffset;
     _makeEntryPoint(ctor);
     node.addMember(ctor);
   }
@@ -378,7 +380,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
-        type: InterfaceType(intClass, Nullability.legacy));
+        type: InterfaceType(intClass, Nullability.legacy),
+        fileUri: struct.fileUri)
+      ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addMember(sizeOf);
   }

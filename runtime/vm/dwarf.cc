@@ -635,6 +635,7 @@ void Dwarf::WriteLines() {
   for (intptr_t i = 0; i < scripts_.length(); i++) {
     const Script& script = *(scripts_[i]);
     uri = script.url();
+    RELEASE_ASSERT(strlen(uri.ToCString()) != 0);
     string(uri.ToCString());  // NOLINT
     uleb128(0);  // Include directory index.
     uleb128(0);  // File modification time.
