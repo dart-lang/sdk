@@ -10,7 +10,7 @@ import "package:ffi/ffi.dart";
 @#C3
 class Coordinate extends ffi::Struct {
   @#C3
-  static final field core::int* #sizeOf = (#C6).{core::List::[]}(ffi::_abi())/* from null */;
+  static final field core::int* #sizeOf = (#C6).{core::List::[]}(ffi::_abi());
   @#C3
   constructor #fromPointer(dynamic #pointer) → dynamic
     : super ffi::Struct::_fromPointer(#pointer)
