@@ -3924,6 +3924,10 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(compiler->GetJumpLabel(this));
   }
 
+  if (this == compiler->flow_graph().graph_entry()->unchecked_entry()) {
+    __ BindUncheckedEntryPoint();
+  }
+
   // In the AOT compiler we want to reduce code size, so generate no
   // fall-through code in [FlowGraphCompiler::CompileGraph()].
   // (As opposed to here where we don't check for the return value of
@@ -4326,7 +4330,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                     token_pos(), locs(), entry_kind());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
-                                     *call_ic_data);
+                                     *call_ic_data, entry_kind());
     }
   }
 }

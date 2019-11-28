@@ -14894,7 +14894,7 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
       assembler->CodeSize(), assembler->has_single_entry_point(),
-      compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
+      assembler->UncheckedEntryOffset()));
 
   {
     // Important: if GC is triggerred at any point between Instructions::New

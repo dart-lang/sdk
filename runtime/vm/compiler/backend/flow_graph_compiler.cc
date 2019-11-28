@@ -327,30 +327,6 @@ void FlowGraphCompiler::CompactBlocks() {
   block_info->set_next_nonempty_label(nonempty_label);
 }
 
-intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-  BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
-  if (entry == nullptr) {
-    entry = flow_graph().graph_entry()->normal_entry();
-  }
-  if (entry == nullptr) {
-    entry = flow_graph().graph_entry()->osr_entry();
-  }
-  ASSERT(entry != nullptr);
-  compiler::Label* target = GetJumpLabel(entry);
-
-  if (target->IsBound()) {
-    return target->Position();
-  }
-
-  // Intrinsification happened.
-  if (parsed_function().function().IsDynamicFunction()) {
-    return FLAG_precompiled_mode ? Instructions::kPolymorphicEntryOffsetAOT
-                                 : Instructions::kPolymorphicEntryOffsetJIT;
-  }
-
-  return 0;
-}
-
 #if defined(DART_PRECOMPILER)
 static intptr_t LocationToStackIndex(const Location& src) {
   ASSERT(src.HasStackIndex());
@@ -1399,7 +1375,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(args_info.count_with_type_args, deopt_id,
-                              token_pos, locs, call_ic_data);
+                              token_pos, locs, call_ic_data, entry_kind);
   }
 }
 
@@ -2059,9 +2035,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     } else {
       const ICData& unary_checks = ICData::ZoneHandle(
           zone(), original_call.ic_data()->AsUnaryClassChecks());
-      // TODO(sjindel/entrypoints): Support skiping type checks on switchable
-      // calls.
-      EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs);
+      EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs,
+                          original_call.entry_kind());
     }
   }
 }

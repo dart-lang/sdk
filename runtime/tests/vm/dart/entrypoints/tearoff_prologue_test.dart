@@ -5,6 +5,7 @@
 // No type checks are removed here, but we can skip the argument count check.
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 -Denable_inlining=true
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=-1
 
 import "package:expect/expect.dart";
 import "common.dart";
@@ -20,23 +21,19 @@ class C<T> {
   }
 }
 
+void run(void Function(int) test, int i) {
+  test(i);
+}
+
 main(List<String> args) {
   var c = new C<int>();
   var f = c.samir1;
 
-  // Warmup.
-  expectedEntryPoint = -1;
-  expectedTearoffEntryPoint = -1;
-  for (int i = 0; i < 100; ++i) {
-    f(i);
-  }
-
-  expectedEntryPoint = 0;
-  expectedTearoffEntryPoint = 1;
-  int iterations = benchmarkMode ? 100000000 : 100;
+  const int iterations = benchmarkMode ? 100000000 : 100;
   for (int i = 0; i < iterations; ++i) {
-    f(i);
+    run(f, i);
   }
 
-  Expect.isTrue(validateRan);
+  entryPoint.expectChecked(iterations);
+  tearoffEntryPoint.expectUnchecked(iterations);
 }

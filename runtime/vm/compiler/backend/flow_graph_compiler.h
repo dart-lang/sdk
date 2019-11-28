@@ -837,10 +837,6 @@ class FlowGraphCompiler : public ValueObject {
                                      int bias,
                                      bool jump_on_miss = true);
 
-  // Returns the offset (from the very beginning of the instructions) to the
-  // unchecked entry point (incl. prologue/frame setup, etc.).
-  intptr_t UncheckedEntryOffset() const;
-
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
  private:
@@ -879,11 +875,13 @@ class FlowGraphCompiler : public ValueObject {
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
-                                 intptr_t deopt_id,
-                                 TokenPosition token_pos,
-                                 LocationSummary* locs,
-                                 const ICData& ic_data);
+  void EmitUnoptimizedStaticCall(
+      intptr_t count_with_type_args,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      const ICData& ic_data,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Helper for TestAndCall that calculates a good bias that
   // allows more compact instructions to be emitted.

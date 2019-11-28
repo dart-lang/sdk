@@ -358,10 +358,21 @@ class AssemblerBase : public StackResource {
 
   const GrowableArray<CodeComment*>& comments() const { return comments_; }
 
+  void BindUncheckedEntryPoint() {
+    ASSERT(unchecked_entry_offset_ == 0);
+    unchecked_entry_offset_ = CodeSize();
+  }
+
+  // Returns the offset (from the very beginning of the instructions) to the
+  // unchecked entry point (incl. prologue/frame setup, etc.).
+  intptr_t UncheckedEntryOffset() const { return unchecked_entry_offset_; }
+
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.
   int32_t prologue_offset_;
   bool has_single_entry_point_;
+
+  intptr_t unchecked_entry_offset_ = 0;
 
  private:
   GrowableArray<CodeComment*> comments_;

@@ -1161,7 +1161,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
-                                                  const ICData& ic_data) {
+                                                  const ICData& ic_data,
+                                                  Code::EntryKind entry_kind) {
+  // TODO(34162): Support multiple entry-points on ARM64.
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(R5, ic_data);

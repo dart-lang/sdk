@@ -1348,8 +1348,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
-  // The constant target::frame_layout.exit_link_slot_from_entry_fp must be kept
-  // in sync with the code below.
+// The constant target::frame_layout.exit_link_slot_from_entry_fp must be kept
+// in sync with the code below.
 #if defined(DEBUG)
   {
     Label ok;
@@ -2049,6 +2049,21 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ret();
 }
 
+// Saves the offset of the target entry-point (from the Function) into R8.
+//
+// Must be the first code generated, since any code before will be skipped in
+// the unchecked entry-point.
+static void GenerateRecordEntryPoint(Assembler* assembler) {
+  Label done;
+  __ movq(R8,
+          Immediate(target::Function::entry_point_offset() - kHeapObjectTag));
+  __ jmp(&done);
+  __ BindUncheckedEntryPoint();
+  __ movq(R8, Immediate(target::Function::unchecked_entry_point_offset() -
+                        kHeapObjectTag));
+  __ Bind(&done);
+}
+
 // Generate inline cache check for 'num_args'.
 //  RDX: receiver (if instance call)
 //  RBX: ICData
@@ -2068,6 +2083,14 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
+  GenerateRecordEntryPoint(assembler);
+
+  if (optimized == kOptimized) {
+    GenerateOptimizedUsageCounterIncrement(assembler);
+  } else {
+    GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
+  }
+
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -2182,6 +2205,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterStubFrame();
+  __ SmiTag(R8);           // Entry-point offset is not Smi.
+  __ pushq(R8);            // Preserve entry point.
   __ pushq(R10);           // Preserve arguments descriptor array.
   __ pushq(RBX);           // Preserve IC data object.
   __ pushq(Immediate(0));  // Result slot.
@@ -2196,9 +2221,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popq(RAX);
   }
-  __ popq(RAX);  // Pop returned function object into RAX.
-  __ popq(RBX);  // Restore IC data array.
-  __ popq(R10);  // Restore arguments descriptor array.
+  __ popq(RAX);     // Pop returned function object into RAX.
+  __ popq(RBX);     // Restore IC data array.
+  __ popq(R10);     // Restore arguments descriptor array.
+  __ popq(R8);      // Restore entry point.
+  __ SmiUntag(R8);  // Entry-point offset is not Smi.
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
@@ -2246,11 +2273,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ addq(Address(R13, count_offset), Immediate(target::ToRawSmi(1)));
   }
 
-  __ Comment("Call target (via checked entry point)");
+  __ Comment("Call target (via specified entry point)");
   __ Bind(&call_target_function);
   // RAX: Target function.
   __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ jmp(FieldAddress(RAX, target::Function::entry_point_offset()));
+  __ addq(R8, RAX);
+  __ jmp(Address(R8, 0));
 
   if (exactness == kCheckExactness) {
     __ Bind(&call_target_function_through_unchecked_entry);
@@ -2273,7 +2301,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ pushq(RDX);  // Preserve receiver.
     }
     __ pushq(RBX);  // Preserve ICData.
+    __ SmiTag(R8);  // Entry-point offset is not Smi.
+    __ pushq(R8);   // Preserve entry point.
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popq(R8);  // Restore entry point.
+    __ SmiUntag(R8);
     __ popq(RBX);  // Restore ICData.
     if (type == kInstanceCall) {
       __ popq(RDX);  // Restore receiver.
@@ -2290,7 +2322,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -2301,7 +2332,6 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kCheckExactness);
@@ -2312,7 +2342,6 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -2322,7 +2351,6 @@ void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
 //  RBX: ICData
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -2332,7 +2360,6 @@ void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
 //  RBX: ICData
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -2342,7 +2369,6 @@ void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
 //  RBX: ICData
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -2354,7 +2380,6 @@ void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
@@ -2367,7 +2392,6 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
         Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kCheckExactness);
@@ -2379,7 +2403,6 @@ void StubCodeCompiler::
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
@@ -2389,6 +2412,7 @@ void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
     Assembler* assembler) {
+  GenerateRecordEntryPoint(assembler);
   GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
 #if defined(DEBUG)
   {
@@ -2442,14 +2466,19 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
   __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-  __ jmp(RCX);
+
+  __ addq(R8, RAX);
+  __ jmp(Address(R8, 0));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
   __ EnterStubFrame();
   __ pushq(RBX);  // Preserve IC data object.
+  __ SmiTag(R8);  // Entry-point is not Smi.
+  __ pushq(R8);   // Preserve entry-point.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ popq(R8);  // Restore entry-point.
+  __ SmiUntag(R8);
   __ popq(RBX);
   __ RestoreCodePointer();
   __ LeaveStubFrame();
@@ -2461,7 +2490,6 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
@@ -2471,7 +2499,6 @@ void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
 //  RSP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
