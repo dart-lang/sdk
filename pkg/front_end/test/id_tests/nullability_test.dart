@@ -22,7 +22,6 @@ main(List<String> args) async {
           const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
         // TODO(johnniwinther): Run all nullability tests.
-        'null_aware_access.dart',
         'try_finally.dart',
         'while.dart',
       ]);

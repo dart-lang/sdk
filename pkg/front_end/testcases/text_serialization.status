@@ -819,6 +819,7 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 inference_new/list_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
 inference_new/map_literals_can_infer_null_top_level: TextSerializationFailure # Was: Pass
 inference_new/multiple_interface_inheritance: TextSerializationFailure # Was: Pass
+inference_new/null_aware_property_get: TextSerializationFailure
 inference_new/property_assign_combiner: TextSerializationFailure # Was: Pass
 inference_new/property_get_toplevel: TextSerializationFailure # Was: Pass
 inference_new/static_assign_combiner: TextSerializationFailure # Was: Pass
@@ -927,6 +928,7 @@ nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
 nnbd/null_shorting_cascade: TextSerializationFailure

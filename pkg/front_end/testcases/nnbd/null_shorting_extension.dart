@@ -38,11 +38,17 @@ void propertyAccess(Class? c) {
   c?.method();
 
   c?.field.field;
+  c?.field?.field;
+  c?.field.field?.field;
   c?.field.field = new Class();
+  c?.field?.field = new Class();
+  c?.field.field?.field = new Class();
   throws(() => (c?.field).field);
   throws(() => (c?.field = new Class()).field);
   throws(() => (c?.method()).field);
   c = c?.field.field = new Class();
+  c = c?.field?.field = new Class();
+  c = c?.field.field?.field = new Class();
   c?.field.method();
   c?.field = new Class().field;
   c = c?.field = new Class().field;

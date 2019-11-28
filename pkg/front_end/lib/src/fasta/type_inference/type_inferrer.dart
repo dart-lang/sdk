@@ -6,6 +6,8 @@ import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
+import 'package:_fe_analyzer_shared/src/util/link.dart';
+
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
 
@@ -502,7 +504,6 @@ class TypeInferrerImpl implements TypeInferrer {
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
         typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
-        // TODO(dmitryas): Pass in the actual assigned variables.
         flowAnalysis = new FlowAnalysis(
             new TypeOperationsCfe(engine.typeSchemaEnvironment),
             assignedVariables);
@@ -1482,6 +1483,29 @@ class TypeInferrerImpl implements TypeInferrer {
     variable.type = inferredType;
   }
 
+  Link<NullAwareGuard> inferSyntheticVariableNullAware(
+      VariableDeclarationImpl variable) {
+    assert(variable.isImplicitlyTyped);
+    assert(variable.initializer != null);
+    ExpressionInferenceResult result = inferExpression(
+        variable.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
+    variable.initializer = result.nullAwareAction..parent = variable;
+    DartType inferredType = inferDeclarationType(result.inferredType);
+    instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
+        new InstrumentationValueForType(inferredType));
+    variable.type = inferredType;
+    return result.nullAwareGuards;
+  }
+
+  NullAwareGuard createNullAwareGuard(VariableDeclaration variable) {
+    Member equalsMember =
+        findInterfaceMember(variable.type, equalsName, variable.fileOffset)
+            .member;
+    return new NullAwareGuard(
+        variable, variable.fileOffset, equalsMember, this);
+  }
+
   /// Performs type inference on the given [expression].
   ///
   /// [typeContext] is the expected type of the expression, based on surrounding
@@ -2111,7 +2135,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   ExpressionInferenceResult _inferDynamicInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       Name name,
       Arguments arguments,
@@ -2124,12 +2148,12 @@ class TypeInferrerImpl implements TypeInferrer {
         inferredType,
         new MethodInvocationImpl(receiver, name, arguments)
           ..fileOffset = fileOffset,
-        nullAwareGuard);
+        nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferMissingInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2145,12 +2169,13 @@ class TypeInferrerImpl implements TypeInferrer {
         receiverType: receiverType);
     assert(name != equalsName);
     // TODO(johnniwinther): Use InvalidType instead.
-    return new ExpressionInferenceResult(const DynamicType(), error);
+    return new ExpressionInferenceResult.nullAware(
+        const DynamicType(), error, nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferExtensionInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2183,12 +2208,12 @@ class TypeInferrerImpl implements TypeInferrer {
           typeSchemaEnvironment, helper.uri, getTypeArgumentsInfo(arguments));
     }
     return new ExpressionInferenceResult.nullAware(
-        inferredType, staticInvocation, nullAwareGuard);
+        inferredType, staticInvocation, nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferFunctionInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2204,12 +2229,12 @@ class TypeInferrerImpl implements TypeInferrer {
         inferredType,
         new MethodInvocation(receiver, callName, arguments)
           ..fileOffset = fileOffset,
-        nullAwareGuard);
+        nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferInstanceMethodInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2297,12 +2322,12 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
 
     return new ExpressionInferenceResult.nullAware(
-        inferredType, replacement, nullAwareGuard);
+        inferredType, replacement, nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferInstanceGetterInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2395,12 +2420,12 @@ class TypeInferrerImpl implements TypeInferrer {
           ..fileOffset = fileOffset;
 
     return new ExpressionInferenceResult.nullAware(
-        inferredType, replacement, nullAwareGuard);
+        inferredType, replacement, nullAwareGuards);
   }
 
   ExpressionInferenceResult _inferInstanceFieldInvocation(
       int fileOffset,
-      NullAwareGuard nullAwareGuard,
+      Link<NullAwareGuard> nullAwareGuards,
       Expression receiver,
       DartType receiverType,
       ObjectAccessTarget target,
@@ -2470,7 +2495,7 @@ class TypeInferrerImpl implements TypeInferrer {
       ..fileOffset = fileOffset;
 
     return new ExpressionInferenceResult.nullAware(
-        inferredType, replacement, nullAwareGuard);
+        inferredType, replacement, nullAwareGuards);
   }
 
   /// Performs the core type inference algorithm for method invocations (this
@@ -2481,9 +2506,9 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result =
         inferExpression(node.receiver, const UnknownType(), true);
     Expression receiver;
-    NullAwareGuard nullAwareGuard;
+    Link<NullAwareGuard> nullAwareGuards;
     if (isNonNullableByDefault) {
-      nullAwareGuard = result.nullAwareGuard;
+      nullAwareGuards = result.nullAwareGuards;
       receiver = result.nullAwareAction;
     } else {
       receiver = result.expression;
@@ -2499,7 +2524,7 @@ class TypeInferrerImpl implements TypeInferrer {
           if (member.kind == ProcedureKind.Getter) {
             return _inferInstanceGetterInvocation(
                 node.fileOffset,
-                nullAwareGuard,
+                nullAwareGuards,
                 receiver,
                 receiverType,
                 target,
@@ -2509,7 +2534,7 @@ class TypeInferrerImpl implements TypeInferrer {
           } else {
             return _inferInstanceMethodInvocation(
                 node.fileOffset,
-                nullAwareGuard,
+                nullAwareGuards,
                 receiver,
                 receiverType,
                 target,
@@ -2518,18 +2543,18 @@ class TypeInferrerImpl implements TypeInferrer {
                 isImplicitCall: node.isImplicitCall);
           }
         } else {
-          return _inferInstanceFieldInvocation(node.fileOffset, nullAwareGuard,
+          return _inferInstanceFieldInvocation(node.fileOffset, nullAwareGuards,
               receiver, receiverType, target, node.arguments, typeContext,
               isImplicitCall: node.isImplicitCall);
         }
         break;
       case ObjectAccessTargetKind.callFunction:
-        return _inferFunctionInvocation(node.fileOffset, nullAwareGuard,
+        return _inferFunctionInvocation(node.fileOffset, nullAwareGuards,
             receiver, receiverType, target, node.arguments, typeContext);
       case ObjectAccessTargetKind.extensionMember:
         return _inferExtensionInvocation(
             node.fileOffset,
-            nullAwareGuard,
+            nullAwareGuards,
             receiver,
             receiverType,
             target,
@@ -2539,7 +2564,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.missing:
         return _inferMissingInvocation(
             node.fileOffset,
-            nullAwareGuard,
+            nullAwareGuards,
             receiver,
             receiverType,
             target,
@@ -2550,7 +2575,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.dynamic:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.unresolved:
-        return _inferDynamicInvocation(node.fileOffset, nullAwareGuard,
+        return _inferDynamicInvocation(node.fileOffset, nullAwareGuards,
             receiver, node.name, node.arguments, typeContext);
     }
     return unhandled('$target', 'inferMethodInvocation', node.fileOffset,
@@ -3256,10 +3281,10 @@ class ExpressionInferenceResult {
 
   factory ExpressionInferenceResult.nullAware(
       DartType inferredType, Expression expression,
-      [NullAwareGuard nullAwareGuard]) {
-    if (nullAwareGuard != null) {
+      [Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>()]) {
+    if (nullAwareGuards != null && nullAwareGuards.isNotEmpty) {
       return new NullAwareExpressionInferenceResult(
-          inferredType, nullAwareGuard, expression);
+          inferredType, nullAwareGuards, expression);
     } else {
       return new ExpressionInferenceResult(inferredType, expression);
     }
@@ -3268,13 +3293,13 @@ class ExpressionInferenceResult {
   ExpressionInferenceResult(this.inferredType, this.expression)
       : assert(expression != null);
 
-  /// The guard used for null-aware access if the expression is part of a
-  /// null-shorting, and `null` otherwise.
-  NullAwareGuard get nullAwareGuard => null;
+  /// The guards used for null-aware access if the expression is part of a
+  /// null-shorting.
+  Link<NullAwareGuard> get nullAwareGuards => const Link<NullAwareGuard>();
 
-  /// If the expression is part of a null-shorting, the action performed on
-  /// the variable in [nullAwareGuard]. Otherwise, this is the same as
-  /// [expression].
+  /// If the expression is part of a null-shorting, this is the action performed
+  /// on the guarded variable, found as the first guard in [nullAwareGuards].
+  /// Otherwise, this is the same as [expression].
   Expression get nullAwareAction => expression;
 
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
@@ -3291,11 +3316,25 @@ class NullAwareGuard {
   /// The [Member] used for the == call.
   final Member _nullAwareEquals;
 
-  NullAwareGuard(
-      this._nullAwareVariable, this._nullAwareFileOffset, this._nullAwareEquals)
+  final TypeInferrerImpl _inferrer;
+
+  NullAwareGuard(this._nullAwareVariable, this._nullAwareFileOffset,
+      this._nullAwareEquals, this._inferrer)
       : assert(_nullAwareVariable != null),
         assert(_nullAwareFileOffset != null),
-        assert(_nullAwareEquals != null);
+        assert(_nullAwareEquals != null),
+        assert(_inferrer != null) {
+    // Ensure the initializer of [_nullAwareVariable] is promoted to
+    // non-nullable.
+    _inferrer.flowAnalysis
+        .nullAwareAccess_rightBegin(_nullAwareVariable.initializer);
+    // Ensure [_nullAwareVariable] is promoted to non-nullable.
+    // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
+    // variable.
+    VariableGet read = new VariableGet(_nullAwareVariable);
+    _inferrer.flowAnalysis.variableRead(read, _nullAwareVariable);
+    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(read);
+  }
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -3307,6 +3346,10 @@ class NullAwareGuard {
   ///
   Expression createExpression(
       DartType inferredType, Expression nullAwareAction) {
+    // End non-nullable promotion of [_nullAwareVariable].
+    _inferrer.flowAnalysis.nullAwareAccess_end();
+    // End non-nullable promotion of the initializer of [_nullAwareVariable].
+    _inferrer.flowAnalysis.nullAwareAccess_end();
     MethodInvocation equalsNull = createEqualsNull(_nullAwareFileOffset,
         createVariableGet(_nullAwareVariable), _nullAwareEquals);
     ConditionalExpression condition = new ConditionalExpression(
@@ -3330,7 +3373,7 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   final DartType inferredType;
 
   @override
-  final NullAwareGuard nullAwareGuard;
+  final Link<NullAwareGuard> nullAwareGuards;
 
   @override
   final Expression nullAwareAction;
@@ -3338,20 +3381,25 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   Expression _expression;
 
   NullAwareExpressionInferenceResult(
-      this.inferredType, this.nullAwareGuard, this.nullAwareAction)
-      : assert(nullAwareGuard != null),
+      this.inferredType, this.nullAwareGuards, this.nullAwareAction)
+      : assert(nullAwareGuards.isNotEmpty),
         assert(nullAwareAction != null);
 
   Expression get expression {
     if (_expression == null) {
-      _expression ??=
-          nullAwareGuard.createExpression(inferredType, nullAwareAction);
+      _expression = nullAwareAction;
+      Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
+      while (nullAwareGuard.isNotEmpty) {
+        _expression =
+            nullAwareGuard.head.createExpression(inferredType, _expression);
+        nullAwareGuard = nullAwareGuard.tail;
+      }
     }
     return _expression;
   }
 
   String toString() =>
-      'NullAwareExpressionInferenceResult($inferredType,$nullAwareGuard,'
+      'NullAwareExpressionInferenceResult($inferredType,$nullAwareGuards,'
       '$nullAwareAction)';
 }
 

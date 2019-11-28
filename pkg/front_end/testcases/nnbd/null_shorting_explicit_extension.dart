@@ -38,11 +38,17 @@ void propertyAccess(Class? c) {
   Extension(c)?.method();
 
   Extension(c)?.field.field;
+  Extension(c)?.field?.field;
+  Extension(c)?.field.field?.field;
   Extension(c)?.field.field = new Class();
+  Extension(c)?.field?.field = new Class();
+  Extension(c)?.field.field?.field = new Class();
   throws(() => (Extension(c)?.field).field);
   throws(() => (Extension(c)?.field = new Class()).field);
   throws(() => (Extension(c)?.method()).field);
   c = Extension(c)?.field.field = new Class();
+  c = Extension(c)?.field?.field = new Class();
+  c = Extension(c)?.field.field?.field = new Class();
   Extension(c)?.field.method();
   Extension(c)?.field = new Class().field;
   c = Extension(c)?.field = new Class().field;
