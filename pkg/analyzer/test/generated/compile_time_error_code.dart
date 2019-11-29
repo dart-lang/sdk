@@ -878,7 +878,7 @@ class T {
 }
 f() { return const T(0, 1, c: 2, d: 3); }
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 46, 25),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 46, 5),
     ]);
   }
 

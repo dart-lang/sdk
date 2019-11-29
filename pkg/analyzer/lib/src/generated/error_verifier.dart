@@ -2513,8 +2513,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConstWithNonConst(InstanceCreationExpression expression) {
     ConstructorElement constructorElement = expression.staticElement;
     if (constructorElement != null && !constructorElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_NON_CONST, expression);
+      if (expression.keyword != null) {
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, expression.keyword);
+      } else {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, expression);
+      }
     }
   }
 

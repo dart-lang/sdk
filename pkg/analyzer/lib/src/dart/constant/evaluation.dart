@@ -423,8 +423,13 @@ class ConstantEvaluationEngine {
       ErrorReporter errorReporter,
       {ConstructorInvocation invocation}) {
     if (!constructor.isConst) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      if (node is InstanceCreationExpression && node.keyword != null) {
+        errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, node.keyword);
+      } else {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      }
       return null;
     }
 
