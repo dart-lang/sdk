@@ -367,8 +367,8 @@ main([List<String> arguments = const <String>[]]) async {
       await exitPort.first;
       timer.cancel();
       if (!timedOut) {
-        print(
-            "Suite $name finished (took ${stopwatch.elapsedMilliseconds}ms).");
+        int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
+        print("Suite $name finished (took ${seconds} seconds)");
       }
       return timedOut;
     });
