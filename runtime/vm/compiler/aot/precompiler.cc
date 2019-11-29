@@ -2257,6 +2257,17 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   }
 }
 
+// Generate allocation stubs referenced by AllocateObject instructions.
+static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
+  for (auto block : flow_graph->reverse_postorder()) {
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      if (auto allocation = it.Current()->AsAllocateObject()) {
+        StubCode::GetAllocationStubForClass(allocation->cls());
+      }
+    }
+  }
+}
+
 // Return false if bailed out.
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
@@ -2281,6 +2292,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool use_far_branches = false;
   SpeculativeInliningPolicy speculative_policy(
       true, FLAG_max_speculative_inlining_attempts);
+
+  volatile bool has_failed_to_commit_object_pool = false;
 
   while (!done) {
     LongJumpScope jump;
@@ -2349,13 +2362,35 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
 
-      compiler::ObjectPoolBuilder object_pool;
-      compiler::ObjectPoolBuilder* active_object_pool_builder =
+      if (FLAG_use_bare_instructions) {
+        // When generating code in bare instruction mode all code objects
+        // share the same global object pool. To reduce interleaving of
+        // unrelated object pool entries from different code objects
+        // we attempt to pregenerate stubs referenced by the code
+        // we are going to generate.
+        //
+        // Reducing interleaving means reducing recompilations triggered by
+        // failure to commit object pool into the global object pool.
+        GenerateNecessaryAllocationStubs(flow_graph);
+      }
+
+      // Even in bare instructions mode we don't directly add objects into
+      // the global object pool because code generation can bail out
+      // (e.g. due to speculative optimization or branch offsets being
+      // too big). If we were adding objects into the global pool directly
+      // these recompilations would leave dead entries behind.
+      // Instead we add objects into an intermediary pool which gets
+      // commited into the global object pool at the end of the compilation.
+      // This makes an assumption that global object pool itself does not
+      // grow during code generation - unfortunately this is not the case
+      // becase we might have nested code generation (i.e. we might generate
+      // some stubs). If this indeed happens we retry the compilation.
+      // (See TryCommitToParent invocation below).
+      compiler::ObjectPoolBuilder object_pool_builder(
           FLAG_use_bare_instructions
               ? precompiler_->global_object_pool_builder()
-              : &object_pool;
-      compiler::Assembler assembler(active_object_pool_builder,
-                                    use_far_branches);
+              : nullptr);
+      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {
@@ -2379,6 +2414,24 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);
+      }
+
+      // In bare instructions mode try adding all entries from the object
+      // pool into the global object pool. This might fail if we have
+      // nested code generation (i.e. we generated some stubs) whichs means
+      // that some of the object indices we used are already occupied in the
+      // global object pool.
+      //
+      // In this case we simply retry compilation assuming that we are not
+      // going to hit this problem on the second attempt.
+      if (FLAG_use_bare_instructions &&
+          !object_pool_builder.TryCommitToParent()) {
+        if (has_failed_to_commit_object_pool) {
+          FATAL("Failed to commit object pool into global object pool twice");
+        }
+        done = false;
+        has_failed_to_commit_object_pool = true;
+        continue;
       }
       // Exit the loop and the function with the correct result value.
       is_compiled = true;

@@ -287,7 +287,7 @@ intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
 
   if (entry.type() == ObjectPoolBuilderEntry::kTaggedObject) {
     // If the owner of the object pool wrapper specified a specific zone we
-    // shoulld use we'll do so.
+    // should use we'll do so.
     if (zone_ != NULL) {
       entry.obj_ = &NewZoneHandle(zone_, *entry.obj_);
       if (entry.equivalence_ != NULL) {
@@ -296,20 +296,28 @@ intptr_t ObjectPoolBuilder::AddObject(ObjectPoolBuilderEntry entry) {
     }
   }
 
+  const intptr_t idx = base_index_ + object_pool_.length();
   object_pool_.Add(entry);
   if (entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
-    object_pool_index_table_.Insert(
-        ObjIndexPair(entry, object_pool_.length() - 1));
+    object_pool_index_table_.Insert(ObjIndexPair(entry, idx));
   }
-  return object_pool_.length() - 1;
+  return idx;
 }
 
 intptr_t ObjectPoolBuilder::FindObject(ObjectPoolBuilderEntry entry) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
   if (entry.patchable() == ObjectPoolBuilderEntry::kNotPatchable) {
-    intptr_t idx = object_pool_index_table_.LookupValue(entry);
+    // First check in the parent pool if we have one.
+    if (parent_ != nullptr) {
+      const intptr_t idx = parent_->object_pool_index_table_.LookupValue(entry);
+      if (idx != ObjIndexPair::kNoIndex) {
+        return idx;
+      }
+    }
+
+    const intptr_t idx = object_pool_index_table_.LookupValue(entry);
     if (idx != ObjIndexPair::kNoIndex) {
       return idx;
     }
@@ -348,6 +356,18 @@ intptr_t ObjectPoolBuilder::FindNativeFunctionWrapper(
   return FindObject(ObjectPoolBuilderEntry(
       label->address(), ObjectPoolBuilderEntry::kNativeFunctionWrapper,
       patchable));
+}
+
+bool ObjectPoolBuilder::TryCommitToParent() {
+  ASSERT(parent_ != nullptr);
+  if (parent_->CurrentLength() != base_index_) {
+    return false;
+  }
+  for (intptr_t i = 0; i < object_pool_.length(); i++) {
+    intptr_t idx = parent_->AddObject(object_pool_[i]);
+    ASSERT(idx == (base_index_ + i));
+  }
+  return true;
 }
 
 }  // namespace compiler
