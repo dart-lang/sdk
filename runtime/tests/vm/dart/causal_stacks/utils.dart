@@ -629,7 +629,6 @@ Future<void> doTestsLazy() async {
   final noYieldsExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
     r'^#1      noYields3 \(.*/utils.dart:(54|54:3)\)$',
-    r'^<asynchronous suspension>$',
     // TODO(dart-vm): Figure out why this frame is flaky:
     r'^#2      _AsyncAwaitCompleter.start ',
     r'^#3      noYields3 \(.*/utils.dart:(53|53:23)\)$',

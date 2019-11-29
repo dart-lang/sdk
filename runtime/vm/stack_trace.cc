@@ -196,9 +196,10 @@ void StackTraceUtils::CollectFramesLazy(
   CallerClosureFinder caller_closure_finder(zone);
   auto& pc_descs = PcDescriptors::Handle();
 
-  for (; frame != nullptr; frame = frames.NextFrame()) {
+  for (; frame != nullptr;) {
     if (skip_frames > 0) {
       skip_frames--;
+      frame = frames.NextFrame();
       continue;
     }
 
@@ -221,10 +222,6 @@ void StackTraceUtils::CollectFramesLazy(
         offset = Smi::New(frame->pc() - code.PayloadStart());
       }
       pc_offset_array.Add(offset);
-      // Inject async suspension marker.
-      code_array.Add(StubCode::AsynchronousGapMarker());
-      offset = Smi::New(0);
-      pc_offset_array.Add(offset);
 
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
@@ -236,8 +233,14 @@ void StackTraceUtils::CollectFramesLazy(
       // If this async function hasn't yielded yet, we're still dealing with a
       // normal stack. Continue to next frame as usual.
       if (GetYieldIndex(closure) <= 0) {
+        // Don't advance frame since we already did so just above.
         continue;
       }
+
+      // Inject async suspension marker.
+      code_array.Add(StubCode::AsynchronousGapMarker());
+      offset = Smi::New(0);
+      pc_offset_array.Add(offset);
 
       // Skip: Already handled this frame's function above.
       closure = caller_closure_finder.FindCaller(closure);
@@ -292,6 +295,8 @@ void StackTraceUtils::CollectFramesLazy(
         pc_offset_array.Add(offset);
       }
     }
+
+    frame = frames.NextFrame();
   }
 
   return;
