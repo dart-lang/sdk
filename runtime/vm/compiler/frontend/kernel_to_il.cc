@@ -398,6 +398,14 @@ Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
 }
 
 Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
+  // Captured 'this' is immutable, so within the outer method we don't need to
+  // load it from the context.
+  const ParsedFunction* pf = parsed_function_;
+  if (pf->function().HasThisParameter() && pf->has_receiver_var() &&
+      variable == pf->receiver_var()) {
+    ASSERT(variable == pf->ParameterVariable(0));
+    variable = pf->RawParameterVariable(0);
+  }
   if (variable->is_captured()) {
     Fragment instructions;
     instructions += LoadContextAt(variable->owner()->context_level());
@@ -1749,8 +1757,12 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
   for (intptr_t i = dart_function.NumImplicitParameters(); i < num_params;
        ++i) {
     LocalVariable* param = parsed_function_->ParameterVariable(i);
+    const String& name = param->name();
     if (!param->needs_type_check()) {
       continue;
+    }
+    if (param->is_captured()) {
+      param = parsed_function_->RawParameterVariable(i);
     }
 
     const AbstractType* target_type = &param->type();
@@ -1766,7 +1778,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
 
     *checks += LoadLocal(param);
-    *checks += CheckAssignable(*target_type, param->name(),
+    *checks += CheckAssignable(*target_type, name,
                                AssertAssignableInstr::kParameterCheck);
     *checks += Drop();
 

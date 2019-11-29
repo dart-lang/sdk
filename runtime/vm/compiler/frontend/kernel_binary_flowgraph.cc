@@ -188,27 +188,6 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
-    const Field& field,
-    bool has_initializer) {
-  if (has_initializer && PeekTag() == kNullLiteral) {
-    SkipExpression();  // read past the null literal.
-    if (H.thread()->IsMutatorThread()) {
-      field.RecordStore(Object::null_object());
-    } else {
-      ASSERT(field.is_nullable(/* silence_assert = */ true));
-    }
-    return Fragment();
-  }
-
-  Fragment instructions;
-  instructions += LoadLocal(parsed_function()->receiver_var());
-  instructions += flow_graph_builder_->Constant(Object::sentinel());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      field, StoreInstanceFieldInstr::Kind::kInitializing);
-  return instructions;
-}
-
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
@@ -313,11 +292,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         const Tag initializer_tag = ReadTag();
-        if (class_field.is_late()) {
-          instructions +=
-              BuildLateFieldInitializer(Field::ZoneHandle(Z, class_field.raw()),
-                                        initializer_tag == kSomething);
-        } else if (initializer_tag == kSomething) {
+        if (initializer_tag == kSomething) {
           EnterScope(field_offset);
           // If this field is initialized in constructor then we can ignore the
           // value produced by the field initializer. However we still need to
@@ -688,18 +663,13 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
                 raw_parameter.owner() == NULL));
         ASSERT(!raw_parameter.is_captured());
 
-        // Copy the parameter from the stack to the context.  Overwrite it
-        // with a null constant on the stack so the original value is
-        // eligible for garbage collection.
+        // Copy the parameter from the stack to the context.
         body += LoadLocal(context);
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
             Slot::GetContextVariableSlotFor(thread(), *variable),
             StoreInstanceFieldInstr::Kind::kInitializing);
-        body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
-        body += Drop();
       }
     }
     body += Drop();  // The context.
@@ -826,6 +796,31 @@ Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
   return F;
 }
 
+Fragment StreamingFlowGraphBuilder::ClearRawParameters(
+    const Function& dart_function) {
+  const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+  Fragment code;
+  for (intptr_t i = 0; i < dart_function.NumParameters(); ++i) {
+    LocalVariable* variable = pf.ParameterVariable(i);
+
+    if (!variable->is_captured()) continue;
+
+    // Captured 'this' is immutable, so within the outer method we don't need to
+    // load it from the context. Therefore we don't reset it to null.
+    if (pf.function().HasThisParameter() && pf.has_receiver_var() &&
+        variable == pf.receiver_var()) {
+      ASSERT(i == 0);
+      continue;
+    }
+
+    variable = pf.RawParameterVariable(i);
+    code += NullConstant();
+    code += StoreLocal(TokenPosition::kNoSource, variable);
+    code += Drop();
+  }
+  return code;
+}
+
 UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
     const Function& dart_function,
     const Fragment& implicit_type_checks,
@@ -915,7 +910,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
                                 &explicit_type_checks, &implicit_type_checks,
                                 &implicit_redefinitions);
 
+  // The RawParameter variables should be set to null to avoid retaining more
+  // objects than necessary during GC.
   const Fragment body =
+      ClearRawParameters(dart_function) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(
@@ -4996,13 +4994,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           break;
         case FunctionNodeHelper::kAsync:
           function.set_modifier(RawFunction::kAsync);
-          function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                    !FLAG_lazy_async_stacks);
+          function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
         case FunctionNodeHelper::kAsyncStar:
           function.set_modifier(RawFunction::kAsyncGen);
-          function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                    !FLAG_lazy_async_stacks);
+          function.set_is_inlinable(!FLAG_causal_async_stacks);
           break;
         default:
           // no special modifier
@@ -5011,8 +5007,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                  !FLAG_lazy_async_stacks);
+        function.set_is_inlinable(!FLAG_causal_async_stacks);
       }
 
       function.set_end_token_pos(function_node_helper.end_position_);

@@ -83,6 +83,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFirstTimePrologue(const Function& dart_function,
                                   LocalVariable* first_parameter,
                                   intptr_t type_parameters_offset);
+  Fragment ClearRawParameters(const Function& dart_function);
   Fragment DebugStepCheckInPrologue(const Function& dart_function,
                                     TokenPosition position);
   Fragment SetAsyncStackTrace(const Function& dart_function);
