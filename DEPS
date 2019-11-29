@@ -476,7 +476,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:29_36",
+        "version": "binary_version:29_37",
       }
     ],
     "dep_type": "cipd",

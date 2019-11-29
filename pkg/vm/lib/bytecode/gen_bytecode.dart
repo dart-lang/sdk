@@ -4014,71 +4014,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitForInStatement(ForInStatement node) {
-    _generateNode(node.iterable);
-
-    // Front-end inserts implicit cast (type check) which ensures that
-    // result of iterable expression is Iterable<dynamic>.
-    _recordSourcePosition(node.iterable.fileOffset);
-    asm.emitInterfaceCall(
-        cp.addInterfaceCall(InvocationKind.getter, iterableIterator,
-            objectTable.getArgDescHandle(1)),
-        1);
-
-    final iteratorTemp = locals.tempIndexInFrame(node);
-    asm.emitPopLocal(iteratorTemp);
-
-    final capturedIteratorVar = locals.capturedIteratorVar(node);
-    if (capturedIteratorVar != null) {
-      _genPushContextForVariable(capturedIteratorVar);
-      asm.emitPush(iteratorTemp);
-      _genStoreVar(capturedIteratorVar);
-    }
-
-    if (asm.isUnreachable) {
-      // Bail out before binding a label which allows backward jumps,
-      // as it is not handled by local unreachable code elimination.
-      return;
-    }
-
-    final Label done = new Label();
-    final Label join = new Label(allowsBackwardJumps: true);
-
-    asm.bind(join);
-    asm.emitCheckStack(++currentLoopDepth);
-
-    if (capturedIteratorVar != null) {
-      _genLoadVar(capturedIteratorVar);
-      asm.emitStoreLocal(iteratorTemp);
-    } else {
-      asm.emitPush(iteratorTemp);
-    }
-
-    asm.emitInterfaceCall(
-        cp.addInterfaceCall(InvocationKind.method, iteratorMoveNext,
-            objectTable.getArgDescHandle(1)),
-        1);
-    asm.emitJumpIfFalse(done);
-
-    _enterScope(node);
-    _recordSourcePosition(node.bodyOffset);
-
-    _genPushContextIfCaptured(node.variable);
-
-    asm.emitPush(iteratorTemp);
-    asm.emitInterfaceCall(
-        cp.addInterfaceCall(InvocationKind.getter, iteratorCurrent,
-            objectTable.getArgDescHandle(1)),
-        1);
-
-    _genStoreVar(node.variable);
-
-    _generateNode(node.body);
-
-    _leaveScope();
-    asm.emitJump(join);
-
-    asm.bind(done);
-    --currentLoopDepth;
+    // Should be lowered by the async transformation.
+    throw "unreachable";
   }
 
   @override
