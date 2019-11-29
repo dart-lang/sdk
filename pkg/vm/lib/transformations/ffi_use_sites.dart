@@ -297,7 +297,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               nativeFunctionType
             ])),
         isStatic: true,
-        isFinal: true);
+        isFinal: true,
+        fileUri: currentLibrary.fileUri)
+      ..fileOffset = node.fileOffset;
     currentLibrary.addMember(field);
     return StaticGet(field);
   }
