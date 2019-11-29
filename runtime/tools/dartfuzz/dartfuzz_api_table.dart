@@ -918,8 +918,6 @@ class DartLib {
     DartLib('clamp', 'KKK'),
     DartLib('max', 'KK'),
     DartLib('min', 'KK'),
-    DartLib('reciprocal', 'KV'),
-    DartLib('reciprocalSqrt', 'KV'),
     DartLib('scale', 'KD'),
     DartLib('shuffle', 'KI'),
     DartLib('shuffleMix', 'KKI'),

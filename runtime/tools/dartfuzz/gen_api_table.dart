@@ -485,7 +485,11 @@ void addToTable(String ret, String name, String proto) {
   if (name == 'exit' ||
       name == 'pid' ||
       name == 'hashCode' ||
-      name == 'exitCode') {
+      name == 'exitCode' ||
+      // TODO(fizaaluthra): Enable reciprocal and reciprocalSqrt after we resolve
+      // https://github.com/dart-lang/sdk/issues/39551
+      name == 'reciprocal' ||
+      name == 'reciprocalSqrt') {
     return;
   }
   // Restrict parameters for a few hardcoded cases,
