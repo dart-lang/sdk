@@ -4683,6 +4683,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     DartType expressionType = getStaticType(returnExpression);
 
+    var toType = expectedType;
+    var fromType = expressionType;
+    if (_inAsync) {
+      toType = _typeSystem.flatten(toType);
+      fromType = _typeSystem.flatten(fromType);
+    }
+
     void reportTypeError() {
       String displayName = _enclosingFunction.displayName;
 
@@ -4690,25 +4697,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportTypeErrorForNode(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
             returnExpression,
-            [expressionType, expectedType]);
+            [fromType, toType]);
       } else if (_enclosingFunction is MethodElement) {
         _errorReporter.reportTypeErrorForNode(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
             returnExpression,
-            [expressionType, expectedType, displayName]);
+            [fromType, toType, displayName]);
       } else {
         _errorReporter.reportTypeErrorForNode(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
             returnExpression,
-            [expressionType, expectedType, displayName]);
+            [fromType, toType, displayName]);
       }
-    }
-
-    var toType = expectedType;
-    var fromType = expressionType;
-    if (_inAsync) {
-      toType = _typeSystem.flatten(toType);
-      fromType = _typeSystem.flatten(fromType);
     }
 
     // Anything can be returned to `void` in an arrow bodied function

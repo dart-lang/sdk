@@ -5763,8 +5763,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       const StaticTypeWarningCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
           'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
-          "A value of type '{0} can't be returned from function '{2}' because it "
-              "has a return type of '{1}'.",
+          "A value of type '{0}' can't be returned from function '{2}' because "
+              "it has a return type of '{1}'.",
           hasPublishedDocs: true);
 
   /**
@@ -5777,8 +5777,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       const StaticTypeWarningCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
           'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
-          "A value of type '{0} can't be returned from method '{2}' because it has "
-              "a return type of '{1}'.",
+          "A value of type '{0}' can't be returned from method '{2}' because "
+              "it has a return type of '{1}'.",
           hasPublishedDocs: true);
 
   /**

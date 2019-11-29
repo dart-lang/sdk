@@ -3078,10 +3078,10 @@ void f(int i) {
 
 ### return_of_invalid_type
 
-_A value of type '{0} can't be returned from function '{2}' because it has a
+_A value of type '{0}' can't be returned from function '{2}' because it has a
 return type of '{1}'._
 
-_A value of type '{0} can't be returned from method '{2}' because it has a
+_A value of type '{0}' can't be returned from method '{2}' because it has a
 return type of '{1}'._
 
 #### Description
