@@ -3490,6 +3490,8 @@ class ResolverVisitor extends ScopedVisitor {
       inferenceContext.pushReturnContext(node);
       super.visitExpressionFunctionBody(node);
 
+      _flowAnalysis?.flow?.handleExit();
+
       DartType type = node.expression.staticType;
       if (_enclosingFunction.isAsynchronous) {
         type = typeSystem.flatten(type);
