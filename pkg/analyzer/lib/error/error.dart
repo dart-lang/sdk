@@ -707,6 +707,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
   StaticWarningCode.CAST_TO_NON_TYPE,
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
@@ -724,6 +725,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
+  StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
@@ -731,7 +733,9 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.MIXED_RETURN_TYPES,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
   StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
   StaticWarningCode.NEW_WITH_NON_TYPE,

@@ -6691,16 +6691,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.",
           hasPublishedDocs: true);
 
-  /**
-   * 16.12.2 Const: Given an instance creation expression of the form <i>const
-   * q(a<sub>1</sub>, &hellip; a<sub>n</sub>)</i> it is a static warning if
-   * <i>q</i> is the constructor of an abstract class but <i>q</i> is not a
-   * factory constructor.
-   */
+  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
   static const StaticWarningCode CONST_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode('CONST_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be created with a 'const' expression.",
-          correction: "Try creating an instance of a subtype.");
+      INSTANTIATE_ABSTRACT_CLASS;
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with
@@ -6993,6 +6986,14 @@ class StaticWarningCode extends AnalyzerErrorCode {
       CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
 
   /**
+   * No parameters.
+   */
+  static const StaticWarningCode INSTANTIATE_ABSTRACT_CLASS =
+      const StaticWarningCode('INSTANTIATE_ABSTRACT_CLASS',
+          "Abstract classes can't be instantiated.",
+          correction: "Try creating an instance of a concrete subtype.");
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance member <i>m2</i>, the signature of
    * <i>m2</i> explicitly specifies a default value for a formal parameter
@@ -7155,14 +7156,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
       correction: "Try making all the return statements consistent "
           "(either include a value or not).");
 
-  /**
-   * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
-   * abstract class and <i>q</i> is not a factory constructor.
-   */
+  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode(
-          'NEW_WITH_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
-          correction: "Try creating an instance of a subtype.");
+      INSTANTIATE_ABSTRACT_CLASS;
 
   /**
    * 15.8 Parameterized Types: Any use of a malbounded type gives rise to a

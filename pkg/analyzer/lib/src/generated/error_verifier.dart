@@ -2444,9 +2444,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * [ConstructorName] from the [InstanceCreationExpression], this is the AST
    * node that the error is attached to. The [type] is the type being
    * constructed with this [InstanceCreationExpression].
-   *
-   * See [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS], and
-   * [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS].
    */
   void _checkForConstOrNewWithAbstractClass(
       InstanceCreationExpression expression,
@@ -2459,15 +2456,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             (expression as InstanceCreationExpressionImpl).isImplicit;
         if (!isImplicit) {
           _errorReporter.reportErrorForNode(
-              expression.isConst
-                  ? StaticWarningCode.CONST_WITH_ABSTRACT_CLASS
-                  : StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
-              typeName);
+              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         } else {
-          // TODO(brianwilkerson/jwren) Create a new different StaticWarningCode
-          // which does not call out the new keyword so explicitly.
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         }
       }
     }

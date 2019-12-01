@@ -47,7 +47,6 @@ import 'const_set_element_type_implements_equals_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
-import 'const_with_abstract_class_test.dart' as const_with_abstract_class;
 import 'dead_code_test.dart' as dead_code;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
@@ -129,6 +128,7 @@ import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
@@ -205,7 +205,6 @@ import 'must_be_a_native_function_type_test.dart'
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
-import 'new_with_abstract_class_test.dart' as new_with_abstract_class;
 import 'new_with_invalid_type_parameters_test.dart'
     as new_with_invalid_type_parameters;
 import 'new_with_non_type_test.dart' as new_with_non_type;
@@ -399,7 +398,6 @@ main() {
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
-    const_with_abstract_class.main();
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
@@ -453,6 +451,7 @@ main() {
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
+    instantiate_abstract_class.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_exception_value.main();
@@ -507,7 +506,6 @@ main() {
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
-    new_with_abstract_class.main();
     new_with_invalid_type_parameters.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
