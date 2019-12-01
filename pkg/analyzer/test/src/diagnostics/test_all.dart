@@ -175,6 +175,8 @@ import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
 import 'is_not_int_test.dart' as is_not_int;
+import 'late_final_field_with_const_constructor_test.dart'
+    as late_final_field_with_const_constructor;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
@@ -484,6 +486,7 @@ main() {
     is_int.main();
     is_not_double.main();
     is_not_int.main();
+    late_final_field_with_const_constructor.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();

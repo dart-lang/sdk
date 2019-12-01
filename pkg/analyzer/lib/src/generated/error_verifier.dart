@@ -708,6 +708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
+      _checkForLateFinalFieldWithConstConstructor(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -3493,6 +3494,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, expression);
     }
+  }
+
+  void _checkForLateFinalFieldWithConstConstructor(FieldDeclaration node) {
+    if (node.isStatic) return;
+
+    var variableList = node.fields;
+    if (!variableList.isFinal) return;
+
+    var lateKeyword = variableList.lateKeyword;
+    if (lateKeyword == null) return;
+
+    var hasConstConstructor =
+        _enclosingClass.constructors.any((c) => c.isConst);
+    if (!hasConstConstructor) return;
+
+    _errorReporter.reportErrorForToken(
+      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+      lateKeyword,
+    );
   }
 
   void _checkForListConstructor(

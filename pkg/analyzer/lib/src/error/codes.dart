@@ -2919,6 +2919,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting the name to match an existing label.");
 
   /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error for a class with a `const` constructor to have a
+   * `late final` field.
+   */
+  static const CompileTimeErrorCode LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR =
+      const CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+          "Can't have a late final field in a class with a const constructor.",
+          correction: "Try removing the 'late' modifier, or don't declare "
+              "'const' constructors.");
+
+  /**
    * No parameters.
    */
   // #### Description
