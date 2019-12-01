@@ -3326,50 +3326,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adding an empty argument list.");
 
   /**
-   * This error is generated if a constructor declaration has an implicit
-   * invocation of a zero argument super constructor (`super()`), but the
-   * superclass does not define a zero argument constructor.
-   *
-   * 7.6.1 Generative Constructors: If no superinitializer is provided, an
-   * implicit superinitializer of the form <b>super</b>() is added at the end of
-   * <i>k</i>'s initializer list, unless the enclosing class is class
-   * <i>Object</i>.
-   *
-   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i>
-   * does not declare a generative constructor named <i>S</i> (respectively
-   * <i>S.id</i>)
-   *
    * Parameters:
-   * 0: the name of the superclass that does not define the implicitly invoked
+   * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT =
-      const CompileTimeErrorCode('NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+      const CompileTimeErrorCodeWithUniqueName(
+          'NO_DEFAULT_SUPER_CONSTRUCTOR',
+          'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
           "The superclass '{0}' doesn't have a zero argument constructor.",
           correction: "Try declaring a zero argument constructor in '{0}', or "
               "explicitly invoking a different constructor in '{0}'.");
 
   /**
-   * This error is generated if a class declaration has an implicit default
-   * constructor, which implicitly invokes a zero argument super constructor
-   * (`super()`), but the superclass does not define a zero argument
-   * constructor.
-   *
-   * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it
-   * implicitly has a default constructor C() : <b>super<b>() {}, unless
-   * <i>C</i> is class <i>Object</i>.
-   *
-   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i>
-   * does not declare a generative constructor named <i>S</i> (respectively
-   * <i>S.id</i>)
-   *
    * Parameters:
-   * 0: the name of the superclass that does not define the implicitly invoked
+   * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
    * 1: the name of the subclass that does not contain any explicit constructors
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT =
-      const CompileTimeErrorCode('NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+      const CompileTimeErrorCodeWithUniqueName(
+          'NO_DEFAULT_SUPER_CONSTRUCTOR',
+          'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
           "The superclass '{0}' doesn't have a zero argument constructor.",
           correction: "Try declaring a zero argument constructor in '{0}', or "
               "declaring a constructor in {1} that explicitly invokes a "
@@ -5388,6 +5366,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   @override
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+}
+
+class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
+  @override
+  final String uniqueName;
+
+  const CompileTimeErrorCodeWithUniqueName(
+      String name, this.uniqueName, String message,
+      {String correction, bool hasPublishedDocs})
+      : super(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 }
 
 /**
