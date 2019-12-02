@@ -5592,13 +5592,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullable) return;
 
     AstNode parent = node.parent;
-    if (parent is FieldFormalParameter ||
-        parent is FunctionTypeAlias ||
-        parent is FunctionTypedFormalParameter ||
-        parent is GenericFunctionType) {
-      // These locations are not allowed to have default values.
-      return;
-    }
+    var defaultValuesAreAllowed = parent is ConstructorDeclaration ||
+        parent is FunctionExpression ||
+        parent is MethodDeclaration;
+
     NodeList<FormalParameter> parameters = node.parameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
@@ -5608,7 +5605,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         if ((parameter as DefaultFormalParameter).defaultValue == null) {
           if (_typeSystem.isPotentiallyNonNullable(type)) {
             SimpleIdentifier parameterName = _parameterName(parameter);
-            if (type is TypeParameterType) {
+            if (!defaultValuesAreAllowed || type is TypeParameterType) {
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
                   parameterName ?? parameter,
@@ -5620,15 +5617,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                   [parameterName?.name ?? '?']);
             }
           }
-        } else if (!_typeSystem.isNonNullable(type) &&
-            _typeSystem.isPotentiallyNonNullable(type)) {
-          // If the type is both potentially non-nullable and not
-          // non-nullable, then it cannot be used for an optional parameter.
-          SimpleIdentifier parameterName = _parameterName(parameter);
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
-              parameterName ?? parameter,
-              [parameterName?.name ?? '?']);
         }
       } else if (parameter.isRequiredNamed) {
         if ((parameter as DefaultFormalParameter).defaultValue != null) {

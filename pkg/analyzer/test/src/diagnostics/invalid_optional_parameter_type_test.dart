@@ -11,18 +11,96 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MissingDefaultValueForParameterTest);
+    defineReflectiveTests(InvalidOptionalParameterTypeTest);
   });
 }
 
 @reflectiveTest
-class MissingDefaultValueForParameterTest extends DriverResolutionTest {
+class InvalidOptionalParameterTypeTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_typeParameter_potentiallyNonNullable_named_optional_noDefault() async {
+  test_fieldFormalParameter_named_optional() async {
+    await assertErrorsInCode('''
+class A {
+  dynamic f;
+  A(void this.f({int a, int? b}));
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 44, 1),
+    ]);
+  }
+
+  test_fieldFormalParameter_positional_optional() async {
+    await assertErrorsInCode('''
+class A {
+  dynamic f;
+  A(void this.f([int a, int? b]));
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 44, 1),
+    ]);
+  }
+
+  test_functionTypeAlias_named_optional() async {
+    await assertErrorsInCode('''
+typedef void F({int a, int? b});
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 20, 1),
+    ]);
+  }
+
+  test_functionTypeAlias_positional_optional() async {
+    await assertErrorsInCode('''
+typedef void F([int a, int? b]);
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 20, 1),
+    ]);
+  }
+
+  test_functionTypedFormalParameter_named_optional() async {
+    await assertErrorsInCode('''
+void f(void p({int a, int? b})) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 19, 1),
+    ]);
+  }
+
+  test_functionTypedFormalParameter_positional_optional() async {
+    await assertErrorsInCode('''
+void f(void p([int a, int? b])) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 19, 1),
+    ]);
+  }
+
+  test_genericFunctionType_named_optional() async {
+    await assertErrorsInCode('''
+void f(void Function({int a, int? b}) p) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 26, 1),
+    ]);
+  }
+
+  test_genericFunctionType_positional_optional() async {
+    await assertErrorsInCode('''
+void f(void Function([int a, int? b]) p) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 26, 1),
+    ]);
+  }
+
+  test_genericFunctionType_positional_optional2() async {
+    await assertErrorsInCode('''
+void f(void Function([int, int?]) p) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE, 22, 3),
+    ]);
+  }
+
+  test_typeParameter_potentiallyNonNullable_named_optional() async {
     await assertErrorsInCode('''
 class A<T extends Object?> {
   void f({T a}) {}
@@ -32,7 +110,7 @@ class A<T extends Object?> {
     ]);
   }
 
-  test_typeParameter_potentiallyNonNullable_positional_optional_noDefault() async {
+  test_typeParameter_potentiallyNonNullable_positional_optional() async {
     await assertErrorsInCode('''
 class A<T extends Object?> {
   void f([T a]) {}

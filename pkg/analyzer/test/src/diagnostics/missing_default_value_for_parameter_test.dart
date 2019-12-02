@@ -108,27 +108,6 @@ void f(int? a) {}
 ''');
   }
 
-  test_fieldFormalParameter() async {
-    await assertNoErrorsInCode('''
-class A {
-  final log;
-  A(void this.log({String s})) {}
-}
-''');
-  }
-
-  test_functionTypeAlias() async {
-    await assertNoErrorsInCode('''
-typedef void log({String});
-''');
-  }
-
-  test_functionTypedParameter() async {
-    await assertNoErrorsInCode('''
-void printToLog(void log({String})) {}
-''');
-  }
-
   test_futureOr_nonNullable_nonNullable_named_optional_default() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
@@ -298,12 +277,6 @@ void f([FutureOr<int?>? a]) {}
     await assertNoErrorsInCode('''
 import 'dart:async';
 void f(FutureOr<int?>? a) {}
-''');
-  }
-
-  test_genericFunctionType() async {
-    await assertNoErrorsInCode('''
-void Function({String s})? log;
 ''');
   }
 
