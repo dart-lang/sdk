@@ -3723,6 +3723,9 @@ class Field : public Object {
     return r;
   }
 
+  bool NeedsSetter() const;
+  bool NeedsGetter() const;
+
   const char* GuardedPropertiesAsCString() const;
 
   intptr_t UnboxedFieldCid() const { return guarded_cid(); }

@@ -2634,12 +2634,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       const String& getter_name = H.DartGetterName(target);
       const Function& getter =
           Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
-      if (getter.IsNull() || !field.has_nontrivial_initializer()) {
-        Fragment instructions = Constant(field);
-        return instructions + LoadStaticField();
-      } else {
+      if (!getter.IsNull() && field.NeedsGetter()) {
         return StaticCall(position, getter, 0, Array::null_array(),
                           ICData::kStatic, &result_type);
+      } else {
+        Fragment instructions = Constant(field);
+        return instructions + LoadStaticField();
       }
     }
   } else {
@@ -2672,13 +2672,24 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   if (H.IsField(target)) {
     const Field& field =
         Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+    const Class& owner = Class::Handle(Z, field.Owner());
+    const String& setter_name = H.DartSetterName(target);
+    const Function& setter =
+        Function::ZoneHandle(Z, owner.LookupStaticFunction(setter_name));
     Fragment instructions = BuildExpression();  // read expression.
     if (NeedsDebugStepCheck(stack(), position)) {
       instructions = DebugStepCheck(position) + instructions;
     }
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
-    return instructions + StoreStaticField(position, field);
+    if (!setter.IsNull() && field.NeedsSetter()) {
+      instructions += PushArgument();
+      instructions += StaticCall(position, setter, 1, ICData::kStatic);
+      instructions += Drop();
+    } else {
+      instructions += StoreStaticField(position, field);
+    }
+    return instructions;
   } else {
     ASSERT(H.IsProcedure(target));
 

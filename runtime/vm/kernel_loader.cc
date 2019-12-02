@@ -2067,8 +2067,9 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
                                           FieldHelper* field_helper) {
-  Tag tag = helper_.PeekTag();
-  if (tag == kSomething) {
+  const Tag tag = helper_.PeekTag();
+  const bool has_initializer = (tag == kSomething);
+  if (has_initializer) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
@@ -2091,9 +2092,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 
   if (field_helper->IsStatic()) {
-    bool has_initializer = (tag == kSomething);
-
-    if (!has_initializer) {
+    if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
       field.SetStaticValue(Instance::null_instance(), true);
@@ -2103,6 +2102,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     // We do need a getter that evaluates the initializer if necessary.
     field.SetStaticValue(Object::sentinel(), true);
   }
+  ASSERT(field.NeedsGetter());
 
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =
@@ -2116,8 +2116,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields
           // that are const (not just final) and they have is_const for
-          // non-static
-          // fields that are final.
+          // non-static fields that are final.
           field_helper->IsStatic() ? field_helper->IsConst()
                                    : field_helper->IsFinal(),
           false,  // is_abstract
@@ -2134,13 +2133,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
-  if (FieldNeedsSetter(field_helper)) {
+  if (field.NeedsSetter()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
     const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
-                         false,  // is_static
+                         field_helper->IsStatic(),
                          false,  // is_const
                          false,  // is_abstract
                          false,  // is_external
@@ -2155,24 +2154,6 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
   }
-}
-
-bool KernelLoader::FieldNeedsSetter(FieldHelper* field_helper) {
-  // Late fields always need a setter, unless they're static and non-final.
-  if (field_helper->IsLate()) {
-    if (field_helper->IsStatic() && !field_helper->IsFinal()) {
-      return false;
-    }
-    return true;
-  }
-
-  // Non-late static fields never need a setter.
-  if (field_helper->IsStatic()) {
-    return false;
-  }
-
-  // Otherwise, the field only needs a setter if it isn't final.
-  return !field_helper->IsFinal();
 }
 
 RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {

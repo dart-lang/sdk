@@ -8887,18 +8887,50 @@ void Field::set_guarded_list_length_in_object_offset(
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
+bool Field::NeedsSetter() const {
+  // Late fields always need a setter, unless they're static and non-final.
+  if (is_late()) {
+    if (is_static() && !is_final()) {
+      return false;
+    }
+    return true;
+  }
+
+  // Non-late static fields never need a setter.
+  if (is_static()) {
+    return false;
+  }
+
+  // Otherwise, the field only needs a setter if it isn't final.
+  return !is_final();
+}
+
+bool Field::NeedsGetter() const {
+  // All instance fields need a getter.
+  if (!is_static()) return true;
+
+  // Static fields also need a getter if they have a non-trivial initializer,
+  // because it needs to be initialized lazily.
+  if (has_nontrivial_initializer()) return true;
+
+  // Static late fields with no initializer also need a getter, to check if it's
+  // been initialized.
+  return is_late() && !has_initializer();
+}
+
 const char* Field::ToCString() const {
   if (IsNull()) {
     return "Field: null";
   }
   const char* kF0 = is_static() ? " static" : "";
-  const char* kF1 = is_final() ? " final" : "";
-  const char* kF2 = is_const() ? " const" : "";
+  const char* kF1 = is_late() ? " late" : "";
+  const char* kF2 = is_final() ? " final" : "";
+  const char* kF3 = is_const() ? " const" : "";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s",
-                     cls_name, field_name, kF0, kF1, kF2);
+  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s",
+                     cls_name, field_name, kF0, kF1, kF2, kF3);
 }
 
 // Build a closure object that gets (or sets) the contents of a static
