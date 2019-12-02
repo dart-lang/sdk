@@ -12,7 +12,7 @@ import 'package:analyzer/src/context/builder.dart' as old
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show ByteStore, MemoryByteStore;
+    show MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -52,18 +52,16 @@ class ContextBuilderImpl implements ContextBuilder {
 
   @override
   AnalysisContext createContext(
-      {@deprecated ByteStore byteStore,
-      @required ContextRoot contextRoot,
+      {@required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
       bool enableIndex: false,
-      @deprecated FileContentOverlay fileContentOverlay,
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
-    byteStore ??= new MemoryByteStore();
-    fileContentOverlay ??= new FileContentOverlay();
+    var byteStore = new MemoryByteStore();
+    var fileContentOverlay = new FileContentOverlay();
     performanceLog ??= new PerformanceLog(new StringBuffer());
 
     sdkPath ??= _defaultSdkPath;
