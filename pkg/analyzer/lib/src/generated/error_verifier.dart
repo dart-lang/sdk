@@ -127,6 +127,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   bool _isInConstInstanceCreation = false;
 
   /**
+   * The stack of flags, where `true` at the top (last) of the stack indicates
+   * that the visitor is in the initializer of a lazy local variable. When the
+   * top is `false`, we might be not in a local variable, or it is not `lazy`,
+   * etc.
+   */
+  List<bool> _isInLateLocalVariable = [false];
+
+  /**
    * A flag indicating whether the visitor is currently within a native class
    * declaration.
    */
@@ -393,6 +401,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
+    _checkForAwaitInLateLocalVariableInitializer(node);
     super.visitAwaitExpression(node);
   }
 
@@ -824,6 +833,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    _isInLateLocalVariable.add(false);
     // If this function expression is wrapped in a function declaration, don't
     // change the enclosingFunction field.
     if (node.parent is! FunctionDeclaration) {
@@ -837,6 +847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       super.visitFunctionExpression(node);
     }
+    _isInLateLocalVariable.removeLast();
   }
 
   @override
@@ -1381,8 +1392,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _isInLateLocalVariable.add(node.variables.isLate);
+
     _checkForFinalNotInitialized(node.variables);
     super.visitVariableDeclarationStatement(node);
+
+    _isInLateLocalVariable.removeLast();
   }
 
   @override
@@ -2052,6 +2067,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         element is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.ASSIGNMENT_TO_TYPE, expression);
+    }
+  }
+
+  void _checkForAwaitInLateLocalVariableInitializer(AwaitExpression node) {
+    if (_isInLateLocalVariable.last) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+        node.awaitKeyword,
+      );
     }
   }
 

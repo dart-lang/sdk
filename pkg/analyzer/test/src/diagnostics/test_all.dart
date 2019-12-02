@@ -23,6 +23,8 @@ import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'await_in_late_local_variable_initializer_test.dart'
+    as await_in_late_local_variable_initializer;
 import 'builtin_identifier_as_extension_name_test.dart'
     as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
@@ -385,6 +387,7 @@ main() {
     assignment_to_method.main();
     assignment_to_type.main();
     async_keyword_used_as_identifier.main();
+    await_in_late_local_variable_initializer.main();
     builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();

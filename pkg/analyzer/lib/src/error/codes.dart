@@ -428,6 +428,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "or removing the 'await' before the for loop.");
 
   /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error for the initializer expression of a `late` local variable
+   * to use a prefix `await` expression.
+   */
+  static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
+      const CompileTimeErrorCode('AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+          "The await expression can't be used in a 'late' local variable.",
+          correction:
+              "Try removing the 'late' modifier, or rewriting the initializer "
+              "without using the 'await' expression.");
+
+  /**
    * 16.30 Await Expressions: It is a compile-time error if the function
    * immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
    * await expression.)
