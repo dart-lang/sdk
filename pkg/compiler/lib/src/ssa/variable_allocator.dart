@@ -527,7 +527,7 @@ class VariableNamer {
       // instruction is used by a phi, try to use the name of the phi.
       // Otherwise, just allocate a temporary name.
       HPhi phi = firstPhiUserWithElement(instruction);
-      if (phi != null) {
+      if (phi != null && phi.sourceElement.name != null) {
         name = allocateWithHint(phi.sourceElement.name);
       } else {
         name = allocateTemporary();

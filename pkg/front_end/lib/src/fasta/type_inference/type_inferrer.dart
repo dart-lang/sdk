@@ -1490,12 +1490,19 @@ class TypeInferrerImpl implements TypeInferrer {
     ExpressionInferenceResult result = inferExpression(
         variable.initializer, const UnknownType(), true,
         isVoidAllowed: true);
-    variable.initializer = result.nullAwareAction..parent = variable;
+    Link<NullAwareGuard> nullAwareGuards;
+    if (isNonNullableByDefault) {
+      variable.initializer = result.nullAwareAction..parent = variable;
+      nullAwareGuards = result.nullAwareGuards;
+    } else {
+      variable.initializer = result.expression..parent = variable;
+      nullAwareGuards = const Link<NullAwareGuard>();
+    }
     DartType inferredType = inferDeclarationType(result.inferredType);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
-    return result.nullAwareGuards;
+    return nullAwareGuards;
   }
 
   NullAwareGuard createNullAwareGuard(VariableDeclaration variable) {

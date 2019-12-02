@@ -939,6 +939,7 @@ nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/regress_null_aware: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
