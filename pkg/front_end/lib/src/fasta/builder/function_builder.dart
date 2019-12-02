@@ -483,7 +483,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
     MetadataBuilder.buildAnnotations(
         member, metadata, library, isClassMember ? parent : null, this);
 

@@ -7,6 +7,7 @@ library fasta.member_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../../base/common.dart';
 
@@ -53,7 +54,7 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
 
-  void buildOutlineExpressions(LibraryBuilder library);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -133,7 +134,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {}
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
 
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f);

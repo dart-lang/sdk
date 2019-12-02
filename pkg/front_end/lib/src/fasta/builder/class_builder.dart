@@ -169,7 +169,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   List<ConstructorReferenceBuilder> get constructorReferences;
 
-  void buildOutlineExpressions(LibraryBuilder library);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
@@ -409,10 +409,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<ConstructorReferenceBuilder> get constructorReferences => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
-      member.buildOutlineExpressions(library);
+      member.buildOutlineExpressions(library, coreTypes);
     }
 
     MetadataBuilder.buildAnnotations(

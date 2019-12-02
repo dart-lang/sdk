@@ -698,10 +698,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 libraryBuilder.library);
             initializer = wrapper.operand;
           }
-          fieldBuilder.buildBody(initializer);
+          fieldBuilder.buildBody(coreTypes, initializer);
         }
       } else if (!fieldBuilder.hasBodyBeenBuilt) {
-        fieldBuilder.buildBody(null);
+        fieldBuilder.buildBody(coreTypes, null);
       }
     }
     {

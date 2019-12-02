@@ -144,7 +144,7 @@ class SourceLoader extends Loader {
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
+  CoreTypes _coreTypes;
   // Used when checking whether a return type of an async function is valid.
   DartType futureOfBottom;
   DartType iterableOfBottom;
@@ -164,6 +164,11 @@ class SourceLoader extends Loader {
       : dataForTesting =
             retainDataForTesting ? new SourceLoaderDataForTesting() : null,
         super(target);
+
+  CoreTypes get coreTypes {
+    assert(_coreTypes != null, "CoreTypes has not been computed.");
+    return _coreTypes;
+  }
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -880,7 +885,8 @@ class SourceLoader extends Loader {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Component component) {
-    coreTypes = new CoreTypes(component);
+    assert(_coreTypes == null, "CoreTypes has already been computed");
+    _coreTypes = new CoreTypes(component);
 
     futureOfBottom = new InterfaceType(coreTypes.futureClass,
         Nullability.legacy, <DartType>[const BottomType()]);
@@ -982,7 +988,7 @@ class SourceLoader extends Loader {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions() {
+  void buildOutlineExpressions(CoreTypes coreTypes) {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         library.buildOutlineExpressions();
@@ -990,11 +996,11 @@ class SourceLoader extends Loader {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(library);
+            declaration.buildOutlineExpressions(library, coreTypes);
           }
         }
       }
@@ -1128,7 +1134,7 @@ class SourceLoader extends Loader {
     first = null;
     sourceBytes?.clear();
     target?.releaseAncillaryResources();
-    coreTypes = null;
+    _coreTypes = null;
     instrumentation = null;
     collectionTransformer = null;
     setLiteralTransformer = null;

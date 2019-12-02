@@ -284,7 +284,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
-      loader.buildOutlineExpressions();
+      loader.buildOutlineExpressions(loader.coreTypes);
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;

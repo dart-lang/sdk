@@ -5,6 +5,7 @@
 library fasta.scope;
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/core_types.dart';
 
 import 'builder/builder.dart';
 import 'builder/class_builder.dart';
@@ -639,7 +640,7 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
   ProcedureKind get kind => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }

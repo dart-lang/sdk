@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   field core::int? _#field = null;
-  field dynamic _#field#isSet = false;
+  field core::bool _#field#isSet = false;
   constructor constructor1() → self::Class
     : super core::Object::•()
     ;

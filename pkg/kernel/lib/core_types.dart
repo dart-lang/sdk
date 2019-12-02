@@ -28,6 +28,7 @@ class CoreTypes {
       'FallThroughError',
     ],
     'dart:_internal': [
+      'LateInitializationErrorImpl',
       'Symbol',
     ],
     'dart:async': [
@@ -89,6 +90,7 @@ class CoreTypes {
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
+  Constructor _lateInitializationErrorConstructor;
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   Library _mirrorsLibrary;
@@ -1274,5 +1276,10 @@ class CoreTypes {
       return _thisTypedefTypes[typedef] = result.withNullability(nullability);
     }
     return result;
+  }
+
+  Constructor get lateInitializationErrorConstructor {
+    return _lateInitializationErrorConstructor ??=
+        index.getMember('dart:_internal', 'LateInitializationErrorImpl', '');
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/core_types.dart';
 
 import '../names.dart';
 
@@ -68,12 +69,18 @@ Statement createGetterWithInitializer(
   }
 }
 
-Statement createGetterBodyWithoutInitializer(
+Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     int fileOffset, String name, DartType type, String variableKindName,
     {Expression createVariableRead(), Expression createIsSetRead()}) {
-  Expression exception = new Throw(
-      new StringLiteral("$variableKindName '${name}' has not been initialized.")
+  Expression exception = new Throw(new ConstructorInvocation(
+      coreTypes.lateInitializationErrorConstructor,
+      new Arguments(<Expression>[
+        new StringLiteral(
+            "$variableKindName '${name}' has not been initialized.")
+          ..fileOffset = fileOffset
+      ])
         ..fileOffset = fileOffset)
+    ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
   if (type.isPotentiallyNullable) {
     // Generate:
@@ -153,17 +160,27 @@ Statement createSetterBody(
   }
 }
 
-Statement createSetterBodyFinal(int fileOffset, String name,
-    VariableDeclaration parameter, DartType type, String variableKindName,
+Statement createSetterBodyFinal(
+    CoreTypes coreTypes,
+    int fileOffset,
+    String name,
+    VariableDeclaration parameter,
+    DartType type,
+    String variableKindName,
     {bool shouldReturnValue,
     Expression createVariableRead(),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value)}) {
-  Expression exception = new Throw(
-      new StringLiteral(
-          "${variableKindName} '${name}' has already been initialized.")
+  Expression exception = new Throw(new ConstructorInvocation(
+      coreTypes.lateInitializationErrorConstructor,
+      new Arguments(<Expression>[
+        new StringLiteral(
+            "${variableKindName} '${name}' has already been initialized.")
+          ..fileOffset = fileOffset
+      ])
         ..fileOffset = fileOffset)
+    ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
 
   Statement createReturn(Expression value) {

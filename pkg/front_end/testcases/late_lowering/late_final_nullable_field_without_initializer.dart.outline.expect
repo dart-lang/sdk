@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   static field core::int? _#lateStaticField1;
-  static field dynamic _#lateStaticField1#isSet;
+  static field core::bool _#lateStaticField1#isSet;
   static field core::int? _#lateStaticField2;
-  static field dynamic _#lateStaticField2#isSet;
+  static field core::bool _#lateStaticField2#isSet;
   field core::int? _#lateInstanceField;
-  field dynamic _#lateInstanceField#isSet;
+  field core::bool _#lateInstanceField#isSet;
   synthetic constructor •() → self::Class*
     ;
   static get lateStaticField1() → core::int?;
@@ -23,7 +23,7 @@ class Class extends core::Object {
     ;
 }
 static field core::int? _#lateTopLevelField;
-static field dynamic _#lateTopLevelField#isSet;
+static field core::bool _#lateTopLevelField#isSet;
 static get lateTopLevelField() → core::int?;
 static set lateTopLevelField(core::int? #t4) → void;
 static method main() → dynamic

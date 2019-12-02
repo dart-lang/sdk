@@ -7,6 +7,7 @@ library fasta.field_builder;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/core_types.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -70,7 +71,7 @@ abstract class FieldBuilder implements MemberBuilder {
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
-  void buildBody(Expression initializer);
+  void buildBody(CoreTypes coreTypes, Expression initializer);
 
   /// Builds the field initializers for each field used to encode this field
   /// using the [fileOffset] for the created nodes and [value] as the initial
@@ -154,7 +155,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
   @override
-  void buildBody(Expression initializer) {
+  void buildBody(CoreTypes coreTypes, Expression initializer) {
     assert(!hasBodyBeenBuilt);
     hasBodyBeenBuilt = true;
     if (!hasInitializer &&
@@ -165,7 +166,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       internalProblem(
           messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
-    _fieldEncoding.createBodies(initializer);
+    _fieldEncoding.createBodies(coreTypes, initializer);
   }
 
   @override
@@ -220,7 +221,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+    _fieldEncoding.completeSignature(coreTypes);
+
     ClassBuilder classBuilder = isClassMember ? parent : null;
     MetadataBuilder.buildAnnotations(
         _fieldEncoding.field, metadata, library, classBuilder, this);
@@ -255,7 +258,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             bodyBuilder.transformCollections, library.library);
         initializer = wrapper.operand;
       }
-      buildBody(initializer);
+      buildBody(coreTypes, initializer);
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     constInitializerToken = null;
@@ -374,7 +377,7 @@ abstract class FieldEncoding {
   ///
   /// This method is not called for fields in outlines unless their are constant
   /// or part of a const constructor.
-  void createBodies(Expression initializer);
+  void createBodies(CoreTypes coreTypes, Expression initializer);
 
   List<Initializer> createInitializer(int fileOffset, Expression value,
       {bool isSynthetic});
@@ -406,9 +409,16 @@ abstract class FieldEncoding {
       SourceFieldBuilder fieldBuilder,
       void Function(Member, BuiltMemberKind) f);
 
+  /// Returns a list of the field, getters and methods created by this field
+  /// encoding.
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder);
 
+  /// Returns a list of the setters created by this field encoding.
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder);
+
+  /// Ensures that the signatures all members created by this field encoding
+  /// are fully typed.
+  void completeSignature(CoreTypes coreTypes);
 }
 
 class RegularFieldEncoding implements FieldEncoding {
@@ -429,7 +439,10 @@ class RegularFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(Expression initializer) {
+  void completeSignature(CoreTypes coreTypes) {}
+
+  @override
+  void createBodies(CoreTypes coreTypes, Expression initializer) {
     if (initializer != null) {
       _field.initializer = initializer..parent = _field;
     }
@@ -538,18 +551,25 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(Expression initializer) {
+  void completeSignature(CoreTypes coreTypes) {
+    if (_lateIsSetField != null) {
+      _lateIsSetField.type = coreTypes.boolRawType(Nullability.nonNullable);
+    }
+  }
+
+  @override
+  void createBodies(CoreTypes coreTypes, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     _field.initializer = new NullLiteral()..parent = _field;
     if (_type.isPotentiallyNullable) {
       _lateIsSetField.initializer = new BoolLiteral(false)
         ..parent = _lateIsSetField;
     }
-    _lateGetter.function.body = _createGetterBody(name, initializer)
+    _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
       ..parent = _lateGetter.function;
     if (_lateSetter != null) {
       _lateSetter.function.body = _createSetterBody(
-          name, _lateSetter.function.positionalParameters.first)
+          coreTypes, name, _lateSetter.function.positionalParameters.first)
         ..parent = _lateSetter.function;
     }
   }
@@ -590,7 +610,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
   }
 
-  Statement _createGetterBody(String name, Expression initializer);
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression initializer);
 
   Procedure _createSetter(String name, Uri fileUri, int charOffset) {
     VariableDeclaration parameter = new VariableDeclaration(null);
@@ -603,7 +624,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..fileOffset = charOffset;
   }
 
-  Statement _createSetterBody(String name, VariableDeclaration parameter);
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter);
 
   @override
   DartType get type => _type;
@@ -674,9 +696,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..hasImplicitSetter = isInstanceMember
         ..isStatic = _field.isStatic
         ..isExtensionMember = isExtensionMember;
-      // TODO(johnniwinther): Provide access to a `bool` type here.
-      /*_lateIsSetField.type =
-          libraryBuilder.loader.coreTypes.boolNonNullableRawType;*/
     }
     _lateGetter
       ..name = new Name(fieldName, libraryBuilder.library)
@@ -731,7 +750,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
-  Statement _createSetterBody(String name, VariableDeclaration parameter) {
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(fileOffset, name, parameter, _type,
         shouldReturnValue: false,
@@ -744,7 +764,8 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
 
 mixin LateWithInitializer on AbstractLateFieldEncoding {
   @override
-  Statement _createGetterBody(String name, Expression initializer) {
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializer(
         fileOffset, name, _type, initializer,
@@ -755,19 +776,15 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
         createIsSetWrite: (Expression value) =>
             _createFieldSet(_lateIsSetField, value));
   }
-
-  @override
-  void createBodies(Expression initializer) {
-    super.createBodies(initializer);
-  }
 }
 
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
-  Statement _createGetterBody(String name, Expression initializer) {
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
-        fileOffset, name, type, 'Field',
+        coreTypes, fileOffset, name, type, 'Field',
         createVariableRead: () => _createFieldGet(_field),
         createIsSetRead: () => _createFieldGet(_lateIsSetField));
   }
@@ -794,10 +811,11 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       : super(name, fileUri, charOffset, charEndOffset);
 
   @override
-  Statement _createSetterBody(String name, VariableDeclaration parameter) {
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
-        fileOffset, name, parameter, type, 'Field',
+        coreTypes, fileOffset, name, parameter, type, 'Field',
         shouldReturnValue: false,
         createVariableRead: () => _createFieldGet(_field),
         createVariableWrite: (Expression value) =>
@@ -818,7 +836,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding
   Procedure _createSetter(String name, Uri fileUri, int charOffset) => null;
 
   @override
-  Statement _createSetterBody(String name, VariableDeclaration parameter) =>
+  Statement _createSetterBody(
+          CoreTypes coreTypes, String name, VariableDeclaration parameter) =>
       null;
 }
 

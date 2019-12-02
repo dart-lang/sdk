@@ -1,31 +1,32 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
-  static field dynamic _#lateStaticField1#isSet = false;
+  static field core::bool _#lateStaticField1#isSet = false;
   static field core::int? _#lateStaticField2 = null;
-  static field dynamic _#lateStaticField2#isSet = false;
+  static field core::bool _#lateStaticField2#isSet = false;
   field core::int? _#lateInstanceField = null;
-  field dynamic _#lateInstanceField#isSet = false;
+  field core::bool _#lateInstanceField#isSet = false;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
   static get lateStaticField1() → core::int?
-    return self::Class::_#lateStaticField1#isSet ?{core::int?} self::Class::_#lateStaticField1 : throw "Field 'lateStaticField1' has not been initialized.";
+    return self::Class::_#lateStaticField1#isSet ?{core::int?} self::Class::_#lateStaticField1 : throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has not been initialized.");
   static set lateStaticField1(core::int? #t1) → void
     if(self::Class::_#lateStaticField1#isSet)
-      throw "Field 'lateStaticField1' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has already been initialized.");
     else {
       self::Class::_#lateStaticField1#isSet = true;
       self::Class::_#lateStaticField1 = #t1;
     }
   static get lateStaticField2() → core::int?
-    return self::Class::_#lateStaticField2#isSet ?{core::int?} self::Class::_#lateStaticField2 : throw "Field 'lateStaticField2' has not been initialized.";
+    return self::Class::_#lateStaticField2#isSet ?{core::int?} self::Class::_#lateStaticField2 : throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has not been initialized.");
   static set lateStaticField2(core::int? #t2) → void
     if(self::Class::_#lateStaticField2#isSet)
-      throw "Field 'lateStaticField2' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has already been initialized.");
     else {
       self::Class::_#lateStaticField2#isSet = true;
       self::Class::_#lateStaticField2 = #t2;
@@ -37,10 +38,10 @@ class Class extends core::Object {
     self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
   }
   get lateInstanceField() → core::int?
-    return this.{self::Class::_#lateInstanceField#isSet} ?{core::int?} this.{self::Class::_#lateInstanceField} : throw "Field 'lateInstanceField' has not been initialized.";
+    return this.{self::Class::_#lateInstanceField#isSet} ?{core::int?} this.{self::Class::_#lateInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.");
   set lateInstanceField(core::int? #t3) → void
     if(this.{self::Class::_#lateInstanceField#isSet})
-      throw "Field 'lateInstanceField' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has already been initialized.");
     else {
       this.{self::Class::_#lateInstanceField#isSet} = true;
       this.{self::Class::_#lateInstanceField} = #t3;
@@ -53,12 +54,12 @@ class Class extends core::Object {
   }
 }
 static field core::int? _#lateTopLevelField = null;
-static field dynamic _#lateTopLevelField#isSet = false;
+static field core::bool _#lateTopLevelField#isSet = false;
 static get lateTopLevelField() → core::int?
-  return self::_#lateTopLevelField#isSet ?{core::int?} self::_#lateTopLevelField : throw "Field 'lateTopLevelField' has not been initialized.";
+  return self::_#lateTopLevelField#isSet ?{core::int?} self::_#lateTopLevelField : throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField' has not been initialized.");
 static set lateTopLevelField(core::int? #t4) → void
   if(self::_#lateTopLevelField#isSet)
-    throw "Field 'lateTopLevelField' has already been initialized.";
+    throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField' has already been initialized.");
   else {
     self::_#lateTopLevelField#isSet = true;
     self::_#lateTopLevelField = #t4;

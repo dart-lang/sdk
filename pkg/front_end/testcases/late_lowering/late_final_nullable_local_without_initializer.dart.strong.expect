@@ -1,15 +1,16 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method main() → dynamic {
   final core::int? lateLocal;
   core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int?
-    return #lateLocal#isSet ?{core::int?} lateLocal : throw "Local 'lateLocal' has not been initialized.";
+    return #lateLocal#isSet ?{core::int?} lateLocal : throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has not been initialized.");
   function #lateLocal#set(core::int? #t1) → dynamic
     if(#lateLocal#isSet)
-      throw "Local 'lateLocal' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has already been initialized.");
     else {
       #lateLocal#isSet = true;
       return lateLocal = #t1;

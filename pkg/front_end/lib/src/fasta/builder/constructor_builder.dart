@@ -7,6 +7,7 @@ import 'dart:core' hide MapEntry;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -209,8 +210,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library) {
-    super.buildOutlineExpressions(library);
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+    super.buildOutlineExpressions(library, coreTypes);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
