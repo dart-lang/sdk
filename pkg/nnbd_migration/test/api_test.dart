@@ -1126,6 +1126,17 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
+  test_dynamic_toString() async {
+    var content = '''
+String f(dynamic x) => x.toString();
+''';
+    var expected = '''
+String f(dynamic x) => x.toString();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;
