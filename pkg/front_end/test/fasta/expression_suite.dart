@@ -27,9 +27,6 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-import 'package:front_end/src/external_state_snapshot.dart'
-    show ExternalStateSnapshot;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
@@ -60,13 +57,11 @@ const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
-  final ExternalStateSnapshot snapshot;
   final List<DiagnosticMessage> errors;
 
   final List<Step> steps;
 
-  Context(
-      this.compilerContext, this.snapshot, this.errors, bool updateExpectations)
+  Context(this.compilerContext, this.errors, bool updateExpectations)
       : steps = <Step>[
           const ReadTest(),
           const CompileExpression(),
@@ -84,7 +79,6 @@ class Context extends ChainContext {
 
   void reset() {
     errors.clear();
-    snapshot.restore();
   }
 
   List<DiagnosticMessage> takeErrors() {
@@ -420,9 +414,6 @@ Future<Context> createContext(
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
 
-  final ExternalStateSnapshot snapshot =
-      new ExternalStateSnapshot(await options.loadSdkSummary(null));
-
   final bool updateExpectations = environment["updateExpectations"] == "true";
 
   final CompilerContext compilerContext = new CompilerContext(options);
@@ -431,7 +422,7 @@ Future<Context> createContext(
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
 
-  return new Context(compilerContext, snapshot, errors, updateExpectations);
+  return new Context(compilerContext, errors, updateExpectations);
 }
 
 main([List<String> arguments = const []]) =>

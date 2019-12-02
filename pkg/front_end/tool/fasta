@@ -39,7 +39,6 @@ case "${1//_/-}" in
   outline) SCRIPT="${TOOL_DIR}/outline.dart";;
   parser) SCRIPT="${TOOL_DIR}/parser.dart";;
   scanner) SCRIPT="${TOOL_DIR}/scanner.dart";;
-  dump-partial) SCRIPT="${TOOL_DIR}/dump_partial.dart";;
   dump-ir)
     SCRIPT="${KERNEL_BIN}/dump.dart"
     if [ "$#" = "2" ]; then

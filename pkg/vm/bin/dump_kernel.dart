@@ -46,6 +46,5 @@ main(List<String> arguments) async {
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
-  writeComponentToText(component,
-      path: output, showExternal: true, showMetadata: true);
+  writeComponentToText(component, path: output, showMetadata: true);
 }

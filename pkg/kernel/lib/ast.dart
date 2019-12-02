@@ -344,28 +344,10 @@ class Library extends NamedNode
     _languageVersionMinor = languageVersionMinor;
   }
 
-  static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
   static const int NonNullableByDefaultFlag = 1 << 2;
 
   int flags = 0;
-
-  /// If true, the library is part of another build unit and its contents
-  /// are only partially loaded.
-  ///
-  /// Classes of an external library are loaded at one of the [ClassLevel]s
-  /// other than [ClassLevel.Body].  Members in an external library have no
-  /// body, but have their typed interface present.
-  ///
-  /// If the library is non-external, then its classes are at [ClassLevel.Body]
-  /// and all members are loaded.
-  @Deprecated("Library.isExternal is going away.")
-  bool get isExternal => (flags & ExternalFlag) != 0;
-
-  @Deprecated("Library.isExternal is going away.")
-  void set isExternal(bool value) {
-    flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
-  }
 
   /// If true, the library is synthetic, for instance library that doesn't
   /// represents an actual file and is created as the result of error recovery.
@@ -409,7 +391,6 @@ class Library extends NamedNode
 
   Library(this.importUri,
       {this.name,
-      bool isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<LibraryPart> parts,
@@ -429,8 +410,6 @@ class Library extends NamedNode
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
-    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
     setParents(this.typedefs, this);

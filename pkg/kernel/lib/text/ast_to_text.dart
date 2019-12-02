@@ -261,7 +261,6 @@ class Printer extends Visitor<Null> {
   ImportTable importTable;
   int indentation = 0;
   int column = 0;
-  bool showExternal;
   bool showOffsets;
   bool showMetadata;
 
@@ -272,7 +271,6 @@ class Printer extends Visitor<Null> {
 
   Printer(this.sink,
       {NameSystem syntheticNames,
-      this.showExternal,
       this.showOffsets: false,
       this.showMetadata: false,
       this.importTable,
@@ -287,7 +285,6 @@ class Printer extends Visitor<Null> {
         metadata: metadata,
         syntheticNames: syntheticNames,
         annotator: annotator,
-        showExternal: showExternal,
         showOffsets: showOffsets,
         showMetadata: showMetadata);
   }
@@ -509,13 +506,6 @@ class Printer extends Visitor<Null> {
     }
     writeComponentProblems(component);
     for (var library in component.libraries) {
-      // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-      if (library.isExternal) {
-        if (!showExternal) {
-          continue;
-        }
-        writeWord('external');
-      }
       if (showMetadata) {
         inner.writeMetadata(library);
       }

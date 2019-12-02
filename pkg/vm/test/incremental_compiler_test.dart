@@ -59,7 +59,7 @@ main() {
       Component component = await compiler.compile();
 
       final StringBuffer buffer = new StringBuffer();
-      new Printer(buffer, showExternal: false, showMetadata: true)
+      new Printer(buffer, showMetadata: true)
           .writeLibraryFile(component.mainMethod.enclosingLibrary);
       expect(
           buffer.toString(),
@@ -86,7 +86,7 @@ main() {
       }
 
       final StringBuffer buffer = new StringBuffer();
-      new Printer(buffer, showExternal: false, showMetadata: true)
+      new Printer(buffer, showMetadata: true)
           .writeLibraryFile(component.mainMethod.enclosingLibrary);
       expect(
           buffer.toString(),

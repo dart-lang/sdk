@@ -120,19 +120,6 @@ Future<InitializedCompilerState> initializeCompiler(
       equalMaps(oldState.options.experimentalFlags, experiments) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
-
-    // These libraries are marked external when compiling. If not un-marking
-    // them compilation will fail.
-    // Remove once [kernel_generator_impl.dart] no longer marks the libraries
-    // as external.
-    (await oldState.processedOpts.loadSdkSummary(null))
-        .libraries
-        // ignore: DEPRECATED_MEMBER_USE
-        .forEach((lib) => lib.isExternal = false);
-    (await oldState.processedOpts.loadInputSummaries(null))
-        // ignore: DEPRECATED_MEMBER_USE
-        .forEach((p) => p.libraries.forEach((lib) => lib.isExternal = false));
-
     return oldState;
   }
 

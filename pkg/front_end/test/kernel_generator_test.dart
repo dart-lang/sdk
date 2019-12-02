@@ -11,7 +11,6 @@ import 'package:test/test.dart'
         greaterThan,
         group,
         isEmpty,
-        isFalse,
         isNotEmpty,
         isNotNull,
         isTrue,
@@ -100,63 +99,6 @@ main() {
       expect(
           component.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
           isNotNull);
-    });
-
-    test('code from summary dependencies are marked external', () async {
-      Component component = (await compileScript(
-              'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))
-          ?.component;
-      for (var lib in component.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          // ignore: DEPRECATED_MEMBER_USE
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      // Pretend that the compiled code is a summary
-      var bytes = serializeComponent(component);
-      component = (await compileScript(
-              {
-                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-                'summary.dill': bytes
-              },
-              fileName: 'b.dart',
-              inputSummaries: ['summary.dill']))
-          ?.component;
-
-      var aLib = component.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      // ignore: DEPRECATED_MEMBER_USE
-      expect(aLib.isExternal, isTrue);
-    });
-
-    test('code from linked dependencies are not marked external', () async {
-      Component component = (await compileScript(
-              'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))
-          ?.component;
-      for (var lib in component.libraries) {
-        if (lib.importUri.scheme == 'dart') {
-          // ignore: DEPRECATED_MEMBER_USE
-          expect(lib.isExternal, isTrue);
-        }
-      }
-
-      var bytes = serializeComponent(component);
-      component = (await compileScript(
-              {
-                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-                'link.dill': bytes
-              },
-              fileName: 'b.dart',
-              linkedDependencies: ['link.dill']))
-          ?.component;
-
-      var aLib = component.libraries
-          .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
-      // ignore: DEPRECATED_MEMBER_USE
-      expect(aLib.isExternal, isFalse);
     });
 
     // TODO(sigmund): add tests discovering libraries.json
