@@ -24,3 +24,11 @@ _F5 v5b;
 typedef void _F6(); // OK
 _F6 f6a() => null;
 _F6 f6b() => null;
+
+typedef _F7 = void Function(); // OK
+m7(_F7 f) => null;
+List<_F7> l7 = [];
+
+typedef void _F8(); // OK
+m8(_F8 f) => null;
+List<_F8> l8 = [];

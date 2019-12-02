@@ -52,6 +52,7 @@ class _CountVisitor extends RecursiveAstVisitor {
   @override
   visitTypeName(TypeName node) {
     if (node.name.name == type) count++;
+    super.visitTypeName(node);
   }
 }
 
