@@ -590,6 +590,18 @@ class CyclicInitializationError extends Error {
 }
 
 /**
- * Error thrown when a late field is set or get when it shouldn't be.
+ * Error thrown when a late variable is accessed in an invalid manner.
+ *
+ * A late variable must be initialized before it's read.
+ * If a late variable has no initializer expression and has not
+ * been written to, then reading it will throw a
+ * late initialization error.
+ *
+ * A late final variable with no initializer expression may only
+ * be written to once.
+ * If it is written to again, the writing will throw a
+ * late initialization error.
  */
-class LateInitializationError extends Error {}
+abstract class LateInitializationError extends Error {
+  factory LateInitializationError._() => throw UnsupportedError("");
+}
