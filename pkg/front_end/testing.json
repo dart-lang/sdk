@@ -230,12 +230,14 @@
       "status": "test/spelling_test.status",
       "pattern": [
         "_fe_analyzer_shared/lib/.*\\.dart$",
-        "front_end/lib/.*\\.dart$"
+        "front_end/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/api_unstable/.*\\.dart$",
-        "src/messages/codes_generated\\.dart$",
-        "src/fasta/fasta_codes_cfe_generated\\.dart$"
+        "kernel/lib/vm/.*\\.dart$",
+        "kernel/lib/transformations/.*\\.dart$",
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {

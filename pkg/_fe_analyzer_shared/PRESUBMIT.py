@@ -1,7 +1,7 @@
 # Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-"""Kernel specific presubmit script.
+"""Shared front-end analyzer specific presubmit script.
 
 See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into gcl.
@@ -23,10 +23,10 @@ def runSmokeTest(input_api, output_api):
     if hasChangedFiles:
         local_root = input_api.change.RepositoryRoot()
         utils = imp.load_source('utils',
-                        os.path.join(local_root, 'tools', 'utils.py'))
+                                os.path.join(local_root, 'tools', 'utils.py'))
         dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
-        smoke_test = os.path.join(local_root, 'pkg', 'kernel', 'tool',
-                                  'smoke_test_quick.dart')
+        smoke_test = os.path.join(local_root, 'pkg', '_fe_analyzer_shared',
+                                  'tool', 'smoke_test_quick.dart')
 
         windows = utils.GuessOS() == 'win32'
         if windows:
@@ -37,7 +37,8 @@ def runSmokeTest(input_api, output_api):
             return []
 
         if not os.path.isfile(smoke_test):
-            print('WARNING: kernel smoke test not found: %s' % smoke_test)
+            print('WARNING: _fe_analyzer_shared smoke test not found: %s' %
+                  smoke_test)
             return []
 
         args = [dart, smoke_test]
@@ -46,9 +47,11 @@ def runSmokeTest(input_api, output_api):
         outs, _ = process.communicate()
 
         if process.returncode != 0:
-            return [output_api.PresubmitError(
-                    'Kernel smoke test failure(s):',
-                    long_text=outs)]
+            return [
+                output_api.PresubmitError(
+                    '_fe_analyzer_shared smoke test failure(s):',
+                    long_text=outs)
+            ]
 
     return []
 
