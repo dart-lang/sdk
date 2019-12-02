@@ -13,7 +13,6 @@ import '../ast.dart'
         InvalidType,
         NamedType,
         NeverType,
-        Nullability,
         TypeParameter,
         TypeParameterType,
         Typedef,
@@ -229,7 +228,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     // (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).
     FunctionType functionType = type;
     FunctionType cloned = new FunctionType(functionType.positionalParameters,
-        functionType.returnType, Nullability.legacy,
+        functionType.returnType, functionType.nullability,
         namedParameters: functionType.namedParameters,
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
@@ -424,7 +423,7 @@ DartType convertSuperBoundedToRegularBounded(
           isCovariant: isCovariant);
     }
     return new InterfaceType(
-        type.classNode, Nullability.legacy, replacedTypeArguments);
+        type.classNode, type.nullability, replacedTypeArguments);
   } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
         new List<DartType>(type.typeArguments.length);
@@ -434,7 +433,7 @@ DartType convertSuperBoundedToRegularBounded(
           isCovariant: isCovariant);
     }
     return new TypedefType(
-        type.typedefNode, Nullability.legacy, replacedTypeArguments);
+        type.typedefNode, type.nullability, replacedTypeArguments);
   } else if (type is FunctionType) {
     var replacedReturnType = convertSuperBoundedToRegularBounded(
         typeEnvironment, type.returnType,
@@ -456,7 +455,7 @@ DartType convertSuperBoundedToRegularBounded(
               isCovariant: !isCovariant));
     }
     return new FunctionType(
-        replacedPositionalParameters, replacedReturnType, Nullability.legacy,
+        replacedPositionalParameters, replacedReturnType, type.nullability,
         namedParameters: replacedNamedParameters,
         typeParameters: type.typeParameters,
         requiredParameterCount: type.requiredParameterCount,

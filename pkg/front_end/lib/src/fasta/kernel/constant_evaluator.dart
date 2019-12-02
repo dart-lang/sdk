@@ -123,6 +123,7 @@ class ConstantsTransformer extends Transformer {
   final ConstantsBackend backend;
   final ConstantEvaluator constantEvaluator;
   final TypeEnvironment typeEnvironment;
+  StaticTypeContext _staticTypeContext;
 
   /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
   final bool keepFields;
@@ -150,6 +151,9 @@ class ConstantsTransformer extends Transformer {
   // Transform the library/class members:
 
   void convertLibrary(Library library) {
+    _staticTypeContext =
+        new StaticTypeContext.forAnnotations(library, typeEnvironment);
+
     transformAnnotations(library.annotations, library);
 
     transformList(library.dependencies, this, library);
@@ -166,6 +170,7 @@ class ConstantsTransformer extends Transformer {
         return reference.node is Field && reference.canonicalName == null;
       });
     }
+    _staticTypeContext = null;
   }
 
   @override
@@ -186,6 +191,9 @@ class ConstantsTransformer extends Transformer {
 
   @override
   Class visitClass(Class node) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext.forAnnotations(
+        node.enclosingLibrary, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.fields, this, node);
@@ -194,25 +202,32 @@ class ConstantsTransformer extends Transformer {
       transformList(node.procedures, this, node);
       transformList(node.redirectingFactoryConstructors, this, node);
     });
+    _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
   Procedure visitProcedure(Procedure node) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
+    _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
   Constructor visitConstructor(Constructor node) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.initializers, this, node);
       node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
+    _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
@@ -231,12 +246,15 @@ class ConstantsTransformer extends Transformer {
   @override
   RedirectingFactoryConstructor visitRedirectingFactoryConstructor(
       RedirectingFactoryConstructor node) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.typeParameters, this, node);
       transformList(node.positionalParameters, this, node);
       transformList(node.namedParameters, this, node);
     });
+    _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
@@ -320,7 +338,9 @@ class ConstantsTransformer extends Transformer {
 
   @override
   Field visitField(Field node) {
-    return constantEvaluator.withNewEnvironment(() {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
+    Field field = constantEvaluator.withNewEnvironment(() {
       if (node.isConst) {
         transformAnnotations(node.annotations, node);
         node.initializer =
@@ -340,13 +360,16 @@ class ConstantsTransformer extends Transformer {
       }
       return node;
     });
+    _staticTypeContext = oldStaticTypeContext;
+    return field;
   }
 
   // Handle use-sites of constants (and "inline" constant expressions):
 
   @override
   Expression visitSymbolLiteral(SymbolLiteral node) {
-    return makeConstantExpression(constantEvaluator.evaluate(node), node);
+    return makeConstantExpression(
+        constantEvaluator.evaluate(_staticTypeContext, node), node);
   }
 
   @override
@@ -460,11 +483,11 @@ class ConstantsTransformer extends Transformer {
 
   Constant evaluateWithContext(TreeNode treeContext, Expression node) {
     if (treeContext == node) {
-      return constantEvaluator.evaluate(node);
+      return constantEvaluator.evaluate(_staticTypeContext, node);
     }
 
     return constantEvaluator.runInsideContext(treeContext, () {
-      return constantEvaluator.evaluate(node);
+      return constantEvaluator.evaluate(_staticTypeContext, node);
     });
   }
 
@@ -473,7 +496,8 @@ class ConstantsTransformer extends Transformer {
         constant.expression is InvalidExpression) {
       return constant.expression;
     }
-    return new ConstantExpression(constant, node.getStaticType(typeEnvironment))
+    return new ConstantExpression(
+        constant, node.getStaticType(_staticTypeContext))
       ..fileOffset = node.fileOffset;
   }
 
@@ -493,6 +517,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final bool errorOnUnevaluatedConstant;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
+  StaticTypeContext _staticTypeContext;
   final ErrorReporter errorReporter;
 
   final bool desugarSets;
@@ -582,7 +607,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Returns UnevaluatedConstant if the constant could not be evaluated.
   /// If the expression in the UnevaluatedConstant is an InvalidExpression,
   /// an error occurred during constant evaluation.
-  Constant evaluate(Expression node) {
+  Constant evaluate(StaticTypeContext context, Expression node) {
+    _staticTypeContext = context;
     seenUnevaluatedChild = false;
     lazyDepth = 0;
     try {
@@ -1243,7 +1269,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               templateConstEvalInvalidType.withArguments(
                   message,
                   typeEnvironment.coreTypes.stringLegacyRawType,
-                  message.getType(typeEnvironment)));
+                  message.getType(_staticTypeContext)));
         }
       }
     } else {
@@ -1252,7 +1278,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(typeEnvironment)));
+              condition.getType(_staticTypeContext)));
     }
   }
 
@@ -1298,7 +1324,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return report(
             node,
             templateConstEvalInvalidEqualsOperandType.withArguments(
-                receiver, receiver.getType(typeEnvironment)));
+                receiver, receiver.getType(_staticTypeContext)));
       }
     }
 
@@ -1318,7 +1344,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     '+',
                     receiver,
                     typeEnvironment.coreTypes.stringLegacyRawType,
-                    other.getType(typeEnvironment)));
+                    other.getType(_staticTypeContext)));
         }
       }
     } else if (intFolder.isInt(receiver)) {
@@ -1338,7 +1364,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     op,
                     other,
                     typeEnvironment.coreTypes.intLegacyRawType,
-                    other.getType(typeEnvironment)));
+                    other.getType(_staticTypeContext)));
           }
           num receiverValue = (receiver as PrimitiveConstant<num>).value;
           return canonicalize(evaluateBinaryNumericOperation(
@@ -1350,7 +1376,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(typeEnvironment)));
+                other.getType(_staticTypeContext)));
       }
     } else if (receiver is DoubleConstant) {
       if ((op == '|' || op == '&' || op == '^') ||
@@ -1361,7 +1387,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.intLegacyRawType,
-                receiver.getType(typeEnvironment)));
+                receiver.getType(_staticTypeContext)));
       }
       if (arguments.length == 0) {
         switch (op) {
@@ -1382,7 +1408,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(typeEnvironment)));
+                other.getType(_staticTypeContext)));
       }
     } else if (receiver is BoolConstant) {
       if (arguments.length == 1) {
@@ -1435,7 +1461,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   node.operator,
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(typeEnvironment)));
+                  right.getType(_staticTypeContext)));
         }
         return report(
             node,
@@ -1456,7 +1482,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   node.operator,
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(typeEnvironment)));
+                  right.getType(_staticTypeContext)));
         }
         return report(
             node,
@@ -1496,7 +1522,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(typeEnvironment)));
+              condition.getType(_staticTypeContext)));
     }
   }
 
@@ -1780,7 +1806,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         templateConstEvalInvalidType.withArguments(
             constant,
             typeEnvironment.coreTypes.boolLegacyRawType,
-            constant.getType(typeEnvironment)));
+            constant.getType(_staticTypeContext)));
   }
 
   @override
@@ -1839,7 +1865,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   bool hasPrimitiveEqual(Constant constant) {
     if (intFolder.isInt(constant)) return true;
-    DartType type = constant.getType(typeEnvironment);
+    DartType type = constant.getType(_staticTypeContext);
     return !(type is InterfaceType && !classHasPrimitiveEqual(type.classNode));
   }
 
@@ -1863,7 +1889,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       value ? trueConstant : falseConstant;
 
   bool isSubtype(Constant constant, DartType type) {
-    DartType constantType = constant.getType(typeEnvironment);
+    DartType constantType = constant.getType(_staticTypeContext);
     if (targetingJavaScript) {
       if (constantType is InterfaceType &&
           constantType.classNode == typeEnvironment.coreTypes.intClass &&
@@ -1892,7 +1918,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(
           node,
           templateConstEvalInvalidType.withArguments(
-              constant, type, constant.getType(typeEnvironment)));
+              constant, type, constant.getType(_staticTypeContext)));
     }
     return constant;
   }

@@ -35,7 +35,7 @@ import 'ast_properties.dart';
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
 /// gets the known static type of the expression.
 DartType getExpressionType(
-    Expression expression, TypeSystem typeSystem, TypeProvider typeProvider,
+    Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
     {bool read: false}) {
   DartType type;
   if (read) {
@@ -118,7 +118,7 @@ ExecutableElement _getMember(InterfaceType type, ExecutableElement member) {
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
   final TypeProvider typeProvider;
   final InheritanceManager3 inheritance;
   final AnalysisErrorListener reporter;
@@ -131,8 +131,8 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _hasImplicitCasts;
   HashSet<ExecutableElement> _covariantPrivateMembers;
 
-  CodeChecker(TypeProvider typeProvider, Dart2TypeSystem rules,
-      this.inheritance, AnalysisErrorListener reporter, this._options)
+  CodeChecker(TypeProvider typeProvider, TypeSystemImpl rules, this.inheritance,
+      AnalysisErrorListener reporter, this._options)
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter {
@@ -1408,7 +1408,7 @@ class CodeChecker extends RecursiveAstVisitor {
 /// check overrides between classes and superclasses, interfaces, and mixin
 /// applications.
 class _OverrideChecker {
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
 
   _OverrideChecker(CodeChecker checker) : rules = checker.rules;
 

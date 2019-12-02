@@ -24,7 +24,6 @@ typedef void AcceptField(FieldEntity member, js.Name name, js.Name accessorName,
     bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
-  final CompilerOptions _options;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
   final CodegenWorld _codegenWorld;
@@ -32,7 +31,7 @@ class FieldVisitor {
   final Namer _namer;
   final JClosedWorld _closedWorld;
 
-  FieldVisitor(this._options, this._elementEnvironment, this._commonElements,
+  FieldVisitor(this._elementEnvironment, this._commonElements,
       this._codegenWorld, this._nativeData, this._namer, this._closedWorld);
 
   /// Invokes [f] for each of the fields of [element].

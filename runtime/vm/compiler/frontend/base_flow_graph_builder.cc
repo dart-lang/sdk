@@ -186,14 +186,15 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
   return Fragment(branch).closed();
 }
 
-Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
+                                      intptr_t yield_index) {
   Fragment instructions;
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
 
   ReturnInstr* return_instr =
-      new (Z) ReturnInstr(position, value, GetNextDeoptId());
+      new (Z) ReturnInstr(position, value, GetNextDeoptId(), yield_index);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;

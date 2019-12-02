@@ -15,7 +15,7 @@ library;
 // pkg/front_end/testcases/general/cascade.dart:29:12: Error: The method '[]' isn't defined for the class 'int'.
 // Try correcting the name to the name of an existing method, or defining a method named '[]'.
 //     ..first[0].toString()
-//            ^^
+//            ^
 //
 // pkg/front_end/testcases/general/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
@@ -41,7 +41,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
             ^^^^".{core::Object::toString}() in let final void #t16 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:29:12: Error: The method '[]' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named '[]'.
     ..first[0].toString()
-           ^^".{core::Object::toString}() in let final void #t17 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
+           ^".{core::Object::toString}() in let final void #t17 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
     ..[0].last.toString();
           ^^^^".{core::Object::toString}() in #t13;

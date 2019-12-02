@@ -655,6 +655,7 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
 """);
 
+  print("  static const VOID = const " + "DartType._withName(\"void\");");
   Set<String> instTypes = {};
 
   // Generate one static DartType instance for all instantiable types.

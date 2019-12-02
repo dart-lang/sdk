@@ -249,6 +249,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--omit-platform": false,
   "--fatal": ",",
   "--fatal-skip": String,
+  "--force-late-lowering": false,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
   // supported.
@@ -304,7 +305,8 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags = new TargetFlags();
+  final TargetFlags flags = new TargetFlags(
+      forceLateLoweringForTesting: options["--force-late-lowering"]);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {

@@ -199,11 +199,7 @@ abstract class TypeInferenceEngine {
     if (member is Field) {
       DartType type = member.type;
       if (type is ImplicitFieldType) {
-        if (type.memberBuilder.member != member) {
-          type.memberBuilder.inferCopiedType(member);
-        } else {
-          type.memberBuilder.inferType();
-        }
+        type.inferType();
       }
     }
     return member;
@@ -301,7 +297,8 @@ class TypeOperationsCfe
     }
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
-        return new TypeParameterType(from.parameter, from.nullability, to);
+        return new TypeParameterType.intersection(
+            from.parameter, from.nullability, to);
       }
     }
     return from;

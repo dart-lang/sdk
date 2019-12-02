@@ -51,6 +51,9 @@ class PreviewMigrationInfo implements MigrationInfo {
   String get includedRoot => wrappedInfo.includedRoot;
 
   @override
+  String get migrationDate => wrappedInfo.migrationDate;
+
+  @override
   Context get pathContext => wrappedInfo.pathContext;
 
   @override
@@ -70,15 +73,21 @@ class PreviewMigrationInfo implements MigrationInfo {
   }
 
   @override
-  List<Map<String, Object>> unitLinks(UnitInfo thisUnit) {
-    return [
-      for (var unit in units)
-        {
-          'name': _computeName(unit),
-          'isLink': unit != thisUnit,
-          if (unit != thisUnit) 'href': _pathTo(target: unit, source: thisUnit)
-        }
-    ];
+  List<Map<String, Object>> unitLinks(UnitInfo currentUnit) {
+    List<Map<String, Object>> links = [];
+    for (UnitInfo unit in units) {
+      int count = unit.fixRegions.length;
+      String modificationCount =
+          count == 1 ? '(1 modification)' : '($count modifications)';
+      bool isNotCurrent = unit != currentUnit;
+      links.add({
+        'name': _computeName(unit),
+        'modificationCount': modificationCount,
+        'isLink': isNotCurrent,
+        if (isNotCurrent) 'href': _pathTo(target: unit, source: currentUnit)
+      });
+    }
+    return links;
   }
 
   /// Return the path to [unit] from [includedRoot], to be used as a display

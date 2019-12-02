@@ -55,9 +55,19 @@ abstract class MemberBuilder implements ModifierBuilder, ClassMember {
 
   void buildOutlineExpressions(LibraryBuilder library);
 
-  void inferType();
+  /// Returns the [ClassMember]s for the non-setter members created for this
+  /// member builder.
+  ///
+  /// This is normally the member itself, if not a setter, but for instance for
+  /// lowered late fields this can be synthesized members.
+  List<ClassMember> get localMembers;
 
-  void inferCopiedType(covariant Object other);
+  /// Returns the [ClassMember]s for the setters created for this member
+  /// builder.
+  ///
+  /// This is normally the member itself, if a setter, but for instance
+  /// lowered late fields this can be synthesized setters.
+  List<ClassMember> get localSetters;
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
@@ -132,14 +142,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  void inferType() => unsupported("inferType", charOffset, fileUri);
-
-  @override
-  void inferCopiedType(covariant Object other) {
-    unsupported("inferType", charOffset, fileUri);
-  }
-
-  @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 }
 
@@ -154,6 +156,9 @@ enum BuiltMemberKind {
   ExtensionSetter,
   ExtensionOperator,
   ExtensionTearOff,
+  LateIsSetField,
+  LateGetter,
+  LateSetter,
 }
 
 class MemberDataForTesting {

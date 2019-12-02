@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -9,6 +11,7 @@ import '../driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListLiteralTest);
+    defineReflectiveTests(ListLiteralWithNnbdTest);
   });
 }
 
@@ -281,5 +284,37 @@ var a = <int, String>[1, 2];
 var a = <num>[];
 ''');
     assertType(findNode.listLiteral('['), 'List<num>');
+  }
+}
+
+@reflectiveTest
+class ListLiteralWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_nested_hasNull_1() async {
+    await assertNoErrorsInCode('''
+main() {
+  [[0], null];
+}
+''');
+    assertType(findNode.listLiteral('[0'), 'List<int>');
+    assertType(findNode.listLiteral('[[0'), 'List<List<int>?>');
+  }
+
+  test_nested_hasNull_2() async {
+    await assertNoErrorsInCode('''
+main() {
+  [[0], [1, null]];
+}
+''');
+    assertType(findNode.listLiteral('[0'), 'List<int>');
+    assertType(findNode.listLiteral('[1,'), 'List<int?>');
+    assertType(findNode.listLiteral('[[0'), 'List<List<int?>>');
   }
 }

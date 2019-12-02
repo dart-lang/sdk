@@ -277,45 +277,10 @@ class SubtypeTest extends _SubtypingTestBase {
     if (expectedString != null) {
       var typeStr = _typeStr(type);
 
-      var typeParameterCollector = _TypeParameterCollector();
-      DartTypeVisitor.visit(type, typeParameterCollector);
-      for (var typeParameter in typeParameterCollector.typeParameters) {
-        if (typeParameter is TypeParameterMember) {
-          var base = typeParameter.declaration;
-          var baseBound = base.bound as TypeImpl;
-          if (baseBound != null) {
-            var baseBoundStr = baseBound.toString(withNullability: true);
-            typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
-          }
-
-          var bound = typeParameter.bound as TypeImpl;
-          var boundStr = bound.toString(withNullability: true);
-          typeStr += ', ${typeParameter.name} & ' + boundStr;
-        } else {
-          var bound = typeParameter.bound as TypeImpl;
-          if (bound != null) {
-            var boundStr = bound.toString(withNullability: true);
-            typeStr += ', ${typeParameter.name} extends ' + boundStr;
-          }
-        }
-      }
+      typeStr += _typeParametersStr(type);
 
       expect(typeStr, expectedString);
     }
-  }
-
-  InterfaceType comparableQuestion(DartType type) {
-    return comparableElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType comparableStar(DartType type) {
-    return comparableElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   void isNotSubtype(
@@ -363,42 +328,6 @@ class SubtypeTest extends _SubtypingTestBase {
     var T0 = _getTypeByStr(strT0);
     var T1 = _getTypeByStr(strT1);
     expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
-  }
-
-  InterfaceType iterableStar(DartType type) {
-    return typeProvider.iterableElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType listNone(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType listQuestion(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType listStar(DartType type) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  TypeParameterMember promoteTypeParameter(
-    TypeParameterElement element,
-    DartType bound,
-  ) {
-    assert(element is! TypeParameterMember);
-    return TypeParameterMember(element, null, bound);
   }
 
   @override
@@ -2846,37 +2775,7 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_interfaceType_covariant_01() {
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var A_num = A.instantiate(
-      typeArguments: [numNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    var A_int = A.instantiate(
-      typeArguments: [intNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
-    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
-  }
-
-  test_interfaceType_covariant_02() {
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
-
-    var A_num = A.instantiate(
-      typeArguments: [numNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-  }
-
-  test_interfaceType_contravariant_01() {
+  test_interfaceType_contravariant() {
     var T = typeParameter('T', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T]);
 
@@ -2891,11 +2790,12 @@ class SubtypeTest extends _SubtypingTestBase {
     );
 
     isSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
     isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
   }
 
-  test_interfaceType_contravariant_02() {
-    var T = typeParameter('T', variance: Variance.contravariant);
+  test_interfaceType_covariant() {
+    var T = typeParameter('T', variance: Variance.covariant);
     var A = class_(name: 'A', typeParameters: [T]);
 
     var A_num = A.instantiate(
@@ -2903,7 +2803,14 @@ class SubtypeTest extends _SubtypingTestBase {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
+    var A_int = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
     isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
+    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
   test_interfaceType_invariant() {
@@ -5968,6 +5875,34 @@ class SubtypeTest extends _SubtypingTestBase {
     return type;
   }
 
+  String _typeParametersStr(TypeImpl type) {
+    var typeStr = '';
+
+    var typeParameterCollector = _TypeParameterCollector();
+    DartTypeVisitor.visit(type, typeParameterCollector);
+    for (var typeParameter in typeParameterCollector.typeParameters) {
+      if (typeParameter is TypeParameterMember) {
+        var base = typeParameter.declaration;
+        var baseBound = base.bound as TypeImpl;
+        if (baseBound != null) {
+          var baseBoundStr = baseBound.toString(withNullability: true);
+          typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
+        }
+
+        var bound = typeParameter.bound as TypeImpl;
+        var boundStr = bound.toString(withNullability: true);
+        typeStr += ', ${typeParameter.name} & ' + boundStr;
+      } else {
+        var bound = typeParameter.bound as TypeImpl;
+        if (bound != null) {
+          var boundStr = bound.toString(withNullability: true);
+          typeStr += ', ${typeParameter.name} extends ' + boundStr;
+        }
+      }
+    }
+    return typeStr;
+  }
+
   static String _typeStr(DartType type) {
     return (type as TypeImpl).toString(withNullability: true);
   }
@@ -6146,231 +6081,10 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
 class _SubtypingTestBase with ElementsTypesMixin {
   TypeProvider typeProvider;
 
-  Dart2TypeSystem typeSystem;
-
-  ClassElement _comparableElement;
-
-  ClassElement get comparableElement {
-    return _comparableElement ??=
-        typeProvider.intType.element.library.getType('Comparable');
-  }
-
-  InterfaceType get doubleNone {
-    var element = typeProvider.doubleType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get doubleQuestion {
-    var element = typeProvider.doubleType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  DartType get dynamicNone => typeProvider.dynamicType;
-
-  InterfaceType get functionNone {
-    var element = typeProvider.functionType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get functionQuestion {
-    var element = typeProvider.functionType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get functionStar {
-    var element = typeProvider.functionType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get intNone {
-    var element = typeProvider.intType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get intQuestion {
-    var element = typeProvider.intType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get intStar {
-    var element = typeProvider.intType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get nullNone {
-    var element = typeProvider.nullType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get nullQuestion {
-    var element = typeProvider.nullType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get nullStar {
-    var element = typeProvider.nullType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get numNone {
-    var element = typeProvider.numType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get numQuestion {
-    var element = typeProvider.numType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get numStar {
-    var element = typeProvider.numType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get objectNone {
-    var element = typeProvider.objectType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get objectQuestion {
-    var element = typeProvider.objectType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get objectStar {
-    var element = typeProvider.objectType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceType get stringNone {
-    var element = typeProvider.stringType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceType get stringQuestion {
-    var element = typeProvider.stringType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceType get stringStar {
-    var element = typeProvider.stringType.element;
-    return element.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
+  TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting();
-  }
-
-  VoidType get voidNone => typeProvider.voidType;
-
-  InterfaceTypeImpl futureNone(DartType type) {
-    return typeProvider.futureElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl futureOrNone(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl futureOrQuestion(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl futureOrStar(DartType type) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceTypeImpl futureQuestion(DartType type) {
-    return typeProvider.futureElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl futureStar(DartType type) {
-    return typeProvider.futureElement.instantiate(
-      typeArguments: [type],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   void setUp() {

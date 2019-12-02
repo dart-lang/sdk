@@ -1,5 +1,5 @@
 name: dartfix
-version: 0.1.5
+version: 0.1.6
 author: Dart Team <misc@dartlang.org>
 description:
   A tool for migrating Dart source to newer versions of the Dart SDK

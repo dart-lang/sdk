@@ -11,10 +11,11 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../identifiers.dart';
 import '../scope.dart';
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
-
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -87,7 +88,7 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent);
 
-  FormalParameterBuilder getFormal(String name);
+  FormalParameterBuilder getFormal(Identifier identifier);
 
   String get nativeMethodName;
 
@@ -274,11 +275,16 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  FormalParameterBuilder getFormal(String name) {
+  FormalParameterBuilder getFormal(Identifier identifier) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
-        if (formal.name == name) return formal;
+        if (formal.name == identifier.name &&
+            formal.charOffset == identifier.charOffset) {
+          return formal;
+        }
       }
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in $formals");
     }
     return null;
   }
@@ -531,4 +537,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter ? <ClassMember>[this] : const <ClassMember>[];
 }

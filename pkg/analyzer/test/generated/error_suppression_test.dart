@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
@@ -14,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ErrorSuppressionTest extends DriverResolutionTest {
+class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
   String get ignoredCode => 'const_initialized_with_non_constant_value';
 
   test_error_code_mismatch() async {
@@ -96,6 +97,18 @@ const y = x; // ignore: $ignoredCode
 ''', [
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 29, 2),
     ]);
+  }
+
+  test_ignore_uniqueName() async {
+    addMetaPackage();
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+int f({@Required('x') int a}) => 0;
+
+// ignore: missing_required_param_with_details
+int x = f();
+''');
   }
 
   test_ignore_upper_case() async {

@@ -321,6 +321,29 @@ void main() {
 ''');
   }
 
+  test_expression_formatError() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', maxLines: 1);
+}
+''');
+    var property = await getWidgetProperty('Text(', 'maxLines');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(expression: 'foo <'),
+    );
+
+    expect(
+      result.errorCode,
+      protocol.RequestErrorCode
+          .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+    );
+    expect(result.change, isNull);
+  }
+
   test_format_dontFormatOther() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';

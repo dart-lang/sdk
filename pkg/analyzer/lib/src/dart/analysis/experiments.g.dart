@@ -13,6 +13,8 @@ const _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.control_flow_collections,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
+  EnableString.nonfunction_type_aliases:
+      ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
@@ -29,6 +31,7 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
       true, // control-flow-collections
       true, // extension-methods
       IsEnabledByDefault.non_nullable,
+      IsEnabledByDefault.nonfunction_type_aliases,
       true, // set-literals
       true, // spread-collections
       IsEnabledByDefault.triple_shift,
@@ -51,6 +54,9 @@ class EnableString {
 
   /// String to enable the experiment "non-nullable"
   static const String non_nullable = 'non-nullable';
+
+  /// String to enable the experiment "nonfunction-type-aliases"
+  static const String nonfunction_type_aliases = 'nonfunction-type-aliases';
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
@@ -105,8 +111,15 @@ class ExperimentalFeatures {
       IsExpired.non_nullable,
       'Non Nullable by default');
 
-  static const set_literals = const ExperimentalFeature(
+  static const nonfunction_type_aliases = const ExperimentalFeature(
       4,
+      EnableString.nonfunction_type_aliases,
+      IsEnabledByDefault.nonfunction_type_aliases,
+      IsExpired.nonfunction_type_aliases,
+      'Type aliases define a <type>, not just a <functionType>.');
+
+  static const set_literals = const ExperimentalFeature(
+      5,
       EnableString.set_literals,
       IsEnabledByDefault.set_literals,
       IsExpired.set_literals,
@@ -114,7 +127,7 @@ class ExperimentalFeatures {
       firstSupportedVersion: '2.2.0');
 
   static const spread_collections = const ExperimentalFeature(
-      5,
+      6,
       EnableString.spread_collections,
       IsEnabledByDefault.spread_collections,
       IsExpired.spread_collections,
@@ -122,18 +135,18 @@ class ExperimentalFeatures {
       firstSupportedVersion: '2.2.2');
 
   static const triple_shift = const ExperimentalFeature(
-      6,
+      7,
       EnableString.triple_shift,
       IsEnabledByDefault.triple_shift,
       IsExpired.triple_shift,
       'Triple-shift operator');
 
-  static const variance = const ExperimentalFeature(7, EnableString.variance,
+  static const variance = const ExperimentalFeature(8, EnableString.variance,
       IsEnabledByDefault.variance, IsExpired.variance, 'Sound variance.');
 
   @deprecated
   static const bogus_disabled = const ExperimentalFeature(
-      8,
+      9,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_disabled,
       IsEnabledByDefault.bogus_disabled,
@@ -142,7 +155,7 @@ class ExperimentalFeatures {
 
   @deprecated
   static const bogus_enabled = const ExperimentalFeature(
-      9,
+      10,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_enabled,
       IsEnabledByDefault.bogus_enabled,
@@ -165,6 +178,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;
+
+  /// Default state of the experiment "nonfunction-type-aliases"
+  static const bool nonfunction_type_aliases = false;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
@@ -202,6 +218,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = false;
+
+  /// Expiration status of the experiment "nonfunction-type-aliases"
+  static const bool nonfunction_type_aliases = false;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
@@ -245,6 +264,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "non-nullable"
   bool get non_nullable => isEnabled(ExperimentalFeatures.non_nullable);
+
+  /// Current state for the flag "nonfunction-type-aliases"
+  bool get nonfunction_type_aliases =>
+      isEnabled(ExperimentalFeatures.nonfunction_type_aliases);
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);

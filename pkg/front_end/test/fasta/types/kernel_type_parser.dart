@@ -260,7 +260,13 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
             namedParameters: f.namedParameters,
             typeParameters: f.typeParameters,
             requiredParameterCount: f.requiredParameterCount,
-            typedefType: def.thisType);
+            typedefType: new TypedefType(
+                def,
+                Nullability.nonNullable,
+                def.typeParameters
+                    .map((p) => new TypeParameterType(
+                        p, TypeParameterType.computeNullabilityFromBound(p)))
+                    .toList()));
       }
     }
     return def..type = type;
@@ -315,7 +321,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     TypeParameterType type =
         node.a.accept<Node, KernelEnvironment>(this, environment);
     DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
-    return new TypeParameterType(type.parameter, type.nullability, bound);
+    return new TypeParameterType.intersection(
+        type.parameter, type.nullability, bound);
   }
 
   Supertype toSupertype(InterfaceType type) {

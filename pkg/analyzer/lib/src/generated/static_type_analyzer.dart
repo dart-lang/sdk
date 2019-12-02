@@ -53,7 +53,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The type system in use for static type analysis.
    */
-  Dart2TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * The type representing the type 'dynamic'.
@@ -250,6 +250,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -274,6 +275,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -297,6 +299,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -1279,6 +1282,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
             _dynamicType;
 
+    staticType = _resolver.toLegacyTypeIfOptOut(staticType);
+
     _recordStaticType(node, staticType);
   }
 
@@ -1679,6 +1684,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         isConst: isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: errorNode,
+        isNonNullableByDefault: _nonNullableEnabled,
       );
       if (node is InvocationExpressionImpl) {
         node.typeArgumentTypes = typeArgs;
@@ -2124,6 +2130,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -2155,6 +2162,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
+      isNonNullableByDefault: _nonNullableEnabled,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -2205,7 +2213,7 @@ class _InferredCollectionElementTypeInformation {
       {this.elementType, this.keyType, this.valueType});
 
   factory _InferredCollectionElementTypeInformation.forIfElement(
-      TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       _InferredCollectionElementTypeInformation thenInfo,
       _InferredCollectionElementTypeInformation elseInfo) {
     if (thenInfo.isDynamic) {
@@ -2259,7 +2267,7 @@ class _InferredCollectionElementTypeInformation {
   }
 
   static DartType _leastUpperBoundOfTypes(
-      TypeSystem typeSystem, DartType first, DartType second) {
+      TypeSystemImpl typeSystem, DartType first, DartType second) {
     if (first == null) {
       return second;
     } else if (second == null) {

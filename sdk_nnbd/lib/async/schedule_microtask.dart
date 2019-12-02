@@ -132,7 +132,7 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
  * Learn how Dart handles the event queue and microtask queue, so you can write
  * better asynchronous code with fewer surprises.
  */
-void scheduleMicrotask(void callback()) {
+void scheduleMicrotask(void Function() callback) {
   _Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
@@ -152,5 +152,5 @@ void scheduleMicrotask(void callback()) {
 
 class _AsyncRun {
   /** Schedule the given callback before any other event in the event-loop. */
-  external static void _scheduleImmediate(void callback());
+  external static void _scheduleImmediate(void Function() callback);
 }

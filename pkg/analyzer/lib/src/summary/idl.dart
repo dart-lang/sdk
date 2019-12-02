@@ -229,11 +229,11 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
       generated.readAnalysisDriverUnlinkedUnit(buffer);
 
   /// List of class member names defined by the unit.
-  @Id(3)
+  @Id(2)
   List<String> get definedClassMemberNames;
 
   /// List of top-level names defined by the unit.
-  @Id(2)
+  @Id(1)
   List<String> get definedTopLevelNames;
 
   /// List of external names referenced by the unit.
@@ -242,15 +242,11 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 
   /// List of names which are used in `extends`, `with` or `implements` clauses
   /// in the file. Import prefixes and type arguments are not included.
-  @Id(4)
+  @Id(3)
   List<String> get subtypedNames;
 
   /// Unlinked information for the unit.
-  @Id(1)
-  UnlinkedUnit get unit;
-
-  /// Unlinked information for the unit.
-  @Id(5)
+  @Id(4)
   UnlinkedUnit2 get unit2;
 }
 
@@ -550,12 +546,6 @@ enum IndexSyntheticElementKind {
 
   /// The containing unit itself.
   unit
-}
-
-/// TODO(scheglov) Remove it.
-abstract class LinkedLibrary extends base.SummaryClass {
-  @Id(0)
-  int get placeholder;
 }
 
 /// Information about a linked AST node.
@@ -1456,6 +1446,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.typeParameter)
   LinkedNodeType get typeParameter_defaultType;
 
+  @VariantId(28, variant: LinkedNodeKind.typeParameter)
+  UnlinkedTokenType get typeParameter_variance;
+
   @VariantId(2, variant: LinkedNodeKind.typeParameterList)
   List<LinkedNode> get typeParameterList_typeParameters;
 
@@ -1516,7 +1509,6 @@ abstract class LinkedNode extends base.SummaryClass {
 abstract class LinkedNodeBundle extends base.SummaryClass {
   factory LinkedNodeBundle.fromBuffer(List<int> buffer) =>
       generated.readLinkedNodeBundle(buffer);
-
   @Id(1)
   List<LinkedNodeLibrary> get libraries;
 
@@ -1770,22 +1762,19 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
-  @Id(4)
+  @Id(3)
   bool get isNNBD;
 
-  @Id(3)
+  @Id(2)
   bool get isSynthetic;
 
-  @Id(2)
+  @Id(1)
   LinkedNode get node;
 
   /// If the unit is a part, the URI specified in the `part` directive.
   /// Otherwise empty.
-  @Id(5)
+  @Id(4)
   String get partUriStr;
-
-  @Id(1)
-  UnlinkedTokens get tokens;
 
   /// The absolute URI.
   @Id(0)
@@ -1798,66 +1787,9 @@ abstract class PackageBundle extends base.SummaryClass {
   factory PackageBundle.fromBuffer(List<int> buffer) =>
       generated.readPackageBundle(buffer);
 
-  /// MD5 hash of the non-informative fields of the [PackageBundle] (not
-  /// including this one).  This can be used to identify when the API of a
-  /// package may have changed.
-  @Id(7)
-  @deprecated
-  String get apiSignature;
-
   /// The version 2 of the summary.
-  @Id(9)
+  @Id(0)
   LinkedNodeBundle get bundle2;
-
-  /// Information about the packages this package depends on, if known.
-  @Id(8)
-  @informative
-  @deprecated
-  List<PackageDependencyInfo> get dependencies;
-
-  /// Linked libraries.
-  @Id(0)
-  @deprecated
-  List<LinkedLibrary> get linkedLibraries;
-
-  /// The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
-  /// `package:foo/bar.dart`.
-  @Id(1)
-  @deprecated
-  List<String> get linkedLibraryUris;
-
-  /// Major version of the summary format.  See
-  /// [PackageBundleAssembler.currentMajorVersion].
-  @Id(5)
-  int get majorVersion;
-
-  /// Minor version of the summary format.  See
-  /// [PackageBundleAssembler.currentMinorVersion].
-  @Id(6)
-  int get minorVersion;
-
-  /// List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
-  /// is encoded as a hexadecimal string using lower case letters.
-  @Id(4)
-  @deprecated
-  @informative
-  List<String> get unlinkedUnitHashes;
-
-  /// Unlinked information for the compilation units constituting the package.
-  @Id(2)
-  @deprecated
-  List<UnlinkedUnit> get unlinkedUnits;
-
-  /// The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
-  @Id(3)
-  @deprecated
-  List<String> get unlinkedUnitUris;
-}
-
-/// TODO(scheglov) Remove it.
-abstract class PackageDependencyInfo extends base.SummaryClass {
-  @Id(0)
-  int get placeholder;
 }
 
 /// Summary information about a top-level type inference error.
@@ -2015,13 +1947,7 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   int get nameOffset;
 }
 
-/// TODO(scheglov) Remove it.
-abstract class UnlinkedTokens extends base.SummaryClass {
-  @Id(0)
-  int get placeholder;
-}
-
-/// TODO(scheglov) document
+/// Enum of token types, corresponding to AST token types.
 enum UnlinkedTokenType {
   NOTHING,
   ABSTRACT,
@@ -2164,12 +2090,8 @@ enum UnlinkedTokenType {
   WHILE,
   WITH,
   YIELD,
-}
-
-/// TODO(scheglov) Remove it.
-abstract class UnlinkedUnit extends base.SummaryClass {
-  @Id(0)
-  int get placeholder;
+  INOUT,
+  OUT,
 }
 
 /// Unlinked summary information about a compilation unit.

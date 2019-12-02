@@ -765,7 +765,7 @@ class DietListener extends StackListenerImpl {
     checkEmpty(token.charOffset);
     if (names == null || currentClassIsParserRecovery) return;
 
-    FieldBuilderImpl declaration = lookupBuilder(token, null, names.first);
+    SourceFieldBuilder declaration = lookupBuilder(token, null, names.first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(

@@ -536,9 +536,6 @@ bool PageSpace::CurrentThreadOwnsDataLock() {
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
   usage_.external_in_words += size_in_words;
-  NOT_IN_PRODUCT(
-      heap_->isolate()->shared_class_table()->UpdateAllocatedExternalOld(cid,
-                                                                         size));
 }
 
 void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
@@ -931,7 +928,7 @@ void PageSpace::WriteProtectCode(bool read_only) {
   }
 }
 
-bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
+bool PageSpace::ShouldStartIdleMarkSweep(int64_t deadline) {
   // To make a consistent decision, we should not yield for a safepoint in the
   // middle of deciding whether to perform an idle GC.
   NoSafepointScope no_safepoint;
@@ -950,8 +947,11 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
     }
   }
 
+  // This uses the size of new-space because the pause time to start concurrent
+  // marking is related to the size of the root set, which is mostly new-space.
   int64_t estimated_mark_completion =
-      OS::GetCurrentMonotonicMicros() + UsedInWords() / mark_words_per_micro_;
+      OS::GetCurrentMonotonicMicros() +
+      heap_->new_space()->UsedInWords() / mark_words_per_micro_;
   return estimated_mark_completion <= deadline;
 }
 
@@ -1094,7 +1094,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
     return;
   }
 
-  NOT_IN_PRODUCT(isolate->shared_class_table()->ResetCountersOld());
   marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;

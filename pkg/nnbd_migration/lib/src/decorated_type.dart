@@ -149,10 +149,8 @@ class DecoratedType implements DecoratedTypeInfo {
   factory DecoratedType.forImplicitType(
       TypeProvider typeProvider, DartType type, NullabilityGraph graph,
       {List<DecoratedType> typeArguments}) {
-    if (type.isDynamic || type.isVoid) {
-      assert(typeArguments == null);
-      return DecoratedType(type, graph.always);
-    } else if (type is InterfaceType) {
+    var nullabilityNode = NullabilityNode.forInferredType();
+    if (type is InterfaceType) {
       assert(() {
         if (typeArguments != null) {
           assert(typeArguments.length == type.typeArguments.length);
@@ -166,24 +164,17 @@ class DecoratedType implements DecoratedTypeInfo {
       typeArguments ??= type.typeArguments
           .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
           .toList();
-      return DecoratedType(type, NullabilityNode.forInferredType(),
-          typeArguments: typeArguments);
+      return DecoratedType(type, nullabilityNode, typeArguments: typeArguments);
     } else if (type is FunctionType) {
       if (typeArguments != null) {
         throw "Not supported: implicit function type with explicit type arguments";
       }
       return DecoratedType.forImplicitFunction(
-          typeProvider, type, NullabilityNode.forInferredType(), graph);
-    } else if (type is TypeParameterType) {
+          typeProvider, type, nullabilityNode, graph);
+    } else {
       assert(typeArguments == null);
-      return DecoratedType(type, NullabilityNode.forInferredType());
-    } else if (type is NeverTypeImpl) {
-      assert(typeArguments == null);
-      return DecoratedType(type, NullabilityNode.forInferredType());
+      return DecoratedType(type, nullabilityNode);
     }
-    // TODO(paulberry)
-    throw UnimplementedError(
-        'DecoratedType.forImplicitType(${type.runtimeType})');
   }
 
   /// Creates a [DecoratedType] for a synthetic type parameter, to be used

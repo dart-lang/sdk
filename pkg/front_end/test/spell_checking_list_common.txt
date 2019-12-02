@@ -53,6 +53,7 @@ actually
 acyclic
 ad
 adapt
+adapted
 add
 added
 adding
@@ -73,6 +74,7 @@ advances
 advancing
 advice
 affect
+affected
 affects
 after
 again
@@ -84,6 +86,8 @@ algebra
 algorithm
 algorithms
 alias
+aliased
+aliases
 alignment
 all
 allocated
@@ -105,6 +109,7 @@ alternative
 alternatively
 alternatives
 although
+altogether
 always
 ambiguous
 among
@@ -217,6 +222,7 @@ available
 average
 avoid
 avoided
+avoiding
 avoids
 await
 awaiter
@@ -528,6 +534,7 @@ concretely
 concurrent
 condition
 conditional
+conditionals
 conditionally
 conditions
 configurable
@@ -611,6 +618,7 @@ convertible
 converting
 converts
 cookie
+coordinate
 cope
 copied
 copier
@@ -728,6 +736,7 @@ delimited
 delimiter
 delimiters
 delta
+demote
 demoted
 demoting
 demotion
@@ -762,6 +771,7 @@ deserialization
 deserialize
 deserialized
 designed
+desired
 desugar
 desugared
 desugaring
@@ -916,6 +926,7 @@ encoded
 encoder
 encodes
 encoding
+encodings
 encounter
 encountered
 encountering
@@ -1073,6 +1084,7 @@ failure
 failures
 fake
 fall
+fallback
 falls
 false
 far
@@ -1085,6 +1097,7 @@ feature
 features
 feed
 feel
+fetch
 few
 fewer
 field
@@ -1665,6 +1678,7 @@ lower
 lowercase
 lowered
 lowering
+lowerings
 machine
 made
 magenta
@@ -1849,6 +1863,7 @@ node
 nodes
 non
 none
+nonfunction
 nor
 normal
 normalize
@@ -2297,6 +2312,7 @@ registry
 regress
 regression
 regular
+reinsert
 reissue
 rejected
 rejects
@@ -2410,6 +2426,8 @@ reuses
 reusing
 reverse
 reversed
+revert
+reverts
 review
 revise
 revision
@@ -2444,6 +2462,8 @@ safety
 said
 sake
 same
+sample
+samples
 sanity
 satisfied
 satisfies
@@ -2515,6 +2535,7 @@ sets
 setter
 setters
 setting
+settings
 settled
 setup
 several
@@ -2636,6 +2657,7 @@ square
 squiggly
 stable
 stack
+stacked
 stage
 stamps
 standalone
@@ -2649,6 +2671,7 @@ starting
 starts
 startup
 state
+stateful
 statement
 statement's
 statements
@@ -2716,6 +2739,7 @@ succeeds
 success
 successful
 successfully
+successively
 succinct
 such
 suffice

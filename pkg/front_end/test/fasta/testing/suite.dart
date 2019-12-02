@@ -141,8 +141,17 @@ const String experimentalFlagOptions = '--enable-experiment=';
 
 class TestOptions {
   final Map<ExperimentalFlag, bool> experimentalFlags;
+  final bool forceLateLowering;
 
-  TestOptions(this.experimentalFlags);
+  TestOptions(this.experimentalFlags, {this.forceLateLowering})
+      : assert(forceLateLowering != null);
+
+  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Map<ExperimentalFlag, bool> flags = new Map.from(experimentalFlags);
+    flags.addAll(forcedExperimentalFlags);
+    return flags;
+  }
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -152,6 +161,7 @@ class FastaContext extends ChainContext with MatchContext {
   final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
+  final bool verify;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -181,7 +191,8 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       bool kernelTextSerialization,
       this.uriTranslator,
-      bool fullCompile)
+      bool fullCompile,
+      this.verify)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
@@ -226,35 +237,37 @@ class FastaContext extends ChainContext with MatchContext {
   ///
   /// [forcedExperimentalFlags] is used to override the default flags for
   /// [description].
-  Map<ExperimentalFlag, bool> computeExperimentalFlags(
-      TestDescription description,
-      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+  TestOptions computeTestOptions(TestDescription description) {
     Directory directory = new File.fromUri(description.uri).parent;
     // TODO(johnniwinther): Support nested test folders?
     TestOptions testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
+      bool forceLateLowering = false;
       List<String> experimentalFlagsArguments = [];
       File optionsFile =
           new File.fromUri(directory.uri.resolve('test.options'));
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
-          // TODO(johnniwinther): Support more options if need.
+          line = line.trim();
           if (line.startsWith(experimentalFlagOptions)) {
             experimentalFlagsArguments =
                 line.substring(experimentalFlagOptions.length).split('\n');
+          } else if (line.startsWith('--force-late-lowering')) {
+            forceLateLowering = true;
+          } else if (line.isNotEmpty) {
+            throw new UnsupportedError("Unsupported test option '$line'");
           }
         }
       }
-      testOptions = new TestOptions(parseExperimentalFlags(
-          parseExperimentalArguments(experimentalFlagsArguments),
-          onError: (String message) => throw new ArgumentError(message),
-          onWarning: (String message) => throw new ArgumentError(message)));
+      testOptions = new TestOptions(
+          parseExperimentalFlags(
+              parseExperimentalArguments(experimentalFlagsArguments),
+              onError: (String message) => throw new ArgumentError(message),
+              onWarning: (String message) => throw new ArgumentError(message)),
+          forceLateLowering: forceLateLowering);
       _testOptions[directory.uri] = testOptions;
     }
-    Map<ExperimentalFlag, bool> flags =
-        new Map.from(testOptions.experimentalFlags);
-    flags.addAll(forcedExperimentalFlags);
-    return flags;
+    return testOptions;
   }
 
   Expectation get verificationError => expectationSet["VerificationError"];
@@ -329,6 +342,7 @@ class FastaContext extends ChainContext with MatchContext {
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
         environment.containsKey(KERNEL_TEXT_SERIALIZATION);
     String platformBinaries = environment["platformBinaries"];
@@ -348,7 +362,8 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         kernelTextSerialization,
         uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE));
+        environment.containsKey(ENABLE_FULL_COMPILE),
+        verify);
   }
 }
 
@@ -395,6 +410,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
   Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
     StringBuffer errors = new StringBuffer();
+    TestOptions testOptions = context.computeTestOptions(description);
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -404,8 +420,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..environmentDefines = {}
-          ..experimentalFlags = context.computeExperimentalFlags(
-              description, context.experimentalFlags),
+          ..experimentalFlags =
+              testOptions.computeExperimentalFlags(context.experimentalFlags),
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
@@ -414,7 +430,11 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
       DillTarget dillTarget = new DillTarget(
-          ticker, context.uriTranslator, new TestVmTarget(new TargetFlags()));
+        ticker,
+        context.uriTranslator,
+        new TestVmTarget(new TargetFlags(
+            forceLateLoweringForTesting: testOptions.forceLateLowering)),
+      );
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
@@ -436,7 +456,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       context.componentToDiagnostics.clear();
       context.componentToDiagnostics[p] = errors;
       if (fullCompile) {
-        p = await sourceTarget.buildComponent();
+        p = await sourceTarget.buildComponent(verify: context.verify);
         instrumentation?.finish();
         if (instrumentation != null && instrumentation.hasProblems) {
           if (updateComments) {
@@ -559,8 +579,7 @@ class MatchHierarchy extends Step<Component, Component, FastaContext> {
     ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
-      node.toString(sb);
-      sb.writeln();
+      sb.writeln(node);
     }
     return context.match<Component>(".hierarchy.expect", "$sb", uri, component);
   }

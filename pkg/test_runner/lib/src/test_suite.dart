@@ -147,7 +147,8 @@ abstract class TestSuite {
     // So, for now, until we have figured out how to manage those tests, we
     // implicitly skip any test that does not require NNBD if run in a
     // configuration that enables the NNBD experiment.
-    if (configuration.experiments.contains("non-nullable") &&
+    if (testFile.path.toString().contains("language_2") &&
+        configuration.experiments.contains("non-nullable") &&
         !(testFile.requirements.contains(Feature.nnbd) ||
             testFile.requirements.contains(Feature.nnbdWeak) ||
             testFile.requirements.contains(Feature.nnbdStrong))) {
@@ -162,11 +163,6 @@ abstract class TestSuite {
 
     if (configuration.testList != null &&
         !configuration.testList.contains(displayName)) {
-      return false;
-    }
-
-    if (isNegative(testFile) &&
-        configuration.runtimeConfiguration.shouldSkipNegativeTests) {
       return false;
     }
 
@@ -210,10 +206,6 @@ abstract class TestSuite {
 
     return false;
   }
-
-  bool isNegative(TestFile testFile) =>
-      testFile.hasCompileError ||
-      testFile.hasRuntimeError && configuration.runtime != Runtime.none;
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
@@ -879,8 +871,7 @@ class StandardTestSuite extends TestSuite {
     var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
     var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
-    commands.add(BrowserTestCommand(fullHtmlPath, configuration,
-        retry: !isNegative(testFile)));
+    commands.add(BrowserTestCommand(fullHtmlPath, configuration));
 
     var fullName = testName;
     if (subtestName != null) fullName += "/$subtestName";
@@ -970,8 +961,7 @@ class PackageTestSuite extends StandardTestSuite {
       super._enqueueBrowserTest(testFile, expectations, onTest);
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-      var command = BrowserTestCommand(fullPath, configuration,
-          retry: !isNegative(testFile));
+      var command = BrowserTestCommand(fullPath, configuration);
       _addTestCase(testFile, testFile.name, [command],
           expectations[testFile.name], onTest);
     }

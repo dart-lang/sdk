@@ -653,13 +653,15 @@ class Driver implements ServerStarter {
     // server was configured to load a language model on disk.
     CompletionRanking.instance =
         CompletionRanking(analysisServerOptions.completionModelFolder);
-    CompletionRanking.instance.start().catchError((error, stackTrace) {
+    CompletionRanking.instance.start().catchError((exception, stackTrace) {
       // Disable smart ranking if model startup fails.
       analysisServerOptions.completionModelFolder = null;
+      // TODO(brianwilkerson) Shutdown the isolates that have already been
+      //  started.
       CompletionRanking.instance = null;
       AnalysisEngine.instance.instrumentationService.logException(
           CaughtException.withMessage(
-              'Failed to start ranking model isolate', error, stackTrace));
+              'Failed to start ranking model isolate', exception, stackTrace));
     });
   }
 

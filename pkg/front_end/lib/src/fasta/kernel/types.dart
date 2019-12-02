@@ -38,15 +38,6 @@ class Types implements SubtypeTester {
 
   /// Returns true if [s] is a subtype of [t].
   bool isSubtypeOfKernel(DartType s, DartType t, SubtypeCheckMode mode) {
-    // TODO(dmitryas): Remove InvalidType from subtype relation.
-    if (s is InvalidType) {
-      // InvalidType is a bottom type.
-      return true;
-    }
-    if (t is InvalidType) {
-      return false;
-    }
-
     IsSubtypeOf result = performNullabilityAwareSubtypeCheck(s, t);
     switch (mode) {
       case SubtypeCheckMode.withNullabilities:
@@ -75,6 +66,16 @@ class Types implements SubtypeTester {
     if (s is NeverType) {
       return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
     }
+
+    // TODO(dmitryas): Remove InvalidType from subtype relation.
+    if (s is InvalidType) {
+      // InvalidType is a bottom type.
+      return const IsSubtypeOf.always();
+    }
+    if (t is InvalidType) {
+      return const IsSubtypeOf.never();
+    }
+
     if (t is InterfaceType) {
       Class cls = t.classNode;
       if (cls == hierarchy.objectClass &&
@@ -275,8 +276,7 @@ class Types implements SubtypeTester {
       hierarchy.coreTypes.functionLegacyRawType;
 
   @override
-  InterfaceType futureType(DartType type,
-      [Nullability nullability = Nullability.legacy]) {
+  InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         hierarchy.coreTypes.futureClass, nullability, <DartType>[type]);
   }
@@ -440,8 +440,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         TypeParameter tTypeVariable = tTypeVariables[i];
         result = result.and(
             types.isSameTypeKernel(sTypeVariable.bound, tTypeVariable.bound));
-        typeVariableSubstitution.add(new TypeParameterType(tTypeVariable,
-            TypeParameterType.computeNullabilityFromBound(tTypeVariable)));
+        typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
+            sTypeVariable, tTypeVariable));
       }
       Substitution substitution =
           Substitution.fromPairs(sTypeVariables, typeVariableSubstitution);

@@ -988,8 +988,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   const Function& target = targets.FirstTarget();
   intptr_t receiver_cid = targets.MonomorphicReceiverCid();
-  MethodRecognizer::Kind recognized_kind =
-      MethodRecognizer::RecognizeKind(target);
+  MethodRecognizer::Kind recognized_kind = target.recognized_kind();
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
@@ -1108,7 +1107,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
+            : Class::IsSubtypeOf(NNBDMode::kLegacy, cls,
+                                 Object::null_type_arguments(), type_class,
                                  Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
@@ -1308,8 +1308,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
   if (speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
     // Only if speculative inlining is enabled.
 
-    MethodRecognizer::Kind recognized_kind =
-        MethodRecognizer::RecognizeKind(call->function());
+    MethodRecognizer::Kind recognized_kind = call->function().recognized_kind();
     const CallTargets& targets = call->Targets();
     const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 
@@ -1422,9 +1421,9 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
-    const bool smi_is_subtype =
-        Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
-                           Object::null_type_arguments(), Heap::kOld);
+    const bool smi_is_subtype = Class::IsSubtypeOf(
+        NNBDMode::kLegacy, smi_class, Object::null_type_arguments(), type_class,
+        Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {

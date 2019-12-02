@@ -10,11 +10,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
-
-import 'mocks.dart';
 
 main() {
   group('SocketServer', () {
@@ -55,7 +54,7 @@ class SocketServerTest {
 
   static Future createAnalysisServer_successful() {
     MockServerChannel channel = new MockServerChannel();
-    SocketServer server = _createSocketServer(channel);
+    _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);

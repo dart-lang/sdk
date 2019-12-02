@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int? lateLocal;
+  function #lateLocal#get() → core::int
+    return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} lateLocal = 123 : #t1{core::int};
+  function #lateLocal#set(core::int #t2) → dynamic
+    return lateLocal = #t2;
+  self::expect(123, #lateLocal#get.call());
+  self::expect(124, #lateLocal#set.call(124));
+  self::expect(124, #lateLocal#get.call());
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

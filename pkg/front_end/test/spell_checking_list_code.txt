@@ -141,6 +141,7 @@ class4d
 clazz
 cls
 cn
+cnt
 co
 codebase
 codec
@@ -320,6 +321,8 @@ ffff
 fffff
 ffffffff
 ffi
+field1
+field2
 file's
 filenames
 finv
@@ -423,6 +426,7 @@ initializer's
 insertion
 inspector
 inspired
+inst
 instanceof
 instantiator
 intentionally
@@ -454,6 +458,7 @@ json
 juxtaposition
 juxtapositions
 k
+k’s
 kallentu
 kernel's
 kernel2kernel
@@ -461,7 +466,6 @@ klass
 kmillikin
 kustermann
 kv
-k’s
 l
 lacks
 lang
@@ -639,13 +643,13 @@ queries
 quick
 quoted
 r
-r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
+r'$creation
 ra
 radix
 raises
@@ -663,6 +667,7 @@ realign
 reassigned
 rebind
 rebuild
+rebuilds
 recalculating
 recalculation
 recall
@@ -705,6 +710,7 @@ residue
 respond
 restriction
 resumed
+ret
 rewrites
 rewrote
 rf
@@ -1021,6 +1027,8 @@ xi
 xm
 xn
 xor
+xs
+xss
 xterm
 xx
 xxxx
@@ -1032,6 +1040,8 @@ yaml
 yet
 yielding
 yields
+ys
+yss
 z
 zi
 zip

@@ -9,7 +9,7 @@ import 'dart:math' show min;
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import 'options.dart' show BytecodeOptions;
 
@@ -153,6 +153,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
   bool visitBottomType(BottomType node) => false;
 
   @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
   bool visitTypeParameterType(TypeParameterType node) =>
       _declaredTypeParameters == null ||
       !_declaredTypeParameters.contains(node.parameter);
@@ -185,15 +188,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns static type of [expr].
-DartType getStaticType(Expression expr, TypeEnvironment typeEnvironment) {
-  // TODO(dartbug.com/34496): Remove this try/catch once
-  // getStaticType() is reliable.
-  try {
-    return expr.getStaticType(typeEnvironment);
-  } catch (e) {
-    return const DynamicType();
-  }
-}
+DartType getStaticType(Expression expr, StaticTypeContext staticTypeContext) =>
+    expr.getStaticType(staticTypeContext);
 
 /// Returns `true` if [type] cannot be extended in user code.
 bool isSealedType(DartType type, CoreTypes coreTypes) {
@@ -212,7 +208,7 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
 /// [receiver] can omit argument type checks needed due to generic-covariant
 /// parameters.
 bool isUncheckedCall(Member interfaceTarget, Expression receiver,
-    TypeEnvironment typeEnvironment) {
+    StaticTypeContext staticTypeContext) {
   if (interfaceTarget == null) {
     // Dynamic call cannot be unchecked.
     return false;
@@ -228,14 +224,14 @@ bool isUncheckedCall(Member interfaceTarget, Expression receiver,
     return true;
   }
 
-  DartType receiverStaticType = getStaticType(receiver, typeEnvironment);
+  DartType receiverStaticType = getStaticType(receiver, staticTypeContext);
   if (receiverStaticType is InterfaceType) {
     if (receiverStaticType.typeArguments.isEmpty) {
       return true;
     }
 
-    if (receiverStaticType.typeArguments
-        .every((t) => isSealedType(t, typeEnvironment.coreTypes))) {
+    if (receiverStaticType.typeArguments.every(
+        (t) => isSealedType(t, staticTypeContext.typeEnvironment.coreTypes))) {
       return true;
     }
   }
@@ -282,9 +278,9 @@ bool _hasGenericCovariantParameters(Member target) {
 /// Returns true if invocation [node] is a closure call with statically known
 /// function type. Such invocations can omit argument type checks.
 bool isUncheckedClosureCall(MethodInvocation node,
-        TypeEnvironment typeEnvironment, BytecodeOptions options) =>
+        StaticTypeContext staticTypeContext, BytecodeOptions options) =>
     node.name.name == 'call' &&
-    getStaticType(node.receiver, typeEnvironment) is FunctionType &&
+    getStaticType(node.receiver, staticTypeContext) is FunctionType &&
     !options.avoidClosureCallInstructions;
 
 /// Returns true if [MethodInvocation] node with given [interfaceTarget] is

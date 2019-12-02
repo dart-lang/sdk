@@ -121,24 +121,24 @@ testTypeSubstitution() async {
       """);
   InterfaceType Class_T_S = env["Class"];
   Expect.isNotNull(Class_T_S);
-  Expect.isTrue(Class_T_S.isInterfaceType);
+  Expect.isTrue(Class_T_S is InterfaceType);
   Expect.equals(2, Class_T_S.typeArguments.length);
 
   DartType T = Class_T_S.typeArguments[0];
   Expect.isNotNull(T);
-  Expect.isTrue(T.isTypeVariable);
+  Expect.isTrue(T is TypeVariableType);
 
   DartType S = Class_T_S.typeArguments[1];
   Expect.isNotNull(S);
-  Expect.isTrue(S.isTypeVariable);
+  Expect.isTrue(S is TypeVariableType);
 
   DartType intType = env['int'];
   Expect.isNotNull(intType);
-  Expect.isTrue(intType.isInterfaceType);
+  Expect.isTrue(intType is InterfaceType);
 
   DartType StringType = env['String'];
   Expect.isNotNull(StringType);
-  Expect.isTrue(StringType.isInterfaceType);
+  Expect.isTrue(StringType is InterfaceType);
 
   ClassEntity ListClass = env.getElement('List');
   ClassEntity MapClass = env.getElement('Map');

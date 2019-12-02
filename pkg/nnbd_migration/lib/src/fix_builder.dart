@@ -75,7 +75,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   final TypeProvider typeProvider;
 
   /// The type system.
-  final Dart2TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// Variables for this migration run.
   final Variables _variables;
@@ -98,8 +98,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
 
   FixBuilder(this.source, this._decoratedClassHierarchy,
       TypeProvider typeProvider, this._typeSystem, this._variables)
-      : typeProvider = (typeProvider as TypeProviderImpl)
-            .withNullability(NullabilitySuffix.none);
+      : typeProvider =
+            (typeProvider as TypeProviderImpl).asNonNullableByDefault;
 
   /// Called whenever an AST node is found that needs to be changed.
   void addChange(AstNode node, NodeChange change);

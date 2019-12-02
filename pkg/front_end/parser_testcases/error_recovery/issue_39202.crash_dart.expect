@@ -1,30 +1,30 @@
 Problems reported:
 
-parser_test/error_recovery/issue_39202.crash:1:1: Expected a declaration, but got '('.
+parser/error_recovery/issue_39202.crash:1:1: Expected a declaration, but got '('.
 () async => a b < c $? >
 ^
 
-parser_test/error_recovery/issue_39202.crash:1:2: Expected a declaration, but got ')'.
+parser/error_recovery/issue_39202.crash:1:2: Expected a declaration, but got ')'.
 () async => a b < c $? >
  ^
 
-parser_test/error_recovery/issue_39202.crash:1:4: A function declaration needs an explicit list of parameters.
+parser/error_recovery/issue_39202.crash:1:4: A function declaration needs an explicit list of parameters.
 () async => a b < c $? >
    ^^^^^
 
-parser_test/error_recovery/issue_39202.crash:1:13: Expected ';' after this.
+parser/error_recovery/issue_39202.crash:1:13: Expected ';' after this.
 () async => a b < c $? >
             ^
 
-parser_test/error_recovery/issue_39202.crash:1:19: Expected '>' after this.
+parser/error_recovery/issue_39202.crash:1:19: Expected '>' after this.
 () async => a b < c $? >
                   ^
 
-parser_test/error_recovery/issue_39202.crash:1:25: Expected an identifier, but got ''.
+parser/error_recovery/issue_39202.crash:1:25: Expected an identifier, but got ''.
 () async => a b < c $? >
                         ^...
 
-parser_test/error_recovery/issue_39202.crash:1:25: Expected ';' after this.
+parser/error_recovery/issue_39202.crash:1:25: Expected ';' after this.
 () async => a b < c $? >
                         ^...
 

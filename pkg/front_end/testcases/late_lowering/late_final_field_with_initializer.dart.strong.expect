@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field core::int? lateStaticField1Init = null;
+  static field core::int? _#lateStaticField1 = null;
+  static field core::int? lateStaticField2Init = null;
+  static field core::int? _#lateStaticField2 = null;
+  field core::int? lateInstanceFieldInit = null;
+  field core::int? _#lateInstanceField = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  static method initLateStaticField1(core::int value) → core::int {
+    return self::Class::lateStaticField1Init = value;
+  }
+  static get lateStaticField1() → core::int
+    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} self::Class::_#lateStaticField1 = self::Class::initLateStaticField1(87) : #t1{core::int};
+  static method initLateStaticField2(core::int value) → core::int {
+    return self::Class::lateStaticField2Init = value;
+  }
+  static get lateStaticField2() → core::int
+    return let final core::int? #t2 = self::Class::_#lateStaticField2 in #t2.==(null) ?{core::int} self::Class::_#lateStaticField2 = self::Class::initLateStaticField2(42) : #t2{core::int};
+  static method staticMethod() → dynamic {
+    self::expect(null, self::Class::lateStaticField2Init);
+    self::expect(42, self::Class::lateStaticField2);
+    self::expect(42, self::Class::lateStaticField2Init);
+  }
+  method initLateInstanceField(core::int value) → core::int {
+    return this.{self::Class::lateInstanceFieldInit} = value;
+  }
+  get lateInstanceField() → core::int
+    return let final core::int? #t3 = this.{self::Class::_#lateInstanceField} in #t3.==(null) ?{core::int} this.{self::Class::_#lateInstanceField} = this.{self::Class::initLateInstanceField}(16) : #t3{core::int};
+  method instanceMethod() → dynamic {
+    self::expect(null, this.{self::Class::lateInstanceFieldInit});
+    self::expect(16, this.{self::Class::lateInstanceField});
+    self::expect(16, this.{self::Class::lateInstanceFieldInit});
+  }
+}
+static field core::int? lateTopLevelField1Init;
+static field core::int? _#lateTopLevelField1 = null;
+static method initLateTopLevelField1(core::int value) → core::int {
+  return self::lateTopLevelField1Init = value;
+}
+static get lateTopLevelField1() → core::int
+  return let final core::int? #t4 = self::_#lateTopLevelField1 in #t4.==(null) ?{core::int} self::_#lateTopLevelField1 = self::initLateTopLevelField1(123) : #t4{core::int};
+static method main() → dynamic {
+  self::expect(null, self::lateTopLevelField1Init);
+  self::expect(123, self::lateTopLevelField1);
+  self::expect(123, self::lateTopLevelField1Init);
+  self::expect(null, self::Class::lateStaticField1Init);
+  self::expect(87, self::Class::lateStaticField1);
+  self::expect(87, self::Class::lateStaticField1Init);
+  self::Class::staticMethod();
+  new self::Class::•().{self::Class::instanceMethod}();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

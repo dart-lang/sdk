@@ -25,7 +25,7 @@ class LocalVariables {
   Map<TreeNode, VariableDeclaration> _capturedStackTraceVars;
   Map<ForInStatement, VariableDeclaration> _capturedIteratorVars;
   final BytecodeOptions options;
-  final TypeEnvironment typeEnvironment;
+  final StaticTypeContext staticTypeContext;
   final Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   Scope _currentScope;
@@ -190,7 +190,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.typeEnvironment,
+  LocalVariables(Member node, this.options, this.staticTypeContext,
       this.directCallMetadata) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
@@ -207,6 +207,14 @@ class LocalVariables {
   void leaveScope() {
     _currentScope = _currentScope.parent;
     _currentFrame = _currentScope?.frame;
+  }
+
+  void withTemp(TreeNode node, int temp, void action()) {
+    final old = _temps[node];
+    assert(old == null || old.length == 1);
+    _temps[node] = [temp];
+    action();
+    _temps[node] = old;
   }
 }
 
@@ -595,6 +603,9 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitVariableGet(VariableGet node) {
     _useVariable(node.variable);
+    if (node.variable.isLate && node.variable.initializer != null) {
+      node.variable.initializer.accept(this);
+    }
   }
 
   @override
@@ -1225,7 +1236,8 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     int numTemps = 0;
-    if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
+    if (isUncheckedClosureCall(
+        node, locals.staticTypeContext, locals.options)) {
       numTemps = 1;
     } else if (isCallThroughGetter(node.interfaceTarget)) {
       final args = node.arguments;
@@ -1282,8 +1294,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitVariableGet(VariableGet node) {
+    _visit(node, temps: node.variable.isLate ? 1 : 0);
+  }
+
+  @override
   visitVariableSet(VariableSet node) {
-    _visit(node, temps: locals.isCaptured(node.variable) ? 1 : 0);
+    final v = node.variable;
+    final bool needsTemp = locals.isCaptured(v) || v.isLate && v.isFinal;
+    _visit(node, temps: needsTemp ? 1 : 0);
   }
 
   @override

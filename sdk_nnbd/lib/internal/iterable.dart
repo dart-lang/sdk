@@ -768,7 +768,7 @@ class EmptyIterator<E> implements Iterator<E> {
 }
 
 class FollowedByIterable<E> extends Iterable<E> {
-  final EfficientLengthIterable<E> _first;
+  final Iterable<E> _first;
   final Iterable<E> _second;
   FollowedByIterable(this._first, this._second);
 
@@ -854,13 +854,13 @@ class FollowedByIterator<E> implements Iterator<E> {
 }
 
 class WhereTypeIterable<T> extends Iterable<T> {
-  final Iterable<Object> _source;
+  final Iterable<Object?> _source;
   WhereTypeIterable(this._source);
   Iterator<T> get iterator => new WhereTypeIterator<T>(_source.iterator);
 }
 
 class WhereTypeIterator<T> implements Iterator<T> {
-  final Iterator<Object> _source;
+  final Iterator<Object?> _source;
   WhereTypeIterator(this._source);
   bool moveNext() {
     while (_source.moveNext()) {

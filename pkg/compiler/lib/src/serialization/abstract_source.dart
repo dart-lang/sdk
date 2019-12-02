@@ -187,6 +187,12 @@ abstract class AbstractDataSource extends DataSourceMixin
     switch (kind) {
       case DartTypeKind.none:
         return null;
+      case DartTypeKind.legacyType:
+        return LegacyType(_readDartType(functionTypeVariables));
+      case DartTypeKind.nullableType:
+        return NullableType(_readDartType(functionTypeVariables));
+      case DartTypeKind.neverType:
+        return NeverType();
       case DartTypeKind.voidType:
         return VoidType();
       case DartTypeKind.typeVariable:

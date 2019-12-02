@@ -1011,6 +1011,51 @@ void HeapSnapshotWriter::Write() {
   Flush(true);
 }
 
+CountObjectsVisitor::CountObjectsVisitor(Thread* thread, intptr_t class_count)
+    : ObjectVisitor(),
+      HandleVisitor(thread),
+      new_count_(new intptr_t[class_count]),
+      new_size_(new intptr_t[class_count]),
+      new_external_size_(new intptr_t[class_count]),
+      old_count_(new intptr_t[class_count]),
+      old_size_(new intptr_t[class_count]),
+      old_external_size_(new intptr_t[class_count]) {
+  memset(new_count_.get(), 0, class_count * sizeof(intptr_t));
+  memset(new_size_.get(), 0, class_count * sizeof(intptr_t));
+  memset(new_external_size_.get(), 0, class_count * sizeof(intptr_t));
+  memset(old_count_.get(), 0, class_count * sizeof(intptr_t));
+  memset(old_size_.get(), 0, class_count * sizeof(intptr_t));
+  memset(old_external_size_.get(), 0, class_count * sizeof(intptr_t));
+}
+
+void CountObjectsVisitor::VisitObject(RawObject* obj) {
+  intptr_t cid = obj->GetClassId();
+  intptr_t size = obj->HeapSize();
+  if (obj->IsNewObject()) {
+    new_count_[cid] += 1;
+    new_size_[cid] += size;
+  } else {
+    old_count_[cid] += 1;
+    old_size_[cid] += size;
+  }
+}
+
+void CountObjectsVisitor::VisitHandle(uword addr) {
+  FinalizablePersistentHandle* handle =
+      reinterpret_cast<FinalizablePersistentHandle*>(addr);
+  RawObject* obj = handle->raw();
+  if (!obj->IsHeapObject()) {
+    return;
+  }
+  intptr_t cid = obj->GetClassId();
+  intptr_t size = handle->external_size();
+  if (obj->IsNewObject()) {
+    new_external_size_[cid] += size;
+  } else {
+    old_external_size_[cid] += size;
+  }
+}
+
 #endif  // !defined(PRODUCT)
 
 }  // namespace dart

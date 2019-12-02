@@ -26,6 +26,8 @@ import '../../test/utils/package_root.dart' as pkg_root;
 main() async {
   String analyzerPkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
   String frontEndPkgPath = normalize(join(pkg_root.packageRoot, 'front_end'));
+  String frontEndSharedPkgPath =
+      normalize(join(pkg_root.packageRoot, '_fe_analyzer_shared'));
 
   Map<dynamic, dynamic> messagesYaml = loadYaml(
       new File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
@@ -35,8 +37,8 @@ main() async {
   String syntacticErrorsSource = new File(join(analyzerPkgPath,
           joinAll(posix.split('lib/src/dart/error/syntactic_errors.dart'))))
       .readAsStringSync();
-  String parserSource = new File(join(frontEndPkgPath,
-          joinAll(posix.split('lib/src/fasta/parser/parser.dart'))))
+  String parserSource = new File(join(frontEndSharedPkgPath,
+          joinAll(posix.split('lib/src/parser/parser.dart'))))
       .readAsStringSync();
 
   final codeGenerator = new _SyntacticErrorGenerator(

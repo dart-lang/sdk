@@ -15780,6 +15780,9 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
    * corresponds to an optional parameter, the corresponding named argument is
    * removed. If the property isRequired is true,
    * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *
+   * If the expression is not a syntactically valid Dart code, then
+   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   FlutterWidgetPropertyValue get value => _value;
 
@@ -15790,6 +15793,9 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
    * corresponds to an optional parameter, the corresponding named argument is
    * removed. If the property isRequired is true,
    * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *
+   * If the expression is not a syntactically valid Dart code, then
+   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   void set value(FlutterWidgetPropertyValue value) {
     this._value = value;
@@ -19717,6 +19723,7 @@ class RequestError implements HasToJson {
  *   DEBUG_PORT_COULD_NOT_BE_OPENED
  *   FILE_NOT_ANALYZED
  *   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+ *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
  *   FORMAT_INVALID_FILE
@@ -19776,6 +19783,14 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET =
       const RequestErrorCode._("FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET");
+
+  /**
+   * The given property expression is invalid, e.g. has a syntax error.
+   */
+  static const RequestErrorCode
+      FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION =
+      const RequestErrorCode._(
+          "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION");
 
   /**
    * The given property identifier is not valid. It might have never been
@@ -19985,6 +20000,7 @@ class RequestErrorCode implements Enum {
     DEBUG_PORT_COULD_NOT_BE_OPENED,
     FILE_NOT_ANALYZED,
     FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+    FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
     FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
     FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
     FORMAT_INVALID_FILE,
@@ -20030,6 +20046,8 @@ class RequestErrorCode implements Enum {
         return FILE_NOT_ANALYZED;
       case "FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET":
         return FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET;
+      case "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION":
+        return FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION;
       case "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID":
         return FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID;
       case "FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED":

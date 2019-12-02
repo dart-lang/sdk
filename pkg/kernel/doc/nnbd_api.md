@@ -274,9 +274,212 @@ The use of the `required` keyword affects the override rules and the subtyping r
 
 Fields and variables can be declared using the `late` keyword.  To reflect the use of the keyword the CFE sets the `isLate` flag on `Field` and `VariableDeclaration` nodes.
 
-The plan is to provide an optional desugaring of `late` fields and variables to aid the initial implementation of the feature.  The desugaring could be turned on by back ends via a compilation-target flag.
+#### Late field encoding
+An optional desugaring of `late` fields and variables is provided to aid the initial implementation of the feature.  The desugaring is enabled if `Target.supportsLateFields` returns `false`.
 
-*TODO: Expand the section on desugaring.*
+There are 8 variants of the encoding based on whether type of the field is potentially nullable, whether the field is final and whether the field has an initializer.
+
+If a late field is non-nullable, its value is stored in a private nullable field and a field value of `null` signals that the field is uninitialized. Otherwise if a late field is potentially nullable, an additional boolean `_#isSet#` field is generated to tracking whether the field has been initialized.
+
+##### 1) Potentially nullable late field without initializer
+A potentially nullable late non-final field:
+```
+late T? x;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x => _#x#isSet ? _#x : throw new StateError("Field 'x' has not been initialized.");
+void set x(T? value) {
+  _#x#isSet = true;
+  _#x = value;
+}
+```
+
+##### 2) Potentially nullable late final field without initializer
+A potentially nullable late final field _without_ an initializer
+```
+late final T? x;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x => _#x#isSet ? _#x : throw new StateError("Field 'x' has not been initialized.");
+void set x(T? value) {
+  if (_#x#isSet) {
+    throw new StateError('Field x has already been initialized.');
+  } else {
+    _#x#isSet = true;
+    _#x = value;
+  }
+}
+```
+
+##### 3) Potentially nullable late field with initializer
+A potentially nullable late field _with_ initializer `<exp>`
+```
+late T? x = <exp>;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x {
+  if (!_#x#isSet) {
+    _#x#isSet = true;
+    _#x = <exp>;
+  }
+return _#x
+}
+void set x(T? value) {
+  _#x#isSet = true
+  _#x = value;
+}
+```
+
+##### 4) Potentially nullable late final field with initializer
+A potentially nullable late final field _with_ initializer `<exp>`
+```
+late final T? x = <exp>;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x {
+  if (!_#x#isSet) {
+    _#x#isSet = true;
+    _#x = <exp>;
+  }
+  return _#x;
+}
+```
+
+##### 5) Non-nullable late field without initializer
+A non-nullable late non-final field:
+```
+late T x;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? throw new StateError("Field 'x' has not been initialized.") : #;
+void set x(T value) {
+  _#x = value;
+}
+```
+The reason for using a `let` expression here, is that while the private field is nullable, the temporary variable in the `let` expression will be promoted to a non-nullable type when checking against `null`, thus ensuring that the returned value is soundly non-nullable, also when analyzing the kernel ast itself.
+
+##### 6) Non-nullable late final field without initializer
+A non-nullable late final field _without_ an initializer
+```
+late final T x;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? throw new StateError("Field 'x' has not been initialized.") : #;
+void set x(T value) {
+  if (_#x == null) {
+    _#x = value;
+  } else {
+    throw new StateError("Field 'x' has already been initialized.");
+  }
+}
+```
+
+##### 7) Non-nullable late field with initializer
+A non-nullable late field _with_ initializer `<exp>`
+```
+late T x = <exp>;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? _#x = <exp> : #;
+void set x(T value) {
+  _#x = value;
+}
+```
+
+##### 8) Non-nullable late final field with initializer
+A non-nullable late final field _with_ initializer `<exp>`
+```
+late final T x = <exp>;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? _#x = <exp> : _#x;
+```
+
+##### Local variables
+A late local variable is encoded similarly to a late field. Local functions are created which correspond to the getters and setters for late fields.
+
+For instance, a nullable late local _without_ initializer
+```
+method() {
+  late T? x;
+  <lhs> = x;
+  variable = <rhs>;
+}
+```
+is encoded as
+```
+method() {
+  bool #x#isSet = false;
+  T? #x;
+  T? #x#get() => #x#isSet ? #x : throw new StateError("Local 'x' has not been initialized.")
+  T? #x#set(T? value)  {
+    _#x#isSet = true;
+    return _#x = value;
+  }
+  <lhs> = #x#get.call();
+  #x#set.call(<rhs>);
+}
+```
+
+##### Instance field initialization
+A field initialization of late _nullable_ instance field
+```
+class Class {
+  late T? x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  bool _#x#isSet = false;
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x#isSet true, _#x = x;
+  Class.c() : _#x#isSet = true, _#x = <exp>;
+}
+```
+
+A field initialization of late _non-nullable_ instance field
+```
+class Class {
+  late T x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x = x;
+  Class.b() : _#x = <exp>;
+}
+```
 
 
 ### The Null Check Operator

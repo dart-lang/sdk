@@ -445,7 +445,7 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 }
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
-  const auto kind = MethodRecognizer::RecognizeKind(instr->function());
+  const auto kind = instr->function().recognized_kind();
   switch (kind) {
     case MethodRecognizer::kOneByteString_equality:
     case MethodRecognizer::kTwoByteString_equality: {
@@ -837,9 +837,9 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
-        bool is_instance =
-            instance.IsInstanceOf(checked_type, Object::null_type_arguments(),
-                                  Object::null_type_arguments());
+        bool is_instance = instance.IsInstanceOf(
+            NNBDMode::kLegacy, checked_type, Object::null_type_arguments(),
+            Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;
       }

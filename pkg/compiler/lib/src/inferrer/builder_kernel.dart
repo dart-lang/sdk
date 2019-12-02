@@ -1692,7 +1692,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       DartType type = node.guard != null
           ? _elementMap.getDartType(node.guard)
           : DynamicType();
-      if (type.isInterfaceType) {
+      if (type is InterfaceType) {
         InterfaceType interfaceType = type;
         mask = _types.nonNullSubtype(interfaceType.element);
       } else {

@@ -24,7 +24,14 @@ method<T>(T o) {
 }
 
 main() {
-  var c = new /*Class<dynamic>*/ Class/*<dynamic>*/();
-  /*Class<dynamic>*/ c. /*invoke: dynamic*/ method(/*Class<dynamic>*/ c);
-  /*invoke: dynamic*/ method/*<Class<dynamic>>*/(/*Class<dynamic>*/ c);
+  var c = new
+      /*cfe|dart2js.Class<dynamic>*/
+      /*cfe:nnbd.Class<dynamic>!*/
+      Class/*<dynamic>*/();
+  /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c
+      . /*invoke: dynamic*/ method(
+          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
+  /*invoke: dynamic*/ method
+      /*cfe|dart2js.<Class<dynamic>>*/ /*cfe:nnbd.<Class<dynamic>!>*/ (
+          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
 }

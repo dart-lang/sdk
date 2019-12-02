@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Expression,
         Field,
         FunctionNode,
+        FunctionType,
         InterfaceType,
         InvalidType,
         ListLiteral,
@@ -33,9 +34,8 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         VariableDeclaration,
         Variance,
-        VoidType;
-
-import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
+        VoidType,
+        getAsTypeArguments;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -49,6 +49,7 @@ import 'package:kernel/src/bounds_checks.dart'
         computeVariance,
         findTypeArgumentIssues,
         getGenericTypeName;
+
 import 'package:kernel/text/text_serialization_verifier.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
@@ -383,6 +384,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool isNullClass = false;
 
+  InterfaceType _legacyRawType;
+  InterfaceType _nullableRawType;
+  InterfaceType _nonNullableRawType;
+  InterfaceType _thisType;
+
   ClassBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -604,33 +610,29 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return declaration;
   }
 
-  InterfaceType _legacyRawType;
-  InterfaceType _nullableRawType;
-  InterfaceType _nonNullableRawType;
-
   @override
   ClassBuilder get origin => actualOrigin ?? this;
 
   @override
-  InterfaceType get thisType => cls.thisType;
+  InterfaceType get thisType {
+    return _thisType ??= new InterfaceType(cls, library.nonNullable,
+        getAsTypeArguments(cls.typeParameters, library.library));
+  }
 
   @override
   InterfaceType get legacyRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
   InterfaceType get nullableRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _nullableRawType ??= new InterfaceType(cls, Nullability.nullable,
         new List<DartType>.filled(typeVariablesCount, const DynamicType()));
   }
 
   @override
   InterfaceType get nonNullableRawType {
-    // TODO(dmitryas): Use computeBound instead of DynamicType here?
     return _nonNullableRawType ??= new InterfaceType(
         cls,
         Nullability.nonNullable,
@@ -804,7 +806,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         new InterfaceType(
-            supertype.classNode, Nullability.legacy, supertype.typeArguments),
+            supertype.classNode, library.nonNullable, supertype.typeArguments),
         typeEnvironment,
         allowSuperBounded: false);
     if (issues != null) {
@@ -1160,7 +1162,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         target.loader.coreTypes,
         new ThisExpression(),
         prefix + procedure.name.name,
-        new Arguments.forwarded(procedure.function),
+        new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
     Expression result = new MethodInvocation(new ThisExpression(),
@@ -1382,8 +1384,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
       interfaceSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, interfaceMember.enclosingClass));
+          .getKernelTypeAsInstanceOf(thisType, interfaceMember.enclosingClass));
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
@@ -1408,8 +1409,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         substitutionMap[interfaceFunction.typeParameters[i]] =
-            new TypeParameterType(
-                declaredFunction.typeParameters[i], Nullability.legacy);
+            new TypeParameterType.forAlphaRenaming(
+                interfaceFunction.typeParameters[i],
+                declaredFunction.typeParameters[i]);
       }
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
@@ -1454,8 +1456,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     Substitution declaredSubstitution = Substitution.empty;
     if (declaredMember.enclosingClass.typeParameters.isNotEmpty) {
       declaredSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(
-              cls.thisType, declaredMember.enclosingClass));
+          .getKernelTypeAsInstanceOf(thisType, declaredMember.enclosingClass));
     }
     return declaredSubstitution;
   }

@@ -145,7 +145,6 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentInferred,
         templateIncorrectTypeArgumentQualified,
         templateIncorrectTypeArgumentQualifiedInferred,
-        templateIntersectionTypeAsTypeArgument,
         templateLanguageVersionTooHigh,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
@@ -171,7 +170,7 @@ import '../kernel/kernel_builder.dart'
         compareProcedures,
         toKernelCombinators;
 
-import '../kernel/kernel_shadow_ast.dart';
+import '../kernel/internal_ast.dart';
 
 import '../kernel/metadata_collector.dart';
 
@@ -214,12 +213,14 @@ import 'source_loader.dart' show SourceLoader;
 
 // TODO(johnniwinther,jensj): Replace this with the correct scheme.
 const int enableNonNullableDefaultMajorVersion = 2;
-const int enableNonNullableDefaultMinorVersion = 6;
+const int enableNonNullableDefaultMinorVersion = 7;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
-  final SourceLoader loader;
+  SourceLoader loader;
+
+  bool issueLexicalErrorsOnBodyBuild = false;
 
   final TypeParameterScopeBuilder libraryDeclaration;
 
@@ -346,7 +347,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this._nameOrigin)
       : currentTypeParameterScopeBuilder = libraryDeclaration,
         super(
-            fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
+            fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
+    library.isNonNullableByDefault = isNonNullableByDefault;
+  }
 
   SourceLibraryBuilder(
       Uri uri, Uri fileUri, Loader loader, SourceLibraryBuilder actualOrigin,
@@ -1783,14 +1786,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    FieldBuilderImpl fieldBuilder = new FieldBuilderImpl(
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);
     if (type == null && initializerToken != null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
-      fieldBuilder.field.type =
+      fieldBuilder.fieldType =
           new ImplicitFieldType(fieldBuilder, initializerToken);
       (implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
     }
@@ -2006,7 +2009,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      FunctionTypeBuilder type,
+      TypeBuilder type,
       int charOffset) {
     if (typeVariables != null) {
       for (TypeVariableBuilder typeVariable in typeVariables) {
@@ -2618,15 +2621,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
-      } else if (argument is TypeParameterType &&
-          argument.promotedBound != null) {
-        addProblem(
-            templateIntersectionTypeAsTypeArgument.withArguments(
-                typeParameter.name, argument, argument.promotedBound),
-            offset,
-            noLength,
-            fileUri);
-        continue;
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (issueInferred) {
@@ -2805,8 +2799,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (node.arguments.types.isEmpty) return;
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
-    DartType constructedType =
-        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
+    DartType constructedType = new InterfaceType(
+        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2819,8 +2813,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure factory = node.target;
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
-    DartType constructedType =
-        new InterfaceType(klass, Nullability.legacy, node.arguments.types);
+    DartType constructedType = new InterfaceType(
+        klass, klass.enclosingLibrary.nonNullable, node.arguments.types);
     checkBoundsInType(
         constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
@@ -2845,7 +2839,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (issues != null) {
       DartType targetReceiver;
       if (klass != null) {
-        targetReceiver = new InterfaceType(klass, Nullability.legacy);
+        targetReceiver =
+            new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
       String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
@@ -2897,8 +2892,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i] =
           new TypeParameter(methodParameters[i].name);
-      substitutionMap[methodParameters[i]] = new TypeParameterType(
-          instantiatedMethodParameters[i], Nullability.legacy);
+      substitutionMap[methodParameters[i]] =
+          new TypeParameterType.forAlphaRenaming(
+              methodParameters[i], instantiatedMethodParameters[i]);
     }
     for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
       instantiatedMethodParameters[i].bound =

@@ -116,15 +116,18 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                       declaration.fileUri);
                   break;
                 case BuiltMemberKind.ExtensionField:
+                case BuiltMemberKind.LateIsSetField:
                   kind = ExtensionMemberKind.Field;
                   break;
                 case BuiltMemberKind.ExtensionMethod:
                   kind = ExtensionMemberKind.Method;
                   break;
                 case BuiltMemberKind.ExtensionGetter:
+                case BuiltMemberKind.LateGetter:
                   kind = ExtensionMemberKind.Getter;
                   break;
                 case BuiltMemberKind.ExtensionSetter:
+                case BuiltMemberKind.LateSetter:
                   kind = ExtensionMemberKind.Setter;
                   break;
                 case BuiltMemberKind.ExtensionOperator:

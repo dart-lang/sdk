@@ -16,8 +16,9 @@ const String _dartTypeId = 'DartError';
 /// Crash backend host.
 const String _crashServerHost = 'clients2.google.com';
 
+// This should be one of 'report' or 'staging_report'.
 /// Path to the crash servlet.
-const String _crashEndpointPath = '/cr/report'; // or, 'staging_report'
+const String _crashEndpointPath = '/cr/staging_report';
 
 /// The field corresponding to the multipart/form-data file attachment where
 /// crash backend expects to find the Dart stack trace.

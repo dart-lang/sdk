@@ -16,21 +16,6 @@ import '../src/dart/resolution/driver_resolution.dart';
 import 'test_support.dart';
 
 class CompileTimeErrorCodeTestBase extends DriverResolutionTest {
-  disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
-    // There is an interface conflict here due to a loop in the class
-    // hierarchy leading to an infinite set of implemented types; this loop
-    // shouldn't cause non-termination.
-
-    // TODO(paulberry): this test is currently disabled due to non-termination
-    // bugs elsewhere in the analyzer.
-    await assertErrorsInCode('''
-class A<T> implements B<List<T>> {}
-class B<T> implements A<List<T>> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 0, 0),
-    ]);
-  }
-
   @failingTest
   test_accessPrivateEnumField() async {
     await assertErrorsInCode(r'''
@@ -4365,7 +4350,7 @@ typedef A(A b());
   test_typeAliasCannotReferenceItself_generic() async {
     List<ExpectedError> expectedErrors = [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
     ];
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);

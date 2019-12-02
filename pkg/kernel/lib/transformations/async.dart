@@ -5,6 +5,7 @@
 library kernel.transformations.async;
 
 import '../kernel.dart';
+import '../type_environment.dart';
 import 'continuation.dart';
 
 /// A transformer that introduces temporary variables for all subexpressions
@@ -80,6 +81,9 @@ class ExpressionLifter extends Transformer {
 
   ExpressionLifter(this.continuationRewriter);
 
+  StaticTypeContext get _staticTypeContext =>
+      continuationRewriter.staticTypeContext;
+
   Block blockOf(List<Statement> statements) {
     return new Block(statements.reversed.toList());
   }
@@ -115,14 +119,16 @@ class ExpressionLifter extends Transformer {
 
   // Name an expression by emitting an assignment to a temporary variable.
   VariableGet name(Expression expr) {
-    VariableDeclaration temp = allocateTemporary(nameIndex);
+    VariableDeclaration temp =
+        allocateTemporary(nameIndex, expr.getStaticType(_staticTypeContext));
     statements.add(new ExpressionStatement(new VariableSet(temp, expr)));
     return new VariableGet(temp);
   }
 
-  VariableDeclaration allocateTemporary(int index) {
+  VariableDeclaration allocateTemporary(int index, DartType type) {
     for (var i = variables.length; i <= index; i++) {
-      variables.add(new VariableDeclaration(":async_temporary_${i}"));
+      variables
+          .add(new VariableDeclaration(":async_temporary_${i}", type: type));
     }
     return variables[index];
   }
@@ -332,7 +338,10 @@ class ExpressionLifter extends Transformer {
     // so any statements it emits occur after in the accumulated list (that is,
     // so they occur before in the corresponding block).
     var rightBody = blockOf(rightStatements);
-    var result = allocateTemporary(nameIndex);
+    var result = allocateTemporary(
+        nameIndex,
+        _staticTypeContext.typeEnvironment.coreTypes
+            .boolRawType(_staticTypeContext.nonNullable));
     rightBody.addStatement(new ExpressionStatement(new VariableSet(
         result,
         new MethodInvocation(expr.right, new Name('=='),
@@ -394,7 +403,7 @@ class ExpressionLifter extends Transformer {
     // } else {
     //   t = [right];
     // }
-    var result = allocateTemporary(nameIndex);
+    var result = allocateTemporary(nameIndex, expr.staticType);
     var thenBody = blockOf(thenStatements);
     var otherwiseBody = blockOf(otherwiseStatements);
     thenBody.addStatement(
@@ -416,7 +425,20 @@ class ExpressionLifter extends Transformer {
   TreeNode visitAwaitExpression(AwaitExpression expr) {
     final R = continuationRewriter;
     var shouldName = seenAwait;
-    var result = new VariableGet(asyncResult);
+    var type = expr.getStaticType(_staticTypeContext);
+    Expression result = new VariableGet(asyncResult);
+    if (type is! DynamicType) {
+      int fileOffset = expr.operand.fileOffset;
+      if (fileOffset == TreeNode.noOffset) {
+        fileOffset = expr.fileOffset;
+      }
+      assert(fileOffset != TreeNode.noOffset);
+      result = new StaticInvocation(
+          continuationRewriter.helper.unsafeCast,
+          new Arguments(<Expression>[result], types: <DartType>[type])
+            ..fileOffset = fileOffset)
+        ..fileOffset = fileOffset;
+    }
 
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
@@ -504,8 +526,8 @@ class ExpressionLifter extends Transformer {
   }
 
   visitFunctionNode(FunctionNode node) {
-    var nestedRewriter =
-        new RecursiveContinuationRewriter(continuationRewriter.helper);
+    var nestedRewriter = new RecursiveContinuationRewriter(
+        continuationRewriter.helper, _staticTypeContext);
     return node.accept(nestedRewriter);
   }
 

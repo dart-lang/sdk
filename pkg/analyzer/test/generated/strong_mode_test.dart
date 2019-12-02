@@ -5462,7 +5462,7 @@ void main() {
   test_returnOfInvalidType_object_void() async {
     await assertErrorsInCode(
         "Object f() { void voidFn() => null; return voidFn(); }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 43, 8),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 43, 8),
     ]);
   }
 
@@ -5497,7 +5497,7 @@ class A {
 }
 set g(int x) => 42;
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 41, 4),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);
   }
 

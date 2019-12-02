@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -12,6 +13,8 @@ import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 ///
 /// All [DateTime] are local, not UTC.
 class RequestStatisticsHelper {
+  final String _sdkVersion = Platform.version.split(' ').first;
+
   final Map<String, _RequestStatistics> _statisticsMap = {};
 
   /// The [StringSink] to which performance logger should copy its output.
@@ -167,6 +170,7 @@ class RequestStatisticsHelper {
           'time': DateTime.now().millisecondsSinceEpoch,
           'kind': kind.toJson(),
           'data': data,
+          'sdkVersion': _sdkVersion,
         },
       ),
     );

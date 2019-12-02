@@ -456,6 +456,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   void _resolveInitializer() {
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
+    astResolver.flowAnalysis?.topLevelDeclaration_enter(_node, null, null);
     astResolver.resolve(_node.initializer, () => _node.initializer);
   }
 }

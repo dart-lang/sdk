@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
   TypeArgumentsVerifier(this._options, this._typeSystem, this._errorReporter);

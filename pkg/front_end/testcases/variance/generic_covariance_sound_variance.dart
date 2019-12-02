@@ -20,7 +20,7 @@ class A<in T, out U, V> {
 
 class B<inout T> {
   T x;
-  T method(T x) => null;
+  T method(T x) => x;
   void set y(T x) {}
 }
 
@@ -46,6 +46,10 @@ class F<inout T> extends E<T> implements D<T> {
   F(void Function(T) f) : super(f);
 }
 
+class NoSuchMethod<inout T> implements B<T> {
+  noSuchMethod(_) => 3;
+}
+
 main() {
   A<int, num, String> a = new A();
   expect(null, a.field);
@@ -60,7 +64,7 @@ main() {
   B<int> b = new B();
   b.x = 3;
   expect(3, b.x);
-  expect(null, b.method(3));
+  expect(3, b.method(3));
   b.y = 3;
 
   C<int> c = new C();
@@ -70,6 +74,9 @@ main() {
 
   D<Object> d = new F<String>((String s) {});
   d.method("test");
+
+  NoSuchMethod<num> nsm = new NoSuchMethod<num>();
+  expect(3, nsm.method(3));
 }
 
 expect(expected, actual) {

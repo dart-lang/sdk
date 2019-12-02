@@ -175,7 +175,11 @@ void HostCPUFeatures::Init() {
              CpuInfo::FieldContains(kCpuInfoModel, "ARMv7")) {
     arm_version_ = ARMv7;
   } else {
-    FATAL("Unsupported ARM CPU architecture.");
+#if defined(DART_RUN_IN_QEMU_ARMv7)
+    arm_version_ = ARMv7;
+#else
+    FATAL("Unrecognized ARM CPU architecture.");
+#endif
   }
 
   // Has floating point unit.

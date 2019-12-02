@@ -76,7 +76,15 @@ import '../js_model/type_recipe.dart'
         FullTypeEnvironmentRecipe;
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
+import 'frequency_assignment.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
+
+/// Run the minifier for 'type$' property names even in non-minified mode,
+/// making a name from minified name and the readable name. Usage:
+///
+///     DART_VM_OPTIONS='-DDebugMinifyTypesHolder=true' dart2js ...
+///
+const _debugMinify = bool.fromEnvironment('DebugMinifyTypesHolder');
 
 /// A [TypeReference] is a deferred JavaScript expression that refers to the
 /// runtime representation of a ground type or ground type environment.  The
@@ -386,7 +394,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       referencesInTable.add(referenceSet);
     }
 
-    if (!_minify) {
+    if (!_minify && !_debugMinify) {
       // For unminified code, use the characteristic names as property names.
       // TODO(sra): Some of these names are long. We could truncate the names
       // after the unique prefix.
@@ -410,15 +418,20 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       referenceSet.hash = _hashCharacteristicString(referenceSet.name);
     }
 
-    Iterator<String> names = minifiedNameSequence().iterator..moveNext();
-
-    // TODO(sra): It is highly unstable to allocate names in frequency
-    // order. Use a more stable frequency based allocation by assigning
-    // 'preferred' names.
-    for (_ReferenceSet referenceSet in referencesByFrequency) {
-      referenceSet.propertyName = names.current;
-      names.moveNext();
+    int hashOf(int index) => referencesByFrequency[index].hash;
+    int countOf(int index) => referencesByFrequency[index].count;
+    void assign(int index, String name) {
+      if (_minify) {
+        referencesByFrequency[index].propertyName = name;
+      } else {
+        var refSet = referencesByFrequency[index];
+        refSet.propertyName = name + '_' + refSet.name;
+      }
     }
+
+    //naiveFrequencyAssignment(
+    semistableFrequencyAssignment(referencesByFrequency.length,
+        minifiedNameSequence(), hashOf, countOf, assign);
   }
 
   static int _hashCharacteristicString(String s) {
@@ -604,6 +617,23 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   void _visit(DartType type, DartType parent) {
     type.accept(this, parent);
+  }
+
+  @override
+  void visitLegacyType(covariant LegacyType type, _) {
+    _add('legacy');
+    _visit(type.baseType, type);
+  }
+
+  @override
+  void visitNullableType(covariant NullableType type, _) {
+    _add('nullable');
+    _visit(type.baseType, type);
+  }
+
+  @override
+  void visitNeverType(covariant NeverType type, _) {
+    _add('Never');
   }
 
   @override

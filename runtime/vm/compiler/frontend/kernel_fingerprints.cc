@@ -246,7 +246,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       break;
     case kTypeParameterType: {
       Nullability nullability = ReadNullability();
-      BuildHash(nullability);
+      BuildHash(static_cast<uint32_t>(nullability));
       ReadUInt();                              // read index for parameter.
       CalculateOptionalDartTypeFingerprint();  // read bound bound.
       break;
@@ -269,7 +269,7 @@ void KernelFingerprintHelper::CalculateOptionalDartTypeFingerprint() {
 
 void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
   Nullability nullability = ReadNullability();
-  BuildHash(nullability);
+  BuildHash(static_cast<uint32_t>(nullability));
   NameIndex kernel_class = ReadCanonicalNameReference();
   ASSERT(H.IsClass(kernel_class));
   const String& class_name = H.DartClassName(kernel_class);
@@ -285,7 +285,7 @@ void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
   Nullability nullability = ReadNullability();
-  BuildHash(nullability);
+  BuildHash(static_cast<uint32_t>(nullability));
 
   if (!simple) {
     CalculateTypeParametersListFingerprint();  // read type_parameters.

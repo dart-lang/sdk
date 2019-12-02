@@ -5,6 +5,7 @@ library kernel.checks;
 
 import 'ast.dart';
 import 'transformations/flags.dart';
+import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
 void verifyComponent(Component component, {bool isOutline, bool afterConst}) {
   VerifyingVisitor.check(component,
@@ -761,6 +762,65 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
           " type arguments, but the typedef declares"
           " ${node.typedefNode.typeParameters.length} parameters.");
     }
+  }
+}
+
+void verifyGetStaticType(TypeEnvironment env, Component component) {
+  component.accept(new VerifyGetStaticType(env));
+}
+
+class VerifyGetStaticType extends RecursiveVisitor {
+  final TypeEnvironment env;
+  Member currentMember;
+  final StatefulStaticTypeContext _staticTypeContext;
+
+  VerifyGetStaticType(this.env)
+      : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
+
+  @override
+  visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
+    super.visitLibrary(node);
+    _staticTypeContext.leaveLibrary(node);
+  }
+
+  @override
+  visitField(Field node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitField(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitProcedure(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = null;
+  }
+
+  @override
+  defaultExpression(Expression node) {
+    try {
+      node.getStaticType(_staticTypeContext);
+    } catch (_) {
+      print('Error in $currentMember in ${currentMember?.fileUri}: '
+          '$node (${node.runtimeType})');
+      rethrow;
+    }
+    super.defaultExpression(node);
   }
 }
 

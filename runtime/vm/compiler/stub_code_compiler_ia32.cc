@@ -417,67 +417,10 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
 //   ECX : address of the native function to call.
 //   EDX : argc_tag including number of arguments and function kind.
 void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
-  const intptr_t native_args_struct_offset = target::kWordSize;
-  const intptr_t thread_offset =
-      target::NativeArguments::thread_offset() + native_args_struct_offset;
-  const intptr_t argc_tag_offset =
-      target::NativeArguments::argc_tag_offset() + native_args_struct_offset;
-  const intptr_t argv_offset =
-      target::NativeArguments::argv_offset() + native_args_struct_offset;
-  const intptr_t retval_offset =
-      target::NativeArguments::retval_offset() + native_args_struct_offset;
-
-  __ EnterStubFrame();
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to dart VM code.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-    __ j(EQUAL, &ok, Assembler::kNearJump);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Mark that the thread is executing native code.
-  __ movl(Assembler::VMTagAddress(), ECX);
-
-  // Reserve space for the native arguments structure, the outgoing parameter
-  // (pointer to the native arguments structure) and align frame before
-  // entering the C++ world.
-  __ AddImmediate(
-      ESP,
-      Immediate(-static_cast<int32_t>(target::NativeArguments::StructSize()) -
-                target::kWordSize));
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
-
-  // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, thread_offset), THR);    // Set thread in NativeArgs.
-  __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
-  __ movl(Address(ESP, argv_offset), EAX);      // Set argv in NativeArguments.
-  __ leal(EAX,
-          Address(EBP, 2 * target::kWordSize));  // Compute return value addr.
-  __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
-  __ leal(EAX,
-          Address(ESP, target::kWordSize));  // Pointer to the NativeArguments.
-  __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
-  __ call(ECX);
-
-  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
-
-  // Reset exit frame information in Isolate structure.
-  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
-
-  __ LeaveFrame();
-  __ ret();
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR,
+              target::Thread::bootstrap_native_wrapper_entry_point_offset()));
 }
 
 // Input parameters:
@@ -877,7 +820,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ subl(EBX, EAX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -1260,7 +1202,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     __ subl(EBX, EAX);
     __ addl(EAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, EBX, EDI));
 
     // Calculate the size tag.
     // EAX: new object.
@@ -1531,7 +1472,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
-    NOT_IN_PRODUCT(__ UpdateAllocationStats(target::Class::GetId(cls), ECX));
 
     // EAX: new object start (untagged).
     // EBX: next object start.

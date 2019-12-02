@@ -546,7 +546,7 @@ abstract class Zone {
    *     return () => this.runGuarded(registered);
    *
    */
-  void Function() bindCallbackGuarded(void callback());
+  void Function() bindCallbackGuarded(void Function() callback);
 
   /**
    * Registers the provided [callback] and returns a function that will
@@ -615,12 +615,12 @@ abstract class Zone {
    * Custom zones may intercept this operation (for example to wrap the given
    * [callback]).
    */
-  void scheduleMicrotask(void callback());
+  void scheduleMicrotask(void Function() callback);
 
   /**
    * Creates a Timer where the callback is executed in this zone.
    */
-  Timer createTimer(Duration duration, void callback());
+  Timer createTimer(Duration duration, void Function() callback);
 
   /**
    * Creates a periodic Timer where the callback is executed in this zone.
@@ -1202,7 +1202,7 @@ void _rootScheduleMicrotask(
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
-    Duration duration, void callback()) {
+    Duration duration, void Function() callback) {
   if (!identical(_rootZone, zone)) {
     callback = zone.bindCallback(callback);
   }

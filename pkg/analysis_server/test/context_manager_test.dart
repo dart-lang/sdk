@@ -13,12 +13,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1750,20 +1750,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     manager.callbacks = callbacks;
   }
 
-  /**
-   * Verify that package URI's for source files in [path] will be resolved
-   * using a package root matching [expectation].
-   */
-  void _checkPackageRoot(String path, expectation) {
-    // TODO(brianwilkerson) Figure out how to test this. Possibly by comparing
-    // the contents of the package map (although that approach doesn't work at
-    // the moment).
-//    FolderDisposition disposition = callbacks.currentContextDispositions[path];
-//    expect(disposition.packageRoot, expectation);
-    // TODO(paulberry): we should also verify that the package map itself is
-    // correct.  See dartbug.com/23909.
-  }
-
   Map<String, List<Folder>> _packageMap(String contextPath) {
     Folder folder = resourceProvider.getFolder(contextPath);
     ContextInfo info = manager.getContextInfoFor(folder);
@@ -1981,9 +1967,9 @@ include: package:boo/other_options.yaml
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
     var synchronousSession = SynchronousSession(analysisOptions, null);
-    List<int> bytes = new SummaryBuilder(
-            [], RestrictedAnalysisContext(synchronousSession, null))
-        .build();
+    List<int> bytes =
+        new SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
+            .build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''

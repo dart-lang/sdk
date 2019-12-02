@@ -1,6 +1,7 @@
 library;
 import self as self;
 import "deferred_explicit_access_lib.dart" as def;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
 
@@ -15,7 +16,7 @@ static method main() → dynamic async {
   self::expect(87, let final dynamic #t7 = CheckLibraryIsLoaded(prefix) in def::topLevelMethod());
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
-  if(!expected.{dart.core::Object::==}(actual))
+  if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
 

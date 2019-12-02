@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Verifier for [CollectionElement]s in list, set, or map literals.
 class LiteralElementVerifier {
   final TypeProvider typeProvider;
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final ErrorReporter errorReporter;
   final FeatureSet featureSet;
   final bool Function(Expression) checkForUseOfVoidResult;

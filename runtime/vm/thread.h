@@ -173,6 +173,8 @@ class Thread;
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
+  V(uword, bootstrap_native_wrapper_entry_point_,                              \
+    NativeEntry::BootstrapNativeCallWrapperEntry(), 0)                         \
   V(uword, no_scope_native_wrapper_entry_point_,                               \
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \

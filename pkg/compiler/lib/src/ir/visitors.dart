@@ -258,11 +258,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitTypeLiteral(ir.TypeLiteral node) {
     String name;
     DartType type = elementMap.getDartType(node.type);
-    if (type.isDynamic) {
+    if (type is DynamicType) {
       name = 'dynamic';
     } else if (type is InterfaceType) {
       name = type.element.name;
-    } else if (type.isTypedef) {
+    } else if (type is TypedefType) {
       // TODO(johnniwinther): Compute a name for the type literal? It is only
       // used in error messages in the old SSA builder.
       name = '?';
@@ -499,6 +499,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
     ConstructedConstantExpression superConstructorInvocation;
     List<AssertConstantExpression> assertions = <AssertConstantExpression>[];
+    List<ir.DartType> parametersAsArguments = ir.getAsTypeArguments(
+        node.enclosingClass.typeParameters, node.enclosingLibrary);
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
         registerField(initializer.field, visit(initializer.value));
@@ -509,9 +511,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             initializer.arguments.types);
       } else if (initializer is ir.RedirectingInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
-            initializer.target,
-            initializer.arguments,
-            node.enclosingClass.thisType.typeArguments);
+            initializer.target, initializer.arguments, parametersAsArguments);
       } else if (initializer is ir.AssertInitializer) {
         ConstantExpression condition = visit(initializer.statement.condition);
         ConstantExpression message = initializer.statement.message != null
@@ -664,6 +664,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitBottomType(ir.BottomType node) {
+    // TODO(fishythefish): Change `Null` to `Never` for NNBD.
     return elementMap.commonElements.nullType;
   }
 }

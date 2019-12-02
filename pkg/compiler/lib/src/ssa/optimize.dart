@@ -852,7 +852,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (!canInline) return;
       if (inputPosition >= inputs.length) return;
       HInstruction input = inputs[inputPosition++];
-      if (parameterType.unaliased.isFunctionType) {
+      if (parameterType.unaliased is FunctionType) {
         // Must call the target since it contains a function conversion.
         canInline = false;
         return;
@@ -1093,11 +1093,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isRawCheck) {
       return node;
-    } else if (type.isTypedef) {
+    } else if (type is TypedefType) {
       return node;
-    } else if (type.isFunctionType) {
+    } else if (type is FunctionType) {
       return node;
-    } else if (type.isFutureOr) {
+    } else if (type is FutureOrType) {
       return node;
     }
 
@@ -1174,7 +1174,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           rep.kind == TypeInfoExpressionKind.COMPLETE &&
           rep.inputs.isEmpty) {
         DartType type = rep.dartType;
-        if (type.isInterfaceType && type.treatAsRaw) {
+        if (type is InterfaceType && type.treatAsRaw) {
           return node.checkedInput.convertType(_closedWorld, type, node.kind)
             ..sourceInformation = node.sourceInformation;
         }
@@ -1427,9 +1427,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     if (!fieldType.treatAsRaw ||
-        fieldType.isTypeVariable ||
-        fieldType.unaliased.isFunctionType ||
-        fieldType.unaliased.isFutureOr) {
+        fieldType is TypeVariableType ||
+        fieldType.unaliased is FunctionType ||
+        fieldType.unaliased is FutureOrType) {
       // We cannot generate the correct type representation here, so don't
       // inline this access.
       // TODO(sra): If the input is such that we don't need a type check, we
@@ -3155,9 +3155,9 @@ class SsaTypeConversionInserter extends HBaseVisitor
     DartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
       return;
-    } else if (type.isTypedef) {
+    } else if (type is TypedefType) {
       return;
-    } else if (type.isFutureOr) {
+    } else if (type is FutureOrType) {
       return;
     }
     InterfaceType interfaceType = type;

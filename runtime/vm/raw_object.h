@@ -16,7 +16,6 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
-#include "vm/object_graph.h"
 #include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
@@ -1153,7 +1152,6 @@ class RawScript : public RawObject {
   RawArray* compile_time_constants_;
   RawTypedData* line_starts_;
   RawArray* debug_positions_;
-  RawArray* yield_positions_;
   RawKernelProgramInfo* kernel_program_info_;
   RawString* source_;
   VISIT_TO(RawObject*, source_);
@@ -1349,10 +1347,11 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
-  union {
-    RawTypedData* catch_entry_moves_maps_;
-    RawSmi* variables_;
-  } catch_entry_;
+  // If FLAG_precompiled_mode, then this field contains
+  //   RawTypedData* catch_entry_moves_maps
+  // Otherwise, it is
+  //   RawSmi* num_variables
+  RawObject* catch_entry_;
   RawCompressedStackMaps* compressed_stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
@@ -1520,25 +1519,42 @@ class RawPcDescriptors : public RawObject {
   static const char* KindToCString(Kind k);
   static bool ParseKind(const char* cstr, Kind* out);
 
-  class MergedKindTry {
+  // Used to represent the absense of a yield index in PcDescriptors.
+  static constexpr intptr_t kInvalidYieldIndex = -1;
+
+  class KindAndMetadata {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static int32_t Encode(intptr_t kind, intptr_t try_index) {
-      intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
+    static int32_t Encode(intptr_t kind,
+                          intptr_t try_index,
+                          intptr_t yield_index) {
+      const intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
       ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
       ASSERT(Utils::IsInt(kTryIndexSize, try_index));
-      return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
+      ASSERT(Utils::IsInt(kYieldIndexSize, yield_index));
+      return (yield_index << kYieldIndexPos) | (try_index << kTryIndexPos) |
+             (kind_shift << kKindShiftPos);
     }
 
-    static intptr_t DecodeKind(int32_t merged_kind_try) {
+    static intptr_t DecodeKind(int32_t kind_and_metadata) {
       const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
-      return 1 << (merged_kind_try & kKindShiftMask);
+      return 1 << (kind_and_metadata & kKindShiftMask);
     }
 
-    static intptr_t DecodeTryIndex(int32_t merged_kind_try) {
+    static intptr_t DecodeTryIndex(int32_t kind_and_metadata) {
       // Arithmetic shift.
-      return merged_kind_try >> kTryIndexPos;
+      return static_cast<int32_t>(static_cast<uint32_t>(kind_and_metadata)
+                                  << (32 - (kTryIndexPos + kTryIndexSize))) >>
+             (32 - kTryIndexSize);
+    }
+
+    static intptr_t DecodeYieldIndex(int32_t kind_and_metadata) {
+      // Arithmetic shift.
+      return static_cast<int32_t>(
+                 static_cast<uint32_t>(kind_and_metadata)
+                 << (32 - (kYieldIndexPos + kYieldIndexSize))) >>
+             (32 - kYieldIndexSize);
     }
 
    private:
@@ -1547,8 +1563,13 @@ class RawPcDescriptors : public RawObject {
     // Is kKindShiftSize enough bits?
     COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
-    static const intptr_t kTryIndexPos = kKindShiftSize;
-    static const intptr_t kTryIndexSize = 32 - kKindShiftSize;
+    static const intptr_t kTryIndexPos = kKindShiftPos + kKindShiftSize;
+    static const intptr_t kTryIndexSize = 10;
+
+    static const intptr_t kYieldIndexPos = kTryIndexPos + kTryIndexSize;
+    static const intptr_t kYieldIndexSize = 32 - kYieldIndexPos;
+
+    COMPILE_ASSERT((kYieldIndexPos + kYieldIndexSize) == 32);
   };
 
  private:
@@ -1594,30 +1615,74 @@ class RawCompressedStackMaps : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
-  uint32_t payload_size_;  // Length of the encoded payload, in bytes.
+  // The most significant bits are the length of the encoded payload, in bytes.
+  // The low bits determine the expected payload contents, as described below.
+  uint32_t flags_and_size_;
 
-  // Variable length data follows here. The payload consists of entries with
-  // the following information:
+  // Variable length data follows here. There are three types of
+  // CompressedStackMaps (CSM):
   //
-  // * A header containing the following three pieces of information:
-  //   * An unsigned integer representing the PC offset as a delta from the
-  //     PC offset of the previous entry (from 0 for the first entry).
-  //   * An unsigned integer representing the number of bits used for
-  //     register entries.
-  //   * An unsigned integer representing the number of bits used for spill
-  //     slot entries.
-  // * The body containing the bits for the stack map. The length of the body
-  //   in bits is the sum of the register and spill slot bit counts.
+  // 1) kind == kInlined: CSMs that include all information about the stack
+  //    maps. The payload for these contain tightly packed entries with the
+  //    following information:
   //
-  // Each unsigned integer is LEB128 encoded, as generally they tend to fit in
-  // a single byte or two. Thus, entry headers are not a fixed length, and
-  // currently there is no random access of entries.  In addition, PC offsets
-  // are currently encoded as deltas, which also inhibits random access without
-  // accessing previous entries. That means to find an entry for a given PC
-  // offset, a linear search must be done where the payload is decoded
-  // up to the entry whose PC offset is >= the given PC.
+  //   * A header containing the following three pieces of information:
+  //     * An unsigned integer representing the PC offset as a delta from the
+  //       PC offset of the previous entry (from 0 for the first entry).
+  //     * An unsigned integer representing the number of bits used for
+  //       spill slot entries.
+  //     * An unsigned integer representing the number of bits used for other
+  //       entries.
+  //   * The body containing the bits for the stack map. The length of the body
+  //     in bits is the sum of the spill slot and non-spill slot bit counts.
+  //
+  // 2) kind == kUsesTable: CSMs where the majority of the stack map information
+  //    has been offloaded and canonicalized into a global table. The payload
+  //    contains tightly packed entries with the following information:
+  //
+  //   * A header containing just an unsigned integer representing the PC offset
+  //     delta as described above.
+  //   * The body is just an unsigned integer containing the offset into the
+  //     payload for the global table.
+  //
+  // 3) kind == kGlobalTable: A CSM implementing the global table. Here, the
+  //    payload contains tightly packed entries with the following information:
+  //   * A header containing the following two pieces of information:
+  //     * An unsigned integer representing the number of bits used for
+  //       spill slot entries.
+  //     * An unsigned integer representing the number of bits used for other
+  //       entries.
+  //   * The body containing the bits for the stack map. The length of the body
+  //     in bits is the sum of the spill slot and non-spill slot bit counts.
+  //
+  // In all types of CSM, each unsigned integer is LEB128 encoded, as generally
+  // they tend to fit in a single byte or two. Thus, entry headers are not a
+  // fixed length, and currently there is no random access of entries.  In
+  // addition, PC offsets are currently encoded as deltas, which also inhibits
+  // random access without accessing previous entries. That means to find an
+  // entry for a given PC offset, a linear search must be done where the payload
+  // is decoded up to the entry whose PC offset is >= the given PC.
+
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  enum Kind {
+    kInlined = 0b00,
+    kUsesTable = 0b01,
+    kGlobalTable = 0b10,
+  };
+
+  static const uintptr_t kKindBits = 2;
+  using KindField = BitField<uint32_t, Kind, 0, kKindBits>;
+  using SizeField = BitField<uint32_t, uint32_t, kKindBits, 32 - kKindBits>;
+
+  uint32_t payload_size() const { return SizeField::decode(flags_and_size_); }
+  bool UsesGlobalTable() const {
+    return KindField::decode(flags_and_size_) == kUsesTable;
+  }
+  bool IsGlobalTable() const {
+    return KindField::decode(flags_and_size_) == kGlobalTable;
+  }
 
   friend class ImageWriter;
 };
@@ -2519,6 +2584,10 @@ class RawStackTrace : public RawInstance {
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
+  // Whether the link between the stack and the async-link represents a
+  // synchronous start to an asynchronous function. In this case, we omit the
+  // <asynchronous suspension> marker when concatenating the stacks.
+  bool skip_sync_start_in_parent_stack;
 };
 
 // VM type for capturing JS regular expressions.

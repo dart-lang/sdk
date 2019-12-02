@@ -198,29 +198,34 @@ class DeclarationsContext {
       _addKnownLibraries(dependencyLibraries);
     }
 
-    _Package package;
-    for (var candidatePackage in _packages) {
-      if (candidatePackage.contains(path)) {
-        package = candidatePackage;
-        break;
-      }
-    }
-
     var contextPathList = <String>[];
-    if (package != null) {
-      var containingFolder = package.folderInRootContaining(path);
-      if (containingFolder != null) {
-        for (var contextPath in _contextPathList) {
-          // `lib/` can see only libraries in `lib/`.
-          // `test/` can see libraries in `lib/` and in `test/`.
-          if (package.containsInLib(contextPath) ||
-              containingFolder.contains(contextPath)) {
-            contextPathList.add(contextPath);
-          }
+    if (!_analysisContext.workspace.isBazel) {
+      _Package package;
+      for (var candidatePackage in _packages) {
+        if (candidatePackage.contains(path)) {
+          package = candidatePackage;
+          break;
         }
       }
+
+      if (package != null) {
+        var containingFolder = package.folderInRootContaining(path);
+        if (containingFolder != null) {
+          for (var contextPath in _contextPathList) {
+            // `lib/` can see only libraries in `lib/`.
+            // `test/` can see libraries in `lib/` and in `test/`.
+            if (package.containsInLib(contextPath) ||
+                containingFolder.contains(contextPath)) {
+              contextPathList.add(contextPath);
+            }
+          }
+        }
+      } else {
+        // Not in a package, include all libraries of the context.
+        contextPathList = _contextPathList;
+      }
     } else {
-      // Not in a package, include all libraries of the context.
+      // In bazel workspaces, consider declarations from the entire context
       contextPathList = _contextPathList;
     }
 

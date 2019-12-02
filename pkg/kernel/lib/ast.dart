@@ -75,6 +75,7 @@ export 'canonical_name.dart' show CanonicalName;
 
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
+import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 
@@ -705,8 +706,10 @@ class Typedef extends NamedNode implements FileUriNode {
   final List<TypeParameter> typeParameters;
   DartType type;
 
-  // The following two fields describe parameters of the underlying function
-  // type.  They are needed to keep such attributes as names and annotations.
+  // The following two fields describe parameters of the underlying type when
+  // that is a function type.  They are needed to keep such attributes as names
+  // and annotations. When the underlying type is not a function type, they are
+  // empty.
   final List<TypeParameter> typeParametersOfFunctionType;
   final List<VariableDeclaration> positionalParameters;
   final List<VariableDeclaration> namedParameters;
@@ -729,11 +732,6 @@ class Typedef extends NamedNode implements FileUriNode {
   }
 
   Library get enclosingLibrary => parent;
-
-  TypedefType get thisType {
-    return new TypedefType(
-        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
-  }
 
   R accept<R>(TreeVisitor<R> v) {
     return v.visitTypedef(this);
@@ -1226,13 +1224,13 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   Supertype get asThisSupertype {
-    return new Supertype(this, _getAsTypeArguments(typeParameters));
+    return new Supertype(
+        this, getAsTypeArguments(typeParameters, this.enclosingLibrary));
   }
 
-  InterfaceType _thisType;
-  InterfaceType get thisType {
-    return _thisType ??= new InterfaceType(
-        this, Nullability.legacy, _getAsTypeArguments(typeParameters));
+  /// Returns the type of `this` for the class using [coreTypes] for caching.
+  InterfaceType getThisType(CoreTypes coreTypes, Nullability nullability) {
+    return coreTypes.thisInterfaceType(this, nullability);
   }
 
   InterfaceType _bottomType;
@@ -2571,10 +2569,7 @@ enum AsyncMarker {
 
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
-  ///
-  /// Shouldn't be used on code compiled in legacy mode, as this method assumes
-  /// the IR is strongly typed.
-  DartType getStaticType(TypeEnvironment types);
+  DartType getStaticType(StaticTypeContext context);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
@@ -2587,32 +2582,36 @@ abstract class Expression extends TreeNode {
   /// If this is not the case, either an exception is thrown or the raw type of
   /// [superclass] is returned.
   InterfaceType getStaticTypeAsInstanceOf(
-      Class superclass, TypeEnvironment types) {
+      Class superclass, StaticTypeContext context) {
     // This method assumes the program is correctly typed, so if the superclass
     // is not generic, we can just return its raw type without computing the
     // type of this expression.  It also ensures that all types are considered
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return types.coreTypes.legacyRawType(superclass);
+      return context.typeEnvironment.coreTypes
+          .rawType(superclass, context.nonNullable);
     }
-    var type = getStaticType(types);
+    var type = getStaticType(context);
     while (type is TypeParameterType) {
       TypeParameterType typeParameterType = type;
       type =
           typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
-    if (type == types.nullType) {
+    if (type == context.typeEnvironment.nullType) {
       return superclass.bottomType;
     }
     if (type is InterfaceType) {
-      var upcastType = types.getTypeAsInstanceOf(type, superclass);
+      var upcastType =
+          context.typeEnvironment.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
     } else if (type is BottomType) {
       return superclass.bottomType;
     }
-    types.typeError(this, '$type is not a subtype of $superclass');
-    return types.coreTypes.legacyRawType(superclass);
+    context.typeEnvironment
+        .typeError(this, '$type is not a subtype of $superclass');
+    return context.typeEnvironment.coreTypes
+        .rawType(superclass, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v);
@@ -2630,7 +2629,7 @@ class InvalidExpression extends Expression {
 
   InvalidExpression(this.message);
 
-  DartType getStaticType(TypeEnvironment types) => const BottomType();
+  DartType getStaticType(StaticTypeContext context) => const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitInvalidExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -2645,9 +2644,9 @@ class VariableGet extends Expression {
   VariableDeclaration variable;
   DartType promotedType; // Null if not promoted.
 
-  VariableGet(this.variable, [this.promotedType]);
+  VariableGet(this.variable, [this.promotedType]) : assert(variable != null);
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     return promotedType ?? variable.type;
   }
 
@@ -2673,11 +2672,12 @@ class VariableSet extends Expression {
   VariableDeclaration variable;
   Expression value;
 
-  VariableSet(this.variable, this.value) {
+  VariableSet(this.variable, this.value) : assert(variable != null) {
     value?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitVariableSet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -2718,20 +2718,21 @@ class PropertyGet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
-      var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
+      var receiverType =
+          receiver.getStaticTypeAsInstanceOf(superclass, context);
       return Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
     String nameString = name.name;
     if (nameString == 'hashCode') {
-      return types.coreTypes.intLegacyRawType;
+      return context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
     } else if (nameString == 'runtimeType') {
-      return types.coreTypes.typeLegacyRawType;
+      return context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
     }
     return const DynamicType();
   }
@@ -2742,6 +2743,7 @@ class PropertyGet extends Expression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
   }
 
@@ -2782,7 +2784,8 @@ class PropertySet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitPropertySet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -2790,6 +2793,7 @@ class PropertySet extends Expression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     value?.accept(v);
   }
@@ -2840,9 +2844,9 @@ class DirectPropertyGet extends Expression {
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitDirectPropertyGet(this, arg);
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     Class superclass = target.enclosingClass;
-    var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
+    var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, context);
     return Substitution.fromInterfaceType(receiverType)
         .substituteType(target.getterType);
   }
@@ -2892,7 +2896,8 @@ class DirectPropertySet extends Expression {
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitDirectPropertySet(this, arg);
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
@@ -2940,13 +2945,14 @@ class DirectMethodInvocation extends InvocationExpression {
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitDirectMethodInvocation(this, arg);
 
-  DartType getStaticType(TypeEnvironment types) {
-    if (types.isOverloadedArithmeticOperator(target)) {
-      return types.getTypeOfOverloadedArithmetic(receiver.getStaticType(types),
-          arguments.positional[0].getStaticType(types));
+  DartType getStaticType(StaticTypeContext context) {
+    if (context.typeEnvironment.isOverloadedArithmeticOperator(target)) {
+      return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+          receiver.getStaticType(context),
+          arguments.positional[0].getStaticType(context));
     }
     Class superclass = target.enclosingClass;
-    var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
+    var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, context);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(target.function.returnType);
     return Substitution.fromPairs(
@@ -2974,12 +2980,18 @@ class SuperPropertyGet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
+    if (interfaceTarget == null) {
+      // TODO(johnniwinther): SuperPropertyGet without a target should be
+      // replaced by invalid expressions.
+      return const DynamicType();
+    }
     Class declaringClass = interfaceTarget.enclosingClass;
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver = types.getTypeAsInstanceOf(types.thisType, declaringClass);
+    var receiver = context.typeEnvironment
+        .getTypeAsInstanceOf(context.thisType, declaringClass);
     return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
@@ -2989,6 +3001,7 @@ class SuperPropertyGet extends Expression {
       v.visitSuperPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
   }
 
@@ -3020,13 +3033,15 @@ class SuperPropertySet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSuperPropertySet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitSuperPropertySet(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     value?.accept(v);
   }
@@ -3054,7 +3069,7 @@ class StaticGet extends Expression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) => target.getterType;
+  DartType getStaticType(StaticTypeContext context) => target.getterType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStaticGet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3088,7 +3103,8 @@ class StaticSet extends Expression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStaticSet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3127,14 +3143,15 @@ class Arguments extends TreeNode {
         positional = <Expression>[],
         named = <NamedExpression>[];
 
-  factory Arguments.forwarded(FunctionNode function) {
+  factory Arguments.forwarded(FunctionNode function, Library library) {
     return new Arguments(
         function.positionalParameters.map((p) => new VariableGet(p)).toList(),
         named: function.namedParameters
             .map((p) => new NamedExpression(p.name, new VariableGet(p)))
             .toList(),
         types: function.typeParameters
-            .map((p) => new TypeParameterType(p, Nullability.legacy))
+            .map((p) => new TypeParameterType.withDefaultNullabilityForLibrary(
+                p, library))
             .toList());
   }
 
@@ -3213,29 +3230,59 @@ class MethodInvocation extends InvocationExpression {
     interfaceTargetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
-          types.isOverloadedArithmeticOperator(interfaceTarget)) {
-        return types.getTypeOfOverloadedArithmetic(
-            receiver.getStaticType(types),
-            arguments.positional[0].getStaticType(types));
+          context.typeEnvironment
+              .isOverloadedArithmeticOperator(interfaceTarget)) {
+        return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+            receiver.getStaticType(context),
+            arguments.positional[0].getStaticType(context));
       }
       Class superclass = interfaceTarget.enclosingClass;
-      var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
+      var receiverType =
+          receiver.getStaticTypeAsInstanceOf(superclass, context);
       var getterType = Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is FunctionType) {
-        return Substitution.fromPairs(
-                getterType.typeParameters, arguments.types)
-            .substituteType(getterType.returnType);
-      } else {
-        return const DynamicType();
+        Substitution substitution;
+        if (getterType.typeParameters.length == arguments.types.length) {
+          substitution = Substitution.fromPairs(
+              getterType.typeParameters, arguments.types);
+        } else {
+          // TODO(johnniwinther): The front end should normalize the type
+          //  argument count or create an invalid expression in case of method
+          //  invocations with invalid type argument count.
+          substitution = Substitution.fromPairs(
+              getterType.typeParameters,
+              getterType.typeParameters
+                  .map((TypeParameter typeParameter) =>
+                      typeParameter.defaultType)
+                  .toList());
+        }
+        return substitution.substituteType(getterType.returnType);
       }
+      // The front end currently do not replace a property call `o.foo()`, where
+      // `foo` is a field or getter, with a function call on the property,
+      // `o.foo.call()`, so we look up the call method explicitly here.
+      // TODO(johnniwinther): Remove this when the front end performs the
+      // correct replacement.
+      if (getterType is InterfaceType) {
+        Member member = context.typeEnvironment
+            .getInterfaceMember(getterType.classNode, new Name('call'));
+        if (member != null) {
+          DartType callType = member.getterType;
+          if (callType is FunctionType) {
+            return Substitution.fromInterfaceType(getterType)
+                .substituteType(callType.returnType);
+          }
+        }
+      }
+      return const DynamicType();
     }
     if (name.name == 'call') {
-      var receiverType = receiver.getStaticType(types);
+      var receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
           return const BottomType();
@@ -3247,7 +3294,7 @@ class MethodInvocation extends InvocationExpression {
     }
     if (name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return types.coreTypes.boolLegacyRawType;
+      return context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
     }
     return const DynamicType();
   }
@@ -3258,6 +3305,7 @@ class MethodInvocation extends InvocationExpression {
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     arguments?.accept(v);
   }
@@ -3298,10 +3346,11 @@ class SuperMethodInvocation extends InvocationExpression {
     interfaceTargetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType = types.getTypeAsInstanceOf(types.thisType, superclass);
+    var receiverType = context.typeEnvironment
+        .getTypeAsInstanceOf(context.thisType, superclass);
     var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
@@ -3314,6 +3363,7 @@ class SuperMethodInvocation extends InvocationExpression {
       v.visitSuperMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
+    interfaceTarget?.acceptReference(v);
     name?.accept(v);
     arguments?.accept(v);
   }
@@ -3354,7 +3404,7 @@ class StaticInvocation extends InvocationExpression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     return Substitution.fromPairs(
             target.function.typeParameters, arguments.types)
         .substituteType(target.function.returnType);
@@ -3407,11 +3457,12 @@ class ConstructorInvocation extends InvocationExpression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     return arguments.types.isEmpty
-        ? types.coreTypes.legacyRawType(target.enclosingClass)
+        ? context.typeEnvironment.coreTypes
+            .rawType(target.enclosingClass, context.nonNullable)
         : new InterfaceType(
-            target.enclosingClass, Nullability.legacy, arguments.types);
+            target.enclosingClass, context.nonNullable, arguments.types);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorInvocation(this);
@@ -3452,8 +3503,8 @@ class Instantiation extends Expression {
     expression?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    FunctionType type = expression.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) {
+    FunctionType type = expression.getStaticType(context);
     return Substitution.fromPairs(type.typeParameters, typeArguments)
         .substituteType(type.withoutTypeParameters);
   }
@@ -3487,8 +3538,8 @@ class Not extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.boolLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNot(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitNot(this, arg);
@@ -3516,8 +3567,8 @@ class LogicalExpression extends Expression {
     right?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.boolLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLogicalExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3556,7 +3607,7 @@ class ConditionalExpression extends Expression {
     otherwise?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => staticType;
+  DartType getStaticType(StaticTypeContext context) => staticType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConditionalExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3602,8 +3653,8 @@ class StringConcatenation extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.stringLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringConcatenation(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3633,8 +3684,9 @@ class ListConcatenation extends Expression {
     setParents(lists, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalListType(typeArgument);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalListType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListConcatenation(this);
@@ -3670,8 +3722,9 @@ class SetConcatenation extends Expression {
     setParents(sets, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalSetType(typeArgument);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalSetType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetConcatenation(this);
@@ -3710,8 +3763,9 @@ class MapConcatenation extends Expression {
     setParents(maps, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalMapType(keyType, valueType);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalMapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapConcatenation(this);
@@ -3753,10 +3807,11 @@ class InstanceCreation extends Expression {
 
   Class get classNode => classReference.asClass;
 
-  DartType getStaticType(TypeEnvironment types) {
+  DartType getStaticType(StaticTypeContext context) {
     return typeArguments.isEmpty
-        ? types.coreTypes.legacyRawType(classNode)
-        : new InterfaceType(classNode, Nullability.legacy, typeArguments);
+        ? context.typeEnvironment.coreTypes
+            .rawType(classNode, context.nonNullable)
+        : new InterfaceType(classNode, context.nonNullable, typeArguments);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceCreation(this);
@@ -3806,8 +3861,8 @@ class FileUriExpression extends Expression implements FileUriNode {
     expression.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      expression.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      expression.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitFileUriExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3835,8 +3890,8 @@ class IsExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.boolLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIsExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3879,7 +3934,7 @@ class AsExpression extends Expression {
     flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
   }
 
-  DartType getStaticType(TypeEnvironment types) => type;
+  DartType getStaticType(StaticTypeContext context) => type;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitAsExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3910,9 +3965,9 @@ class NullCheck extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) =>
-      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(types))`.
-      operand.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(context))`.
+      operand.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3943,8 +3998,8 @@ class StringLiteral extends BasicLiteral {
 
   StringLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.stringLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3960,8 +4015,8 @@ class IntLiteral extends BasicLiteral {
 
   IntLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.intLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3973,8 +4028,8 @@ class DoubleLiteral extends BasicLiteral {
 
   DoubleLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.doubleLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.doubleRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3986,8 +4041,8 @@ class BoolLiteral extends BasicLiteral {
 
   BoolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.boolLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3997,7 +4052,8 @@ class BoolLiteral extends BasicLiteral {
 class NullLiteral extends BasicLiteral {
   Object get value => null;
 
-  DartType getStaticType(TypeEnvironment types) => types.nullType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.nullType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4009,8 +4065,8 @@ class SymbolLiteral extends Expression {
 
   SymbolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.symbolLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSymbolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4025,8 +4081,8 @@ class TypeLiteral extends Expression {
 
   TypeLiteral(this.type);
 
-  DartType getStaticType(TypeEnvironment types) =>
-      types.coreTypes.typeLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitTypeLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4042,7 +4098,7 @@ class TypeLiteral extends Expression {
 }
 
 class ThisExpression extends Expression {
-  DartType getStaticType(TypeEnvironment types) => types.thisType;
+  DartType getStaticType(StaticTypeContext context) => context.thisType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitThisExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4053,7 +4109,7 @@ class ThisExpression extends Expression {
 }
 
 class Rethrow extends Expression {
-  DartType getStaticType(TypeEnvironment types) => const BottomType();
+  DartType getStaticType(StaticTypeContext context) => const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4070,7 +4126,7 @@ class Throw extends Expression {
     expression?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => const BottomType();
+  DartType getStaticType(StaticTypeContext context) => const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitThrow(this, arg);
@@ -4098,8 +4154,9 @@ class ListLiteral extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalListType(typeArgument);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalListType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListLiteral(this);
@@ -4128,8 +4185,9 @@ class SetLiteral extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalSetType(typeArgument);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalSetType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetLiteral(this);
@@ -4162,8 +4220,9 @@ class MapLiteral extends Expression {
     setParents(entries, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.literalMapType(keyType, valueType);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .literalMapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapLiteral(this);
@@ -4219,8 +4278,8 @@ class AwaitExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.unfutureType(operand.getStaticType(types));
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment.unfutureType(operand.getStaticType(context));
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitAwaitExpression(this);
@@ -4254,7 +4313,7 @@ class FunctionExpression extends Expression implements LocalFunction {
     function?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => function.functionType;
+  DartType getStaticType(StaticTypeContext context) => function.functionType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4280,7 +4339,7 @@ class ConstantExpression extends Expression {
     assert(constant != null);
   }
 
-  DartType getStaticType(TypeEnvironment types) => type;
+  DartType getStaticType(StaticTypeContext context) => type;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConstantExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4307,7 +4366,8 @@ class Let extends Expression {
     body?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => body.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      body.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitLet(this, arg);
@@ -4338,7 +4398,8 @@ class BlockExpression extends Expression {
     value?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+  DartType getStaticType(StaticTypeContext context) =>
+      value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBlockExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4379,8 +4440,9 @@ class LoadLibrary extends Expression {
 
   LoadLibrary(this.import);
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.futureType(const DynamicType(), Nullability.legacy);
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment
+        .futureType(const DynamicType(), context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLoadLibrary(this);
@@ -4398,8 +4460,8 @@ class CheckLibraryIsLoaded extends Expression {
 
   CheckLibraryIsLoaded(this.import);
 
-  DartType getStaticType(TypeEnvironment types) {
-    return types.coreTypes.objectLegacyRawType;
+  DartType getStaticType(StaticTypeContext context) {
+    return context.typeEnvironment.coreTypes.objectRawType(context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitCheckLibraryIsLoaded(this);
@@ -5216,6 +5278,10 @@ class VariableDeclaration extends Statement {
     flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
   }
 
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -5703,8 +5769,7 @@ class FunctionType extends DartType {
   /// type.
   FunctionType get withoutTypeParameters {
     if (typeParameters.isEmpty) return this;
-    return new FunctionType(
-        positionalParameters, returnType, Nullability.legacy,
+    return new FunctionType(positionalParameters, returnType, nullability,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
         typedefType: null);
@@ -5738,7 +5803,6 @@ class FunctionType extends DartType {
     hash = 0x3fffffff & (hash * 31 + requiredParameterCount);
     for (int i = 0; i < typeParameters.length; ++i) {
       TypeParameter parameter = typeParameters[i];
-      _temporaryHashCodeTable[parameter] = _temporaryHashCodeTable.length;
       hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
     }
     for (int i = 0; i < positionalParameters.length; ++i) {
@@ -5748,10 +5812,6 @@ class FunctionType extends DartType {
       hash = 0x3fffffff & (hash * 31 + namedParameters[i].hashCode);
     }
     hash = 0x3fffffff & (hash * 31 + returnType.hashCode);
-    for (int i = 0; i < typeParameters.length; ++i) {
-      // Remove the type parameters from the scope again.
-      _temporaryHashCodeTable.remove(typeParameters[i]);
-    }
     hash = 0x3fffffff & (hash * 31 + nullability.index);
     return hash;
   }
@@ -5872,14 +5932,6 @@ class NamedType extends Node implements Comparable<NamedType> {
   }
 }
 
-/// Stores the hash code of function type parameters while computing the hash
-/// code of a [FunctionType] object.
-///
-/// This ensures that distinct [FunctionType] objects get the same hash code
-/// if they represent the same type, even though their type parameters are
-/// represented by different objects.
-final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
-
 /// Reference to a type variable.
 ///
 /// A type variable has an optional bound because type promotion can change the
@@ -5912,6 +5964,35 @@ class TypeParameterType extends DartType {
   TypeParameterType(this.parameter, this.typeParameterTypeNullability,
       [this.promotedBound]);
 
+  /// Creates an intersection type between a type parameter and [promotedBound].
+  TypeParameterType.intersection(
+      this.parameter, this.typeParameterTypeNullability, this.promotedBound);
+
+  /// Creates a type-parameter type to be used in alpha-renaming.
+  ///
+  /// The constructed type object is supposed to be used as a value in a
+  /// substitution map created to perform an alpha-renaming from parameter
+  /// [from] to parameter [to] on a generic type.  The resulting type-parameter
+  /// type is an occurrence of [to] as a type, but the nullability property is
+  /// derived from the bound of [from].  It allows to assign the bound to [to]
+  /// after the desired alpha-renaming is performed, which is often the case.
+  TypeParameterType.forAlphaRenaming(TypeParameter from, TypeParameter to)
+      : this(to, computeNullabilityFromBound(from));
+
+  /// Creates a type-parameter type with default nullability for the library.
+  ///
+  /// The nullability is computed as if the programmer omitted the modifier. It
+  /// means that in the opt-out libraries `Nullability.legacy` will be used, and
+  /// in opt-in libraries either `Nullability.nonNullable` or
+  /// `Nullability.undetermined` will be used, depending on the nullability of
+  /// the bound of [parameter].
+  TypeParameterType.withDefaultNullabilityForLibrary(
+      this.parameter, Library library) {
+    typeParameterTypeNullability = library.isNonNullableByDefault
+        ? computeNullabilityFromBound(parameter)
+        : Nullability.legacy;
+  }
+
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitTypeParameterType(this, arg);
@@ -5926,7 +6007,10 @@ class TypeParameterType extends DartType {
   }
 
   int get hashCode {
-    int hash = _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+    // TODO(johnniwinther): Since we use a unification strategy for function
+    //  type type parameter equality, we have to assume they can end up being
+    //  equal. Maybe we should change the equality strategy.
+    int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     hash = 0x3fffffff & (hash * 31 + (hash ^ promotedBound.hashCode));
@@ -6354,7 +6438,7 @@ abstract class Constant extends Node {
   bool operator ==(Object other);
 
   /// Gets the type of this constant.
-  DartType getType(TypeEnvironment types);
+  DartType getType(StaticTypeContext context);
 
   Expression asExpression() {
     return new ConstantExpression(this);
@@ -6381,7 +6465,8 @@ class NullConstant extends PrimitiveConstant<Null> {
   R accept<R>(ConstantVisitor<R> v) => v.visitNullConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.nullType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.nullType;
 }
 
 class BoolConstant extends PrimitiveConstant<bool> {
@@ -6391,7 +6476,8 @@ class BoolConstant extends PrimitiveConstant<bool> {
   R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.coreTypes.boolLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 }
 
 /// An integer constant on a non-JS target.
@@ -6402,7 +6488,8 @@ class IntConstant extends PrimitiveConstant<int> {
   R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.coreTypes.intLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
 }
 
 /// A double constant on a non-JS target or any numeric constant on a JS target.
@@ -6417,8 +6504,8 @@ class DoubleConstant extends PrimitiveConstant<double> {
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
-  DartType getType(TypeEnvironment types) =>
-      types.coreTypes.doubleLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.doubleRawType(context.nonNullable);
 }
 
 class StringConstant extends PrimitiveConstant<String> {
@@ -6430,8 +6517,8 @@ class StringConstant extends PrimitiveConstant<String> {
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
 
-  DartType getType(TypeEnvironment types) =>
-      types.coreTypes.stringLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
 }
 
 class SymbolConstant extends Constant {
@@ -6459,8 +6546,8 @@ class SymbolConstant extends Constant {
           other.name == name &&
           other.libraryReference == libraryReference);
 
-  DartType getType(TypeEnvironment types) =>
-      types.coreTypes.symbolLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
 }
 
 class MapConstant extends Constant {
@@ -6497,8 +6584,8 @@ class MapConstant extends Constant {
           other.valueType == valueType &&
           listEquals(other.entries, entries));
 
-  DartType getType(TypeEnvironment types) =>
-      types.literalMapType(keyType, valueType);
+  DartType getType(StaticTypeContext context) => context.typeEnvironment
+      .literalMapType(keyType, valueType, context.nonNullable);
 }
 
 class ConstantMapEntry {
@@ -6544,8 +6631,8 @@ class ListConstant extends Constant {
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
-  DartType getType(TypeEnvironment types) =>
-      types.literalListType(typeArgument);
+  DartType getType(StaticTypeContext context) => context.typeEnvironment
+      .literalListType(typeArgument, context.nonNullable);
 }
 
 class SetConstant extends Constant {
@@ -6578,7 +6665,8 @@ class SetConstant extends Constant {
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
-  DartType getType(TypeEnvironment types) => types.literalSetType(typeArgument);
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.literalSetType(typeArgument, context.nonNullable);
 }
 
 class InstanceConstant extends Constant {
@@ -6636,8 +6724,8 @@ class InstanceConstant extends Constant {
             mapEquals(other.fieldValues, fieldValues));
   }
 
-  DartType getType(TypeEnvironment types) =>
-      new InterfaceType(classNode, Nullability.legacy, typeArguments);
+  DartType getType(StaticTypeContext context) =>
+      new InterfaceType(classNode, context.nonNullable, typeArguments);
 }
 
 class PartialInstantiationConstant extends Constant {
@@ -6669,8 +6757,8 @@ class PartialInstantiationConstant extends Constant {
         listEquals(other.types, types);
   }
 
-  DartType getType(TypeEnvironment typeEnvironment) {
-    final FunctionType type = tearOffConstant.getType(typeEnvironment);
+  DartType getType(StaticTypeContext context) {
+    final FunctionType type = tearOffConstant.getType(context);
     final mapping = <TypeParameter, DartType>{};
     for (final parameter in type.typeParameters) {
       mapping[parameter] = types[mapping.length];
@@ -6709,7 +6797,7 @@ class TearOffConstant extends Constant {
         other.procedureReference == procedureReference;
   }
 
-  FunctionType getType(TypeEnvironment types) =>
+  FunctionType getType(StaticTypeContext context) =>
       procedure.function.functionType;
 }
 
@@ -6734,7 +6822,8 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
-  DartType getType(TypeEnvironment types) => types.coreTypes.typeLegacyRawType;
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
 }
 
 class UnevaluatedConstant extends Constant {
@@ -6752,7 +6841,8 @@ class UnevaluatedConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) =>
       v.visitUnevaluatedConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => expression.getStaticType(types);
+  DartType getType(StaticTypeContext context) =>
+      expression.getStaticType(context);
 
   @override
   Expression asExpression() => expression;
@@ -7031,13 +7121,6 @@ void transformList(List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
   if (storeIndex < nodes.length) {
     nodes.length = storeIndex;
   }
-}
-
-List<DartType> _getAsTypeArguments(List<TypeParameter> typeParameters) {
-  if (typeParameters.isEmpty) return const <DartType>[];
-  return new List<DartType>.generate(typeParameters.length,
-      (i) => new TypeParameterType(typeParameters[i], Nullability.legacy),
-      growable: false);
 }
 
 class _ChildReplacer extends Transformer {
@@ -7361,4 +7444,17 @@ String demangleMixinApplicationSubclassName(String name) {
   if (nameParts.length < 2) return name;
   assert(nameParts[0].startsWith('_'));
   return nameParts[0].substring(1);
+}
+
+/// Computes a list of [typeParameters] taken as types.
+List<DartType> getAsTypeArguments(
+    List<TypeParameter> typeParameters, Library library) {
+  if (typeParameters.isEmpty) return const <DartType>[];
+  List<DartType> result =
+      new List<DartType>.filled(typeParameters.length, null, growable: false);
+  for (int i = 0; i < result.length; ++i) {
+    result[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+        typeParameters[i], library);
+  }
+  return result;
 }

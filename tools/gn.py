@@ -247,6 +247,7 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args['is_tsan'] = args.tsan
     gn_args['is_ubsan'] = args.ubsan
     gn_args['include_dart2native'] = True
+    gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
@@ -521,6 +522,11 @@ def parse_args(args):
         '--use-crashpad',
         default=False,
         dest='use_crashpad',
+        action='store_true')
+    other_group.add_argument(
+        '--use-qemu',
+        default=False,
+        dest='use_qemu',
         action='store_true')
 
     options = parser.parse_args(args)

@@ -318,14 +318,14 @@ class TypeSystem {
   TypeInformation narrowType(TypeInformation type, DartType annotation,
       {bool isNullable: true}) {
     AbstractValue otherType;
-    if (annotation.isVoid) return type;
+    if (annotation is VoidType) return type;
     if (annotation.treatAsDynamic) {
       if (isNullable) return type;
       // If the input is already narrowed to be not-null, there is no value
       // in adding another narrowing node.
       if (_isNonNullNarrow(type)) return type;
       otherType = _abstractValueDomain.excludeNull(dynamicType.type);
-    } else if (annotation.isInterfaceType) {
+    } else if (annotation is InterfaceType) {
       InterfaceType interface = annotation;
       if (interface.element == _closedWorld.commonElements.objectClass) {
         if (isNullable) return type;
@@ -335,13 +335,13 @@ class TypeSystem {
         otherType =
             _abstractValueDomain.createNonNullSubtype(interface.element);
       }
-    } else if (annotation.isTypedef || annotation.isFunctionType) {
+    } else if (annotation is TypedefType || annotation is FunctionType) {
       otherType = functionType.type;
-    } else if (annotation.isFutureOr) {
+    } else if (annotation is FutureOrType) {
       // TODO(johnniwinther): Support narrowing of FutureOr.
       return type;
     } else {
-      assert(annotation.isTypeVariable);
+      assert(annotation is TypeVariableType);
       // TODO(ngeoffray): Narrow to bound.
       return type;
     }

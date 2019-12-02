@@ -690,14 +690,14 @@ copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_kernel_sdk_outline",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_sdk",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
     # TODO(vsm): Remove post CFE.
     "$gen_dir/ddc_sdk.sum",
-    "$gen_dir/kernel/ddc_sdk.dill",
+    "$root_out_dir/ddc_sdk.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",

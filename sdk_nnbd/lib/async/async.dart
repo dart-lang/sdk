@@ -87,7 +87,7 @@
  * [asynchronous-programming]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartasync---asynchronous-programming
  * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
  * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
- * [test-readme]: https://pub.dartlang.org/packages/test
+ * [test-readme]: https://pub.dev/packages/test
  *
  * {@category Core}
  */

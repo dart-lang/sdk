@@ -9,9 +9,12 @@
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/code_observers.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
+#include "vm/flag_list.h"
 #include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_entry.h"
@@ -1373,11 +1376,7 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->owner_);
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-    s->Push(code->ptr()->catch_entry_.catch_entry_moves_maps_);
-#else
-    s->Push(code->ptr()->catch_entry_.variables_);
-#endif
+    s->Push(code->ptr()->catch_entry_);
     s->Push(code->ptr()->compressed_stackmaps_);
     if (!FLAG_dwarf_stack_traces) {
       s->Push(code->ptr()->inlined_id_to_function_);
@@ -1387,7 +1386,12 @@ class CodeSerializationCluster : public SerializationCluster {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
     }
-    NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
+#if !defined(PRODUCT)
+    s->Push(code->ptr()->return_address_metadata_);
+    if (FLAG_code_comments) {
+      s->Push(code->ptr()->comments_);
+    }
+#endif
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1431,11 +1435,7 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteField(code, owner_);
       WriteField(code, exception_handlers_);
       WriteField(code, pc_descriptors_);
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      WriteField(code, catch_entry_.catch_entry_moves_maps_);
-#else
-      WriteField(code, catch_entry_.variables_);
-#endif
+      WriteField(code, catch_entry_);
       WriteField(code, compressed_stackmaps_);
       if (FLAG_dwarf_stack_traces) {
         WriteFieldValue(inlined_id_to_function_, Array::null());
@@ -1448,8 +1448,12 @@ class CodeSerializationCluster : public SerializationCluster {
         WriteField(code, deopt_info_array_);
         WriteField(code, static_calls_target_table_);
       }
-      NOT_IN_PRODUCT(WriteField(code, return_address_metadata_));
-
+#if !defined(PRODUCT)
+      WriteField(code, return_address_metadata_);
+      if (FLAG_code_comments) {
+        WriteField(code, comments_);
+      }
+#endif
       s->Write<int32_t>(code->ptr()->state_bits_);
     }
   }
@@ -1510,13 +1514,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
       RawInstructions* instr = d->ReadInstructions();
 
-      code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
-      code->ptr()->monomorphic_entry_point_ =
-          Instructions::MonomorphicEntryPoint(instr);
-      code->ptr()->unchecked_entry_point_ =
-          Instructions::UncheckedEntryPoint(instr);
-      code->ptr()->monomorphic_unchecked_entry_point_ =
-          Instructions::MonomorphicUncheckedEntryPoint(instr);
+      Code::InitializeCachedEntryPointsFrom(code, instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
 
@@ -1524,11 +1522,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       if (d->kind() == Snapshot::kFullJIT) {
         RawInstructions* instr = d->ReadInstructions();
         code->ptr()->active_instructions_ = instr;
-        code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
-        code->ptr()->monomorphic_entry_point_ =
-            Instructions::MonomorphicEntryPoint(instr);
-        code->ptr()->unchecked_entry_point_ =
-            Instructions::UncheckedEntryPoint(instr);
+        Code::InitializeCachedEntryPointsFrom(code, instr);
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1539,13 +1533,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawExceptionHandlers*>(d->ReadRef());
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-      code->ptr()->catch_entry_.catch_entry_moves_maps_ =
-          reinterpret_cast<RawTypedData*>(d->ReadRef());
-#else
-      code->ptr()->catch_entry_.variables_ =
-          reinterpret_cast<RawSmi*>(d->ReadRef());
-#endif
+      code->ptr()->catch_entry_ = d->ReadRef();
       code->ptr()->compressed_stackmaps_ =
           reinterpret_cast<RawCompressedStackMaps*>(d->ReadRef());
       code->ptr()->inlined_id_to_function_ =
@@ -1565,7 +1553,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #if !defined(PRODUCT)
       code->ptr()->return_address_metadata_ = d->ReadRef();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->comments_ = Array::null();
+      code->ptr()->comments_ = FLAG_code_comments
+                                   ? reinterpret_cast<RawArray*>(d->ReadRef())
+                                   : Array::null();
       code->ptr()->compile_timestamp_ = 0;
 #endif
 
@@ -1573,13 +1563,31 @@ class CodeDeserializationCluster : public DeserializationCluster {
     }
   }
 
-#if !(defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT))
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    if (!CodeObservers::AreActive()) return;
+#if !defined(PRODUCT)
+    if (!CodeObservers::AreActive() && !FLAG_support_disassembler) return;
+#endif
     Code& code = Code::Handle(zone);
+    Object& owner = Object::Handle(zone);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       code ^= refs.At(id);
-      Code::NotifyCodeObservers(code, code.is_optimized());
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (CodeObservers::AreActive()) {
+        Code::NotifyCodeObservers(code, code.is_optimized());
+      }
+#endif
+      owner = code.owner();
+      if (owner.IsFunction()) {
+        if ((FLAG_disassemble ||
+             (code.is_optimized() && FLAG_disassemble_optimized)) &&
+            FlowGraphPrinter::ShouldPrint(Function::Cast(owner))) {
+          Disassembler::DisassembleCode(Function::Cast(owner), code,
+                                        code.is_optimized());
+        }
+      } else if (FLAG_disassemble_stubs) {
+        Disassembler::DisassembleStub(code.Name(), code);
+      }
     }
   }
 #endif  // !DART_PRECOMPILED_RUNTIME

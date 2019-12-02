@@ -107,9 +107,9 @@ class BytecodeAssembler {
     }
   }
 
-  void emitYieldPointSourcePosition() {
+  void emitYieldPointSourcePosition(int yieldSourcePosition) {
     if (!isUnreachable) {
-      sourcePositions.addYieldPoint(offset, currentSourcePosition);
+      sourcePositions.addYieldPoint(offset, yieldSourcePosition);
     }
   }
 
@@ -745,5 +745,15 @@ class BytecodeAssembler {
   void emitInitLateField(int rd) {
     emitSourcePosition();
     _emitInstructionD(Opcode.kInitLateField, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitPushUninitializedSentinel() {
+    _emitInstruction0(Opcode.kPushUninitializedSentinel);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitJumpIfInitialized(Label label) {
+    _emitJumpInstruction(Opcode.kJumpIfInitialized, label);
   }
 }

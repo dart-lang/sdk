@@ -79,11 +79,11 @@ class _ClosableStringSink implements ClosableStringSink {
     _sink.writeCharCode(charCode);
   }
 
-  void write(Object o) {
+  void write(Object? o) {
     _sink.write(o);
   }
 
-  void writeln([Object o = ""]) {
+  void writeln([Object? o = ""]) {
     _sink.writeln(o);
   }
 

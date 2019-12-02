@@ -5,9 +5,10 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -16,7 +17,7 @@ import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
-  final AnalysisContext analysisContext;
+  final AnalysisContextImpl analysisContext;
   final AnalysisSession analysisSession;
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
@@ -59,6 +60,36 @@ class LinkedElementFactory {
     }
 
     return Namespace(exportedNames);
+  }
+
+  void createTypeProviders(
+    LibraryElementImpl dartCore,
+    LibraryElementImpl dartAsync,
+  ) {
+    analysisContext.setTypeProviders(
+      legacy: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: false,
+      ),
+      nonNullableByDefault: TypeProviderImpl(
+        coreLibrary: dartCore,
+        asyncLibrary: dartAsync,
+        isNonNullableByDefault: true,
+      ),
+    );
+
+    // During linking we create libraries when typeProvider is not ready.
+    // Update these libraries now, when typeProvider is ready.
+    for (var reference in rootReference.children) {
+      var libraryElement = reference.element as LibraryElementImpl;
+      if (libraryElement != null && libraryElement.typeProvider == null) {
+        _setLibraryTypeSystem(libraryElement);
+      }
+    }
+
+    dartCore.createLoadLibraryFunction(dartCore.typeProvider);
+    dartAsync.createLoadLibraryFunction(dartAsync.typeProvider);
   }
 
   Element elementOfReference(Reference reference) {
@@ -128,6 +159,23 @@ class LinkedElementFactory {
         }
       }
     }
+  }
+
+  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    // During linking we create libraries when typeProvider is not ready.
+    // And if we link dart:core and dart:async, we cannot create it.
+    // We will set typeProvider later, during [createTypeProviders].
+    if (analysisContext.typeProviderLegacy == null) {
+      return;
+    }
+
+    var isNonNullable = libraryElement.isNonNullableByDefault;
+    libraryElement.typeProvider = isNonNullable
+        ? analysisContext.typeProviderNonNullableByDefault
+        : analysisContext.typeProviderLegacy;
+    libraryElement.typeSystem = isNonNullable
+        ? analysisContext.typeSystemNonNullableByDefault
+        : analysisContext.typeSystemLegacy;
   }
 }
 
@@ -240,24 +288,18 @@ class _ElementRequest {
       ElementImpl enclosing, Reference reference) {
     if (enclosing is ClassElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and fields.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is CompilationUnitElementImpl) {
+    } else if (enclosing is CompilationUnitElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
-    }
-    if (enclosing is EnumElementImpl) {
+    } else if (enclosing is EnumElementImpl) {
       enclosing.accessors;
-      // Requesting accessors sets elements for accessors and variables.
-      assert(reference.element != null);
-      return reference.element;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.accessors;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
     }
-    // Only classes and units have accessors.
-    throw StateError('${enclosing.runtimeType}');
+    // Requesting accessors sets elements for accessors and variables.
+    assert(reference.element != null);
+    return reference.element;
   }
 
   ClassElementImpl _class(
@@ -309,6 +351,7 @@ class _ElementRequest {
       reference,
       definingUnitContext.unit_withDeclarations,
     );
+    elementFactory._setLibraryTypeSystem(libraryElement);
 
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = reference.getChild('@unit');

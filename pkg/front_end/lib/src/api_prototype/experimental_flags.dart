@@ -12,6 +12,7 @@ enum ExperimentalFlag {
   controlFlowCollections,
   extensionMethods,
   nonNullable,
+  nonfunctionTypeAliases,
   setLiterals,
   spreadCollections,
   tripleShift,
@@ -28,6 +29,8 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
       return ExperimentalFlag.extensionMethods;
     case "non-nullable":
       return ExperimentalFlag.nonNullable;
+    case "nonfunction-type-aliases":
+      return ExperimentalFlag.nonfunctionTypeAliases;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
     case "spread-collections":
@@ -45,6 +48,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
   ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,
@@ -56,6 +60,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
   ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,

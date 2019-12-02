@@ -278,10 +278,6 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "TYPE_PARAMETER_ON_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
-        return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);

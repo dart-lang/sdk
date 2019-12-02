@@ -1834,7 +1834,6 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   List<String> _definedTopLevelNames;
   List<String> _referencedNames;
   List<String> _subtypedNames;
-  UnlinkedUnitBuilder _unit;
   UnlinkedUnit2Builder _unit2;
 
   @override
@@ -1872,14 +1871,6 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   }
 
   @override
-  UnlinkedUnitBuilder get unit => _unit;
-
-  /// Unlinked information for the unit.
-  set unit(UnlinkedUnitBuilder value) {
-    this._unit = value;
-  }
-
-  @override
   UnlinkedUnit2Builder get unit2 => _unit2;
 
   /// Unlinked information for the unit.
@@ -1892,18 +1883,15 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
       List<String> definedTopLevelNames,
       List<String> referencedNames,
       List<String> subtypedNames,
-      UnlinkedUnitBuilder unit,
       UnlinkedUnit2Builder unit2})
       : _definedClassMemberNames = definedClassMemberNames,
         _definedTopLevelNames = definedTopLevelNames,
         _referencedNames = referencedNames,
         _subtypedNames = subtypedNames,
-        _unit = unit,
         _unit2 = unit2;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
-    _unit?.flushInformative();
     _unit2?.flushInformative();
   }
 
@@ -1917,8 +1905,6 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
         signature.addString(x);
       }
     }
-    signature.addBool(this._unit != null);
-    this._unit?.collectApiSignature(signature);
     if (this._definedTopLevelNames == null) {
       signature.addInt(0);
     } else {
@@ -1957,7 +1943,6 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
     fb.Offset offset_definedTopLevelNames;
     fb.Offset offset_referencedNames;
     fb.Offset offset_subtypedNames;
-    fb.Offset offset_unit;
     fb.Offset offset_unit2;
     if (!(_definedClassMemberNames == null ||
         _definedClassMemberNames.isEmpty)) {
@@ -1978,30 +1963,24 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
       offset_subtypedNames = fbBuilder.writeList(
           _subtypedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    if (_unit != null) {
-      offset_unit = _unit.finish(fbBuilder);
-    }
     if (_unit2 != null) {
       offset_unit2 = _unit2.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_definedClassMemberNames != null) {
-      fbBuilder.addOffset(3, offset_definedClassMemberNames);
+      fbBuilder.addOffset(2, offset_definedClassMemberNames);
     }
     if (offset_definedTopLevelNames != null) {
-      fbBuilder.addOffset(2, offset_definedTopLevelNames);
+      fbBuilder.addOffset(1, offset_definedTopLevelNames);
     }
     if (offset_referencedNames != null) {
       fbBuilder.addOffset(0, offset_referencedNames);
     }
     if (offset_subtypedNames != null) {
-      fbBuilder.addOffset(4, offset_subtypedNames);
-    }
-    if (offset_unit != null) {
-      fbBuilder.addOffset(1, offset_unit);
+      fbBuilder.addOffset(3, offset_subtypedNames);
     }
     if (offset_unit2 != null) {
-      fbBuilder.addOffset(5, offset_unit2);
+      fbBuilder.addOffset(4, offset_unit2);
     }
     return fbBuilder.endTable();
   }
@@ -2035,14 +2014,13 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   List<String> _definedTopLevelNames;
   List<String> _referencedNames;
   List<String> _subtypedNames;
-  idl.UnlinkedUnit _unit;
   idl.UnlinkedUnit2 _unit2;
 
   @override
   List<String> get definedClassMemberNames {
     _definedClassMemberNames ??=
         const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 3, const <String>[]);
+            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _definedClassMemberNames;
   }
 
@@ -2050,7 +2028,7 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   List<String> get definedTopLevelNames {
     _definedTopLevelNames ??=
         const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+            .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _definedTopLevelNames;
   }
 
@@ -2064,19 +2042,13 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
   @override
   List<String> get subtypedNames {
     _subtypedNames ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _subtypedNames;
   }
 
   @override
-  idl.UnlinkedUnit get unit {
-    _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
-    return _unit;
-  }
-
-  @override
   idl.UnlinkedUnit2 get unit2 {
-    _unit2 ??= const _UnlinkedUnit2Reader().vTableGet(_bc, _bcOffset, 5, null);
+    _unit2 ??= const _UnlinkedUnit2Reader().vTableGet(_bc, _bcOffset, 4, null);
     return _unit2;
   }
 }
@@ -2093,7 +2065,6 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
     if (referencedNames.isNotEmpty)
       _result["referencedNames"] = referencedNames;
     if (subtypedNames.isNotEmpty) _result["subtypedNames"] = subtypedNames;
-    if (unit != null) _result["unit"] = unit.toJson();
     if (unit2 != null) _result["unit2"] = unit2.toJson();
     return _result;
   }
@@ -2104,7 +2075,6 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
         "definedTopLevelNames": definedTopLevelNames,
         "referencedNames": referencedNames,
         "subtypedNames": subtypedNames,
-        "unit": unit,
         "unit2": unit2,
       };
 
@@ -3669,80 +3639,6 @@ abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
   Map<String, Object> toMap() => {
         "templateNames": templateNames,
         "templateValues": templateValues,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class LinkedLibraryBuilder extends Object
-    with _LinkedLibraryMixin
-    implements idl.LinkedLibrary {
-  int _placeholder;
-
-  @override
-  int get placeholder => _placeholder ??= 0;
-
-  set placeholder(int value) {
-    assert(value == null || value >= 0);
-    this._placeholder = value;
-  }
-
-  LinkedLibraryBuilder({int placeholder}) : _placeholder = placeholder;
-
-  /// Flush [informative] data recursively.
-  void flushInformative() {}
-
-  /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._placeholder ?? 0);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
-    if (_placeholder != null && _placeholder != 0) {
-      fbBuilder.addUint32(0, _placeholder);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _LinkedLibraryReader extends fb.TableReader<_LinkedLibraryImpl> {
-  const _LinkedLibraryReader();
-
-  @override
-  _LinkedLibraryImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedLibraryImpl(bc, offset);
-}
-
-class _LinkedLibraryImpl extends Object
-    with _LinkedLibraryMixin
-    implements idl.LinkedLibrary {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _LinkedLibraryImpl(this._bc, this._bcOffset);
-
-  int _placeholder;
-
-  @override
-  int get placeholder {
-    _placeholder ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _placeholder;
-  }
-}
-
-abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (placeholder != 0) _result["placeholder"] = placeholder;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "placeholder": placeholder,
       };
 
   @override
@@ -6110,6 +6006,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_28 ??= idl.UnlinkedTokenType.NOTHING;
   }
 
+  @override
+  idl.UnlinkedTokenType get typeParameter_variance {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    return _variantField_28 ??= idl.UnlinkedTokenType.NOTHING;
+  }
+
   set assignmentExpression_operator(idl.UnlinkedTokenType value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     _variantField_28 = value;
@@ -6132,6 +6034,11 @@ class LinkedNodeBuilder extends Object
 
   set propertyAccess_operator(idl.UnlinkedTokenType value) {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
+    _variantField_28 = value;
+  }
+
+  set typeParameter_variance(idl.UnlinkedTokenType value) {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_28 = value;
   }
 
@@ -7881,11 +7788,13 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder.typeParameter({
     List<LinkedNodeBuilder> annotatedNode_metadata,
     LinkedNodeBuilder typeParameter_bound,
+    idl.UnlinkedTokenType typeParameter_variance,
     int informativeId,
     LinkedNodeTypeBuilder typeParameter_defaultType,
   })  : _kind = idl.LinkedNodeKind.typeParameter,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = typeParameter_bound,
+        _variantField_28 = typeParameter_variance,
         _variantField_36 = informativeId,
         _variantField_23 = typeParameter_defaultType;
 
@@ -9917,6 +9826,9 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.typeParameter_defaultType != null);
       this.typeParameter_defaultType?.collectApiSignature(signature);
+      signature.addInt(this.typeParameter_variance == null
+          ? 0
+          : this.typeParameter_variance.index);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.typeParameterList) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -12008,6 +11920,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.UnlinkedTokenType get typeParameter_variance {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    _variantField_28 ??= const _UnlinkedTokenTypeReader()
+        .vTableGet(_bc, _bcOffset, 28, idl.UnlinkedTokenType.NOTHING);
+    return _variantField_28;
+  }
+
+  @override
   bool get booleanLiteral_value {
     assert(kind == idl.LinkedNodeKind.booleanLiteral);
     _variantField_27 ??=
@@ -13636,6 +13556,9 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (typeParameter_bound != null)
         _result["typeParameter_bound"] = typeParameter_bound.toJson();
+      if (typeParameter_variance != idl.UnlinkedTokenType.NOTHING)
+        _result["typeParameter_variance"] =
+            typeParameter_variance.toString().split('.')[1];
       if (informativeId != 0) _result["informativeId"] = informativeId;
       if (typeParameter_defaultType != null)
         _result["typeParameter_defaultType"] =
@@ -14887,6 +14810,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "annotatedNode_metadata": annotatedNode_metadata,
         "typeParameter_bound": typeParameter_bound,
+        "typeParameter_variance": typeParameter_variance,
         "flags": flags,
         "informativeId": informativeId,
         "kind": kind,
@@ -16256,7 +16180,6 @@ class LinkedNodeUnitBuilder extends Object
   bool _isSynthetic;
   LinkedNodeBuilder _node;
   String _partUriStr;
-  UnlinkedTokensBuilder _tokens;
   String _uriStr;
 
   @override
@@ -16290,13 +16213,6 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   @override
-  UnlinkedTokensBuilder get tokens => _tokens;
-
-  set tokens(UnlinkedTokensBuilder value) {
-    this._tokens = value;
-  }
-
-  @override
   String get uriStr => _uriStr ??= '';
 
   /// The absolute URI.
@@ -16309,26 +16225,21 @@ class LinkedNodeUnitBuilder extends Object
       bool isSynthetic,
       LinkedNodeBuilder node,
       String partUriStr,
-      UnlinkedTokensBuilder tokens,
       String uriStr})
       : _isNNBD = isNNBD,
         _isSynthetic = isSynthetic,
         _node = node,
         _partUriStr = partUriStr,
-        _tokens = tokens,
         _uriStr = uriStr;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
     _node?.flushInformative();
-    _tokens?.flushInformative();
   }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._uriStr ?? '');
-    signature.addBool(this._tokens != null);
-    this._tokens?.collectApiSignature(signature);
     signature.addBool(this._node != null);
     this._node?.collectApiSignature(signature);
     signature.addBool(this._isSynthetic == true);
@@ -16339,7 +16250,6 @@ class LinkedNodeUnitBuilder extends Object
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_node;
     fb.Offset offset_partUriStr;
-    fb.Offset offset_tokens;
     fb.Offset offset_uriStr;
     if (_node != null) {
       offset_node = _node.finish(fbBuilder);
@@ -16347,27 +16257,21 @@ class LinkedNodeUnitBuilder extends Object
     if (_partUriStr != null) {
       offset_partUriStr = fbBuilder.writeString(_partUriStr);
     }
-    if (_tokens != null) {
-      offset_tokens = _tokens.finish(fbBuilder);
-    }
     if (_uriStr != null) {
       offset_uriStr = fbBuilder.writeString(_uriStr);
     }
     fbBuilder.startTable();
     if (_isNNBD == true) {
-      fbBuilder.addBool(4, true);
-    }
-    if (_isSynthetic == true) {
       fbBuilder.addBool(3, true);
     }
+    if (_isSynthetic == true) {
+      fbBuilder.addBool(2, true);
+    }
     if (offset_node != null) {
-      fbBuilder.addOffset(2, offset_node);
+      fbBuilder.addOffset(1, offset_node);
     }
     if (offset_partUriStr != null) {
-      fbBuilder.addOffset(5, offset_partUriStr);
-    }
-    if (offset_tokens != null) {
-      fbBuilder.addOffset(1, offset_tokens);
+      fbBuilder.addOffset(4, offset_partUriStr);
     }
     if (offset_uriStr != null) {
       fbBuilder.addOffset(0, offset_uriStr);
@@ -16396,38 +16300,30 @@ class _LinkedNodeUnitImpl extends Object
   bool _isSynthetic;
   idl.LinkedNode _node;
   String _partUriStr;
-  idl.UnlinkedTokens _tokens;
   String _uriStr;
 
   @override
   bool get isNNBD {
-    _isNNBD ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+    _isNNBD ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isNNBD;
   }
 
   @override
   bool get isSynthetic {
-    _isSynthetic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    _isSynthetic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
     return _isSynthetic;
   }
 
   @override
   idl.LinkedNode get node {
-    _node ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 2, null);
+    _node ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 1, null);
     return _node;
   }
 
   @override
   String get partUriStr {
-    _partUriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 5, '');
+    _partUriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
     return _partUriStr;
-  }
-
-  @override
-  idl.UnlinkedTokens get tokens {
-    _tokens ??=
-        const _UnlinkedTokensReader().vTableGet(_bc, _bcOffset, 1, null);
-    return _tokens;
   }
 
   @override
@@ -16445,7 +16341,6 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (node != null) _result["node"] = node.toJson();
     if (partUriStr != '') _result["partUriStr"] = partUriStr;
-    if (tokens != null) _result["tokens"] = tokens.toJson();
     if (uriStr != '') _result["uriStr"] = uriStr;
     return _result;
   }
@@ -16456,7 +16351,6 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
         "isSynthetic": isSynthetic,
         "node": node,
         "partUriStr": partUriStr,
-        "tokens": tokens,
         "uriStr": uriStr,
       };
 
@@ -16468,12 +16362,6 @@ class PackageBundleBuilder extends Object
     with _PackageBundleMixin
     implements idl.PackageBundle {
   LinkedNodeBundleBuilder _bundle2;
-  int _majorVersion;
-  int _minorVersion;
-
-  @override
-  Null get apiSignature =>
-      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   LinkedNodeBundleBuilder get bundle2 => _bundle2;
@@ -16483,55 +16371,7 @@ class PackageBundleBuilder extends Object
     this._bundle2 = value;
   }
 
-  @override
-  Null get dependencies =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get linkedLibraries =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get linkedLibraryUris =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  int get majorVersion => _majorVersion ??= 0;
-
-  /// Major version of the summary format.  See
-  /// [PackageBundleAssembler.currentMajorVersion].
-  set majorVersion(int value) {
-    assert(value == null || value >= 0);
-    this._majorVersion = value;
-  }
-
-  @override
-  int get minorVersion => _minorVersion ??= 0;
-
-  /// Minor version of the summary format.  See
-  /// [PackageBundleAssembler.currentMinorVersion].
-  set minorVersion(int value) {
-    assert(value == null || value >= 0);
-    this._minorVersion = value;
-  }
-
-  @override
-  Null get unlinkedUnitHashes =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get unlinkedUnits =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get unlinkedUnitUris =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  PackageBundleBuilder(
-      {LinkedNodeBundleBuilder bundle2, int majorVersion, int minorVersion})
-      : _bundle2 = bundle2,
-        _majorVersion = majorVersion,
-        _minorVersion = minorVersion;
+  PackageBundleBuilder({LinkedNodeBundleBuilder bundle2}) : _bundle2 = bundle2;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -16540,8 +16380,6 @@ class PackageBundleBuilder extends Object
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._majorVersion ?? 0);
-    signature.addInt(this._minorVersion ?? 0);
     signature.addBool(this._bundle2 != null);
     this._bundle2?.collectApiSignature(signature);
   }
@@ -16558,13 +16396,7 @@ class PackageBundleBuilder extends Object
     }
     fbBuilder.startTable();
     if (offset_bundle2 != null) {
-      fbBuilder.addOffset(9, offset_bundle2);
-    }
-    if (_majorVersion != null && _majorVersion != 0) {
-      fbBuilder.addUint32(5, _majorVersion);
-    }
-    if (_minorVersion != null && _minorVersion != 0) {
-      fbBuilder.addUint32(6, _minorVersion);
+      fbBuilder.addOffset(0, offset_bundle2);
     }
     return fbBuilder.endTable();
   }
@@ -16592,55 +16424,13 @@ class _PackageBundleImpl extends Object
   _PackageBundleImpl(this._bc, this._bcOffset);
 
   idl.LinkedNodeBundle _bundle2;
-  int _majorVersion;
-  int _minorVersion;
-
-  @override
-  Null get apiSignature =>
-      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   idl.LinkedNodeBundle get bundle2 {
     _bundle2 ??=
-        const _LinkedNodeBundleReader().vTableGet(_bc, _bcOffset, 9, null);
+        const _LinkedNodeBundleReader().vTableGet(_bc, _bcOffset, 0, null);
     return _bundle2;
   }
-
-  @override
-  Null get dependencies =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get linkedLibraries =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get linkedLibraryUris =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  int get majorVersion {
-    _majorVersion ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
-    return _majorVersion;
-  }
-
-  @override
-  int get minorVersion {
-    _minorVersion ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
-    return _minorVersion;
-  }
-
-  @override
-  Null get unlinkedUnitHashes =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get unlinkedUnits =>
-      throw new UnimplementedError('attempt to access deprecated field');
-
-  @override
-  Null get unlinkedUnitUris =>
-      throw new UnimplementedError('attempt to access deprecated field');
 }
 
 abstract class _PackageBundleMixin implements idl.PackageBundle {
@@ -16648,92 +16438,12 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (bundle2 != null) _result["bundle2"] = bundle2.toJson();
-    if (majorVersion != 0) _result["majorVersion"] = majorVersion;
-    if (minorVersion != 0) _result["minorVersion"] = minorVersion;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
         "bundle2": bundle2,
-        "majorVersion": majorVersion,
-        "minorVersion": minorVersion,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class PackageDependencyInfoBuilder extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  int _placeholder;
-
-  @override
-  int get placeholder => _placeholder ??= 0;
-
-  set placeholder(int value) {
-    assert(value == null || value >= 0);
-    this._placeholder = value;
-  }
-
-  PackageDependencyInfoBuilder({int placeholder}) : _placeholder = placeholder;
-
-  /// Flush [informative] data recursively.
-  void flushInformative() {}
-
-  /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._placeholder ?? 0);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
-    if (_placeholder != null && _placeholder != 0) {
-      fbBuilder.addUint32(0, _placeholder);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _PackageDependencyInfoReader
-    extends fb.TableReader<_PackageDependencyInfoImpl> {
-  const _PackageDependencyInfoReader();
-
-  @override
-  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) =>
-      new _PackageDependencyInfoImpl(bc, offset);
-}
-
-class _PackageDependencyInfoImpl extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _PackageDependencyInfoImpl(this._bc, this._bcOffset);
-
-  int _placeholder;
-
-  @override
-  int get placeholder {
-    _placeholder ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _placeholder;
-  }
-}
-
-abstract class _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (placeholder != 0) _result["placeholder"] = placeholder;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "placeholder": placeholder,
       };
 
   @override
@@ -18342,154 +18052,6 @@ abstract class _UnlinkedInformativeDataMixin
     }
     throw StateError("Unexpected $kind");
   }
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class UnlinkedTokensBuilder extends Object
-    with _UnlinkedTokensMixin
-    implements idl.UnlinkedTokens {
-  int _placeholder;
-
-  @override
-  int get placeholder => _placeholder ??= 0;
-
-  set placeholder(int value) {
-    assert(value == null || value >= 0);
-    this._placeholder = value;
-  }
-
-  UnlinkedTokensBuilder({int placeholder}) : _placeholder = placeholder;
-
-  /// Flush [informative] data recursively.
-  void flushInformative() {}
-
-  /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._placeholder ?? 0);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
-    if (_placeholder != null && _placeholder != 0) {
-      fbBuilder.addUint32(0, _placeholder);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _UnlinkedTokensReader extends fb.TableReader<_UnlinkedTokensImpl> {
-  const _UnlinkedTokensReader();
-
-  @override
-  _UnlinkedTokensImpl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedTokensImpl(bc, offset);
-}
-
-class _UnlinkedTokensImpl extends Object
-    with _UnlinkedTokensMixin
-    implements idl.UnlinkedTokens {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _UnlinkedTokensImpl(this._bc, this._bcOffset);
-
-  int _placeholder;
-
-  @override
-  int get placeholder {
-    _placeholder ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _placeholder;
-  }
-}
-
-abstract class _UnlinkedTokensMixin implements idl.UnlinkedTokens {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (placeholder != 0) _result["placeholder"] = placeholder;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "placeholder": placeholder,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class UnlinkedUnitBuilder extends Object
-    with _UnlinkedUnitMixin
-    implements idl.UnlinkedUnit {
-  int _placeholder;
-
-  @override
-  int get placeholder => _placeholder ??= 0;
-
-  set placeholder(int value) {
-    assert(value == null || value >= 0);
-    this._placeholder = value;
-  }
-
-  UnlinkedUnitBuilder({int placeholder}) : _placeholder = placeholder;
-
-  /// Flush [informative] data recursively.
-  void flushInformative() {}
-
-  /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._placeholder ?? 0);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fbBuilder.startTable();
-    if (_placeholder != null && _placeholder != 0) {
-      fbBuilder.addUint32(0, _placeholder);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _UnlinkedUnitReader extends fb.TableReader<_UnlinkedUnitImpl> {
-  const _UnlinkedUnitReader();
-
-  @override
-  _UnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedUnitImpl(bc, offset);
-}
-
-class _UnlinkedUnitImpl extends Object
-    with _UnlinkedUnitMixin
-    implements idl.UnlinkedUnit {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _UnlinkedUnitImpl(this._bc, this._bcOffset);
-
-  int _placeholder;
-
-  @override
-  int get placeholder {
-    _placeholder ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _placeholder;
-  }
-}
-
-abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (placeholder != 0) _result["placeholder"] = placeholder;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "placeholder": placeholder,
-      };
 
   @override
   String toString() => convert.json.encode(toJson());

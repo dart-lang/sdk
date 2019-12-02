@@ -8,19 +8,23 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart'
+    show ConstantVerifier, TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -201,6 +205,17 @@ class Hyperlink {
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
+/// The result of attempting to evaluate an expression.
+class LinterConstantEvaluationResult {
+  /// The value of the expression, or `null` if has [errors].
+  final DartObject value;
+
+  /// The errors reported during the evaluation.
+  final List<AnalysisError> errors;
+
+  LinterConstantEvaluationResult(this.value, this.errors);
+}
+
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 abstract class LinterContext {
@@ -239,6 +254,9 @@ abstract class LinterContext {
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool canBeConstConstructor(ConstructorDeclaration node);
+
+  /// Return the result of evaluating the given expression.
+  LinterConstantEvaluationResult evaluateConstant(Expression node);
 }
 
 /// Implementation of [LinterContext]
@@ -321,6 +339,23 @@ class LinterContextImpl implements LinterContext {
       temporaryConstConstructorElements[element] = null;
       node.constKeyword = oldKeyword;
     }
+  }
+
+  @override
+  LinterConstantEvaluationResult evaluateConstant(Expression node) {
+    var source = currentUnit.unit.declaredElement.source;
+    var errorListener = RecordingErrorListener();
+    var visitor = ConstantVisitor(
+      ConstantEvaluationEngine(
+        typeProvider,
+        declaredVariables,
+        typeSystem: typeSystem,
+      ),
+      ErrorReporter(errorListener, source),
+    );
+
+    var value = node.accept(visitor);
+    return LinterConstantEvaluationResult(value, errorListener.errors);
   }
 
   /// Return `true` if [ConstantVerifier] reports an error for the [node].

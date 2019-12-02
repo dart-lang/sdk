@@ -137,12 +137,10 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
-            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
             _codegenWorld,
-            _namer,
             _task.emitter,
             _nativeData,
             _interceptorData,
@@ -1173,7 +1171,7 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
+    FieldVisitor visitor = new FieldVisitor(_elementEnvironment,
         _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);

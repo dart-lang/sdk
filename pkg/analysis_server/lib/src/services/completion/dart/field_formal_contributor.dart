@@ -25,17 +25,14 @@ class FieldFormalContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    // If this is a constructor declaration
-    // then compute fields already referenced
-    ConstructorDeclaration constructorDecl =
-        node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructorDecl == null) {
+    ConstructorDeclaration constructor = node.thisOrAncestorOfType();
+    if (constructor == null) {
       return const <CompletionSuggestion>[];
     }
 
     // Compute the list of fields already referenced in the constructor
     List<String> referencedFields = new List<String>();
-    for (FormalParameter param in constructorDecl.parameters.parameters) {
+    for (FormalParameter param in constructor.parameters.parameters) {
       if (param is DefaultFormalParameter &&
           param.parameter is FieldFormalParameter) {
         param = (param as DefaultFormalParameter).parameter;
@@ -51,11 +48,14 @@ class FieldFormalContributor extends DartCompletionContributor {
       }
     }
 
+    ClassDeclaration class_ = constructor.thisOrAncestorOfType();
+    if (class_ == null) {
+      return const <CompletionSuggestion>[];
+    }
+
     // Add suggestions for fields that are not already referenced
-    ClassDeclaration classDecl =
-        constructorDecl.thisOrAncestorOfType<ClassDeclaration>();
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (ClassMember member in classDecl.members) {
+    for (ClassMember member in class_.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration varDecl in member.fields.variables) {
           SimpleIdentifier fieldId = varDecl.name;

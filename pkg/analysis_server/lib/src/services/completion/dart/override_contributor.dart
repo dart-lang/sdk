@@ -39,7 +39,7 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    var inheritance = new InheritanceManager3(request.result.typeSystem);
+    var inheritance = new InheritanceManager3();
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;

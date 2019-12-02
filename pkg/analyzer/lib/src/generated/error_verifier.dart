@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -80,7 +81,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * The type system primitives
    */
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * The manager for the inheritance mappings.
@@ -179,16 +180,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * directive with a URI that uses the "dart-ext" scheme.
    */
   bool _hasExtUri = false;
-
-  /**
-   * This is set to `false` on the entry of every [BlockFunctionBody], and is
-   * restored to the enclosing value on exit. The value is used in
-   * [_checkForMixedReturns] to prevent both
-   * [StaticWarningCode.MIXED_RETURN_TYPES] and
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE] from being generated in the same
-   * function body.
-   */
-  bool _hasReturnWithoutValue = false;
 
   /**
    * The class containing the AST nodes being visited, or `null` if we are not
@@ -446,8 +437,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     bool wasInAsync = _inAsync;
     bool wasInGenerator = _inGenerator;
-    bool previousHasReturnWithoutValue = _hasReturnWithoutValue;
-    _hasReturnWithoutValue = false;
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
     try {
@@ -456,13 +445,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _returnsWith = new List<ReturnStatement>();
       _returnsWithout = new List<ReturnStatement>();
       super.visitBlockFunctionBody(node);
-      _checkForMixedReturns(node);
     } finally {
       _inAsync = wasInAsync;
       _inGenerator = wasInGenerator;
       _returnsWith = previousReturnsWith;
       _returnsWithout = previousReturnsWithout;
-      _hasReturnWithoutValue = previousHasReturnWithoutValue;
     }
   }
 
@@ -720,6 +707,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     try {
       _checkForNotInitializedNonNullableStaticField(node);
+      _checkForWrongTypeParameterVarianceInField(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -1040,6 +1028,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
       _checkForMustCallSuper(node);
+      _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -1480,10 +1469,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * constructor and the return type is not assignable to `null`; that is, we
    * don't have `return;` if the enclosing method has a non-void containing
    * return type.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllEmptyReturnStatementErrorCodes(
       ReturnStatement statement, DartType expectedReturnType) {
@@ -1498,7 +1483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // If we reach here, this is an invalid return
-    _hasReturnWithoutValue = true;
     _errorReporter.reportErrorForNode(
         StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
     return;
@@ -1781,10 +1765,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * Check that the return type matches the type of the declared return type in
    * the enclosing method or function.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
     FunctionType functionType = _enclosingFunction?.type;
@@ -2261,26 +2241,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var visitedClasses = <ClassElement>[];
     var interfaces = <ClassElement, InterfaceType>{};
+
     void visit(InterfaceType type) {
       if (type == null) return;
+
       var element = type.element;
       if (visitedClasses.contains(element)) return;
       visitedClasses.add(element);
+
       if (element.typeParameters.isNotEmpty) {
+        type = _toLegacyType(type);
         var oldType = interfaces[element];
         if (oldType == null) {
           interfaces[element] = type;
         } else if (type != oldType) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-              node,
-              [_enclosingClass.name, oldType, type]);
+            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+            node,
+            [_enclosingClass.name, oldType, type],
+          );
         }
       }
+
       visit(type.superclass);
       type.mixins.forEach(visit);
       type.superclassConstraints.forEach(visit);
       type.interfaces.forEach(visit);
+
       visitedClasses.removeLast();
     }
 
@@ -2624,29 +2611,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForDeferredImportOfExtensions(
       ImportDirective directive, ImportElement importElement) {
-    List<String> shownNames = [];
-    List<String> hiddenNames = [];
-
-    Iterable<String> namesOf(List<SimpleIdentifier> identifiers) =>
-        identifiers.map((identifier) => identifier.name);
-    for (Combinator combinator in directive.combinators) {
-      if (combinator is HideCombinator) {
-        hiddenNames.addAll(namesOf(combinator.hiddenNames));
-      } else if (combinator is ShowCombinator) {
-        shownNames.addAll(namesOf(combinator.shownNames));
-      }
-    }
-    for (Element element in importElement.importedLibrary.topLevelElements) {
+    for (var element in importElement.namespace.definedNames.values) {
       if (element is ExtensionElement) {
-        String name = element.name;
-        if (name != null &&
-            name.isNotEmpty &&
-            (shownNames.contains(name) ||
-                (shownNames.isEmpty && !hiddenNames.contains(name)))) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, directive.uri);
-          return;
-        }
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
+          directive.uri,
+        );
+        return;
       }
     }
   }
@@ -3789,30 +3760,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the given function [body] does not contain return statements
-   * that both have and do not have return values.
-   *
-   * See [StaticWarningCode.MIXED_RETURN_TYPES].
-   */
-  void _checkForMixedReturns(BlockFunctionBody body) {
-    if (_hasReturnWithoutValue) {
-      return;
-    }
-    var nonVoidReturnsWith =
-        _returnsWith.where((stmt) => !getStaticType(stmt.expression).isVoid);
-    if (nonVoidReturnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
-      for (ReturnStatement returnWith in nonVoidReturnsWith) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWith.returnKeyword);
-      }
-      for (ReturnStatement returnWithout in _returnsWithout) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWithout.returnKeyword);
-      }
-    }
-  }
-
-  /**
    * Verify that the given mixin does not have an explicitly declared
    * constructor. The [mixinName] is the node to report problem on. The
    * [mixinElement] is the mixing to evaluate.
@@ -4717,8 +4664,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * This method is called both by [_checkForAllReturnStatementErrorCodes]
    * and [visitExpressionFunctionBody].
-   *
-   * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForReturnOfInvalidType(
       Expression returnExpression, DartType expectedType,
@@ -4746,9 +4691,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
             returnExpression,
             [expressionType, expectedType]);
+      } else if (_enclosingFunction is MethodElement) {
+        _errorReporter.reportTypeErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+            returnExpression,
+            [expressionType, expectedType, displayName]);
       } else {
         _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
             returnExpression,
             [expressionType, expectedType, displayName]);
       }
@@ -5299,18 +5249,112 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          var fields = node.fields;
+          var fieldElement = fields.variables.first.declaredElement;
+          var fieldName = fields.variables.first.name;
+          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
+
+          _checkForWrongVariancePosition(
+              fieldVariance, typeParameter, fieldName);
+          if (!fields.isFinal && node.covariantKeyword == null) {
+            _checkForWrongVariancePosition(
+                Variance.contravariant.combine(fieldVariance),
+                typeParameter,
+                fieldName);
+          }
+        }
+      }
+    }
+  }
+
+  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
+    // Only need to report errors for parameters with explicitly defined type
+    // parameters in classes or mixins.
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          if (method.typeParameters != null) {
+            for (var methodTypeParameter
+                in method.typeParameters.typeParameters) {
+              Variance methodTypeParameterVariance = Variance.invariant.combine(
+                  Variance(typeParameter, methodTypeParameter.bound.type));
+              _checkForWrongVariancePosition(methodTypeParameterVariance,
+                  typeParameter, methodTypeParameter);
+            }
+          }
+          if (method.parameters != null) {
+            for (int i = 0; i < method.parameters.parameters.length; i++) {
+              var methodParameterElement =
+                  method.parameters.parameterElements[i];
+              var methodParameterNode = method.parameters.parameters[i];
+              if (!methodParameterElement.isCovariant) {
+                Variance methodParameterVariance = Variance.contravariant
+                    .combine(
+                        Variance(typeParameter, methodParameterElement.type));
+                _checkForWrongVariancePosition(methodParameterVariance,
+                    typeParameter, methodParameterNode);
+              }
+            }
+          }
+          if (method.returnType != null) {
+            Variance methodReturnTypeVariance =
+                Variance(typeParameter, method.returnType.type);
+            _checkForWrongVariancePosition(
+                methodReturnTypeVariance, typeParameter, method.returnType);
+          }
+        }
+      }
+    }
+  }
+
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass.typeParameters) {
-          var variance = Variance(typeParameter, superInterface);
-          if (variance.isContravariant || variance.isInvariant) {
-            _errorReporter.reportErrorForElement(
-              CompileTimeErrorCode
-                  .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-              typeParameter,
-              [typeParameter.name, superInterface],
-            );
+          var superVariance = Variance(typeParameter, superInterface);
+          // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+          // variance is added to the interface.
+          var typeParameterElementImpl =
+              typeParameter as TypeParameterElementImpl;
+          // Let `D` be a class or mixin declaration, let `S` be a direct
+          // superinterface of `D`, and let `X` be a type parameter declared by
+          // `D`.
+          // If `X` is an `out` type parameter, it can only occur in `S` in an
+          // covariant or unrelated position.
+          // If `X` is an `in` type parameter, it can only occur in `S` in an
+          // contravariant or unrelated position.
+          // If `X` is an `inout` type parameter, it can occur in `S` in any
+          // position.
+          if (!superVariance
+              .greaterThanOrEqual(typeParameterElementImpl.variance)) {
+            if (!typeParameterElementImpl.isLegacyCovariant) {
+              _errorReporter.reportErrorForElement(
+                CompileTimeErrorCode
+                    .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                typeParameter,
+                [
+                  typeParameter.name,
+                  typeParameterElementImpl.variance.toKeywordString(),
+                  superVariance.toKeywordString(),
+                  superInterface
+                ],
+              );
+            } else {
+              _errorReporter.reportErrorForElement(
+                CompileTimeErrorCode
+                    .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                typeParameter,
+                [typeParameter.name, superInterface],
+              );
+            }
           }
         }
       }
@@ -5320,6 +5364,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass.interfaces.forEach(checkOne);
     _enclosingClass.mixins.forEach(checkOne);
     _enclosingClass.superclassConstraints.forEach(checkOne);
+  }
+
+  /**
+   * Check for invalid variance positions in members of a class or mixin.
+   *
+   * Let `C` be a class or mixin declaration with type parameter `T`.
+   * If `T` is an `out` type parameter then `T` can only appear in covariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `in` type parameter then `T` can only appear in contravariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `inout` type parameter or a type parameter with no explicit
+   * variance modifier then `T` can appear in any variant position within the
+   * accessors and methods of `C`.
+   *
+   * Errors should only be reported in classes and mixins since those are the
+   * only components that allow explicit variance modifiers.
+   */
+  void _checkForWrongVariancePosition(
+      Variance variance, TypeParameterElement typeParameter, AstNode node) {
+    TypeParameterElementImpl typeParameterImpl =
+        typeParameter as TypeParameterElementImpl;
+    if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        node,
+        [
+          typeParameterImpl.variance.toKeywordString(),
+          typeParameterImpl.name,
+          variance.toKeywordString()
+        ],
+      );
+    }
   }
 
   /**
@@ -5877,6 +5953,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  /// If in a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType _toLegacyType(DartType type) {
+    if (_isNonNullable) return type;
+    return NullabilityEliminator.perform(type);
   }
 
   /**

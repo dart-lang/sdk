@@ -36,7 +36,7 @@ enum Register {
   R19 = 19,
   R20 = 20,
   R21 = 21,
-  R22 = 22,
+  R22 = 22,  // NULL_REG
   R23 = 23,
   R24 = 24,
   R25 = 25,
@@ -124,6 +124,7 @@ const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register BARRIER_MASK = R28;
+const Register NULL_REG = R22;  // Caches NullObject() value.
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -173,9 +174,9 @@ const int kAbiPreservedFpuRegCount = 8;
 const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
     (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
-    (1 << LR) | (1 << BARRIER_MASK) | (1 << R31) |  // C++ SP
+    (1 << LR) | (1 << BARRIER_MASK) | (1 << NULL_REG) | (1 << R31) |  // C++ SP
     (1 << R18);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 10;
+constexpr intptr_t kNumberOfReservedCpuRegisters = 11;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;

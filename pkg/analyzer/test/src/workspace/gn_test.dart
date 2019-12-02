@@ -99,7 +99,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/.fx-build-dir', content: '$buildDir\n');
     newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
     newFolder('/ws/some/code');
-    return GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    var gnWorkspace =
+        GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    expect(gnWorkspace.isBazel, isFalse);
+    return gnWorkspace;
   }
 }
 

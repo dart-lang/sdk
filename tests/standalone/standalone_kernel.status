@@ -1,0 +1,111 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Sections in this file should contain "$compiler == dartk" or
+# "$compiler == dartkp".
+
+fragmentation_test: Pass, Slow # GC heavy
+fragmentation_typed_data_test: Pass, Slow # GC heavy
+io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
+
+[ $compiler == dartkb ]
+no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
+
+[ $system == android ]
+entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
+
+[ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
+io/file_lock_test: SkipSlow # Timeout
+
+[ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) ]
+io/http_bind_test: Slow
+
+[ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
+map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
+io/raw_socket_test: Crash
+io/socket_exception_test: Crash
+io/socket_finalizer_test: Crash
+io/socket_info_ipv4_test: Crash
+io/socket_info_ipv6_test: Crash
+io/socket_port_test: Crash
+
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+io/compile_all_test: Skip # We do not support --compile-all for precompilation
+io/http_client_connect_test: Skip # Flaky.
+io/http_content_length_test: Skip # Flaky.
+io/http_proxy_advanced_test: Skip # Flaky
+io/http_proxy_test: Skip # Flaky.
+io/http_response_deadline_test: Skip # Flaky.
+io/http_reuse_server_port_test: Skip # Flaky.
+io/http_server_close_response_after_error_test: Skip # Flaky.
+io/http_shutdown_test: Skip # Flaky.
+io/https_client_certificate_test: Crash
+io/platform_test: Crash
+io/raw_datagram_socket_test: Skip # Flaky.
+io/raw_secure_server_closing_test: Skip # Flaky
+io/raw_socket_test: Crash
+io/secure_multiple_client_server_test: Skip # Flaky.
+io/secure_server_closing_test: Skip # Flaky.
+io/secure_server_socket_test: Skip # Flaky.
+io/secure_socket_renegotiate_test: Crash
+io/socket_many_connections_test: Skip # Flaky
+io/web_socket_error_test: Skip # Flaky
+io/web_socket_ping_test: Skip # Flaky.
+io/web_socket_test: Skip # Flaky.
+map_insert_remove_oom_test: Skip # Heap limit too low.
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
+
+[ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+io/file_lock_test: Slow
+io/raw_socket_test: Crash
+io/socket_exception_test: Crash
+io/socket_finalizer_test: Crash
+io/socket_info_ipv4_test: Crash
+io/socket_info_ipv6_test: Crash
+io/socket_port_test: Crash
+
+[ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+io/web_socket_ping_test: Crash
+
+[ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
+
+[ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
+io/dart_std_io_pipe_test: Slow
+io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
+io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
+map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+io/http_no_reason_phrase_test: Crash
+io/http_outgoing_size_test: Crash
+
+[ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
+io/directory_chdir_test: Skip # Timeout
+io/echo_server_stream_test: Slow
+
+# Enabling of dartk for sim{arm,arm64} revealed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
+io/file_blocking_lock_test: Crash # Please triage.
+io/file_lock_test: Slow
+map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
+io/addlatexhash_test: Skip # Timeout
+io/http_advanced_test: Skip # Timeout
+io/http_auth_digest_test: Crash
+io/http_auth_test: Skip # Timeout
+io/http_proxy_advanced_test: Skip # Timeout
+io/http_read_test: Skip # Timeout
+io/pipe_server_test: Skip # Timeout
+io/socket_close_test: Skip # Timeout
+io/socket_many_connections_test: Skip # Timeout
+io/web_socket_compression_test: Skip # Timeout
+io/web_socket_test: Skip # Timeout
+
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
+entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

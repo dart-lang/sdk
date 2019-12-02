@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -31,8 +30,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   DartType get objectType => postMigrationTypeProvider.objectType;
 
   TypeProvider get postMigrationTypeProvider =>
-      (typeProvider as TypeProviderImpl)
-          .withNullability(NullabilitySuffix.none);
+      (typeProvider as TypeProviderImpl).asNonNullableByDefault;
 
   @override
   Future<CompilationUnit> analyze(String code) async {
@@ -2152,12 +2150,8 @@ class _FixBuilder extends FixBuilder {
 
   final Map<AstNode, Set<Problem>> problems = {};
 
-  _FixBuilder(
-      Source source,
-      DecoratedClassHierarchy decoratedClassHierarchy,
-      TypeProvider typeProvider,
-      Dart2TypeSystem typeSystem,
-      Variables variables)
+  _FixBuilder(Source source, DecoratedClassHierarchy decoratedClassHierarchy,
+      TypeProvider typeProvider, TypeSystemImpl typeSystem, Variables variables)
       : super(source, decoratedClassHierarchy, typeProvider, typeSystem,
             variables);
 

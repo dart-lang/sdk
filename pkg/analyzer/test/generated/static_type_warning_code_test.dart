@@ -927,7 +927,7 @@ Future<int> f() async {
 }
 Future<Future<int>> g() => null;
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 54, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 3),
     ]);
   }
 
@@ -938,7 +938,7 @@ Future<String> f() async {
   return 5;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 57, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 57, 1),
     ]);
   }
 
@@ -949,7 +949,7 @@ int f() async {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 25, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
     ]);
   }
 
@@ -957,7 +957,7 @@ int f() async {
     await assertErrorsInCode('''
 int f() => '0';
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 11, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
     ]);
   }
 
@@ -965,7 +965,7 @@ int f() => '0';
     await assertErrorsInCode('''
 int get g => '0';
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 13, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
     ]);
   }
 
@@ -979,7 +979,7 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 40, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 3),
     ]);
   }
 
@@ -989,7 +989,7 @@ class A {
   int f() => '0';
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 23, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
     ]);
   }
 
@@ -997,7 +997,7 @@ class A {
     await assertErrorsInCode('''
 int f() { return '0'; }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 17, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 17, 3),
     ]);
   }
 
@@ -1005,7 +1005,7 @@ int f() { return '0'; }
     await assertErrorsInCode('''
 int get g { return '0'; }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 19, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
     ]);
   }
 
@@ -1019,7 +1019,7 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 46, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 46, 3),
     ]);
   }
 
@@ -1029,7 +1029,7 @@ class A {
   int f() { return '0'; }
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 29, 3),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 29, 3),
     ]);
   }
 
@@ -1059,7 +1059,7 @@ void main() { }
 
   test_returnOfInvalidType_void() async {
     await assertErrorsInCode("void f() { return 42; }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 18, 2),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 2),
     ]);
   }
 

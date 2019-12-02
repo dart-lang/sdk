@@ -66,6 +66,7 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     resolver = new PackageBuildFileUriResolver(workspace);
     newFile('/workspace/test.dart');
     newFile('/workspace/.dart_tool/build/generated/project/gen.dart');
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_resolveAbsolute_doesNotExist() {

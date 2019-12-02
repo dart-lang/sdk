@@ -235,7 +235,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
 
   @override
-  TypeSystem get typeSystem => unit.declaredElement.context.typeSystem;
+  TypeSystemImpl get typeSystem => unit.declaredElement.context.typeSystem;
 }
 
 class UnitElementResultImpl extends AnalysisResultImpl

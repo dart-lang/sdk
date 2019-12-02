@@ -77,6 +77,16 @@ h2 {
   font-weight: bold;
 }
 
+.content {
+  font-family: monospace;
+  /* Vertical margin around content. */
+  margin: 1em 0;
+  /* Offset the margin introduced by the absolutely positioned child div. */
+  margin-left: -0.5em;
+  position: relative;
+  white-space: pre;
+}
+
 .code {
   left: 0.5em;
   /* Increase line height to make room for borders in non-nullable type
@@ -84,14 +94,16 @@ h2 {
    */
   line-height: 1.3;
   padding-left: 60px;
-  position: absolute;
+  position: inherit;
   top: 0.5em;
 }
 
-.content {
-  font-family: monospace;
-  position: relative;
-  white-space: pre;
+.navigationHeader {
+  padding-left: 1em;
+}
+
+.navigationLinks {
+  padding-left: 2em;
 }
 
 .regions {
@@ -176,6 +188,10 @@ h2 {
   visibility: visible;
 }
 
+.selectedFile {
+  font-weight: bold;
+}
+
 .target {
   background-color: #FFFF99;
   position: relative;
@@ -184,17 +200,25 @@ h2 {
     </style>
   </head>
   <body>
-    <h1>Non-nullable fix instrumentation report</h1>
-    <p>Migrated files:</p>
-    <div class="navigation">
+    <h1>Preview of NNBD migration</h1>
+    <p><b>
+    Select a migrated file to see the suggested modifications below.
+    </b></p>
+    <div class="navigationHeader">
+    {{ root }}
+    </div>
+    <div class="navigationLinks">
       {{# links }}
         {{# isLink }}<a href="{{ href }}">{{ name }}</a>{{/ isLink }}
-        {{^ isLink }}{{ name }}{{/ isLink }}
-        <br />
+        {{^ isLink }}<span class="selectedFile">{{ name }}</span>{{/ isLink }}
+        {{ modificationCount }}
+        <br/>
       {{/ links }}
     </div>
-    {{# units }}'''
-    '<h2>{{{ path }}}</h2>'
+    {{# units }}
+    <p><b>
+    Hover over modified regions to see why the modification is suggested.
+    </b></p>'''
     '<div class="content">'
     '<div class="code">'
     '{{! Write the file content, modified to include navigation information, }}'
@@ -206,6 +230,9 @@ h2 {
     '{{! the content, to provide tooltips for modified regions. }}'
     '{{{ regionContent }}}'
     '</div></div>'
+    '<div>'
+    '<i>Generated on {{ generationDate }}</i>'
+    '</div>'
     r'''
     {{/ units }}
     <script lang="javascript">
@@ -221,6 +248,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
+  /// A flag indicating whether the incremental workflow is currently supported.
+  static const bool supportsIncrementalWorkflow = false;
+
   /// Display information for a compilation unit.
   final UnitInfo unitInfo;
 
@@ -241,11 +271,13 @@ class InstrumentationRenderer {
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
     Map<String, dynamic> mustacheContext = {
+      'root': migrationInfo.includedRoot,
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.unitLinks(unitInfo),
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),
       'navContent': _computeNavigationContent(unitInfo),
+      'generationDate': migrationInfo.migrationDate,
     };
     mustacheContext['units'].add({
       'path': unitInfo.path,
@@ -269,12 +301,12 @@ class InstrumentationRenderer {
       if (regionLength > 0) {
         int openOffset = mapper.map(region.offset);
         String openInsertion = openInsertions[openOffset] ?? '';
-        openInsertion = '<a id="o${region.offset}">$openInsertion';
+        openInsertion = '<span id="o${region.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
 
         int closeOffset = openOffset + regionLength;
         String closeInsertion = closeInsertions[closeOffset] ?? '';
-        closeInsertion = '$closeInsertion</a>';
+        closeInsertion = '$closeInsertion</span>';
         closeInsertions[closeOffset] = closeInsertion;
       }
     }
@@ -367,23 +399,45 @@ class InstrumentationRenderer {
           '${content.substring(offset, offset + length)}'
           '<span class="tooltip">'
           '<p>${region.explanation}</p>');
+      //
+      // Write out any details.
+      //
       if (region.details.isNotEmpty) {
         regions.write('<ul>');
-      }
-      for (var detail in region.details) {
-        regions.write('<li>');
-
-        if (detail.target != null) {
-          regions.write('<a href="${_uriForTarget(detail.target, unitDir)}">');
+        for (var detail in region.details) {
+          regions.write('<li>');
+          if (detail.target != null) {
+            String targetUri = _uriForTarget(detail.target, unitDir);
+            regions.write('<a href="$targetUri">');
+          }
+          writeSplitLines(detail.description);
+          if (detail.target != null) {
+            regions.write('</a>');
+          }
+          regions.write('</li>');
         }
-        writeSplitLines(detail.description);
-        if (detail.target != null) {
-          regions.write('</a>');
-        }
-        regions.write('</li>');
-      }
-      if (region.details.isNotEmpty) {
         regions.write('</ul>');
+      }
+      //
+      // Write out any edits.
+      //
+      if (supportsIncrementalWorkflow && region.edits.isNotEmpty) {
+        for (EditDetail edit in region.edits) {
+          int offset = edit.offset;
+          String targetUri = Uri(
+              scheme: 'http',
+              path: pathContext.basename(unitInfo.path),
+              queryParameters: {
+                'offset': offset.toString(),
+                'end': (offset + edit.length).toString(),
+                'replacement': edit.replacement
+              }).toString();
+          regions.write('<p>');
+          regions.write('<a href="$targetUri">');
+          regions.write(edit.description);
+          regions.write('</a>');
+          regions.write('</p>');
+        }
       }
       regions.write('</span></span>');
     }
@@ -433,7 +487,10 @@ class MigrationInfo {
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
+  final String migrationDate;
+
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
+      : migrationDate = DateTime.now().toString();
 
   /// The path to the highlight.js script, relative to [unitInfo].
   String highlightJsPath(UnitInfo unitInfo) {
@@ -460,16 +517,22 @@ class MigrationInfo {
   }
 
   /// Generate mustache context for unit links, for navigation in the
-  /// instrumentation document for [thisUnit].
-  List<Map<String, Object>> unitLinks(UnitInfo thisUnit) {
-    return [
-      for (var unit in units)
-        {
-          'name': _computeName(unit),
-          'isLink': unit != thisUnit,
-          if (unit != thisUnit) 'href': _pathTo(target: unit, source: thisUnit)
-        }
-    ];
+  /// instrumentation document for [currentUnit].
+  List<Map<String, Object>> unitLinks(UnitInfo currentUnit) {
+    List<Map<String, Object>> links = [];
+    for (UnitInfo unit in units) {
+      int count = unit.fixRegions.length;
+      String modificationCount =
+          count == 1 ? '(1 modification)' : '($count modifications)';
+      bool isNotCurrent = unit != currentUnit;
+      links.add({
+        'name': _computeName(unit),
+        'modificationCount': modificationCount,
+        'isLink': isNotCurrent,
+        if (isNotCurrent) 'href': _pathTo(target: unit, source: currentUnit)
+      });
+    }
+    return links;
   }
 
   /// Return the path to [unit] from [includedRoot], to be used as a display

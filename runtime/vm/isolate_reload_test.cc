@@ -3617,7 +3617,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
   EXPECT_ERROR(lib, "......");
 }
 
-TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
+TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
   const char* kScript =
       "class Super {\n"
       "  static var foo = 'right';\n"
@@ -3654,7 +3654,11 @@ TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances in the
   // correct scope.
-  EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
+  const char* actual = SimpleInvokeStr(lib, "main");
+  EXPECT(actual != nullptr);
+  if (actual != nullptr) {
+    EXPECT_STREQ("right", actual);
+  }
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
@@ -3745,6 +3749,322 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   EXPECT_STREQ(
       "List<String> _InternalLinkedHashMap<String, String> List<int> "
       "_InternalLinkedHashMap<int, int>",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesType) {
+  const char* kScript = R"(
+    class Foo {
+      int x = 42;
+    }
+    Foo value;
+    main() {
+      value = new Foo();
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class Foo {
+      double x = 42.0;
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'int' is not a subtype of type 'double' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {
+  const char* kScript = R"(
+    int value = init();
+    init() => 42;
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    double value = init();
+    init() => 42.0;
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'int' is not a subtype of type 'double' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    class Foo {
+      A x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo(new B());
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    class Foo {
+      A x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirect) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    A value = init();
+    init() => new B();
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'B'", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    A value = init();
+    init() => new A();
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    class Foo {
+      List<A> x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo(new List<B>());
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    class Foo {
+      List<A> x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectGeneric) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    List<A> value = init();
+    init() => new List<B>();
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[]", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    List<A> value = init();
+    init() => new List<A>();
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    typedef bool Predicate(B b);
+    class Foo {
+      Predicate x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo((A a) => true);
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    typedef bool Predicate(B b);
+    class Foo {
+      Predicate x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
+      "result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    typedef bool Predicate(B b);
+    Predicate value = init();
+    init() => (A a) => true;
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Closure: (A) => bool", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    typedef bool Predicate(B b);
+    Predicate value = init();
+    init() => (B a) => true;
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
+      "result'",
       SimpleInvokeStr(lib, "main"));
 }
 

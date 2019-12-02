@@ -5,6 +5,8 @@
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -68,6 +70,26 @@ class C {
       findElement.field('f').type,
       'T Function<T>(int, T)?',
     );
+  }
+
+  test_library_typeProvider_typeSystem() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+    await resolveTestCode(r'''
+// @dart = 2.5
+import 'a.dart';
+''');
+    var testLibrary = result.libraryElement;
+    var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
+    assertElementTypeString(testLibrary.typeProvider.intType, 'int*');
+    expect(testTypeSystem.isNonNullableByDefault, isFalse);
+
+    var aImport = findElement.importFind('package:test/a.dart');
+    var aLibrary = aImport.importedLibrary;
+    var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
+    assertElementTypeString(aLibrary.typeProvider.intType, 'int');
+    expect(aTypeSystem.isNonNullableByDefault, isTrue);
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {

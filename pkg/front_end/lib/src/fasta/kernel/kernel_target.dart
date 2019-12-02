@@ -31,10 +31,13 @@ import 'package:kernel/ast.dart'
         RedirectingInitializer,
         Source,
         SuperInitializer,
+        Supertype,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
         VariableGet;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
@@ -43,6 +46,8 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
@@ -559,8 +564,9 @@ class KernelTarget extends TargetImplementation {
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes
-          .add(new TypeParameterType(typeParameter, Nullability.legacy));
+      typeParameterTypes.add(
+          new TypeParameterType.withDefaultNullabilityForLibrary(
+              typeParameter, enclosingClass.enclosingLibrary));
     }
     return new InterfaceType(
         enclosingClass, Nullability.legacy, typeParameterTypes);
@@ -835,6 +841,12 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component);
+    ClassHierarchy hierarchy = new ClassHierarchy(component,
+        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+      // An error has already been reported.
+    });
+    verifyGetStaticType(
+        new TypeEnvironment(loader.coreTypes, hierarchy), component);
     ticker.logMs("Verified component");
   }
 
@@ -865,6 +877,10 @@ class KernelTarget extends TargetImplementation {
         }
       }
     }
+  }
+
+  void releaseAncillaryResources() {
+    component = null;
   }
 }
 

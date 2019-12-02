@@ -1282,46 +1282,6 @@ Message _withArgumentsInitializingFormalTypeMismatch(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        String name,
-        DartType _type,
-        DartType
-            _type2)> templateIntersectionTypeAsTypeArgument = const Template<
-        Message Function(String name, DartType _type, DartType _type2)>(
-    messageTemplate:
-        r"""Can't infer a type for '#name', it can be either '#type' or '#type2'.""",
-    tipTemplate:
-        r"""Try adding a type argument selecting one of the options.""",
-    withArguments: _withArgumentsIntersectionTypeAsTypeArgument);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type, DartType _type2)>
-    codeIntersectionTypeAsTypeArgument =
-    const Code<Message Function(String name, DartType _type, DartType _type2)>(
-  "IntersectionTypeAsTypeArgument",
-  templateIntersectionTypeAsTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIntersectionTypeAsTypeArgument(
-    String name, DartType _type, DartType _type2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeIntersectionTypeAsTypeArgument,
-      message:
-          """Can't infer a type for '${name}', it can be either '${type}' or '${type2}'.""" +
-              labeler.originMessages,
-      tip: """Try adding a type argument selecting one of the options.""",
-      arguments: {'name': name, 'type': _type, 'type2': _type2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
         DartType _type,
         DartType
             _type2)> templateInvalidAssignment = const Template<

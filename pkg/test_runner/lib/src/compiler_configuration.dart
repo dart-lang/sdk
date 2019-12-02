@@ -51,8 +51,6 @@ abstract class CompilerConfiguration {
 
   bool get _isDebug => _configuration.mode.isDebug;
 
-  bool get _isProduct => _configuration.mode == Mode.product;
-
   bool get _isHostChecked => _configuration.isHostChecked;
 
   bool get _useSdk => _configuration.useSdk;
@@ -1050,8 +1048,6 @@ abstract class VMKernelCompilerMixin {
   TestConfiguration get _configuration;
 
   bool get _useSdk;
-
-  bool get _isProduct;
 
   bool get _isAot;
 

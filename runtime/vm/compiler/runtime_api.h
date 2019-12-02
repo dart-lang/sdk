@@ -699,6 +699,7 @@ class Thread : public AllStatic {
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 
+  static word bootstrap_native_wrapper_entry_point_offset();
   static word no_scope_native_wrapper_entry_point_offset();
   static word auto_scope_native_wrapper_entry_point_offset();
 
@@ -764,24 +765,11 @@ class ClassTable : public AllStatic {
   static word shared_class_table_offset();
 #if !defined(PRODUCT)
   static word ClassOffsetFor(intptr_t cid);
-  static word StateOffsetFor(intptr_t cid);
-  static word NewSpaceCounterOffsetFor(intptr_t cid);
-  static word NewSpaceSizeOffsetFor(intptr_t cid);
   static word SharedTableOffsetFor();
   static word SizeOffsetFor(intptr_t cid, bool is_new);
 #endif  // !defined(PRODUCT)
   static const word kSizeOfClassPairLog2;
 };
-
-#if !defined(PRODUCT)
-class ClassHeapStats : public AllStatic {
- public:
-  static word TraceAllocationMask();
-  static word state_offset();
-  static word allocated_since_gc_new_space_offset();
-  static word allocated_size_since_gc_new_space_offset();
-};
-#endif  // !defined(PRODUCT)
 
 class Instructions : public AllStatic {
  public:

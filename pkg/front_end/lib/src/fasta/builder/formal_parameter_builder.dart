@@ -29,7 +29,7 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -66,6 +66,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// This is stored until outlines have been built through
   /// [buildOutlineExpressions].
   Token initializerToken;
+
+  bool initializerWasInferred = false;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
       LibraryBuilder compilationUnit, int charOffset,
@@ -174,6 +176,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
+      assert(!initializerWasInferred);
       Expression initializer =
           bodyBuilder.parseFieldInitializer(initializerToken);
       initializer = bodyBuilder.typeInferrer
@@ -181,9 +184,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       variable.initializer = initializer..parent = variable;
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
-        loader.transformPostInference(variable,
-            bodyBuilder.transformSetLiterals, bodyBuilder.transformCollections);
+        loader.transformPostInference(
+            variable,
+            bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections,
+            library.library);
       }
+      initializerWasInferred = true;
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     initializerToken = null;

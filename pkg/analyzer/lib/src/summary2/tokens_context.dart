@@ -147,6 +147,8 @@ class TokensContext {
         return TokenType.INDEX;
       case UnlinkedTokenType.INDEX_EQ:
         return TokenType.INDEX_EQ;
+      case UnlinkedTokenType.INOUT:
+        return Keyword.INOUT;
       case UnlinkedTokenType.INT:
         return TokenType.INT;
       case UnlinkedTokenType.INTERFACE:
@@ -193,6 +195,8 @@ class TokensContext {
         return TokenType.OPEN_SQUARE_BRACKET;
       case UnlinkedTokenType.OPERATOR:
         return Keyword.OPERATOR;
+      case UnlinkedTokenType.OUT:
+        return Keyword.OUT;
       case UnlinkedTokenType.PART:
         return Keyword.PART;
       case UnlinkedTokenType.PATCH:

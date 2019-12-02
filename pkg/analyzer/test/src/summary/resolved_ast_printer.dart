@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1316,6 +1317,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeParameter');
     _withIndent(() {
       var properties = _Properties();
+      // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+      // added to the interface.
+      if ((node as TypeParameterImpl).varianceKeyword != null) {
+        properties.addToken(
+            'variance', (node as TypeParameterImpl).varianceKeyword);
+      }
       properties.addNode('bound', node.bound);
       properties.addNode('name', node.name);
       _addDeclaration(properties, node);

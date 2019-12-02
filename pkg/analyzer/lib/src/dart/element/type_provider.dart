@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:meta/meta.dart';
 
 /// Provide common functionality shared by the various TypeProvider
 /// implementations.
@@ -41,9 +42,12 @@ abstract class TypeProviderBase implements TypeProvider {
 }
 
 class TypeProviderImpl extends TypeProviderBase {
-  final NullabilitySuffix _nullabilitySuffix;
   final LibraryElement _coreLibrary;
   final LibraryElement _asyncLibrary;
+
+  /// If `true`, then NNBD types are returned.
+  /// If `false`, then legacy types are returned.
+  final bool _isNonNullableByDefault;
 
   ClassElement _boolElement;
   ClassElement _doubleElement;
@@ -96,13 +100,37 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
-  TypeProviderImpl(
-    LibraryElement coreLibrary,
-    LibraryElement asyncLibrary, {
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  })  : _nullabilitySuffix = nullabilitySuffix,
-        _coreLibrary = coreLibrary,
-        _asyncLibrary = asyncLibrary;
+  TypeProviderImpl({
+    @required LibraryElement coreLibrary,
+    @required LibraryElement asyncLibrary,
+    @required bool isNonNullableByDefault,
+  })  : _coreLibrary = coreLibrary,
+        _asyncLibrary = asyncLibrary,
+        _isNonNullableByDefault = isNonNullableByDefault;
+
+  TypeProviderImpl get asLegacy {
+    if (_isNonNullableByDefault) {
+      return TypeProviderImpl(
+        coreLibrary: _coreLibrary,
+        asyncLibrary: _asyncLibrary,
+        isNonNullableByDefault: false,
+      );
+    } else {
+      return this;
+    }
+  }
+
+  TypeProviderImpl get asNonNullableByDefault {
+    if (_isNonNullableByDefault) {
+      return this;
+    } else {
+      return TypeProviderImpl(
+        coreLibrary: _coreLibrary,
+        asyncLibrary: _asyncLibrary,
+        isNonNullableByDefault: true,
+      );
+    }
+  }
 
   @override
   ClassElement get boolElement {
@@ -117,7 +145,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   DartType get bottomType {
-    if (_nullabilitySuffix == NullabilitySuffix.none) {
+    if (_isNonNullableByDefault) {
       return NeverTypeImpl.instance;
     }
     return NeverTypeImpl.instanceLegacy;
@@ -434,8 +462,16 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   VoidType get voidType => VoidTypeImpl.instance;
 
+  NullabilitySuffix get _nullabilitySuffix {
+    if (_isNonNullableByDefault) {
+      return NullabilitySuffix.none;
+    } else {
+      return NullabilitySuffix.star;
+    }
+  }
+
   NullabilitySuffix get _questionOrStarSuffix {
-    return _nullabilitySuffix == NullabilitySuffix.none
+    return _isNonNullableByDefault
         ? NullabilitySuffix.question
         : NullabilitySuffix.star;
   }
@@ -494,14 +530,6 @@ class TypeProviderImpl extends TypeProviderBase {
       typeArguments: [elementType],
       nullabilitySuffix: _nullabilitySuffix,
     );
-  }
-
-  TypeProviderImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    if (_nullabilitySuffix == nullabilitySuffix) {
-      return this;
-    }
-    return TypeProviderImpl(_coreLibrary, _asyncLibrary,
-        nullabilitySuffix: nullabilitySuffix);
   }
 
   /// Return the class with the given [name] from the given [library], or

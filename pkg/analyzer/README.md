@@ -100,7 +100,7 @@ See the [LICENSE] file.
 [dartanalyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
 [lintrules]: https://dart-lang.github.io/linter/lints/
-[glob]: https://pub.dartlang.org/packages/glob
+[glob]: https://pub.dev/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
 [dartfmt]: https://github.com/dart-lang/dart_style
 [dartdoc]: https://github.com/dart-lang/dartdoc

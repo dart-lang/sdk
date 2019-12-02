@@ -30,7 +30,7 @@ Nullability intersectNullabilities(Nullability a, Nullability b) {
   if (a == Nullability.legacy || b == Nullability.legacy) {
     return Nullability.legacy;
   }
-  return Nullability.nonNullable;
+  return Nullability.nullable;
 }
 
 Nullability computeNullabilityOfFutureOr(

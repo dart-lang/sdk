@@ -48,8 +48,16 @@ class AssignmentCheckerTest extends Object
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
-    var checker = AssignmentCheckerForTesting(Dart2TypeSystem(typeProvider),
-        typeProvider, graph, decoratedClassHierarchy);
+    var checker = AssignmentCheckerForTesting(
+        TypeSystemImpl(
+          implicitCasts: true,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: typeProvider,
+        ),
+        typeProvider,
+        graph,
+        decoratedClassHierarchy);
     var assignmentCheckerTest =
         AssignmentCheckerTest._(typeProvider, graph, checker);
     decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;
@@ -97,7 +105,7 @@ class AssignmentCheckerTest extends Object
     var t2 = typeParameterType(typeParameter('T', bound));
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
-    assertNoEdge(t1.node, bound.node);
+    assertEdge(t1.node, bound.node, hard: false);
     assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
         hard: false);
   }
@@ -457,7 +465,7 @@ class C<T extends List<int>> {
     var parameterType = decoratedTypeAnnotation('List<int> x');
     var tType = decoratedTypeAnnotation('T f');
     assertEdge(parameterType.node, tType.node, hard: true);
-    assertNoEdge(parameterType.node, boundType.node);
+    assertEdge(parameterType.node, boundType.node, hard: false);
     // TODO(mfairhurst): Confirm we want this edge.
     assertEdge(
         parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
@@ -522,7 +530,7 @@ FutureOr<int> f(Future<int> x) => x;
 
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> x').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> x').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int> f').node,
         hard: false);
     assertNoEdge(decoratedTypeAnnotation('int> x').node,
@@ -600,7 +608,7 @@ void g(List<int> x) {
     var listInt = decoratedTypeAnnotation('List<int>');
     assertEdge(listInt.node, iterableInt.node, hard: true);
     assertEdge(
-        substitutionNode(listInt.typeArguments[0].node, inSet(neverClosure)),
+        substitutionNode(listInt.typeArguments[0].node, inSet(pointsToNever)),
         iterableInt.typeArguments[0].node,
         hard: false);
   }
@@ -622,8 +630,9 @@ abstract class C {
 C f(C y, C z) => (y += z);
 ''';
     await analyze(code);
-    var targetEdge =
-        assertEdge(decoratedTypeAnnotation('C y').node, never, hard: true);
+    var targetEdge = assertEdge(
+        decoratedTypeAnnotation('C y').node, inSet(pointsToNever),
+        hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
             .node
@@ -660,8 +669,9 @@ abstract class C<T> {
 C<int> f(C<int> y, C<int> z) => (y += z);
 ''';
     await analyze(code);
-    var targetEdge =
-        assertEdge(decoratedTypeAnnotation('C<int> y').node, never, hard: true);
+    var targetEdge = assertEdge(
+        decoratedTypeAnnotation('C<int> y').node, inSet(pointsToNever),
+        hard: true);
     expect(
         (graph.getEdgeOrigin(targetEdge) as CompoundAssignmentOrigin)
             .node
@@ -1041,7 +1051,8 @@ int g(int z) => z;
         decoratedTypeAnnotation('int z').node,
         hard: true);
     assertNoEdge(decoratedTypeAnnotation('int g').node, anyNode);
-    assertEdge(always, decoratedTypeAnnotation('Object f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('Object f').node,
+        hard: false);
   }
 
   test_binaryExpression_lt_result_not_null() async {
@@ -1165,7 +1176,7 @@ int f(int i, int j) => i + j;
 
     assertNullCheck(
         checkExpression('j;'),
-        assertEdge(decoratedTypeAnnotation('int j').node, inSet(neverClosure),
+        assertEdge(decoratedTypeAnnotation('int j').node, inSet(pointsToNever),
             hard: true));
   }
 
@@ -1508,7 +1519,7 @@ void f(bool b, void Function() x, void Function() y) {
     var yType = decoratedGenericFunctionTypeAnnotation('void Function() y');
     var resultType = decoratedExpressionType('(b ?');
     assertLUB(resultType.node, xType.node, yType.node);
-    expect(resultType.returnType.node, same(always));
+    expect(resultType.returnType.node.isImmutable, false);
   }
 
   test_conditionalExpression_general() async {
@@ -1772,7 +1783,7 @@ class C {
 ''');
     var xType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
+    assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
   test_fieldFormalParameter_function_typed() async {
@@ -1831,7 +1842,7 @@ void f(List<int> l) {
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int i').node,
         hard: false);
   }
@@ -1850,7 +1861,7 @@ int g(int j) => 0;
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         iNode,
         hard: false);
   }
@@ -1865,7 +1876,7 @@ void f(List<int> l) {
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int x').node,
         hard: false);
   }
@@ -1879,7 +1890,7 @@ void f(List<int> l) {
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int i').node,
         hard: false);
   }
@@ -1900,7 +1911,7 @@ void g(int j) {}
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         iNode,
         hard: false);
   }
@@ -1915,7 +1926,7 @@ void f(List<int> l) {
     assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
     assertEdge(
         substitutionNode(
-            decoratedTypeAnnotation('int> l').node, inSet(neverClosure)),
+            decoratedTypeAnnotation('int> l').node, inSet(pointsToNever)),
         decoratedTypeAnnotation('int x').node,
         hard: false);
   }
@@ -2545,7 +2556,8 @@ int f(dynamic d, int i) {
 ''');
     // We assume that the index expression might evaluate to anything, including
     // `null`.
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_indexExpression_index() async {
@@ -2787,21 +2799,24 @@ int h(int x) => 0;
     await analyze('''
 int f(dynamic g) => g();
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_invocation_dynamic_parenthesized() async {
     await analyze('''
 int f(dynamic g) => (g)();
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_invocation_function() async {
     await analyze('''
 int f(Function g) => g();
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
     assertNullCheck(
         checkExpression('g('),
         assertEdge(decoratedTypeAnnotation('Function g').node, never,
@@ -2812,7 +2827,8 @@ int f(Function g) => g();
     await analyze('''
 int f(Function g) => (g)();
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
     assertNullCheck(
         checkExpression('g)('),
         assertEdge(decoratedTypeAnnotation('Function g').node, never,
@@ -2878,7 +2894,7 @@ bool f(Iterable<num> iter) => iter is List<int>
 bool f(a) => a is String;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
-    assertEdge(decoratedTypeAnnotation('String').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('String').node, never, hard: true);
   }
 
   test_isExpression_typeName_typeArguments() async {
@@ -2886,7 +2902,7 @@ bool f(a) => a is String;
 bool f(a) => a is List<int>;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
-    assertEdge(decoratedTypeAnnotation('List').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('List').node, never, hard: true);
     assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
@@ -2973,7 +2989,7 @@ main() {
 ''');
     var xType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
+    assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
   test_method_parameterType_inferred() async {
@@ -3070,7 +3086,8 @@ int f(dynamic d, int j) {
     assertNoEdge(decoratedTypeAnnotation('int g').node,
         decoratedTypeAnnotation('int f').node);
     // We do, however, assume that it might return anything, including `null`.
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_methodInvocation_dynamic_arguments() async {
@@ -3238,7 +3255,7 @@ void g(C c, int j) {
 ''');
     var nullable_j = decoratedTypeAnnotation('int j');
     assertNullCheck(checkExpression('j/*check*/'),
-        assertEdge(nullable_j.node, inSet(neverClosure), hard: true));
+        assertEdge(nullable_j.node, inSet(pointsToNever), hard: true));
   }
 
   test_methodInvocation_resolves_to_getter() async {
@@ -4415,7 +4432,7 @@ bool f(bool b) {
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
 
     var return_f = decoratedTypeAnnotation('bool f').node;
-    assertEdge(never, return_f, hard: false);
+    assertEdge(inSet(pointsToNever), return_f, hard: false);
   }
 
   test_prefixExpression_bang_dynamic() async {
@@ -4425,7 +4442,7 @@ Object f(dynamic d) {
 }
 ''');
     var return_f = decoratedTypeAnnotation('Object f').node;
-    assertEdge(never, return_f, hard: false);
+    assertEdge(inSet(pointsToNever), return_f, hard: false);
   }
 
   test_prefixExpression_minus() async {
@@ -4446,7 +4463,7 @@ C test(C c) => -c/*check*/;
     await analyze('''
 Object test(dynamic d) => -d;
 ''');
-    assertEdge(always, decoratedTypeAnnotation('Object test').node,
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('Object test').node,
         hard: false);
     assertEdge(decoratedTypeAnnotation('dynamic d').node, never, hard: true);
   }
@@ -4483,7 +4500,7 @@ int f(int i) {
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
-    assertEdge(inSet(neverClosure), returnType, hard: false);
+    assertEdge(inSet(pointsToNever), returnType, hard: false);
   }
 
   test_prefixExpression_plusPlus() async {
@@ -4498,7 +4515,7 @@ int f(int i) {
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
-    assertEdge(inSet(neverClosure), returnType, hard: false);
+    assertEdge(inSet(pointsToNever), returnType, hard: false);
   }
 
   test_prefixExpression_plusPlus_dynamic() async {
@@ -4508,7 +4525,7 @@ Object f(dynamic d) {
 }
 ''');
     var returnType = decoratedTypeAnnotation('Object f').node;
-    assertEdge(always, returnType, hard: false);
+    assertEdge(inSet(alwaysPlus), returnType, hard: false);
   }
 
   test_prefixExpression_plusPlus_substituted() async {
@@ -4544,7 +4561,8 @@ int f(dynamic d) {
     assertNoEdge(decoratedTypeAnnotation('int get g').node,
         decoratedTypeAnnotation('int f').node);
     // We do, however, assume that it might return anything, including `null`.
-    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_propertyAccess_object_property() async {
@@ -5199,7 +5217,8 @@ class C<T> extends B<T> {
 ''');
     assertEdge(
         substitutionNode(
-            substitutionNode(never, decoratedTypeAnnotation('T> {').node),
+            substitutionNode(
+                inSet(pointsToNever), decoratedTypeAnnotation('T> {').node),
             decoratedTypeAnnotation('U g').node),
         decoratedTypeAnnotation('T f').node,
         hard: false);
@@ -5248,7 +5267,7 @@ void set x(int value) {}
 main() { x = 1; }
 ''');
     var setXType = decoratedTypeAnnotation('int value');
-    assertEdge(never, setXType.node, hard: false);
+    assertEdge(inSet(pointsToNever), setXType.node, hard: false);
   }
 
   test_topLevelSetter_nullable() async {
@@ -5291,7 +5310,7 @@ import "package:pkgPi/piConst.dart";
 double get myPi => pi;
 ''');
     var myPiType = decoratedTypeAnnotation('double get');
-    assertEdge(inSet(neverClosure), myPiType.node, hard: false);
+    assertEdge(inSet(pointsToNever), myPiType.node, hard: false);
   }
 
   test_topLevelVariable_type_inferred() async {
@@ -5301,7 +5320,7 @@ var x = f();
 ''');
     var xType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
-    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
+    assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
   test_type_argument_explicit_bound() async {
@@ -5362,7 +5381,8 @@ Type f() {
 import 'dart:async' as a;
 Type f() => a.Future;
 ''');
-    assertEdge(never, decoratedTypeAnnotation('Type').node, hard: false);
+    assertEdge(inSet(neverClosure), decoratedTypeAnnotation('Type').node,
+        hard: false);
   }
 
   test_typeName_functionTypeAlias() async {

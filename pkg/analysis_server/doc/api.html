@@ -257,7 +257,7 @@ a:focus, a:hover {
 
 <p><a href="#domain_completion">Completion</a></p><ul><li><a href="#request_completion.getSuggestions">completion.getSuggestions</a></li>
 <li><a href="#request_completion.setSubscriptions">completion.setSubscriptions</a></li>
-<li><a href="#request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></li>
+<li><a class="deprecated" href="#request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></li>
 <li><a href="#request_completion.getSuggestionDetails">completion.getSuggestionDetails</a></li>
 </ul>
 
@@ -1518,7 +1518,7 @@ a:focus, a:hover {
   <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: List&lt;<a href="#type_CompletionService">CompletionService</a>&gt;</b></dt><dd>
         
         <p>A list of the services being subscribed to.</p>
-      </dd></dl></dd><dt class="request"><a name="request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></dt><dd><div class="box"><pre>request: {
+      </dd></dl></dd><dt class="request deprecated"><a name="request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.registerLibraryPaths"
   "params": {
@@ -5130,6 +5130,11 @@ a:focus, a:hover {
         
         <p>
           The given location does not have a supported widget.
+        </p>
+      </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</dt><dd>
+        
+        <p>
+          The given property expression is invalid, e.g. has a syntax error.
         </p>
       </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</dt><dd>
         

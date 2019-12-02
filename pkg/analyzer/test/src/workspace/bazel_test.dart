@@ -35,6 +35,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     newFile('/workspace/test.dart');
     newFile('/workspace/bazel-bin/gen1.dart');
     newFile('/workspace/bazel-genfiles/gen2.dart');
+    expect(workspace.isBazel, isTrue);
   }
 
   void test_resolveAbsolute_doesNotExist() {
@@ -573,7 +574,22 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package, isNull);
   }
 
-  void test_findPackageFor_packagesFileInBinExists() {
+  void test_findPackageFor_packagesFileExistsInOneOfSeveralBinPaths() {
+    _addResources([
+      '/ws/blaze-out/host/bin/some/code/code.packages',
+      '/ws/blaze-out/k8-opt/bin/some/code/',
+      '/ws/some/code/lib/code.dart',
+    ]);
+    workspace =
+        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+
+    package = workspace.findPackageFor('/ws/some/code/lib/code.dart');
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_findPackageFor_packagesFileExistsInOnlyBinPath() {
     _addResources([
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
@@ -650,7 +666,8 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/blaze-out/host/bin'));
+    expect(workspace.binPaths.single,
+        convertPath('/workspace/blaze-out/host/bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
@@ -664,7 +681,25 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/blaze-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+  }
+
+  void test_find_hasMultipleBlazeBinFolderInOutFolder() {
+    _addResources([
+      '/workspace/blaze-out/host/bin/',
+      '/workspace/blaze-out/k8-fastbuild/bin/',
+      '/workspace/my/module/',
+    ]);
+    BazelWorkspace workspace = BazelWorkspace.find(
+        resourceProvider, convertPath('/workspace/my/module'));
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.binPaths, hasLength(2));
+    expect(workspace.binPaths,
+        contains(convertPath('/workspace/blaze-out/host/bin')));
+    expect(workspace.binPaths,
+        contains(convertPath('/workspace/blaze-out/k8-fastbuild/bin')));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
@@ -678,7 +713,8 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, convertPath('/Users/user/test/READONLY/prime'));
-    expect(workspace.bin, convertPath('/Users/user/test/prime/bazel-bin'));
+    expect(workspace.binPaths.single,
+        convertPath('/Users/user/test/prime/bazel-bin'));
     expect(workspace.genfiles,
         convertPath('/Users/user/test/prime/bazel-genfiles'));
   }
@@ -693,7 +729,8 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/Users/user/test/prime/bazel-bin'));
+    expect(workspace.binPaths.single,
+        convertPath('/Users/user/test/prime/bazel-bin'));
     expect(workspace.genfiles,
         convertPath('/Users/user/test/prime/bazel-genfiles'));
   }
@@ -708,7 +745,8 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
     expect(workspace.readonly, convertPath('/Users/user/test/READONLY/prime'));
-    expect(workspace.bin, convertPath('/Users/user/test/prime/blaze-bin'));
+    expect(workspace.binPaths.single,
+        convertPath('/Users/user/test/prime/blaze-bin'));
     expect(workspace.genfiles,
         convertPath('/Users/user/test/prime/blaze-genfiles'));
   }
@@ -722,7 +760,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/bazel-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
     expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
   }
 
@@ -735,7 +773,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/bazel-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
     expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
   }
 
@@ -748,7 +786,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/bazel-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/bazel-bin'));
     expect(workspace.genfiles, convertPath('/workspace/bazel-genfiles'));
   }
 
@@ -761,7 +799,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/blaze-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 
@@ -784,7 +822,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.bin, convertPath('/workspace/$prefix-bin'));
+    expect(workspace.binPaths.single, convertPath('/workspace/$prefix-bin'));
     expect(workspace.genfiles, convertPath('/workspace/$prefix-genfiles'));
   }
 

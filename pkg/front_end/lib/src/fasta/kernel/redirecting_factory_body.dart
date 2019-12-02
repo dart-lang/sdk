@@ -14,7 +14,6 @@ import 'package:kernel/ast.dart'
         Let,
         Member,
         NullLiteral,
-        Nullability,
         Procedure,
         StaticGet,
         StringLiteral,
@@ -136,8 +135,8 @@ RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper) {
   List<DartType> typeArguments = <DartType>[]..length =
       member.function.typeParameters.length;
   for (int i = 0; i < typeArguments.length; i++) {
-    typeArguments[i] = new TypeParameterType(
-        member.function.typeParameters[i], Nullability.legacy);
+    typeArguments[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+        member.function.typeParameters[i], member.enclosingLibrary);
   }
 
   // We use the [tortoise and hare algorithm]

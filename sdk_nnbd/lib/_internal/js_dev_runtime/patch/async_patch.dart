@@ -24,11 +24,11 @@ import 'dart:_runtime' as dart;
 @ReifyFunctionTypes(false)
 _async<T>(Function() initGenerator) {
   var iter;
-  Object Function(Object) onValue;
-  Object Function(Object, StackTrace) onError;
+  late Object? Function(Object?) onValue;
+  late Object Function(Object, StackTrace) onError;
 
-  onAwait(Object value) {
-    _Future f;
+  onAwait(Object? value) {
+    _Future<Object?> f;
     if (value is _Future) {
       f = value;
     } else if (value is Future) {
@@ -159,7 +159,7 @@ class _AsyncRun {
   }
 
   @ReifyFunctionTypes(false)
-  static Object _scheduleImmediateWithPromise(void Function() callback) {
+  static void _scheduleImmediateWithPromise(void Function() callback) {
     dart.addAsyncCallback();
     JS('', '#.Promise.resolve(null).then(#)', dart.global_, () {
       dart.removeAsyncCallback();
@@ -180,7 +180,7 @@ class DeferredLibrary {
 @patch
 class Timer {
   @patch
-  static Timer _createTimer(Duration duration, void callback()) {
+  static Timer _createTimer(Duration duration, void Function() callback) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return TimerImpl(milliseconds, callback);
@@ -196,7 +196,7 @@ class Timer {
 }
 
 @patch
-void _rethrow(Object error, StackTrace stackTrace) {
+void _rethrow(Object error, StackTrace? stackTrace) {
   JS('', 'throw #', dart.createErrorWithStack(error, stackTrace));
 }
 
@@ -226,7 +226,7 @@ void _rethrow(Object error, StackTrace stackTrace) {
 ///     }
 ///
 class _AsyncStarImpl<T> {
-  StreamController<T> controller;
+  late StreamController<T> controller;
   Object Function(_AsyncStarImpl<T>) initGenerator;
   @notNull
   bool isSuspendedAtYieldStar = false;
@@ -241,11 +241,11 @@ class _AsyncStarImpl<T> {
   @notNull
   bool isSuspendedAtAwait = false;
 
-  Completer cancellationCompleter;
-  Object jsIterator;
+  Completer? cancellationCompleter;
+  late Object jsIterator;
 
-  Null Function(Object, StackTrace) _handleErrorCallback;
-  void Function([Object]) _runBodyCallback;
+  Null Function(Object, StackTrace)? _handleErrorCallback;
+  void Function([Object?])? _runBodyCallback;
 
   _AsyncStarImpl(this.initGenerator) {
     controller = StreamController(
@@ -291,10 +291,10 @@ class _AsyncStarImpl<T> {
       };
       var zone = Zone.current;
       if (!identical(zone, Zone.root)) {
-        _handleErrorCallback = zone.bindBinaryCallback(_handleErrorCallback);
+        _handleErrorCallback = zone.bindBinaryCallback(_handleErrorCallback!);
       }
     }
-    return _handleErrorCallback;
+    return _handleErrorCallback!;
   }
 
   void scheduleGenerator() {
@@ -316,11 +316,11 @@ class _AsyncStarImpl<T> {
     if (_runBodyCallback == null) {
       _runBodyCallback = JS('!', '#.bind(this)', runBody);
       if (!identical(zone, Zone.root)) {
-        var registered = zone.registerUnaryCallback(_runBodyCallback);
+        var registered = zone.registerUnaryCallback(_runBodyCallback!);
         _runBodyCallback = ([arg]) => zone.runUnaryGuarded(registered, arg);
       }
     }
-    zone.scheduleMicrotask(_runBodyCallback);
+    zone.scheduleMicrotask(_runBodyCallback!);
   }
 
   void runBody(awaitValue) {
@@ -333,16 +333,16 @@ class _AsyncStarImpl<T> {
       iterResult = JS('', '#.next(#)', jsIterator, awaitValue);
     } catch (e, s) {
       addError(e, s);
-      return null;
+      return;
     }
 
     if (JS('!', '#.done', iterResult)) {
       close();
-      return null;
+      return;
     }
 
     // If we're suspended at a yield/yield*, we're done for now.
-    if (isSuspendedAtYield || isSuspendedAtYieldStar) return null;
+    if (isSuspendedAtYield || isSuspendedAtYieldStar) return;
 
     // Handle `await`: if we get a value passed to `yield` it means we are
     // waiting on this Future. Make sure to prevent scheduling, and pass the
@@ -351,10 +351,10 @@ class _AsyncStarImpl<T> {
     // TODO(jmesserly): is the timing here correct? The assumption here is
     // that we should schedule `await` in `async*` the same as in `async`.
     isSuspendedAtAwait = true;
-    FutureOr<Object> value = JS('', '#.value', iterResult);
+    FutureOr<Object?> value = JS('', '#.value', iterResult);
 
     // TODO(jmesserly): this logic was copied from `async` function impl.
-    _Future f;
+    _Future<Object?> f;
     if (value is _Future) {
       f = value;
     } else if (value is Future) {
@@ -363,7 +363,7 @@ class _AsyncStarImpl<T> {
     } else {
       f = _Future.value(value);
     }
-    f._thenAwait(_runBodyCallback, handleError);
+    f._thenAwait(_runBodyCallback!, handleError);
   }
 
   /// Adds element to [stream] and returns true if the caller should terminate
@@ -417,10 +417,11 @@ class _AsyncStarImpl<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
+    var completer = cancellationCompleter;
+    if (completer != null && !completer.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationCompleter.completeError(error, stackTrace);
+      completer.completeError(error, stackTrace);
     } else if (controller.hasListener) {
       controller.addError(error, stackTrace);
     }
@@ -432,10 +433,11 @@ class _AsyncStarImpl<T> {
   }
 
   void close() {
-    if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
+    var completer = cancellationCompleter;
+    if (completer != null && !completer.isCompleted) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationCompleter.complete();
+      completer.complete();
     }
     controller.close();
   }
@@ -465,7 +467,7 @@ class _AsyncStarImpl<T> {
         scheduleGenerator();
       }
     }
-    return cancellationCompleter.future;
+    return cancellationCompleter!.future;
   }
 
   _fatal(String message) => throw StateError(message);

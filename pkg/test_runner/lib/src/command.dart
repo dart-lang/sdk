@@ -388,28 +388,25 @@ class BrowserTestCommand extends Command {
   Runtime get browser => configuration.runtime;
   final String url;
   final TestConfiguration configuration;
-  final bool retry;
 
-  BrowserTestCommand(this.url, this.configuration, {this.retry, int index = 0})
+  BrowserTestCommand(this.url, this.configuration, {int index = 0})
       : super._(configuration.runtime.name, index: index);
 
   BrowserTestCommand indexedCopy(int index) =>
-      BrowserTestCommand(url, configuration, retry: retry, index: index);
+      BrowserTestCommand(url, configuration, index: index);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(browser.name);
     builder.addJson(url);
     builder.add(configuration);
-    builder.add(retry);
   }
 
   bool _equal(BrowserTestCommand other) =>
       super._equal(other) &&
       browser == other.browser &&
       url == other.url &&
-      identical(configuration, other.configuration) &&
-      retry == other.retry;
+      identical(configuration, other.configuration);
 
   String get reproductionCommand {
     var parts = [

@@ -224,6 +224,8 @@ class BytecodeFlowGraphBuilder {
   intptr_t next_pc_ = -1;
   const KBCInstr* bytecode_instr_ = nullptr;
   TokenPosition position_;
+  intptr_t last_yield_point_pc_ = 0;
+  intptr_t last_yield_point_index_ = 0;
   Fragment code_;
   ZoneGrowableArray<LocalVariable*> local_vars_;
   ZoneGrowableArray<LocalVariable*> parameters_;

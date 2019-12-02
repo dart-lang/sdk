@@ -68,6 +68,19 @@ class CaughtException implements Exception {
   CaughtException.withMessage(this.message, this.exception, stackTrace)
       : this.stackTrace = stackTrace ?? StackTrace.current;
 
+  /**
+   * Recursively unwrap this [CaughtException] if it itself contains a
+   * [CaughtException].
+   *
+   * If it does not contain a [CaughtException], simply return this instance.
+   */
+  CaughtException get rootCaughtException {
+    if (exception is CaughtException) {
+      return (exception as CaughtException).rootCaughtException;
+    }
+    return this;
+  }
+
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();

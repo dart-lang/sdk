@@ -192,16 +192,23 @@ class ExceptionHandlerFinder : public StackResource {
               if (cached_catch_entry_moves != NULL) {
                 cached_catch_entry_moves_ = *cached_catch_entry_moves;
               }
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
-              intptr_t num_vars = Smi::Value(code_->variables());
               if (cached_catch_entry_moves_.IsEmpty()) {
-                GetCatchEntryMovesFromDeopt(num_vars, frame);
-              }
-#else
-              if (cached_catch_entry_moves_.IsEmpty()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+                // Only AOT mode is supported.
                 ReadCompressedCatchEntryMoves();
+#elif defined(DART_PRECOMPILER)
+                // Both AOT and JIT modes are supported.
+                if (FLAG_precompiled_mode) {
+                  ReadCompressedCatchEntryMoves();
+                } else {
+                  GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
+                }
+#else
+                // Only JIT mode is supported.
+                ASSERT(!FLAG_precompiled_mode);
+                GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
+#endif
               }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
             }
           }
           if (needs_stacktrace || is_catch_all) {
@@ -323,7 +330,9 @@ class ExceptionHandlerFinder : public StackResource {
     CatchEntryMovesMapReader reader(td);
     catch_entry_moves_ = reader.ReadMovesForPcOffset(pc_offset);
   }
-#else
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
     Isolate* isolate = thread_->isolate();
     DeoptContext* deopt_context =
@@ -336,7 +345,7 @@ class ExceptionHandlerFinder : public StackResource {
     isolate->set_deopt_context(NULL);
     delete deopt_context;
   }
-#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool needs_stacktrace;
   uword handler_pc;

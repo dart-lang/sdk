@@ -5,10 +5,9 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -62,7 +61,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     }
 
     var elementFactory = LinkedElementFactory(
-      RestrictedAnalysisContext(
+      AnalysisContextImpl(
         SynchronousSession(
           AnalysisOptionsImpl(),
           declaredVariables,
@@ -92,7 +91,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries(Set(), inputLibraries, source);
 
-    var analysisContext = RestrictedAnalysisContext(
+    var analysisContext = AnalysisContextImpl(
       SynchronousSession(
         AnalysisOptionsImpl()..contextFeatures = featureSet,
         declaredVariables,
@@ -138,11 +137,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     if (analysisContext.typeProvider == null) {
       var dartCore = elementFactory.libraryOfUri('dart:core');
       var dartAsync = elementFactory.libraryOfUri('dart:async');
-      var typeProvider = TypeProviderImpl(dartCore, dartAsync);
-      analysisContext.typeProvider = typeProvider;
-
-      dartCore.createLoadLibraryFunction(typeProvider);
-      dartAsync.createLoadLibraryFunction(typeProvider);
+      elementFactory.createTypeProviders(dartCore, dartAsync);
     }
 
     return elementFactory.libraryOfUri('${source.uri}');

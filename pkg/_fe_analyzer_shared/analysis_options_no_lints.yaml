@@ -12,3 +12,4 @@ analyzer:
     - test/flow_analysis/nullability/data/**
     - test/flow_analysis/reachability/data/**
     - test/flow_analysis/type_promotion/data/**
+    - test/inheritance/data/**

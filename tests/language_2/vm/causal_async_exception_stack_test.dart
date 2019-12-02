@@ -35,11 +35,9 @@ main() async {
       expect(
           h.stringContainsInOrder(st.toString(), [
             'thrower', '.dart:10', //
-            '<asynchronous suspension>', //
             'generator', '.dart:19', //
             '<asynchronous suspension>', //
             'foo', '.dart:23', //
-            '<asynchronous suspension>', //
             'main', //
           ]),
           isTrue);
@@ -60,11 +58,8 @@ main() async {
       expect(
           h.stringContainsInOrder(st.toString(), [
             'thrower',
-            '<asynchronous suspension>',
             'main.<anonymous closure>.inner.deep',
-            '<asynchronous suspension>',
             'main.<anonymous closure>.inner',
-            '<asynchronous suspension>',
             'main',
             '<asynchronous suspension>',
           ]),
@@ -78,8 +73,7 @@ main() async {
       expect(
           h.stringContainsInOrder(st.toString(), [
             'thrower', '.dart:10', //
-            '<asynchronous suspension>', //
-            'main.<anonymous closure>', '.dart:76', //
+            'main.<anonymous closure>', '.dart:71', //
           ]),
           isTrue);
     }

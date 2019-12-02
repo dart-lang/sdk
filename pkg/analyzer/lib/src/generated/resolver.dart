@@ -21,7 +21,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
+import 'package:analyzer/src/dart/element/member.dart'
+    show ConstructorMember, ExecutableMember, Member;
+import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -73,7 +75,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final InterfaceType _nullType;
 
   /// The type system primitives
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// The inheritance manager to access interface type hierarchy.
   final InheritanceManager3 _inheritanceManager;
@@ -104,13 +106,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     CompilationUnit unit,
     String content, {
-    TypeSystem typeSystem,
+    TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        _typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: typeProvider,
+            ),
         _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
@@ -1077,7 +1085,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (flattenedType.isDartAsyncFutureOr) {
         flattenedType = (flattenedType as InterfaceType).typeArguments[0];
       }
-      if (flattenedType.isDynamic ||
+      if (flattenedType.isBottom ||
+          flattenedType.isDynamic ||
           flattenedType.isDartCoreNull ||
           flattenedType.isVoid) {
         return;
@@ -1519,7 +1528,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   ///  The type system for this visitor
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
@@ -1531,8 +1540,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
-      {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null),
+      {TypeSystemImpl typeSystem})
+      : this._typeSystem = typeSystem ??
+            TypeSystemImpl(
+              implicitCasts: true,
+              isNonNullableByDefault: false,
+              strictInference: false,
+              typeProvider: null,
+            ),
         _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
@@ -2060,6 +2075,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
       return;
     }
     Element element = node.staticElement;
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         element.isSynthetic &&
@@ -2072,12 +2091,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
       }
     } else {
       _useIdentifierElement(node);
-      if (element == null ||
-          element.enclosingElement is ClassElement &&
-              !identical(element, _enclosingExec)) {
-        usedElements.members.add(node.name);
+      if (element == null) {
         if (isIdentifierRead) {
-          usedElements.readMembers.add(node.name);
+          usedElements.unresolvedReadMembers.add(node.name);
+        }
+      } else if (element.enclosingElement is ClassElement &&
+          !identical(element, _enclosingExec)) {
+        usedElements.members.add(element);
+        if (isIdentifierRead) {
+          // Store the corresponding getter.
+          if (element is PropertyAccessorElement && element.isSetter) {
+            element = (element as PropertyAccessorElement).correspondingGetter;
+          }
+          usedElements.members.add(element);
+          usedElements.readMembers.add(element);
         }
       }
     }
@@ -2153,6 +2180,8 @@ class InferenceContext {
   static const String _typeProperty =
       'analyzer.src.generated.InferenceContext.contextType';
 
+  final ResolverVisitor _resolver;
+
   /// The error listener on which to record inference information.
   final ErrorReporter _errorReporter;
 
@@ -2163,7 +2192,7 @@ class InferenceContext {
   final TypeProvider _typeProvider;
 
   /// The type system in use.
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// When no context type is available, this will track the least upper bound
   /// of all return statements in a lambda.
@@ -2175,9 +2204,13 @@ class InferenceContext {
   /// functions and methods.
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(TypeProvider typeProvider, this._typeSystem,
-      this._inferenceHints, this._errorReporter)
-      : _typeProvider = typeProvider;
+  InferenceContext._(
+    ResolverVisitor resolver,
+    this._inferenceHints,
+  )   : _resolver = resolver,
+        _typeProvider = resolver.typeProvider,
+        _errorReporter = resolver.errorReporter,
+        _typeSystem = resolver.typeSystem;
 
   /// Get the return type of the current enclosing function, if any.
   ///
@@ -2199,7 +2232,12 @@ class InferenceContext {
     }
 
     DartType inferred = _inferredReturn.last;
-    inferred = _typeSystem.getLeastUpperBound(type, inferred);
+    if (inferred == null) {
+      inferred = type;
+    } else {
+      inferred = _typeSystem.getLeastUpperBound(type, inferred);
+      inferred = _resolver.toLegacyTypeIfOptOut(inferred);
+    }
     _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
@@ -2210,8 +2248,21 @@ class InferenceContext {
   /// bound of all types added with [addReturnOrYieldType].
   void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
-      DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
+      // If NNBD, and the function body end is reachable, infer nullable.
+      // If legacy, we consider the end as always reachable, and return Null.
+      if (_resolver._nonNullableEnabled) {
+        var flow = _resolver._flowAnalysis?.flow;
+        if (flow != null && flow.isReachable) {
+          addReturnOrYieldType(_typeProvider.nullType);
+        }
+      } else {
+        addReturnOrYieldType(_typeProvider.nullType);
+      }
+
+      DartType context = _returnStack.removeLast();
       DartType inferred = _inferredReturn.removeLast();
+      context ??= DynamicTypeImpl.instance;
+      inferred ??= DynamicTypeImpl.instance;
 
       if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
@@ -2224,7 +2275,7 @@ class InferenceContext {
   /// Push a block function body's return type onto the return stack.
   void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
-    _inferredReturn.add(_typeProvider.nullType);
+    _inferredReturn.add(null);
   }
 
   /// Place an info node into the error stream indicating that a
@@ -2258,8 +2309,8 @@ class InferenceContext {
   ///
   /// The returned type may be partially or completely unknown, denoted with an
   /// unknown type `?`, for example `List<?>` or `(?, int) -> void`.
-  /// You can use [Dart2TypeSystem.upperBoundForType] or
-  /// [Dart2TypeSystem.lowerBoundForType] if you would prefer a known type
+  /// You can use [TypeSystemImpl.upperBoundForType] or
+  /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
   static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
 
@@ -2664,7 +2715,7 @@ class ResolverVisitor extends ScopedVisitor {
   StaticTypeAnalyzer typeAnalyzer;
 
   /// The type system in use during resolution.
-  Dart2TypeSystem typeSystem;
+  TypeSystemImpl typeSystem;
 
   /// The class declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a class.
@@ -2775,8 +2826,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
-    this.inferenceContext = new InferenceContext._(
-        typeProvider, typeSystem, strongModeHints, errorReporter);
+    this.inferenceContext = new InferenceContext._(this, strongModeHints);
     this.typeAnalyzer = new StaticTypeAnalyzer(this, featureSet, _flowAnalysis);
   }
 
@@ -2912,6 +2962,20 @@ class ResolverVisitor extends ScopedVisitor {
     if (comment != null) {
       super.visitComment(comment);
     }
+  }
+
+  /// If in a legacy library, return the legacy view on the [element].
+  /// Otherwise, return the original element.
+  T toLegacyElement<T extends Element>(T element) {
+    if (_nonNullableEnabled) return element;
+    return Member.legacy(element);
+  }
+
+  /// If in a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType toLegacyTypeIfOptOut(DartType type) {
+    if (_nonNullableEnabled) return type;
+    return NullabilityEliminator.perform(type);
   }
 
   @override
@@ -3540,7 +3604,7 @@ class ResolverVisitor extends ScopedVisitor {
           node,
           identifierElement is VariableElement
               ? identifierElement
-              : loopVariable.declaredElement,
+              : loopVariable?.declaredElement,
           elementType ?? typeProvider.dynamicType);
       node.body?.accept(this);
       _flowAnalysis?.flow?.forEach_end();
@@ -4555,6 +4619,7 @@ class ResolverVisitor extends ScopedVisitor {
         isConst: isConst,
         errorReporter: errorReporter,
         errorNode: errorNode,
+        isNonNullableByDefault: _nonNullableEnabled,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
@@ -5596,7 +5661,7 @@ class ToDoFinder {
 ///
 /// The client must set [nameScope] before calling [resolveTypeName].
 class TypeNameResolver {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
@@ -6082,6 +6147,7 @@ class TypeNameResolver {
           declaredReturnType: typeElement.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClassElement.thisType,
+          isNonNullableByDefault: isNonNullableUnit,
         );
       }
     }
@@ -6481,8 +6547,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
 
+  /// The inheritance manager used to find overridden methods.
+  final InheritanceManager3 _inheritanceManager;
+
+  /// The URI of the library being verified.
+  final Uri _libraryUri;
+
   /// Create a new instance of the [UnusedLocalElementsVerifier].
-  UnusedLocalElementsVerifier(this._errorListener, this._usedElements);
+  UnusedLocalElementsVerifier(this._errorListener, this._usedElements,
+      this._inheritanceManager, LibraryElement library)
+      : _libraryUri = library.source.uri;
 
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
@@ -6507,6 +6581,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     }
   }
 
+  /// Returns whether the name of [element] consists only of underscore
+  /// characters.
   bool _isNamedUnderscore(LocalVariableElement element) {
     String name = element.name;
     if (name != null) {
@@ -6521,6 +6597,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     return false;
   }
 
+  /// Returns whether [element] is a private element which is read somewhere in
+  /// the library.
   bool _isReadMember(Element element) {
     if (element.isPublic) {
       return true;
@@ -6528,7 +6606,15 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     if (element.isSynthetic) {
       return true;
     }
-    return _usedElements.readMembers.contains(element.displayName);
+    if (element is FieldElement) {
+      element = (element as FieldElement).getter;
+    }
+    if (_usedElements.readMembers.contains(element) ||
+        _usedElements.unresolvedReadMembers.contains(element.name)) {
+      return true;
+    }
+
+    return _overridesUsedElement(element);
   }
 
   bool _isUsedElement(Element element) {
@@ -6553,10 +6639,32 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     if (element.isSynthetic) {
       return true;
     }
-    if (_usedElements.members.contains(element.displayName)) {
+    if (_usedElements.members.contains(element)) {
       return true;
     }
-    return _usedElements.elements.contains(element);
+    if (_usedElements.elements.contains(element)) {
+      return true;
+    }
+
+    return _overridesUsedElement(element);
+  }
+
+  // Check if this is a class member which overrides a super class's class
+  // member which is used.
+  bool _overridesUsedElement(Element element) {
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement) {
+      Name name = new Name(_libraryUri, element.name);
+      Iterable<ExecutableElement> overriddenElements = _inheritanceManager
+          .getOverridden(enclosingElement.thisType, name)
+          ?.map((ExecutableElement e) =>
+              (e is ExecutableMember) ? e.declaration : e);
+      if (overriddenElements != null) {
+        return overriddenElements.any((ExecutableElement e) =>
+            _usedElements.members.contains(e) || _overridesUsedElement(e));
+      }
+    }
+    return false;
   }
 
   void _reportErrorForElement(
@@ -6646,13 +6754,14 @@ class UsedLocalElements {
   final HashSet<LocalVariableElement> catchStackTraceElements =
       new HashSet<LocalVariableElement>();
 
-  /// Names of resolved or unresolved class members that are referenced in the
-  /// library.
-  final HashSet<String> members = new HashSet<String>();
+  /// Resolved class members that are referenced in the library.
+  final HashSet<Element> members = new HashSet<Element>();
 
-  /// Names of resolved or unresolved class members that are read in the
-  /// library.
-  final HashSet<String> readMembers = new HashSet<String>();
+  /// Resolved class members that are read in the library.
+  final HashSet<Element> readMembers = new HashSet<Element>();
+
+  /// Unresolved class members that are read in the library.
+  final HashSet<String> unresolvedReadMembers = new HashSet<String>();
 
   UsedLocalElements();
 
@@ -6666,6 +6775,7 @@ class UsedLocalElements {
       result.catchStackTraceElements.addAll(part.catchStackTraceElements);
       result.members.addAll(part.members);
       result.readMembers.addAll(part.readMembers);
+      result.unresolvedReadMembers.addAll(part.unresolvedReadMembers);
     }
     return result;
   }

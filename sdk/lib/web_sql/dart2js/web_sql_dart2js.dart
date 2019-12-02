@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /**
  * An API for storing data in the browser that can be queried with SQL.
  *

@@ -147,9 +147,8 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -624,9 +623,8 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
@@ -667,98 +665,10 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
-  const intptr_t thread_offset = target::NativeArguments::thread_offset();
-  const intptr_t argc_tag_offset = target::NativeArguments::argc_tag_offset();
-  const intptr_t argv_offset = target::NativeArguments::argv_offset();
-  const intptr_t retval_offset = target::NativeArguments::retval_offset();
-
-  __ EnterStubFrame();
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to native code.
-  __ StoreToOffset(FP, THR, target::Thread::top_exit_frame_info_offset());
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R6, VMTag::kDartCompiledTagId);
-    __ b(&ok, EQ);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Mark that the thread is executing native code.
-  __ StoreToOffset(R5, THR, target::Thread::vm_tag_offset());
-
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // R0) and align frame before entering the C++ world.
-  __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
-
-  // Initialize target::NativeArguments structure and call native function.
-  // Registers R0, R1, R2, and R3 are used.
-
-  ASSERT(thread_offset == 0 * target::kWordSize);
-  // Set thread in NativeArgs.
-  __ mov(R0, THR);
-
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  ASSERT(argc_tag_offset == 1 * target::kWordSize);
-  // Set argc in target::NativeArguments: R1 already contains argc.
-
-  ASSERT(argv_offset == 2 * target::kWordSize);
-  // Set argv in target::NativeArguments: R2 already contains argv.
-
-  // Set retval in NativeArgs.
-  ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(R3, FP, 2 * target::kWordSize);
-
-  // Passing the structure by value as in runtime calls would require changing
-  // Dart API for native functions.
-  // For now, space is reserved on the stack and we pass a pointer to it.
-  __ StoreToOffset(R0, SP, thread_offset);
-  __ StoreToOffset(R1, SP, argc_tag_offset);
-  __ StoreToOffset(R2, SP, argv_offset);
-  __ StoreToOffset(R3, SP, retval_offset);
-  __ mov(R0, SP);  // Pass the pointer to the target::NativeArguments.
-
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack. We cache the stack limit address
-  // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R25, CSP);
-  __ mov(CSP, SP);
-
-  // Call native function or redirection via simulator.
-  __ blr(R5);
-
-  // Restore SP and CSP.
-  __ mov(SP, CSP);
-  __ mov(CSP, R25);
-
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
-
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
-
-  // Reset exit frame information in Isolate structure.
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
-  }
-
-  __ LeaveStubFrame();
-  __ ret();
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR,
+              target::Thread::bootstrap_native_wrapper_entry_point_offset()));
 }
 
 // Input parameters:
@@ -1225,7 +1135,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // R7: potential next object start.
   __ str(R7, Address(THR, target::Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R3));
 
   // R0: new object start as a tagged pointer.
   // R1: array element type.
@@ -1268,13 +1177,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ AddImmediate(R1, R0, target::Array::data_offset() - kHeapObjectTag);
   // R1: iterator which initially points to the start of the variable
   // data area to be initialized.
-  __ LoadObject(TMP, NullObject());
   Label loop, done;
   __ Bind(&loop);
   // TODO(cshapiro): StoreIntoObjectNoBarrier
   __ CompareRegisters(R1, R7);
   __ b(&done, CS);
-  __ str(TMP, Address(R1));  // Store if unsigned lower.
+  __ str(NULL_REG, Address(R1));  // Store if unsigned lower.
   __ AddImmediate(R1, target::kWordSize);
   __ b(&loop);  // Loop until R1 == R7.
   __ Bind(&done);
@@ -1346,9 +1254,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ mov(THR, R3);
   }
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
@@ -1498,9 +1405,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     __ mov(THR, R3);
   }
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, THR, target::Thread::vm_tag_offset());
@@ -1648,7 +1554,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     __ str(R3, Address(THR, target::Thread::top_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));
 
     // Calculate the size tag.
     // R0: new object.
@@ -2673,9 +2578,8 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  // Refresh write barrier mask.
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
@@ -3162,8 +3066,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
-  __ ldr(BARRIER_MASK,
-         Address(THR, target::Thread::write_barrier_mask_offset()));
+  // Refresh pinned registers values (inc. write barrier mask and null object).
+  __ RestorePinnedRegisters();
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());

@@ -1,18 +1,18 @@
 Problems reported:
 
-parser_test/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
+parser/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
   for () {}
        ^
 
-parser_test/error_recovery/empty_for:2:8: Expected ';' after this.
+parser/error_recovery/empty_for:2:8: Expected ';' after this.
   for () {}
        ^
 
-parser_test/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
+parser/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
   for () {}
        ^
 
-parser_test/error_recovery/empty_for:2:8: Expected ';' after this.
+parser/error_recovery/empty_for:2:8: Expected ';' after this.
   for () {}
        ^
 

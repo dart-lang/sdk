@@ -164,6 +164,15 @@ main() {
     ]);
   }
 
+  test_fieldImplicitGetter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int _g;
+  int get g => this._g;
+}
+''');
+  }
+
   test_functionLocal_isUsed_closure() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -303,6 +312,27 @@ main() {
     ]);
   }
 
+  test_getter_isUsed_invocation_deepSubclass() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  String get _debugName;
+
+  String toString() {
+    return _debugName;
+  }
+}
+
+class B extends A {
+  @override
+  String get _debugName => "B";
+}
+
+class C extends B {
+  String get _debugName => "C";
+}
+''');
+  }
+
   test_getter_isUsed_invocation_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -310,6 +340,42 @@ class A {
   useGetter() {
     var v = _g;
   }
+}
+''');
+  }
+
+  test_getter_isUsed_invocation_parameterized() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  List<int> _list = List(1);
+  int get _item => _list.first;
+  set _item(int item) => _list[0] = item;
+}
+class B<T> {
+  A<T> a;
+}
+void main() {
+  B<int> b = B();
+  b.a._item = 3;
+  print(b.a._item == 7);
+}
+''');
+  }
+
+  test_getter_isUsed_invocation_parameterized_subclass() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<T> {
+  T get _defaultThing;
+  T _thing;
+
+  void main() {
+    _thing ??= _defaultThing;
+    print(_thing);
+  }
+}
+class B extends A<int> {
+  @override
+  int get _defaultThing => 7;
 }
 ''');
   }
@@ -336,6 +402,43 @@ main() {
 ''');
   }
 
+  test_getter_isUsed_invocation_subclass_plusPlus() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a++;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
+''');
+  }
+
+  test_getter_notUsed_invocation_subclass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int __a = 0;
+  int get _a => __a;
+  void set _a(int val) {
+    __a = val;
+  }
+  int b() => _a = 7;
+}
+class B extends A {
+  @override
+  int get _a => 3;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 35, 2),
+      error(HintCode.UNUSED_ELEMENT, 155, 2),
+    ]);
+  }
+
   test_getter_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -355,6 +458,20 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
+  }
+
+  test_method_isNotUsed_hasSameNameAsUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m1() {}
+}
+class B {
+  void public() => _m1();
+  void _m1() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 17, 3),
     ]);
   }
 
@@ -403,6 +520,32 @@ class A {
 }
 main() {
   new A()._m;
+}
+''');
+  }
+
+  test_method_isUsed_invocation_fromMixinApplication() async {
+    await assertNoErrorsInCode(r'''
+mixin A {
+  _m() {}
+}
+class C with A {
+  useMethod() {
+    _m();
+  }
+}
+''');
+  }
+
+  test_method_isUsed_invocation_fromMixinWithConstraint() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  _m() {}
+}
+mixin M on A {
+  useMethod() {
+    _m();
+  }
 }
 ''');
   }

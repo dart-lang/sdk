@@ -87,10 +87,8 @@ class ClassInstancesElement extends CustomElement implements Renderable {
         new StronglyReachableInstancesElement(
             _isolate, _cls, _stronglyReachableInstances, _objects,
             queue: _r.queue);
-    final instanceCount =
-        _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
-    final size = Utils.formatSize(
-        _cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
+    final instanceCount = _cls.newSpace.instances + _cls.oldSpace.instances;
+    final size = Utils.formatSize(_cls.newSpace.size + _cls.oldSpace.size);
     children = <Element>[
       new DivElement()
         ..classes = ['memberList']

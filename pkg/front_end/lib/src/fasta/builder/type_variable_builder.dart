@@ -114,7 +114,6 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    // TODO(dmitryas): Use [nullability].
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.

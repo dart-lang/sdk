@@ -522,7 +522,7 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
         newNode = new TypeParameter(node.name);
         typeParams[node] = newNode;
         typeSubstitution[node] =
-            new TypeParameterType(newNode, Nullability.legacy);
+            new TypeParameterType.forAlphaRenaming(node, newNode);
       }
     }
   }

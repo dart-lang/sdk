@@ -19,88 +19,106 @@ mixin MInvariant<in T> {}
 
 class A<out T> extends Contravariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class B<out T> implements Contravariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class C<out T> with MContravariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MContravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class D<out T> extends Invariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class E<out T> implements Invariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class F<out T> with MInvariant<T> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class G<out T> extends Covariant<Contravariant<T>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class H<out T> extends Contravariant<Covariant<T>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class I<out T> extends Covariant<ContraFunction<T>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class J<out T> extends Covariant<ContraFunction<CovFunction<T>>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class K<out T> extends Covariant<CovFunction<ContraFunction<T>>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class L<out T> extends Covariant<ContraFunction<Covariant<T>>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class M<out T> extends Contravariant<Contravariant<Contravariant<T>>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class N<out T> extends Covariant<InvFunction<T>> {}
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Covariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class O<out T> = Covariant<T> with MContravariant<T>;
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MContravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class P<out T> = Contravariant<T> with MCovariant<T>;
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
 class Q<out T> = Invariant<T> with MInvariant<T>;
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
 //    ^
-// [analyzer] unspecified
 // [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+//          ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE

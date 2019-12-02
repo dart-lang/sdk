@@ -262,7 +262,12 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   @override
   Stream<WatchEvent> get changes =>
       new DirectoryWatcher(_entry.path).events.handleError((error) {},
-          test: (error) => error is io.FileSystemException);
+          test: (error) =>
+              error is io.FileSystemException &&
+              // Don't suppress "Directory watcher closed," so the outer
+              // listener can see the interruption & act on it.
+              !error.message
+                  .startsWith("Directory watcher closed unexpectedly"));
 
   /**
    * Return the underlying file being represented by this wrapper.

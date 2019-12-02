@@ -67,7 +67,7 @@
  * The [HttpServer] class provides the basic functionality for
  * implementing an HTTP server.
  * For some higher-level building-blocks, we recommend that you try
- * the [shelf](https://pub.dartlang.org/packages/shelf)
+ * the [shelf](https://pub.dev/packages/shelf)
  * pub package, which contains
  * a set of high-level classes that, together with the [HttpServer] class
  * in this library, make it easier to implement HTTP servers.

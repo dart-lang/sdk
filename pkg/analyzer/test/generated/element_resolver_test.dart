@@ -384,6 +384,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // abstract class A { int operator[](int index); }
     //
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     MethodElement operator =
         ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement>[operator];
@@ -391,23 +392,26 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // class B implements A {}
     //
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[interfaceType(classA)];
+    _encloseElement(classB);
+    classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
     //
     // class C extends Object with B {}
     //
     ClassElementImpl classC = ElementFactory.classElement2("C");
-    classC.mixins = <InterfaceType>[interfaceType(classB)];
+    _encloseElement(classC);
+    classC.mixins = <InterfaceType>[interfaceTypeStar(classB)];
     //
     // class D extends C {}
     //
     ClassElementImpl classD =
-        ElementFactory.classElement("D", interfaceType(classC));
+        ElementFactory.classElement("D", interfaceTypeStar(classC));
+    _encloseElement(classA);
     //
     // D a;
     // a[i];
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = interfaceType(classD);
+    array.staticType = interfaceTypeStar(classD);
     IndexExpression expression =
         AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
     expect(_resolveIndexExpression(expression), same(operator));
@@ -492,8 +496,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstTestFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement =
+        new LabelElementImpl(label, -1, false, false);
     BreakStatement breakStatement = AstTestFactory.breakStatement2(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -575,6 +579,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitConstructorName_named() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String constructorName = "a";
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
@@ -588,6 +593,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitConstructorName_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String constructorName;
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
@@ -604,8 +610,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement = new LabelElementImpl.forNode(
-        AstTestFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement =
+        new LabelElementImpl(label, -1, false, false);
     ContinueStatement continueStatement =
         AstTestFactory.continueStatement(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
@@ -758,7 +764,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     String parameterName = "a";
-    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
+    ParameterElement parameter =
+        ElementFactory.namedParameter2(parameterName, _typeProvider.intType);
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
@@ -848,15 +855,16 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPrefixedIdentifier_nonDynamic() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String getterName = "b";
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
-    variable.type = interfaceType(classA);
+    variable.type = interfaceTypeStar(classA);
     target.staticElement = variable;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier = AstTestFactory.identifier(
         target, AstTestFactory.identifier3(getterName));
     _resolveNode(identifier);
@@ -867,6 +875,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPrefixedIdentifier_staticClassMember_getter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter =
@@ -877,7 +886,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.b"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     // resolve
@@ -889,6 +898,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPrefixedIdentifier_staticClassMember_method() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     // set methods
     String propName = "m";
     var method = ElementFactory.methodElement("m", _typeProvider.intType);
@@ -897,7 +907,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.m"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.expressionStatement(identifier);
@@ -910,6 +920,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPrefixedIdentifier_staticClassMember_setter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter =
@@ -920,7 +931,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // prepare "A.b = null"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.assignmentExpression(
@@ -945,12 +956,13 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPropertyAccess_getter_identifier() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String getterName = "b";
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
@@ -967,13 +979,14 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // }
     //
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String getterName = "b";
     PropertyAccessorElement getter =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType =
-        interfaceType(ElementFactory.classElement("B", interfaceType(classA)));
+    target.staticType = interfaceTypeStar(
+        ElementFactory.classElement("B", interfaceTypeStar(classA)));
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,
@@ -990,12 +1003,13 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitPropertyAccess_setter_this() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String setterName = "b";
     PropertyAccessorElement setter =
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setter];
     ThisExpression target = AstTestFactory.thisExpression();
-    target.staticType = interfaceType(classA);
+    target.staticType = interfaceTypeStar(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, setterName);
     AstTestFactory.assignmentExpression(
         access, TokenType.EQ, AstTestFactory.integer(0));
@@ -1031,6 +1045,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitSimpleIdentifier_lexicalScope_field_setter() async {
     InterfaceType intType = _typeProvider.intType;
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _encloseElement(classA);
     String fieldName = "a";
     FieldElement field =
         ElementFactory.fieldElement(fieldName, false, false, false, intType);
@@ -1047,11 +1062,13 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitSuperConstructorInvocation() async {
     ClassElementImpl superclass = ElementFactory.classElement2("A");
+    _encloseElement(superclass);
     ConstructorElementImpl superConstructor =
         ElementFactory.constructorElement2(superclass, null);
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", interfaceType(superclass));
+        ElementFactory.classElement("B", interfaceTypeStar(superclass));
+    _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
@@ -1067,6 +1084,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitSuperConstructorInvocation_namedParameter() async {
     ClassElementImpl superclass = ElementFactory.classElement2("A");
+    _encloseElement(superclass);
     ConstructorElementImpl superConstructor =
         ElementFactory.constructorElement2(superclass, null);
     String parameterName = "p";
@@ -1074,7 +1092,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     superConstructor.parameters = <ParameterElement>[parameter];
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", interfaceType(superclass));
+        ElementFactory.classElement("B", interfaceTypeStar(superclass));
+    _encloseElement(subclass);
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
@@ -1103,17 +1122,28 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     AnalysisContext context = TestAnalysisContext();
     _typeProvider = context.typeProvider;
 
-    var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
-    _definingLibrary = ElementFactory.library(context, "test");
+    _definingLibrary =
+        ElementFactory.library(context, "test", isNonNullableByDefault: false);
     _definingLibrary.definingCompilationUnit = unit;
+
+    _definingLibrary.typeProvider = context.typeProvider;
+    _definingLibrary.typeSystem = context.typeSystem;
+    var inheritance = new InheritanceManager3();
+
     _visitor = new ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: FeatureSet.forTesting(),
         nameScope: new LibraryScope(_definingLibrary));
     _resolver = _visitor.elementResolver;
+  }
+
+  void _encloseElement(ElementImpl element) {
+    if (element is ClassElement) {
+      element.enclosingElement = _definingLibrary;
+    }
   }
 
   /**

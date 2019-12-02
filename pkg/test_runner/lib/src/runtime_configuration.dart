@@ -94,8 +94,6 @@ abstract class RuntimeConfiguration {
 
   List<String> dart2jsPreambles(Uri preambleDir) => [];
 
-  bool get shouldSkipNegativeTests => false;
-
   /// Returns the path to the Dart VM executable.
   ///
   /// Controlled by user with the option "--dart".
@@ -389,9 +387,6 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
             checked: _configuration.isChecked))
         .toList();
   }
-
-  @override
-  bool get shouldSkipNegativeTests => true;
 }
 
 /// Temporary runtime configuration for browser runtimes that haven't been

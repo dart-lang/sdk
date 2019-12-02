@@ -80,9 +80,9 @@ static method main() → dynamic {}
 static method noErrors() → dynamic {
   self::lateTopLevelField = 0;
   self::lateFinalTopLevelField = 0;
-  self::Class* c1 = new self::Class::•();
+  self::Class c1 = new self::Class::•();
   c1.{self::Class::method}();
-  self::Class* c2 = new self::Class::•();
+  self::Class c2 = new self::Class::•();
   c2.{self::Class::lateInstanceField} = 0;
   c2.{self::Class::lateFinalInstanceField2} = 0;
   self::Class::lateStaticField = 0;
@@ -92,7 +92,7 @@ static method errors() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/late.dart:63:3: Error: Setter not found: 'lateFinalTopLevelFieldWithInit'.
   lateFinalTopLevelFieldWithInit = 0;
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  self::Class* c = new self::Class::•();
+  self::Class c = new self::Class::•();
   invalid-expression "pkg/front_end/testcases/nnbd/late.dart:65:5: Error: The setter 'lateFinalInstanceFieldWithInit' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.

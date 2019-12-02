@@ -104,7 +104,7 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     return Code::null();
   }
 
-  // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
+  // TODO(regis): Revisit when type checking mode is not kLegacy anymore.
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
     return StubCode::TopTypeTypeTest().raw();
@@ -274,7 +274,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
                                   /*exclude_null=*/false);
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
+    const bool smi_is_ok =
+        int_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);

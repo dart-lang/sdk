@@ -13,7 +13,6 @@ import "package:kernel/ast.dart"
         Member,
         Name,
         NamedExpression,
-        Nullability,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -272,7 +271,8 @@ class ForwardingNode {
         .toList();
     List<DartType> typeArguments = function.typeParameters
         .map<DartType>((typeParameter) =>
-            new TypeParameterType(typeParameter, Nullability.legacy))
+            new TypeParameterType.withDefaultNullabilityForLibrary(
+                typeParameter, enclosingClass.enclosingLibrary))
         .toList();
     Arguments arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
@@ -322,7 +322,8 @@ class ForwardingNode {
           ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
         typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
-            new TypeParameterType(typeParameter, Nullability.legacy);
+            new TypeParameterType.forAlphaRenaming(
+                targetTypeParameter, typeParameter);
       }
       substitution = Substitution.combine(
           substitution, Substitution.fromMap(additionalSubstitution));
@@ -381,7 +382,9 @@ class ForwardingNode {
 
   Substitution _substitutionFor(Member candidate, Class class_) {
     return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-        class_.thisType, candidate.enclosingClass));
+        hierarchy.coreTypes
+            .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
+        candidate.enclosingClass));
   }
 
   List<VariableDeclaration> getPositionalParameters(Member member) {

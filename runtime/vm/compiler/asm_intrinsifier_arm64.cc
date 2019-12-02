@@ -144,7 +144,6 @@ static int GetScaleFactor(intptr_t size) {
   /* next object start and initialize the object. */                           \
   __ str(R1, Address(THR, target::Thread::top_offset()));                      \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));                   \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -2047,7 +2046,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, R2));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.

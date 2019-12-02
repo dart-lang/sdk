@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int? lateLocal;
+  function #lateLocal#get() → core::int
+    return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw "Local 'lateLocal' has not been initialized." : #t1{core::int};
+  function #lateLocal#set(core::int #t2) → dynamic
+    return lateLocal = #t2;
+  self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
+  self::expect(123, #lateLocal#set.call(123));
+  self::expect(123, #lateLocal#get.call());
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

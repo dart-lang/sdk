@@ -1643,6 +1643,38 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
+  test_class_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('class C<out T> {}');
+    checkElementText(library, r'''
+class C<out T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_contravariant() async {
+    var library = await checkLibrary('class C<in T> {}');
+    checkElementText(library, r'''
+class C<in T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_invariant() async {
+    var library = await checkLibrary('class C<inout T> {}');
+    checkElementText(library, r'''
+class C<inout T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_multiple() async {
+    var library = await checkLibrary('class C<inout T, in U, out V> {}');
+    checkElementText(library, r'''
+class C<inout T, in U, out V> {
+}
+''');
+  }
+
   test_classes() async {
     var library = await checkLibrary('class C {} class D {}');
     checkElementText(library, r'''
@@ -9133,6 +9165,38 @@ class A {
 }
 mixin B on A {
   void A() {}
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('mixin M<out T> {}');
+    checkElementText(library, r'''
+mixin M<out T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_contravariant() async {
+    var library = await checkLibrary('mixin M<in T> {}');
+    checkElementText(library, r'''
+mixin M<in T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_invariant() async {
+    var library = await checkLibrary('mixin M<inout T> {}');
+    checkElementText(library, r'''
+mixin M<inout T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_multiple() async {
+    var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
+    checkElementText(library, r'''
+mixin M<inout T, in U, out V> on Object {
 }
 ''');
   }

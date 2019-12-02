@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -84,10 +85,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     expect(actual.declaration, same(expectedBase));
 
-    var actualMapString = actual.substitution.map.map(
-      (k, v) => MapEntry(k.name, '$v'),
-    );
-    expect(actualMapString, expectedSubstitution);
+    assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -154,9 +152,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementTypeString(DartType type, String expected) {
-    TypeImpl typeImpl = type;
-    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
-        expected);
+    expect(typeString(type), expected);
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
@@ -275,8 +271,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
         expectedPrefix: expectedPrefix);
   }
 
-  void assertInvokeType(InvocationExpression node, String expected) {
-    TypeImpl actual = node.staticInvokeType;
+  void assertInvokeType(Expression node, String expected) {
+    DartType actual;
+    if (node is BinaryExpression) {
+      actual = node.staticInvokeType;
+    } else if (node is InvocationExpression) {
+      actual = node.staticInvokeType;
+    } else {
+      fail('Unsupported node: (${node.runtimeType}) $node');
+    }
     expect(typeString(actual), expected);
   }
 
@@ -307,10 +310,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = actualElement as Member;
     expect(actual.declaration, same(expectedBase));
 
-    var actualMapString = actual.substitution.map.map(
-      (k, v) => MapEntry(k.name, '$v'),
-    );
-    expect(actualMapString, expectedSubstitution);
+    assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
   void assertMethodInvocation(
@@ -373,6 +373,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(expression.staticParameterElement, expected);
   }
 
+  void assertParameterType(Expression expression, String expected) {
+    var parameterElement = expression.staticParameterElement;
+    if (expected == null) {
+      expect(parameterElement, isNull);
+    } else {
+      assertElementTypeString(parameterElement.type, expected);
+    }
+  }
+
   void assertPropertyAccess(
     PropertyAccess access,
     Element expectedElement,
@@ -380,6 +389,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ) {
     assertElement(access.propertyName, expectedElement);
     assertType(access, expectedType);
+  }
+
+  void assertSubstitution(
+    MapSubstitution substitution,
+    Map<String, String> expected,
+  ) {
+    var actualMapString = substitution.map.map(
+      (k, v) => MapEntry(k.name, '$v'),
+    );
+    expect(actualMapString, expected);
   }
 
   void assertSuperExpression(SuperExpression superExpression) {

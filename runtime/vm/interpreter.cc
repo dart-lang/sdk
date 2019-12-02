@@ -275,9 +275,6 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   const intptr_t remaining = thread->end() - start;
   if (LIKELY(remaining >= instance_size)) {
     thread->set_top(start + instance_size);
-#ifndef PRODUCT
-    table->UpdateAllocatedNew(class_id, instance_size);
-#endif
     *result = InitializeHeader(start, class_id, instance_size);
     return true;
   }
@@ -1236,6 +1233,65 @@ AssertAssignableCallRuntime:
   Exit(thread, FP, args + 8, pc);
   NativeArguments native_args(thread, 7, args, args + 7);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
+}
+
+template <bool is_getter>
+bool Interpreter::AssertAssignableField(Thread* thread,
+                                        const KBCInstr* pc,
+                                        RawObject** FP,
+                                        RawObject** SP,
+                                        RawInstance* instance,
+                                        RawField* field,
+                                        RawInstance* value) {
+  RawAbstractType* field_type = field->ptr()->type_;
+  // Perform type test of value if field type is not one of dynamic, object,
+  // or void, and if the value is not null.
+  // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
+  if (field_type->GetClassId() == kTypeCid) {
+    classid_t cid = Smi::Value(reinterpret_cast<RawSmi*>(
+        Type::RawCast(field_type)->ptr()->type_class_id_));
+    if (cid == kDynamicCid || cid == kInstanceCid || cid == kVoidCid) {
+      return true;
+    }
+  }
+  RawObject* null_value = Object::null();
+  if (value == null_value) {
+    return true;
+  }
+
+  RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
+  if (UNLIKELY(cache == null_value)) {
+    // Allocate new cache.
+    SP[1] = instance;    // Preserve.
+    SP[2] = field;       // Preserve.
+    SP[3] = value;       // Preserve.
+    SP[4] = null_value;  // Result slot.
+
+    Exit(thread, FP, SP + 5, pc);
+    if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                       NativeArguments(thread, 0, /* argv */ SP + 4,
+                                       /* retval */ SP + 4))) {
+      return false;
+    }
+
+    // Reload objects after the call which may trigger GC.
+    instance = reinterpret_cast<RawInstance*>(SP[1]);
+    field = reinterpret_cast<RawField*>(SP[2]);
+    value = reinterpret_cast<RawInstance*>(SP[3]);
+    cache = reinterpret_cast<RawSubtypeTestCache*>(SP[4]);
+    field_type = field->ptr()->type_;
+    field->ptr()->type_test_cache_ = cache;
+  }
+
+  // Push arguments of type test.
+  SP[1] = value;
+  SP[2] = field_type;
+  // Provide type arguments of instance as instantiator.
+  SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
+  SP[4] = null_value;  // Implicit setters cannot be generic.
+  SP[5] = is_getter ? Symbols::FunctionResult().raw() : field->ptr()->name_;
+  return AssertAssignable(thread, pc, FP, /* argv */ SP + 5,
+                          /* reval */ SP + 1, cache);
 }
 
 RawObject* Interpreter::Call(const Function& function,
@@ -2253,6 +2309,21 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(PushUninitializedSentinel, 0);
+    *++SP = Object::sentinel().raw();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(JumpIfInitialized, T);
+    SP -= 1;
+    if (SP[1] != Object::sentinel().raw()) {
+      LOAD_JUMP_TARGET();
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
@@ -3064,8 +3135,8 @@ SwitchDispatch:
     const intptr_t kArgc = 1;
     RawInstance* instance =
         reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-    RawObject* value =
-        reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    RawInstance* value =
+        reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
 
     if (UNLIKELY(value == Object::sentinel().raw())) {
       SP[1] = 0;  // Result slot.
@@ -3080,10 +3151,23 @@ SwitchDispatch:
       instance = reinterpret_cast<RawInstance*>(SP[2]);
       field = reinterpret_cast<RawField*>(SP[3]);
       offset_in_words = Smi::Value(field->ptr()->value_.offset_);
-      value = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+      value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
     }
 
     *++SP = value;
+
+#if !defined(PRODUCT)
+    if (UNLIKELY(Field::NeedsLoadGuardBit::decode(field->ptr()->kind_bits_))) {
+      if (!AssertAssignableField<true>(thread, pc, FP, SP, instance, field,
+                                       value)) {
+        HANDLE_EXCEPTION;
+      }
+      // Reload objects after the call which may trigger GC.
+      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+      value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
+    }
+#endif
 
     const bool unboxing =
         (field->ptr()->is_nullable_ != kNullCid) &&
@@ -3131,60 +3215,17 @@ SwitchDispatch:
     const intptr_t kArgc = 2;
     RawInstance* instance =
         reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-    RawObject* value = FrameArguments(FP, kArgc)[1];
+    RawInstance* value =
+        reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
 
-    RawAbstractType* field_type = field->ptr()->type_;
-    classid_t cid;
-    if (field_type->GetClassId() == kTypeCid) {
-      cid = Smi::Value(reinterpret_cast<RawSmi*>(
-          Type::RawCast(field_type)->ptr()->type_class_id_));
-    } else {
-      cid = kIllegalCid;  // Not really illegal, but not a Type to skip.
+    if (!AssertAssignableField<false>(thread, pc, FP, SP, instance, field,
+                                      value)) {
+      HANDLE_EXCEPTION;
     }
-    // Perform type test of value if field type is not one of dynamic, object,
-    // or void, and if the value is not null.
-    RawObject* null_value = Object::null();
-    // TODO(regis): Revisit when type checking mode is not kUnaware anymore.
-    if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
-        value != null_value) {
-      RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
-      if (cache->GetClassId() != kSubtypeTestCacheCid) {
-        // Allocate new cache.
-        SP[1] = null_value;  // Result.
-
-        Exit(thread, FP, SP + 2, pc);
-        if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
-                           NativeArguments(thread, 0, /* argv */ SP + 1,
-                                           /* retval */ SP + 1))) {
-          HANDLE_EXCEPTION;
-        }
-
-        // Reload objects after the call which may trigger GC.
-        field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
-        field_type = field->ptr()->type_;
-        instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-        value = FrameArguments(FP, kArgc)[1];
-        cache = reinterpret_cast<RawSubtypeTestCache*>(SP[1]);
-        field->ptr()->type_test_cache_ = cache;
-      }
-
-      // Push arguments of type test.
-      SP[1] = value;
-      SP[2] = field_type;
-      // Provide type arguments of instance as instantiator.
-      SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
-      SP[4] = null_value;  // Implicit setters cannot be generic.
-      SP[5] = field->ptr()->name_;
-      if (!AssertAssignable(thread, pc, FP, /* argv */ SP + 5,
-                            /* reval */ SP + 1, cache)) {
-        HANDLE_EXCEPTION;
-      }
-
-      // Reload objects after the call which may trigger GC.
-      field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
-      instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-      value = FrameArguments(FP, kArgc)[1];
-    }
+    // Reload objects after the call which may trigger GC.
+    field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
+    instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
+    value = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
@@ -3200,7 +3241,7 @@ SwitchDispatch:
       // Reload objects after the call which may trigger GC.
       field = reinterpret_cast<RawField*>(FrameFunction(FP)->ptr()->data_);
       instance = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
-      value = FrameArguments(FP, kArgc)[1];
+      value = reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[1]);
     }
 
     const bool unboxing =
@@ -3231,7 +3272,7 @@ SwitchDispatch:
       raw_value.writeTo(box->ptr()->value_);
     } else {
       instance->StorePointer(
-          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+          reinterpret_cast<RawInstance**>(instance->ptr()) + offset_in_words,
           value, thread);
     }
 
@@ -3268,6 +3309,16 @@ SwitchDispatch:
 
     // Field was initialized. Return its value.
     *++SP = value;
+
+#if !defined(PRODUCT)
+    if (UNLIKELY(Field::NeedsLoadGuardBit::decode(field->ptr()->kind_bits_))) {
+      if (!AssertAssignableField<true>(
+              thread, pc, FP, SP, reinterpret_cast<RawInstance*>(null_value),
+              field, value)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+#endif
 
     DISPATCH();
   }
@@ -3396,7 +3447,6 @@ SwitchDispatch:
 
     // Function 'call' could not be resolved for argdesc_.
     // Invoke noSuchMethod.
-    RawObject* null_value = Object::null();
     SP[1] = null_value;
     SP[2] = receiver;
     SP[3] = argdesc_;

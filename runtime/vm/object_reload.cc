@@ -683,15 +683,17 @@ void Class::CheckReload(const Class& replacement,
 
   // Class cannot change enum property.
   if (is_enum_class() != replacement.is_enum_class()) {
-    context->AddReasonForCancelling(new (context->zone()) EnumClassConflict(
-        context->zone(), *this, replacement));
+    context->group_reload_context()->AddReasonForCancelling(
+        new (context->zone())
+            EnumClassConflict(context->zone(), *this, replacement));
     return;
   }
 
   // Class cannot change typedef property.
   if (IsTypedefClass() != replacement.IsTypedefClass()) {
-    context->AddReasonForCancelling(new (context->zone()) TypedefClassConflict(
-        context->zone(), *this, replacement));
+    context->group_reload_context()->AddReasonForCancelling(
+        new (context->zone())
+            TypedefClassConflict(context->zone(), *this, replacement));
     return;
   }
 
@@ -700,7 +702,7 @@ void Class::CheckReload(const Class& replacement,
     const Error& error =
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
     if (!error.IsNull()) {
-      context->AddReasonForCancelling(
+      context->group_reload_context()->AddReasonForCancelling(
           new (context->zone())
               EnsureFinalizedError(context->zone(), *this, replacement, error));
       return;  // No reason to check other properties.
@@ -711,8 +713,9 @@ void Class::CheckReload(const Class& replacement,
 
   // Native field count cannot change.
   if (num_native_fields() != replacement.num_native_fields()) {
-    context->AddReasonForCancelling(new (context->zone()) NativeFieldsConflict(
-        context->zone(), *this, replacement));
+    context->group_reload_context()->AddReasonForCancelling(
+        new (context->zone())
+            NativeFieldsConflict(context->zone(), *this, replacement));
     return;
   }
 
@@ -770,14 +773,23 @@ bool Class::CanReloadFinalized(const Class& replacement,
                                IsolateReloadContext* context) const {
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
+  auto group_context = context->group_reload_context();
   if (NumTypeArguments() != replacement.NumTypeArguments()) {
-    context->AddReasonForCancelling(new (context->zone()) TypeParametersChanged(
-        context->zone(), *this, replacement));
+    group_context->AddReasonForCancelling(
+        new (context->zone())
+            TypeParametersChanged(context->zone(), *this, replacement));
     return false;
   }
   if (RequiresInstanceMorphing(replacement)) {
-    context->AddInstanceMorpher(new (context->zone()) InstanceMorpher(
-        context->zone(), *this, replacement));
+    ASSERT(id() == replacement.id());
+    const classid_t cid = id();
+
+    // We unconditionally create an instance morpher. As a side effect of
+    // building the morpher, we will mark all new fields as late.
+    auto instance_morpher = InstanceMorpher::CreateFromClassDescriptors(
+        context->zone(), context->isolate()->shared_class_table(), *this,
+        replacement);
+    group_context->EnsureHasInstanceMorpherFor(cid, instance_morpher);
   }
   return true;
 }
@@ -786,14 +798,16 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
                                   IsolateReloadContext* context) const {
   // The replacement class must also prefinalized.
   if (!replacement.is_prefinalized()) {
-    context->AddReasonForCancelling(new (context->zone()) PreFinalizedConflict(
-        context->zone(), *this, replacement));
+    context->group_reload_context()->AddReasonForCancelling(
+        new (context->zone())
+            PreFinalizedConflict(context->zone(), *this, replacement));
     return false;
   }
   // Check the instance sizes are equal.
   if (instance_size() != replacement.instance_size()) {
-    context->AddReasonForCancelling(new (context->zone()) InstanceSizeConflict(
-        context->zone(), *this, replacement));
+    context->group_reload_context()->AddReasonForCancelling(
+        new (context->zone())
+            InstanceSizeConflict(context->zone(), *this, replacement));
     return false;
   }
   return true;
@@ -880,7 +894,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
     if (new_target_.IsNull() ||
-        !new_target_.AreValidArguments(args_desc, NULL)) {
+        !new_target_.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target_.ToCString(),

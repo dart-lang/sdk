@@ -15,7 +15,9 @@
       "third_party/pkg_tested/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",
-      "xcodebuild/ReleaseX64/dart-sdk/"
+      "out/ReleaseX64NNBD/dart-sdk/",
+      "xcodebuild/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64NNBD/dart-sdk/"
     ],
     "dart2js": [
       ".packages",
@@ -29,6 +31,7 @@
       "sdk/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
@@ -66,6 +69,7 @@
       "sdk_nnbd/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
@@ -106,6 +110,7 @@
       "sdk/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
@@ -143,6 +148,7 @@
       "sdk/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
@@ -241,6 +247,7 @@
       "third_party/observatory_pub_packages/packages/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
       "tests/co19_2/co19_2-dart2js.status",
       "tests/co19_2/co19_2-dartdevc.status",
       "tests/co19_2/co19_2-kernel.status",
@@ -528,7 +535,7 @@
         "checked": true,
         "use-sdk": true
     }},
-    "dartdevc-strong-linux-release-chrome": {
+    "dartdevk-strong-linux-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true,
@@ -536,7 +543,7 @@
         "enable-asserts": true
 
     }},
-    "dartdevc-weak-linux-release-chrome": {
+    "dartdevk-weak-linux-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true,
@@ -555,6 +562,20 @@
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
+    }},
+    "analyzer-asserts-strong-linux": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "enable-asserts": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"]
+    }},
+    "analyzer-asserts-weak-linux": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "enable-asserts": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"]
     }}
   },
   "builder_configurations": [
@@ -1478,14 +1499,14 @@
         {
           "name": "ddc nnbd strong tests",
           "arguments": [
-            "-ndartdevc-strong-linux-release-chrome",
+            "-ndartdevk-strong-linux-release-chrome",
             "dartdevc_native"
           ]
         },
         {
           "name": "ddc nnbd weak tests",
           "arguments": [
-            "-ndartdevc-weak-linux-release-chrome",
+            "-ndartdevk-weak-linux-release-chrome",
             "dartdevc_native"
           ]
         }
@@ -1983,7 +2004,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64,arm,arm64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
@@ -2033,7 +2054,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
@@ -2070,7 +2091,7 @@
           "name": "build gen_snapshot and dartaotruntime",
           "script": "tools/build.py",
           "arguments": ["--arch=x64", "--mode=product",
-                        "copy_gen_snapshot", "copy_dartaotruntime"]
+                        "copy_gen_snapshot", "copy_dartaotruntime", "copy_vm_dill_files"]
         },
         {
           "name": "upload sdk",
@@ -2184,6 +2205,33 @@
             "-nanalyzer-asserts-${system}",
             "co19_2"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "analyzer-nnbd-linux-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the nnbd analyzer builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--nnbd", "create_sdk"]
+        },
+        {
+          "name": "analyze nnbd strong tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-strong-${system}",
+            "language"]
+        },
+        {
+          "name": "analyze nnbd weak tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-weak-${system}",
+            "language"]
         }
       ]
     },

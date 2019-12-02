@@ -17,7 +17,6 @@ import 'package:kernel/type_environment.dart';
 import 'analysis.dart';
 import 'calls.dart';
 import 'summary.dart';
-import 'summary_collector.dart';
 import 'types.dart';
 import 'utils.dart';
 import '../pragma.dart';
@@ -27,8 +26,6 @@ import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
 import '../../metadata/unreachable.dart';
 
-const bool kDumpAllSummaries =
-    const bool.fromEnvironment('global.type.flow.dump.all.summaries');
 const bool kDumpClassHierarchy =
     const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
 
@@ -43,14 +40,6 @@ Component transformComponent(
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
-
-  if (kDumpAllSummaries) {
-    Statistics.reset();
-    new CreateAllSummariesVisitor(
-            target, types, hierarchy, genericInterfacesInfo)
-        .visitComponent(component);
-    Statistics.print("All summaries statistics");
-  }
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
@@ -123,14 +112,14 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
-  final DartType _intType;
+  final Class _intClass;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
-        _intType = _typeFlowAnalysis.environment.coreTypes.intLegacyRawType {
+        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
@@ -153,7 +142,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
-        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intType);
+        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
       }
     }
 
@@ -653,7 +642,7 @@ class _TreeShakerPass1 extends Transformer {
         if (shaker.isFieldInitializerReachable(node)) {
           node.transformChildren(this);
         } else {
-          node.initializer = _makeUnreachableCall([]);
+          node.initializer = _makeUnreachableCall([])..parent = node;
         }
       }
     } else if (shaker.isMemberReferencedFromNativeCode(node)) {

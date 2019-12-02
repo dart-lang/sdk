@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
-import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as p;
@@ -74,7 +74,7 @@ class CodeGenerator extends Object
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
 
   /// Errors that were produced during compilation, if any.
   final ErrorCollector errors;
@@ -196,7 +196,12 @@ class CodeGenerator extends Object
 
   CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
       this.options, this._extensionTypes, this.errors)
-      : rules = Dart2TypeSystem(types),
+      : rules = TypeSystemImpl(
+          implicitCasts: true,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: types,
+        ),
         declaredVariables = driver.declaredVariables,
         _asyncStreamIterator = getLegacyRawClassType(
             driver.getClass('dart:async', 'StreamIterator')),
@@ -4879,7 +4884,7 @@ class CodeGenerator extends Object
     variable ??= js_ast.TemporaryId(name);
 
     var idElement =
-        TemporaryVariableElement.forNode(id, variable, _currentElement);
+        TemporaryVariableElement(name, -1, variable, _currentElement);
     id.staticElement = idElement;
     id.staticType = type;
     setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);
@@ -6687,9 +6692,9 @@ class CodeGenerator extends Object
 class TemporaryVariableElement extends LocalVariableElementImpl {
   final js_ast.Expression jsVariable;
 
-  TemporaryVariableElement.forNode(
-      Identifier name, this.jsVariable, Element enclosingElement)
-      : super.forNode(name) {
+  TemporaryVariableElement(
+      String name, int offset, this.jsVariable, Element enclosingElement)
+      : super(name, offset) {
     this.enclosingElement = enclosingElement;
   }
 

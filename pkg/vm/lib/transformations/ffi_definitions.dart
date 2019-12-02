@@ -274,7 +274,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               IntConstant(values[Abi.wordSize32Align32]),
               IntConstant(values[Abi.wordSize32Align64])
             ]),
-            InterfaceType(intClass, Nullability.legacy)),
+            InterfaceType(listClass, Nullability.legacy,
+                [InterfaceType(intClass, Nullability.legacy)])),
         Name("[]"),
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         listElementAt);
@@ -332,7 +333,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                 loadMethod,
                 Arguments([
                   PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                  ConstantExpression(IntConstant(0))
+                  ConstantExpression(IntConstant(0),
+                      InterfaceType(intClass, Nullability.legacy))
                 ], types: typeArguments))),
             returnType: field.type),
         fileUri: field.fileUri)
@@ -353,7 +355,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   storeMethod,
                   Arguments([
                     PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                    ConstantExpression(IntConstant(0)),
+                    ConstantExpression(IntConstant(0),
+                        InterfaceType(intClass, Nullability.legacy)),
                     VariableGet(argument)
                   ], types: typeArguments))),
               returnType: VoidType(),

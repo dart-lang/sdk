@@ -95,10 +95,9 @@ void propertyAccess(Class? c) {
 }
 
 void indexAccess(Class? c) {
-  // TODO(johnniwinther): Handle null aware index access.
-  //c?.[c];
-  //c?.[c] = new Class();
-  //c?.[c].method();
+  c?.[c];
+  c?.[c] = new Class();
+  c?.[c].method();
   c?.field[c];
   c?.field[c] = new Class();
   c = c?.field[c] = new Class();

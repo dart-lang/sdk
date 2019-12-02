@@ -16,7 +16,12 @@ class ErrorNotifier extends NoopInstrumentationService {
 
     var message = 'Internal error';
     if (exception is CaughtException && exception.message != null) {
-      message = exception.message;
+      // TODO(mfairhurst): Use the outermost exception once crash reporting is
+      // fixed and this becomes purely user-facing.
+      exception = exception.rootCaughtException;
+      // TODO(mfairhurst): Use the outermost message rather than the innermost
+      // exception as its own message.
+      message = exception.exception;
     }
 
     server.sendServerErrorNotification(message, exception, stackTrace,

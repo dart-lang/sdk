@@ -28,11 +28,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            enable_isolate_groups,
-            true,
-            "Whether to enable support for isolate groups.");
-
 DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 0, 1) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());

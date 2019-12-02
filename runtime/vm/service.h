@@ -8,7 +8,6 @@
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
-#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 

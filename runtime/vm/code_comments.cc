@@ -6,7 +6,9 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
+
 const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler) {
   const auto& comments = assembler->comments();
   Code::Comments& result = Code::Comments::New(comments.length());
@@ -18,6 +20,8 @@ const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler) {
 
   return result;
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) &&                               \
+        // (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 
 }  // namespace dart

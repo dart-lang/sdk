@@ -317,7 +317,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              if (type.isInterfaceType) {
+              if (type is InterfaceType) {
                 InterfaceType interface = type;
                 dependencies.addClass(
                     interface.element, typeUse.deferredImport);
@@ -1659,9 +1659,24 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
+  void visitLegacyType(LegacyType type, Null argument) {
+    visit(type.baseType);
+  }
+
+  @override
+  void visitNullableType(NullableType type, Null argument) {
+    visit(type.baseType);
+  }
+
+  @override
   void visitFutureOrType(FutureOrType type, Null argument) {
     _dependencies.addClass(_commonElements.futureClass);
     visit(type.typeArgument);
+  }
+
+  @override
+  void visitNeverType(NeverType type, Null argument) {
+    // Nothing to add.
   }
 
   @override

@@ -60,7 +60,6 @@ DEFINE_FLAG(int,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 
-DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
@@ -492,6 +491,12 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
   }
 }
 
+void FlowGraphCompiler::EmitYieldPositionMetadata(TokenPosition token_pos,
+                                                  intptr_t yield_index) {
+  AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
+                DeoptId::kNone, token_pos, CurrentTryIndex(), yield_index);
+}
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
@@ -732,12 +737,13 @@ void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
                                       intptr_t pc_offset,
                                       intptr_t deopt_id,
                                       TokenPosition token_pos,
-                                      intptr_t try_index) {
+                                      intptr_t try_index,
+                                      intptr_t yield_index) {
   code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
   // Don't emit deopt-descriptors in AOT mode.
   if (FLAG_precompiled_mode && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
-                                      try_index);
+                                      try_index, yield_index);
 }
 
 // Uses current pc position and try-index.
@@ -1117,12 +1123,14 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 
 void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {
 #if defined(DART_PRECOMPILER)
-  TypedData& maps = TypedData::Handle(
-      catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
-  code.set_catch_entry_moves_maps(maps);
-#else
-  code.set_variables(Smi::Handle(Smi::New(flow_graph().variable_count())));
+  if (FLAG_precompiled_mode) {
+    TypedData& maps = TypedData::Handle(
+        catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
+    code.set_catch_entry_moves_maps(maps);
+    return;
+  }
 #endif
+  code.set_num_variables(flow_graph().variable_count());
 }
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
@@ -2262,7 +2270,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
+  if (int_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
     is_non_smi = true;
   }

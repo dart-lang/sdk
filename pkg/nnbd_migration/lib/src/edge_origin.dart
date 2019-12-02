@@ -109,6 +109,19 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.fieldFormalParameter;
 }
 
+/// An edge origin used for edges that originated because a field was not
+/// initialized.
+///
+/// The AST node associated with the edge is the AST node for the constructor
+/// that failed to initialize the field (or the class, if the constructor is
+/// synthetic).
+class FieldNotInitializedOrigin extends EdgeOrigin {
+  FieldNotInitializedOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.fieldNotInitialized;
+}
+
 /// Edge origin resulting from the use of an iterable type in a for-each loop.
 ///
 /// For example, in the following code snippet:
@@ -170,14 +183,6 @@ class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.implicitMixinSuperCall;
 }
 
-/// Edge origin resulting from an inheritance relationship between two methods.
-class InheritanceOrigin extends EdgeOrigin {
-  InheritanceOrigin(Source source, AstNode node) : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.inheritance;
-}
-
 /// Edge origin resulting from a type that is inferred from its initializer.
 class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, VariableDeclaration node)
@@ -185,6 +190,15 @@ class InitializerInferenceOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.initializerInference;
+}
+
+/// An edge origin used for edges that originated because of an instance
+/// creation expression.
+class InstanceCreationOrigin extends EdgeOrigin {
+  InstanceCreationOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.instanceCreation;
 }
 
 /// Edge origin resulting from a class that is instantiated to bounds.
@@ -229,6 +243,15 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
+/// An edge origin used for edges that originated because a literal expression
+/// has a known nullability.
+class LiteralOrigin extends EdgeOrigin {
+  LiteralOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.literal;
+}
+
 /// Edge origin resulting from a call site that does not supply a named
 /// parameter.
 ///
@@ -247,6 +270,34 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.namedParameterNotSupplied;
+}
+
+/// Edge origin for the nullability of an expression that whose type is fixed by
+/// the language definition to be non-nullable `bool`.
+class NonNullableBoolTypeOrigin extends EdgeOrigin {
+  NonNullableBoolTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableBoolType;
+}
+
+/// Edge origin resulting from the class/superclass relationship for a class
+/// whose superclass is implicitly `Object`.
+class NonNullableObjectSuperclass extends EdgeOrigin {
+  NonNullableObjectSuperclass(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableObjectSuperclass;
+}
+
+/// Edge origin resulting from the usage of a value in a circumstance that
+/// requires it to be non-nullable
+class NonNullableUsageOrigin extends EdgeOrigin {
+  NonNullableUsageOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullableUsage;
 }
 
 /// Edge origin resulting from the presence of a non-null assertion.
@@ -294,4 +345,59 @@ class OptionalFormalParameterOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
+}
+
+/// Edge origin resulting from an inheritance relationship between two method
+/// parameters.
+class ParameterInheritanceOrigin extends EdgeOrigin {
+  ParameterInheritanceOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.parameterInheritance;
+}
+
+/// Edge origin resulting from an inheritance relationship between two method
+/// return types.
+class ReturnTypeInheritanceOrigin extends EdgeOrigin {
+  ReturnTypeInheritanceOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.returnTypeInheritance;
+}
+
+/// Edge origin resulting from the use of a stacktrace parameter in a catch
+/// directive.  The type of such parameters is fixed by the language as
+/// non-nullable `StackTrace`.
+class StackTraceTypeOrigin extends EdgeOrigin {
+  StackTraceTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.stackTraceTypeOrigin;
+}
+
+/// Edge origin resulting from the use of `this` or `super`.
+class ThisOrSuperOrigin extends EdgeOrigin {
+  ThisOrSuperOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.thisOrSuper;
+}
+
+/// An edge origin used for edges that originated from the type of a `throw` or
+/// `rethrow`.
+class ThrowOrigin extends EdgeOrigin {
+  ThrowOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.throw_;
+}
+
+/// Edge origin resulting from the read of a variable that has not been
+/// definitely assigned a value.
+class UninitializedReadOrigin extends EdgeOrigin {
+  UninitializedReadOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.uninitializedRead;
 }

@@ -1,18 +1,18 @@
 Problems reported:
 
-parser_test/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
   await for () {}
              ^
 
-parser_test/error_recovery/empty_await_for:2:14: Expected 'in' before this.
+parser/error_recovery/empty_await_for:2:14: Expected 'in' before this.
   await for () {}
              ^
 
-parser_test/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
   await for () {}
              ^
 
-parser_test/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
   await for () {}
              ^
 

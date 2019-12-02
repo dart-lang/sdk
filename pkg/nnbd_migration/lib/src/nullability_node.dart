@@ -160,8 +160,9 @@ class NullabilityGraph {
 
   /// Creates a graph edge that will try to force the given [node] to be
   /// non-nullable.
-  void makeNonNullable(NullabilityNode node, EdgeOrigin origin) {
-    connect(node, never, origin, hard: true);
+  NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
+      {bool hard: true, List<NullabilityNode> guards: const []}) {
+    return connect(node, never, origin, hard: hard, guards: guards);
   }
 
   /// Creates a graph edge that will try to force the given [node] to be
@@ -169,6 +170,13 @@ class NullabilityGraph {
   void makeNullable(NullabilityNode node, EdgeOrigin origin,
       {List<NullabilityNode> guards: const []}) {
     connect(always, node, origin, guards: guards);
+  }
+
+  /// Creates a `union` graph edge that will try to force the given [node] to be
+  /// nullable.  This is a stronger signal than [makeNullable] (it overrides
+  /// [makeNonNullable]).
+  void makeNullableUnion(NullabilityNode node, EdgeOrigin origin) {
+    union(always, node, origin);
   }
 
   /// Record source as code that is being migrated.
@@ -360,6 +368,8 @@ class NullabilityGraph {
         for (var edge in node._upstreamEdges) {
           pendingEdges.add(edge);
         }
+
+        // TODO(mfairhurst): should this propagate back up outerContainerNodes?
       }
     }
     while (pendingEdges.isNotEmpty) {
@@ -459,6 +469,9 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
+
+  /// List of compound nodes wrapping this node.
+  final List<NullabilityNode> outerCompoundNodes = <NullabilityNode>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
@@ -583,7 +596,10 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
   final NullabilityNode right;
 
-  NullabilityNodeForLUB._(this.left, this.right);
+  NullabilityNodeForLUB._(this.left, this.right) {
+    left.outerCompoundNodes.add(this);
+    right.outerCompoundNodes.add(this);
+  }
 
   @override
   Iterable<NullabilityNode> get _components => [left, right];
@@ -602,7 +618,10 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
   @override
   final NullabilityNode outerNode;
 
-  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode);
+  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode) {
+    innerNode.outerCompoundNodes.add(this);
+    outerNode.outerCompoundNodes.add(this);
+  }
 
   @override
   Iterable<NullabilityNode> get _components => [innerNode, outerNode];
@@ -672,14 +691,18 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   String get debugSuffix => isNullable ? '?' : '';
 
   @override
-  bool get isExactNullable => isNullable;
+  // Note: the node "always" is not exact nullable, because exact nullability is
+  // a concept for contravariant generics which propagates upstream instead of
+  // downstream. "always" is not a contravariant generic, and does not have any
+  // upstream nodes, so it should not be considered *exact* nullable.
+  bool get isExactNullable => false;
 
   @override
   bool get isImmutable => true;
 
   @override
   NullabilityState get _state => isNullable
-      ? NullabilityState.exactNullable
+      ? NullabilityState.ordinaryNullable
       : NullabilityState.nonNullable;
 }
 

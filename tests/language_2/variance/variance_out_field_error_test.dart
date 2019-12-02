@@ -8,30 +8,46 @@
 
 class A<out T> {
   void set a(T value) => value;
+  //         ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   //           ^
-  // [analyzer] unspecified
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
   final void Function(T) b = (T val) {};
   //                     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
   T c;
-  //^
-  // [analyzer] unspecified
-  // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position.
 }
 
 mixin BMixin<out T> {
   void set a(T value) => value;
+  //         ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   //           ^
-  // [analyzer] unspecified
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
   final void Function(T) b = (T val) {};
   //                     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
   T c;
-  //^
-  // [analyzer] unspecified
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position.
+}
+
+abstract class C<out T> {
+  void set a(T value) => value;
+  //         ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //           ^
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
+}
+
+class D<out T> extends C<T> {
+  var a;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
 }

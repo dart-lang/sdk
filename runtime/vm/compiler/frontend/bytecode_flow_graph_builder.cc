@@ -842,8 +842,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  switch (recognized_kind) {
+  switch (target.recognized_kind()) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       BuildFfiAsFunction();
       return;
@@ -1329,6 +1328,15 @@ void BytecodeFlowGraphBuilder::BuildInitLateField() {
       field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
 }
 
+void BytecodeFlowGraphBuilder::BuildPushUninitializedSentinel() {
+  code_ += B->Constant(Object::sentinel());
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfInitialized() {
+  code_ += B->Constant(Object::sentinel());
+  BuildJumpIfStrictCompare(Token::kNE);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());
@@ -1660,7 +1668,15 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  code_ += B->Return(position_);
+  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
+    if (pc_ == last_yield_point_pc_) {
+      // The return might actually be a yield point, if so we need to attach the
+      // yield index to the return instruction.
+      yield_index = last_yield_point_index_;
+    }
+  }
+  code_ += B->Return(position_, yield_index);
   ASSERT(IsStackEmpty());
 }
 
@@ -2010,8 +2026,7 @@ bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-      return MethodRecognizer::RecognizeKind(function()) ==
-             MethodRecognizer::kListFactory;
+      return function().recognized_kind() == MethodRecognizer::kListFactory;
 
     default:
       return false;
@@ -2320,6 +2335,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     while (update_position &&
            static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
+      if (source_pos_iter.IsYieldPoint()) {
+        last_yield_point_pc_ = source_pos_iter.PcOffset();
+        ++last_yield_point_index_;
+      }
       update_position = source_pos_iter.MoveNext();
     }
 

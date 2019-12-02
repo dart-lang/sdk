@@ -1268,6 +1268,20 @@ class HeapSpace implements M.HeapSpace {
     totalCollectionTimeInSeconds = heapMap['time'];
     averageCollectionPeriodInMillis = heapMap['avgCollectionPeriodMillis'];
   }
+
+  void add(HeapSpace other) {
+    used += other.used;
+    capacity += other.capacity;
+    external += other.external;
+    collections += other.collections;
+    totalCollectionTimeInSeconds += other.totalCollectionTimeInSeconds;
+    if (collections == 0) {
+      averageCollectionPeriodInMillis = 0.0;
+    } else {
+      averageCollectionPeriodInMillis =
+          (totalCollectionTimeInSeconds / collections) * 1000.0;
+    }
+  }
 }
 
 class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
@@ -2519,50 +2533,30 @@ class Library extends HeapObject implements M.Library {
   String toString() => "Library($uri)";
 }
 
-class AllocationCount implements M.AllocationCount {
-  int instances = 0;
-  int bytes = 0;
-
-  void reset() {
-    instances = 0;
-    bytes = 0;
-  }
-
-  bool get empty => (instances == 0) && (bytes == 0);
-  bool get notEmpty => (instances != 0) || (bytes != 0);
-}
-
 class Allocations implements M.Allocations {
   // Indexes into VM provided array. (see vm/class_table.h).
-  static const ALLOCATED_BEFORE_GC = 0;
-  static const ALLOCATED_BEFORE_GC_SIZE = 1;
-  static const LIVE_AFTER_GC = 2;
-  static const LIVE_AFTER_GC_SIZE = 3;
-  static const ALLOCATED_SINCE_GC = 4;
-  static const ALLOCATED_SINCE_GC_SIZE = 5;
-  static const ACCUMULATED = 6;
-  static const ACCUMULATED_SIZE = 7;
 
-  final AllocationCount accumulated = new AllocationCount();
-  final AllocationCount current = new AllocationCount();
+  int instances = 0;
+  int internalSize = 0;
+  int externalSize = 0;
+  int size = 0;
 
   void update(List stats) {
-    accumulated.instances = stats[ACCUMULATED];
-    accumulated.bytes = stats[ACCUMULATED_SIZE];
-    current.instances = stats[LIVE_AFTER_GC] + stats[ALLOCATED_SINCE_GC];
-    current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
+    instances = stats[0];
+    internalSize = stats[1];
+    externalSize = stats[2];
+    size = internalSize + externalSize;
   }
 
   void combine(Iterable<Allocations> allocations) {
-    accumulated.instances =
-        allocations.fold(0, (v, a) => v + a.accumulated.instances);
-    accumulated.bytes = allocations.fold(0, (v, a) => v + a.accumulated.bytes);
-    current.instances = allocations.fold(0, (v, a) => v + a.current.instances);
-    current.bytes = allocations.fold(0, (v, a) => v + a.current.bytes);
+    instances = allocations.fold(0, (v, a) => v + a.instances);
+    internalSize = allocations.fold(0, (v, a) => v + a.internalSize);
+    externalSize = allocations.fold(0, (v, a) => v + a.externalSize);
+    size = allocations.fold(0, (v, a) => v + a.size);
   }
 
-  bool get empty => accumulated.empty && current.empty;
-  bool get notEmpty => accumulated.notEmpty || current.notEmpty;
+  bool get empty => size == 0;
+  bool get notEmpty => size != 0;
 }
 
 class Class extends HeapObject implements M.Class {
@@ -2580,7 +2574,6 @@ class Class extends HeapObject implements M.Class {
 
   final Allocations newSpace = new Allocations();
   final Allocations oldSpace = new Allocations();
-  final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   bool get hasAllocations => newSpace.notEmpty || oldSpace.notEmpty;
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
@@ -2663,14 +2656,6 @@ class Class extends HeapObject implements M.Class {
 
     traceAllocations =
         (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
-
-    var allocationStats = map['_allocationStats'];
-    if (allocationStats != null) {
-      newSpace.update(allocationStats['_new']);
-      oldSpace.update(allocationStats['_old']);
-      promotedByLastNewGC.instances = allocationStats['promotedInstances'];
-      promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
-    }
   }
 
   void _addSubclass(Class subclass) {

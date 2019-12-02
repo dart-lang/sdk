@@ -5,6 +5,25 @@
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
+/// A description of an edit that can be applied before rerunning the migration
+/// in order to improve the migration results.
+class EditDetail {
+  /// A description of the edit that will be performed.
+  final String description;
+
+  /// The offset of the range to be replaced.
+  final int offset;
+
+  /// The length of the range to be replaced.
+  final int length;
+
+  /// The string with which the range will be replaced.
+  final String replacement;
+
+  /// Initialize a newly created detail.
+  EditDetail(this.description, this.offset, this.length, this.replacement);
+}
+
 /// The migration information associated with a single library.
 class LibraryInfo {
   /// The information about the units in the library. The information about the
@@ -76,6 +95,9 @@ class RegionDetail {
 /// A description of an explanation associated with a region of code that was
 /// modified.
 class RegionInfo {
+  /// Type type of region.
+  final RegionType regionType;
+
   /// The offset to the beginning of the region.
   final int offset;
 
@@ -88,16 +110,20 @@ class RegionInfo {
   /// Details that further explain why a change was made.
   final List<RegionDetail> details;
 
-  /// Type type of region.
-  final RegionType regionType;
+  /// A list of the edits that are related to this range.
+  List<EditDetail> edits;
 
   /// Initialize a newly created region.
-  RegionInfo(this.offset, this.length, this.explanation, this.details,
-      this.regionType);
+  RegionInfo(
+      this.regionType, this.offset, this.length, this.explanation, this.details,
+      {this.edits = const []});
 }
 
 /// Different types of regions that are called out.
 enum RegionType {
+  // TODO(brianwilkerson) 'fix' indicates whether the code was modified, while
+  //  'nonNullableType' indicates why the code wasn't modified. It would be good
+  //  to be consistent between the "whether" and "why" descriptions.
   /// This is a region of code that was fixed (changed) in migration.
   fix,
 

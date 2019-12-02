@@ -10,7 +10,7 @@ void main() {
   test('empty component', () {
     final testComponent = Component(libraries: []);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, Uri.file('/c.dart'));
+        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {});
@@ -41,7 +41,7 @@ void main() {
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, Uri.file('/c.dart'));
+        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {
@@ -81,7 +81,7 @@ void main() {
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, Uri.file('/c.dart'));
+        StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {
@@ -97,8 +97,8 @@ void main() {
     });
   });
 
-  test('does not index external, dart:, or unimported libraries', () {
-    final libraryExternal = Library(
+  test('does not index loaded , dart:, or unimported libraries', () {
+    final libraryLoaded = Library(
       Uri.file('a.dart'),
       fileUri: Uri.file('/a.dart'),
       isExternal: true,
@@ -115,18 +115,18 @@ void main() {
       Uri.file('/c.dart'),
       fileUri: Uri.file('/c.dart'),
       dependencies: [
-        LibraryDependency.import(libraryExternal),
+        LibraryDependency.import(libraryLoaded),
         LibraryDependency.import(libraryDart),
       ],
     );
     final testComponent = Component(libraries: [
-      libraryExternal,
+      libraryLoaded,
       libraryDart,
       libraryUnrelated,
       libraryC,
     ]);
     final StrongComponents strongComponents =
-        StrongComponents(testComponent, Uri.file('/c.dart'));
+        StrongComponents(testComponent, {libraryLoaded}, Uri.file('/c.dart'));
     strongComponents.computeModules();
 
     expect(strongComponents.modules, {

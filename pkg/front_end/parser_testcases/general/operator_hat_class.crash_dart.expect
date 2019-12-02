@@ -1,6 +1,6 @@
 Problems reported:
 
-parser_test/general/operator_hat_class.crash:1:7: Can't use 'operator' as a name here.
+parser/general/operator_hat_class.crash:1:7: Can't use 'operator' as a name here.
 class operator {
       ^^^^^^^^
 

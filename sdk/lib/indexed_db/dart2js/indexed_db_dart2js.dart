@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 /**
  * A client-side key-value store with support for indexes.
  *

@@ -1338,7 +1338,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitVariableGet(VariableGet node) {
     _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
-    assert(index != null);
+    assert(index != null, "No index found for ${node.variable}");
     if (index & Tag.SpecializedPayloadMask == index &&
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
@@ -1357,7 +1357,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitVariableSet(VariableSet node) {
     _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
-    assert(index != null);
+    assert(index != null, "No index found for ${node.variable}");
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);

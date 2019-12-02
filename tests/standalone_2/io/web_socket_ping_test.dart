@@ -7,6 +7,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+// @dart = 2.6
+
 library dart._http;
 
 import "package:expect/expect.dart";

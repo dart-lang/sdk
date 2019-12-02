@@ -56,7 +56,7 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement.genericTypeAlias('F');
+    var alias = findElement.functionTypeAlias('F');
     assertElementTypeString(
       alias.instantiate(
         typeArguments: const [],
@@ -126,7 +126,7 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement.genericTypeAlias('F');
+    var alias = findElement.functionTypeAlias('F');
     assertElementTypeString(
       alias.instantiate(
         typeArguments: const [],
@@ -200,6 +200,38 @@ class B {}
     // https://github.com/dart-lang/sdk/issues/38091
     // this caused an infinite loop in parser recovery
     await _assertCanBeAnalyzed(r'c(=k(<)>');
+  }
+
+  test_fuzz_38506() async {
+    // https://github.com/dart-lang/sdk/issues/38506
+    // We have only one LibraryElement to get resolved annotations.
+    // Leave annotations node of other LibraryDirective(s) unresolved.
+    await _assertCanBeAnalyzed(r'''
+library c;
+@foo
+library c;
+''');
+  }
+
+  test_fuzz_38953() async {
+    // When we enter a directive, we should stop using the element walker
+    // of the unit, just like when we enter a method body. Even though using
+    // interpolation is not allowed in any directives.
+    await _assertCanBeAnalyzed(r'''
+import '${[for(var v = 0;;) v]}';
+export '${[for(var v = 0;;) v]}';
+part '${[for(var v = 0;;) v]}';
+''');
+  }
+
+  test_fuzz_38878() async {
+    // We should not attempt to resolve `super` in annotations.
+    await _assertCanBeAnalyzed(r'''
+class C {
+  @A(super.f())
+  f(int x) {}
+}
+''');
   }
 
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {

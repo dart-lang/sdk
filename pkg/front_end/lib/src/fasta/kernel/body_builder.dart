@@ -140,7 +140,7 @@ import 'kernel_api.dart';
 
 import 'kernel_ast_api.dart';
 
-import 'kernel_shadow_ast.dart';
+import 'internal_ast.dart';
 
 import 'kernel_builder.dart';
 
@@ -553,8 +553,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void inferAnnotations(TreeNode parent, List<Expression> annotations) {
     if (annotations != null) {
       typeInferrer?.inferMetadata(this, parent, annotations);
-      libraryBuilder.loader.transformListPostInference(
-          annotations, transformSetLiterals, transformCollections);
+      libraryBuilder.loader.transformListPostInference(annotations,
+          transformSetLiterals, transformCollections, libraryBuilder.library);
     }
   }
 
@@ -675,20 +675,33 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       fields.add(fieldBuilder);
       if (initializer != null) {
-        if (fieldBuilder.next != null) {
+        if (fieldBuilder.isDuplicate) {
           // Duplicate definition. The field might not be the correct one,
           // so we skip inference of the initializer.
           // Error reporting and recovery is handled elsewhere.
-        } else if (fieldBuilder.field.initializer != null) {
+        } else if (fieldBuilder.hasBodyBeenBuilt) {
           // The initializer was already compiled (e.g., if it appear in the
           // outline, like constant field initializers) so we do not need to
           // perform type inference or transformations.
         } else {
-          fieldBuilder.initializer = typeInferrer?.inferFieldInitializer(
+          initializer = typeInferrer?.inferFieldInitializer(
               this, fieldBuilder.builtType, initializer);
-          libraryBuilder.loader.transformPostInference(
-              fieldBuilder.field, transformSetLiterals, transformCollections);
+
+          if (transformCollections || transformSetLiterals) {
+            // Wrap the initializer in a temporary parent expression; the
+            // transformations need a parent relation.
+            Not wrapper = new Not(initializer);
+            libraryBuilder.loader.transformPostInference(
+                wrapper,
+                transformSetLiterals,
+                transformCollections,
+                libraryBuilder.library);
+            initializer = wrapper.operand;
+          }
+          fieldBuilder.buildBody(initializer);
         }
+      } else if (!fieldBuilder.hasBodyBeenBuilt) {
+        fieldBuilder.buildBody(null);
       }
     }
     {
@@ -733,16 +746,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (member.formals != null) {
         for (FormalParameterBuilder formal in member.formals) {
           if (formal.isInitializingFormal) {
-            Initializer initializer;
+            List<Initializer> initializers;
             if (member.isExternal) {
-              initializer = buildInvalidInitializer(
-                  buildProblem(
-                      fasta.messageExternalConstructorWithFieldInitializers,
-                      formal.charOffset,
-                      formal.name.length),
-                  formal.charOffset);
+              initializers = <Initializer>[
+                buildInvalidInitializer(
+                    buildProblem(
+                        fasta.messageExternalConstructorWithFieldInitializers,
+                        formal.charOffset,
+                        formal.name.length),
+                    formal.charOffset)
+              ];
             } else {
-              initializer = buildFieldInitializer(
+              initializers = buildFieldInitializer(
                   true,
                   formal.name,
                   formal.charOffset,
@@ -750,7 +765,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   new VariableGet(formal.variable),
                   formalType: formal.variable.type);
             }
-            member.addInitializer(initializer, this);
+            for (Initializer initializer in initializers) {
+              member.addInitializer(initializer, this);
+            }
           }
         }
       }
@@ -796,25 +813,33 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(!inInitializer);
     final ModifierBuilder member = this.member;
     Object node = pop();
-    Initializer initializer;
+    List<Initializer> initializers;
     if (node is Initializer) {
-      initializer = node;
+      initializers = <Initializer>[node];
     } else if (node is Generator) {
-      initializer = node.buildFieldInitializer(initializedFields);
+      initializers = node.buildFieldInitializer(initializedFields);
     } else if (node is ConstructorInvocation) {
-      initializer = buildSuperInitializer(
-          false, node.target, node.arguments, token.charOffset);
+      initializers = <Initializer>[
+        buildSuperInitializer(
+            false, node.target, node.arguments, token.charOffset)
+      ];
     } else {
       Expression value = toValue(node);
       if (!forest.isThrow(node)) {
         value =
             wrapInProblem(value, fasta.messageExpectedAnInitializer, noLength);
       }
-      initializer = buildInvalidInitializer(node, token.charOffset);
+      initializers = <Initializer>[
+        buildInvalidInitializer(node, token.charOffset)
+      ];
     }
-    typeInferrer?.inferInitializer(this, initializer);
+    for (Initializer initializer in initializers) {
+      typeInferrer?.inferInitializer(this, initializer);
+    }
     if (member is ConstructorBuilder && !member.isExternal) {
-      member.addInitializer(initializer, this);
+      for (Initializer initializer in initializers) {
+        member.addInitializer(initializer, this);
+      }
     } else {
       addProblem(
           fasta.templateInitializerOutsideConstructor
@@ -846,18 +871,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.variable.initializer;
         if (parameter.isOptional || initializer != null) {
-          if (parameter.isOptional) {
-            initializer ??= forest.createNullLiteral(
-                // TODO(ahe): Should store: originParameter.fileOffset
-                // https://github.com/dart-lang/sdk/issues/32289
-                noLocation);
+          if (!parameter.initializerWasInferred) {
+            parameter.initializerWasInferred = true;
+            if (parameter.isOptional) {
+              initializer ??= forest.createNullLiteral(
+                  // TODO(ahe): Should store: originParameter.fileOffset
+                  // https://github.com/dart-lang/sdk/issues/32289
+                  noLocation);
+            }
+            VariableDeclaration originParameter = builder.getFormalParameter(i);
+            initializer = typeInferrer?.inferParameterInitializer(
+                this, initializer, originParameter.type);
+            originParameter.initializer = initializer..parent = originParameter;
+            libraryBuilder.loader.transformPostInference(
+                originParameter,
+                transformSetLiterals,
+                transformCollections,
+                libraryBuilder.library);
           }
-          VariableDeclaration originParameter = builder.getFormalParameter(i);
-          initializer = typeInferrer?.inferParameterInitializer(
-              this, initializer, originParameter.type);
-          originParameter.initializer = initializer..parent = originParameter;
-          libraryBuilder.loader.transformPostInference(
-              originParameter, transformSetLiterals, transformCollections);
 
           VariableDeclaration extensionTearOffParameter =
               builder.getExtensionTearOffParameter(i);
@@ -869,16 +900,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             libraryBuilder.loader.transformPostInference(
                 extensionTearOffParameter,
                 transformSetLiterals,
-                transformCollections);
+                transformCollections,
+                libraryBuilder.library);
           }
         }
       }
     }
-    typeInferrer?.inferFunctionBody(this, _computeReturnTypeContext(member),
-        asyncModifier, builder.member.function, body);
     if (body != null) {
-      libraryBuilder.loader.transformPostInference(
-          body, transformSetLiterals, transformCollections);
+      body = typeInferrer?.inferFunctionBody(
+          this,
+          _computeReturnTypeContext(member),
+          asyncModifier,
+          builder.member.function,
+          body);
+      libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
+          transformCollections, libraryBuilder.library);
     }
 
     if (builder.returnType != null) {
@@ -1334,8 +1370,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       constructor.initializers.add(initializer);
     }
     setParents(constructor.initializers, constructor);
-    libraryBuilder.loader.transformListPostInference(
-        constructor.initializers, transformSetLiterals, transformCollections);
+    libraryBuilder.loader.transformListPostInference(constructor.initializers,
+        transformSetLiterals, transformCollections, libraryBuilder.library);
     if (constructor.function.body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
@@ -1481,7 +1517,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
-      push(new Cascade(variable)..fileOffset = expression.fileOffset);
+      push(new Cascade(variable, isNullAware: optional('?..', token))
+        ..fileOffset = expression.fileOffset);
       push(_createReadOnlyVariableAccess(
           variable, token, expression.fileOffset, null));
     }
@@ -3151,8 +3188,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
       FunctionBuilder member = this.member;
-      parameter = member.getFormal(name.name);
+      parameter = member.getFormal(name);
       if (parameter == null) {
+        // This happens when the list of formals (originally) contains a
+        // ParserRecovery - then the popped list becomes null.
         push(new ParserRecovery(nameToken.charOffset));
         return;
       }
@@ -3172,7 +3211,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             initializer.fileOffset,
             noLength);
       } else {
-        variable.initializer = initializer..parent = variable;
+        if (!parameter.initializerWasInferred) {
+          variable.initializer = initializer..parent = variable;
+        }
       }
     } else if (kind != FormalParameterKind.mandatory) {
       variable.initializer ??= forest.createNullLiteral(noLocation)
@@ -3182,6 +3223,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (functionNestingLevel == 0) {
         inferAnnotations(variable, annotations);
       }
+      variable.clearAnnotations();
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
       }
@@ -3424,15 +3466,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     Object receiver = pop();
+    bool isNullAware = optional('?.[', openSquareBracket);
     if (receiver is Generator) {
-      push(receiver.buildIndexedAccess(index, openSquareBracket));
+      push(receiver.buildIndexedAccess(index, openSquareBracket,
+          isNullAware: isNullAware));
     } else if (receiver is Expression) {
-      push(IndexedAccessGenerator.make(
-          this, openSquareBracket, receiver, index));
+      push(IndexedAccessGenerator.make(this, openSquareBracket, receiver, index,
+          isNullAware: isNullAware));
     } else {
       assert(receiver is Initializer);
       push(IndexedAccessGenerator.make(
-          this, openSquareBracket, toValue(receiver), index));
+          this, openSquareBracket, toValue(receiver), index,
+          isNullAware: isNullAware));
     }
   }
 
@@ -3489,7 +3534,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object generator = pop();
     if (generator is Generator) {
       push(new DelayedPostfixIncrement(
-          this, token, generator, incrementOperator(token), null));
+          this, token, generator, incrementOperator(token)));
     } else {
       push(wrapInProblem(
           toValue(generator), fasta.messageNotAnLvalue, noLength));
@@ -5245,22 +5290,26 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  Initializer buildFieldInitializer(bool isSynthetic, String name,
+  List<Initializer> buildFieldInitializer(bool isSynthetic, String name,
       int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType}) {
     Builder builder = declarationBuilder.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
-      return new LocalInitializer(new VariableDeclaration.forValue(buildProblem(
-          fasta.templateDuplicatedDeclarationUse.withArguments(name),
-          fieldNameOffset,
-          name.length)))
-        ..fileOffset = fieldNameOffset;
+      return <Initializer>[
+        new LocalInitializer(new VariableDeclaration.forValue(buildProblem(
+            fasta.templateDuplicatedDeclarationUse.withArguments(name),
+            fieldNameOffset,
+            name.length)))
+          ..fileOffset = fieldNameOffset
+      ];
     } else if (builder is FieldBuilder && builder.isDeclarationInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
-        return buildDuplicatedInitializer(builder.field, expression, name,
-            assignmentOffset, initializedFields[name]);
+        return <Initializer>[
+          buildDuplicatedInitializer(builder.field, expression, name,
+              assignmentOffset, initializedFields[name])
+        ];
       }
       initializedFields[name] = assignmentOffset;
       if (builder.isFinal && builder.hasInitializer) {
@@ -5283,12 +5332,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ]),
             constness: Constness.explicitNew,
             charOffset: assignmentOffset);
-        return new ShadowInvalidFieldInitializer(
-            builder.field,
-            expression,
-            new VariableDeclaration.forValue(
-                forest.createThrow(assignmentOffset, invocation)))
-          ..fileOffset = assignmentOffset;
+        return <Initializer>[
+          new ShadowInvalidFieldInitializer(
+              builder.field,
+              expression,
+              new VariableDeclaration.forValue(
+                  forest.createThrow(assignmentOffset, invocation)))
+            ..fileOffset = assignmentOffset
+        ];
       } else {
         if (formalType != null &&
             !typeEnvironment.isSubtypeOf(formalType, builder.field.type,
@@ -5304,17 +5355,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                     .withLocation(builder.fileUri, builder.charOffset, noLength)
               ]);
         }
-        return new FieldInitializer(builder.field, expression)
-          ..fileOffset = assignmentOffset
-          ..isSynthetic = isSynthetic;
+        return builder.buildInitializer(assignmentOffset, expression,
+            isSynthetic: isSynthetic);
       }
     } else {
-      return buildInvalidInitializer(
-          buildProblem(
-              fasta.templateInitializerForStaticField.withArguments(name),
-              fieldNameOffset,
-              name.length),
-          fieldNameOffset);
+      return <Initializer>[
+        buildInvalidInitializer(
+            buildProblem(
+                fasta.templateInitializerForStaticField.withArguments(name),
+                fieldNameOffset,
+                name.length),
+            fieldNameOffset)
+      ];
     }
   }
 

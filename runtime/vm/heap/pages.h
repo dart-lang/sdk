@@ -358,7 +358,7 @@ class PageSpace {
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
-  bool ShouldPerformIdleMarkSweep(int64_t deadline);
+  bool ShouldStartIdleMarkSweep(int64_t deadline);
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }

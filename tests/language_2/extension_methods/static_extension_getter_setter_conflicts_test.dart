@@ -82,11 +82,11 @@ void test0() {
   E0(c0)[0] += 0;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
+  // [cfe] The method '[]' isn't defined for the class 'C0'.
   E0(c0)[0]++;
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
+  // [cfe] The method '[]' isn't defined for the class 'C0'.
 }
 
 // Conflicting extensions.

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -644,6 +645,12 @@ class LinkedUnitContext {
   TypeAnnotation getTypeParameterBound(TypeParameter node) {
     LazyTypeParameter.readBound(_astReader, node);
     return node.bound;
+  }
+
+  Token getTypeParameterVariance(TypeParameter node) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    return (node as TypeParameterImpl).varianceKeyword;
   }
 
   TypeParameterList getTypeParameters2(AstNode node) {

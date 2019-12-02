@@ -13,6 +13,7 @@ import 'package:analysis_server/src/edit/preview/exception_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_css_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_js_page.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
+import 'package:analysis_server/src/edit/preview/index_file_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -83,12 +84,19 @@ class PreviewSite extends Site implements AbstractGetHandler {
 
   @override
   Future<void> handleGetRequest(HttpRequest request) async {
-    String path = request.uri.path;
+    Uri uri = request.uri;
+    if (uri.query.isNotEmpty) {
+      performEdit(uri);
+      performMigration();
+    }
+    String path = uri.path;
     try {
       if (path == highlightCssPagePath) {
         return respond(request, HighlightCssPage(this));
       } else if (path == highlightJSPagePath) {
         return respond(request, HighlightJSPage(this));
+      } else if (path == migrationInfo.includedRoot) {
+        return respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
@@ -109,6 +117,28 @@ class PreviewSite extends Site implements AbstractGetHandler {
         response.close();
       }
     }
+  }
+
+  /// Perform the edit indicated by the [uri].
+  void performEdit(Uri uri) {
+    // We might want to allow edits to files other than the file to be displayed
+    // after the edit is performed, in which case we'll need to encode the file
+    // path as a query parameter.
+    Map<String, String> params = uri.queryParameters;
+    String path = uri.path;
+    int offset = int.parse(params['offset']);
+    int end = int.parse(params['end']);
+    String replacement = params['replacement'];
+    File file = pathMapper.provider.getFile(path);
+    String oldContent = file.readAsStringSync();
+    String newContent = oldContent.replaceRange(offset, end, replacement);
+    file.writeAsStringSync(newContent);
+  }
+
+  /// Perform the migration again and update this site to serve up the results
+  /// of the new migration.
+  void performMigration() {
+    // TODO(brianwilkerson) Implement this.
   }
 
   @override

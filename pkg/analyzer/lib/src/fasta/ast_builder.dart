@@ -2142,14 +2142,13 @@ class AstBuilder extends StackListener {
 
     // Peek to leave type parameters on top of stack.
     List<TypeParameter> typeParameters = peek();
-    TypeParameter typeParameter = typeParameters[index];
-    typeParameter
-      ..extendsKeyword = extendsOrSuper
-      ..bound = bound;
 
-    if (typeParameter is TypeParameterImpl) {
-      typeParameter.varianceKeyword = variance;
-    }
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    (typeParameters[index] as TypeParameterImpl)
+      ..extendsKeyword = extendsOrSuper
+      ..bound = bound
+      ..varianceKeyword = variance;
   }
 
   @override
@@ -3413,20 +3412,10 @@ class AstBuilder extends StackListener {
 
   List<T> popTypedList<T>(int count, [List<T> list]) {
     if (count == 0) return null;
-    assert(stack.arrayLength >= count);
-
-    final table = stack.array;
-    final length = stack.arrayLength;
+    assert(stack.length >= count);
 
     final tailList = list ?? new List<T>.filled(count, null, growable: true);
-    final startIndex = length - count;
-    for (int i = 0; i < count; i++) {
-      final value = table[startIndex + i];
-      tailList[i] = value is NullValue ? null : value;
-      table[startIndex + i] = null;
-    }
-    stack.arrayLength -= count;
-
+    stack.popList(count, tailList, null);
     return tailList;
   }
 

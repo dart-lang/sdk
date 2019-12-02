@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
@@ -527,16 +528,21 @@ NullableInference inference;
 class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   final Set<Library> librariesFromDill;
   int _functionNesting = 0;
+  TypeEnvironment _typeEnvironment;
+  StatefulStaticTypeContext _staticTypeContext;
 
   _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
   visitComponent(Component node) {
     var hierarchy = ClassHierarchy(node);
-    inference ??= NullableInference(JSTypeRep(
+    var jsTypeRep = JSTypeRep(
       fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
       hierarchy,
-    ));
+    );
+    _typeEnvironment = jsTypeRep.types;
+    _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment);
+    inference ??= NullableInference(jsTypeRep, _staticTypeContext);
 
     if (useAnnotations) {
       inference.allowNotNullDeclarations = useAnnotations;
@@ -547,18 +553,43 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
     if (librariesFromDill.contains(node) ||
         node.importUri.scheme == 'package' &&
             node.importUri.pathSegments[0] == 'meta') {
       return;
     }
     super.visitLibrary(node);
+    _staticTypeContext.leaveLibrary(node);
+  }
+
+  @override
+  visitField(Field node) {
+    _staticTypeContext.enterMember(node);
+    super.visitField(node);
+    _staticTypeContext.leaveMember(node);
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    _staticTypeContext.enterMember(node);
+    super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    super.visitProcedure(node);
+    _staticTypeContext.leaveMember(node);
   }
 
   @override
   visitFunctionNode(FunctionNode node) {
     _functionNesting++;
-    if (_functionNesting == 1) inference.enterFunction(node);
+    if (_functionNesting == 1) {
+      inference.enterFunction(node);
+    }
     super.visitFunctionNode(node);
     if (_functionNesting == 1) inference.exitFunction(node);
     _functionNesting--;

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -72,7 +71,7 @@ class LibraryAnalyzer {
   final LinkedElementFactory _elementFactory;
   TypeProviderImpl _typeProvider;
 
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -135,9 +134,9 @@ class LibraryAnalyzer {
     FeatureSet featureSet = units[_library].featureSet;
     _typeProvider = _context.typeProvider;
     if (featureSet.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+      _typeProvider = _typeProvider.asNonNullableByDefault;
     } else {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.star);
+      _typeProvider = _typeProvider.asLegacy;
     }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
@@ -295,8 +294,8 @@ class LibraryAnalyzer {
     {
       UsedLocalElements usedElements =
           new UsedLocalElements.merge(_usedLocalElementsList);
-      UnusedLocalElementsVerifier visitor =
-          new UnusedLocalElementsVerifier(errorListener, usedElements);
+      UnusedLocalElementsVerifier visitor = new UnusedLocalElementsVerifier(
+          errorListener, usedElements, _inheritance, _libraryElement);
       unit.accept(visitor);
     }
 
@@ -430,8 +429,17 @@ class LibraryAnalyzer {
 
     bool isIgnored(AnalysisError error) {
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String errorCode = error.errorCode.name.toLowerCase();
-      return ignoreInfo.ignoredAt(errorCode, errorLine);
+      String name = error.errorCode.name.toLowerCase();
+      if (ignoreInfo.ignoredAt(name, errorLine)) {
+        return true;
+      }
+      String uniqueName = error.errorCode.uniqueName;
+      int period = uniqueName.indexOf('.');
+      if (period >= 0) {
+        uniqueName = uniqueName.substring(period + 1);
+      }
+      return uniqueName != name &&
+          ignoreInfo.ignoredAt(uniqueName.toLowerCase(), errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();

@@ -2057,7 +2057,6 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
   script.set_debug_positions(Array::null_array());
-  script.set_yield_positions(Array::null_array());
   return script.raw();
 }
 

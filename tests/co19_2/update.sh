@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Uploads a new version of the co19 CIPD packages.
+# Uploads a new version of the co19_2 CIPD package.
 # This script requires access to the dart-build-access group, which EngProd has.
 
 set -e
@@ -25,6 +25,7 @@ git checkout cl-co19-roll-co19-to-$NEW
 BUILD_ID=$(bb add \
               -commit https://dart.googlesource.com/co19/+/$NEW \
               -json \
+              -p variant=legacy \
               dart/ci/co19-roller \
              | jq '.id' \
              | tr -d '"')
@@ -36,7 +37,7 @@ gclient setdep --var=co19_2_rev=$NEW
 # Make a nice commit. Don't include the '#' character to avoid referencing Dart
 # SDK issues.
 git commit DEPS -m \
-  "$(printf "[co19] Roll co19 to $NEW\n\n" &&
+  "$(printf "[co19] Roll co19_2 to $NEW\n\n" &&
      cd $CO19 &&
      git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' \
        $OLD..$NEW | tr -d '#')"

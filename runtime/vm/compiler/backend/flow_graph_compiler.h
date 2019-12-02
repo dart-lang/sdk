@@ -681,6 +681,8 @@ class FlowGraphCompiler : public ValueObject {
                             LocationSummary* locs,
                             Environment* env = nullptr);
 
+  void EmitYieldPositionMetadata(TokenPosition token_pos, intptr_t yield_index);
+
   void EmitComment(Instruction* instr);
 
   // Returns stack size (number of variables on stack for unoptimized
@@ -716,11 +718,13 @@ class FlowGraphCompiler : public ValueObject {
   void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
-  void AddDescriptor(RawPcDescriptors::Kind kind,
-                     intptr_t pc_offset,
-                     intptr_t deopt_id,
-                     TokenPosition token_pos,
-                     intptr_t try_index);
+  void AddDescriptor(
+      RawPcDescriptors::Kind kind,
+      intptr_t pc_offset,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      intptr_t try_index,
+      intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
 
   void AddNullCheck(intptr_t pc_offset,
                     TokenPosition token_pos,

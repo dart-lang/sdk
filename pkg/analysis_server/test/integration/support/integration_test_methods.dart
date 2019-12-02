@@ -1105,6 +1105,7 @@ abstract class IntegrationTestMixin {
    *   If one configured path is beneath another, the descendent will override
    *   the ancestors' configured libraries of interest.
    */
+  @deprecated
   Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
     var params = new CompletionRegisterLibraryPathsParams(paths).toJson();
     var result = await server.send("completion.registerLibraryPaths", params);
@@ -2673,6 +2674,9 @@ abstract class IntegrationTestMixin {
    *   property corresponds to an optional parameter, the corresponding named
    *   argument is removed. If the property isRequired is true,
    *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *
+   *   If the expression is not a syntactically valid Dart code, then
+   *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    *
    * Returns
    *

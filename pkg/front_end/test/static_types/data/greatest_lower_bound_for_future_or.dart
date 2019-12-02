@@ -26,7 +26,7 @@ void func1<T extends Foo>(T t) {
 
   // Type of the expression is GLB(FutureOr<T>, Foo) = T.
   /*invoke: void*/ context(
-      /*invoke: T*/ expr
+      /*cfe|dart2js.invoke: T*/ /*cfe:nnbd.invoke: T!*/ expr
           /*cfe|dart2js.<T>*/
           /*cfe:nnbd.<T!>*/ ());
 }
@@ -41,9 +41,9 @@ void func2<T extends Foo>() {
   // Type of the expression is GLB(FutureOr<T>, Future<Foo>) = Future<T>.
   /*invoke: void*/ context(
       /*cfe|dart2js.invoke: Future<T>*/
-      /*cfe:nnbd.invoke: Future<T!>*/ expr
+      /*cfe:nnbd.invoke: Future<T!>!*/ expr
           /*cfe|dart2js.<Future<T>>*/
-          /*cfe:nnbd.<Future<T!>>*/ ());
+          /*cfe:nnbd.<Future<T!>!>*/ ());
 }
 
 // -----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ void func3<T extends Foo>() {
 
   // Type of the expression is GLB(T, FutureOr<Foo>) = T.
   /*invoke: void*/ context(
-      /*invoke: T*/ expr
+      /*cfe|dart2js.invoke: T*/ /*cfe:nnbd.invoke: T!*/ expr
           /*cfe|dart2js.<T>*/
           /*cfe:nnbd.<T!>*/ ());
 }
@@ -70,7 +70,7 @@ void func4<T extends Foo>() {
   // Type of the expression is GLB(Future<T>, FutureOr<Foo>) = Future<T>.
   /*invoke: void*/ context(
       /*cfe|dart2js.invoke: Future<T>*/
-      /*cfe:nnbd.invoke: Future<T!>*/ expr
+      /*cfe:nnbd.invoke: Future<T!>!*/ expr
           /*cfe|dart2js.<Future<T>>*/
           /*cfe:nnbd.<Future<T!>!>*/ ());
 }
@@ -87,9 +87,9 @@ void func5<T extends Foo>() {
   // = FutureOr<Future<T>>.
   /*invoke: void*/ context(
       /*cfe|dart2js.invoke: FutureOr<Future<T>>*/
-      /*cfe:nnbd.invoke: FutureOr<Future<T!>>*/ expr
+      /*cfe:nnbd.invoke: FutureOr<Future<T!>!>!*/ expr
           /*cfe|dart2js.<FutureOr<Future<T>>>*/
-          /*cfe:nnbd.<FutureOr<Future<T!>>>*/ ());
+          /*cfe:nnbd.<FutureOr<Future<T!>!>!>*/ ());
 }
 
 // -----------------------------------------------------------------------------

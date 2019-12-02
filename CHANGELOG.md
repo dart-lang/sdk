@@ -85,15 +85,15 @@ program-defined, whereas previously it was undefined.
 
 #### Linter
 
-The Linter was updated to `0.1.103`, which includes:
+The Linter was updated to `0.1.104`, which includes:
 
-* updates to `prefer_relative_imports` to use a faster and more robust way to check for self-package references
-* updates to our approach to checking for `lib` dir contents (speeding up `avoid_renaming_method_parameters` and
-  making `prefer_relative_imports` and `public_member_api_docs` amenable to internal package formats -- w/o pubspecs)
+* updated `unnecessary_overrides` to allow overrides when annotations (besides `@override` are specified)
+* updated `file_names` to allow names w/ leading `_`'s (and improved performance)
+* new lint: `unnecessary_final`
 
 #### Pub
 
-* `pub get` generates [`.dart_tools/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
+* `pub get` generates [`.dart_tool/package_config.json`](https://github.com/dart-lang/language/blob/62c036cc41b10fb543102d2f73ee132d1e2b2a0e/accepted/future-releases/language-versioning/package-config-file-v2.md)
   in addition to `.packages` to support language versioning.
 
 * `pub publish` now warns about the old flutter plugin registration format.
@@ -193,6 +193,12 @@ main() { foo(() {}); }
 
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
+
+#### `dart:io`
+
+* Added `enableTimelineLogging` property to `HttpClient` which, when enabled,
+  will post HTTP connection and request information to the developer timeline
+  for all `HttpClient` instances.
 
 ### Dart VM
 

@@ -208,9 +208,13 @@ IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
     : embedder_data_(embedder_data),
       isolates_rwlock_(new RwLock()),
       isolates_(),
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+#endif
       source_(std::move(source)),
       thread_registry_(new ThreadRegistry()),
-      safepoint_handler_(new SafepointHandler(this)) {}
+      safepoint_handler_(new SafepointHandler(this)) {
+}
 
 IsolateGroup::~IsolateGroup() {}
 
@@ -517,7 +521,7 @@ NoReloadScope::~NoReloadScope() {
 
 void Isolate::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
+  if (group()->IsReloading()) {
     reload_context()->RegisterClass(cls);
     return;
   }
@@ -1242,7 +1246,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
-      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       random_(),
@@ -1592,52 +1595,85 @@ void Isolate::BuildName(const char* name_prefix) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
-         !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
-bool Isolate::ReloadSources(JSONStream* js,
-                            bool force_reload,
-                            const char* root_script_url,
-                            const char* packages_url,
-                            bool dont_delete_reload_context) {
+bool IsolateGroup::ReloadSources(JSONStream* js,
+                                 bool force_reload,
+                                 const char* root_script_url,
+                                 const char* packages_url,
+                                 bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
-  SetHasAttemptedReload(true);
-  reload_context_ = new IsolateReloadContext(this, js);
-  reload_context_->Reload(force_reload, root_script_url, packages_url,
-                          /* kernel_buffer= */ nullptr,
-                          /* kernel_buffer_size= */ 0);
-  bool success = !reload_context_->reload_aborted();
+
+  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
+  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
+  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
+  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+
+  auto shared_class_table = Isolate::Current()->shared_class_table();
+  std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
+      new IsolateGroupReloadContext(this, shared_class_table, js));
+  group_reload_context_ = group_reload_context;
+
+  ForEachIsolate([&](Isolate* isolate) {
+    isolate->SetHasAttemptedReload(true);
+    isolate->reload_context_ =
+        new IsolateReloadContext(group_reload_context_, isolate);
+  });
+  const bool success =
+      group_reload_context_->Reload(force_reload, root_script_url, packages_url,
+                                    /*kernel_buffer=*/nullptr,
+                                    /*kernel_buffer_size=*/0);
   if (!dont_delete_reload_context) {
+    ForEachIsolate([&](Isolate* isolate) { isolate->DeleteReloadContext(); });
     DeleteReloadContext();
   }
   return success;
 }
 
-bool Isolate::ReloadKernel(JSONStream* js,
-                           bool force_reload,
-                           const uint8_t* kernel_buffer,
-                           intptr_t kernel_buffer_size,
-                           bool dont_delete_reload_context) {
+bool IsolateGroup::ReloadKernel(JSONStream* js,
+                                bool force_reload,
+                                const uint8_t* kernel_buffer,
+                                intptr_t kernel_buffer_size,
+                                bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
-  SetHasAttemptedReload(true);
-  reload_context_ = new IsolateReloadContext(this, js);
-  reload_context_->Reload(force_reload,
-                          /* root_script_url= */ nullptr,
-                          /* packages_url= */ nullptr, kernel_buffer,
-                          kernel_buffer_size);
-  bool success = !reload_context_->reload_aborted();
+
+  // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
+  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
+  RELEASE_ASSERT(isolates_.First() == isolates_.Last());
+  RELEASE_ASSERT(isolates_.First() == Isolate::Current());
+
+  auto shared_class_table = Isolate::Current()->shared_class_table();
+  std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
+      new IsolateGroupReloadContext(this, shared_class_table, js));
+  group_reload_context_ = group_reload_context;
+
+  ForEachIsolate([&](Isolate* isolate) {
+    isolate->SetHasAttemptedReload(true);
+    isolate->reload_context_ =
+        new IsolateReloadContext(group_reload_context_, isolate);
+  });
+  const bool success = group_reload_context_->Reload(
+      force_reload,
+      /*root_script_url=*/nullptr,
+      /*packages_url=*/nullptr, kernel_buffer, kernel_buffer_size);
   if (!dont_delete_reload_context) {
+    ForEachIsolate([&](Isolate* isolate) { isolate->DeleteReloadContext(); });
     DeleteReloadContext();
   }
   return success;
+}
+
+void IsolateGroup::DeleteReloadContext() {
+  SafepointOperationScope safepoint_scope(Thread::Current());
+  group_reload_context_.reset();
 }
 
 void Isolate::DeleteReloadContext() {
   // Another thread may be in the middle of GetClassForHeapWalkAt.
-  Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_scope(thread);
+  SafepointOperationScope safepoint_scope(Thread::Current());
 
   delete reload_context_;
   reload_context_ = nullptr;
@@ -2334,6 +2370,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects that are being used for isolate reload.
   if (reload_context() != nullptr) {
     reload_context()->VisitObjectPointers(visitor);
+    reload_context()->group_reload_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
@@ -2393,6 +2430,14 @@ void Isolate::DisableIncrementalBarrier() {
   ASSERT(!Thread::Current()->is_marking());
 }
 
+void IsolateGroup::ForEachIsolate(
+    std::function<void(Isolate* isolate)> function) {
+  ReadRwLocker wl(ThreadState::Current(), isolates_rwlock_.get());
+  for (Isolate* isolate : isolates_) {
+    function(isolate);
+  }
+}
+
 void IsolateGroup::RunWithStoppedMutators(
     std::function<void()> single_current_mutator,
     std::function<void()> otherwise,
@@ -2420,7 +2465,7 @@ void IsolateGroup::RunWithStoppedMutators(
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   RawClass* raw_class = nullptr;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
+  if (group()->IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
   } else {
     raw_class = class_table()->At(cid);
@@ -2435,8 +2480,8 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 
 intptr_t Isolate::GetClassSizeForHeapWalkAt(intptr_t cid) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    return reload_context()->GetClassSizeForHeapWalkAt(cid);
+  if (group()->IsReloading()) {
+    return group()->reload_context()->GetClassSizeForHeapWalkAt(cid);
   } else {
     return class_table()->SizeAt(cid);
   }
@@ -2525,7 +2570,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  jsobj.AddProperty("_isReloading", IsReloading());
+  jsobj.AddProperty("_isReloading", group()->IsReloading());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (!is_runnable()) {
@@ -2957,7 +3002,9 @@ void Isolate::PauseEventHandler() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const bool had_isolate_reload_context = reload_context() != nullptr;
   const int64_t start_time_micros =
-      !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
+      !had_isolate_reload_context
+          ? 0
+          : reload_context()->group_reload_context()->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   bool handle_non_service_messages = false;

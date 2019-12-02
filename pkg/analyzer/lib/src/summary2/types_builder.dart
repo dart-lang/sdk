@@ -28,7 +28,7 @@ class NodesToBuildType {
 }
 
 class TypesBuilder {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   TypesBuilder(this.typeSystem);
 
@@ -174,12 +174,6 @@ class TypesBuilder {
     LazyAst.setType(node, type);
   }
 
-  NullabilitySuffix _noneOrStarSuffix(AstNode node) {
-    return _nonNullableEnabled(node)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
-
   bool _nonNullableEnabled(AstNode node) {
     var unit = node.thisOrAncestorOfType<CompilationUnit>();
     return unit.featureSet.isEnabled(Feature.non_nullable);
@@ -207,7 +201,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
 
@@ -347,7 +341,7 @@ class _MixinInference {
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   _MixinsInference(this.typeSystem);
 

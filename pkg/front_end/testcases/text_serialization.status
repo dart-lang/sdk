@@ -10,6 +10,7 @@ expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
 extensions/builtin_identifiers: TextSerializationFailure
+extensions/call_methods: TextSerializationFailure
 extensions/check_bounds: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
 extensions/conflict_with_object: TextSerializationFailure
@@ -87,6 +88,8 @@ general/assign_to_initializing_formal: TextSerializationFailure
 general/async_function: TextSerializationFailure # Was: Pass
 general/async_nested: TextSerializationFailure # Was: Pass
 general/await: TextSerializationFailure # Was: Pass
+general/await_complex: TextSerializationFailure
+general/await_in_cascade: TextSerializationFailure
 general/await_in_non_async: TextSerializationFailure
 general/bad_setter_abstract: TextSerializationFailure # Was: Pass
 general/bad_store: TextSerializationFailure # Was: Pass
@@ -167,6 +170,7 @@ general/expressions: TextSerializationFailure # Was: RuntimeError
 general/external: TextSerializationFailure # Was: Pass
 general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: TextSerializationFailure
+general/ffi_sample: TextSerializationFailure
 general/fibonacci: TextSerializationFailure # Was: Pass
 general/for_in_scope: TextSerializationFailure # Was: Pass
 general/for_in_without_declaration: TextSerializationFailure
@@ -212,6 +216,8 @@ general/issue38938: TextSerializationFailure
 general/issue38943: TextSerializationFailure
 general/issue38944: TextSerializationFailure
 general/issue38961: TextSerializationFailure
+general/issue39344: TextSerializationFailure
+general/issue39421: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -317,7 +323,7 @@ general/typedef: TextSerializationFailure # Was: Pass
 general/undefined: TextSerializationFailure # Was: Pass
 general/undefined_getter_in_compound_assignment: TextSerializationFailure # Was: Pass
 general/uninitialized_fields: TextSerializationFailure # Was: Pass
-general/unsound_promotion: TextSerializationFailure
+general/unsound_promotion: TypeCheckError
 general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
@@ -889,6 +895,28 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+late_lowering/instance_field_with_initializer: TextSerializationFailure
+late_lowering/instance_field_without_initializer: TextSerializationFailure
+late_lowering/instance_final_field_without_initializer: TextSerializationFailure
+late_lowering/instance_nullable_field_with_initializer: TextSerializationFailure
+late_lowering/instance_nullable_field_without_initializer: TextSerializationFailure
+late_lowering/instance_nullable_final_field_without_initializer: TextSerializationFailure
+late_lowering/late_field_with_initializer: TextSerializationFailure
+late_lowering/late_field_without_initializer: TextSerializationFailure
+late_lowering/late_final_field_with_initializer: TextSerializationFailure
+late_lowering/late_final_field_without_initializer: TextSerializationFailure
+late_lowering/late_final_nullable_field_with_initializer: TextSerializationFailure
+late_lowering/late_final_nullable_field_without_initializer: TextSerializationFailure
+late_lowering/late_nullable_field_with_initializer: TextSerializationFailure
+late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
+late_lowering/late_final_local_with_initializer: TextSerializationFailure
+late_lowering/late_final_local_without_initializer: TextSerializationFailure
+late_lowering/late_final_nullable_local_with_initializer: TextSerializationFailure
+late_lowering/late_final_nullable_local_without_initializer: TextSerializationFailure
+late_lowering/late_local_with_initializer: TextSerializationFailure
+late_lowering/late_local_without_initializer: TextSerializationFailure
+late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
+late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
 nnbd/inheritance_from_opt_out: TypeCheckError
@@ -898,8 +926,10 @@ nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
+nnbd/null_shorting_cascade: TextSerializationFailure
 nnbd/null_shorting_explicit_extension: TextSerializationFailure
 nnbd/null_shorting_extension: TextSerializationFailure
+nnbd/null_shorting_index: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
@@ -1172,5 +1202,5 @@ set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 top_level_variance_test: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
-variance/mixin_type_parameter_modifier: TextSerializationFailure
 variance/generic_covariance_sound_variance: TextSerializationFailure
+variance/mixin_type_parameter_modifier: TextSerializationFailure

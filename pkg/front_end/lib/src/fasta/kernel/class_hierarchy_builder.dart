@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         InterfaceType,
         InvalidType,
+        Library,
         Member,
         Name,
         Nullability,
@@ -159,7 +160,8 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   if (typeParameterCount != 0) {
     List<DartType> types = new List<DartType>(typeParameterCount);
     for (int i = 0; i < typeParameterCount; i++) {
-      types[i] = new TypeParameterType(aTypeParameters[i], Nullability.legacy);
+      types[i] = new TypeParameterType.forAlphaRenaming(
+          bTypeParameters[i], aTypeParameters[i]);
     }
     substitution = Substitution.fromPairs(bTypeParameters, types);
     for (int i = 0; i < typeParameterCount; i++) {
@@ -659,8 +661,8 @@ class ClassHierarchyNodeBuilder {
       }
       List<DartType> types = new List<DartType>(typeParameterCount);
       for (int i = 0; i < typeParameterCount; i++) {
-        types[i] =
-            new TypeParameterType(aTypeParameters[i], Nullability.legacy);
+        types[i] = new TypeParameterType.forAlphaRenaming(
+            bTypeParameters[i], aTypeParameters[i]);
       }
       substitution = Substitution.fromPairs(bTypeParameters, types);
       for (int i = 0; i < typeParameterCount; i++) {
@@ -979,8 +981,10 @@ class ClassHierarchyNodeBuilder {
         if (inheritedType is ImplicitFieldType) {
           SourceLibraryBuilder library = classBuilder.library;
           (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
+          a.fieldType = inheritedType.createAlias(a);
+        } else {
+          a.fieldType = inheritedType;
         }
-        a.field.type = inheritedType;
       }
     }
     return result;
@@ -1204,14 +1208,23 @@ class ClassHierarchyNodeBuilder {
     }
 
     /// Members (excluding setters) declared in [cls].
-    List<ClassMember> localMembers =
-        new List<ClassMember>.from(scope.localMembers)
-          ..sort(compareDeclarations);
+    List<ClassMember> localMembers = <ClassMember>[];
 
     /// Setters declared in [cls].
-    List<ClassMember> localSetters =
-        new List<ClassMember>.from(scope.localSetters)
-          ..sort(compareDeclarations);
+    List<ClassMember> localSetters = <ClassMember>[];
+
+    for (MemberBuilder memberBuilder in scope.localMembers) {
+      localMembers.addAll(memberBuilder.localMembers);
+      localSetters.addAll(memberBuilder.localSetters);
+    }
+
+    for (MemberBuilder memberBuilder in scope.localSetters) {
+      localMembers.addAll(memberBuilder.localMembers);
+      localSetters.addAll(memberBuilder.localSetters);
+    }
+
+    localMembers.sort(compareDeclarations);
+    localSetters.sort(compareDeclarations);
 
     // Add implied setters from fields in [localMembers].
     localSetters = mergeAccessors(localMembers, localSetters);
@@ -1677,8 +1690,8 @@ class ClassHierarchyNodeBuilder {
     new BuilderMixinInferrer(
             classBuilder,
             hierarchy.coreTypes,
-            new TypeBuilderConstraintGatherer(
-                hierarchy, mixedInType.classNode.typeParameters))
+            new TypeBuilderConstraintGatherer(hierarchy,
+                mixedInType.classNode.typeParameters, cls.enclosingLibrary))
         .infer(cls);
     List<TypeBuilder> inferredArguments =
         new List<TypeBuilder>(typeArguments.length);
@@ -1782,8 +1795,8 @@ class ClassHierarchyNode {
     return result..last = this;
   }
 
-  String toString([StringBuffer sb]) {
-    sb ??= new StringBuffer();
+  String toString() {
+    StringBuffer sb = new StringBuffer();
     sb
       ..write(classBuilder.fullNameForErrors)
       ..writeln(":");
@@ -1967,9 +1980,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
     with StandardBounds {
   final ClassHierarchyBuilder hierarchy;
 
-  TypeBuilderConstraintGatherer(
-      this.hierarchy, Iterable<TypeParameter> typeParameters)
-      : super.subclassing(typeParameters);
+  TypeBuilderConstraintGatherer(this.hierarchy,
+      Iterable<TypeParameter> typeParameters, Library currentLibrary)
+      : super.subclassing(typeParameters, currentLibrary);
 
   @override
   Class get objectClass => hierarchy.objectClass;
@@ -2071,7 +2084,9 @@ class DelayedOverrideCheck {
           if (type != null) {
             type = Substitution.fromInterfaceType(
                     hierarchy.getKernelTypeAsInstanceOf(
-                        classBuilder.cls.thisType, b.member.enclosingClass))
+                        hierarchy.coreTypes.thisInterfaceType(
+                            classBuilder.cls, classBuilder.library.nonNullable),
+                        b.member.enclosingClass))
                 .substituteType(type);
             if (!a.hadTypesInferred || !b.isSetter) {
               inferReturnType(
@@ -2093,7 +2108,9 @@ class DelayedOverrideCheck {
           if (type != null) {
             type = Substitution.fromInterfaceType(
                     hierarchy.getKernelTypeAsInstanceOf(
-                        classBuilder.cls.thisType, b.member.enclosingClass))
+                        hierarchy.coreTypes.thisInterfaceType(
+                            classBuilder.cls, classBuilder.library.nonNullable),
+                        b.member.enclosingClass))
                 .substituteType(type);
             if (!a.hadTypesInferred || !b.isGetter) {
               inferParameterType(classBuilder, a, a.formals.single, type,
@@ -2117,22 +2134,24 @@ class DelayedOverrideCheck {
         if (type != null) {
           type = Substitution.fromInterfaceType(
                   hierarchy.getKernelTypeAsInstanceOf(
-                      classBuilder.cls.thisType, b.member.enclosingClass))
+                      hierarchy.coreTypes.thisInterfaceType(
+                          classBuilder.cls, classBuilder.library.nonNullable),
+                      b.member.enclosingClass))
               .substituteType(type);
-          if (type != a.field.type) {
+          if (type != a.fieldType) {
             if (a.hadTypesInferred) {
               if (b.isSetter &&
                   (!impliesSetter(a) ||
-                      hierarchy.types.isSubtypeOfKernel(type, a.field.type,
+                      hierarchy.types.isSubtypeOfKernel(type, a.fieldType,
                           SubtypeCheckMode.ignoringNullabilities))) {
-                type = a.field.type;
+                type = a.fieldType;
               } else {
                 reportCantInferFieldType(classBuilder, a);
                 type = const InvalidType();
               }
             }
             debug?.log("Inferred type ${type} for ${fullName(a)}");
-            a.field.type = type;
+            a.fieldType = type;
           }
         }
         a.hadTypesInferred = true;
@@ -2320,7 +2339,8 @@ class InterfaceConflict extends DelayedMember {
     if (classBuilder.library is! SourceLibraryBuilder) {
       return combinedMemberSignatureResult = declarations.first.member;
     }
-    DartType thisType = classBuilder.cls.thisType;
+    DartType thisType = hierarchy.coreTypes
+        .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
     ClassMember bestSoFar;
     DartType bestTypeSoFar;
     for (int i = declarations.length - 1; i >= 0; i--) {

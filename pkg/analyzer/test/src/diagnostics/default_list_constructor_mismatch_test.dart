@@ -51,9 +51,6 @@ var l = new List<String?>(3);
 ''');
   }
 
-  @FailingTest(
-    reason: 'The type of the parameterElement for `3` is non-nullable',
-  )
   test_optOut() async {
     await assertNoErrorsInCode('''
 // @dart = 2.2

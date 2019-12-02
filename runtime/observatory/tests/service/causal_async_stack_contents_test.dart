@@ -11,8 +11,8 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 const LINE_C = 19;
-const LINE_A = 24;
-const LINE_B = 30;
+const LINE_A = 25;
+const LINE_B = 31;
 
 foobar() {
   debugger();
@@ -20,6 +20,7 @@ foobar() {
 }
 
 helper() async {
+  await 0; // force async gap
   debugger();
   print('helper'); // LINE_A.
   foobar();
@@ -64,10 +65,10 @@ var tests = <IsolateTest>[
     expect(asyncStack[3].toString(), contains('testMain'));
     // Line 19.
     expect(await asyncStack[0].location.toUserString(), contains('.dart:19'));
-    // Line 25.
-    expect(await asyncStack[1].location.toUserString(), contains('.dart:25'));
-    // Line 30.
-    expect(await asyncStack[3].location.toUserString(), contains('.dart:30'));
+    // Line 26.
+    expect(await asyncStack[1].location.toUserString(), contains('.dart:26'));
+    // Line 31.
+    expect(await asyncStack[3].location.toUserString(), contains('.dart:31'));
   },
 ];
 

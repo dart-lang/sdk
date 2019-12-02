@@ -593,35 +593,6 @@ b:${resourceProvider.pathContext.toUri(packageB)}
     expect(workspace, TypeMatcher<BasicWorkspace>());
   }
 
-  void test_declareVariables_emptyMap() {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    Iterable<String> expected = context.declaredVariables.variableNames;
-    builderOptions.declaredVariables = <String, String>{};
-
-    builder.declareVariables(context);
-    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
-  }
-
-  void test_declareVariables_nonEmptyMap() {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    List<String> expected = context.declaredVariables.variableNames.toList();
-    expect(expected, isNot(contains('a')));
-    expect(expected, isNot(contains('b')));
-    expected.addAll(['a', 'b']);
-    builderOptions.declaredVariables = <String, String>{'a': 'a', 'b': 'b'};
-
-    builder.declareVariables(context);
-    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
-  }
-
-  void test_declareVariables_null() {
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    Iterable<String> expected = context.declaredVariables.variableNames;
-
-    builder.declareVariables(context);
-    expect(context.declaredVariables.variableNames, unorderedEquals(expected));
-  }
-
   @failingTest
   void test_findSdk_embedder_extensions() {
     // See test_createSourceFactory_noProvider_packages_embedder_extensions

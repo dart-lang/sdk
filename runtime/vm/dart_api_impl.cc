@@ -152,7 +152,8 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), list_class,
+    if (Class::IsSubtypeOf(NNBDMode::kLegacy, obj_class,
+                           Object::null_type_arguments(), list_class,
                            Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
@@ -168,7 +169,8 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(), map_class,
+    if (Class::IsSubtypeOf(NNBDMode::kLegacy, obj_class,
+                           Object::null_type_arguments(), map_class,
                            Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
     }
@@ -2043,7 +2045,8 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
   CHECK_CALLBACK_STATE(T);
-  *value = instance.IsInstanceOf(type_obj, Object::null_type_arguments(),
+  *value = instance.IsInstanceOf(NNBDMode::kLegacy, type_obj,
+                                 Object::null_type_arguments(),
                                  Object::null_type_arguments());
   return Api::Success();
 }
@@ -2205,8 +2208,8 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
     bool is_future = Class::IsSubtypeOf(
-        obj_class, Object::null_type_arguments(), future_class,
-        Object::null_type_arguments(), Heap::kNew);
+        NNBDMode::kLegacy, obj_class, Object::null_type_arguments(),
+        future_class, Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
   return false;
@@ -4043,8 +4046,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), kNoneFree, NULL,
-          Heap::kNew);
+          NNBDMode::kLegacy, type_arguments, Object::null_type_arguments(),
+          kNoneFree, NULL, Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
 
@@ -5852,33 +5855,33 @@ DART_EXPORT char* Dart_SetFileModifiedCallback(
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
-    if (IsolateReloadContext::file_modified_callback() != NULL) {
+    if (IsolateGroupReloadContext::file_modified_callback() != NULL) {
       return strdup(
           "Dart_SetFileModifiedCallback permits only one callback to be"
           " registered, please remove the existing callback and then add"
           " this callback");
     }
   } else {
-    if (IsolateReloadContext::file_modified_callback() == NULL) {
+    if (IsolateGroupReloadContext::file_modified_callback() == NULL) {
       return strdup(
           "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
           " be set before it is cleared.");
     }
   }
-  IsolateReloadContext::SetFileModifiedCallback(file_modified_callback);
+  IsolateGroupReloadContext::SetFileModifiedCallback(file_modified_callback);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(PRODUCT)
   return NULL;
 }
 
 DART_EXPORT bool Dart_IsReloading() {
-#if defined(PRODUCT)
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
   return false;
 #else
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  return isolate->IsReloading();
+  return isolate->group()->IsReloading();
 #endif
 }
 

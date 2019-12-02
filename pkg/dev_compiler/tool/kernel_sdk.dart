@@ -100,7 +100,7 @@ Future main(List<String> args) async {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,
     'es6': ModuleFormat.es6,
-    'legacy': ModuleFormat.legacy,
+    'legacy': ModuleFormat.ddc,
   };
 
   for (var name in moduleFormats.keys) {

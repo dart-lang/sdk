@@ -276,7 +276,10 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // on the stack map.
     CompressedStackMaps maps;
     maps = code.compressed_stackmaps();
-    CompressedStackMapsIterator it(maps);
+    CompressedStackMaps global_table;
+    global_table =
+        this->isolate()->object_store()->canonicalized_stack_map_entries();
+    CompressedStackMapsIterator it(maps, global_table);
     const uword start = Instructions::PayloadStart(code.instructions());
     const uint32_t pc_offset = pc() - start;
     if (it.Find(pc_offset)) {
@@ -299,7 +302,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // of outgoing arguments is not explicitly tracked.
 
       // Spill slots are at the 'bottom' of the frame.
-      intptr_t spill_slot_count = it.spill_slot_bit_count();
+      intptr_t spill_slot_count = it.SpillSlotBitCount();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
         if (it.IsObject(bit)) {
           visitor->VisitPointer(last);
@@ -309,7 +312,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
       // The live registers at the 'top' of the frame comprise the rest of the
       // stack map.
-      for (intptr_t bit = it.length() - 1; bit >= spill_slot_count; --bit) {
+      for (intptr_t bit = it.Length() - 1; bit >= spill_slot_count; --bit) {
         if (it.IsObject(bit)) {
           visitor->VisitPointer(first);
         }

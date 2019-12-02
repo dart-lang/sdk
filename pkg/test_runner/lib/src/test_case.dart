@@ -75,10 +75,6 @@ class TestCase {
   bool get hasSyntaxError => testFile?.hasSyntaxError ?? false;
   bool get hasCompileError => testFile?.hasCompileError ?? false;
   bool get hasCrash => testFile?.hasCrash ?? false;
-  bool get isNegative =>
-      hasCompileError ||
-      hasRuntimeError && configuration.runtime != Runtime.none ||
-      displayName.contains("negative_test");
 
   bool get unexpectedOutput {
     var outcome = result;
@@ -108,9 +104,6 @@ class TestCase {
         return Expectation.runtimeError;
       }
       return Expectation.pass;
-    }
-    if (displayName.contains("negative_test")) {
-      return Expectation.fail;
     }
     if (configuration.compiler == Compiler.dart2analyzer && hasStaticWarning) {
       return Expectation.staticWarning;

@@ -106,6 +106,15 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
+  test_lubNode_relatesInBothDirections() {
+    final nodeA = newNode(1);
+    final nodeB = newNode(2);
+    final lubNode = lub(nodeA, nodeB);
+
+    expect(nodeA.outerCompoundNodes, [lubNode]);
+    expect(nodeB.outerCompoundNodes, [lubNode]);
+  }
+
   test_never_source() {
     // never -> 1
     var n1 = newNode(1);
@@ -598,6 +607,15 @@ class NullabilityNodeTest {
     var n1 = newNode(1);
     expect(subst(null, n1), same(n1));
     expect(subst(n1, null), same(n1));
+  }
+
+  test_substitutionNode_relatesInBothDirections() {
+    final nodeA = newNode(1);
+    final nodeB = newNode(2);
+    final substNode = subst(nodeA, nodeB);
+
+    expect(nodeA.outerCompoundNodes, [substNode]);
+    expect(nodeB.outerCompoundNodes, [substNode]);
   }
 
   test_unconstrainted_node_non_nullable() {

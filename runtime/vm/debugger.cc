@@ -969,7 +969,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(type, Object::null_type_arguments(),
+        if (exc_obj.IsInstanceOf(NNBDMode::kLegacy, type,
+                                 Object::null_type_arguments(),
                                  Object::null_type_arguments())) {
           return true;
         }
@@ -1014,7 +1015,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // Attempt to determine the token pos and try index from the async closure.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function().script());
 
   ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
   // This should only be called on frames that aren't active on the stack.
@@ -1057,28 +1057,17 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  intptr_t await_to_token_map_index = await_jump_var - 1;
-  const auto& array =
-      GrowableObjectArray::Handle(zone, script.GetYieldPositions(function_));
-  // await_jump_var is non zero means that array should not be empty
-  // index also fall into the correct range
-  ASSERT(array.Length() > 0 && await_to_token_map_index < array.Length());
-  const Object& token_pos =
-      Object::Handle(zone, array.At(await_to_token_map_index));
-  ASSERT(token_pos.IsSmi());
-  token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
-  token_pos_initialized_ = true;
-  GetPcDescriptors();
-  PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    if (iter.TokenPos() == token_pos_) {
-      // Match the lowest try index at this token position.
-      // TODO(johnmccutchan): Is this heuristic precise enough?
-      if (iter.TryIndex() != kInvalidTryIndex) {
-        if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
-          try_index_ = iter.TryIndex();
-        }
-      }
+
+  const auto& pc_descriptors =
+      PcDescriptors::Handle(zone, code().pc_descriptors());
+  ASSERT(!pc_descriptors.IsNull());
+  PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+  while (it.MoveNext()) {
+    if (it.YieldIndex() == await_jump_var) {
+      try_index_ = it.TryIndex();
+      token_pos_ = it.TokenPos();
+      token_pos_initialized_ = true;
+      return;
     }
   }
 }
@@ -1911,16 +1900,6 @@ void Debugger::Shutdown() {
 
 void Debugger::OnIsolateRunnable() {}
 
-static RawFunction* ResolveLibraryFunction(const Library& library,
-                                           const String& fname) {
-  ASSERT(!library.IsNull());
-  const Object& object = Object::Handle(library.ResolveName(fname));
-  if (!object.IsNull() && object.IsFunction()) {
-    return Function::Cast(object).raw();
-  }
-  return Function::null();
-}
-
 bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
@@ -1972,26 +1951,6 @@ bool Debugger::SetResumeAction(ResumeAction action,
       UNREACHABLE();
       return false;
   }
-}
-
-RawFunction* Debugger::ResolveFunction(const Library& library,
-                                       const String& class_name,
-                                       const String& function_name) {
-  ASSERT(!library.IsNull());
-  ASSERT(!class_name.IsNull());
-  ASSERT(!function_name.IsNull());
-  if (class_name.Length() == 0) {
-    return ResolveLibraryFunction(library, function_name);
-  }
-  const Class& cls = Class::Handle(library.LookupClass(class_name));
-  Function& function = Function::Handle();
-  if (!cls.IsNull()) {
-    function = cls.LookupStaticFunction(function_name);
-    if (function.IsNull()) {
-      function = cls.LookupDynamicFunction(function_name);
-    }
-  }
-  return function.raw();
 }
 
 // Deoptimize all functions in the isolate.
@@ -2266,8 +2225,9 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
     return NULL;
   }
 
+  bool sync_async_end = false;
   intptr_t synchronous_stack_trace_length =
-      StackTraceUtils::CountFrames(thread, 0, async_function);
+      StackTraceUtils::CountFrames(thread, 0, async_function, &sync_async_end);
 
   // Append the top frames from the synchronous stack trace, up until the active
   // asynchronous function. We truncate the remainder of the synchronous
@@ -2304,8 +2264,11 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // Now we append the asynchronous causal stack trace. These are not active
   // frames but a historical record of how this asynchronous function was
   // activated.
+
+  intptr_t frame_skip =
+      sync_async_end ? StackTrace::kSyncAsyncCroppedFrames : 0;
   while (!async_stack_trace.IsNull()) {
-    for (intptr_t i = 0; i < async_stack_trace.Length(); i++) {
+    for (intptr_t i = frame_skip; i < async_stack_trace.Length(); i++) {
       code_obj = async_stack_trace.CodeAtFrame(i);
       if (code_obj.IsNull()) {
         break;
@@ -2340,21 +2303,14 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
       }
     }
     // Follow the link.
+    frame_skip = async_stack_trace.skip_sync_start_in_parent_stack()
+                     ? StackTrace::kSyncAsyncCroppedFrames
+                     : 0;
     async_stack_trace = async_stack_trace.async_link();
   }
 
   return stack_trace;
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static bool CheckAndSkipAsync(int skip_sync_async_frames_count,
-                              const String& function_name) {
-  return (skip_sync_async_frames_count == 2 &&
-          function_name.Equals(Symbols::_ClosureCall())) ||
-         (skip_sync_async_frames_count == 1 &&
-          function_name.Equals(Symbols::_AsyncAwaitCompleterStart()));
-}
-#endif
 
 DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -2407,9 +2363,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
         if (skip_sync_async_frames_count > 0) {
           function_name = function.QualifiedScrubbedName();
-          if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
-            skip_sync_async_frames_count--;
-          } else {
+          if (!StackTraceUtils::CheckAndSkipAsync(&skip_sync_async_frames_count,
+                                                  function_name)) {
             // Unexpected function in synchronous call of async function.
             break;
           }
@@ -2457,10 +2412,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
             if (skip_sync_async_frames_count > 0) {
               function_name ^= function.QualifiedScrubbedName();
-              if (CheckAndSkipAsync(skip_sync_async_frames_count,
-                                    function_name)) {
-                skip_sync_async_frames_count--;
-              } else {
+              if (!StackTraceUtils::CheckAndSkipAsync(
+                      &skip_sync_async_frames_count, function_name)) {
                 // Unexpected function in sync async call
                 skip_sync_async_frames_count = -1;
                 abort_attempt_to_navigate_through_sync_async = true;
@@ -2512,10 +2465,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
           if (skip_sync_async_frames_count > 0) {
             function_name ^= function.QualifiedScrubbedName();
-            if (CheckAndSkipAsync(skip_sync_async_frames_count,
-                                  function_name)) {
-              skip_sync_async_frames_count--;
-            } else {
+            if (!StackTraceUtils::CheckAndSkipAsync(
+                    &skip_sync_async_frames_count, function_name)) {
               // Unexpected function in synchronous call of async function.
               break;
             }
@@ -4357,6 +4308,8 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   Object& closure_or_null =
       Object::Handle(zone, top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
+    ASSERT(top_frame->function().IsAsyncClosure() ||
+           top_frame->function().IsAsyncGenClosure());
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     if (top_frame->function().is_declared_in_bytecode()) {
@@ -4376,18 +4329,16 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     }
     ASSERT(!top_frame->IsInterpreted());
-    const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    const auto& yield_positions = GrowableObjectArray::Handle(
-        zone, script.GetYieldPositions(top_frame->function()));
-    // No yield statements
-    if (yield_positions.IsNull() || (yield_positions.Length() == 0)) {
+    const auto& pc_descriptors =
+        PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
+    if (pc_descriptors.IsNull()) {
       return false;
     }
-    intptr_t looking_for = top_frame->TokenPos().value();
-    Smi& value = Smi::Handle(zone);
-    for (int i = 0; i < yield_positions.Length(); i++) {
-      value ^= yield_positions.At(i);
-      if (value.Value() == looking_for) {
+    const TokenPosition looking_for = top_frame->TokenPos();
+    PcDescriptors::Iterator it(pc_descriptors, RawPcDescriptors::kOther);
+    while (it.MoveNext()) {
+      if (it.TokenPos() == looking_for &&
+          it.YieldIndex() != RawPcDescriptors::kInvalidYieldIndex) {
         return true;
       }
     }

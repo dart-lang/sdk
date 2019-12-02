@@ -35,14 +35,17 @@ import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
 
+const suiteNamePrefix = "pkg/front_end/test";
+
 class Options {
   final String configurationName;
   final bool verbose;
   final bool printFailureLog;
   final Uri outputDirectory;
+  final String testFilter;
 
   Options(this.configurationName, this.verbose, this.printFailureLog,
-      this.outputDirectory);
+      this.outputDirectory, this.testFilter);
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
@@ -58,13 +61,23 @@ class Options {
     var parsedArguments = parser.parse(args);
     String outputPath = parsedArguments["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
-    return Options(parsedArguments["named-configuration"],
-        parsedArguments["verbose"], parsedArguments["print"], outputDirectory);
+    String filter;
+    if (parsedArguments.rest.length == 1) {
+      filter = parsedArguments.rest.single;
+      if (filter.startsWith("$suiteNamePrefix/")) {
+        filter = filter.substring(suiteNamePrefix.length + 1);
+      }
+    }
+    return Options(
+        parsedArguments["named-configuration"],
+        parsedArguments["verbose"],
+        parsedArguments["print"],
+        outputDirectory,
+        filter);
   }
 }
 
 class ResultLogger implements Logger {
-  final String suiteName;
   final String prefix;
   final bool verbose;
   final bool printFailureLog;
@@ -74,8 +87,8 @@ class ResultLogger implements Logger {
   final String configurationName;
   final Set<String> seenTests = {};
 
-  ResultLogger(this.suiteName, this.prefix, this.resultsPort, this.logsPort,
-      this.verbose, this.printFailureLog, this.configurationName);
+  ResultLogger(this.prefix, this.resultsPort, this.logsPort, this.verbose,
+      this.printFailureLog, this.configurationName);
 
   String getTestName(TestDescription description) {
     return "$prefix/${description.shortName}";
@@ -127,6 +140,8 @@ class ResultLogger implements Logger {
       if (result.trace != null) {
         failureLog = "$failureLog\n\n${result.trace}";
       }
+      failureLog = "$failureLog\n\nRe-run this test: dart "
+          "pkg/front_end/test/unit_test_suites.dart -p $testName";
       String outcome = "${result.outcome}";
       logsPort.send(jsonEncode({
         "name": testName,
@@ -183,12 +198,14 @@ class Suite {
   final String path;
   final int shardCount;
   final int shard;
+  final String prefix;
 
   const Suite(this.name, this.createContext, this.testingRootPath,
-      {this.path, this.shardCount: 1, this.shard: 0});
+      {this.path, this.shardCount: 1, this.shard: 0, String prefix})
+      : prefix = prefix ?? name;
 }
 
-final List<Suite> suites = [
+const List<Suite> suites = [
   const Suite(
       "fasta/expression", expression.createContext, "../../testing.json"),
   const Suite("fasta/outline", outline.createContext, "../../testing.json"),
@@ -200,13 +217,25 @@ final List<Suite> suites = [
   const Suite("fasta/text_serialization", text_serialization.createContext,
       "../../testing.json"),
   const Suite("fasta/strong1", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart", shardCount: 4, shard: 0),
+      path: "fasta/strong_tester.dart",
+      shardCount: 4,
+      shard: 0,
+      prefix: "fasta/strong"),
   const Suite("fasta/strong2", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart", shardCount: 4, shard: 1),
+      path: "fasta/strong_tester.dart",
+      shardCount: 4,
+      shard: 1,
+      prefix: "fasta/strong"),
   const Suite("fasta/strong3", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart", shardCount: 4, shard: 2),
+      path: "fasta/strong_tester.dart",
+      shardCount: 4,
+      shard: 2,
+      prefix: "fasta/strong"),
   const Suite("fasta/strong4", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart", shardCount: 4, shard: 3),
+      path: "fasta/strong_tester.dart",
+      shardCount: 4,
+      shard: 3,
+      prefix: "fasta/strong"),
   const Suite("incremental_bulk_compiler_smoke",
       incremental_bulk_compiler.createContext, "../testing.json"),
   const Suite("incremental_load_from_dill", incremental_load.createContext,
@@ -229,24 +258,32 @@ class SuiteConfiguration {
   final bool verbose;
   final bool printFailureLog;
   final String configurationName;
-  const SuiteConfiguration(this.name, this.resultsPort, this.logsPort,
-      this.verbose, this.printFailureLog, this.configurationName);
+  final String testFilter;
+  const SuiteConfiguration(
+      this.name,
+      this.resultsPort,
+      this.logsPort,
+      this.verbose,
+      this.printFailureLog,
+      this.configurationName,
+      this.testFilter);
 }
 
 void runSuite(SuiteConfiguration configuration) {
   Suite suite = suites.where((s) => s.name == configuration.name).single;
-  String name = suite.name;
-  String fullSuiteName = "pkg/front_end/test/$name";
+  String name = suite.prefix;
+  String fullSuiteName = "$suiteNamePrefix/$name";
   Uri suiteUri = Platform.script.resolve(suite.path ?? "${name}_suite.dart");
   ResultLogger logger = ResultLogger(
-      name,
       fullSuiteName,
       configuration.resultsPort,
       configuration.logsPort,
       configuration.verbose,
       configuration.printFailureLog,
       configuration.configurationName);
-  runMe(<String>[], suite.createContext,
+  runMe(
+      <String>[if (configuration.testFilter != null) configuration.testFilter],
+      suite.createContext,
       me: suiteUri,
       configurationPath: suite.testingRootPath,
       logger: logger,
@@ -269,21 +306,32 @@ main([List<String> arguments = const <String>[]]) async {
   List<Future<bool>> futures = [];
   // Run test suites and record the results and possible failure logs.
   for (Suite suite in suites) {
+    String name = suite.name;
+    String filter = options.testFilter;
+    if (filter != null) {
+      // Skip suites that are not hit by the test filter, is there is one.
+      if (!filter.startsWith(suite.prefix)) {
+        continue;
+      }
+      // Remove the 'fasta/' from filters, if there, because it is not used
+      // in the name defined in testing.json.
+      if (filter.startsWith("fasta/")) {
+        filter = filter.substring("fasta/".length);
+      }
+    }
     // Start the test suite in a new isolate.
     ReceivePort exitPort = new ReceivePort();
-    String name = suite.name;
     SuiteConfiguration configuration = SuiteConfiguration(
         name,
         resultsPort.sendPort,
         logsPort.sendPort,
         options.verbose,
         options.printFailureLog,
-        options.configurationName);
+        options.configurationName,
+        filter);
     Future future = Future<bool>(() async {
       Stopwatch stopwatch = Stopwatch()..start();
       print("Running suite $name");
-      // TODO(karlklose): Implement --filter to select tests to run
-      // to implement deflaking (dartbug.com/38607).
       Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
           runSuite, configuration,
           onExit: exitPort.sendPort);
@@ -320,8 +368,8 @@ main([List<String> arguments = const <String>[]]) async {
   if (timeout) {
     exitCode = 1;
   } else {
-    // The testing framework (pkg/testing) sets the exitCode to 1 if any test
-    // failed, so we reset it here to indicate that the test runner was
+    // The testing framework (package:testing) sets the exitCode to `1` if any
+    // test failed, so we reset it here to indicate that the test runner was
     // successful.
     exitCode = 0;
   }

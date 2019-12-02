@@ -100,7 +100,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38341')
   test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
 class C {
@@ -1030,13 +1029,17 @@ List<int?> f(Iterable<int/*?*/> a) => a;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39368')
   test_downcast_widest_type_from_top_type_parameters() async {
     var content = '''
 List<int> f1(dynamic a) => a;
 List<int> f2(Object b) => b;
 ''';
+    // Note: even though the type `dynamic` permits `null`, the migration engine
+    // sees that there is no code path that could cause `f1` to be passed a null
+    // value, so it leaves its return type as non-nullable.
     var expected = '''
-List<int?>? f1(dynamic a) => a;
+List<int?> f1(dynamic a) => a;
 List<int?> f2(Object b) => b;
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1209,6 +1212,76 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initialized_at_declaration_site() async {
+    var content = '''
+class C {
+  int i = 0;
+  C();
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+  C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initialized_at_declaration_site_no_constructor() async {
+    var content = '''
+class C {
+  int i = 0;
+}
+''';
+    var expected = '''
+class C {
+  int i = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initialized_in_constructor() async {
+    var content = '''
+class C {
+  int i;
+  C() : i = 0;
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C() : i = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initialized_in_constructor_with_factories_and_redirects() async {
+    var content = '''
+class C {
+  int i;
+  C() : i = 0;
+  factory C.factoryConstructor => C();
+  factory C.factoryRedirect = D;
+  C.redirect : this();
+}
+class D extends C {}
+''';
+    var expected = '''
+class C {
+  int i;
+  C() : i = 0;
+  factory C.factoryConstructor => C();
+  factory C.factoryRedirect = D;
+  C.redirect : this();
+}
+class D extends C {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_initializer_simple() async {
     var content = '''
 class C {
@@ -1295,6 +1368,37 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_not_initialized() async {
+    var content = '''
+class C {
+  int i;
+  C();
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_not_initialized_no_constructor() async {
+    var content = '''
+class C {
+  int i;
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -1305,15 +1409,14 @@ class C {
   }
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
 class C {
-  var x = 1;
+  int? x = 1;
   void g() {
-    x = f()!;
+    x = f();
   }
 }
 ''';
@@ -1583,11 +1686,15 @@ abstract class C {
 }
 Object g(C c) => c.f()();
 ''';
+    // Note: even though the type `dynamic` permits `null`, the migration engine
+    // sees that there is no code path that could cause `g` to return a null
+    // value, so it leaves its return type as `Object`, and there is an implicit
+    // downcast.
     var expected = '''
 abstract class C {
   Function() f();
 }
-Object? g(C c) => c.f()();
+Object g(C c) => c.f()();
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1652,6 +1759,31 @@ int f(int x) {
 int f(int x) {
   if (x == null) return 0;
   return x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39376')
+  test_infer_required() async {
+    var content = '''
+void _f(bool b, {int x}) {
+  if (b) {
+    print(x + 1);
+  }
+}
+main() {
+  _f(true, x: 1);
+}
+''';
+    var expected = '''
+void _f(bool b, {required int x}) {
+  if (b) {
+    print(x + 1);
+  }
+}
+main() {
+  _f(true, x: 1);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1895,6 +2027,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_localVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -1903,14 +2036,13 @@ void main() {
   x = f();
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
 void main() {
-  var x = 1;
-  x = f()!;
+  int? x = 1;
+  x = f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2279,7 +2411,6 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38344')
   test_not_definitely_assigned_value() async {
     var content = '''
 String f(bool b) {
@@ -2829,12 +2960,16 @@ int? f() => null;
     var content = '''
 Object f(x) => x;
 ''';
+    // Note: even though the type `dynamic` permits `null`, the migration engine
+    // sees that there is no code path that passes a null value to `f`, so it
+    // leaves its return type as `Object`, and there is an implicit downcast.
     var expected = '''
-Object? f(x) => x;
+Object f(x) => x;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39369')
   test_topLevelFunction_returnType_implicit_dynamic() async {
     var content = '''
 f() {}
@@ -2847,6 +2982,7 @@ Object? g() => f();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   test_topLevelVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -2855,14 +2991,13 @@ void main() {
   x = f();
 }
 ''';
-    // The type of x is inferred from its initializer, so it is non-nullable,
-    // even though we try to assign a nullable value to it.  So a null check
-    // must be added.
+    // The type of x is inferred as non-nullable from its initializer, but we
+    // try to assign a nullable value to it.  So an explicit type must be added.
     var expected = '''
 int? f() => null;
-var x = 1;
+int? x = 1;
 void main() {
-  x = f()!;
+  x = f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
