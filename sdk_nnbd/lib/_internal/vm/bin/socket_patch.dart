@@ -130,11 +130,11 @@ class _InternetAddress implements InternetAddress {
   static const int _IPv6AddrLength = 16;
 
   static _InternetAddress loopbackIPv4 =
-      new _InternetAddress.fixed(_addressLoopbackIPv4);
+      _InternetAddress.fixed(_addressLoopbackIPv4);
   static _InternetAddress loopbackIPv6 =
-      new _InternetAddress.fixed(_addressLoopbackIPv6);
-  static _InternetAddress anyIPv4 = new _InternetAddress.fixed(_addressAnyIPv4);
-  static _InternetAddress anyIPv6 = new _InternetAddress.fixed(_addressAnyIPv6);
+      _InternetAddress.fixed(_addressLoopbackIPv6);
+  static _InternetAddress anyIPv4 = _InternetAddress.fixed(_addressAnyIPv4);
+  static _InternetAddress anyIPv6 = _InternetAddress.fixed(_addressAnyIPv6);
 
   final String address;
   final String _host;
@@ -731,6 +731,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      _SocketProfile.collectStatistic(
+          nativeGetSocketId(), _SocketProfileType.readBytes, result?.length);
+    }
     return result;
   }
 
@@ -758,6 +762,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (resourceInfo != null) {
       resourceInfo.didRead();
     }
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      _SocketProfile.collectStatistic(nativeGetSocketId(),
+          _SocketProfileType.readBytes, result?.data?.length);
+    }
     return result;
   }
 
@@ -782,6 +790,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (bytes == 0) return 0;
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, offset, offset + bytes);
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      _SocketProfile.collectStatistic(
+          nativeGetSocketId(),
+          _SocketProfileType.writeBytes,
+          bufferAndStart.buffer.length - bufferAndStart.start);
+    }
     var result =
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {
@@ -812,6 +826,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (isClosing || isClosed) return 0;
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, offset, bytes);
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      _SocketProfile.collectStatistic(
+          nativeGetSocketId(),
+          _SocketProfileType.writeBytes,
+          bufferAndStart.buffer.length - bufferAndStart.start);
+    }
     var result = nativeSendTo(bufferAndStart.buffer, bufferAndStart.start,
         bytes, (address as _InternetAddress)._in_addr, port);
     if (result is OSError) {
@@ -1281,7 +1301,11 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
       while (_socket.available > 0) {
         var socket = _socket.accept();
         if (socket == null) return;
-        _controller.add(new _RawSocket(socket));
+        if (!const bool.fromEnvironment("dart.vm.product")) {
+          _SocketProfile.collectNewSocket(socket.nativeGetSocketId(),
+              _tcpSocket, socket.address, socket.port);
+        }
+        _controller.add(_RawSocket(socket));
         if (_controller.isPaused) return;
       }
     }), error: zone.bindBinaryCallbackGuarded((e, st) {
@@ -1353,16 +1377,28 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   static Future<RawSocket> connect(
       host, int port, sourceAddress, Duration timeout) {
     return _NativeSocket.connect(host, port, sourceAddress, timeout)
-        .then((socket) => new _RawSocket(socket));
+        .then((socket) {
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectNewSocket(
+            socket.nativeGetSocketId(), _tcpSocket, socket.address, port);
+      }
+      return _RawSocket(socket);
+    });
   }
 
   static Future<ConnectionTask<_RawSocket>> startConnect(
       host, int port, sourceAddress) {
     return _NativeSocket.startConnect(host, port, sourceAddress)
         .then((ConnectionTask<_NativeSocket> nativeTask) {
-      final Future<_RawSocket> raw = nativeTask.socket
-          .then((_NativeSocket nativeSocket) => new _RawSocket(nativeSocket));
-      return new ConnectionTask<_RawSocket>._(
+      final Future<_RawSocket> raw =
+          nativeTask.socket.then((_NativeSocket nativeSocket) {
+        if (!const bool.fromEnvironment("dart.vm.product")) {
+          _SocketProfile.collectNewSocket(nativeSocket.nativeGetSocketId(),
+              _tcpSocket, nativeSocket.address, port);
+        }
+        return _RawSocket(nativeSocket);
+      });
+      return ConnectionTask<_RawSocket>._(
           socket: raw, onCancel: nativeTask._onCancel);
     });
   }
@@ -1441,7 +1477,13 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);
 
-  Future<RawSocket> close() => _socket.close().then<RawSocket>((_) => this);
+  Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
+        if (!const bool.fromEnvironment("dart.vm.product")) {
+          _SocketProfile.collectStatistic(
+              _socket.nativeGetSocketId(), _SocketProfileType.endTime);
+        }
+        return this;
+      });
 
   void shutdown(SocketDirection direction) => _socket.shutdown(direction);
 
@@ -1942,7 +1984,13 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     _throwOnBadPort(port);
     _throwOnBadTtl(ttl);
     return _NativeSocket.bindDatagram(host, port, reuseAddress, reusePort, ttl)
-        .then((socket) => new _RawDatagramSocket(socket));
+        .then((socket) {
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectNewSocket(
+            socket.nativeGetSocketId(), _udpSocket, socket.address, port);
+      }
+      return _RawDatagramSocket(socket);
+    });
   }
 
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
@@ -1951,7 +1999,13 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Future close() => _socket.close().then<RawDatagramSocket>((_) => this);
+  Future close() => _socket.close().then<RawDatagramSocket>((_) {
+        if (!const bool.fromEnvironment("dart.vm.product")) {
+          _SocketProfile.collectStatistic(
+              _socket.nativeGetSocketId(), _SocketProfileType.endTime);
+        }
+        return this;
+      });
 
   int send(List<int> buffer, InternetAddress address, int port) =>
       _socket.send(buffer, 0, buffer.length, address, port);
