@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -1123,39 +1122,16 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
       if (serviceProtocolInfo.serverUri == null) {
         p('Service protocol not enabled.');
       } else {
-        p(serviceProtocolInfo.toString());
-
-        // http://127.0.0.1:8181/ ==> ws://127.0.0.1:8181/ws
-        Uri uri = serviceProtocolInfo.serverUri;
-        uri = uri.replace(scheme: 'ws', path: 'ws');
-
-        final ServiceProtocol service = await ServiceProtocol.connect(uri);
-        final Map vm = await service.call('getVM');
-
-        h3('Isolates');
-
-        List isolateRefs = vm['isolates'];
-        for (Map isolateRef in isolateRefs) {
-          Map isolate =
-              await service.call('getIsolate', {'isolateId': isolateRef['id']});
-
-          Map _heaps = isolate['_heaps'];
-
-          int used = 0;
-          used = _heaps['new']['used'] + _heaps['new']['external'];
-          used = _heaps['old']['used'] + _heaps['old']['external'];
-          double usedMB = used / (1024.0 * 1024.0);
-
-          int capacity = 0;
-          capacity = _heaps['new']['capacity'] + _heaps['new']['external'];
-          capacity = _heaps['old']['capacity'] + _heaps['old']['external'];
-          double capacityMB = capacity / (1024.0 * 1024.0);
-
-          buf.writeln(writeOption(isolate['name'],
-              '${usedMB.round()} MB of ${capacityMB.round()} MB'));
-        }
-
-        service.dispose();
+        buf.writeln(writeOption('Service protocol connection available at',
+            '${serviceProtocolInfo.serverUri}'));
+        buf.writeln('<br>');
+        p(
+          'To get detailed performance data on the analysis server, we '
+          'recommend using Dart DevTools. For instructions on installing and '
+          'using DevTools, see '
+          '<a href="https://dart.dev/tools/dart-devtools">dart.dev/tools/dart-devtools</a>.',
+          raw: true,
+        );
       }
     } else {
       p('Error retrieving the memory and cpu usage information.');
@@ -1348,52 +1324,6 @@ class ProfilePage extends DiagnosticPageWithNav {
       }
       buf.write('</table>');
     }
-  }
-}
-
-class ServiceProtocol {
-  final WebSocket socket;
-
-  int _id = 0;
-  final Map<String, Completer<Map>> _completers = {};
-
-  ServiceProtocol._(this.socket) {
-    socket.listen(_handleMessage);
-  }
-
-  Future<Map> call(String method, [Map args]) {
-    String id = '${++_id}';
-    Completer<Map> completer = new Completer();
-    _completers[id] = completer;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
-    String message = jsonEncode(m);
-    socket.add(message);
-    return completer.future;
-  }
-
-  Future dispose() => socket.close();
-
-  void _handleMessage(dynamic message) {
-    if (message is! String) {
-      return;
-    }
-
-    try {
-      dynamic json = jsonDecode(message);
-      if (json.containsKey('id')) {
-        dynamic id = json['id'];
-        _completers[id]?.complete(json['result']);
-        _completers.remove(id);
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  static Future<ServiceProtocol> connect(Uri uri) async {
-    WebSocket socket = await WebSocket.connect(uri.toString());
-    return new ServiceProtocol._(socket);
   }
 }
 
