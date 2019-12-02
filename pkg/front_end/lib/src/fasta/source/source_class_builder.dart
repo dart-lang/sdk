@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart'
     show
         Class,
         Constructor,
+        DartType,
+        DynamicType,
         Field,
         FunctionNode,
         Member,
@@ -39,6 +41,8 @@ import '../builder/class_builder.dart';
 
 import '../builder/constructor_reference_builder.dart';
 
+import '../builder/function_builder.dart';
+
 import '../builder/invalid_type_declaration_builder.dart';
 
 import '../builder/library_builder.dart';
@@ -51,6 +55,8 @@ import '../builder/named_type_builder.dart';
 
 import '../builder/nullability_builder.dart';
 
+import '../builder/procedure_builder.dart';
+
 import '../builder/type_builder.dart';
 
 import '../builder/type_variable_builder.dart';
@@ -61,17 +67,21 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
-        templateInvalidTypeVariableInSupertype,
-        templateInvalidTypeVariableInSupertypeWithVariance,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateDuplicatedDeclarationUse,
+        templateInvalidTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertypeWithVariance,
+        templateRedirectionTargetNotFound,
         templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart' show compareProcedures;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
+
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../kernel/type_algorithms.dart' show Variance, computeVariance;
 
@@ -80,6 +90,8 @@ import '../names.dart' show noSuchMethodName;
 import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -536,5 +548,92 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     return changed;
+  }
+
+  @override
+  int resolveConstructors(LibraryBuilder library) {
+    if (constructorReferences == null) return 0;
+    for (ConstructorReferenceBuilder ref in constructorReferences) {
+      ref.resolveIn(scope, library);
+    }
+    int count = constructorReferences.length;
+    if (count != 0) {
+      Map<String, MemberBuilder> constructors = this.constructors.local;
+      // Copy keys to avoid concurrent modification error.
+      List<String> names = constructors.keys.toList();
+      for (String name in names) {
+        Builder declaration = constructors[name];
+        do {
+          if (declaration.parent != this) {
+            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
+                fileUri);
+          }
+          if (declaration is RedirectingFactoryBuilder) {
+            // Compute the immediate redirection target, not the effective.
+            ConstructorReferenceBuilder redirectionTarget =
+                declaration.redirectionTarget;
+            if (redirectionTarget != null) {
+              Builder targetBuilder = redirectionTarget.target;
+              if (declaration.next == null) {
+                // Only the first one (that is, the last on in the linked list)
+                // is actually in the kernel tree. This call creates a StaticGet
+                // to [declaration.target] in a field `_redirecting#` which is
+                // only legal to do to things in the kernel tree.
+                addRedirectingConstructor(declaration, library);
+              }
+              if (targetBuilder is FunctionBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.member.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
+              } else if (targetBuilder is DillMemberBuilder) {
+                List<DartType> typeArguments = declaration.typeArguments;
+                if (typeArguments == null) {
+                  // TODO(32049) If type arguments aren't specified, they should
+                  // be inferred.  Currently, the inference is not performed.
+                  // The code below is a workaround.
+                  typeArguments = new List<DartType>.filled(
+                      targetBuilder.member.enclosingClass.typeParameters.length,
+                      const DynamicType(),
+                      growable: true);
+                }
+                declaration.setRedirectingFactoryBody(
+                    targetBuilder.member, typeArguments);
+              } else if (targetBuilder is AmbiguousBuilder) {
+                addProblem(
+                    templateDuplicatedDeclarationUse
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
+              } else {
+                addProblem(
+                    templateRedirectionTargetNotFound
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                // CoreTypes aren't computed yet, and this is the outline
+                // phase. So we can't and shouldn't create a method body.
+                declaration.body = new RedirectingFactoryBody.unresolved(
+                    redirectionTarget.fullNameForErrors);
+              }
+            }
+          }
+          declaration = declaration.next;
+        } while (declaration != null);
+      }
+    }
+    return count;
   }
 }

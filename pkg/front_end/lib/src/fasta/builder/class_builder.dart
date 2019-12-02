@@ -70,7 +70,6 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
-        templateDuplicatedDeclarationUse,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImplementsRepeated,
         templateImplementsSuperClass,
@@ -95,11 +94,9 @@ import '../fasta_codes.dart'
         templateOverrideTypeMismatchSetter,
         templateOverrideTypeVariablesMismatch,
         templateRedirectingFactoryIncompatibleTypeArgument,
-        templateRedirectionTargetNotFound,
         templateTypeArgumentMismatch;
 
-import '../kernel/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -109,8 +106,7 @@ import '../modifier.dart';
 
 import '../names.dart' show noSuchMethodName;
 
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unimplemented;
+import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../scope.dart';
 
@@ -440,93 +436,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       redirect = redirectingConstructors[redirect.target];
     }
     return false;
-  }
-
-  @override
-  int resolveConstructors(LibraryBuilder library) {
-    if (constructorReferences == null) return 0;
-    for (ConstructorReferenceBuilder ref in constructorReferences) {
-      ref.resolveIn(scope, library);
-    }
-    int count = constructorReferences.length;
-    if (count != 0) {
-      Map<String, MemberBuilder> constructors = this.constructors.local;
-      // Copy keys to avoid concurrent modification error.
-      List<String> names = constructors.keys.toList();
-      for (String name in names) {
-        Builder declaration = constructors[name];
-        do {
-          if (declaration.parent != this) {
-            unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
-                fileUri);
-          }
-          if (declaration is RedirectingFactoryBuilder) {
-            // Compute the immediate redirection target, not the effective.
-            ConstructorReferenceBuilder redirectionTarget =
-                declaration.redirectionTarget;
-            if (redirectionTarget != null) {
-              Builder targetBuilder = redirectionTarget.target;
-              if (declaration.next == null) {
-                // Only the first one (that is, the last on in the linked list)
-                // is actually in the kernel tree. This call creates a StaticGet
-                // to [declaration.target] in a field `_redirecting#` which is
-                // only legal to do to things in the kernel tree.
-                addRedirectingConstructor(declaration, library);
-              }
-              if (targetBuilder is FunctionBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
-              } else if (targetBuilder is DillMemberBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments;
-                if (typeArguments == null) {
-                  // TODO(32049) If type arguments aren't specified, they should
-                  // be inferred.  Currently, the inference is not performed.
-                  // The code below is a workaround.
-                  typeArguments = new List<DartType>.filled(
-                      targetBuilder.member.enclosingClass.typeParameters.length,
-                      const DynamicType(),
-                      growable: true);
-                }
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
-              } else if (targetBuilder is AmbiguousBuilder) {
-                addProblem(
-                    templateDuplicatedDeclarationUse
-                        .withArguments(redirectionTarget.fullNameForErrors),
-                    redirectionTarget.charOffset,
-                    noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
-              } else {
-                addProblem(
-                    templateRedirectionTargetNotFound
-                        .withArguments(redirectionTarget.fullNameForErrors),
-                    redirectionTarget.charOffset,
-                    noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
-              }
-            }
-          }
-          declaration = declaration.next;
-        } while (declaration != null);
-      }
-    }
-    return count;
   }
 
   @override
