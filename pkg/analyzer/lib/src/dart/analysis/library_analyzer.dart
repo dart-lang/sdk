@@ -11,6 +11,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/error/best_practices_verifier.dart';
+import 'package:analyzer/src/error/dart2js_verifier.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
+import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -272,7 +278,7 @@ class LibraryAnalyzer {
       errorReporter,
     ));
 
-    new ToDoFinder(errorReporter).findIn(unit);
+    new TodoFinder(errorReporter).findIn(unit);
 
     // Verify imports.
     {
