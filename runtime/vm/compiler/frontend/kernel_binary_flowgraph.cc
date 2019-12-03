@@ -4260,12 +4260,6 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
-  // For-in statements are lowered after kernel version 37.
-  if (translation_helper_.GetKernelProgramInfo().kernel_binary_version() >=
-      37) {
-    UNREACHABLE();
-  }
-
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   const TokenPosition position = ReadPosition();  // read position.

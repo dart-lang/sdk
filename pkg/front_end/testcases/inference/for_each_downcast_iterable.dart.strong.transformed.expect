@@ -21,12 +21,7 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::Object* o;
-        {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
-          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-            dynamic x = :sync-for-iterator.{core::Iterator::current};
-            {}
-          }
+        for (dynamic x in o as{TypeError} core::Iterable<dynamic>*) {
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>*;
@@ -51,14 +46,8 @@ static method test() → dynamic /* originally async */ {
             }
         }
         core::int* y;
-        {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(o as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
-          for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-            final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
-            {
-              y = #t4 as{TypeError} core::int*;
-            }
-          }
+        for (final dynamic #t4 in o as{TypeError} core::Iterable<dynamic>*) {
+          y = #t4 as{TypeError} core::int*;
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>*;

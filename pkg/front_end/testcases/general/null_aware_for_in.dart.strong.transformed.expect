@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class Class extends core::Object {
   synthetic constructor •() → self::Class*
@@ -11,14 +10,8 @@ class Class extends core::Object {
 static method main() → dynamic {
   dynamic o;
   if(false) {
-    {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((let final dynamic #t1 = o in #t1.{core::Object::==}(null) ?{dynamic} null : #t1.iterable) as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
-        {
-          self::Class* c = #t2 as{TypeError} self::Class*;
-        }
-      }
+    for (final dynamic #t1 in (let final dynamic #t2 = o in #t2.{core::Object::==}(null) ?{dynamic} null : #t2.iterable) as{TypeError} core::Iterable<dynamic>*) {
+      self::Class* c = #t1 as{TypeError} self::Class*;
     }
   }
 }
