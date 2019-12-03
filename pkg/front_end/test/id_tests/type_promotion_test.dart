@@ -27,11 +27,8 @@ main(List<String> args) async {
         'bug39178.dart',
         'constructor_initializer.dart',
         'for.dart',
-        'not_promoted.dart',
         'switch.dart',
-        'try_finally.dart',
         'type_parameter.dart',
-        'while.dart',
         'write_capture.dart',
       ]);
 }

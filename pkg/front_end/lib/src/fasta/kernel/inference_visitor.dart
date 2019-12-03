@@ -339,9 +339,15 @@ class InferenceVisitor
   }
 
   @override
-  StatementInferenceResult visitBreakStatement(BreakStatement node) {
+  StatementInferenceResult visitBreakStatement(
+      covariant BreakStatementImpl node) {
     // TODO(johnniwinther): Refactor break/continue encoding.
-    inferrer.flowAnalysis.handleBreak(node.target);
+    assert(node.targetStatement != null);
+    if (node.isContinue) {
+      inferrer.flowAnalysis.handleContinue(node.targetStatement);
+    } else {
+      inferrer.flowAnalysis.handleBreak(node.targetStatement);
+    }
     return const StatementInferenceResult();
   }
 
@@ -4969,7 +4975,10 @@ class InferenceVisitor
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
-    inferrer.flowAnalysis.tryFinallyStatement_finallyBegin(node.finalizer);
+    // TODO(johnniwinther): Use one internal statement for try-catch-finally.
+    TreeNode body = node.body;
+    inferrer.flowAnalysis
+        .tryFinallyStatement_finallyBegin(body is TryCatch ? body.body : body);
     StatementInferenceResult finalizerResult =
         inferrer.inferStatement(node.finalizer);
     if (finalizerResult.hasChanged) {
@@ -5161,7 +5170,10 @@ class InferenceVisitor
     DartType promotedType;
     DartType declaredOrInferredType = variable.type;
     if (inferrer.isNonNullableByDefault) {
-      promotedType = inferrer.flowAnalysis.variableRead(node, variable);
+      if (!variable.isLocalFunction) {
+        // Don't promote local functions.
+        promotedType = inferrer.flowAnalysis.variableRead(node, variable);
+      }
     } else {
       bool mutatedInClosure = variable.mutatedInClosure;
       promotedType = inferrer.typePromoter
@@ -5194,6 +5206,7 @@ class InferenceVisitor
 
   @override
   StatementInferenceResult visitWhileStatement(WhileStatement node) {
+    inferrer.flowAnalysis.whileStatement_conditionBegin(node);
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
@@ -5202,10 +5215,12 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
+    inferrer.flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
+    inferrer.flowAnalysis.whileStatement_end();
     return const StatementInferenceResult();
   }
 

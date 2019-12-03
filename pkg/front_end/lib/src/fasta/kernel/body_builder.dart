@@ -2402,8 +2402,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     push(block);
     if (blockKind == BlockKind.tryStatement) {
-      // This is matched by the calls to [deferNode] and [endNode] in
-      // [endTryStatement].
+      // This is matched by the call to [beginNode] in [beginBlock].
       typeInferrer?.assignedVariables?.endNode(block);
     }
   }
@@ -2624,9 +2623,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    List<BreakStatementImpl> continueStatements;
     if (continueTarget.hasUsers) {
       body = forest.createLabeledStatement(body);
-      continueTarget.resolveContinues(forest, body);
+      continueStatements = continueTarget.resolveContinues(forest, body);
     }
     Expression condition;
     if (conditionStatement is ExpressionStatement) {
@@ -2634,13 +2634,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    Statement result = forest.createForStatement(
+    Statement forStatement = forest.createForStatement(
         offsetForToken(forKeyword), variables, condition, updates, body);
     typeInferrer?.assignedVariables
-        ?.storeInfo(result, assignedVariablesNodeInfo);
+        ?.storeInfo(forStatement, assignedVariablesNodeInfo);
+    if (continueStatements != null) {
+      for (BreakStatementImpl continueStatement in continueStatements) {
+        continueStatement.targetStatement = forStatement;
+      }
+    }
+    Statement result = forStatement;
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, result);
+      breakTarget.resolveBreaks(forest, result, forStatement);
     }
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
@@ -4397,17 +4403,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement body = popStatement();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    List<BreakStatementImpl> continueStatements;
     if (continueTarget.hasUsers) {
       body = forest.createLabeledStatement(body);
-      continueTarget.resolveContinues(forest, body);
+      continueStatements = continueTarget.resolveContinues(forest, body);
     }
-    Statement result =
+    Statement doStatement =
         forest.createDoStatement(offsetForToken(doKeyword), body, condition);
     // This is matched by the [beginNode] call in [beginDoWhileStatement].
-    typeInferrer?.assignedVariables?.endNode(result);
+    typeInferrer?.assignedVariables?.endNode(doStatement);
+    if (continueStatements != null) {
+      for (BreakStatementImpl continueStatement in continueStatements) {
+        continueStatement.targetStatement = doStatement;
+      }
+    }
+    Statement result = doStatement;
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, result);
+      breakTarget.resolveBreaks(forest, result, doStatement);
     }
     exitLoopOrSwitch(result);
   }
@@ -4584,9 +4597,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    List<BreakStatementImpl> continueStatements;
     if (continueTarget.hasUsers) {
       body = forest.createLabeledStatement(body);
-      continueTarget.resolveContinues(forest, body);
+      continueStatements = continueTarget.resolveContinues(forest, body);
     }
     VariableDeclaration variable = buildForInVariable(forToken, lvalue);
     Expression problem = checkForInVariable(lvalue, variable, forToken);
@@ -4605,15 +4619,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         body = combineStatements(prologue, body);
       }
     }
-    Statement result = new ForInStatement(variable, expression, body,
+    Statement forInStatement = new ForInStatement(variable, expression, body,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     typeInferrer?.assignedVariables
-        ?.storeInfo(result, assignedVariablesNodeInfo);
+        ?.storeInfo(forInStatement, assignedVariablesNodeInfo);
+    if (continueStatements != null) {
+      for (BreakStatementImpl continueStatement in continueStatements) {
+        continueStatement.targetStatement = forInStatement;
+      }
+    }
+    Statement result = forInStatement;
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, result);
+      breakTarget.resolveBreaks(forest, result, forInStatement);
     }
     if (problem != null) {
       result = combineStatements(
@@ -4661,8 +4681,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (statement is! LabeledStatement) {
         statement = forest.createLabeledStatement(statement);
       }
-      target.breakTarget.resolveBreaks(forest, statement);
-      target.continueTarget.resolveContinues(forest, statement);
+      target.breakTarget.resolveBreaks(forest, statement, statement);
+      List<BreakStatementImpl> continueStatements =
+          target.continueTarget.resolveContinues(forest, statement);
+      if (continueStatements != null) {
+        for (BreakStatementImpl continueStatement in continueStatements) {
+          continueStatement.targetStatement = statement;
+        }
+      }
     }
     push(statement);
   }
@@ -4700,16 +4726,22 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression condition = popForValue();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
+    List<BreakStatementImpl> continueStatements;
     if (continueTarget.hasUsers) {
       body = forest.createLabeledStatement(body);
-      continueTarget.resolveContinues(forest, body);
+      continueStatements = continueTarget.resolveContinues(forest, body);
     }
     Statement whileStatement = forest.createWhileStatement(
         offsetForToken(whileKeyword), condition, body);
+    if (continueStatements != null) {
+      for (BreakStatementImpl continueStatement in continueStatements) {
+        continueStatement.targetStatement = whileStatement;
+      }
+    }
     Statement result = whileStatement;
     if (breakTarget.hasUsers) {
       result = forest.createLabeledStatement(result);
-      breakTarget.resolveBreaks(forest, result);
+      breakTarget.resolveBreaks(forest, result, whileStatement);
     }
     exitLoopOrSwitch(result);
     // This is matched by the [beginNode] call in [beginWhileStatement].
@@ -4899,7 +4931,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement result = switchStatement;
     if (target.hasUsers) {
       result = forest.createLabeledStatement(result);
-      target.resolveBreaks(forest, result);
+      target.resolveBreaks(forest, result, switchStatement);
     }
     exitLoopOrSwitch(result);
     // This is matched by the [beginNode] call in [beginSwitchBlock].
@@ -5730,20 +5762,25 @@ class JumpTarget extends BuilderImpl {
     users.add(statement);
   }
 
-  void resolveBreaks(Forest forest, Statement target) {
+  void resolveBreaks(
+      Forest forest, Statement target, Statement targetStatement) {
     assert(isBreakTarget);
-    for (BreakStatement user in users) {
+    for (BreakStatementImpl user in users) {
       user.target = target;
+      user.targetStatement = targetStatement;
     }
     users.clear();
   }
 
-  void resolveContinues(Forest forest, Statement target) {
+  List<BreakStatementImpl> resolveContinues(Forest forest, Statement target) {
     assert(isContinueTarget);
-    for (BreakStatement user in users) {
+    List<BreakStatementImpl> statements = <BreakStatementImpl>[];
+    for (BreakStatementImpl user in users) {
       user.target = target;
+      statements.add(user);
     }
     users.clear();
+    return statements;
   }
 
   void resolveGotos(Forest forest, SwitchCase target) {
@@ -5804,12 +5841,13 @@ class LabelTarget extends BuilderImpl implements JumpTarget {
     unsupported("addGoto", charOffset, fileUri);
   }
 
-  void resolveBreaks(Forest forest, Statement target) {
-    breakTarget.resolveBreaks(forest, target);
+  void resolveBreaks(
+      Forest forest, Statement target, Statement targetStatement) {
+    breakTarget.resolveBreaks(forest, target, targetStatement);
   }
 
-  void resolveContinues(Forest forest, Statement target) {
-    continueTarget.resolveContinues(forest, target);
+  List<BreakStatementImpl> resolveContinues(Forest forest, Statement target) {
+    return continueTarget.resolveContinues(forest, target);
   }
 
   void resolveGotos(Forest forest, SwitchCase target) {

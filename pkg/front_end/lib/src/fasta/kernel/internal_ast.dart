@@ -21,7 +21,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
-
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
@@ -195,6 +195,15 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
+class BreakStatementImpl extends BreakStatement {
+  Statement targetStatement;
+  final bool isContinue;
+
+  BreakStatementImpl({this.isContinue})
+      : assert(isContinue != null),
+        super(null);
+}
+
 enum InternalExpressionKind {
   Binary,
   Cascade,
@@ -237,8 +246,13 @@ abstract class InternalExpression extends Expression {
   InternalExpressionKind get kind;
 
   @override
-  R accept<R>(ExpressionVisitor<R> visitor) =>
-      unsupported("${runtimeType}.accept", -1, null);
+  R accept<R>(ExpressionVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence) {
+      // Allow visitors needed for toString.
+      return visitor.defaultExpression(this);
+    }
+    return unsupported("${runtimeType}.accept", -1, null);
+  }
 
   @override
   R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) =>
