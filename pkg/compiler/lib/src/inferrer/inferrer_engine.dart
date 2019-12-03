@@ -58,11 +58,8 @@ abstract class InferrerEngine {
     new Selector.call(const PublicName('removeLast'), CallStructure.NO_ARGS)
   ]);
 
-  CompilerOptions get options;
-
   /// The [JClosedWorld] on which inference reasoning is based.
   JClosedWorld get closedWorld;
-  DiagnosticReporter get reporter;
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
   CommonElements get commonElements => closedWorld.commonElements;
@@ -105,16 +102,8 @@ abstract class InferrerEngine {
   /// should be present and a default type for each parameter should exist.
   TypeInformation getDefaultTypeOfParameter(Local parameter);
 
-  /// This helper breaks abstractions but is currently required to work around
-  /// the wrong modeling of default values of optional parameters of
-  /// synthetic constructors.
-  ///
-  /// TODO(johnniwinther): Remove once default values of synthetic parameters
-  /// are fixed.
-  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter);
-
   /// Sets the type of a parameter's default value to [type]. If the global
-  /// mapping in [defaultTypeOfParameter] already contains a type, it must be
+  /// mapping in `_defaultTypeOfParameter` already contains a type, it must be
   /// a [PlaceholderTypeInformation], which will be replaced. All its uses are
   /// updated.
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
@@ -223,17 +212,6 @@ abstract class InferrerEngine {
   /// [NativeBehavior].
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
 
-  /// For a given selector, return a shared dynamic call site that will be used
-  /// to combine the results of multiple dynamic calls in the program via
-  /// [IndirectDynamicCallSiteTypeInformation].
-  ///
-  /// This is used only for scalability reasons: if there are too many targets
-  /// and call sites, we may have a quadratic number of edges in the graph, so
-  /// we add a level of indirection to merge the information and keep the graph
-  /// smaller.
-  DynamicCallSiteTypeInformation typeOfSharedDynamicCall(
-      Selector selector, CallStructure structure);
-
   bool returnsListElementType(Selector selector, AbstractValue mask);
 
   bool returnsMapValueType(Selector selector, AbstractValue mask);
@@ -262,40 +240,40 @@ abstract class InferrerEngine {
 }
 
 class InferrerEngineImpl extends InferrerEngine {
-  final Map<Local, TypeInformation> defaultTypeOfParameter =
+  final Map<Local, TypeInformation> _defaultTypeOfParameter =
       new Map<Local, TypeInformation>();
-  final WorkQueue workQueue = new WorkQueue();
+  final WorkQueue _workQueue = new WorkQueue();
   @override
   final FunctionEntity mainElement;
-  final Set<MemberEntity> analyzedElements = new Set<MemberEntity>();
+  final Set<MemberEntity> _analyzedElements = new Set<MemberEntity>();
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
   /// inferencing on it and give it the dynamic type.
-  final int MAX_CHANGE_COUNT = 6;
+  final int _MAX_CHANGE_COUNT = 6;
 
-  int overallRefineCount = 0;
-  int addedInGraph = 0;
+  int _overallRefineCount = 0;
+  int _addedInGraph = 0;
 
-  @override
-  final CompilerOptions options;
-  final Progress progress;
-  @override
-  final DiagnosticReporter reporter;
+  final CompilerOptions _options;
+  final Progress _progress;
+  final DiagnosticReporter _reporter;
   final CompilerOutput _compilerOutput;
 
   @override
   final JsClosedWorld closedWorld;
+
   @override
   final InferredDataBuilder inferredDataBuilder;
 
   @override
   final TypeSystem types;
+
   @override
   final Map<ir.TreeNode, TypeInformation> concreteTypes =
       new Map<ir.TreeNode, TypeInformation>();
 
-  final Set<ConstructorEntity> generativeConstructorsExposingThis =
+  final Set<ConstructorEntity> _generativeConstructorsExposingThis =
       new Set<ConstructorEntity>();
 
   /// Data computed internally within elements, like the type-mask of a send a
@@ -303,15 +281,12 @@ class InferrerEngineImpl extends InferrerEngine {
   final Map<MemberEntity, GlobalTypeInferenceElementData> _memberData =
       new Map<MemberEntity, GlobalTypeInferenceElementData>();
 
-  final NoSuchMethodRegistry noSuchMethodRegistry;
-
   InferrerEngineImpl(
-      this.options,
-      this.progress,
-      this.reporter,
+      this._options,
+      this._progress,
+      this._reporter,
       this._compilerOutput,
       this.closedWorld,
-      this.noSuchMethodRegistry,
       this.mainElement,
       this.inferredDataBuilder)
       : this.types = new TypeSystem(
@@ -335,7 +310,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Update [sideEffects] with the side effects of [callee] being
   /// called with [selector].
-  void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
+  void _updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
       Selector selector, MemberEntity callee) {
     if (callee.isField) {
       if (callee.isInstanceMember) {
@@ -431,13 +406,13 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   bool checkIfExposesThis(ConstructorEntity element) {
-    return generativeConstructorsExposingThis.contains(element);
+    return _generativeConstructorsExposingThis.contains(element);
   }
 
   @override
   void recordExposesThis(ConstructorEntity element, bool exposesThis) {
     if (exposesThis) {
-      generativeConstructorsExposingThis.add(element);
+      _generativeConstructorsExposingThis.add(element);
     }
   }
 
@@ -470,8 +445,8 @@ class InferrerEngineImpl extends InferrerEngine {
     }
     tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the list for later refinement
-    workQueue.add(info);
-    workQueue.add(info.elementType);
+    _workQueue.add(info);
+    _workQueue.add(info.elementType);
   }
 
   @override
@@ -488,8 +463,8 @@ class InferrerEngineImpl extends InferrerEngine {
 
     tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the set for later refinement.
-    workQueue.add(info);
-    workQueue.add(info.elementType);
+    _workQueue.add(info);
+    _workQueue.add(info.elementType);
   }
 
   @override
@@ -505,28 +480,28 @@ class InferrerEngineImpl extends InferrerEngine {
     for (int i = 0; i < tracer.keyInputs.length; ++i) {
       TypeInformation newType = info.addEntryInput(
           abstractValueDomain, tracer.keyInputs[i], tracer.valueInputs[i]);
-      if (newType != null) workQueue.add(newType);
+      if (newType != null) _workQueue.add(newType);
     }
     for (TypeInformation map in tracer.mapInputs) {
-      workQueue.addAll(info.addMapInput(abstractValueDomain, map));
+      _workQueue.addAll(info.addMapInput(abstractValueDomain, map));
     }
 
     info.markAsInferred();
-    workQueue.add(info.keyType);
-    workQueue.add(info.valueType);
-    workQueue.addAll(info.typeInfoMap.values);
-    workQueue.add(info);
+    _workQueue.add(info.keyType);
+    _workQueue.add(info.valueType);
+    _workQueue.addAll(info.typeInfoMap.values);
+    _workQueue.add(info);
   }
 
   @override
   void runOverAllElements() {
-    analyzeAllElements();
+    _analyzeAllElements();
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
-    buildWorkQueue();
-    refine();
+    _buildWorkQueue();
+    _refine();
 
     // Try to infer element types of lists and compute their escape information.
     types.allocatedLists.values.forEach((TypeInformation info) {
@@ -573,7 +548,7 @@ class InferrerEngineImpl extends InferrerEngine {
             ParameterTypeInformation info =
                 types.getInferredTypeOfParameter(parameter);
             info.maybeResume();
-            workQueue.add(info);
+            _workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
             inferredDataBuilder.registerMightBePassedToApply(element);
@@ -598,7 +573,7 @@ class InferrerEngineImpl extends InferrerEngine {
           assert(calledElement is ConstructorEntity &&
               calledElement.isGenerativeConstructor);
           ClassEntity cls = calledElement.enclosingClass;
-          FunctionEntity callMethod = lookupCallMethod(cls);
+          FunctionEntity callMethod = _lookupCallMethod(cls);
           assert(callMethod != null, failedAt(cls));
           Iterable<FunctionEntity> elements = [callMethod];
           trace(elements, new ClosureTracerVisitor(elements, info, this));
@@ -625,17 +600,17 @@ class InferrerEngineImpl extends InferrerEngine {
     // as nodes that use elements fetched from these lists/maps. The
     // workset for a new run of the analysis will be these nodes.
     Set<TypeInformation> seenTypes = new Set<TypeInformation>();
-    while (!workQueue.isEmpty) {
-      TypeInformation info = workQueue.remove();
+    while (!_workQueue.isEmpty) {
+      TypeInformation info = _workQueue.remove();
       if (seenTypes.contains(info)) continue;
       // If the node cannot be reset, we do not need to update its users either.
       if (!info.reset(this)) continue;
       seenTypes.add(info);
-      workQueue.addAll(info.users);
+      _workQueue.addAll(info.users);
     }
 
-    workQueue.addAll(seenTypes);
-    refine();
+    _workQueue.addAll(seenTypes);
+    _refine();
 
     if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((_info) {
@@ -681,42 +656,42 @@ class InferrerEngineImpl extends InferrerEngine {
           }
         } else if (info is StaticCallSiteTypeInformation) {
           ClassEntity cls = info.calledElement.enclosingClass;
-          FunctionEntity callMethod = lookupCallMethod(cls);
+          FunctionEntity callMethod = _lookupCallMethod(cls);
           print('${types.getInferredSignatureOfMethod(callMethod)} for ${cls}');
         } else {
           print('${info.type} for some unknown kind of closure');
         }
       });
-      analyzedElements.forEach((MemberEntity elem) {
+      _analyzedElements.forEach((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
         print('${elem} :: ${type} from ${type.inputs} ');
       });
     }
     dump?.afterAnalysis();
 
-    reporter.log('Inferred $overallRefineCount types.');
+    _reporter.log('Inferred $_overallRefineCount types.');
 
-    processLoopInformation();
+    _processLoopInformation();
   }
 
   /// Call [analyze] for all live members.
-  void analyzeAllElements() {
+  void _analyzeAllElements() {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
-    progress.startPhase();
+    _progress.startPhase();
     processedMembers.forEach((MemberEntity member) {
-      progress.showProgress(
-          'Added ', addedInGraph, ' elements in inferencing graph.');
+      _progress.showProgress(
+          'Added ', _addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       types.withMember(member, () => analyze(member));
     });
-    reporter.log('Added $addedInGraph elements in inferencing graph.');
+    _reporter.log('Added $_addedInGraph elements in inferencing graph.');
   }
 
   /// Returns the body node for [member].
-  ir.Node computeMemberBody(MemberEntity member) {
+  ir.Node _computeMemberBody(MemberEntity member) {
     MemberDefinition definition =
         closedWorld.elementMap.getMemberDefinition(member);
     switch (definition.kind) {
@@ -752,7 +727,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
-  FunctionEntity lookupCallMethod(ClassEntity cls) {
+  FunctionEntity _lookupCallMethod(ClassEntity cls) {
     FunctionEntity function =
         _elementEnvironment.lookupClassMember(cls, Identifiers.call);
     if (function == null || function.isAbstract) {
@@ -764,16 +739,16 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   void analyze(MemberEntity element) {
-    if (analyzedElements.contains(element)) return;
-    analyzedElements.add(element);
+    if (_analyzedElements.contains(element)) return;
+    _analyzedElements.add(element);
 
-    ir.Node body = computeMemberBody(element);
+    ir.Node body = _computeMemberBody(element);
 
     TypeInformation type;
-    reporter.withCurrentElement(element, () {
-      type = computeMemberTypeInformation(element, body);
+    _reporter.withCurrentElement(element, () {
+      type = _computeMemberTypeInformation(element, body);
     });
-    addedInGraph++;
+    _addedInGraph++;
 
     if (element.isField) {
       FieldEntity field = element;
@@ -784,7 +759,7 @@ class InferrerEngineImpl extends InferrerEngine {
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantValue value = getFieldConstant(field);
+            ConstantValue value = _getFieldConstant(field);
             if (value != null) {
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
@@ -818,7 +793,7 @@ class InferrerEngineImpl extends InferrerEngine {
       if ((element.isStatic || element.isTopLevel) &&
           body != null &&
           !element.isConst) {
-        if (isFieldInitializerPotentiallyNull(element, body)) {
+        if (_isFieldInitializerPotentiallyNull(element, body)) {
           recordTypeOfField(field, types.nullType);
         }
       }
@@ -829,10 +804,10 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   /// Visits [body] to compute the [TypeInformation] node for [member].
-  TypeInformation computeMemberTypeInformation(
+  TypeInformation _computeMemberTypeInformation(
       MemberEntity member, ir.Node body) {
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
-        options,
+        _options,
         closedWorld,
         this,
         member,
@@ -844,7 +819,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns `true` if the [initializer] of the non-const static or top-level
   /// [field] is potentially `null`.
-  bool isFieldInitializerPotentiallyNull(
+  bool _isFieldInitializerPotentiallyNull(
       FieldEntity field, ir.Node initializer) {
     // TODO(13429): We could do better here by using the
     // constant handler to figure out if it's a lazy field or not.
@@ -866,18 +841,18 @@ class InferrerEngineImpl extends InferrerEngine {
 
   /// Returns the [ConstantValue] for the initial value of [field], or
   /// `null` if the initializer is not a constant value.
-  ConstantValue getFieldConstant(FieldEntity field) {
+  ConstantValue _getFieldConstant(FieldEntity field) {
     return closedWorld.fieldAnalysis.getFieldData(field).initialValue;
   }
 
   /// Returns `true` if [cls] has a 'call' method.
-  bool hasCallType(ClassEntity cls) {
+  bool _hasCallType(ClassEntity cls) {
     return closedWorld.elementMap.types
             .getCallType(closedWorld.elementEnvironment.getThisType(cls)) !=
         null;
   }
 
-  void processLoopInformation() {
+  void _processLoopInformation() {
     types.allocatedCalls.forEach((CallSiteTypeInformation info) {
       if (!info.inLoop) return;
       // We can't compute the callees of closures, no new information to add.
@@ -900,20 +875,20 @@ class InferrerEngineImpl extends InferrerEngine {
     });
   }
 
-  void refine() {
-    progress.startPhase();
-    while (!workQueue.isEmpty) {
-      progress.showProgress('Inferred ', overallRefineCount, ' types.');
-      TypeInformation info = workQueue.remove();
+  void _refine() {
+    _progress.startPhase();
+    while (!_workQueue.isEmpty) {
+      _progress.showProgress('Inferred ', _overallRefineCount, ' types.');
+      TypeInformation info = _workQueue.remove();
       AbstractValue oldType = info.type;
       AbstractValue newType = info.refine(this);
       // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
-        overallRefineCount++;
+        _overallRefineCount++;
         info.refineCount++;
-        if (info.refineCount > MAX_CHANGE_COUNT) {
+        if (info.refineCount > _MAX_CHANGE_COUNT) {
           if (debug.ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
@@ -921,7 +896,7 @@ class InferrerEngineImpl extends InferrerEngine {
           info.type = info.refine(this);
           info.doNotEnqueue = true;
         }
-        workQueue.addAll(info.users);
+        _workQueue.addAll(info.users);
         if (info.hasStableType(this)) {
           info.stabilize(this);
         }
@@ -929,11 +904,11 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  void buildWorkQueue() {
-    workQueue.addAll(types.orderedTypeInformations);
-    workQueue.addAll(types.allocatedTypes);
-    workQueue.addAll(types.allocatedClosures);
-    workQueue.addAll(types.allocatedCalls);
+  void _buildWorkQueue() {
+    _workQueue.addAll(types.orderedTypeInformations);
+    _workQueue.addAll(types.allocatedTypes);
+    _workQueue.addAll(types.allocatedClosures);
+    _workQueue.addAll(types.allocatedCalls);
   }
 
   @override
@@ -949,7 +924,7 @@ class InferrerEngineImpl extends InferrerEngine {
         } else {
           info.addInput(arguments.positional[0]);
         }
-        if (addToQueue) workQueue.add(info);
+        if (addToQueue) _workQueue.add(info);
       }
     } else if (callee.isGetter) {
       return;
@@ -972,7 +947,7 @@ class InferrerEngineImpl extends InferrerEngine {
           ParameterTypeInformation info =
               types.getInferredTypeOfParameter(parameter);
           info.tagAsTearOffClosureParameter(this);
-          if (addToQueue) workQueue.add(info);
+          if (addToQueue) _workQueue.add(info);
         });
       }
     } else {
@@ -996,7 +971,7 @@ class InferrerEngineImpl extends InferrerEngine {
           info.addInput(type);
         }
         parameterIndex++;
-        if (addToQueue) workQueue.add(info);
+        if (addToQueue) _workQueue.add(info);
       });
     }
   }
@@ -1006,8 +981,8 @@ class InferrerEngineImpl extends InferrerEngine {
       {bool isInstanceMember}) {
     assert(
         type != null, failedAt(parameter, "No default type for $parameter."));
-    TypeInformation existing = defaultTypeOfParameter[parameter];
-    defaultTypeOfParameter[parameter] = type;
+    TypeInformation existing = _defaultTypeOfParameter[parameter];
+    _defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
@@ -1031,16 +1006,10 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   TypeInformation getDefaultTypeOfParameter(Local parameter) {
-    return defaultTypeOfParameter.putIfAbsent(parameter, () {
+    return _defaultTypeOfParameter.putIfAbsent(parameter, () {
       return new PlaceholderTypeInformation(
           abstractValueDomain, types.currentMember);
     });
-  }
-
-  @override
-  bool hasAlreadyComputedTypeOfParameterDefault(Local parameter) {
-    TypeInformation seen = defaultTypeOfParameter[parameter];
-    return (seen != null && seen is! PlaceholderTypeInformation);
   }
 
   @override
@@ -1121,13 +1090,13 @@ class InferrerEngineImpl extends InferrerEngine {
         callee is ConstructorEntity &&
         callee.isGenerativeConstructor) {
       ClassEntity cls = callee.enclosingClass;
-      if (hasCallType(cls)) {
+      if (_hasCallType(cls)) {
         types.allocatedClosures.add(info);
       }
     }
     info.addToGraph(this);
     types.allocatedCalls.add(info);
-    updateSideEffects(sideEffectsBuilder, selector, callee);
+    _updateSideEffects(sideEffectsBuilder, selector, callee);
     return info;
   }
 
@@ -1153,7 +1122,7 @@ class InferrerEngineImpl extends InferrerEngine {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     }
     closedWorld.locateMembers(selector, mask).forEach((callee) {
-      updateSideEffects(sideEffectsBuilder, selector, callee);
+      _updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
     CallSiteTypeInformation info;
@@ -1168,7 +1137,7 @@ class InferrerEngineImpl extends InferrerEngine {
           abstractValueDomain,
           types.currentMember,
           node,
-          typeOfSharedDynamicCall(selector, CallStructure.ONE_ARG),
+          _typeOfSharedDynamicCall(selector, CallStructure.ONE_ARG),
           caller,
           selector,
           mask,
@@ -1258,7 +1227,7 @@ class InferrerEngineImpl extends InferrerEngine {
     types.allocatedCalls.forEach(cleanup);
     types.allocatedCalls.clear();
 
-    defaultTypeOfParameter.clear();
+    _defaultTypeOfParameter.clear();
 
     types.parameterTypeInformations.values.forEach(cleanup);
     types.memberTypeInformations.values.forEach(cleanup);
@@ -1271,8 +1240,8 @@ class InferrerEngineImpl extends InferrerEngine {
     types.allocatedClosures.forEach(cleanup);
     types.allocatedClosures.clear();
 
-    analyzedElements.clear();
-    generativeConstructorsExposingThis.clear();
+    _analyzedElements.clear();
+    _generativeConstructorsExposingThis.clear();
 
     types.allocatedMaps.values.forEach(cleanup);
     types.allocatedSets.values.forEach(cleanup);
@@ -1321,8 +1290,15 @@ class InferrerEngineImpl extends InferrerEngine {
   /// cache holds that shared dynamic call node for a given selector.
   Map<Selector, DynamicCallSiteTypeInformation> _sharedCalls = {};
 
-  @override
-  DynamicCallSiteTypeInformation typeOfSharedDynamicCall(
+  /// For a given selector, return a shared dynamic call site that will be used
+  /// to combine the results of multiple dynamic calls in the program via
+  /// [IndirectDynamicCallSiteTypeInformation].
+  ///
+  /// This is used only for scalability reasons: if there are too many targets
+  /// and call sites, we may have a quadratic number of edges in the graph, so
+  /// we add a level of indirection to merge the information and keep the graph
+  /// smaller.
+  DynamicCallSiteTypeInformation _typeOfSharedDynamicCall(
       Selector selector, CallStructure structure) {
     DynamicCallSiteTypeInformation info = _sharedCalls[selector];
     if (info != null) return info;
