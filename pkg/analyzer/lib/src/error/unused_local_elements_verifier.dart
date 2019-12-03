@@ -109,7 +109,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (element.enclosingElement is ClassElement &&
+      } else if ((element.enclosingElement is ClassElement ||
+              element.enclosingElement is ExtensionElement) &&
           !identical(element, _enclosingExec)) {
         usedElements.members.add(element);
         if (isIdentifierRead) {

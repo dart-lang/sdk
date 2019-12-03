@@ -30,6 +30,48 @@ print(x) {}
 ''');
   }
 
+  test_isUsed_extensionOnClass() async {
+    await assertNoErrorsInCode(r'''
+class Foo {}
+extension Bar on Foo {
+  int baz() => _baz;
+  static final _baz = 7;
+}
+''');
+  }
+
+  test_isUsed_extensionOnEnum() async {
+    await assertNoErrorsInCode(r'''
+enum Foo {a, b}
+extension Bar on Foo {
+  int baz() => _baz;
+  static final _baz = 1;
+}
+''');
+  }
+
+  test_isUsed_mixin() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int _f = 0;
+}
+class Bar with M {
+  int g() => _f;
+}
+''');
+  }
+
+  test_isUsed_mixinRestriction() async {
+    await assertNoErrorsInCode(r'''
+class Foo {
+  int _f = 0;
+}
+mixin M on Foo {
+  int g() => _f;
+}
+''');
+  }
+
   test_isUsed_parameterized_subclass() async {
     await assertNoErrorsInCode(r'''
 class A<T extends num> {
@@ -144,6 +186,17 @@ class A {
     ]);
   }
 
+  test_notUsed_extensionOnClass() async {
+    await assertErrorsInCode(r'''
+class Foo {}
+extension Bar on Foo {
+  static final _baz = 7;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 51, 4),
+    ]);
+  }
+
   test_notUsed_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -152,6 +205,28 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
+  }
+
+  test_notUsed_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int _f = 0;
+}
+class Bar with M {}
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
+  }
+
+  test_notUsed_mixinRestriction() async {
+    await assertErrorsInCode(r'''
+class Foo {
+  int _f = 0;
+}
+mixin M on Foo {}
+''', [
+      error(HintCode.UNUSED_FIELD, 18, 2),
     ]);
   }
 
