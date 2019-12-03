@@ -3698,8 +3698,7 @@ RawObject* Class::Invoke(const String& function_name,
 }
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -3707,8 +3706,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
     const TypeArguments& type_arguments);
 
 RawObject* Class::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -3721,7 +3719,7 @@ RawObject* Class::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_buffer, type_definitions,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
       arguments, type_arguments);
@@ -11538,14 +11536,13 @@ RawObject* Library::Invoke(const String& function_name,
 }
 
 RawObject* Library::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions, String::Handle(url()),
-      String::Handle(), arguments, type_arguments);
+      kernel_buffer, type_definitions, String::Handle(url()), String::Handle(),
+      arguments, type_arguments);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11603,8 +11600,7 @@ class LibraryLookupTraits {
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -11618,7 +11614,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
   return ApiError::New(error_str);
 #else
   std::unique_ptr<kernel::Program> kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
+      kernel::Program::ReadFromTypedData(kernel_buffer);
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
@@ -12186,6 +12182,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const Array& scripts,
     const Array& libraries_cache,
     const Array& classes_cache,
+    const Object& retained_kernel_blob,
     const uint32_t binary_version) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
@@ -12200,6 +12197,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
   info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
+  info.StorePointer(&info.raw_ptr()->retained_kernel_blob_,
+                    retained_kernel_blob.raw());
   info.set_kernel_binary_version(binary_version);
   return info.raw();
 }
@@ -16473,8 +16472,7 @@ RawObject* Instance::Invoke(const String& function_name,
 
 RawObject* Instance::EvaluateCompiledExpression(
     const Class& method_cls,
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -16488,7 +16486,7 @@ RawObject* Instance::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_buffer, type_definitions,
       String::Handle(Library::Handle(method_cls.library()).url()),
       String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
       type_arguments);
@@ -21683,6 +21681,18 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
     result.SetLength(len);
     result.SetData(data);
   }
+  return result.raw();
+}
+
+RawExternalTypedData* ExternalTypedData::NewFinalizeWithFree(uint8_t* data,
+                                                             intptr_t len) {
+  ExternalTypedData& result = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, data, len, Heap::kOld));
+  result.AddFinalizer(
+      data,
+      [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
+         void* data) { free(data); },
+      len);
   return result.raw();
 }
 

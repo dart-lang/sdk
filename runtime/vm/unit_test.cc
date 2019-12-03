@@ -700,13 +700,14 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
       return Api::NewError("%s", compilation_result.error);
     }
 
-    const uint8_t* kernel_bytes = compilation_result.kernel;
-    intptr_t kernel_length = compilation_result.kernel_size;
+    const ExternalTypedData& kernel_buffer =
+        ExternalTypedData::Handle(ExternalTypedData::NewFinalizeWithFree(
+            const_cast<uint8_t*>(compilation_result.kernel),
+            compilation_result.kernel_size));
 
-    val = lib.EvaluateCompiledExpression(kernel_bytes, kernel_length,
-                                         Array::empty_array(), param_values,
+    val = lib.EvaluateCompiledExpression(kernel_buffer, Array::empty_array(),
+                                         param_values,
                                          TypeArguments::null_type_arguments());
-    free(const_cast<uint8_t*>(kernel_bytes));
   }
   return Api::NewHandle(thread, val.raw());
 }

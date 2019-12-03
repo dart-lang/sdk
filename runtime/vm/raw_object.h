@@ -1287,7 +1287,8 @@ class RawKernelProgramInfo : public RawObject {
   RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;
-  VISIT_TO(RawObject*, classes_cache_);
+  RawObject* retained_kernel_blob_;
+  VISIT_TO(RawObject*, retained_kernel_blob_);
 
   uint32_t kernel_binary_version_;
 

@@ -230,13 +230,14 @@ TEST_CASE(EvalExpression) {
             /* is_static= */ false);
     EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
 
-    const uint8_t* kernel_bytes = compilation_result.kernel;
-    intptr_t kernel_length = compilation_result.kernel_size;
+    const ExternalTypedData& kernel_buffer =
+        ExternalTypedData::Handle(ExternalTypedData::NewFinalizeWithFree(
+            const_cast<uint8_t*>(compilation_result.kernel),
+            compilation_result.kernel_size));
 
     val = Instance::Cast(obj).EvaluateCompiledExpression(
-        receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
-        Array::empty_array(), TypeArguments::null_type_arguments());
-    free(const_cast<uint8_t*>(kernel_bytes));
+        receiver_cls, kernel_buffer, Array::empty_array(), Array::empty_array(),
+        TypeArguments::null_type_arguments());
   }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());

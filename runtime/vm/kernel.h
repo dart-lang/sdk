@@ -88,12 +88,13 @@ class Program {
     return metadata_mappings_offset_;
   }
   intptr_t constant_table_offset() { return constant_table_offset_; }
+  const ExternalTypedData* typed_data() { return typed_data_; }
   const uint8_t* kernel_data() { return kernel_data_; }
   intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }
 
  private:
-  Program() : kernel_data_(NULL), kernel_data_size_(-1) {}
+  Program() : typed_data_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 
   bool single_program_;
   uint32_t binary_version_;
@@ -118,6 +119,7 @@ class Program {
   // The offset from the start of the binary to the start of the string table.
   intptr_t string_table_offset_;
 
+  const ExternalTypedData* typed_data_;
   const uint8_t* kernel_data_;
   intptr_t kernel_data_size_;
 

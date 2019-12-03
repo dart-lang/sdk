@@ -124,6 +124,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 
   std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
+  program->typed_data_ = reader->typed_data();
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
 

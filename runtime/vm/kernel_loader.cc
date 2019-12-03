@@ -418,6 +418,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   kernel_program_info_ = KernelProgramInfo::New(
       offsets, data, names, metadata_payloads, metadata_mappings,
       constants_table, scripts, libraries_cache, classes_cache,
+      program_->typed_data() == nullptr ? Object::null_object()
+                                        : *program_->typed_data(),
       program_->binary_version());
 
   H.InitFromKernelProgramInfo(kernel_program_info_);

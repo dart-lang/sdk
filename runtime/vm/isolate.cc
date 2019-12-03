@@ -1258,7 +1258,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      reloaded_kernel_blobs_(GrowableObjectArray::null()),
       field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(),
@@ -1487,14 +1486,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   }
 
   return result;
-}
-
-void Isolate::RetainKernelBlob(const ExternalTypedData& kernel_blob) {
-  if (reloaded_kernel_blobs_ == Object::null()) {
-    reloaded_kernel_blobs_ = GrowableObjectArray::New();
-  }
-  auto& kernel_blobs = GrowableObjectArray::Handle(reloaded_kernel_blobs_);
-  kernel_blobs.Add(kernel_blob);
 }
 
 Thread* Isolate::mutator_thread() const {
@@ -2330,7 +2321,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&reloaded_kernel_blobs_));
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
