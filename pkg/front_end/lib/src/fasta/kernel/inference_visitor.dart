@@ -446,7 +446,7 @@ class InferenceVisitor
   @override
   StatementInferenceResult visitContinueSwitchStatement(
       ContinueSwitchStatement node) {
-    // No inference needs to be done.
+    inferrer.flowAnalysis.handleContinue(node.target.body);
     return const StatementInferenceResult();
   }
 
@@ -1055,7 +1055,7 @@ class InferenceVisitor
       node.condition = condition..parent = node;
     }
 
-    inferrer.flowAnalysis.for_bodyBegin(node.body, node.condition);
+    inferrer.flowAnalysis.for_bodyBegin(node, node.condition);
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
@@ -4871,10 +4871,10 @@ class InferenceVisitor
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
     bool hasDefault = false;
-    for (SwitchCase switchCase in node.cases) {
+    for (SwitchCaseImpl switchCase in node.cases) {
       hasDefault = hasDefault || switchCase.isDefault;
-      // TODO(dmitryas): Pass in the actual value for the first parameter.
-      inferrer.flowAnalysis.switchStatement_beginCase(false, node);
+      inferrer.flowAnalysis
+          .switchStatement_beginCase(switchCase.hasLabel, node);
       for (int index = 0; index < switchCase.expressions.length; index++) {
         ExpressionInferenceResult caseExpressionResult =
             inferrer.inferExpression(

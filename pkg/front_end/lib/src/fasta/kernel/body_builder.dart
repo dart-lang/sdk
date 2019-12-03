@@ -254,6 +254,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///
   bool inLateFieldInitializer = false;
 
+  List<Initializer> _initializers;
+
   bool inCatchClause = false;
 
   bool inCatchBlock = false;
@@ -810,7 +812,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endInitializer");
     inFieldInitializer = false;
     assert(!inInitializer);
-    final ModifierBuilder member = this.member;
     Object node = pop();
     List<Initializer> initializers;
     if (node is Initializer) {
@@ -832,14 +833,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         buildInvalidInitializer(node, token.charOffset)
       ];
     }
-    for (Initializer initializer in initializers) {
-      typeInferrer?.inferInitializer(this, initializer);
-    }
-    if (member is ConstructorBuilder && !member.isExternal) {
-      for (Initializer initializer in initializers) {
-        member.addInitializer(initializer, this);
-      }
-    } else {
+    _initializers ??= <Initializer>[];
+    _initializers.addAll(initializers);
+    final ModifierBuilder member = this.member;
+    if (!(member is ConstructorBuilder && !member.isExternal)) {
       addProblem(
           fasta.templateInitializerOutsideConstructor
               .withArguments(member.name),
@@ -865,6 +862,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeInferrer?.assignedVariables?.finish();
 
     FunctionBuilder builder = member;
+    FunctionNode function = builder.member.function;
+    for (VariableDeclaration parameter in function.positionalParameters) {
+      typeInferrer?.flowAnalysis?.initialize(parameter);
+    }
+    for (VariableDeclaration parameter in function.namedParameters) {
+      typeInferrer?.flowAnalysis?.initialize(parameter);
+    }
+
     if (formals?.parameters != null) {
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
@@ -905,13 +910,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
+    if (builder is ConstructorBuilder) {
+      finishConstructor(builder, asyncModifier, body);
+    } else if (builder is ProcedureBuilder) {
+      builder.asyncModifier = asyncModifier;
+    } else {
+      unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
+          builder.fileUri);
+    }
+
     if (body != null) {
       body = typeInferrer?.inferFunctionBody(
-          this,
-          _computeReturnTypeContext(member),
-          asyncModifier,
-          builder.member.function,
-          body);
+          this, _computeReturnTypeContext(member), asyncModifier, body);
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }
@@ -956,10 +966,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // building, so we should skip them here.
     bool isNoSuchMethodForwarder = (builder.function.parent is Procedure &&
         (builder.function.parent as Procedure).isNoSuchMethodForwarder);
-    if (!builder.isExternal && !isNoSuchMethodForwarder) {
-      builder.body = body;
-    } else {
-      if (body != null) {
+    if (body != null) {
+      if (!builder.isExternal && !isNoSuchMethodForwarder) {
+        builder.body = body;
+      } else {
         builder.body = new Block(<Statement>[
           new ExpressionStatement(buildProblem(
               fasta.messageExternalMethodWithBody, body.fileOffset, noLength))
@@ -969,15 +979,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = body.fileOffset;
       }
     }
-    if (builder is ConstructorBuilder) {
-      finishConstructor(builder, asyncModifier);
-    } else if (builder is ProcedureBuilder) {
-      builder.asyncModifier = asyncModifier;
-    } else {
-      unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
-          builder.fileUri);
-    }
-
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
   }
@@ -1292,7 +1293,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
-        this, const DynamicType(), AsyncMarker.Sync, null, fakeReturn);
+        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
   }
@@ -1307,7 +1308,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     // We are passing [AsyncMarker.Sync] because the error will be reported
     // already.
-    finishConstructor(member, AsyncMarker.Sync);
+    finishConstructor(member, AsyncMarker.Sync, null);
   }
 
   Expression parseFieldInitializer(Token token) {
@@ -1327,17 +1328,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void finishConstructor(
-      ConstructorBuilder builder, AsyncMarker asyncModifier) {
+      ConstructorBuilder builder, AsyncMarker asyncModifier, Statement body) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
     assert(builder == member);
     Constructor constructor = builder.actualConstructor;
+    if (_initializers != null) {
+      for (Initializer initializer in _initializers) {
+        typeInferrer?.inferInitializer(this, initializer);
+      }
+      if (!builder.isExternal) {
+        for (Initializer initializer in _initializers) {
+          builder.addInitializer(initializer, this);
+        }
+      }
+    }
     if (asyncModifier != AsyncMarker.Sync) {
-      // TODO(ahe): Change this to a null check.
-      int offset = builder.body?.fileOffset ?? builder.charOffset;
-      constructor.initializers.add(buildInvalidInitializer(
-          buildProblem(fasta.messageConstructorNotSync, offset, noLength)));
+      constructor.initializers.add(buildInvalidInitializer(buildProblem(
+          fasta.messageConstructorNotSync, body.fileOffset, noLength)));
     }
     if (needsImplicitSuperInitializer) {
       /// >If no superinitializer is provided, an implicit superinitializer
@@ -1371,7 +1380,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     setParents(constructor.initializers, constructor);
     libraryBuilder.loader.transformListPostInference(constructor.initializers,
         transformSetLiterals, transformCollections, libraryBuilder.library);
-    if (constructor.function.body == null) {
+    if (body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
@@ -4911,8 +4920,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression expression in expressions) {
       expressionOffsets.add(expression.fileOffset);
     }
-    push(new SwitchCase(expressions, expressionOffsets, block,
-        isDefault: defaultKeyword != null)
+    assert(labels == null || labels.isNotEmpty);
+    push(new SwitchCaseImpl(expressions, expressionOffsets, block,
+        isDefault: defaultKeyword != null, hasLabel: labels != null)
       ..fileOffset = firstToken.charOffset);
     push(labels ?? NullValue.Labels);
   }

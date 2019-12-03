@@ -25,8 +25,7 @@ main(List<String> args) async {
       runTest: runTestFor(
           const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
-        // TODO(johnniwinther): Change for loop encoding to support these:
-        'for.dart',
+        // TODO(johnniwinther): Change for loop encoding to support this:
         'for_each.dart',
       ]);
 }

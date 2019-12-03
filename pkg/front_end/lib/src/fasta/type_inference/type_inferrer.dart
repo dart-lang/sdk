@@ -406,6 +406,10 @@ abstract class TypeInferrer {
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
+  /// Returns the [FlowAnalysis] used during inference.
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration, DartType>
+      get flowAnalysis;
+
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
   Uri get uriForInstrumentation;
@@ -418,7 +422,7 @@ abstract class TypeInferrer {
 
   /// Performs type inference on the given function body.
   Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, FunctionNode function, Statement body);
+      AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer(InferenceHelper helper, Initializer initializer);
@@ -1583,19 +1587,11 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   Statement inferFunctionBody(InferenceHelper helper, DartType returnType,
-      AsyncMarker asyncMarker, FunctionNode function, Statement body) {
+      AsyncMarker asyncMarker, Statement body) {
     assert(body != null);
     assert(closureContext == null);
     this.helper = helper;
     closureContext = new ClosureContext(this, asyncMarker, returnType, false);
-    if (function != null) {
-      for (VariableDeclaration parameter in function.positionalParameters) {
-        flowAnalysis.initialize(parameter);
-      }
-      for (VariableDeclaration parameter in function.namedParameters) {
-        flowAnalysis.initialize(parameter);
-      }
-    }
     StatementInferenceResult result = inferStatement(body);
     closureContext = null;
     this.helper = null;

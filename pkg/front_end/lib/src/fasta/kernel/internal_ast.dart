@@ -195,6 +195,16 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
+class SwitchCaseImpl extends SwitchCase {
+  final bool hasLabel;
+
+  SwitchCaseImpl(
+      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+      {bool isDefault: false, this.hasLabel})
+      : assert(hasLabel != null),
+        super(expressions, expressionOffsets, body, isDefault: isDefault);
+}
+
 class BreakStatementImpl extends BreakStatement {
   Statement targetStatement;
   final bool isContinue;
