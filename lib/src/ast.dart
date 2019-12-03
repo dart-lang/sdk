@@ -124,6 +124,7 @@ bool isHashCode(ClassMember element) =>
 /// Return true if this compilation unit [node] is declared within the given
 /// [package]'s `lib/` directory tree.
 bool isInLibDir(CompilationUnit node, WorkspacePackage package) {
+  if (package == null) return false;
   final cuPath = node.declaredElement.library?.source?.fullName;
   if (cuPath == null) return false;
   final libDir = path.join(package.root, 'lib');
