@@ -4,6 +4,7 @@
 
 // SharedOptions=--enable-experiment=non-nullable
 import 'package:expect/expect.dart';
+import 'dart:async';
 
 class C {
   C operator*(int? other) => this;
@@ -74,14 +75,16 @@ main() async {
   // the runtime behavior by using an object whose operator- returns null.
   int? x8 = 2;
   -x8!;
-  var x9 = new C();
-  -x9!;
+  C? x9 = new C();
+  var x10 = -x9!;
+  Expect.isNull(x10);
 
   // `await x!` means `await (x!)`, not `(await x)!`.  We check the compile-time
   // behavior by checking that the inferred type of the expression is nullable.
   // We check the runtime behavior by ensuring that the future completes to a
   // null value, and this does not produce an exception.
-  var x10 = new Future<Object?>.value(null);
-  var x11 = await x10!;
-  x11 = null;
+  FutureOr<Object?> x11 = new Future<Object?>.value(null);
+  var x12 = await x11!;
+  Expect.isNull(x12);
+  x12 = null;
 }
