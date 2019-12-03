@@ -62,7 +62,7 @@ class ClosureTracerVisitor extends TracerVisitor {
           .signatureApplies(functionElement.parameterStructure)) {
         return;
       }
-      inferrer.updateParameterAssignments(
+      inferrer.updateParameterInputs(
           info, functionElement, info.arguments, selector, mask,
           remove: false, addToQueue: false);
     });
