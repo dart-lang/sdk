@@ -1608,23 +1608,10 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   /**
-   * TODO(scheglov) Update to full NNBD rules.
-   *
    * Compute the greatest lower bound of function types [f] and [g].
    *
-   * The spec rules for GLB on function types, informally, are pretty simple:
-   *
-   * - If a parameter is required in both, it stays required.
-   *
-   * - If a positional parameter is optional or missing in one, it becomes
-   *   optional.
-   *
-   * - Named parameters are unioned together.
-   *
-   * - For any parameter that exists in both functions, use the LUB of them as
-   *   the resulting parameter type.
-   *
-   * - Use the GLB of their return types.
+   * https://github.com/dart-lang/language
+   * See `resources/type-system/upper-lower-bounds.md`
    */
   DartType _functionGreatestLowerBound(FunctionType f, FunctionType g) {
     var fTypeFormals = f.typeFormals;
@@ -1651,97 +1638,117 @@ class Dart2TypeSystem extends TypeSystem {
     f = f.instantiate(freshTypeFormalTypes);
     g = g.instantiate(freshTypeFormalTypes);
 
-    // Calculate the LUB of each corresponding pair of parameters.
-    List<ParameterElement> parameters = [];
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
 
-    bool hasPositional = false;
-    bool hasNamed = false;
-    addParameter(
-        String name, DartType fType, DartType gType, ParameterKind kind) {
-      DartType paramType;
-      if (fType != null && gType != null) {
-        // If both functions have this parameter, include both of their types.
-        paramType = getLeastUpperBound(fType, gType);
+    var parameters = <ParameterElement>[];
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isPositional) {
+        if (gParameter.isPositional) {
+          fIndex++;
+          gIndex++;
+          parameters.add(
+            ParameterElementImpl.synthetic(
+              fParameter.name,
+              getLeastUpperBound(fParameter.type, gParameter.type),
+              fParameter.isOptional || gParameter.isOptional
+                  ? ParameterKind.POSITIONAL
+                  : ParameterKind.REQUIRED,
+            ),
+          );
+        } else {
+          return NeverTypeImpl.instance;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            fIndex++;
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                getLeastUpperBound(fParameter.type, gParameter.type),
+                fParameter.isRequiredNamed && gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
+              ),
+            );
+          } else if (compareNames < 0) {
+            fIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                fParameter.name,
+                fParameter.type,
+                ParameterKind.NAMED,
+              ),
+            );
+          } else {
+            assert(compareNames > 0);
+            gIndex++;
+            parameters.add(
+              ParameterElementImpl.synthetic(
+                gParameter.name,
+                gParameter.type,
+                ParameterKind.NAMED,
+              ),
+            );
+          }
+        } else {
+          return NeverTypeImpl.instance;
+        }
+      }
+    }
+
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isPositional) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            fParameter.name,
+            fParameter.type,
+            ParameterKind.POSITIONAL,
+          ),
+        );
       } else {
-        paramType = fType ?? gType;
+        assert(fParameter.isNamed);
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            fParameter.name,
+            fParameter.type,
+            ParameterKind.NAMED,
+          ),
+        );
       }
-
-      parameters.add(new ParameterElementImpl.synthetic(name, paramType, kind));
     }
 
-    // TODO(rnystrom): Right now, this assumes f and g do not have any type
-    // parameters. Revisit that in the presence of generic methods.
-    List<DartType> fRequired = f.normalParameterTypes;
-    List<DartType> gRequired = g.normalParameterTypes;
-
-    // We need some parameter names for in the synthesized function type.
-    List<String> fRequiredNames = f.normalParameterNames;
-    List<String> gRequiredNames = g.normalParameterNames;
-
-    // Parameters that are required in both functions are required in the
-    // result.
-    int requiredCount = math.min(fRequired.length, gRequired.length);
-    for (int i = 0; i < requiredCount; i++) {
-      addParameter(fRequiredNames[i], fRequired[i], gRequired[i],
-          ParameterKind.REQUIRED);
-    }
-
-    // Parameters that are optional or missing in either end up optional.
-    List<DartType> fPositional = f.optionalParameterTypes;
-    List<DartType> gPositional = g.optionalParameterTypes;
-    List<String> fPositionalNames = f.optionalParameterNames;
-    List<String> gPositionalNames = g.optionalParameterNames;
-
-    int totalPositional = math.max(fRequired.length + fPositional.length,
-        gRequired.length + gPositional.length);
-    for (int i = requiredCount; i < totalPositional; i++) {
-      // Find the corresponding positional parameters (required or optional) at
-      // this index, if there is one.
-      DartType fType;
-      String fName;
-      if (i < fRequired.length) {
-        fType = fRequired[i];
-        fName = fRequiredNames[i];
-      } else if (i < fRequired.length + fPositional.length) {
-        fType = fPositional[i - fRequired.length];
-        fName = fPositionalNames[i - fRequired.length];
+    while (gIndex < gParameters.length) {
+      var gParameter = gParameters[gIndex++];
+      if (gParameter.isPositional) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            gParameter.name,
+            gParameter.type,
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      } else {
+        assert(gParameter.isNamed);
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            gParameter.name,
+            gParameter.type,
+            ParameterKind.NAMED,
+          ),
+        );
       }
-
-      DartType gType;
-      String gName;
-      if (i < gRequired.length) {
-        gType = gRequired[i];
-        gName = gRequiredNames[i];
-      } else if (i < gRequired.length + gPositional.length) {
-        gType = gPositional[i - gRequired.length];
-        gName = gPositionalNames[i - gRequired.length];
-      }
-
-      // The loop should not let us go past both f and g's positional params.
-      assert(fType != null || gType != null);
-
-      addParameter(fName ?? gName, fType, gType, ParameterKind.POSITIONAL);
-      hasPositional = true;
     }
 
-    // Union the named parameters together.
-    // TODO(brianwilkerson) Handle the fact that named parameters can now be
-    //  required.
-    Map<String, DartType> fNamed = f.namedParameterTypes;
-    Map<String, DartType> gNamed = g.namedParameterTypes;
-    for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
-      addParameter(name, fNamed[name], gNamed[name], ParameterKind.NAMED);
-      hasNamed = true;
-    }
-
-    // Edge case. Dart does not support functions with both optional positional
-    // and named parameters. If we would synthesize that, give up.
-    if (hasPositional && hasNamed) {
-      return NeverTypeImpl.instance;
-    }
-
-    // Calculate the GLB of the return type.
-    DartType returnType = getGreatestLowerBound(f.returnType, g.returnType);
+    var returnType = getGreatestLowerBound(f.returnType, g.returnType);
 
     return FunctionTypeImpl(
       typeFormals: typeFormals,

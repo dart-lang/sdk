@@ -607,6 +607,143 @@ class LowerBoundTest extends _BoundsTestBase {
     );
   }
 
+  test_functionType2_parameters_conflicts() {
+    _checkGreatestLowerBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+        ],
+      ),
+      neverNone,
+    );
+
+    _checkGreatestLowerBound(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+        ],
+      ),
+      neverNone,
+    );
+  }
+
+  test_functionType2_parameters_named() {
+    FunctionType build(
+      List<DartType> requiredTypes,
+      Map<String, DartType> namedMap,
+      Map<String, DartType> namedRequiredMap,
+    ) {
+      var parameters = <ParameterElement>[];
+
+      for (var requiredType in requiredTypes) {
+        parameters.add(
+          requiredParameter(type: requiredType),
+        );
+      }
+
+      for (var entry in namedMap.entries) {
+        parameters.add(
+          namedParameter(name: entry.key, type: entry.value),
+        );
+      }
+
+      for (var entry in namedRequiredMap.entries) {
+        parameters.add(
+          namedRequiredParameter(name: entry.key, type: entry.value),
+        );
+      }
+
+      return functionTypeNone(
+        returnType: voidNone,
+        parameters: parameters,
+      );
+    }
+
+    void check(FunctionType T1, FunctionType T2, DartType expected) {
+      _checkGreatestLowerBound(T1, T2, expected);
+    }
+
+    check(
+      build([], {}, {}),
+      build([], {}, {}),
+      build([], {}, {}),
+    );
+
+    {
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {'a': intNone}, {}),
+        build([], {'a': intNone}, {}),
+      );
+
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {}, {'a': intNone}),
+        build([], {'a': intNone}, {}),
+      );
+
+      check(
+        build([], {}, {'a': intNone}),
+        build([], {}, {'a': intNone}),
+        build([], {}, {'a': intNone}),
+      );
+    }
+
+    {
+      check(
+        build([], {'a': intNone, 'b': intNone}, {}),
+        build([], {'a': intNone, 'c': intNone}, {}),
+        build([], {'a': intNone, 'b': intNone, 'c': intNone}, {}),
+      );
+
+      check(
+        build([], {'a': intNone}, {'b': intNone}),
+        build([], {'a': intNone}, {'c': intNone}),
+        build([], {'a': intNone, 'b': intNone, 'c': intNone}, {}),
+      );
+    }
+
+    {
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {'a': numNone}, {}),
+        build([], {'a': numNone}, {}),
+      );
+
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {'a': doubleNone}, {}),
+        build([], {'a': numNone}, {}),
+      );
+
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {'a': doubleQuestion}, {}),
+        build([], {'a': numQuestion}, {}),
+      );
+
+      check(
+        build([], {'a': intNone}, {}),
+        build([], {'a': doubleStar}, {}),
+        build([], {'a': numStar}, {}),
+      );
+    }
+  }
+
   test_functionType2_parameters_positional() {
     FunctionType build(
       List<DartType> requiredTypes,
@@ -644,17 +781,35 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(
       build([intNone], []),
+      build([intNone], []),
+      build([intNone], []),
+    );
+
+    check(
+      build([intNone], []),
+      build([numNone], []),
+      build([numNone], []),
+    );
+
+    check(
+      build([intNone], []),
       build([doubleNone], []),
       build([numNone], []),
     );
 
-    {
-      check(
-        build([intNone], []),
-        build([intNone], []),
-        build([intNone], []),
-      );
+    check(
+      build([intNone], []),
+      build([doubleQuestion], []),
+      build([numQuestion], []),
+    );
 
+    check(
+      build([intNone], []),
+      build([doubleStar], []),
+      build([numStar], []),
+    );
+
+    {
       check(
         build([intNone], []),
         build([], [intNone]),
@@ -664,6 +819,12 @@ class LowerBoundTest extends _BoundsTestBase {
       check(
         build([intNone], []),
         build([], []),
+        build([], [intNone]),
+      );
+
+      check(
+        build([], [intNone]),
+        build([], [intNone]),
         build([], [intNone]),
       );
 
