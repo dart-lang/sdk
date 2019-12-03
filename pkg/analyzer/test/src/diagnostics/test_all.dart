@@ -140,6 +140,7 @@ import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
@@ -465,6 +466,7 @@ main() {
     invalid_factory_method_impl.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_non_virtual_annotation.main();
     invalid_optional_parameter_type.main();

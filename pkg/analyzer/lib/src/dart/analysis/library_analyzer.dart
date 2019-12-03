@@ -14,9 +14,10 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
-import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
+import 'package:analyzer/src/error/invalid_language_version_override_finder.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
+import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -279,6 +280,7 @@ class LibraryAnalyzer {
     ));
 
     new TodoFinder(errorReporter).findIn(unit);
+    new InvalidLanguageVersionOverrideFinder(errorReporter).findIn(unit);
 
     // Verify imports.
     {

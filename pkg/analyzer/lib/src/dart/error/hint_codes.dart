@@ -694,6 +694,138 @@ class HintCode extends AnalyzerErrorCode {
       const HintCode('INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
           "The member '{0}' can only be used within '{1}' or a test.");
 
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+          "The Dart language version override number must begin with '@dart'",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+          "The Dart language version override comment must be specified with "
+              "an '=' character",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+          "The Dart language version override comment must be specified with "
+              "the word 'dart' in all lower case",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+          "The Dart language version override comment must be specified with a "
+              "version number, like '2.0', after the '=' character.",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+          "The Dart language version override number can't be prefixed with "
+              "a letter",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+          "The Dart language version override comment can't be followed by "
+              "any non-whitespace characters",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+          'The Dart language version override comment must be specified with '
+              'exactly two slashes.',
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
   /**
    * This hint is generated anywhere where a private declaration is annotated
    * with `@visibleForTemplate` or `@visibleForTesting`.
@@ -2065,6 +2197,8 @@ class HintCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.HINT;
 }
 
+/// A [HintCode] class in which a [uniqueName] can be given which is not just
+/// derived from [name].
 class HintCodeWithUniqueName extends HintCode {
   @override
   final String uniqueName;
