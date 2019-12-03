@@ -1074,6 +1074,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
 
   @override
   bool operator ==(Object other) {
+    if (other is TypeParameterMember) {
+      return declaration == other.declaration;
+    }
     return declaration == other;
   }
 

@@ -12,7 +12,7 @@ import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'subtype_test.dart' as subtype;
 import 'type_algebra_test.dart' as type_algebra;
 import 'type_parameter_element_test.dart' as type_parameter_element;
-import 'upper_bound_test.dart' as upper_bound;
+import 'upper_lower_bound_test.dart' as upper_bound;
 
 /// Utility for manually running all tests.
 main() {

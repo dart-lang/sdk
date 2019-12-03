@@ -23,33 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:meta/meta.dart';
 
-/**
- * `void`, `dynamic`, and `Object` are all equivalent. However, this makes
- * LUB/GLB indeterministic. Therefore, for the cases of LUB/GLB, we have some
- * types which are more top than others.
- *
- * So, `void` < `Object` < `dynamic` for the purposes of LUB and GLB.
- *
- * This is expressed by their topiness (higher = more toppy).
- */
-int _getTopiness(DartType t) {
-  // TODO(mfairhurst): switch legacy Top checks to true Top checks
-  assert(_isLegacyTop(t, orTrueTop: true), 'only Top types have a topiness');
-
-  // Highest top
-  if (t.isVoid) return 3;
-  if (t.isDynamic) return 2;
-  if (t.isObject) return 1;
-  if (t.isDartAsyncFutureOr)
-    return -3 + _getTopiness((t as InterfaceType).typeArguments[0]);
-  // Lowest top
-
-  assert(false, 'a Top type without a defined topiness');
-
-  // Try to ensure that if this happens, its less toppy than an actual Top type.
-  return -100000;
-}
-
 bool _isBottom(DartType t) {
   return (t.isBottom &&
           (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.question) ||
@@ -174,61 +147,203 @@ class Dart2TypeSystem extends TypeSystem {
     return null;
   }
 
-  /// Computes the greatest lower bound of [type1] and [type2].
-  DartType getGreatestLowerBound(DartType type1, DartType type2) {
-    // The greatest lower bound relation is reflexive.
-    if (identical(type1, type2)) {
-      return type1;
+  /// Computes the greatest lower bound of [T1] and [T2].
+  DartType getGreatestLowerBound(DartType T1, DartType T2) {
+    // DOWN(T, T) = T
+    if (identical(T1, T2)) {
+      return T1;
     }
 
-    // For any type T, GLB(?, T) == T.
-    if (identical(type1, UnknownInferredType.instance)) {
-      return type2;
+    // For any type T, DOWN(?, T) == T.
+    if (identical(T1, UnknownInferredType.instance)) {
+      return T2;
     }
-    if (identical(type2, UnknownInferredType.instance)) {
-      return type1;
-    }
-
-    // For the purpose of GLB, we say some Tops are subtypes (less toppy) than
-    // the others. Return the least toppy.
-    // TODO(mfairhurst): switch legacy Top checks to true Top checks
-    if (_isLegacyTop(type1, orTrueTop: true) &&
-        _isLegacyTop(type2, orTrueTop: true)) {
-      return _getTopiness(type1) < _getTopiness(type2) ? type1 : type2;
+    if (identical(T2, UnknownInferredType.instance)) {
+      return T1;
     }
 
-    // The GLB of top and any type is just that type.
-    // Also GLB of bottom and any type is bottom.
-    // TODO(mfairhurst): switch legacy Top checks to true Top checks
-    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks.
-    if (_isLegacyTop(type1, orTrueTop: true) ||
-        _isLegacyBottom(type2, orTrueBottom: true)) {
-      return type2;
-    }
-    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
-    if (_isLegacyTop(type2, orTrueTop: true) ||
-        _isLegacyBottom(type1, orTrueBottom: true)) {
-      return type1;
+    var T1_isTop = isTop(T1);
+    var T2_isTop = isTop(T2);
+
+    // DOWN(T1, T2) where TOP(T1) and TOP(T2)
+    if (T1_isTop && T2_isTop) {
+      // * T1 if MORETOP(T2, T1)
+      // * T2 otherwise
+      if (isMoreTop(T2, T1)) {
+        return T1;
+      } else {
+        return T2;
+      }
     }
 
-    // Function types have structural GLB.
-    if (type1 is FunctionType && type2 is FunctionType) {
-      return _functionGreatestLowerBound(type1, type2);
+    // DOWN(T1, T2) = T2 if TOP(T1)
+    if (T1_isTop) {
+      return T2;
     }
 
-    // Otherwise, the GLB of two types is one of them it if it is a subtype of
-    // the other.
-    if (isSubtypeOf(type1, type2)) {
-      return type1;
+    // DOWN(T1, T2) = T1 if TOP(T2)
+    if (T2_isTop) {
+      return T1;
     }
 
-    if (isSubtypeOf(type2, type1)) {
-      return type2;
+    var T1_isBottom = isBottom(T1);
+    var T2_isBottom = isBottom(T2);
+
+    // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2)
+    if (T1_isBottom && T2_isBottom) {
+      // * T1 if MOREBOTTOM(T1, T2)
+      // * T2 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
     }
 
-    // No subtype relation, so no known GLB.
-    // TODO(mfairhurst): implement fully NNBD GLB, and return Never (non-legacy)
-    return NeverTypeImpl.instanceLegacy;
+    // DOWN(T1, T2) = T1 if BOTTOM(T1)
+    if (T1_isBottom) {
+      return T1;
+    }
+
+    // DOWN(T1, T2) = T2 if BOTTOM(T2)
+    if (T2_isBottom) {
+      return T2;
+    }
+
+    var T1_isNull = isNull(T1);
+    var T2_isNull = isNull(T2);
+
+    // DOWN(T1, T2) where NULL(T1) and NULL(T2)
+    if (T1_isNull && T2_isNull) {
+      // * T1 if MOREBOTTOM(T1, T2)
+      // * T2 otherwise
+      if (isMoreBottom(T1, T2)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    var T1_impl = T1 as TypeImpl;
+    var T2_impl = T2 as TypeImpl;
+
+    var T1_nullability = T1_impl.nullabilitySuffix;
+    var T2_nullability = T2_impl.nullabilitySuffix;
+
+    // DOWN(Null, T2)
+    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
+      // * Null if Null <: T2
+      // * Never otherwise
+      if (isSubtypeOf(_nullNone, T2)) {
+        return _nullNone;
+      } else {
+        return NeverTypeImpl.instance;
+      }
+    }
+
+    // DOWN(T1, Null)
+    if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
+      // * Null if Null <: T1
+      // * Never otherwise
+      if (isSubtypeOf(_nullNone, T1)) {
+        return _nullNone;
+      } else {
+        return NeverTypeImpl.instance;
+      }
+    }
+
+    var T1_isObject = isObject(T1);
+    var T2_isObject = isObject(T2);
+
+    // DOWN(T1, T2) where OBJECT(T1) and OBJECT(T2)
+    if (T1_isObject && T2_isObject) {
+      // * T1 if MORETOP(T2, T1)
+      // * T2 otherwise
+      if (isMoreTop(T2, T1)) {
+        return T1;
+      } else {
+        return T2;
+      }
+    }
+
+    // DOWN(T1, T2) where OBJECT(T1)
+    if (T1_isObject) {
+      // * T2 if T2 is non-nullable
+      if (isNonNullable(T2)) {
+        return T2;
+      }
+
+      // * NonNull(T2) if NonNull(T2) is non-nullable
+      var T2_nonNull = promoteToNonNull(T2_impl);
+      if (isNonNullable(T2_nonNull)) {
+        return T2_nonNull;
+      }
+
+      // * Never otherwise
+      return NeverTypeImpl.instance;
+    }
+
+    // DOWN(T1, T2) where OBJECT(T2)
+    if (T2_isObject) {
+      // * T1 if T1 is non-nullable
+      if (isNonNullable(T1)) {
+        return T1;
+      }
+
+      // * NonNull(T1) if NonNull(T1) is non-nullable
+      var T1_nonNull = promoteToNonNull(T1_impl);
+      if (isNonNullable(T1_nonNull)) {
+        return T1_nonNull;
+      }
+
+      // * Never otherwise
+      return NeverTypeImpl.instance;
+    }
+
+    // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
+    // DOWN(T1*, T2?) = S* where S is DOWN(T1, T2)
+    // DOWN(T1?, T2*) = S* where S is DOWN(T1, T2)
+    // DOWN(T1*, T2) = S where S is DOWN(T1, T2)
+    // DOWN(T1, T2*) = S where S is DOWN(T1, T2)
+    // DOWN(T1?, T2?) = S? where S is DOWN(T1, T2)
+    // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
+    // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
+    if (T1_nullability != NullabilitySuffix.none ||
+        T2_nullability != NullabilitySuffix.none) {
+      var resultNullability = NullabilitySuffix.question;
+      if (T1_nullability == NullabilitySuffix.none ||
+          T2_nullability == NullabilitySuffix.none) {
+        resultNullability = NullabilitySuffix.none;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        resultNullability = NullabilitySuffix.star;
+      }
+      var T1_none = T1_impl.withNullability(NullabilitySuffix.none);
+      var T2_none = T2_impl.withNullability(NullabilitySuffix.none);
+      var S = getGreatestLowerBound(T1_none, T2_none);
+      return (S as TypeImpl).withNullability(resultNullability);
+    }
+
+    assert(T1_nullability == NullabilitySuffix.none);
+    assert(T2_nullability == NullabilitySuffix.none);
+
+    // TODO(scheglov) incomplete
+    if (T1 is FunctionType && T2 is FunctionType) {
+      return _functionGreatestLowerBound(T1, T2);
+    }
+
+    // DOWN(T1, T2) = T1 if T1 <: T2
+    if (isSubtypeOf(T1, T2)) {
+      return T1;
+    }
+
+    // DOWN(T1, T2) = T2 if T2 <: T1
+    if (isSubtypeOf(T2, T1)) {
+      return T2;
+    }
+
+    // DOWN(T1, T2) = Never otherwise
+    return NeverTypeImpl.instance;
   }
 
   /**
@@ -243,7 +358,7 @@ class Dart2TypeSystem extends TypeSystem {
       return T1;
     }
 
-    // For any type T, LUB(?, T) == T.
+    // For any type T, UP(?, T) == T.
     if (identical(T1, UnknownInferredType.instance)) {
       return T2;
     }
@@ -1493,6 +1608,8 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   /**
+   * TODO(scheglov) Update to full NNBD rules.
+   *
    * Compute the greatest lower bound of function types [f] and [g].
    *
    * The spec rules for GLB on function types, informally, are pretty simple:
@@ -1510,6 +1627,30 @@ class Dart2TypeSystem extends TypeSystem {
    * - Use the GLB of their return types.
    */
   DartType _functionGreatestLowerBound(FunctionType f, FunctionType g) {
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // The number of type parameters must be the same.
+    // Otherwise the result is `Never`.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return NeverTypeImpl.instance;
+    }
+
+    // The bounds of type parameters must be equal.
+    // Otherwise the result is `Never`.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+    if (freshTypeFormalTypes == null) {
+      return NeverTypeImpl.instance;
+    }
+
+    var typeFormals = freshTypeFormalTypes
+        .map<TypeParameterElement>((t) => t.element)
+        .toList();
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
     // Calculate the LUB of each corresponding pair of parameters.
     List<ParameterElement> parameters = [];
 
@@ -1595,11 +1736,19 @@ class Dart2TypeSystem extends TypeSystem {
 
     // Edge case. Dart does not support functions with both optional positional
     // and named parameters. If we would synthesize that, give up.
-    if (hasPositional && hasNamed) return typeProvider.bottomType;
+    if (hasPositional && hasNamed) {
+      return NeverTypeImpl.instance;
+    }
 
     // Calculate the GLB of the return type.
     DartType returnType = getGreatestLowerBound(f.returnType, g.returnType);
-    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   /**
@@ -1649,7 +1798,6 @@ class Dart2TypeSystem extends TypeSystem {
           parameters.add(
             ParameterElementImpl.synthetic(
               fParameter.name,
-              // TODO(scheglov) Update for NNBD aware DOWN.
               getGreatestLowerBound(fParameter.type, gParameter.type),
               ParameterKind.REQUIRED,
             ),
@@ -1664,7 +1812,6 @@ class Dart2TypeSystem extends TypeSystem {
           parameters.add(
             ParameterElementImpl.synthetic(
               fParameter.name,
-              // TODO(scheglov) Update for NNBD aware DOWN.
               getGreatestLowerBound(fParameter.type, gParameter.type),
               ParameterKind.POSITIONAL,
             ),
@@ -1681,7 +1828,6 @@ class Dart2TypeSystem extends TypeSystem {
             parameters.add(
               ParameterElementImpl.synthetic(
                 fParameter.name,
-                // TODO(scheglov) Update for NNBD aware DOWN.
                 getGreatestLowerBound(fParameter.type, gParameter.type),
                 fParameter.isRequiredNamed || gParameter.isRequiredNamed
                     ? ParameterKind.NAMED_REQUIRED
