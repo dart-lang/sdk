@@ -70,7 +70,7 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   InferrerEngine createInferrerEngineFor(FunctionEntity main) {
-    return new InferrerEngineImpl(
+    return InferrerEngine(
         _compiler.options,
         _compiler.progress,
         _compiler.reporter,
