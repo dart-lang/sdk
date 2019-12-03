@@ -723,18 +723,19 @@ class RuneIterator implements BidirectionalIterator<int> {
   /**
    * Returns the starting position of the current rune in the string.
    *
-   * Returns null if the [current] rune is null.
+   * Returns -1 if the [current] rune is `null`.
    */
-  int get rawIndex => (_position != _nextPosition) ? _position : null;
+  int get rawIndex => (_position != _nextPosition) ? _position : -1;
 
   /**
    * Resets the iterator to the rune at the specified index of the string.
    *
    * Setting a negative [rawIndex], or one greater than or equal to
-   * [:string.length:],
-   * is an error. So is setting it in the middle of a surrogate pair.
+   * `string.length`, is an error. So is setting it in the middle of a surrogate
+   *  pair.
    *
-   * Setting the position to the end of then string will set [current] to null.
+   * Setting the position to the end of then string will set [current] to
+   * `null`.
    */
   void set rawIndex(int rawIndex) {
     RangeError.checkValidIndex(rawIndex, string, "rawIndex");
