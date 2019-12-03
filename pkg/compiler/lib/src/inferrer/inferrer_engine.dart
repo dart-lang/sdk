@@ -196,10 +196,10 @@ abstract class InferrerEngine {
       {bool inLoop,
       bool isConditional});
 
-  /// Update the assignments to parameters in the graph. [remove] tells whether
-  /// assignments must be added or removed. If [init] is false, parameters are
+  /// Update the inputs to parameters in the graph. [remove] tells whether
+  /// inputs must be added or removed. If [init] is false, parameters are
   /// added to the work queue.
-  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
+  void updateParameterInputs(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, AbstractValue mask,
       {bool remove, bool addToQueue: true});
 
@@ -468,7 +468,7 @@ class InferrerEngineImpl extends InferrerEngine {
         info.originalType, abstractValueDomain.fixedListType)) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
-    tracer.assignments.forEach(info.elementType.addAssignment);
+    tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the list for later refinement
     workQueue.add(info);
     workQueue.add(info.elementType);
@@ -486,7 +486,7 @@ class InferrerEngineImpl extends InferrerEngine {
     info.bailedOut = false;
     info.elementType.inferred = true;
 
-    tracer.assignments.forEach(info.elementType.addAssignment);
+    tracer.inputs.forEach(info.elementType.addInput);
     // Enqueue the set for later refinement.
     workQueue.add(info);
     workQueue.add(info.elementType);
@@ -502,13 +502,13 @@ class InferrerEngineImpl extends InferrerEngine {
     if (!succeeded) return;
 
     info.bailedOut = false;
-    for (int i = 0; i < tracer.keyAssignments.length; ++i) {
-      TypeInformation newType = info.addEntryAssignment(abstractValueDomain,
-          tracer.keyAssignments[i], tracer.valueAssignments[i]);
+    for (int i = 0; i < tracer.keyInputs.length; ++i) {
+      TypeInformation newType = info.addEntryInput(
+          abstractValueDomain, tracer.keyInputs[i], tracer.valueInputs[i]);
       if (newType != null) workQueue.add(newType);
     }
-    for (TypeInformation map in tracer.mapAssignments) {
-      workQueue.addAll(info.addMapAssignment(abstractValueDomain, map));
+    for (TypeInformation map in tracer.mapInputs) {
+      workQueue.addAll(info.addMapInput(abstractValueDomain, map));
     }
 
     info.markAsInferred();
@@ -560,7 +560,7 @@ class InferrerEngineImpl extends InferrerEngine {
             types.strategy.forEachParameter(element, (Local parameter) {
               types
                   .getInferredTypeOfParameter(parameter)
-                  .giveUp(this, clearAssignments: false);
+                  .giveUp(this, clearInputs: false);
             });
           });
           bailedOutOn.addAll(elements);
@@ -689,7 +689,7 @@ class InferrerEngineImpl extends InferrerEngine {
       });
       analyzedElements.forEach((MemberEntity elem) {
         TypeInformation type = types.getInferredTypeOfMember(elem);
-        print('${elem} :: ${type} from ${type.assignments} ');
+        print('${elem} :: ${type} from ${type.inputs} ');
       });
     }
     dump?.afterAnalysis();
@@ -937,7 +937,7 @@ class InferrerEngineImpl extends InferrerEngine {
   }
 
   @override
-  void updateParameterAssignments(TypeInformation caller, MemberEntity callee,
+  void updateParameterInputs(TypeInformation caller, MemberEntity callee,
       ArgumentsTypes arguments, Selector selector, AbstractValue mask,
       {bool remove, bool addToQueue: true}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
@@ -945,9 +945,9 @@ class InferrerEngineImpl extends InferrerEngine {
       if (selector.isSetter) {
         ElementTypeInformation info = types.getInferredTypeOfMember(callee);
         if (remove) {
-          info.removeAssignment(arguments.positional[0]);
+          info.removeInput(arguments.positional[0]);
         } else {
-          info.addAssignment(arguments.positional[0]);
+          info.addInput(arguments.positional[0]);
         }
         if (addToQueue) workQueue.add(info);
       }
@@ -991,9 +991,9 @@ class InferrerEngineImpl extends InferrerEngine {
         if (type == null) type = getDefaultTypeOfParameter(parameter);
         TypeInformation info = types.getInferredTypeOfParameter(parameter);
         if (remove) {
-          info.removeAssignment(type);
+          info.removeInput(type);
         } else {
-          info.addAssignment(type);
+          info.addInput(type);
         }
         parameterIndex++;
         if (addToQueue) workQueue.add(info);
@@ -1012,13 +1012,13 @@ class InferrerEngineImpl extends InferrerEngine {
     if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
       if (isInstanceMember) {
-        ParameterAssignments assignments = info.assignments;
-        assignments.replace(existing, type);
+        ParameterInputs inputs = info.inputs;
+        inputs.replace(existing, type);
       } else {
-        List<TypeInformation> assignments = info.assignments;
-        for (int i = 0; i < assignments.length; i++) {
-          if (assignments[i] == existing) {
-            assignments[i] = type;
+        List<TypeInformation> inputs = info.inputs;
+        for (int i = 0; i < inputs.length; i++) {
+          if (inputs[i] == existing) {
+            inputs[i] = type;
           }
         }
       }
@@ -1062,7 +1062,7 @@ class InferrerEngineImpl extends InferrerEngine {
 
   @override
   void recordTypeOfField(FieldEntity element, TypeInformation type) {
-    types.getInferredTypeOfMember(element).addAssignment(type);
+    types.getInferredTypeOfMember(element).addInput(type);
   }
 
   @override
@@ -1070,12 +1070,12 @@ class InferrerEngineImpl extends InferrerEngine {
     TypeInformation info = types.getInferredTypeOfMember(element);
     if (element.name == '==') {
       // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
-      info.addAssignment(types.boolType);
+      info.addInput(types.boolType);
     }
     // TODO(ngeoffray): Clean up. We do these checks because
     // [SimpleTypesInferrer] deals with two different inferrers.
     if (type == null) return;
-    if (info.assignments.isEmpty) info.addAssignment(type);
+    if (info.inputs.isEmpty) info.addInput(type);
   }
 
   @override
@@ -1087,7 +1087,7 @@ class InferrerEngineImpl extends InferrerEngine {
     if (element is ConstructorEntity && element.isGenerativeConstructor) {
       return type;
     }
-    type.addAssignment(newType);
+    type.addInput(newType);
     return type;
   }
 
@@ -1199,7 +1199,7 @@ class InferrerEngineImpl extends InferrerEngine {
   TypeInformation registerAwait(ir.Node node, TypeInformation argument) {
     AwaitTypeInformation info = new AwaitTypeInformation(
         abstractValueDomain, types.currentMember, node);
-    info.addAssignment(argument);
+    info.addInput(argument);
     types.allocatedTypes.add(info);
     return info;
   }
@@ -1208,7 +1208,7 @@ class InferrerEngineImpl extends InferrerEngine {
   TypeInformation registerYield(ir.Node node, TypeInformation argument) {
     YieldTypeInformation info = new YieldTypeInformation(
         abstractValueDomain, types.currentMember, node);
-    info.addAssignment(argument);
+    info.addInput(argument);
     types.allocatedTypes.add(info);
     return info;
   }
@@ -1451,7 +1451,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
           parameter,
           type,
           member,
-          new ParameterAssignments());
+          new ParameterInputs());
     } else {
       return new ParameterTypeInformation.static(
           abstractValueDomain, memberTypeInformation, parameter, type, member);

@@ -130,13 +130,13 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(const <String>[
 
 class ListTracerVisitor extends TracerVisitor {
   // The [Set] of found assignments to the list.
-  Set<TypeInformation> assignments = new Setlet<TypeInformation>();
+  Set<TypeInformation> inputs = new Setlet<TypeInformation>();
   bool callsGrowableMethod = false;
 
   ListTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
   /// Returns [true] if the analysis completed successfully, [false] if it
-  /// bailed out. In the former case, [assignments] holds a list of
+  /// bailed out. In the former case, [inputs] holds a list of
   /// [TypeInformation] nodes that flow into the element type of this list.
   bool run() {
     analyze();
@@ -149,7 +149,7 @@ class ListTracerVisitor extends TracerVisitor {
       return true;
     } else {
       callsGrowableMethod = true;
-      assignments = null;
+      inputs = null;
       return false;
     }
   }
@@ -180,18 +180,18 @@ class ListTracerVisitor extends TracerVisitor {
           int positionalLength = info.arguments.positional.length;
           if (selectorName == 'add') {
             if (positionalLength == 1) {
-              assignments.add(info.arguments.positional[0]);
+              inputs.add(info.arguments.positional[0]);
             }
           } else if (selectorName == 'insert') {
             if (positionalLength == 2) {
-              assignments.add(info.arguments.positional[1]);
+              inputs.add(info.arguments.positional[1]);
             }
           } else {
             bailout('Used in a not-ok selector');
             return;
           }
         } else if (selector.isIndexSet) {
-          assignments.add(info.arguments.positional[1]);
+          inputs.add(info.arguments.positional[1]);
         } else if (!selector.isIndex) {
           bailout('Used in a not-ok selector');
           return;
@@ -202,7 +202,7 @@ class ListTracerVisitor extends TracerVisitor {
       }
       if (selectorName == 'length' && selector.isSetter) {
         callsGrowableMethod = true;
-        assignments.add(inferrer.types.nullType);
+        inputs.add(inferrer.types.nullType);
       }
     } else if (selector.isCall &&
         (info.hasClosureCallTargets ||
