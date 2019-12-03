@@ -1015,18 +1015,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               return #.is(o) || #.is(o);
             }
             ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
+              #.castError(o, this, false);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
+              #.castError(o, this, true);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
@@ -1041,18 +1039,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               return #.is(o) || #.is(o);
             }
             ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
+              #.castError(o, this, false);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
+              #.castError(o, this, true);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
