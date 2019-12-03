@@ -1880,23 +1880,108 @@ class Dart2TypeSystem extends TypeSystem {
     );
   }
 
-  /// Check that [f1] is a subtype of [f2].
-  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(
-      f1,
-      f2,
-      isSubtypeOf,
-      parameterRelation: (p1, p2) {
-        if (p1.isRequiredNamed && !p2.isRequiredNamed) {
+  /// Check that [f] is a subtype of [g].
+  bool _isFunctionSubtypeOf(FunctionType f, FunctionType g) {
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // The number of type parameters must be the same.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return false;
+    }
+
+    // The bounds of type parameters must be equal.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
+      // Type parameter bounds are invariant.
+      // TODO(scheglov) We do this for top types, but the spec says explicitly.
+      return isSubtypeOf(t, s) && isSubtypeOf(s, t);
+    });
+    if (freshTypeFormalTypes == null) {
+      return false;
+    }
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
+    if (!isSubtypeOf(f.returnType, g.returnType)) {
+      return false;
+    }
+
+    var fParameters = f.parameters;
+    var gParameters = g.parameters;
+
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isRequiredPositional) {
+        if (gParameter.isRequiredPositional) {
+          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
           return false;
         }
-        return isSubtypeOf(p2.type, p1.type);
-      },
-      boundsRelation: (t1, t2, p1, p2) {
-        // Type parameter bounds are invariant.
-        return isSubtypeOf(t1, t2) && isSubtypeOf(t2, t1);
-      },
-    );
+      } else if (fParameter.isOptionalPositional) {
+        if (gParameter.isPositional) {
+          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var compareNames = fParameter.name.compareTo(gParameter.name);
+          if (compareNames == 0) {
+            if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
+              return false;
+            } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
+              fIndex++;
+              gIndex++;
+            } else {
+              return false;
+            }
+          } else if (compareNames < 0) {
+            if (fParameter.isRequiredNamed) {
+              return false;
+            } else {
+              fIndex++;
+            }
+          } else {
+            assert(compareNames > 0);
+            // The subtype must accept all parameters of the supertype.
+            return false;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    // The supertype must provide all required parameters to the subtype.
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isNotOptional) {
+        return false;
+      }
+    }
+
+    // The subtype must accept all parameters of the supertype.
+    assert(fIndex == fParameters.length);
+    if (gIndex < gParameters.length) {
+      return false;
+    }
+
+    return true;
   }
 
   bool _isInterfaceSubtypeOf(
