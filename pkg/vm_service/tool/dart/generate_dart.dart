@@ -1465,7 +1465,7 @@ class Type extends Member {
                   "List<${fieldType.listTypeArg}>.from(createServiceObject($ref ?? json['samples'], $typesList));");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList));");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) ?? []);");
             }
           }
         }

@@ -1,4 +1,10 @@
 # Changelog
+## 2.1.3
+- Fixed issue where exception would be thrown when attempting to parse a
+  List entry in a response which is not present. This occurs when connected to
+  a service which does not yet support the latest service protocol supported by
+  this package.
+
 ## 2.1.2
 - Requests which have not yet completed when `VmService.dispose` is invoked will
   now complete with an `RPCError` exception rather than a `String` exception.
