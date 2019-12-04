@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Member,
         NamedType,
+        NeverType,
         Nullability,
         TreeNode,
         TypeParameter,
@@ -267,6 +268,8 @@ class TypeOperationsCfe
             type.parameter, type.typeParameterTypeNullability, bound);
       }
       return type;
+    } else if (type == typeEnvironment.nullType) {
+      return const NeverType(Nullability.nonNullable);
     }
     return type.withNullability(Nullability.nonNullable);
   }

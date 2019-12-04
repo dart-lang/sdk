@@ -17,3 +17,11 @@ promotesNullableType(int? x) {
     x;
   }
 }
+
+promotesNullType(Null x) {
+  if (x != null) {
+    /*Never*/ x;
+  } else {
+    x;
+  }
+}
