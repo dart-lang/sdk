@@ -111,8 +111,8 @@ class InfoBuilder {
     return edges;
   }
 
-  /// Return detail text for a fix built from an edge with [node] as a
-  /// destination.
+  /// Return detail text for a fix built from an edge with origin info [origin]
+  /// and [fixKind].
   String _baseDescriptionForOrigin(
       EdgeOriginInfo origin, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
@@ -160,12 +160,7 @@ class InfoBuilder {
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 
-    if (origin.kind == EdgeOriginKind.parameterInheritance) {
-      return "The corresponding parameter in the overridden method is "
-          "nullable";
-    } else if (origin.kind == EdgeOriginKind.returnTypeInheritance) {
-      return "An overridding method has a nullable return value";
-    } else if (origin.kind == EdgeOriginKind.uninitializedRead) {
+    if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return "Used on line $lineNumber, when it is possibly uninitialized";
     }
 
@@ -260,6 +255,7 @@ class InfoBuilder {
       EdgeOriginInfo origin, EdgeInfo edge, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
     NavigationTarget target;
+
     // Some nodes don't need a target; default formal parameters
     // without explicit default values, for example.
     if (node is DefaultFormalParameter && node.defaultValue == null) {
@@ -276,11 +272,38 @@ class InfoBuilder {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _targetForNode(unit.declaredElement.source.fullName, type);
         }
+        String description =
+            _buildInheritanceDescriptionForOrigin(origin, type);
+        return RegionDetail(description, target);
       } else {
         target = _targetForNode(origin.source.fullName, node);
       }
     }
     return RegionDetail(_buildDescriptionForOrigin(origin, fixKind), target);
+  }
+
+  String _buildInheritanceDescriptionForOrigin(
+      EdgeOriginInfo origin, TypeAnnotation type) {
+    if (origin.kind == EdgeOriginKind.parameterInheritance) {
+      String overriddenName = "the overridden method";
+      if (type != null && type.parent is FormalParameter) {
+        FormalParameter parameter = type.parent;
+        if (parameter.parent is DefaultFormalParameter) {
+          parameter = parameter.parent;
+        }
+        if (parameter.parent is FormalParameterList &&
+            parameter.parent.parent is MethodDeclaration) {
+          MethodDeclaration method = parameter.parent.parent;
+          String methodName = method.name.name;
+          ClassOrMixinDeclaration cls = method.parent;
+          String className = cls.name.name;
+          overriddenName += ", $className.$methodName,";
+        }
+      }
+      return "The corresponding parameter in $overriddenName is nullable";
+    } else {
+      return "An overridding method has a nullable return value";
+    }
   }
 
   /// Compute the details for the fix with the given [fixInfo].
