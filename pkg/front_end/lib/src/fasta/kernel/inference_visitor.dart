@@ -2279,71 +2279,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitMethodInvocation(
       covariant MethodInvocationImpl node, DartType typeContext) {
-    if (node.name.name == 'unary-' &&
-        node.arguments.types.isEmpty &&
-        node.arguments.positional.isEmpty &&
-        node.arguments.named.isEmpty) {
-      // Replace integer literals in a double context with the corresponding
-      // double literal if it's exact.  For double literals, the negation is
-      // folded away.  In any non-double context, or if there is no exact
-      // double value, then the corresponding integer literal is left.  The
-      // negation is not folded away so that platforms with web literals can
-      // distinguish between (non-negated) 0x8000000000000000 represented as
-      // integer literal -9223372036854775808 which should be a positive number,
-      // and negated 9223372036854775808 represented as
-      // -9223372036854775808.unary-() which should be a negative number.
-      if (node.receiver is IntJudgment) {
-        IntJudgment receiver = node.receiver;
-        if (inferrer.isDoubleContext(typeContext)) {
-          double doubleValue = receiver.asDouble(negated: true);
-          if (doubleValue != null) {
-            Expression replacement = new DoubleLiteral(doubleValue)
-              ..fileOffset = node.fileOffset;
-            DartType inferredType =
-                inferrer.coreTypes.doubleRawType(inferrer.library.nonNullable);
-            return new ExpressionInferenceResult(inferredType, replacement);
-          }
-        }
-        Expression error = checkWebIntLiteralsErrorIfUnexact(
-            inferrer, receiver.value, receiver.literal, receiver.fileOffset);
-        if (error != null) {
-          return new ExpressionInferenceResult(const DynamicType(), error);
-        }
-      } else if (node.receiver is ShadowLargeIntLiteral) {
-        ShadowLargeIntLiteral receiver = node.receiver;
-        if (!receiver.isParenthesized) {
-          if (inferrer.isDoubleContext(typeContext)) {
-            double doubleValue = receiver.asDouble(negated: true);
-            if (doubleValue != null) {
-              Expression replacement = new DoubleLiteral(doubleValue)
-                ..fileOffset = node.fileOffset;
-              DartType inferredType = inferrer.coreTypes
-                  .doubleRawType(inferrer.library.nonNullable);
-              return new ExpressionInferenceResult(inferredType, replacement);
-            }
-          }
-          int intValue = receiver.asInt64(negated: true);
-          if (intValue == null) {
-            Expression error = inferrer.helper.buildProblem(
-                templateIntegerLiteralIsOutOfRange
-                    .withArguments(receiver.literal),
-                receiver.fileOffset,
-                receiver.literal.length);
-            return new ExpressionInferenceResult(const DynamicType(), error);
-          }
-          if (intValue != null) {
-            Expression error = checkWebIntLiteralsErrorIfUnexact(
-                inferrer, intValue, receiver.literal, receiver.fileOffset);
-            if (error != null) {
-              return new ExpressionInferenceResult(const DynamicType(), error);
-            }
-            node.receiver = new IntLiteral(-intValue)
-              ..fileOffset = node.receiver.fileOffset
-              ..parent = node;
-          }
-        }
-      }
-    }
+    assert(node.name != unaryMinusName);
     return inferrer.inferMethodInvocation(node, typeContext);
   }
 
@@ -2427,8 +2363,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitNullAwareExtension(
       NullAwareExtension node, DartType typeContext) {
-    Link<NullAwareGuard> nullAwareGuards =
-        inferrer.inferSyntheticVariableNullAware(node.variable);
+    inferrer.inferSyntheticVariable(node.variable);
     NullAwareGuard nullAwareGuard =
         inferrer.createNullAwareGuard(node.variable);
     ExpressionInferenceResult expressionResult =
@@ -2436,7 +2371,7 @@ class InferenceVisitor
     return new ExpressionInferenceResult.nullAware(
         expressionResult.inferredType,
         expressionResult.expression,
-        nullAwareGuards.prepend(nullAwareGuard));
+        const Link<NullAwareGuard>().prepend(nullAwareGuard));
   }
 
   ExpressionInferenceResult visitStaticPostIncDec(
@@ -5304,7 +5239,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitUnary(
       UnaryExpression node, DartType typeContext) {
     ExpressionInferenceResult expressionResult;
-    if (node.unaryName.name == 'unary-') {
+    if (node.unaryName == unaryMinusName) {
       // Replace integer literals in a double context with the corresponding
       // double literal if it's exact.  For double literals, the negation is
       // folded away.  In any non-double context, or if there is no exact

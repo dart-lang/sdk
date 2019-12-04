@@ -928,6 +928,9 @@ nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/no_null_shorting: TextSerializationFailure
+nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
+nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure

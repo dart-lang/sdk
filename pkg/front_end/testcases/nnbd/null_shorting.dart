@@ -98,6 +98,8 @@ void propertyAccess(Class? c) {
   c?.method().method().field;
   c?.method().method().field = new Class();
   c?.method().method().method();
+
+  c?.method()?.method();
 }
 
 void indexAccess(Class? c) {
@@ -110,12 +112,51 @@ void indexAccess(Class? c) {
   c?.field[c].method();
   c?.field[c] += 0;
   c = c?.field[c] += 0;
+  c?.[c] ??= c;
+  c = c?.[c] ??= c;
+  c?.[c] += 0;
+  c = c?.[c] += 0;
+  c?.[c] += 0;
+  c = c?.[c] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
+  c?.[c]++;
+  c = c?.[c]++;
+  ++c?.[c];
+  c = ++c?.[c];
   c?.field[c]++;
   c = c?.field[c]++;
   ++c?.field[c];
   c = ++c?.field[c];
+
+  c?.field[c][c];
+  c?.field[c][c] = new Class();
+  c = c?.field[c][c] = new Class();
+  c?.field[c][c].method();
+  c?.field[c][c] += 0;
+  c = c?.field[c][c] += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  c?.field[c][c]++;
+  c = c?.field[c][c]++;
+  ++c?.field[c][c];
+  c = ++c?.field[c][c];
+
+  c?.[c]?.[c];
+  c?.[c]?.[c] = new Class();
+  c = c?.[c]?.[c] = new Class();
+  c?.[c]?.[c].method();
+  c = c?.[c]?.[c].method();
+  c?.[c]?.[c] ??= c;
+  c = c?.[c]?.[c] ??= c;
+  c?.[c]?.[c] += 0;
+  c = c?.[c]?.[c] += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  c?.[c]?.[c]++;
+  c = c?.[c]?.[c]++;
+  ++c?.[c]?.[c];
+  c = ++c?.[c]?.[c];
 }
 
 void operatorAccess(Class? c) {
@@ -136,7 +177,10 @@ void operatorAccess(Class? c) {
 void ifNull(Class? c) {
   c?.field ??= c;
   c = c?.field ??= c;
+  c?.field.field ??= c;
+  c = c?.field.field ??= c;
   c?.field[c] ??= c;
+  c = c?.field[c] ??= c;
 }
 
 void throws(void Function() f) {

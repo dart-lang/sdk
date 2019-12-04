@@ -5,6 +5,8 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   synthetic constructor •() → self::Class1*
     ;
+  get field() → self::Class2?
+    ;
   operator [](core::int index) → core::int
     ;
   operator []=(core::int index, core::int value) → void

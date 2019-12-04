@@ -106,6 +106,11 @@ void propertyAccess(Class? c) {
   Extension(c)?.method().method().field;
   Extension(c)?.method().method().field = new Class();
   Extension(c)?.method().method().method();
+
+  Extension(c)?.method()?.method();
+
+  throws(() => Extension(c?.field).field);
+  Extension(c?.field)?.field;
 }
 
 void indexAccess(Class? c) {
@@ -118,12 +123,51 @@ void indexAccess(Class? c) {
   Extension(c)?.field[c].method();
   Extension(c)?.field[c] += 0;
   c = Extension(c)?.field[c] += 0;
+  Extension(c)?.[c] ??= c;
+  c = Extension(c)?.[c] ??= c;
+  Extension(c)?.[c] += 0;
+  c = Extension(c)?.[c] += 0;
+  Extension(c)?.[c] += 0;
+  c = Extension(c)?.[c] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   // update.
+  Extension(c)?.[c]++;
+  c = Extension(c)?.[c]++;
+  Extension(c)?.[c];
+  c = ++Extension(c)?.[c];
   Extension(c)?.field[c]++;
   c = Extension(c)?.field[c]++;
   ++Extension(c)?.field[c];
   c = ++Extension(c)?.field[c];
+
+  Extension(c)?.field[c][c];
+  Extension(c)?.field[c][c] = new Class();
+  c = Extension(c)?.field[c][c] = new Class();
+  Extension(c)?.field[c][c].method();
+  Extension(c)?.field[c][c] += 0;
+  c = Extension(c)?.field[c][c] += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  Extension(c)?.field[c][c]++;
+  c = Extension(c)?.field[c][c]++;
+  ++Extension(c)?.field[c][c];
+  c = ++Extension(c)?.field[c][c];
+
+  Extension(c)?.[c]?.[c];
+  Extension(c)?.[c]?.[c] = new Class();
+  c = Extension(c)?.[c]?.[c] = new Class();
+  Extension(c)?.[c]?.[c].method();
+  c = Extension(c)?.[c]?.[c].method();
+  Extension(c)?.[c]?.[c] ??= c;
+  c = Extension(c)?.[c]?.[c] ??= c;
+  Extension(c)?.[c]?.[c] += 0;
+  c = Extension(c)?.[c]?.[c] += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  Extension(c)?.[c]?.[c]++;
+  c = Extension(c)?.[c]?.[c]++;
+  ++Extension(c)?.[c]?.[c];
+  c = ++Extension(c)?.[c]?.[c];
 }
 
 void operatorAccess(Class? c) {
@@ -144,7 +188,10 @@ void operatorAccess(Class? c) {
 void ifNull(Class? c) {
   Extension(c)?.field ??= c;
   c = Extension(c)?.field ??= c;
+  Extension(c)?.field.field ??= c;
+  c = Extension(c)?.field.field ??= c;
   Extension(c)?.field[c] ??= c;
+  c = Extension(c)?.field[c] ??= c;
 }
 
 void throws(void Function() f) {
