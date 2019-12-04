@@ -643,6 +643,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getBound(this);
   }
 
+  @override
+  List<Variance> getTypeVariableVariances(IndexedClass cls) {
+    assert(checkFamily(cls));
+    KClassData data = classes.getData(cls);
+    return data.getVariances();
+  }
+
   ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);

@@ -68,6 +68,21 @@ AsyncMarker getAsyncMarker(ir.FunctionNode node) {
   }
 }
 
+/// Returns the `Variance` corresponding to `node.variance`.
+Variance convertVariance(ir.TypeParameter node) {
+  if (node.isLegacyCovariant) return Variance.legacyCovariant;
+  switch (node.variance) {
+    case ir.Variance.covariant:
+      return Variance.covariant;
+    case ir.Variance.contravariant:
+      return Variance.contravariant;
+    case ir.Variance.invariant:
+      return Variance.invariant;
+    default:
+      throw new UnsupportedError("Variance ${node.variance} is not supported.");
+  }
+}
+
 /// Kernel encodes a null-aware expression `a?.b` as
 ///
 ///     let final #1 = a in #1 == null ? null : #1.b

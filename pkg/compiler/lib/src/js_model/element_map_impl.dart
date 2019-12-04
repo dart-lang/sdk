@@ -1070,6 +1070,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return data.getBound(this);
   }
 
+  @override
+  List<Variance> getTypeVariableVariances(IndexedClass cls) {
+    assert(checkFamily(cls));
+    JClassData data = classes.getData(cls);
+    return data.getVariances();
+  }
+
   DartType _getTypeVariableDefaultType(IndexedTypeVariable typeVariable) {
     assert(checkFamily(typeVariable));
     JTypeVariableData data = typeVariables.getData(typeVariable);

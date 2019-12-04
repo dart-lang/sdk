@@ -133,6 +133,11 @@ abstract class AbstractTypeRelationMixin
   }
 
   @override
+  List<Variance> getTypeVariableVariances(ClassEntity cls) {
+    return elementMap.getTypeVariableVariances(cls);
+  }
+
+  @override
   FunctionType getCallType(InterfaceType type) {
     return elementMap.getCallType(type);
   }

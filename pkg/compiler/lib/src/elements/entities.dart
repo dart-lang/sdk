@@ -218,6 +218,9 @@ class AsyncMarker {
   int get index => values.indexOf(this);
 }
 
+/// Values for variance annotations.
+enum Variance { legacyCovariant, covariant, contravariant, invariant }
+
 /// Stripped down super interface for constructor like entities.
 ///
 /// Currently only [ConstructorElement] but later also kernel based Dart
