@@ -20,6 +20,11 @@ links: {
         url: "/p/dart/g/cq/builders"
         alt: "SDK CQ Status"
     }
+    links: {
+        text: "Results Feed"
+        url: "https://dart-ci.firebaseapp.com/"
+        alt: "Results Feed"
+    }
 }
 console_groups: {
     console_ids: "dart/flutter"
