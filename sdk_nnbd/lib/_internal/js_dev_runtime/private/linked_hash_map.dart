@@ -72,7 +72,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       K key = JS('', '#[#]', entries, i);
       V value = JS('', '#[#]', entries, i + 1);
       if (key == null) {
-        key = null;
+        JS('', '# = null', key);
       } else if (JS<bool>('!', '#[#] !== #', key,
           dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, keyMap);
@@ -94,17 +94,16 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   @notNull
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (key == null) {
-      key = null;
+      JS('', '# = null', key);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
-      var k = key;
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
+      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
-          k = JS('', '#[#]', buckets, i);
+          K k = JS('', '#[#]', buckets, i);
           if (k == key) return true;
         }
       }
@@ -113,7 +112,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     return JS<bool>('!', '#.has(#)', _map, key);
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in JS('', '#.values()', _map)) {
       if (v == value) return true;
     }
@@ -125,7 +124,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     int length = JS('', '#.size', map);
     other.forEach((K key, V value) {
       if (key == null) {
-        key = null;
+        JS('', '# = null', key);
       } else if (JS<bool>('!', '#[#] !== #', key,
           dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, _keyMap);
@@ -137,17 +136,16 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     }
   }
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (key == null) {
-      key = null;
+      JS('', '# = null', key);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
-      var k = key;
-      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, k.hashCode);
+      var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
-          k = JS('', '#[#]', buckets, i);
+          K k = JS('', '#[#]', buckets, i);
           if (k == key) return JS('', '#.get(#)', _map, k);
         }
       }
@@ -159,7 +157,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
 
   void operator []=(K key, V value) {
     if (key == null) {
-      key = null;
+      JS('', '# = null', key);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       key = putLinkedMapKey(key, _keyMap);
@@ -175,7 +173,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     var map = _map;
     if (key == null) {
-      key = null;
+      JS('', '# = null', key);
       if (JS<bool>('!', '#.has(null)', map)) return JS('', '#.get(null)', map);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
@@ -196,24 +194,23 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       return JS('', '#.get(#)', map, key);
     }
     V value = ifAbsent();
-    if (value == null) value = null; // coerce undefined to null.
+    if (value == null) JS('', '# = null', value);
     JS('', '#.set(#, #)', map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (key == null) {
-      key = null;
+      JS('', '# = null', key);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
-      var k = key;
-      var hash = JS<int>('!', '# & 0x3ffffff', k.hashCode);
+      var hash = JS<int>('!', '# & 0x3ffffff', key.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return null; // not found
       for (int i = 0, n = JS('!', '#.length', buckets);;) {
-        k = JS('', '#[#]', buckets, i);
+        K k = JS('', '#[#]', buckets, i);
         if (k == key) {
           key = k;
           if (n == 1) {
@@ -264,14 +261,14 @@ K putLinkedMapKey<K>(@notNull K key, keyMap) {
 class ImmutableMap<K, V> extends LinkedMap<K, V> {
   ImmutableMap.from(JSArray entries) : super.from(entries);
 
-  void operator []=(Object key, Object value) {
+  void operator []=(K key, V value) {
     throw _unsupported();
   }
 
   void addAll(Object other) => throw _unsupported();
   void clear() => throw _unsupported();
-  V remove(Object key) => throw _unsupported();
-  V putIfAbsent(Object key, Object ifAbsent()) => throw _unsupported();
+  V? remove(Object? key) => throw _unsupported();
+  V putIfAbsent(K key, V ifAbsent()) => throw _unsupported();
 
   static Error _unsupported() =>
       UnsupportedError("Cannot modify unmodifiable map");

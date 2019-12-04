@@ -33,11 +33,11 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   Iterable<K> get keys => _JSMapIterable<K>(this, true);
   Iterable<V> get values => _JSMapIterable<V>(this, false);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return JS<bool>('!', '#.has(#)', _map, key);
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in JS('', '#.values()', _map)) {
       if (v == value) return true;
     }
@@ -54,7 +54,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
     }
   }
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     V value = JS('', '#.get(#)', _map, key);
     return value == null ? null : value; // coerce undefined to null.
   }
@@ -73,13 +73,13 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
       return JS('', '#.get(#)', _map, key);
     }
     V value = ifAbsent();
-    if (value == null) value = null; // coerce undefined to null.
+    if (value == null) JS('', '# = null', value);
     JS('', '#.set(#, #)', _map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     V value = JS('', '#.get(#)', _map, key);
     if (JS<bool>('!', '#.delete(#)', _map, key)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
@@ -128,10 +128,10 @@ class _JSMapIterable<E> extends EfficientLengthIterable<E> {
 
   Iterator<E> get iterator => DartIterator<E>(_jsIterator());
 
-  bool contains(Object element) =>
+  bool contains(Object? element) =>
       _isKeys ? _map.containsKey(element) : _map.containsValue(element);
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E) f) {
     for (var entry in this) f(entry);
   }
 }

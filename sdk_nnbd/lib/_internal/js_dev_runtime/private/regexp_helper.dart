@@ -115,8 +115,8 @@ class JSSyntaxRegExp implements RegExp {
     throw FormatException("Illegal RegExp pattern: $source, $errorMessage");
   }
 
-  RegExpMatch firstMatch(@nullCheck String string) {
-    List m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, string);
+  RegExpMatch? firstMatch(@nullCheck String string) {
+    List? m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, string);
     if (m == null) return null;
     return _MatchImplementation(this, JSArray<String>.of(m));
   }
@@ -126,7 +126,7 @@ class JSSyntaxRegExp implements RegExp {
     return JS<bool>('!', r'#.test(#)', _nativeRegExp, string);
   }
 
-  String stringMatch(String string) {
+  String? stringMatch(String string) {
     var match = firstMatch(string);
     if (match != null) return match.group(0);
     return null;
@@ -140,18 +140,18 @@ class JSSyntaxRegExp implements RegExp {
     return _AllMatchesIterable(this, string, start);
   }
 
-  RegExpMatch _execGlobal(String string, int start) {
+  RegExpMatch? _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    List? match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
     return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
-  RegExpMatch _execAnchored(String string, int start) {
+  RegExpMatch? _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
     JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    List? match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
     if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
@@ -160,7 +160,7 @@ class JSSyntaxRegExp implements RegExp {
     return _MatchImplementation(this, JSArray<String>.of(match));
   }
 
-  RegExpMatch matchAsPrefix(String string, [int start = 0]) {
+  RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
       throw RangeError.range(start, 0, string.length);
     }
@@ -234,13 +234,13 @@ class _AllMatchesIterable extends IterableBase<RegExpMatch> {
 
 class _AllMatchesIterator implements Iterator<RegExpMatch> {
   final JSSyntaxRegExp _regExp;
-  String _string;
+  String? _string;
   int _nextIndex;
-  RegExpMatch _current;
+  RegExpMatch? _current;
 
   _AllMatchesIterator(this._regExp, this._string, this._nextIndex);
 
-  RegExpMatch get current => _current;
+  RegExpMatch get current => _current as RegExpMatch;
 
   static bool _isLeadSurrogate(int c) {
     return c >= 0xd800 && c <= 0xdbff;
@@ -251,9 +251,10 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
   }
 
   bool moveNext() {
-    if (_string == null) return false;
-    if (_nextIndex <= _string.length) {
-      var match = _regExp._execGlobal(_string, _nextIndex);
+    var string = _string;
+    if (string == null) return false;
+    if (_nextIndex <= string.length) {
+      var match = _regExp._execGlobal(string, _nextIndex);
       if (match != null) {
         _current = match;
         int nextIndex = match.end;
@@ -262,9 +263,9 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
           // is in unicode mode and it would put us within a surrogate
           // pair. In that case, advance past the code point as a whole.
           if (_regExp.isUnicode &&
-              _nextIndex + 1 < _string.length &&
-              _isLeadSurrogate(_string.codeUnitAt(_nextIndex)) &&
-              _isTrailSurrogate(_string.codeUnitAt(_nextIndex + 1))) {
+              _nextIndex + 1 < string.length &&
+              _isLeadSurrogate(string.codeUnitAt(_nextIndex)) &&
+              _isTrailSurrogate(string.codeUnitAt(_nextIndex + 1))) {
             nextIndex++;
           }
           nextIndex++;
@@ -280,6 +281,6 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
 }
 
 /** Find the first match of [regExp] in [string] at or after [start]. */
-RegExpMatch firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
+RegExpMatch? firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
   return regExp._execGlobal(string, start);
 }

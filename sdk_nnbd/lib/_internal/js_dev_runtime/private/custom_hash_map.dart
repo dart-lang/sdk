@@ -5,25 +5,25 @@
 part of dart._js_helper;
 
 class CustomKeyHashMap<K, V> extends CustomHashMap<K, V> {
-  final _Predicate<Object> _validKey;
+  final _Predicate<Object?> _validKey;
   CustomKeyHashMap(_Equality<K> equals, _Hasher<K> hashCode, this._validKey)
       : super(equals, hashCode);
 
   @override
   @notNull
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
     return super.containsKey(key);
   }
 
   @override
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (!_validKey(key)) return null;
     return super[key];
   }
 
   @override
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (!_validKey(key)) return null;
     return super.remove(key);
   }
@@ -67,7 +67,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
   Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   @notNull
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (key is K) {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
@@ -81,7 +81,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
     return false;
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in JS('', '#.values()', _map)) {
       if (value == v) return true;
     }
@@ -94,7 +94,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
     });
   }
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (key is K) {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
@@ -150,13 +150,13 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       JS('', '#.push(#)', buckets, key);
     }
     V value = ifAbsent();
-    if (value == null) value = null; // coerce undefined to null.
+    if (value == null) JS('', '# = null', value); // coerce undefined to null.
     JS('', '#.set(#, #)', _map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (key is K) {
       int hash = JS('!', '# & 0x3ffffff', _hashCode(key));
       var keyMap = _keyMap;

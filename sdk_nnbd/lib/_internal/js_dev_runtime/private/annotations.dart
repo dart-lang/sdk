@@ -81,7 +81,7 @@ class JsPeerInterface {
   /// Used for classes where Dart subclasses should be callable from JavaScript
   /// matching the JavaScript calling conventions.
   final String name;
-  const JsPeerInterface({this.name});
+  const JsPeerInterface({required this.name});
 }
 
 /// A Dart interface may only be implemented by a native JavaScript object

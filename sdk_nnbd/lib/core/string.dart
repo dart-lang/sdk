@@ -507,7 +507,7 @@ abstract class String implements Comparable<String>, Pattern {
    *
    *     pigLatin('I have a secret now!'); // 'Iway avehay away ecretsay ownay!'
    */
-  String replaceAllMapped(Pattern from, String replace(Match match));
+  String replaceAllMapped(Pattern from, String Function(Match match) replace);
 
   /**
    * Replaces the substring from [start] to [end] with [replacement].
@@ -589,7 +589,7 @@ abstract class String implements Comparable<String>, Pattern {
    *         onNonMatch: (n) => '*'); // *shoots*
    */
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?});
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
 
   /**
    * Returns an unmodifiable list of the UTF-16 code units of this string.
