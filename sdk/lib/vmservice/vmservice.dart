@@ -650,7 +650,8 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma("vm:entry-point", "call")
+@pragma("vm:entry-point",
+    const bool.fromEnvironment("dart.vm.product") ? false : "call")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;
