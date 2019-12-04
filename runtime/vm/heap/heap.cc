@@ -135,7 +135,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   // If we are in the process of running a sweep, wait for the sweeper to free
   // memory.
   Thread* thread = Thread::Current();
-  if (thread->CanCollectGarbage()) {
+  if (old_space_.GrowthControlState()) {
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, type);
