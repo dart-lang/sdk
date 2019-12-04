@@ -15,7 +15,7 @@ class A {
 }
 
 main() {
-  Expect.throws(bar); //# 01: continued
+  Expect.throws(bar);
 }
 
 bar() {
@@ -23,5 +23,8 @@ bar() {
   // receiver type is a typedef. Some code in the dart2js backend were
   // not dealing correctly with typedefs and lead the compiler to
   // crash.
-  new A().a.foo(); //# 01: compile-time error
+  new A().a.foo();
+  //        ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'foo' isn't defined for the class 'Map<dynamic, dynamic>'.
 }

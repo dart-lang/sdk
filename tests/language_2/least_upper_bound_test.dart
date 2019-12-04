@@ -43,53 +43,87 @@ void main() {
 }
 
 void testAB(A a, B b) {
-  A r1 = true ? a : b; //# 01: ok
-  B r2 = false ? a : b; //# 02: ok
-  (true ? a : b).a = 0; //# 03: compile-time error
-  (false ? a : b).b = 0; //# 04: compile-time error
+  A r1 = true ? a : b;
+  B r2 = false ? a : b;
+  (true ? a : b).a = 0;
+  //             ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] The setter 'a' isn't defined for the class 'Object'.
+  (false ? a : b).b = 0;
+  //              ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] The setter 'b' isn't defined for the class 'Object'.
   var c = new C();
-  (true ? a as dynamic : c).a = 0; //# 05: ok
-  (false ? c : b).b = 0; //# 06: ok
+  (true ? a as dynamic : c).a = 0;
+  (false ? c : b).b = 0;
 }
 
 void testBC(B b, C c) {
-  B r1 = true ? b : c; //# 07: ok
-  C r2 = false ? b : c; //# 08: ok
-  (true ? b : c).b = 0; //# 09: ok
-  (false ? b : c).c = 0; //# 10: compile-time error
+  B r1 = true ? b : c;
+  C r2 = false ? b : c;
+  (true ? b : c).b = 0;
+  (false ? b : c).c = 0;
+  //              ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] The setter 'c' isn't defined for the class 'B'.
   var a = null;
-  (true ? b : a).b = 0; //# 11: ok
-  (false ? a : b).c = 0; //# 12: ok
-  (true ? c : a).b = 0; //# 13: ok
-  (false ? a : c).c = 0; //# 14: ok
+  (true ? b : a).b = 0;
+  (false ? a : b).c = 0;
+  (true ? c : a).b = 0;
+  (false ? a : c).c = 0;
 }
 
 void testCD(C c, D d) {
-  C r1 = true ? c : d; //# 15: ok
-  D r2 = false ? c : d; //# 16: ok
-  (true ? c : d).b = 0; //# 17: ok
-  (false ? c : d).b = 0; //# 18: ok
-  (true ? c : d).c = 0; //# 19: compile-time error
-  (false ? c : d).d = 0; //# 20: compile-time error
+  C r1 = true ? c : d;
+  D r2 = false ? c : d;
+  (true ? c : d).b = 0;
+  (false ? c : d).b = 0;
+  (true ? c : d).c = 0;
+  //             ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] The setter 'c' isn't defined for the class 'B'.
+  (false ? c : d).d = 0;
+  //              ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] The setter 'd' isn't defined for the class 'B'.
 }
 
 void testEE(E<B> e, E<C> f) {
   // The least upper bound of E<B> and E<C> is E<B>.
-  E<B> r1 = true ? e : f; //# 21: ok
-  F<C> r2 = false ? e : f; //# 22: ok
-  A r3 = true ? e : f; //# 23: compile-time error
-  B r4 = false ? e : f; //# 24: compile-time error
-  (true ? e : f).e = null; //# 25: ok
-  (false ? e : f).e = null; //# 26: ok
+  E<B> r1 = true ? e : f;
+  F<C> r2 = false ? e : f;
+  A r3 = true ? e : f;
+  //     ^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //          ^
+  // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'A'.
+  B r4 = false ? e : f;
+  //     ^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //           ^
+  // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'B'.
+  (true ? e : f).e = null;
+  (false ? e : f).e = null;
 }
 
 void testEF(E<B> e, F<C> f) {
   // The least upper bound of E<B> and F<C> is E<B>.
-  E<B> r1 = true ? e : f; //# 27: ok
-  F<C> r2 = false ? e : f; //# 28: ok
-  A r3 = true ? e : f; //# 29: compile-time error
-  B r4 = false ? e : f; //# 30: compile-time error
+  E<B> r1 = true ? e : f;
+  F<C> r2 = false ? e : f;
+  A r3 = true ? e : f;
+  //     ^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //          ^
+  // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'A'.
+  B r4 = false ? e : f;
+  //     ^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //           ^
+  // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'B'.
   var r5;
-  r5 = (true ? e : f).e; //# 31: ok
-  r5 = (false ? e : f).f; //# 32: compile-time error
+  r5 = (true ? e : f).e;
+  r5 = (false ? e : f).f;
+  //                   ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'f' isn't defined for the class 'E<B>'.
 }

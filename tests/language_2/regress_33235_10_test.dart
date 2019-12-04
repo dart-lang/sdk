@@ -11,15 +11,24 @@ class A {
 }
 
 class B extends A {
-  static int n() => 42; // //# 02: compile-time error
+  static int n() => 42;
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 abstract class B2 implements A {
-  static int n() => 42; // //# 03: compile-time error
+  static int n() => 42;
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class C {
-  static int n() => 42; // //# 01: compile-time error
+  static int n() => 42;
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] This static member conflicts with an instance member.
 
   void set n(int i) {}
 }

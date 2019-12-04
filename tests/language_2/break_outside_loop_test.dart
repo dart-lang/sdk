@@ -5,6 +5,9 @@
 
 main() {
   if (true) {
-    break; //# 01: compile-time error
+    break;
+//  ^^^^^
+// [analyzer] SYNTACTIC_ERROR.BREAK_OUTSIDE_OF_LOOP
+// [cfe] A break statement can't be used outside of a loop or switch statement.
   }
 }

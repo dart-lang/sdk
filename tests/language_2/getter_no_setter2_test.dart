@@ -9,12 +9,31 @@ class Example {
   static int _var = 1;
   static int get nextVar => _var++;
   Example() {
-    nextVar++; //# 03: compile-time error
-    this.nextVar++; //# 00: compile-time error
+    nextVar++;
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'nextVar'.
+    this.nextVar++;
+    //   ^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INSTANCE_ACCESS_TO_STATIC_MEMBER
+    // [cfe] The getter 'nextVar' isn't defined for the class 'Example'.
+    //   ^^^^^^^
+    // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
   }
   static test() {
-    nextVar++; // //# 01: compile-time error
-    this.nextVar++; // //# 02: compile-time error
+    nextVar++;
+//  ^^^^^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'nextVar'.
+    this.nextVar++;
+//  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+// [cfe] Expected identifier, but got 'this'.
+//       ^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INSTANCE_ACCESS_TO_STATIC_MEMBER
+//       ^^^^^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
   }
 }
 

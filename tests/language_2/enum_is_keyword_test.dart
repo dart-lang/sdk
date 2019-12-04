@@ -6,5 +6,8 @@
 // declarations.
 
 main() {
-  var enum; //# 01: syntax error
+  var enum;
+  //  ^^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got 'enum'.
 }

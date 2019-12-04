@@ -7,7 +7,15 @@
 
 class Klass {
   Klass(var v) : field_ = v {}
-  final uninitializedFinalField_; // //# 01: compile-time error
+//^^^^^
+// [analyzer] STATIC_WARNING.FINAL_NOT_INITIALIZED_CONSTRUCTOR
+  final uninitializedFinalField_;
+  //    ^
+  // [cfe] Final field 'uninitializedFinalField_' is not initialized.
+  final uninitializedFinalField_;
+  //    ^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'uninitializedFinalField_' is already declared in this scope.
   var field_;
 }
 

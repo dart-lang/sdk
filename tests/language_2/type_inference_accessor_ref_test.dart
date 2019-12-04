@@ -31,12 +31,20 @@ var y = a.b.c ??= new D();
 
 test() {
   // Verify the types of x and y by trying to assign to them.
-  x = new C(); //# 01: ok
-  x = new E(); //# 02: ok
-  x = new B(); //# 03: compile-time error
-  y = new C(); //# 04: ok
-  y = new E(); //# 05: ok
-  y = new B(); //# 06: compile-time error
+  x = new C();
+  x = new E();
+  x = new B();
+  //  ^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //      ^
+  // [cfe] A value of type 'B' can't be assigned to a variable of type 'C'.
+  y = new C();
+  y = new E();
+  y = new B();
+  //  ^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //      ^
+  // [cfe] A value of type 'B' can't be assigned to a variable of type 'C'.
 }
 
 main() {}

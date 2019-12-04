@@ -18,13 +18,16 @@ abstract class B implements A {
 }
 
 class C extends A //
-    with //# mixin: compile-time error
-        B //# mixin: continued
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The implementation of 'thing' in the non-abstract class 'C' does not conform to its interface.
+    with
+        B
 {}
 
 main() {
   new C()
           .thing //
-          .sub() //# mixin: continued
+          .sub()
       ;
 }

@@ -5,9 +5,12 @@
 import "package:expect/expect.dart";
 
 class A {
-  factory A() => 42; //# 00: compile-time error
+  factory A() => 42;
+  //             ^^
+  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'A'.
 }
 
 main() {
-  Expect.throws(() => new A()); //# 00: continued
+  Expect.throws(() => new A());
 }

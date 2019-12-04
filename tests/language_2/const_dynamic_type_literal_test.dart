@@ -11,8 +11,12 @@ const d = dynamic;
 const i = int;
 
 void main() {
-  Expect.isTrue(identical(d, dynamic)); //# 01: ok
+  Expect.isTrue(identical(d, dynamic));
   // Duplicate key error.
-  Expect.equals(1, const { d: 1, d: 2 }.length); //# 02: compile-time error
-  Expect.equals(2, const { d: 1, i: 2 }.length); //# 03: ok
+  Expect.equals(1, const { d: 1, d: 2 }.length);
+  //               ^
+  // [cfe] Constant evaluation error:
+  //                             ^
+  // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+  Expect.equals(2, const { d: 1, i: 2 }.length);
 }

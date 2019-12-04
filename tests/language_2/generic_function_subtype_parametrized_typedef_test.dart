@@ -14,17 +14,35 @@ class B extends A {}
 class C extends B {}
 
 void foo(H<A> ha, H<B> hb, H<C> hc) {
-  H<A> haa = ha; //# 01: ok
-  H<A> hab = hb; //# 02: compile-time error
-  H<A> hac = hc; //# 03: compile-time error
+  H<A> haa = ha;
+  H<A> hab = hb;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends B>()' can't be assigned to a variable of type 'void Function<Y extends A>()'.
+  H<A> hac = hc;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends C>()' can't be assigned to a variable of type 'void Function<Y extends A>()'.
 
-  H<B> hba = ha; //# 04: compile-time error
-  H<B> hbb = hb; //# 05: ok
-  H<B> hbc = hc; //# 06: compile-time error
+  H<B> hba = ha;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends A>()' can't be assigned to a variable of type 'void Function<Y extends B>()'.
+  H<B> hbb = hb;
+  H<B> hbc = hc;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends C>()' can't be assigned to a variable of type 'void Function<Y extends B>()'.
 
-  H<C> hca = ha; //# 07: compile-time error
-  H<C> hcb = hb; //# 08: compile-time error
-  H<C> hcc = hc; //# 09: ok
+  H<C> hca = ha;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends A>()' can't be assigned to a variable of type 'void Function<Y extends C>()'.
+  H<C> hcb = hb;
+  //         ^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'void Function<Y extends B>()' can't be assigned to a variable of type 'void Function<Y extends C>()'.
+  H<C> hcc = hc;
 }
 
 main() {}

@@ -7,46 +7,55 @@ class TypeTester<T> {}
 
 // Expect compile-time error as no default values are allowed
 // in closure type definitions.
-typedef void Callback([String msg
-= "" //# 01: compile-time error
-]);
+typedef void Callback([String msg = ""]);
+// [error line 10, column 1, length 41]
+// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
+//                                ^
+// [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
+// [cfe] Can't have a default value in a function type.
 
 class NamedParametersAggregatedTests {
   static int F31(int a, {int b: 20, int c: 30}) {
     return 100 * (100 * a + b) + c;
   }
 
-  static int f_missing_comma(a
-  [b = 42] //# 02: syntax error
-  ) =>
-  a;
+  static int f_missing_comma(a [b = 42]) => a;
+  //                           ^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ')' before this.
 
   var _handler = null;
 
   // Expect compile-time error as no default values
   // are allowed in closure type.
-  void InstallCallback(
-      void cb({String msg
-          : null //# 03: compile-time error
-      })) {
+  void InstallCallback(void cb({String msg : null})) {
+  //                            ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
+  //                                       ^
+  // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
+  // [cfe] Can't have a default value in a function type.
     _handler = cb;
   }
 }
 
 main() {
   // Expect compile-time error due to missing comma in function definition.
-  NamedParametersAggregatedTests.f_missing_comma(10
-      , 25 //# 02: continued
-  );
+  NamedParametersAggregatedTests.f_missing_comma(10, 25);
+  //                                            ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Expect compile-time error due to duplicate named argument.
-  NamedParametersAggregatedTests.F31(10, b: 25
-      , b:35 //# 04: compile-time error
-      , b:35, b:45 //# 06: compile-time error
-  );
+  NamedParametersAggregatedTests.F31(10, b: 25, b:35);
+  //                                            ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_NAMED_ARGUMENT
+  // [cfe] Duplicated named argument 'b'.
 
   // Expect compile-time error due to missing positional argument.
-  NamedParametersAggregatedTests.F31(b:25, c:35); //# 05: compile-time error
+  NamedParametersAggregatedTests.F31(b: 25, c: 35);
+  //                                ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
 
   new TypeTester<Callback>();
 

@@ -7,17 +7,36 @@ class S<T> {}
 class M<U> {}
 
 class A<X> extends S<int> with M<double> {}
-class B<U, V> extends S with M<U, V> { } // //# 01: compile-time error
-class C<A, B> extends S<A, int> with M { } // //# 02: compile-time error
+class B<U, V> extends S with M<U, V> { }
+//    ^
+// [cfe] The type 'M<U, V>' can't be mixed in.
+//                           ^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 1 type arguments.
+class C<A, B> extends S<A, int> with M { }
+//                    ^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 1 type arguments.
 
 class F<X> = S<X> with M<X>;
-class G = S<int> with M<double, double>; // //# 05: compile-time error
+class G = S<int> with M<double, double>;
+//    ^
+// [cfe] The type 'M<double, double>' can't be mixed in.
+//                    ^^^^^^^^^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 1 type arguments.
 
 main() {
   var a;
   a = new A();
   a = new A<int>();
-  a = new A<String, String>(); // //# 03: compile-time error
+  a = new A<String, String>();
+  //      ^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+  // [cfe] Expected 1 type arguments.
   a = new F<int>();
-  a = new F<int, String>(); //  //# 04: compile-time error
+  a = new F<int, String>();
+  //      ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+  // [cfe] Expected 1 type arguments.
 }

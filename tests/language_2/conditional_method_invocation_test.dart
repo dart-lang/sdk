@@ -28,35 +28,65 @@ main() {
   nullC()?.f(null);
 
   // o?.m(...) is equivalent to ((x) => x == null ? null : x.m(...))(o).
-  Expect.equals(null, nullC()?.f(bad())); //# 01: ok
-  Expect.equals(1, new C()?.f(() => 1)); //# 02: ok
+  Expect.equals(null, nullC()?.f(bad()));
+  Expect.equals(1, new C()?.f(() => 1));
 
   // C?.m(...) is equivalent to C.m(...).
-  Expect.equals(1, C?.staticF(() => 1)); //# 14: ok
-  Expect.equals(1, h.C?.staticF(() => 1)); //# 15: ok
+  Expect.equals(1, C?.staticF(() => 1));
+  Expect.equals(1, h.C?.staticF(() => 1));
 
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
-  { int i = nullC()?.g(bad()); Expect.equals(null, i); } //# 03: ok
-  { int i = new C()?.g(() => 1); Expect.equals(1, i); } //# 04: ok
-  { String s = nullC()?.g(bad()); Expect.equals(null, s); } //# 05: compile-time error
-  { String s = new C()?.g(() => null); Expect.equals(null, s); } //# 06: compile-time error
-  { int i = C?.staticG(() => 1); Expect.equals(1, i); } //# 16: ok
-  { int i = h.C?.staticG(() => 1); Expect.equals(1, i); } //# 17: ok
-  { String s = C?.staticG(() => null); Expect.equals(null, s); } //# 18: compile-time error
-  { String s = h.C?.staticG(() => null); Expect.equals(null, s); } //# 19: compile-time error
+  { int i = nullC()?.g(bad()); Expect.equals(null, i); }
+  { int i = new C()?.g(() => 1); Expect.equals(1, i); }
+  { String s = nullC()?.g(bad()); Expect.equals(null, s); }
+  //           ^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  { String s = new C()?.g(() => null); Expect.equals(null, s); }
+  //           ^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //               ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  { int i = C?.staticG(() => 1); Expect.equals(1, i); }
+  { int i = h.C?.staticG(() => 1); Expect.equals(1, i); }
+  { String s = C?.staticG(() => null); Expect.equals(null, s); }
+  //           ^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //              ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  { String s = h.C?.staticG(() => null); Expect.equals(null, s); }
+  //           ^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 
   // Let T be the static type of o and let y be a fresh variable of type T.
   // Exactly the same static warnings that would be caused by y.m(...) are also
   // generated in the case of o?.m(...).
-  { B b = new C(); Expect.equals(1, b?.f(() => 1)); } //# 07: compile-time error
-  { int i = 1; Expect.equals(null, nullC()?.f(i)); } //# 08: compile-time error
+  { B b = new C(); Expect.equals(1, b?.f(() => 1)); }
+  //                                   ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'f' isn't defined for the class 'B'.
+  { int i = 1; Expect.equals(null, nullC()?.f(i)); }
+  //                                          ^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'int' can't be assigned to the parameter type 'dynamic Function()'.
 
   // '?.' can't be used to access toplevel functions in libraries imported via
   // prefix.
-  h?.topLevelFunction(); //# 11: compile-time error
+  h?.topLevelFunction();
+//^
+// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+// [cfe] A prefix can't be used with null-aware operators.
 
   // Nor can it be used to access the toString method on the class Type.
-  Expect.throwsNoSuchMethodError(() => C?.toString()); //# 12: compile-time error
-  Expect.throwsNoSuchMethodError(() => h.C?.toString()); //# 13: compile-time error
+  Expect.throwsNoSuchMethodError(() => C?.toString());
+  //                                      ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] Method not found: 'C.toString'.
+  Expect.throwsNoSuchMethodError(() => h.C?.toString());
+  //                                        ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] Method not found: 'C.toString'.
 }

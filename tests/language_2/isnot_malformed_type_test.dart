@@ -6,9 +6,12 @@ import 'package:expect/expect.dart';
 
 f(obj) {
   // 'Baz' is not loaded, throws a type error on test.
-  return (obj is! Baz); //# 01: compile-time error
+  return (obj is! Baz);
+  //              ^^^
+  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+  // [cfe] 'Baz' isn't a type.
 }
 
 main() {
-  f(null); //# 01: continued
+  f(null);
 }

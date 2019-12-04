@@ -35,25 +35,31 @@ class E extends D {
 
     // ok since I0 is assignable to B
     // TODO: Downcast from I0 to B will be a compile-time error with NNBD.
-    super.f(i0); //# 01: ok
+    super.f(i0);
 
     // not ok since B2 is not assignable to B
-    super.f(b2); //# 02: compile-time error
+    super.f(b2);
+    //      ^^
+    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'B2' can't be assigned to the parameter type 'B'.
 
     var superF = super.f; // Inferred static type: void Function(B)
 
     // ok since I0 is assignable to B
     // TODO: Downcast from I0 to B will be a compile-time error with NNBD.
-    superF(i0); //# 03: ok
+    superF(i0);
 
     // not ok since B2 is not assignable to B
-    superF(b2); //# 04: compile-time error
+    superF(b2);
+    //     ^^
+    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'B2' can't be assigned to the parameter type 'B'.
 
     // Should pass since superF's runtime type is void Function(Object)
-    Expect.isTrue(superF is void Function(B)); //# 05: ok
-    Expect.isTrue(superF is void Function(I0)); //# 05: continued
-    Expect.isTrue(superF is void Function(A)); //# 05: continued
-    Expect.isTrue(superF is void Function(Object)); //# 05: continued
+    Expect.isTrue(superF is void Function(B));
+    Expect.isTrue(superF is void Function(I0));
+    Expect.isTrue(superF is void Function(A));
+    Expect.isTrue(superF is void Function(Object));
   }
 }
 

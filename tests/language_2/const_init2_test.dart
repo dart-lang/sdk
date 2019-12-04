@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const intValue = 0;
-const double c = 0.0; //# 01: ok
-const double d = intValue; //# 02: compile-time error
+const double c = 0.0;
+const double d = intValue;
+//               ^^^^^^^^
+// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'double'.
+//               ^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
 
 main() {
-  print(c); //# 01: continued
-  print(d); //# 02: continued
+  print(c);
+  print(d);
 }

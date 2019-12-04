@@ -8,7 +8,9 @@ abstract class Ai {
 }
 
 abstract class Bi implements Ai {
-  factory Bi() = InterfaceTest; //# 00: compile-time error
+  factory Bi() = InterfaceTest;
+  //      ^
+  // [cfe] Factory redirects to class 'InterfaceTest', which is abstract and can't be instantiated.
 }
 
 abstract class Simple implements Ai {}
@@ -38,5 +40,5 @@ abstract class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
 }
 
 main() {
-  new Bi(); //# 00: continued
+  new Bi();
 }

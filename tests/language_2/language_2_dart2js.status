@@ -4,6 +4,7 @@
 # Sections in this file should contain "$compiler == dart2js".
 
 [ $compiler == dart2js ]
+int64_literal_runtime*_test: Skip  # This is testing Dart 2.0 int64 semantics
 mixin_method_override_test/G5: Skip # Issue 34354
 vm/*: SkipByDesign # Tests for the VM.
 

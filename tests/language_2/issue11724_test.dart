@@ -5,5 +5,8 @@
 import "package:expect/expect.dart";
 
 void main() {
-  method(<int>[]); //# 01: compile-time error
+  method(<int>[]);
+//^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [cfe] Method not found: 'method'.
 }

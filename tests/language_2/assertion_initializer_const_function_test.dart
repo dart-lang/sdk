@@ -9,7 +9,10 @@ class C {
   // Functions as parameters to assert are no longer supported in Dart 2.0, so
   // this is now a static type error.
   const C.bc01(this.x, y)
-      : assert(staticTrue)  //# 01: compile-time error
+      : assert(staticTrue)
+      //       ^^^^^^^^^^
+      // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+      // [cfe] A value of type 'bool Function()' can't be assigned to a variable of type 'bool'.
       ;
 }
 

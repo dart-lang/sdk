@@ -5,7 +5,10 @@
 // Test an invalid double format
 
 main() {
-  3457e  //# 01: compile-time error
+  3457e
+//^
+// [cfe] Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
+//    ^
+// [analyzer] SYNTACTIC_ERROR.MISSING_DIGIT
   ;
 }
-

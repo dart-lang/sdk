@@ -34,7 +34,10 @@ main() {
   A a = new A();
   B b = new B();
   B2 b2 = null;
-  d.f(b2, b); //# 01: compile-time error
+  d.f(b2, b);
+  //  ^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'B2' can't be assigned to the parameter type 'B'.
   i.f(b2, b); // Ok since B2 assignable to A
   // TODO: Downcast will be a compile-time error with NNBD. Consider using
   // `d.f as dynamic`.

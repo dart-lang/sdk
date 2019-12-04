@@ -11,17 +11,26 @@ class A {
 }
 
 class B extends A {
-  int get n => 42; // //# 02: compile-time error
+  int get n => 42;
+  //      ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 abstract class B2 implements A {
-  int get n => 42; // //# 03: compile-time error
+  int get n => 42;
+  //      ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class C {
-  int get n => 42; // //# 01: compile-time error
+  int get n => 42;
 
   int n() => 43;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'n' is already declared in this scope.
 }
 
 main() {

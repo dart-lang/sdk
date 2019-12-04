@@ -6,6 +6,9 @@
 
 main() {
   var m = const
-      <String, String> // //# 01: compile-time error
+      <String, String>
     {"a": 0};
+    //    ^
+    // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

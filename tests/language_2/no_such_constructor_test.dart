@@ -7,5 +7,8 @@ class A {
 }
 
 main() {
-  new A(42); //# 01: compile-time error
+  new A(42);
+  //   ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 0 allowed, but 1 found.
 }

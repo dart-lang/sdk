@@ -12,5 +12,8 @@ main() {
   print(show);
 
   // Ugly is hidden.
-  print(ugly); //# 00: compile-time error
+  print(ugly);
+  //    ^^^^
+  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [cfe] Getter not found: 'ugly'.
 }

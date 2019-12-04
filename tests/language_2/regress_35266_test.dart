@@ -5,12 +5,18 @@
 class B<T> extends C<T> {
   B();
   factory B.foo() = B<T>;
-  factory B.foo() = B<T>; //# 01: compile-time error
+  factory B.foo() = B<T>;
+//^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_NAME
+//        ^
+// [cfe] 'B.foo' is already declared in this scope.
 }
 
 class C<K> {
   C();
   factory C.bar() = B<K>.foo;
+  //                ^
+  // [cfe] Can't use 'B.foo' because it is declared more than once.
 }
 
 main() {

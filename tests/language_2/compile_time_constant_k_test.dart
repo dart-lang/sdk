@@ -5,19 +5,39 @@
 import "package:expect/expect.dart";
 
 const x = const {
-  'a': 3, // //# 01: compile-time error
+//        ^
+// [cfe] Constant evaluation error:
+  'a': 3,
   'a': 4
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 };
 const y = const {
-  'a': 10, 'b': 11, 'a': 12, // //# 02: compile-time error
-  'b': 13, 'a': 14 //           //# 02: continued
+//        ^
+// [cfe] Constant evaluation error:
+  'a': 10, 'b': 11, 'a': 12,
+  //                ^^^
+  // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+  'b': 13, 'a': 14
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+//         ^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 };
 
 const z = const {
-  '__proto__': 496, // //# 03: compile-time error
-  '__proto__': 497, // //# 03: continued
-  '__proto__': 498, // //# 03: continued
+//        ^
+// [cfe] Constant evaluation error:
+  '__proto__': 496,
+  '__proto__': 497,
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
+  '__proto__': 498,
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
   '__proto__': 499
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 };
 
 const x2 = const {'a': 4};
@@ -26,6 +46,6 @@ const z2 = const {'__proto__': 499};
 
 main() {
   Expect.identical(x2, x);
-  Expect.identical(y2, y); // //# 02: continued
+  Expect.identical(y2, y);
   Expect.identical(z2, z);
 }

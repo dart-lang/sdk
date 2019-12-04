@@ -9,14 +9,23 @@ class A {
 
 class B {
   const B() : n = 5;
+  //    ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
   final n;
-  static const a; // //# 02: syntax error
+  static const a;
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
+  // [cfe] The const variable 'a' must be initialized.
   static const b = 3 + 5;
 }
 
 main() {
-  A.x = 2; // //# 01: compile-time error
+  A.x = 2;
+//^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_CONST
+//  ^
+// [cfe] Setter not found: 'x'.
   new B();
   print(B.b);
-  print(B.a); // //# 02: continued
+  print(B.a);
 }

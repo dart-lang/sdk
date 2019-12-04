@@ -5,7 +5,10 @@
 // Test that const instance fields are compile-time errors.
 
 class C {
-  const field = 0; //# 01: syntax error
+  const field = 0;
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INSTANCE_FIELD
+// [cfe] Only static fields can be declared as const.
 }
 
 void main() {

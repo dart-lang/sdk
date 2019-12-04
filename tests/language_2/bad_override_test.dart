@@ -4,11 +4,17 @@
 
 class Fisk {
   get fisk => null;
-  static //           //# 01: compile-time error
+  static
   set fisk(x) {}
+  //  ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] This static member conflicts with an instance member.
 
-  static //           //# 02: compile-time error
+  static
   get hest => null;
+  //  ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] This static member conflicts with an instance member.
   set hest(x) {}
 
   foo() {}
@@ -18,10 +24,22 @@ class Fisk {
 }
 
 class Hest extends Fisk {
-  static foo() {} //  //# 03: compile-time error
-  field() {} //       //# 04: compile-time error
-  var method; //      //# 05: compile-time error
-  nullary(x) {} //    //# 06: compile-time error
+  static foo() {}
+  //     ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
+  field() {}
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_METHOD_AND_FIELD
+// [cfe] Can't declare a member that conflicts with an inherited one.
+  var method;
+  //  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
+  nullary(x) {}
+//^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'Hest.nullary' has more required arguments than those of overridden method 'Fisk.nullary'.
 }
 
 main() {

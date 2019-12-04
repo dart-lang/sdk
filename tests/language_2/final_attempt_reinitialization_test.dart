@@ -3,18 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo {
-  Foo(this.x); //# 01: compile-time error
-  final int x = 42; //# 01: compile-time error
+  Foo(this.x);
+  //       ^
+  // [analyzer] STATIC_WARNING.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+  // [cfe] 'x' is a final instance variable that has already been initialized.
+  final int x = 42;
 }
 
 class CoffeeShop {
-  final String shopName = "Coffee Lab"; //# 02: compile-time error
-  CoffeeShop.name(String shopName) //# 02: compile-time error
-      : this.shopName = shopName; //# 02: compile-time error
+  final String shopName = "Coffee Lab";
+  CoffeeShop.name(String shopName)
+      : this.shopName = shopName;
+      //     ^^^^^^^^
+      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      //              ^
+      // [cfe] 'shopName' is a final instance variable that has already been initialized.
 }
 
 void main() {
-  Foo f = new Foo(10); //# 01: compile-time error
-  CoffeeShop presidentialCoffee = //# 02: compile-time error
-      new CoffeeShop.name("Covfefe Lab"); //# 02: compile-time error
+  Foo f = new Foo(10);
+  CoffeeShop presidentialCoffee =
+      new CoffeeShop.name("Covfefe Lab");
 }

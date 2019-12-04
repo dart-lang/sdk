@@ -6,10 +6,13 @@ import 'package:expect/expect.dart';
 
 class Class {
   static set o(_) {}
-  m() => o; //# 01: compile-time error
+  m() => o;
+  //     ^
+  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [cfe] Getter not found: 'o'.
   noSuchMethod(_) => 42;
 }
 
 main() {
-  Expect.throws(() => new Class().m()); //# 01: continued
+  Expect.throws(() => new Class().m());
 }

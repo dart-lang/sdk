@@ -9,27 +9,26 @@ class Foo {}
 
 class Foo2 extends D {}
 
-class A extends
-  lib. //# extends: compile-time error
-    Foo {}
+class A extends lib.Foo {}
+//              ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EXTENDS_DEFERRED_CLASS
 
-class B
-    implements
-  lib. //# implements: compile-time error
-        Foo {}
+class B implements lib.Foo {}
+//                 ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_DEFERRED_CLASS
 
 class C1 {}
 
-class C = C1
-    with
-  lib. //# mixin: compile-time error
-        Foo;
+class C = C1 with lib.Foo;
+//                ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_DEFERRED_CLASS
 
 class D {
   D();
-  factory D.factory() =
-    lib. //# redirecting_constructor: compile-time error
-      Foo2;
+  factory D.factory() = lib.Foo2;
+//                      ^^^^^^^^
+// [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+// [cfe] The constructor function type 'Foo2 Function()' isn't a subtype of 'D Function()'.
 }
 
 void main() {

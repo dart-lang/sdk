@@ -4,13 +4,23 @@
 
 const m0 = const {499: 400 + 99};
 const m1 = const {
-  "foo" + "bar": 42 //           //# 01: ok
+  "foo" + "bar": 42
 };
 const m2 = const {
-  "foo" * 4: 42 //               //# 02: compile-time error
+//         ^
+// [cfe] Constant evaluation error:
+  "foo" * 4: 42
+//^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM
 };
 const m3 = const {
-  "foo".codeUnitAt(0): 42 //     //# 03: compile-time error
+  "foo".codeUnitAt(0): 42
+//^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+//^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_KEY
+//      ^
+// [cfe] Method invocation is not a constant expression.
 };
 
 use(x) => x;

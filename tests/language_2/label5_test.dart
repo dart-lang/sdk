@@ -6,6 +6,9 @@ main() {
   var L = 33;
   while (false) {
     // Illegal: L is not a label.
-    if (true) break L; //# 01: compile-time error
+    if (true) break L;
+    //              ^
+    // [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
+    // [cfe] Can't break to 'L'.
   }
 }

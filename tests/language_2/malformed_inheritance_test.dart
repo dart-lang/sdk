@@ -8,62 +8,131 @@
 class A<T> {}
 
 class C
-    extends Unresolved  //# 00: compile-time error
+    extends Unresolved
+    //      ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
+    // [cfe] Type 'Unresolved' not found.
+    //      ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 
 class C1
-    extends A<Unresolved>  //# 01: compile-time error
+    extends A<Unresolved>
+    //        ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 
 class C2
-    extends Object with Unresolved  //# 02: compile-time error
+//    ^
+// [cfe] The type 'Unresolved' can't be mixed in.
+    extends Object with Unresolved
+    //                  ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+    // [cfe] Type 'Unresolved' not found.
+    //                  ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 
 class C3
-    extends Object with A<Unresolved>  //# 03: compile-time error
+    extends Object with A<Unresolved>
+    //                    ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 
 class C4
-    implements Unresolved   //# 04: compile-time error
+    implements Unresolved
+    //         ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
+    // [cfe] Type 'Unresolved' not found.
+    //         ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
     {
 }
 
 class C5
-    implements A<Unresolved>   //# 05: compile-time error
+    implements A<Unresolved>
+    //           ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 
 class C6<A>
-    extends A<int>   //# 06: compile-time error
+    extends A<int>
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //      ^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
     {
 }
 
 class C7<A>
-    extends A<Unresolved>   //# 07: compile-time error
+    extends A<Unresolved>
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //      ^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    //        ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 
 class C8<A>
-    extends Object with A<int>   //# 08: compile-time error
+//    ^
+// [cfe] The type 'A<int>' can't be mixed in.
+    extends Object with A<int>
+    //                  ^
+    // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //                  ^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
     {
 }
 
 class C9<A>
-    extends Object with A<Unresolved>   //# 09: compile-time error
+//    ^
+// [cfe] The type 'A<Unresolved>' can't be mixed in.
+    extends Object with A<Unresolved>
+    //                  ^
+    // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //                  ^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    //                    ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 
 class C10<A>
-    implements A<int>   //# 10: compile-time error
+    implements A<int>
+    //         ^
+    // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //         ^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
     {
 }
 
 class C11<A>
-    implements A<Unresolved>   //# 11: compile-time error
+    implements A<Unresolved>
+    //         ^
+    // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
+    // [cfe] Can't use type arguments with type variable 'A'.
+    //         ^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+    //           ^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+    // [cfe] Type 'Unresolved' not found.
     {
 }
 

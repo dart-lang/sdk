@@ -7,13 +7,21 @@
 class ConstCounter {
   const ConstCounter(int i)
       : nextValue_ = (
-            // Incorrect assignment of a non-const function to a final field.
-            () => //# 01: compile-time error
-                i + 1);
+      //             ^
+      // [cfe] Can't find ')' to match '('.
 
+            // Incorrect assignment of a non-const function to a final field.
+            () => i + 1;
+//          ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+// [cfe] Not a constant expression.
+//                     ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   final nextValue_;
 }
 
 main() {
   const ConstCounter(3);
+//^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 }

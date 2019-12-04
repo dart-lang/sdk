@@ -5,9 +5,14 @@
 class A {
   var x;
   A(x) : this.named(x, 0);
+  //     ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   A.named(x, int y)
       // Redirecting constructors must not be cyclic.
-      : this(x + y) //# 01: compile-time error
+      : this(x + y)
+      //^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
+      // [cfe] Redirecting constructors can't be cyclic.
       ;
 }
 

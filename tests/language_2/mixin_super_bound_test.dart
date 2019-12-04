@@ -19,8 +19,17 @@ main() {
 
   // Type parameter U of M must extend type parameter V, but
   // type argument num is not a subtype of int.
-  new MNA<int, num, bool>(); //# 01: compile-time error
+  new MNA<int, num, bool>();
+  //  ^
+  // [cfe] Type argument 'num' doesn't conform to the bound 'U' of the type variable 'V' on 'MNA'.
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
   // Type parameter U of M must extend type parameter V, but
   // type argument num is not a subtype of int.
-  new MNA2<int, num, bool>(); //# 02: compile-time error
+  new MNA2<int, num, bool>();
+  //  ^
+  // [cfe] Type argument 'num' doesn't conform to the bound 'U' of the type variable 'V' on 'MNA2'.
+  //            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 }

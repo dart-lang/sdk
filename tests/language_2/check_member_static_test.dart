@@ -10,8 +10,11 @@ class A {
 class B extends A {}
 
 class C extends B {
-  var a; //# 01: ok
-  static var b; //# 02: compile-time error
+  var a;
+  static var b;
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 void main() {

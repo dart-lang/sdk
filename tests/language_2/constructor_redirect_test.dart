@@ -10,6 +10,9 @@ class A {
   A(this.x) {}
   A.named(x, int y) : this(x + y);
   A.named2(int x, int y, z) : this.named(staticFun(x, y), z);
+  //                                     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [cfe] Can't access 'this' in a field initializer to read 'staticFun'.
 
   // The following is a bit tricky. It is a compile-time error to
   // refer to this (implicitly or explicitly) from an initializer.
@@ -19,7 +22,7 @@ class A {
   // staticFun isn't really a static function and should cause a
   // compile-time error.
   static
-  moreStaticFun() {} //# 01: compile-time error
+  moreStaticFun() {}
       int staticFun(int v1, int v2) {
     return v1 * v2;
   }

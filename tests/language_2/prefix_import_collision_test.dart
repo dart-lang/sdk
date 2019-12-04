@@ -9,5 +9,8 @@ import "library1.dart" as lib2; // defines 'foo'.
 import "library2.dart" as lib2; // also defines 'foo'.
 
 main() {
-  lib2.foo = 1; //# 01: compile-time error
+  lib2.foo = 1;
+  //   ^^^
+  // [analyzer] STATIC_WARNING.AMBIGUOUS_IMPORT
+  // [cfe] Setter not found: 'foo'.
 }

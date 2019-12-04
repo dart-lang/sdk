@@ -36,11 +36,13 @@ class T2 {
   A getterField;
   C setterField;
   A get field {
+  //    ^^^^^
+  // [analyzer] STATIC_WARNING.MISMATCHED_GETTER_AND_SETTER_TYPES
     return getterField;
   }
 
   // Type C is not assignable to A
-  void set field(C arg) { setterField = arg; } //# 01: static type warning
+  void set field(C arg) { setterField = arg; }
 }
 
 class T3 {
@@ -57,7 +59,7 @@ class T3 {
 
 main() {
   T1 instance1 = new T1();
-  T2 instance2 = new T2(); //# 01: continued
+  T2 instance2 = new T2();
   T3 instance3 = new T3();
 
   instance1.field = new B();
@@ -70,7 +72,10 @@ main() {
   Expect.equals(37, result);
 
   // Type 'A' has no method named 'b'
-  instance1.field.b(); //# 02: compile-time error
+  instance1.field.b();
+  //              ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'b' isn't defined for the class 'A'.
 
   instance3.field = new B();
   result = instance3.field.a();

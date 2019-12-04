@@ -5,10 +5,19 @@
 class Bad {
   int foo;
   final int bar =
-      foo //# 01: compile-time error
+      foo
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+// [cfe] Can't access 'this' in a field initializer to read 'foo'.
       -1;
   static const int toto =
-      bar //# 02: compile-time error
+      bar
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Can't access 'this' in a field initializer to read 'bar'.
+//    ^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+// [cfe] Getter not found: 'bar'.
       -3;
 }
 

@@ -7,6 +7,21 @@
 class foo {}
 
 void main() {
-  int class = 10; //# 01: syntax error
-  print("$class"); //# 02: compile-time error
+  int class = 10;
+//^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Expected ';' after this.
+//    ^^^^^
+// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [cfe] Expected an identifier, but got 'class'.
+//    ^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Setter not found: 'class'.
+  print("$class");
+  //      ^^^^^
+  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [cfe] Expected an identifier, but got 'class'.
+  //      ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Getter not found: 'class'.
 }

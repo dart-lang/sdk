@@ -3,8 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  B(); //# 01: compile-time error
+//    ^
+// [cfe] The non-abstract class 'A' is missing implementations for these members:
+  B();
+//^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   static const field = const B();
+  //                         ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
+  // [cfe] Can't access 'this' in a field initializer to read 'B'.
+  //                         ^
+  // [cfe] Method not found: 'B'.
 }
 
 class B {

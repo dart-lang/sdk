@@ -3,62 +3,71 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class A {
-  method1(); //# 01: ok
-  method5(); //# 05: ok
-  method6(); //# 06: ok
-  method7(); //# 07: compile-time error
-  get getter8; //# 08: compile-time error
-  set setter9(_); //# 09: compile-time error
-  method10(); //# 10: compile-time error
-  get getter11; //# 11: compile-time error
-  set setter12(_); //# 12: compile-time error
-  get field13; //# 13: compile-time error
-  set field14(_); //# 14: compile-time error
-  method18() {} //# 18: ok
-  method27() {} //# 27: ok
+  method1();
+  method5();
+  method6();
+  method7();
+  get getter8;
+  set setter9(_);
+  method10();
+  get getter11;
+  set setter12(_);
+  get field13;
+  set field14(_);
+  method18() {}
+  method27() {}
 }
 
 abstract class I {
-  method10() {} //# 10: continued
-  get getter11 => 0; //# 11: continued
-  set setter12(_) {} //# 12: continued
-  var field13; //# 13: continued
-  var field14; //# 14: continued
-  method15() {} //# 15: ok
-  method16() {} //# 16: ok
-  method17() {} //# 17: compile-time error
-  method18() {} //# 18: continued
-  var member19; //# 19: compile-time error
-  var member20; //# 20: compile-time error
-  var member21; //# 21: compile-time error
-  get member22 => 0; //# 22: compile-time error
-  set member23(_) {} //# 23: compile-time error
-  var member24; //# 24: compile-time error
-  var field25; //# 25: compile-time error
-  var member26; //# 26: compile-time error
+  method10() {}
+  get getter11 => 0;
+  set setter12(_) {}
+  var field13;
+  var field14;
+  method15() {}
+  method16() {}
+  method17() {}
+  method18() {}
+  var member19;
+  var member20;
+  var member21;
+  get member22 => 0;
+  set member23(_) {}
+  var member24;
+  var field25;
+  var member26;
 }
 
 abstract class J {
-  get member20 => null; //# 20: continued
-  set member20(_) {} //# 20: continued
-  var member21; //# 21: continued
+  get member20 => null;
+  set member20(_) {}
+  var member21;
 }
 
 class Class extends A implements I, J {
-  method1() {} //# 01: continued
-  method2(); //# 02: compile-time error
-  get getter3; //# 03: compile-time error
-  set setter4(_); //# 04: compile-time error
-  method5() {} //# 05: continued
-  method6([a]) {} //# 06: continued
-  set field13(_) {} //# 13: continued
-  get field14 => 0; //# 14: continued
-  method15() {} //# 15: continued
-  method16([a]) {} //# 16: continued
-  get member24 => 0; //# 24: continued
-  final field25 = 0; //# 25: continued
-  set member26(_) {} //# 26: continued
-  method27(); //# 27: continued
+//    ^^^^^
+// [analyzer] STATIC_WARNING.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'Class' is missing implementations for these members:
+  method1() {}
+  method2();
+//^^^^^^^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  get getter3;
+//^^^^^^^^^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  set setter4(_);
+//^^^^^^^^^^^^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  method5() {}
+  method6([a]) {}
+  set field13(_) {}
+  get field14 => 0;
+  method15() {}
+  method16([a]) {}
+  get member24 => 0;
+  final field25 = 0;
+  set member26(_) {}
+  method27();
 }
 
 main() {

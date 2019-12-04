@@ -12,46 +12,64 @@ testEval(x) {
 test99(e) {
   // Test that a runtime error is thrown when the 'is' operator checks for a
   // malformed type.
-    if (e is Undefined) Expect.fail("unreachable"); //  //# 99: continued
+    if (e is Undefined) Expect.fail("unreachable");
+    //       ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [cfe] 'Undefined' isn't a type.
 }
 
 test98(e) {
   // Test that a runtime error is thrown when the 'as' operator checks for a
   // malformed type.
-    if (e as Undefined) Expect.fail("unreachable"); //  //# 98: continued
+    if (e as Undefined) Expect.fail("unreachable");
+    //       ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [cfe] 'Undefined' isn't a type.
 }
 
 test97(e) {
     // Check that the remaining expression after the type test
     // with malformed type is parsed, but not executed at runtime.
     // Regression test for issue 16985.
-    if (e is Undefined && testEval(e)) Expect.fail("unreachable"); //  //# 97: continued
+    if (e is Undefined && testEval(e)) Expect.fail("unreachable");
+    //       ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [cfe] 'Undefined' isn't a type.
 }
 
 test96(e) {
     // Check that the remaining expression after the type test
     // with malformed type is parsed, but not executed at runtime.
     // Regression test for issue 16985.
-    if (e as Undefined && testEval(e)) Expect.fail("unreachable"); //  //# 96: continued
+    if (e as Undefined && testEval(e)) Expect.fail("unreachable");
+    //       ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [cfe] 'Undefined' isn't a type.
 }
 
 test95(e) {
   // Check that the type-tested expression is evaluated before the
   // runtime error is thrown.
-    if (testEval(e) is Undefined) Expect.fail("unreachable"); //  //# 95: continued
+    if (testEval(e) is Undefined) Expect.fail("unreachable");
+    //                 ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [cfe] 'Undefined' isn't a type.
 }
 
 test94(e) {
   // Check that the type-tested expression is evaluated before the
   // runtime error is thrown.
-    if (testEval(e) as Undefined) Expect.fail("unreachable"); // //# 94: continued
+    if (testEval(e) as Undefined) Expect.fail("unreachable");
+    //                 ^^^^^^^^^
+    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [cfe] 'Undefined' isn't a type.
 }
 
 main() {
-  test99("99 bottles"); //# 99: compile-time error
-  test98("98 bottles"); //# 98: compile-time error
-  test97("97 bottles"); //# 97: compile-time error
-  test96("96 bottles"); //# 96: compile-time error
-  test95("95 bottles"); //# 95: compile-time error
-  test94("94 bottles"); //# 94: compile-time error
+  test99("99 bottles");
+  test98("98 bottles");
+  test97("97 bottles");
+  test96("96 bottles");
+  test95("95 bottles");
+  test94("94 bottles");
 }

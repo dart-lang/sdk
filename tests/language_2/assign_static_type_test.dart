@@ -5,19 +5,39 @@
 // This test insures that statically initialized variables, fields, and
 // parameters report compile-time errors.
 
-int a = "String"; //# 01: compile-time error
+int a = "String";
+//      ^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 
 class A {
-  static const int c = "String"; //# 02: compile-time error
-  final int d = "String"; //# 03: compile-time error
-  int e = "String"; //# 04: compile-time error
+  static const int c = "String";
+  //                   ^^^^^^^^
+  // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+  //                   ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  final int d = "String";
+  //            ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+  int e = "String";
+  //      ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   A() {
-     int f = "String"; //# 05: compile-time error
+     int f = "String";
+     //      ^^^^^^^^
+     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+     // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   }
   method(
       [
-     int //# 06: compile-time error
+     int
       g = "String"]) {
+      //  ^^^^^^^^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
     return g;
   }
 }

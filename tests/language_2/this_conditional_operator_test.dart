@@ -12,7 +12,20 @@ class B {
   method() => 1;
 
   B.forward()
-    : this?.namedConstructor() //# 01: syntax error
+    : this?.namedConstructor()
+    //^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+    // [cfe] Expected an assignment after the field name.
+    //^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
+    //^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
+    // [error line 15, column 11, length 0]
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] Expected '.' before this.
+    //    ^^
+    // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+    // [cfe] Expected an identifier, but got ''.
   ;
 
   test() {

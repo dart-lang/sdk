@@ -6,16 +6,28 @@
 
 get f1 => null;
 get f2
-() //# 01: syntax error
+()
+// [error line 9, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
+// [cfe] A getter can't have formal parameters.
     => null;
 get f3
-(arg) //# 02: syntax error
+(arg)
+// [error line 15, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
+// [cfe] A getter can't have formal parameters.
     => null;
 get f4
-([arg]) //# 03: syntax error
+([arg])
+// [error line 21, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
+// [cfe] A getter can't have formal parameters.
     => null;
 get f5
-({arg}) //# 04: syntax error
+({arg})
+// [error line 27, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
+// [cfe] A getter can't have formal parameters.
     => null;
 
 main() {

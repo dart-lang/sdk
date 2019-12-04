@@ -7,7 +7,11 @@
 abstract class Foo {}
 
 abstract class IA<T> {
-  factory IA() = A<T>; //# 01: compile-time error
+  factory IA() = A<T>;
+  //             ^
+  // [cfe] The type 'T' doesn't extend 'Foo'.
+  //               ^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 }
 
 class A<T extends Foo> implements IA<T> {
@@ -15,5 +19,7 @@ class A<T extends Foo> implements IA<T> {
 }
 
 main() {
-  var result = new IA<String>(); //# 01: continued
+  var result = new IA<String>();
+  //               ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'Foo' of the type variable 'T' on 'A'.
 }

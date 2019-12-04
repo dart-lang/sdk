@@ -16,40 +16,100 @@ class M2 {
 }
 
 class C0 = Object with M0;
-class C1 = Object with M1; //     //# 01: compile-time error
-class C2 = Object with M2; //     //# 02: compile-time error
-class C3 = Object with M0, M1; // //# 03: compile-time error
-class C4 = Object with M1, M0; // //# 04: compile-time error
-class C5 = Object with M0, M2; // //# 05: compile-time error
-class C6 = Object with M2, M0; // //# 06: compile-time error
+class C1 = Object with M1;
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                     ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class C2 = Object with M2;
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                     ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class C3 = Object with M0, M1;
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                         ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class C4 = Object with M1, M0;
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                     ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class C5 = Object with M0, M2;
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                         ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class C6 = Object with M2, M0;
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                     ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 class D0 extends Object with M0 {}
-class D1 extends Object with M1 { } //     //# 07: compile-time error
-class D2 extends Object with M2 { } //     //# 08: compile-time error
-class D3 extends Object with M0, M1 { } // //# 09: compile-time error
-class D4 extends Object with M1, M0 { } // //# 10: compile-time error
-class D5 extends Object with M0, M2 { } // //# 11: compile-time error
-class D6 extends Object with M2, M0 { } // //# 12: compile-time error
+class D1 extends Object with M1 { }
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                           ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class D2 extends Object with M2 { }
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                           ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class D3 extends Object with M0, M1 { }
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                               ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class D4 extends Object with M1, M0 { }
+//    ^
+// [cfe] Can't use 'M1' as a mixin because it has constructors.
+//                           ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class D5 extends Object with M0, M2 { }
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                               ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+class D6 extends Object with M2, M0 { }
+//    ^
+// [cfe] Can't use 'M2' as a mixin because it has constructors.
+//                           ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 main() {
   new C0();
-  new C1(); // //# 01: continued
-  new C2(); // //# 02: continued
-  new C3(); // //# 03: continued
-  new C4(); // //# 04: continued
-  new C5(); // //# 05: continued
-  new C6(); // //# 06: continued
+  new C1();
+  new C2();
+  new C3();
+  new C4();
+  new C5();
+  new C6();
 
   new D0();
-  new D1(); // //# 07: continued
-  new D2(); // //# 08: continued
-  new D3(); // //# 09: continued
-  new D4(); // //# 10: continued
-  new D5(); // //# 11: continued
-  new D6(); // //# 12: continued
+  new D1();
+  new D2();
+  new D3();
+  new D4();
+  new D5();
+  new D6();
 
-  new C0(1,2,3); //  //# 13: compile-time error
-  new C0.named(); // //# 14: compile-time error
-  new D0(1,2,3); //  //# 15: compile-time error
-  new D0.named(); // //# 16: compile-time error
+  new C0(1,2,3);
+  //    ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
+  new C0.named();
+  //     ^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Method not found: 'C0.named'.
+  new D0(1,2,3);
+  //    ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
+  new D0.named();
+  //     ^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Method not found: 'D0.named'.
 }

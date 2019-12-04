@@ -7,7 +7,10 @@ library private_super_constructor_test;
 import 'private_super_constructor_lib.dart';
 
 class C extends B {
-  C() : super._foo(); //# 01: compile-time error
+  C() : super._foo();
+  //    ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+  // [cfe] Superclass has no constructor named 'B._foo'.
 }
 
 main() => new C();

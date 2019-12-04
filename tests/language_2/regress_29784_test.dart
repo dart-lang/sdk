@@ -10,12 +10,17 @@
 import 'package:expect/expect.dart';
 
 class A {
-  A.ok() : b = a; //# 01: compile-time error
-  A.ko() : assert(a == null); //# 02: compile-time error
+  A.ok() : b = a;
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [cfe] Can't access 'this' in a field initializer to read 'a'.
+  A.ko() : assert(a == null);
+  //              ^
+  // [cfe] Can't access 'this' in a field initializer to read 'a'.
   var a, b;
 }
 
 main() {
-  new A.ok(); //# 01: continued
-  new A.ko(); //# 02: continued
+  new A.ok();
+  new A.ko();
 }

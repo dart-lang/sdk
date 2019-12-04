@@ -7,9 +7,12 @@ class Foo {
   Foo._(this.greeting) {}
 
   // Const constructor must not redirect to non-const constructor.
-  const Foo.hi() : this._('hi'); // //# 1: compile-time error
+  const Foo.hi() : this._('hi');
+  //                    ^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CONST_CONSTRUCTOR
+  // [cfe] A constant constructor can't call a non-constant constructor.
 }
 
 main() {
-  const h = const Foo.hi(); // //# 1: continued
+  const h = const Foo.hi();
 }

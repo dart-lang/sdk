@@ -4,25 +4,37 @@
 
 // A constructor can't be static.
 class A {
-  static //# 00: syntax error
+  static
+//^^^^^^
+// [analyzer] SYNTACTIC_ERROR.STATIC_CONSTRUCTOR
+// [cfe] Constructors can't be static.
   A();
+  // ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY
+  // [cfe] Expected a function body or '=>'.
 }
 
 // A factory constructor can't be static.
 class B {
-  static //# 01: syntax error
+  static
+//^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'static' here.
   factory B() { return null; }
 }
 
 // A named constructor can have the same name as a setter.
 class E {
-  set setter(value) {} //# 05: ok
+  set setter(value) {}
   E.setter();
 }
 
 // A constructor can't be static.
 class F {
-  static //# 07: compile-time error
+  static
+//^^^^^^
+// [analyzer] SYNTACTIC_ERROR.STATIC_CONSTRUCTOR
+// [cfe] Constructors can't be static.
   F(){}
 }
 

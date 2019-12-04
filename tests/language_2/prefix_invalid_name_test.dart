@@ -4,7 +4,16 @@
 
 // Prefix must be a valid identifier.
 import "library1.dart"
-    as lib1.invalid //# 01: syntax error
+    as lib1.invalid
+    // ^^^^
+    // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+    // [cfe] Expected ';' after this.
+    //     ^
+    // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
+    // [cfe] Expected a declaration, but got '.'.
+    //      ^^^^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+    // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
     ;
 
 main() {}

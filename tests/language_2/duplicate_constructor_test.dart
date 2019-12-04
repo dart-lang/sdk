@@ -4,9 +4,14 @@
 
 class Foo {
   Foo();
-  Foo(); //# 01: compile-time error
+  Foo();
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_DEFAULT
+// [cfe] 'Foo' is already declared in this scope.
 }
 
 main() {
   new Foo();
+  //  ^
+  // [cfe] Can't use 'Foo' because it is declared more than once.
 }

@@ -3,11 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  var c0 = const C0(); //# 01: compile-time error
-  var i0 = const I0(); //# 02: compile-time error
+  var c0 = const C0();
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+  //             ^
+  // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+  var i0 = const I0();
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+  //             ^
+  // [cfe] Cannot invoke a non-'const' factory where a const expression is expected.
   var c1 = const C1();
-  var c2 = const C2(); //# 03: compile-time error
+  var c2 = const C2();
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+  //             ^
+  // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
   var c3 = const C3();
+  //       ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 }
 
 abstract class I0 {
@@ -20,7 +34,11 @@ class C0 implements I0 {
 
 class C1 {
   const C1();
-  var modifiable; //# 04: compile-time error
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+//      ^
+// [cfe] Constructor is marked 'const' so all fields must be final.
+  var modifiable;
 }
 
 class C2 {
@@ -29,7 +47,16 @@ class C2 {
 
 class C3 {
   const C3()
-      : field = new C0() //# 05: compile-time error
+      : field = new C0()
+      //^^^^^
+      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      //      ^
+      // [cfe] 'field' is a final instance variable that has already been initialized.
+      //      ^
+      // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+      //        ^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [cfe] New expression is not a constant expression.
   ;
   final field = null;
 }

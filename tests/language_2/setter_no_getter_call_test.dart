@@ -6,9 +6,9 @@ import "package:expect/expect.dart";
 
 var topLevelClosure;
 
-/* //# 01: compile-time error
+/*
 get topLevel => topLevelClosure;
-*/ //# 01: continued
+*/
 set topLevel(var value) {}
 
 initialize() {
@@ -22,5 +22,8 @@ main() {
   Expect.equals(4, x);
 
   x = topLevel(3);
+  //  ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+  // [cfe] Getter not found: 'topLevel'.
   Expect.equals(6, x);
 }

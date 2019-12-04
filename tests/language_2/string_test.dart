@@ -31,7 +31,10 @@ class StringTest {
 
   static testNoSuchMethod() {
     String a = "Hello";
-    a[1] = 12; //# 01: compile-time error
+    a[1] = 12;
+//   ^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+// [cfe] The method '[]=' isn't defined for the class 'String'.
   }
 
   static testCharCodes() {

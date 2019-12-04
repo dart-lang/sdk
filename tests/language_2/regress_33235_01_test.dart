@@ -7,9 +7,15 @@
 // Files 01 to 16 should be compile time errors, files 17 to 21 should not.
 
 class C {
-  C.n() {} // //# 01: compile-time error
+  C.n() {}
+//^
+// [cfe] Conflicts with member 'n'.
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD
 
   static int get n {
+  //             ^
+  // [cfe] Conflicts with constructor 'C.n'.
     return 42;
   }
 }

@@ -12,26 +12,46 @@ class A {
     return;
   }
   A.test1(this.x) {
-    return this; // //# 01: compile-time error
+    return this;
+//  ^
+// [cfe] Constructors can't have a return type.
+//         ^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   }
   A.test2(this.x) {
-    return null; // //# 02: compile-time error
+    return null;
+//  ^
+// [cfe] Constructors can't have a return type.
+//         ^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
   }
   int foo(int y) => x + y;
 }
 
 class B {
-  B() => null; // //# 03: compile-time error
+  B() => null;
+  //  ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+  //     ^
+  // [cfe] Constructors can't have a return type.
 }
 
 class C {
   int value;
-  C() : value = 1 { return null; } // //# 04: compile-time error
+  C() : value = 1 { return null; }
+  //                ^
+  // [cfe] Constructors can't have a return type.
+  //                       ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
 }
 
 class D {
   int value;
-  D(): value = 1 => null; // //# 05: compile-time error
+  D(): value = 1 => null;
+  //             ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATIVE_CONSTRUCTOR
+  //                ^
+  // [cfe] Constructors can't have a return type.
 }
 
 main() {

@@ -37,38 +37,74 @@ class C extends S {
       : assert(x == x),
         super.named();
   C.cc09(int x)
+//^
+// [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super(), //# cc09: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         x = x;
   C.cc10(int x)
+//^
+// [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super.named(), //# cc10: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         x = x;
   C.cc11(this.x)
       : //
-        super(), //# cc11: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   C.cc12(this.x)
       : //
-        super.named(), //# cc12: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   C.cc13(int x)
+//^
+// [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super(), //# cc13: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         x = x,
         assert(x == x);
   C.cc14(int x)
+//^
+// [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super.named(), //# cc14: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         x = x,
         assert(x == x);
   C.cc15(int x)
       : x = x,
-        super(), //# cc15: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   C.cc16(int x)
       : x = x,
-        super.named(), //# cc16: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
 
   const C.cc17(int x)
@@ -94,38 +130,74 @@ class C extends S {
       : assert(x == x),
         super.named();
   const C.cc25(int x)
+  //    ^
+  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super(), //# cc25: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         x = x;
   const C.cc26(int x)
+  //    ^
+  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super.named(), //# cc26: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         x = x;
   const C.cc27(this.x)
       : //
-        super(), //# cc27: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   const C.cc28(this.x)
       : //
-        super.named(), //# cc28: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   const C.cc29(int x)
+  //    ^
+  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super(), //# cc29: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         x = x,
         assert(x == x);
   const C.cc30(int x)
+  //    ^
+  // [cfe] Final field 'x' is not initialized by this constructor.
       : //
-        super.named(), //# cc30: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         x = x,
         assert(x == x);
   const C.cc31(int x)
       : x = x,
-        super(), //# cc31: compile-time error
+        super(),
+//      ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
   const C.cc32(int x)
       : x = x,
-        super.named(), //# cc32: compile-time error
+        super.named(),
+//      ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+//            ^
+// [cfe] Can't have initializers after 'super'.
         assert(x == x);
 }
 

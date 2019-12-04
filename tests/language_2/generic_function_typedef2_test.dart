@@ -9,27 +9,38 @@ class A {}
 
 typedef int F();
 
-typedef G = F; //# 00: syntax error
-typedef H = int; //# 01: syntax error
-typedef I = A; //# 02: syntax error
-typedef J = List<int>; //# 03: syntax error
-typedef K = Function(
-    Function<A>(A
-    <int> // //# 04: compile-time error
-        ));
-typedef L = Function(
-    {
-  /* //  //# 05: syntax error
-    bool
-  */ //  //# 05: continued
-        x});
+typedef G = F;
+//        ^
+// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [cfe] Can't create typedef from non-function type.
+typedef H = int;
+//        ^
+// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [cfe] Can't create typedef from non-function type.
+typedef I = A;
+//        ^
+// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [cfe] Can't create typedef from non-function type.
+typedef J = List<int>;
+//        ^
+// [analyzer] SYNTACTIC_ERROR.INVALID_GENERIC_FUNCTION_TYPE
+// [cfe] Can't create typedef from non-function type.
+typedef K = Function(Function<A>(A<int>));
+//                               ^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Can't use type arguments with type variable 'A'.
+typedef L = Function({x});
+//                    ^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'x' not found.
+//                     ^
+// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+// [cfe] Expected an identifier, but got '}'.
 
-typedef M = Function(
-    {
-  /* //  //# 06: syntax error
-    bool
-  */ //  //# 06: continued
-        int});
+typedef M = Function({int});
+        //               ^
+        // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+        // [cfe] Expected an identifier, but got '}'.
 
 foo({bool int}) {}
 main() {

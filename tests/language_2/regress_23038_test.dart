@@ -4,9 +4,14 @@
 
 class C<T> {
   const
-    factory //# 01: compile-time error
+    factory
   C()
-    = C<C<T>> //# 01: continued
+//^
+// [cfe] Cyclic definition of factory 'C'.
+    = C<C<T>>
+    //^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+    // [cfe] The constructor function type 'C<C<T>> Function()' isn't a subtype of 'C<T> Function()'.
   ;
 }
 

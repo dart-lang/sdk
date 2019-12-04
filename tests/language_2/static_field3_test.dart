@@ -11,9 +11,21 @@ class Foo {
 
 main() {
   if (false) {
-    var x = Foo.x; // //# 01: compile-time error
-    var m = Foo.m; // //# 02: compile-time error
-    Foo.m = 1; // //# 03: compile-time error
-    Foo.x = 1; // //# 04: compile-time error
+    var x = Foo.x;
+    //          ^
+    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [cfe] Getter not found: 'x'.
+    var m = Foo.m;
+    //          ^
+    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [cfe] Getter not found: 'm'.
+    Foo.m = 1;
+    //  ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+    // [cfe] Setter not found: 'm'.
+    Foo.x = 1;
+    //  ^
+    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [cfe] Setter not found: 'x'.
   }
 }

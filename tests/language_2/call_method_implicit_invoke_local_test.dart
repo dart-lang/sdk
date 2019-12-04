@@ -16,17 +16,23 @@ class C2 implements Function {
 main() {
   C1 c1 = new C1();
   // Implicitly invokes c1.call(1)
-  Expect.equals(c1(1), 2); //# 01: ok
+  Expect.equals(c1(1), 2);
   dynamic d1 = c1;
   // Implicitly invokes d1.call(1)
-  Expect.equals(d1(1), 2); //# 02: ok
+  Expect.equals(d1(1), 2);
   C2 c2 = new C2();
   // Implicitly invokes c2.call(1)
-  Expect.equals(c2(1), 2); //# 03: ok
+  Expect.equals(c2(1), 2);
   dynamic d2 = c2;
   // Implicitly invokes d2.call(1)
-  Expect.equals(d2(1), 2); //# 04: ok
+  Expect.equals(d2(1), 2);
   // Cannot invoke with the wrong signature.
-  c2(); //# 05: compile-time error
-  c2(3, 4); //# 05: compile-time error
+  c2();
+  //^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
+  c2(3, 4);
+  //^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

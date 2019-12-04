@@ -7,9 +7,12 @@
 // used to cause a crash.
 
 import "package:expect/expect.dart";
-import "deferred_super_dependency_lib.dart" deferred as lib; //# 01: compile-time error
+//        ^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_SETTER
+// [cfe] Superclass has no setter named 'foo'.
+import "deferred_super_dependency_lib.dart" deferred as lib;
 
 main() async {
-  await lib.loadLibrary(); //# 01: continued
-  Expect.throwsNoSuchMethodError(() => new lib.C().foo()); //# 01: continued
+  await lib.loadLibrary();
+  Expect.throwsNoSuchMethodError(() => new lib.C().foo());
 }

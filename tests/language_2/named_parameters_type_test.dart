@@ -21,7 +21,16 @@ main() {
   anyFunction = funNumOptBool;
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
-  acceptFunNumOptBool(funNum); // //# 01: compile-time error
-  acceptFunNumOptBool(funNumBool); // //# 02: compile-time error
-  acceptFunNumOptBool(funNumOptBoolX); // //# 03: compile-time error
+  acceptFunNumOptBool(funNum);
+  //                  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [cfe] The local function has type 'void Function(num)' that isn't of expected type 'void Function(num, {bool b})'.
+  acceptFunNumOptBool(funNumBool);
+  //                  ^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'void Function(num, bool)' can't be assigned to the parameter type 'void Function(num, {bool b})'.
+  acceptFunNumOptBool(funNumOptBoolX);
+  //                  ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'void Function(num, {bool x})' can't be assigned to the parameter type 'void Function(num, {bool b})'.
 }

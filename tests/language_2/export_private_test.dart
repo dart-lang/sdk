@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that private dart:_ libraries cannot be imported.
 
-export "dart:_internal"; // //# 01: compile-time error
+export "dart:_internal";
+// [error line 6, column 1, length 24]
+// [analyzer] COMPILE_TIME_ERROR.EXPORT_INTERNAL_LIBRARY
+// [cfe] Can't access platform private library.
 
 main() {
   print("Done.");

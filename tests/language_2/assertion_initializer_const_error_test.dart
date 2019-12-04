@@ -9,7 +9,10 @@ class C {
   // The expression is not a potentially constant expression.
   // This is a compile-time error even in production mode.
   const C.bc03(this.x, y)
-      : assert(check(x, y))  //# 01: compile-time error
+      : assert(check(x, y))
+      //       ^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [cfe] Method invocation is not a constant expression.
       ;
 }
 

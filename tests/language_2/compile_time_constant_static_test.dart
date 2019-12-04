@@ -2,12 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final int x = 'foo'; //# 01: compile-time error
-const int y = 'foo'; //# 02: compile-time error
-int z = 'foo'; //# 03: compile-time error
+final int x = 'foo';
+//            ^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+const int y = 'foo';
+//            ^^^^^
+// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+//            ^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+int z = 'foo';
+//      ^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 
 main() {
-  print(x); //# 01: continued
-  print(y); //# 02: continued
-  print(z); //# 03: continued
+  print(x);
+  print(y);
+  print(z);
 }

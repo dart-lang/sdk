@@ -19,11 +19,14 @@ class NumClass<T extends num, S extends T> {
 
   num method1() => field1 * field2;
 
-  num method2() => field1 + field2.length; //# 01: compile-time error
+  num method2() => field1 + field2.length;
+  //                               ^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'length' isn't defined for the class 'num'.
 }
 
 main() {
   new DynamicClass<num, int>(0.5, 2).method();
   new NumClass<num, double>(2, 0.5).method1();
-  new NumClass<num, double>(2, 0.5).method2(); //# 01: continued
+  new NumClass<num, double>(2, 0.5).method2();
 }

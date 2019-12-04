@@ -9,7 +9,16 @@ import "package:expect/expect.dart";
 import 'dart:math';
 
 main() {
-  new A(); //        //# 01: compile-time error
-  new A.foo(); //    //# 02: compile-time error
-  new lib.A(); //    //# 03: compile-time error
+  new A();
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: 'A'.
+  new A.foo();
+  //  ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: 'A.foo'.
+  new lib.A();
+  //  ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: 'lib.A'.
 }

@@ -4,7 +4,11 @@
 
 class Supertype {
   factory Supertype() = X;
-  factory Supertype() = X; //# 01: compile-time error
+  factory Supertype() = X;
+//^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_DEFAULT
+//        ^
+// [cfe] 'Supertype' is already declared in this scope.
 }
 
 class X implements Supertype {
@@ -13,4 +17,6 @@ class X implements Supertype {
 
 main() {
   X x = new Supertype();
+  //        ^
+  // [cfe] Can't use 'Supertype' because it is declared more than once.
 }

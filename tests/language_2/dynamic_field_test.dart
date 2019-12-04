@@ -13,12 +13,24 @@ class A extends C {
 
 class C {
   foo() {
-    print(a); //# 01: compile-time error
-    return a; //# 01: continued
+    print(a);
+    //    ^
+    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'a' isn't defined for the class 'C'.
+    return a;
+    //     ^
+    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'a' isn't defined for the class 'C'.
   }
   bar() {
-    print(b.a); //# 02: compile-time error
-    return b.a; //# 02: continued
+    print(b.a);
+    //    ^
+    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'b' isn't defined for the class 'C'.
+    return b.a;
+    //     ^
+    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'b' isn't defined for the class 'C'.
   }
 }
 
@@ -26,6 +38,6 @@ main() {
   var a = new A();
   a.a = 1;
   a.b = a;
-  Expect.equals(1, a.foo()); //# 01: continued
-  Expect.equals(1, a.bar()); //# 02: continued
+  Expect.equals(1, a.foo());
+  Expect.equals(1, a.bar());
 }

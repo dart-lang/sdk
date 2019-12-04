@@ -3,5 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  new F<int>(); //# 01: compile-time error
+  new F<int>();
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: 'F'.
 }

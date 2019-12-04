@@ -5,7 +5,9 @@
 import 'dart:async';
 
 class A<T>
-  implements FutureOr<T> //# 01: compile-time error
+  implements FutureOr<T>
+  //         ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_DISALLOWED_CLASS
 {}
 
 void main() {

@@ -13,31 +13,40 @@ class A {
 
 class B extends A {
   foo(
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'B.foo' has fewer named arguments than those of overridden method 'A.foo'.
       required1
-     /* // //# 00: compile-time error
+     /*
       ,
       {named1: 499}
-     */ // //# 00: compile-time error
+     */
       ) {
     return required1;
   }
 
   bar(required1, required2,
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'B.bar' has fewer named arguments than those of overridden method 'A.bar'.
       {named1: 13
-      /* // //# 01: compile-time error
+      /*
       ,
       named2: 17
-      */ // //# 01: compile-time error
+      */
       }) {
     return required1 + required2 * 3 + named1 * 5;
   }
 
   gee(
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'B.gee' doesn't have the named parameter 'named1' of overridden method 'A.gee'.
       {named2: 11
-      /* // //# 02: compile-time error
+      /*
       ,
       named1: 31
-      */ // //# 02: compile-time error
+      */
       }) {
     return named2 * 99;
   }

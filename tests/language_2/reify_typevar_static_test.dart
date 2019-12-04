@@ -9,17 +9,20 @@ class C<T> {
   C([this.x]);
 
   static staticFunction(bool b) =>
-    b ? T : //                               //# 00: compile-time error
+    b ? T :
+    //  ^
+    // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [cfe] Type variables can't be used in static members.
       null;
   factory C.factoryConstructor(bool b) => new C(
-    b ? T : //                               //# 01: ok
+    b ? T :
       null);
   C.redirectingConstructor(bool b) : this(
-    b ? T : //                               //# 02: ok
+    b ? T :
             null);
   C.ordinaryConstructor(bool b)
       : x =
-    b ? T : //                               //# 03: ok
+    b ? T :
             null;
 }
 

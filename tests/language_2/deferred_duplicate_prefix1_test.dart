@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "deferred_prefix_constraints_lib2.dart" as lib;
-import "deferred_prefix_constraints_lib.dart" deferred as lib; //# 01: compile-time error
+import "deferred_prefix_constraints_lib.dart" deferred as lib;
+//                                            ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SHARED_DEFERRED_PREFIX
+//                                                        ^
+// [cfe] Can't use the name 'lib' for a deferred library, as the name is used elsewhere.
 
 void main() {}

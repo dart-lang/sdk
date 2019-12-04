@@ -23,10 +23,29 @@ class Derived extends Object with Mixin {
 
 main() {
   var d = new Derived();
-  d.f('bad'); //# 01: compile-time error
-  d.g('bad'); //# 02: compile-time error
-  d.h(i: 'bad'); //# 03: compile-time error
-  Object x = d.f(1); //# 04: compile-time error
-  Object y = d.g(1); //# 05: compile-time error
-  Object z = d.h(i: 1); //# 06: compile-time error
+  d.f('bad');
+  //  ^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
+  d.g('bad');
+  //  ^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
+  d.h(i: 'bad');
+  //  ^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  //     ^
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
+  Object x = d.f(1);
+  //           ^
+  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  Object y = d.g(1);
+  //           ^
+  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  Object z = d.h(i: 1);
+  //           ^
+  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 }

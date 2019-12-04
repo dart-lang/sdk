@@ -7,7 +7,10 @@
 class StringInterpolation5NegativeTest {
   static testMain() {
     // Dollar followed by a number.
-    print("$1,000"); //# 01: syntax error
+    print("$1,000");
+    //      ^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   }
 }
 

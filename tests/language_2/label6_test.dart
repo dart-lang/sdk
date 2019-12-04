@@ -5,11 +5,15 @@
 main() {
   L:
   while (false) {
-    break; //# 01: ok
-    break L; //# 02: ok
+    break;
+    break L;
     void innerfunc() {
       // Illegal: jump target is outside of function
-      if (true) break L; //# 03: compile-time error
+      if (true) break L;
+      //        ^
+      // [cfe] Can't break to 'L' in a different function.
+      //              ^
+      // [analyzer] COMPILE_TIME_ERROR.LABEL_IN_OUTER_SCOPE
     }
 
     innerfunc();

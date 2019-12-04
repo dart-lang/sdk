@@ -9,12 +9,11 @@ class Base {
 
 class C extends Base {
   const C(String s)
-      : super(
-        // Call super constructor with wrong argument count.
-        /* //# 01: compile-time error
-        s
-        */ //# 01: continued
-        );
+      // Call super constructor with wrong argument count.
+      : super();
+      //     ^^
+      // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+      // [cfe] Too few positional arguments: 1 required, 0 given.
 }
 
 main() {

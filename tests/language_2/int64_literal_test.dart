@@ -11,26 +11,38 @@ const int i21 = 2097152;
 
 main() {
   int minInt64Value = -1 * i21 * i21 * i21;
-  minInt64Value = -9223372036854775807 - 1; //# 01: ok
-  minInt64Value = -9223372036854775808;     //# 02: ok
-  minInt64Value = -(9223372036854775808);   //# 03: compile-time error
-  minInt64Value = -(0x8000000000000000);    //# 04: ok
-  minInt64Value = 0x8000000000000000;       //# 05: ok
-  minInt64Value = -0x8000000000000000;      //# 06: ok
+  minInt64Value = -9223372036854775807 - 1;
+  minInt64Value = -9223372036854775808;
+  minInt64Value = -(9223372036854775808);
+  //                ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INTEGER_LITERAL_OUT_OF_RANGE
+  // [cfe] The integer literal 9223372036854775808 can't be represented in 64 bits.
+  minInt64Value = -(0x8000000000000000);
+  minInt64Value = 0x8000000000000000;
+  minInt64Value = -0x8000000000000000;
 
   Expect.equals('$minInt64Value', realMinInt64Value);
   Expect.equals('${minInt64Value - 1}', realMaxInt64Value);
 
   int maxInt64Value = 1 * i21 * i21 * i21 - 1;
-  maxInt64Value = 9223372036854775807;      //# 11: ok
-  maxInt64Value = 9223372036854775807;      //# 12: ok
-  maxInt64Value = 9223372036854775808 - 1;  //# 13: compile-time error
-  maxInt64Value = -9223372036854775808 - 1; //# 14: ok
-  maxInt64Value = -9223372036854775809;     //# 15: compile-time error
-  maxInt64Value = 0x8000000000000000 - 1;   //# 16: ok
-  maxInt64Value = -0x8000000000000000 - 1;  //# 17: ok
-  maxInt64Value = -0x8000000000000001;      //# 18: compile-time error
-  maxInt64Value = -(0x8000000000000001);    //# 19: ok
+  maxInt64Value = 9223372036854775807;
+  maxInt64Value = 9223372036854775807;
+  maxInt64Value = 9223372036854775808 - 1;
+  //              ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INTEGER_LITERAL_OUT_OF_RANGE
+  // [cfe] The integer literal 9223372036854775808 can't be represented in 64 bits.
+  maxInt64Value = -9223372036854775808 - 1;
+  maxInt64Value = -9223372036854775809;
+  //               ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INTEGER_LITERAL_OUT_OF_RANGE
+  // [cfe] The integer literal 9223372036854775809 can't be represented in 64 bits.
+  maxInt64Value = 0x8000000000000000 - 1;
+  maxInt64Value = -0x8000000000000000 - 1;
+  maxInt64Value = -0x8000000000000001;
+  //               ^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INTEGER_LITERAL_OUT_OF_RANGE
+  // [cfe] The integer literal 0x8000000000000001 can't be represented in 64 bits.
+  maxInt64Value = -(0x8000000000000001);
 
   Expect.equals('$maxInt64Value', realMaxInt64Value);
   Expect.equals('${maxInt64Value + 1}', realMinInt64Value);

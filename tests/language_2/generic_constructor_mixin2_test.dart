@@ -20,5 +20,8 @@ class D<Y> = A<Y> with B, C;
 void main() {
   var v = 0;
   checkNoDynamicTypeError(() => new D<int>(v));
-  checkDynamicTypeError(() => new D<String>(v)); //# 01: compile-time error
+  checkDynamicTypeError(() => new D<String>(v));
+  //                                        ^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
 }

@@ -6,12 +6,15 @@
 
 import 'package:expect/expect.dart';
 
-/* //  //# 01: compile-time error
+/*
 class A {
   call(x) => x;
 }
-*/ //  //# 01: continued
+*/
 
 main() {
   print(new A()(499));
+  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: 'A'.
 }

@@ -3,9 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void f(int x, int y) {
-  x++ = y; //# 01: syntax error
-  x++ += y; //# 02: syntax error
-  x++ ??= y; //# 03: syntax error
+  x++ = y;
+//^^^
+// [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+//^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
+// ^
+// [cfe] Illegal assignment to non-assignable expression.
+  x++ += y;
+//^^^
+// [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+//^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
+// ^
+// [cfe] Illegal assignment to non-assignable expression.
+  x++ ??= y;
+//^^^
+// [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
+//^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
+// ^
+// [cfe] Illegal assignment to non-assignable expression.
 }
 
 main() {

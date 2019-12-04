@@ -11,7 +11,10 @@ class A {
 }
 
 class B extends Object with A {
-  foo() => super.foo(); //# 01: compile-time error
+  foo() => super.foo();
+  //             ^^^
+  // [analyzer] COMPILE_TIME_ERROR.ABSTRACT_SUPER_MEMBER_REFERENCE
+  // [cfe] Superclass has no method named 'foo'.
 }
 
 main() {

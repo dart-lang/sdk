@@ -10,7 +10,16 @@ main() {
   Expect.throwsRangeError(() => v.toStringAsFixed(-1));
   Expect.throwsRangeError(() => v.toStringAsFixed(21));
   Expect.throwsArgumentError(() => v.toStringAsFixed(null));
-  v.toStringAsFixed(1.5);//# 01: compile-time error
-  v.toStringAsFixed("string");//# 02: compile-time error
-  v.toStringAsFixed("3");//# 03: compile-time error
+  v.toStringAsFixed(1.5);
+  //                ^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+  v.toStringAsFixed("string");
+  //                ^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
+  v.toStringAsFixed("3");
+  //                ^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 }

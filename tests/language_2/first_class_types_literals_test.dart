@@ -42,23 +42,59 @@ main() {
   Expect.equals(double, (0.5).runtimeType);
   Expect.equals(bool, true.runtimeType);
   Expect.equals(Object, Object().runtimeType);
-  Expect.equals(C, new C().runtimeType); // //# 01: ok
-  Expect.equals(D, new D().runtimeType); // //# 02: ok
+  Expect.equals(C, new C().runtimeType);
+  Expect.equals(D, new D().runtimeType);
 
   // runtimeType on type is idempotent.
   Expect.equals((D).runtimeType, (D).runtimeType.runtimeType);
 
   // Test that operator calls on class literals go to Type.
-  Expect.throwsNoSuchMethodError(() => C = 1); //# 03: compile-time error
-  Expect.throwsNoSuchMethodError(() => C++); //# 04: compile-time error
-  Expect.throwsNoSuchMethodError(() => C + 1); //# 05: compile-time error
-  Expect.throwsNoSuchMethodError(() => C[2]); //# 06: compile-time error
-  Expect.throwsNoSuchMethodError(() => C[2] = 'hest'); //# 07: compile-time error
-  Expect.throwsNoSuchMethodError(() => dynamic = 1); //# 08: compile-time error
-  Expect.throwsNoSuchMethodError(() => dynamic++); //# 09: compile-time error
-  Expect.throwsNoSuchMethodError(() => dynamic + 1); //# 10: compile-time error
-  Expect.throwsNoSuchMethodError(() => dynamic[2]); //# 11: compile-time error
-  Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest'); //# 12: compile-time error
+  Expect.throwsNoSuchMethodError(() => C = 1);
+  //                                   ^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [cfe] Setter not found: 'C'.
+  //                                       ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  Expect.throwsNoSuchMethodError(() => C++);
+  //                                   ^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [cfe] Setter not found: 'C'.
+  //                                    ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  Expect.throwsNoSuchMethodError(() => C + 1);
+  //                                     ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '+' isn't defined for the class 'Type'.
+  Expect.throwsNoSuchMethodError(() => C[2]);
+  //                                    ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  Expect.throwsNoSuchMethodError(() => C[2] = 'hest');
+  //                                    ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '[]=' isn't defined for the class 'Type'.
+  Expect.throwsNoSuchMethodError(() => dynamic = 1);
+  //                                   ^
+  // [cfe] Setter not found: 'dynamic'.
+  //                                             ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  Expect.throwsNoSuchMethodError(() => dynamic++);
+  //                                   ^
+  // [cfe] Setter not found: 'dynamic'.
+  //                                          ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  Expect.throwsNoSuchMethodError(() => dynamic + 1);
+  //                                           ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '+' isn't defined for the class 'Type'.
+  Expect.throwsNoSuchMethodError(() => dynamic[2]);
+  //                                          ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '[]' isn't defined for the class 'Type'.
+  Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest');
+  //                                          ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [cfe] The method '[]=' isn't defined for the class 'Type'.
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

@@ -3,16 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Link<T> {
-  factory Link.create() = LinkFactory<T>.create; //# 00: compile-time error
+  factory Link.create() = LinkFactory<T>.create;
+  //                      ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] The constructor function type 'LinkFactory<T> Function()' isn't a subtype of 'Link<T> Function()'.
 }
 
 class LinkFactory<T> {
   factory LinkFactory.create() {
     return null;
   }
-  factory LinkFactory.Foo() = Foo<T>; //# 00: compile-time error
+  factory LinkFactory.Foo() = Foo<T>;
+  //                          ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CLASS
+  // [cfe] Couldn't find constructor 'Foo'.
+  //                          ^
+  // [cfe] Redirection constructor target not found: 'Foo'
 }
 
 main() {
-  new Link<int>.create(); //# 00: continued
+  new Link<int>.create();
 }

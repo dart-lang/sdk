@@ -15,5 +15,8 @@ class C extends A {
 main() {
   A a = new C();
   a.x = 37;
-  a.setX(42); //# 01: compile-time error
+  a.setX(42);
+  //^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'setX' isn't defined for the class 'A'.
 }

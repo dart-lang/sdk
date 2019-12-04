@@ -11,17 +11,27 @@ class A {
 }
 
 class B extends A {
-  static int get n => 42; // //# 02: compile-time error
+  static int get n => 42;
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 abstract class B2 implements A {
-  static int get n => 42; // //# 03: compile-time error
+  static int get n => 42;
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class C {
-  static int get n => 42; // //# 01: compile-time error
+  static int get n => 42;
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
 
   int n() => 43;
+  //  ^
+  // [cfe] 'n' is already declared in this scope.
 }
 
 main() {

@@ -18,15 +18,23 @@ class C {
 
   void test1() {
     use(f); // Refers to instance field f.
-    var f = 'A shut mouth gathers no foot.'; // //# 00: compile-time error
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    var f = 'A shut mouth gathers no foot.';
+    //  ^
+    // [cfe] Can't declare 'f' because it was already used in this scope.
   }
 
   void test2() {
     void localFunc() {
       use(f); // Refers to instance field f.
+      //  ^
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     }
 
-    var f = 'When chemists die, they barium.'; // //# 01: compile-time error
+    var f = 'When chemists die, they barium.';
+    //  ^
+    // [cfe] Can't declare 'f' because it was already used in this scope.
     if (true) {
       var f = 1; // ok, shadows outer f and instance field f.
     }
@@ -35,21 +43,40 @@ class C {
   void test3() {
     if (true) {
       use(x); // Refers to top-level x.
+      //  ^
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
       use(y); // Refers to top-level y.
+      //  ^
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     }
-    final x = "I have not yet begun to procrastinate."; // //# 02: compile-time error
-    const y = "Honk if you like peace and quiet!"; // //# 03: compile-time error
+    final x = "I have not yet begun to procrastinate.";
+    //    ^
+    // [cfe] Can't declare 'x' because it was already used in this scope.
+    const y = "Honk if you like peace and quiet!";
+    //    ^
+    // [cfe] Can't declare 'y' because it was already used in this scope.
   }
 
   void test4() {
     void Q() {
-      P(); // Refers to non-existing top-level function P  // //# 06: compile-time error
+      P(); // Refers to non-existing top-level function P
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+// [cfe] The method 'P' isn't defined for the class 'C'.
     }
-    void P() { // //# 06: continued
-      Q(); //     //# 06: continued
-    } //          //# 06: continued
+    void P() {
+    //   ^
+    // [cfe] Can't declare 'P' because it was already used in this scope.
+      Q();
+    }
 
-    Function f = () {x = f;}; // //# 07: compile-time error
+    Function f = () {x = f;};
+    //       ^
+    // [cfe] Can't declare 'f' because it was already used in this scope.
+    //                   ^
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    //                   ^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   }
 
   test() {
@@ -62,12 +89,20 @@ class C {
 
 void testTypeRef() {
   String s = 'Can vegetarians eat animal crackers?';
-  var String = "I distinctly remember forgetting that."; // //# 04: compile-time error
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  var String = "I distinctly remember forgetting that.";
+  //  ^
+  // [cfe] Can't declare 'String' because it was already used in this scope.
 }
 
 void testLibPrefix() {
   var pie = math.pi;
-  final math = 0; // //# 05: compile-time error
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  final math = 0;
+  //    ^
+  // [cfe] Can't declare 'math' because it was already used in this scope.
 }
 
 void noErrorsExpected() {

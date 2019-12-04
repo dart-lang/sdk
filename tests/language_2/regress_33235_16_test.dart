@@ -11,17 +11,26 @@ class A {
 }
 
 class B extends A {
-  void set n(int i) {} // //# 02: compile-time error
+  void set n(int i) {}
+  //       ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 abstract class B2 implements A {
-  void set n(int i) {} // //# 03: compile-time error
+  void set n(int i) {}
+  //       ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class C {
-  void set n(int i) {} // //# 01: compile-time error
+  void set n(int i) {}
 
   int n() => 43;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'n' is already declared in this scope.
 }
 
 main() {

@@ -7,10 +7,13 @@
 // Must be 'const {}' to be valid.
 invalid(
     [var p =
-    /* //# 01: compile-time error
+    /*
     const
-    */ //# 01: continued
+    */
     {}]) {}
+//  ^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_DEFAULT_VALUE
+// [cfe] Constant expression expected.
 
 main() {
   invalid();

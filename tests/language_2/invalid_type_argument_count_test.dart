@@ -3,15 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test top level field.
-dynamic // Formatter shouldn't join this line.
-    <int> //           //# 01: compile-time error
-    x1 = 42;
+dynamic<int> x1 = 42;
+// [error line 6, column 1, length 12]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 0 type arguments.
 
 class Foo {
   // Test class member.
-  dynamic // Formatter shouldn't join this line.
-      <int> //         //# 02: compile-time error
-      x2 = 42;
+  dynamic<int> x2 = 42;
+// [error line 13, column 3, length 12]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 0 type arguments.
 
   Foo() {
     print(x2);
@@ -24,18 +26,19 @@ main() {
   new Foo();
 
   // Test local variable.
-  dynamic // Formatter shouldn't join this line.
-      <int> //         //# 03: compile-time error
-      x3 = 42;
+  dynamic<int> x3 = 42;
+// [error line 29, column 3, length 12]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 0 type arguments.
   print(x3);
 
   foo(42);
 }
 
 // Test parameter.
-void foo(
-    dynamic // Formatter shouldn't join this line.
-        <int> //       //# 04: compile-time error
-        x4) {
+void foo(dynamic<int> x4) {
+// [error line 39, column 10, length 12]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 0 type arguments.
   print(x4);
 }

@@ -7,7 +7,12 @@
 class Foo<T> {
   Foo() {}
   T make() {
-    return new T(); //# 01: compile-time error
+    return new T();
+    //     ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
+    //         ^
+    // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+    // [cfe] Method not found: 'T'.
   }
 }
 

@@ -10,14 +10,26 @@ import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
 typedef
-    lib12.Library13     //# 00: compile-time error
+    lib12.Library13
+//  ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'lib12.Library13' not found.
     myFunc(
-        lib12.Library13 //# 00: continued
+        lib12.Library13
+//      ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'lib12.Library13' not found.
         param);
 typedef
-    lib12.Library13     //# 01: compile-time error
+    lib12.Library13
+//  ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'lib12.Library13' not found.
     myFunc2(
-        lib12.Library13 //# 01: continued
+        lib12.Library13
+//      ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+// [cfe] Type 'lib12.Library13' not found.
         param, int i);
 
 main() {
