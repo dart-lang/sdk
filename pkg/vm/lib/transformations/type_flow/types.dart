@@ -415,7 +415,10 @@ class SetType extends Type {
       } else if (id1 > id2) {
         ++i2;
       } else {
-        if (t1.typeArgs == null && t2.typeArgs == null) {
+        if (t1.typeArgs == null &&
+            t1.constant == null &&
+            t2.typeArgs == null &&
+            t2.constant == null) {
           types.add(t1);
         } else {
           final intersect = t1.intersection(t2, null);
@@ -600,7 +603,10 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   final int numImmediateTypeArgs;
   final List<Type> typeArgs;
 
-  ConcreteType(this.cls, [List<Type> typeArgs_])
+  // May be null if constant value is not inferred.
+  final Constant constant;
+
+  ConcreteType(this.cls, [List<Type> typeArgs_, this.constant])
       : typeArgs = typeArgs_,
         numImmediateTypeArgs =
             typeArgs_ != null ? cls.classNode.typeParameters.length : 0 {
@@ -689,6 +695,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
       hash = (((hash * 31) & kHashMask) + typeArgs[i].hashCode) & kHashMask;
     }
+    hash = ((hash * 31) & kHashMask) + constant.hashCode;
     return hash;
   }
 
@@ -707,6 +714,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           }
         }
       }
+      if (this.constant != other.constant) {
+        return false;
+      }
       return true;
     } else {
       return false;
@@ -719,9 +729,21 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   int compareTo(ConcreteType other) => cls.id.compareTo(other.cls.id);
 
   @override
-  String toString() => typeArgs == null
-      ? "_T (${cls})"
-      : "_T (${cls}<${typeArgs.take(numImmediateTypeArgs).join(', ')}>)";
+  String toString() {
+    if (typeArgs == null && constant == null) {
+      return "_T (${cls})";
+    }
+    final StringBuffer buf = new StringBuffer();
+    buf.write("_T (${cls}");
+    if (typeArgs != null) {
+      buf.write("<${typeArgs.take(numImmediateTypeArgs).join(', ')}>");
+    }
+    if (constant != null) {
+      buf.write(", $constant");
+    }
+    buf.write(")");
+    return buf.toString();
+  }
 
   @override
   int get order => TypeOrder.Concrete.index;
@@ -740,7 +762,10 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
             : <ConcreteType>[other, this];
         return new SetType(types);
       } else {
-        assertx(typeArgs != null || other.typeArgs != null);
+        assertx(typeArgs != null ||
+            constant != null ||
+            other.typeArgs != null ||
+            other.constant != null);
         return raw;
       }
     } else {
@@ -760,27 +785,44 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (!identical(this.cls, other.cls)) {
         return EmptyType();
       }
-      assertx(typeArgs != null || other.typeArgs != null);
-      if (typeArgs == null) {
+      if (typeArgs == null && constant == null) {
         return other;
-      } else if (other.typeArgs == null) {
+      } else if (other.typeArgs == null && other.constant == null) {
         return this;
       }
 
-      final mergedTypeArgs = new List<Type>(typeArgs.length);
-      bool hasRuntimeType = false;
-      for (int i = 0; i < typeArgs.length; ++i) {
-        final merged =
-            typeArgs[i].intersection(other.typeArgs[i], typeHierarchy);
-        if (merged is EmptyType) {
-          return EmptyType();
-        } else if (merged is RuntimeType) {
-          hasRuntimeType = true;
+      List<Type> mergedTypeArgs;
+      if (typeArgs == null) {
+        mergedTypeArgs = other.typeArgs;
+      } else if (other.typeArgs == null) {
+        mergedTypeArgs = typeArgs;
+      } else {
+        mergedTypeArgs = new List<Type>(typeArgs.length);
+        bool hasRuntimeType = false;
+        for (int i = 0; i < typeArgs.length; ++i) {
+          final merged =
+              typeArgs[i].intersection(other.typeArgs[i], typeHierarchy);
+          if (merged is EmptyType) {
+            return const EmptyType();
+          } else if (merged is RuntimeType) {
+            hasRuntimeType = true;
+          }
+          mergedTypeArgs[i] = merged;
         }
-        mergedTypeArgs[i] = merged;
+        if (!hasRuntimeType) {
+          mergedTypeArgs = null;
+        }
       }
-      if (!hasRuntimeType) return raw;
-      return new ConcreteType(cls, mergedTypeArgs);
+
+      Constant mergedConstant;
+      if (constant == null) {
+        mergedConstant = other.constant;
+      } else if (other.constant == null || constant == other.constant) {
+        mergedConstant = constant;
+      } else {
+        return const EmptyType();
+      }
+      return new ConcreteType(cls, mergedTypeArgs, mergedConstant);
     } else {
       throw 'Unexpected type $other';
     }

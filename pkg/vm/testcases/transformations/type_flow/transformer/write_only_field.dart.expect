@@ -16,7 +16,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::Null?]static field self::A* field = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field self::A* field = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
 static method main() → void {
   self::field = null;
   [@vm.direct-call.metadata=#lib::C::instanceField] new self::C::•().{self::C::instanceField} = null;

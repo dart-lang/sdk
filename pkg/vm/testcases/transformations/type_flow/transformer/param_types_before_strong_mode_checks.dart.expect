@@ -41,7 +41,7 @@ class D extends core::Object {
     [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
   }
 }
-[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function* unknown;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method func1([@vm.inferred-type.metadata=#lib::T2?] self::T0* t0) → void {
   [@vm.direct-call.metadata=#lib::T2::foo??] [@vm.inferred-type.metadata=!? (skip check)] t0.{self::T0::foo}();
 }

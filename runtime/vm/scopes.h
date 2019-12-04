@@ -76,13 +76,15 @@ class LocalVariable : public ZoneAllocated {
                 TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type,
-                CompileType* parameter_type = NULL)
+                CompileType* parameter_type = nullptr,
+                const Object* parameter_value = nullptr)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         owner_(NULL),
         type_(type),
         parameter_type_(parameter_type),
+        parameter_value_(parameter_value),
         const_value_(NULL),
         is_final_(false),
         is_captured_(false),
@@ -109,6 +111,7 @@ class LocalVariable : public ZoneAllocated {
   const AbstractType& type() const { return type_; }
 
   CompileType* parameter_type() const { return parameter_type_; }
+  const Object* parameter_value() const { return parameter_value_; }
 
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
@@ -198,6 +201,7 @@ class LocalVariable : public ZoneAllocated {
   const AbstractType& type_;  // Declaration type of local variable.
 
   CompileType* const parameter_type_;  // NULL or incoming parameter type.
+  const Object* parameter_value_;      // NULL or incoming parameter value.
 
   const Instance* const_value_;  // NULL or compile-time const value.
 

@@ -410,6 +410,9 @@ class BaseFlowGraphBuilder {
   // Reset context level for the given deopt id (which was allocated earlier).
   void reset_context_depth_for_deopt_id(intptr_t deopt_id);
 
+  // Sets raw parameter variables to inferred constant values.
+  Fragment InitConstantParameters();
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

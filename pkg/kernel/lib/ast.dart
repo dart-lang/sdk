@@ -7104,6 +7104,7 @@ abstract class BinarySink {
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
+  void writeConstantReference(Constant constant);
   void writeNode(Node node);
 
   void enterScope(
@@ -7132,6 +7133,7 @@ abstract class BinarySource {
   String readStringReference();
   Name readName();
   DartType readDartType();
+  Constant readConstantReference();
   FunctionNode readFunctionNode();
 
   void enterScope({List<TypeParameter> typeParameters});

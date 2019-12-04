@@ -2202,6 +2202,13 @@ void Precompiler::Obfuscate() {
 }
 
 void Precompiler::FinalizeAllClasses() {
+  // Create a fresh Zone because kernel reading during class finalization
+  // may create zone handles. Those handles may prevent garbage collection of
+  // otherwise unreachable constants of dropped classes, which would
+  // cause assertion failures during GC after classes are dropped.
+  StackZone stack_zone(thread());
+  HANDLESCOPE(thread());
+
   error_ = Library::FinalizeAllClasses();
   if (!error_.IsNull()) {
     Jump(error_);

@@ -61,7 +61,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           ExternalTypedData::Handle(Z,
                                     parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset()),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &active_class_,
@@ -1582,12 +1583,16 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const String& name,
     const AbstractType& type,
     const InferredTypeMetadata* param_type_md /* = NULL */) {
-  CompileType* param_type = NULL;
-  if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
+  CompileType* param_type = nullptr;
+  const Object* param_value = nullptr;
+  if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
     param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
+    if (param_type_md->IsConstant()) {
+      param_value = &param_type_md->constant_value;
+    }
   }
-  return new (Z)
-      LocalVariable(declaration_pos, token_pos, name, type, param_type);
+  return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
+                               param_type, param_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(

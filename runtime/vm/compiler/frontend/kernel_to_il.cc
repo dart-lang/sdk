@@ -357,6 +357,12 @@ Fragment FlowGraphBuilder::InstanceCall(
     call->set_receivers_static_type(&type);
   }
   Push(call);
+  if (result_type != nullptr && result_type->IsConstant()) {
+    Fragment instructions(call);
+    instructions += Drop();
+    instructions += Constant(result_type->constant_value);
+    return instructions;
+  }
   return Fragment(call);
 }
 
@@ -659,6 +665,12 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
   Push(call);
+  if (result_type != nullptr && result_type->IsConstant()) {
+    Fragment instructions(call);
+    instructions += Drop();
+    instructions += Constant(result_type->constant_value);
+    return instructions;
+  }
   return Fragment(call);
 }
 

@@ -182,11 +182,11 @@ namespace dart {
   V(_BigIntImpl, _rsh, Bigint_rsh, 0x2bf277fc)                                 \
   V(_BigIntImpl, _absAdd, Bigint_absAdd, 0x147eb8ec)                           \
   V(_BigIntImpl, _absSub, Bigint_absSub, 0xed4c4e74)                           \
-  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0xc8dcc37e)                           \
-  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x45be1228)                           \
+  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0x634f75a0)                           \
+  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xc0a29ed4)                           \
   V(_BigIntImpl, _estimateQuotientDigit, Bigint_estimateQuotientDigit,         \
-    0xd7c44af1)                                                                \
-  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0xa1a5caf3)        \
+    0x03b20399)                                                                \
+  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0x3b707797)        \
   V(_Double, >, Double_greaterThan, 0x682a02bc)                                \
   V(_Double, >=, Double_greaterEqualThan, 0x2961f8ee)                          \
   V(_Double, <, Double_lessThan, 0xcbff42e5)                                   \

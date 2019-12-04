@@ -41,6 +41,7 @@ class VmTarget extends Target {
   Class _oneByteString;
   Class _twoByteString;
   Class _smi;
+  Class _double; // _Double, not double.
 
   VmTarget(this.flags);
 
@@ -421,6 +422,11 @@ class VmTarget extends Target {
     }
     // Otherwise, class could be either _Smi or _Mint depending on a platform.
     return null;
+  }
+
+  @override
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) {
+    return _double ??= coreTypes.index.getClass('dart:core', '_Double');
   }
 
   @override

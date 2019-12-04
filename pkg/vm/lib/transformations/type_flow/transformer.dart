@@ -113,6 +113,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final Class _intClass;
+  Constant _nullConstant;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
@@ -129,6 +130,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     assertx(type != null);
 
     Class concreteClass;
+    Constant constantValue;
     bool isInt = false;
 
     final nullable = type is NullableType;
@@ -138,11 +140,16 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
     if (nullable && type == const EmptyType()) {
       concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+      constantValue = _nullConstant ??= new NullConstant();
     } else {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
         isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
+      }
+
+      if (type is ConcreteType && !nullable) {
+        constantValue = type.constant;
       }
     }
 
@@ -154,8 +161,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
           .toList();
     }
 
-    if ((concreteClass != null) || !nullable || isInt || skipCheck) {
-      return new InferredType(concreteClass, nullable, isInt,
+    if (concreteClass != null ||
+        !nullable ||
+        isInt ||
+        constantValue != null ||
+        skipCheck) {
+      return new InferredType(concreteClass, nullable, isInt, constantValue,
           exactTypeArguments: typeArgs, skipCheck: skipCheck);
     }
 

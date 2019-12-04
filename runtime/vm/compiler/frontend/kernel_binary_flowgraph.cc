@@ -808,6 +808,7 @@ Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
   F += SetAsyncStackTrace(dart_function);
+  F += B->InitConstantParameters();
   return F;
 }
 
@@ -2663,6 +2664,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         return StaticCall(position, getter, 0, Array::null_array(),
                           ICData::kStatic, &result_type);
       } else {
+        if (result_type.IsConstant()) {
+          return Constant(result_type.constant_value);
+        }
         Fragment instructions = Constant(field);
         return instructions + LoadStaticField();
       }

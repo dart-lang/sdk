@@ -1285,8 +1285,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     throw 'Expected constant, got ${expr.runtimeType}';
   }
 
-  void _genPushConstExpr(Expression expr) {
-    final constant = _getConstant(expr);
+  void _genPushConstant(Constant constant) {
     if (constant is NullConstant) {
       asm.emitPushNull();
     } else if (constant is BoolConstant) {
@@ -1295,6 +1294,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _genPushInt(constant.value);
     } else {
       asm.emitPushConstant(cp.addObjectRef(constant));
+    }
+  }
+
+  void _genPushConstExpr(Expression expr) {
+    if (expr is ConstantExpression) {
+      _genPushConstant(expr.constant);
+    } else if (expr is NullLiteral) {
+      asm.emitPushNull();
+    } else if (expr is BoolLiteral) {
+      _genPushBool(expr.value);
+    } else if (expr is IntLiteral) {
+      _genPushInt(expr.value);
+    } else {
+      _genPushConstant(_getConstant(expr));
     }
   }
 
@@ -1339,6 +1352,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitUncheckedDirectCall(cpIndex, totalArgCount);
     } else {
       asm.emitDirectCall(cpIndex, totalArgCount);
+    }
+    if (inferredTypeMetadata != null && node != null) {
+      _replaceWithConstantValue(node);
     }
   }
 
@@ -1794,7 +1810,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       inferredTypesAttribute.add(NullConstant());
     }
-    inferredTypesAttribute.add(IntConstant(md.flags));
+    // Inferred constant values are handled in bytecode generator
+    // (_replaceWithConstantValue, _initConstantParameters) and
+    // not propagated to VM.
+    final flags = md.flags & ~InferredType.flagConstant;
+    inferredTypesAttribute.add(IntConstant(flags));
+  }
+
+  void _replaceWithConstantValue(TreeNode node) {
+    final InferredType md = inferredTypeMetadata[node];
+    if (md == null || md.constantValue == null || asm.isUnreachable) {
+      return;
+    }
+    asm.emitDrop1();
+    _genPushConstant(md.constantValue);
   }
 
   // Generate additional code for 'operator ==' to handle nulls.
@@ -2030,6 +2059,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       }
     }
+
+    if (inferredTypeMetadata != null && function != null) {
+      _initConstantParameters(function);
+    }
   }
 
   void _handleDelayedTypeArguments(Label doneCheckingTypeArguments) {
@@ -2071,6 +2104,21 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _genTypeArguments(defaultTypes);
     asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+  }
+
+  void _initConstantParameters(FunctionNode function) {
+    function.positionalParameters.forEach(_initParameterIfConstant);
+    locals.sortedNamedParameters.forEach(_initParameterIfConstant);
+  }
+
+  void _initParameterIfConstant(VariableDeclaration variable) {
+    final md = inferredTypeMetadata[variable];
+    if (md != null && md.constantValue != null) {
+      _genPushConstant(md.constantValue);
+      asm.emitPopLocal(locals.isCaptured(variable)
+          ? locals.getOriginalParamSlotIndex(variable)
+          : locals.getVarIndexInFrame(variable));
+    }
   }
 
   void _setupInitialContext(FunctionNode function) {
@@ -3279,25 +3327,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _appendInferredType(node, asm.offset);
     }
 
+    bool generated = false;
     if (invocationKind != InvocationKind.getter && !isDynamic && !isUnchecked) {
       final staticReceiverType = getStaticType(receiver, staticTypeContext);
       if (isInstantiatedInterfaceCall(interfaceTarget, staticReceiverType)) {
         final callCpIndex = cp.addInstantiatedInterfaceCall(
             invocationKind, interfaceTarget, argDesc, staticReceiverType);
         asm.emitInstantiatedInterfaceCall(callCpIndex, totalArgCount);
-        return;
+        generated = true;
       }
     }
 
-    final callCpIndex = cp.addInstanceCall(
-        invocationKind, interfaceTarget, targetName, argDesc);
-    if (isDynamic) {
-      assert(!isUnchecked);
-      asm.emitDynamicCall(callCpIndex, totalArgCount);
-    } else if (isUnchecked) {
-      asm.emitUncheckedInterfaceCall(callCpIndex, totalArgCount);
-    } else {
-      asm.emitInterfaceCall(callCpIndex, totalArgCount);
+    if (!generated) {
+      final callCpIndex = cp.addInstanceCall(
+          invocationKind, interfaceTarget, targetName, argDesc);
+      if (isDynamic) {
+        assert(!isUnchecked);
+        asm.emitDynamicCall(callCpIndex, totalArgCount);
+      } else if (isUnchecked) {
+        asm.emitUncheckedInterfaceCall(callCpIndex, totalArgCount);
+      } else {
+        asm.emitInterfaceCall(callCpIndex, totalArgCount);
+      }
+    }
+
+    if (inferredTypeMetadata != null && node != null) {
+      _replaceWithConstantValue(node);
     }
   }
 
@@ -3619,6 +3674,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
       } else if (!_needsGetter(target)) {
+        if (inferredTypeMetadata != null) {
+          final InferredType md = inferredTypeMetadata[node];
+          if (md != null && md.constantValue != null) {
+            _genPushConstant(md.constantValue);
+            return;
+          }
+        }
         asm.emitLoadStatic(cp.addStaticField(target));
       } else {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
@@ -4676,7 +4738,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitConstantExpression(ConstantExpression node) {
-    _genPushConstExpr(node);
+    _genPushConstant(node.constant);
   }
 }
 

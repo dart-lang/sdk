@@ -15,7 +15,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
-[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function* unknown;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] dynamic x) → void {}
 static method foo1_a2([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {}
 static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] dynamic x) → void {}

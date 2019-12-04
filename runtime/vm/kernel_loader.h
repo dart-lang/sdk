@@ -9,6 +9,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
@@ -406,6 +407,7 @@ class KernelLoader : public ValueObject {
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
   TypeTranslator type_translator_;
+  ConstantReader constant_reader_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   BytecodeMetadataHelper bytecode_metadata_helper_;
 

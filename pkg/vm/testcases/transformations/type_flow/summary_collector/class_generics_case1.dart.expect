@@ -38,7 +38,7 @@ t1* = _Call direct [#lib::MockHashMap::] (#lib::Element, dart.core::Object)
 RESULT: t1
 ------------ #lib::main ------------
 t0 = _Call direct [#lib::InheritedElement::] (_T (#lib::InheritedElement))
-t1 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi))
+t1 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::InheritedElement), _T (dart.core::_Smi, 0))
 t2 = _Call direct [#lib::Element::] (_T (#lib::Element))
 t3 = _Call [#lib::InheritedElement::setDependencies] (_T (#lib::InheritedElement), _T (#lib::Element), _T {}?)
 RESULT: _T {}?

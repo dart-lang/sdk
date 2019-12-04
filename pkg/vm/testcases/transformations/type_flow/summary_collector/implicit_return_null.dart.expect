@@ -19,7 +19,7 @@ t0 = _Call direct [#lib::T::] (_T (#lib::T))
 RESULT: _T (#lib::T)
 ------------ #lib::return2 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-t1* = _Call [dart.core::num::-] (%i, _T (dart.core::_Smi))
+t1* = _Call [dart.core::num::-] (%i, _T (dart.core::_Smi, 1))
 t2* = _Call direct [#lib::return2] (t1)
 RESULT: t2
 ------------ #lib::return3 ------------
@@ -93,7 +93,7 @@ RESULT: _T {}?
 ------------ #lib::if5 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
 t1* = _Call direct [#lib::if5] (%c)
-t2* = _Call direct [#lib::if5] (_T (dart.core::bool)+)
+t2* = _Call direct [#lib::if5] (_T (dart.core::bool))
 %result = _Join [void] (t1, t2, _T {}?)
 RESULT: %result
 ------------ #lib::label1 ------------

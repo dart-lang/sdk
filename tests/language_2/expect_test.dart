@@ -40,7 +40,7 @@ class ExpectTest {
   }
 
   static testIdentical(a) {
-    var ab = "${a}B";
+    var ab = a + "B";
     try {
       Expect.identical("AB", ab);
     } on ExpectException catch (msg) {

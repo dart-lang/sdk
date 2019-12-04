@@ -7,6 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
@@ -157,6 +158,7 @@ class ScopeBuilder {
   TokenPosition first_body_token_position_;
 
   KernelReaderHelper helper_;
+  ConstantReader constant_reader_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   TypeTranslator type_translator_;
