@@ -69,17 +69,17 @@ mixin ElementsTypesMixin {
 
   NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
-  InterfaceType get nullNone {
+  InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
     return interfaceTypeNone(element);
   }
 
-  InterfaceType get nullQuestion {
+  InterfaceTypeImpl get nullQuestion {
     var element = typeProvider.nullType.element;
     return interfaceTypeQuestion(element);
   }
 
-  InterfaceType get nullStar {
+  InterfaceTypeImpl get nullStar {
     var element = typeProvider.nullType.element;
     return interfaceTypeStar(element);
   }
@@ -131,7 +131,7 @@ mixin ElementsTypesMixin {
 
   TypeProvider get typeProvider;
 
-  VoidType get voidNone => typeProvider.voidType;
+  VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
   ClassElementImpl class_({
     @required String name,
