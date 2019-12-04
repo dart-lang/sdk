@@ -2293,8 +2293,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   SpeculativeInliningPolicy speculative_policy(
       true, FLAG_max_speculative_inlining_attempts);
 
-  volatile bool has_failed_to_commit_object_pool = false;
-
   while (!done) {
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
@@ -2424,13 +2422,14 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       //
       // In this case we simply retry compilation assuming that we are not
       // going to hit this problem on the second attempt.
+      //
+      // Note: currently we can't assume that two compilations of the same
+      // method will lead to the same IR due to instability of inlining
+      // heuristics (under some conditions we might end up inlining
+      // more aggressively on the second attempt).
       if (FLAG_use_bare_instructions &&
           !object_pool_builder.TryCommitToParent()) {
-        if (has_failed_to_commit_object_pool) {
-          FATAL("Failed to commit object pool into global object pool twice");
-        }
         done = false;
-        has_failed_to_commit_object_pool = true;
         continue;
       }
       // Exit the loop and the function with the correct result value.
