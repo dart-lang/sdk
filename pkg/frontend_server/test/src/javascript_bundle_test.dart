@@ -28,6 +28,7 @@ final Map<String, List<String>> additionalRequiredClasses = {
   'dart:_native_typed_data': [],
   'dart:collection': [
     'ListMixin',
+    'MapMixin',
     'LinkedHashSet',
     '_HashSet',
     '_IdentityHashSet',

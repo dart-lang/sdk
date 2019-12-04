@@ -74,7 +74,7 @@ main() {
   });
 
   test('forEach', () {
-    Map<String, String> results = {};
+    var results = <String, String>{};
     window.localStorage.forEach((k, v) {
       results[k] = v;
     });
@@ -89,6 +89,14 @@ main() {
   test('getVals', () {
     expect(window.localStorage.values.toList(),
         unorderedEquals(['val1', 'val2', 'val3']));
+  });
+
+  test('getEntries', () {
+    var results = <String, String>{};
+    window.localStorage.entries.forEach((e) {
+      results[e.key] = e.value;
+    });
+    expect(results, equals({'key1': 'val1', 'key2': 'val2', 'key3': 'val3'}));
   });
 
   test('length', () {

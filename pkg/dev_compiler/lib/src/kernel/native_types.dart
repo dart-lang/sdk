@@ -53,8 +53,12 @@ class NativeTypeSet {
 
     // These are used natively by dart:html but also not annotated.
     _addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);
-    _addExtensionTypesForLibrary('dart:collection', ['ListMixin']);
+    _addExtensionTypesForLibrary('dart:collection', ['ListMixin', 'MapMixin']);
     _addExtensionTypesForLibrary('dart:math', ['Rectangle']);
+
+    // TODO(39612) Validate that after this point no types from the SDK are
+    // added as native extensions (excluding types from dart:html and "friends"
+    // listed below).
 
     // Second, html types - these are only searched if we use dart:html, etc.:
     _addPendingExtensionTypes(sdk.getLibrary('dart:html'));
