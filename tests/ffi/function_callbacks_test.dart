@@ -17,8 +17,6 @@
 // VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
-library FfiTest;
-
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:isolate';

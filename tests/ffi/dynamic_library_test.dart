@@ -6,8 +6,6 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
-library FfiTest;
-
 import 'dart:io';
 import 'dart:ffi';
 

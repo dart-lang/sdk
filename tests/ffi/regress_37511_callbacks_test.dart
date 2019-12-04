@@ -11,8 +11,6 @@
 // TODO(37295): Merge this file with regress_37511_test.dart when callback
 // support lands.
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import 'ffi_test_helpers.dart';
