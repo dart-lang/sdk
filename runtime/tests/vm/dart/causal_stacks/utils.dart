@@ -96,6 +96,37 @@ Future nonAsyncNoStack1() async => await nonAsyncNoStack2();
 
 Future nonAsyncNoStack2() async => Future.value(0).then((_) => throwAsync());
 
+// ----
+// Scenario: async*:
+// ----
+
+Future awaitEveryAsyncStarThrowSync() async {
+  await for (Future v in asyncStarThrowSync()) {
+    await v;
+  }
+}
+
+Stream<Future> asyncStarThrowSync() async* {
+  for (int i = 0; i < 2; i++) {
+    await i;
+    yield throwSync();
+  }
+}
+
+Future awaitEveryAsyncStarThrowAsync() async {
+  await for (Future v in asyncStarThrowAsync()) {
+    await v;
+  }
+}
+
+Stream<Future> asyncStarThrowAsync() async* {
+  for (int i = 0; i < 2; i++) {
+    await i;
+    yield Future.value(i);
+    await throwAsync();
+  }
+}
+
 // Helpers:
 
 void assertStack(List<String> expects, StackTrace stackTrace) {
@@ -354,6 +385,93 @@ Future<void> doTestsCausal() async {
   await doTestAwait(nonAsyncNoStack, nonAsyncNoStackExpected);
   await doTestAwaitThen(nonAsyncNoStack, nonAsyncNoStackExpected);
   await doTestAwaitCatchError(nonAsyncNoStack, nonAsyncNoStackExpected);
+
+  final asyncStarThrowSyncExpected = const <String>[
+    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
+    r'^#1      asyncStarThrowSync \(.*/utils.dart:(112|112:11)\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitEveryAsyncStarThrowSync \(.+\)$',
+  ];
+  await doTestAwait(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwait \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitCatchError \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+
+  final asyncStarThrowAsyncExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:(126|126:11)\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitEveryAsyncStarThrowAsync \(.+\)$',
+  ];
+  await doTestAwait(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwait \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitCatchError \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
 }
 
 // For: --no-causal-async-stacks
@@ -586,6 +704,47 @@ Future<void> doTestsNoCausal() async {
   await doTestAwait(nonAsyncNoStack, nonAsyncNoStackExpected);
   await doTestAwaitThen(nonAsyncNoStack, nonAsyncNoStackExpected);
   await doTestAwaitCatchError(nonAsyncNoStack, nonAsyncNoStackExpected);
+
+  final asyncStarThrowSyncExpected = const <String>[
+    r'^#0      throwSync \(.+/utils.dart:(16|16:3)\)$',
+    r'^#1      asyncStarThrowSync \(.+/utils.dart:(112|112:11)\)$',
+    r'^#2      _RootZone.runUnary \(.+\)$',
+    r'^#3      _FutureListener.handleValue \(.+\)$',
+    r'^#4      Future._propagateToListeners.handleValueCallback \(.+\)$',
+    r'^#5      Future._propagateToListeners \(.+\)$',
+    // TODO(dart-vm): Figure out why this is inconsistent:
+    r'^#6      Future.(_addListener|_prependListeners).<anonymous closure> \(.+\)$',
+    r'^#7      _microtaskLoop \(.+\)$',
+    r'^#8      _startMicrotaskLoop \(.+\)$',
+    r'^#9      _runPendingImmediateCallback \(.+\)$',
+    r'^#10     _RawReceivePortImpl._handleMessage \(.+\)$',
+    r'^$',
+  ];
+  await doTestAwait(awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+
+  final asyncStarThrowAsyncExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#1      _RootZone.runUnary ',
+    r'^#2      _FutureListener.handleValue ',
+    r'^#3      Future._propagateToListeners.handleValueCallback ',
+    r'^#4      Future._propagateToListeners ',
+    // TODO(dart-vm): Figure out why this is inconsistent:
+    r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
+    r'^#6      _microtaskLoop ',
+    r'^#7      _startMicrotaskLoop ',
+    r'^#8      _runPendingImmediateCallback ',
+    r'^#9      _RawReceivePortImpl._handleMessage ',
+    r'^$',
+  ];
+  await doTestAwait(awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
 }
 
 // For: --lazy-async-stacks
@@ -744,4 +903,32 @@ Future<void> doTestsLazy() async {
           const <String>[
             r'^$',
           ]);
+
+  final asyncStarThrowSyncExpected = const <String>[
+    r'^#0      throwSync \(.+/utils.dart:(16|16:3)\)$',
+    r'^#1      asyncStarThrowSync \(.+/utils.dart:(112|112:11)\)$',
+    r'^<asynchronous suspension>$',
+    // Non-visible _onData frame.
+    r'^<asynchronous suspension>$',
+    r'^$',
+  ];
+  await doTestAwait(awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+
+  final asyncStarThrowAsyncExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:(0|126|126:5)\)$',
+    r'^<asynchronous suspension>$',
+    // Non-visible _onData frame.
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+  await doTestAwaitCatchError(
+      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
 }

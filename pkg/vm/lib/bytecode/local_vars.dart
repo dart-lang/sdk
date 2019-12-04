@@ -19,6 +19,7 @@ import '../metadata/direct_call.dart' show DirectCallMetadata;
 // Keep in sync with runtime/vm/object.h:Context::kAwaitJumpVarIndex.
 const int awaitJumpVarContextIndex = 0;
 const int asyncCompleterContextIndex = 1;
+const int controllerContextIndex = 1;
 
 class LocalVariables {
   final _scopes = new Map<TreeNode, Scope>();
@@ -443,12 +444,17 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
             ._getVarDesc(_currentFrame
                 .getSyntheticVar(ContinuationVariables.awaitJumpVar))
             .moveToScope(_currentScope);
-      }
-      if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
-        locals
-            ._getVarDesc(_currentFrame
-                .getSyntheticVar(ContinuationVariables.asyncCompleter))
-            .moveToScope(_currentScope);
+        if (_currentFrame.dartAsyncMarker == AsyncMarker.Async) {
+          locals
+              ._getVarDesc(_currentFrame
+                  .getSyntheticVar(ContinuationVariables.asyncCompleter))
+              .moveToScope(_currentScope);
+        } else if (_currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
+          locals
+              ._getVarDesc(_currentFrame
+                  .getSyntheticVar(ContinuationVariables.controller))
+              .moveToScope(_currentScope);
+        }
       }
     }
 
@@ -1110,6 +1116,12 @@ class _Allocator extends RecursiveVisitor<Null> {
         assert(locals._getVarDesc(asyncCompleter).index ==
             asyncCompleterContextIndex);
       }
+      if (_currentFrame.dartAsyncMarker == AsyncMarker.AsyncStar) {
+        final controller =
+            _currentFrame.getSyntheticVar(ContinuationVariables.controller);
+        _allocateVariable(controller);
+        assert(locals._getVarDesc(controller).index == controllerContextIndex);
+      }
       _allocateParameters(node, function);
       _allocateSpecialVariables();
 
@@ -1172,6 +1184,8 @@ class _Allocator extends RecursiveVisitor<Null> {
       assert(locals._getVarDesc(node).index == awaitJumpVarContextIndex);
     } else if (node.name == ContinuationVariables.asyncCompleter) {
       assert(locals._getVarDesc(node).index == asyncCompleterContextIndex);
+    } else if (node.name == ContinuationVariables.controller) {
+      assert(locals._getVarDesc(node).index == controllerContextIndex);
     } else {
       _allocateVariable(node);
     }

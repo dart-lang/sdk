@@ -134,6 +134,7 @@ void _asyncStarMoveNextHelper(var stream) {
 // async* generator functions.
 @pragma("vm:entry-point")
 class _AsyncStarStreamController<T> {
+  @pragma("vm:entry-point")
   StreamController<T> controller;
   Function asyncStarBody;
   bool isAdding = false;

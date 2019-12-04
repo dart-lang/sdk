@@ -1280,7 +1280,8 @@ void ScopeBuilder::VisitVariableDeclaration() {
   // This way we can allocate them in the outermost context at fixed indices,
   // allowing support for --lazy-async-stacks implementation to find awaiters.
   if (name.Equals(Symbols::AwaitJumpVar()) ||
-      name.Equals(Symbols::AsyncCompleter())) {
+      name.Equals(Symbols::AsyncCompleter()) ||
+      name.Equals(Symbols::Controller())) {
     scope_->parent()->AddVariable(variable);
   } else {
     scope_->AddVariable(variable);

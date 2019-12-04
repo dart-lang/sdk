@@ -18,6 +18,7 @@ class ContinuationVariables {
   static const asyncCompleter = ':async_completer';
   static const awaitContextVar = ':await_ctx_var';
   static const asyncStackTraceVar = ':async_stack_trace';
+  static const controller = ':controller';
   static const controllerStreamVar = ':controller_stream';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
@@ -965,7 +966,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     final elementType = elementTypeFromReturnType(helper.streamClass);
 
     // _AsyncStarStreamController<T> :controller;
-    controllerVariable = new VariableDeclaration(":controller",
+    controllerVariable = new VariableDeclaration(
+        ContinuationVariables.controller,
         type: new InterfaceType(helper.asyncStarStreamControllerClass,
             staticTypeContext.nullable, [elementType]));
     statements.add(controllerVariable);

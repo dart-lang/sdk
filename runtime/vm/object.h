@@ -6036,6 +6036,7 @@ class Context : public Object {
 
   static const intptr_t kAwaitJumpVarIndex = 0;
   static const intptr_t kAsyncCompleterIndex = 1;
+  static const intptr_t kControllerIndex = 1;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(RawContext, data) +

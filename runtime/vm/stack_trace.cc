@@ -11,6 +11,10 @@
 
 namespace dart {
 
+// Keep in sync with
+// sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
+const intptr_t kStreamController_StateSubscribed = 1;
+
 RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
                                const Function& function,
                                bool is_interpreted) {
@@ -98,14 +102,27 @@ class CallerClosureFinder {
         future_(Object::Handle(zone)),
         listener_(Object::Handle(zone)),
         callback_(Object::Handle(zone)),
+        controller_(Object::Handle(zone)),
+        state_(Object::Handle(zone)),
+        var_data_(Object::Handle(zone)),
         future_impl_class(Class::Handle(zone)),
         async_await_completer_class(Class::Handle(zone)),
         future_listener_class(Class::Handle(zone)),
+        async_start_stream_controller_class(Class::Handle(zone)),
+        stream_controller_class(Class::Handle(zone)),
+        controller_subscription_class(Class::Handle(zone)),
+        buffering_stream_subscription_class(Class::Handle(zone)),
+        async_stream_controller_class(Class::Handle(zone)),
         completer_future_field(Field::Handle(zone)),
         future_result_or_listeners_field(Field::Handle(zone)),
-        callback_field(Field::Handle(zone)) {
+        callback_field(Field::Handle(zone)),
+        controller_controller_field(Field::Handle(zone)),
+        var_data_field(Field::Handle(zone)),
+        state_field(Field::Handle(zone)),
+        on_data_field(Field::Handle(zone)) {
     const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
-    // Look up classes.
+    // Look up classes:
+    // - async:
     future_impl_class =
         async_lib.LookupClassAllowPrivate(Symbols::FutureImpl());
     ASSERT(!future_impl_class.IsNull());
@@ -115,7 +132,25 @@ class CallerClosureFinder {
     future_listener_class =
         async_lib.LookupClassAllowPrivate(Symbols::_FutureListener());
     ASSERT(!future_listener_class.IsNull());
-    // Look up fields.
+    // - async*:
+    async_start_stream_controller_class = async_lib.LookupClassAllowPrivate(
+        Symbols::_AsyncStarStreamController());
+    ASSERT(!async_start_stream_controller_class.IsNull());
+    stream_controller_class =
+        async_lib.LookupClassAllowPrivate(Symbols::_StreamController());
+    ASSERT(!stream_controller_class.IsNull());
+    async_stream_controller_class =
+        async_lib.LookupClassAllowPrivate(Symbols::_AsyncStreamController());
+    ASSERT(!async_stream_controller_class.IsNull());
+    controller_subscription_class =
+        async_lib.LookupClassAllowPrivate(Symbols::_ControllerSubscription());
+    ASSERT(!controller_subscription_class.IsNull());
+    buffering_stream_subscription_class = async_lib.LookupClassAllowPrivate(
+        Symbols::_BufferingStreamSubscription());
+    ASSERT(!buffering_stream_subscription_class.IsNull());
+
+    // Look up fields:
+    // - async:
     completer_future_field =
         async_await_completer_class.LookupFieldAllowPrivate(Symbols::_future());
     ASSERT(!completer_future_field.IsNull());
@@ -126,18 +161,24 @@ class CallerClosureFinder {
     callback_field =
         future_listener_class.LookupFieldAllowPrivate(Symbols::callback());
     ASSERT(!callback_field.IsNull());
+    // - async*:
+    controller_controller_field =
+        async_start_stream_controller_class.LookupFieldAllowPrivate(
+            Symbols::controller());
+    ASSERT(!controller_controller_field.IsNull());
+    state_field =
+        stream_controller_class.LookupFieldAllowPrivate(Symbols::_state());
+    ASSERT(!state_field.IsNull());
+    var_data_field =
+        stream_controller_class.LookupFieldAllowPrivate(Symbols::_varData());
+    ASSERT(!var_data_field.IsNull());
+    on_data_field = buffering_stream_subscription_class.LookupFieldAllowPrivate(
+        Symbols::_onData());
+    ASSERT(!on_data_field.IsNull());
   }
 
-  RawClosure* FindCaller(const Closure& receiver_closure) {
-    receiver_function_ = receiver_closure.function();
-    if (!receiver_function_.IsAsyncClosure() &&
-        !receiver_function_.IsAsyncGenClosure()) {
-      return Closure::null();
-    }
-
-    receiver_context_ = receiver_closure.context();
-    context_entry_ = receiver_context_.At(Context::kAsyncCompleterIndex);
-
+  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context) {
+    context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
     ASSERT(context_entry_.IsInstance());
     ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
 
@@ -162,20 +203,73 @@ class CallerClosureFinder {
     return Closure::Cast(callback_).raw();
   }
 
+  RawClosure* FindCallerInAsyncGenClosure(const Context& receiver_context) {
+    context_entry_ = receiver_context.At(Context::kControllerIndex);
+    ASSERT(context_entry_.IsInstance());
+    ASSERT(context_entry_.GetClassId() ==
+           async_start_stream_controller_class.id());
+
+    const Instance& controller = Instance::Cast(context_entry_);
+    controller_ = controller.GetField(controller_controller_field);
+    ASSERT(!controller_.IsNull());
+    ASSERT(controller_.GetClassId() == async_stream_controller_class.id());
+
+    state_ = Instance::Cast(controller_).GetField(state_field);
+    ASSERT(state_.IsSmi());
+    if (Smi::Cast(state_).Value() != kStreamController_StateSubscribed) {
+      return Closure::null();
+    }
+
+    var_data_ = Instance::Cast(controller_).GetField(var_data_field);
+    ASSERT(var_data_.GetClassId() == controller_subscription_class.id());
+
+    callback_ = Instance::Cast(var_data_).GetField(on_data_field);
+    ASSERT(callback_.IsClosure());
+
+    return Closure::Cast(callback_).raw();
+  }
+
+  RawClosure* FindCaller(const Closure& receiver_closure) {
+    receiver_function_ = receiver_closure.function();
+    receiver_context_ = receiver_closure.context();
+
+    if (receiver_function_.IsAsyncClosure()) {
+      return FindCallerInAsyncClosure(receiver_context_);
+    } else if (receiver_function_.IsAsyncGenClosure()) {
+      return FindCallerInAsyncGenClosure(receiver_context_);
+    }
+
+    return Closure::null();
+  }
+
  private:
   Context& receiver_context_;
   Function& receiver_function_;
+
   Object& context_entry_;
   Object& future_;
   Object& listener_;
   Object& callback_;
+  Object& controller_;
+  Object& state_;
+  Object& var_data_;
 
   Class& future_impl_class;
   Class& async_await_completer_class;
   Class& future_listener_class;
+  Class& async_start_stream_controller_class;
+  Class& stream_controller_class;
+  Class& controller_subscription_class;
+  Class& buffering_stream_subscription_class;
+  Class& async_stream_controller_class;
+
   Field& completer_future_field;
   Field& future_result_or_listeners_field;
   Field& callback_field;
+  Field& controller_controller_field;
+  Field& var_data_field;
+  Field& state_field;
+  Field& on_data_field;
 };
 
 void StackTraceUtils::CollectFramesLazy(
