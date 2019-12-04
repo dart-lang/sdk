@@ -102,18 +102,12 @@ Future generateCLibs(String sdkRoot, String destDir, Set<String> allFiles,
       path.join(sdkRoot, 'runtime/bin/ffi_test/ffi_test_dynamic_library.cc');
   destinationFile =
       path.join(dir.path, path.basename(lib1)).replaceAll('.cc', '.cpp');
-  File(destinationFile)
-      .writeAsStringSync(cleanCC(File(lib1).readAsStringSync()));
+  File(destinationFile).writeAsStringSync(File(lib1).readAsStringSync());
 
   final lib2 = path.join(sdkRoot, 'runtime/bin/ffi_test/ffi_test_functions.cc');
   destinationFile =
       path.join(dir.path, path.basename(lib2)).replaceAll('.cc', '.cpp');
-  File(destinationFile)
-      .writeAsStringSync(cleanCC(File(lib2).readAsStringSync()));
-}
-
-String cleanCC(String content) {
-  return content.replaceAll('DART_EXPORT', 'extern "C" ');
+  File(destinationFile).writeAsStringSync(File(lib2).readAsStringSync());
 }
 
 String cleanDart(String content) {
@@ -125,21 +119,23 @@ Future generateDartTests(
   final dir = await generateCleanDir(destDir);
 
   final sink = File(path.join(dir.path, 'all.dart')).openWrite();
+  sink.writeln('import "dart:async";');
+  sink.writeln('');
   for (int i = 0; i < testFiles.length; ++i) {
     sink.writeln('import "${path.basename(testFiles[i])}" as main$i;');
   }
   sink.writeln('');
-  sink.writeln('invoke(fn) {');
-  sink.writeln('  if (fn is void Function()) {');
-  sink.writeln('    fn();');
+  sink.writeln('Future invoke(dynamic fun) async {');
+  sink.writeln('  if (fun is void Function() || fun is Future Function()) {');
+  sink.writeln('    return await fun();');
   sink.writeln('  } else {');
-  sink.writeln('    fn(<String>[]);');
+  sink.writeln('    return await fun(<String>[]);');
   sink.writeln('  }');
   sink.writeln('}');
   sink.writeln('');
-  sink.writeln('main() {');
+  sink.writeln('dynamic main() async {');
   for (int i = 0; i < testFiles.length; ++i) {
-    sink.writeln('  invoke(main$i.main);');
+    sink.writeln('  await invoke(main$i.main);');
   }
   sink.writeln('}');
   await sink.close();
@@ -166,32 +162,19 @@ Stream<String> listTestFiles(
   await for (final file in Directory(path.join(sdkRoot, 'tests/ffi')).list()) {
     if (file is File && file.path.endsWith('_test.dart')) {
       // These tests are VM specific and cannot necessarily be run on Flutter.
-      final blacklistedTests = const [
-        'function_callbacks_test.dart',
-        'function_callbacks_test.dart',
-        'function_gc_test.dart',
-        'function_test.dart',
-        'object_gc_test.dart',
-        'regress_37100_test.dart',
-        'regress_37511_callbacks_test.dart',
-        'regress_37511_test.dart',
-        'regress_37780_test.dart',
-      ];
-      if (blacklistedTests.contains(path.basename(file.path))) {
+      if (path.basename(file.path).startsWith('vmspecific_')) {
         filteredTests.add(file.path);
         continue;
       }
+      // These tests use special features which are hard to test on Flutter.
       final contents = file.readAsStringSync();
-      if (!contents.contains('//#') &&
-          !contents.contains('dart:async') &&
-          !contents.contains('dart:isolate') &&
-          !contents.contains('async') &&
-          !contents.contains('Future') &&
-          !contents.contains('DynamicLibrary.process') &&
-          !contents.contains('DynamicLibrary.executable') &&
-          !contents.contains('Future')) {
-        yield file.path;
+      if (contents.contains(RegExp('//# .* compile-time error')) ||
+          contents.contains('DynamicLibrary.process') ||
+          contents.contains('DynamicLibrary.executable')) {
+        filteredTests.add(file.path);
+        continue;
       }
+      yield file.path;
     }
   }
 }

@@ -18,7 +18,6 @@ final triggerGc = ffiTestFunctions
     .lookupFunction<Void Function(), void Function()>("TriggerGC");
 
 void main() async {
-  testSizeOf();
   testGC();
 }
 
@@ -26,11 +25,10 @@ dynamic bar;
 
 Future<void> testGC() async {
   bar = Pointer<Int8>.fromAddress(11);
+
   // Verify that the objects manufactured by 'fromAddress' can be scanned by the
   // GC.
   triggerGc();
-}
 
-void testSizeOf() {
-  Expect.equals(true, 4 == sizeOf<Pointer>() || 8 == sizeOf<Pointer>());
+  Expect.equals(11, bar.address);
 }

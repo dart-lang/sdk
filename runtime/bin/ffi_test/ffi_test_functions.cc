@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This file contains test functions for the dart:ffi test cases.
+// This file is not allowed to depend on any symbols from the embedder and is
+// therefore not allowed to use `dart_api.h`. (The flutter/flutter integration
+// tests will run dart tests using this library only.)
 
 #include <stddef.h>
 #include <stdlib.h>
