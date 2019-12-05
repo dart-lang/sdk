@@ -4057,8 +4057,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitStaticGet(node.target);
 
   js_ast.Expression _emitStaticGet(Member target) {
-    // TODO(vsm): Re-inline constants.  See:
-    // https://github.com/dart-lang/sdk/issues/36285
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
       // TODO(jmesserly): we could tag static/top-level function types once
