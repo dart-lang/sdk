@@ -3834,7 +3834,11 @@ bool Class::InjectCIDFields() const {
   const AbstractType& field_type = Type::Handle(zone, Type::IntType());
   for (size_t i = 0; i < ARRAY_SIZE(cid_fields); i++) {
     field_name = Symbols::New(thread, cid_fields[i].field_name);
-    field = Field::New(field_name, true, false, true, false, *this, field_type,
+    field = Field::New(field_name, /* is_static = */ true,
+                       /* is_final = */ false,
+                       /* is_const = */ true,
+                       /* is_reflectable = */ false,
+                       /* is_late = */ false, *this, field_type,
                        TokenPosition::kMinSource, TokenPosition::kMinSource);
     value = Smi::New(cid_fields[i].cid);
     field.SetStaticValue(value, true);
@@ -8746,6 +8750,7 @@ void Field::InitializeNew(const Field& result,
                           bool is_final,
                           bool is_const,
                           bool is_reflectable,
+                          bool is_late,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
@@ -8758,13 +8763,14 @@ void Field::InitializeNew(const Field& result,
   result.set_is_final(is_final);
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
+  result.set_is_late(is_late);
   result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(!is_final);
+  result.set_is_unboxing_candidate(!is_final && !is_late);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
@@ -8800,6 +8806,7 @@ RawField* Field::New(const String& name,
                      bool is_final,
                      bool is_const,
                      bool is_reflectable,
+                     bool is_late,
                      const Object& owner,
                      const AbstractType& type,
                      TokenPosition token_pos,
@@ -8807,7 +8814,7 @@ RawField* Field::New(const String& name,
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
-                owner, token_pos, end_token_pos);
+                is_late, owner, token_pos, end_token_pos);
   result.SetFieldType(type);
   return result.raw();
 }
@@ -8815,6 +8822,7 @@ RawField* Field::New(const String& name,
 RawField* Field::NewTopLevel(const String& name,
                              bool is_final,
                              bool is_const,
+                             bool is_late,
                              const Object& owner,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) {
@@ -8822,7 +8830,7 @@ RawField* Field::NewTopLevel(const String& name,
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, true,       /* is_static */
                 is_final, is_const, true, /* is_reflectable */
-                owner, token_pos, end_token_pos);
+                is_late, owner, token_pos, end_token_pos);
   return result.raw();
 }
 
@@ -10240,6 +10248,7 @@ void Library::AddMetadata(const Object& owner,
       Field::Handle(zone, Field::NewTopLevel(metaname,
                                              false,  // is_final
                                              false,  // is_const
+                                             false,  // is_late
                                              owner, token_pos, token_pos));
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
@@ -12002,6 +12011,7 @@ void Namespace::AddMetadata(const Object& owner,
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                                   false,  // is_final
                                                   false,  // is_const
+                                                  false,  // is_late
                                                   owner, token_pos, token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());

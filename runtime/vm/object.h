@@ -3603,6 +3603,7 @@ class Field : public Object {
                        bool is_final,
                        bool is_const,
                        bool is_reflectable,
+                       bool is_late,
                        const Object& owner,
                        const AbstractType& type,
                        TokenPosition token_pos,
@@ -3611,6 +3612,7 @@ class Field : public Object {
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
+                               bool is_late,
                                const Object& owner,
                                TokenPosition token_pos,
                                TokenPosition end_token_pos);
@@ -3854,6 +3856,7 @@ class Field : public Object {
                             bool is_final,
                             bool is_const,
                             bool is_reflectable,
+                            bool is_late,
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);

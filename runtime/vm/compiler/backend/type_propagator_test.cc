@@ -184,7 +184,8 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
                  /*is_static=*/true,
                  /*is_final=*/false,
                  /*is_const=*/false,
-                 /*is_reflectable=*/true, object_class, Object::dynamic_type(),
+                 /*is_reflectable=*/true,
+                 /*is_late=*/false, object_class, Object::dynamic_type(),
                  TokenPosition::kNoSource, TokenPosition::kNoSource));
 
   FlowGraphBuilderHelper H;

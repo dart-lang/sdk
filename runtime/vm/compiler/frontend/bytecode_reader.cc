@@ -2017,8 +2017,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     field = Field::New(name, is_static, is_final, is_const,
-                       (flags & kIsReflectableFlag) != 0, script_class, type,
-                       position, end_position);
+                       (flags & kIsReflectableFlag) != 0, is_late, script_class,
+                       type, position, end_position);
 
     field.set_is_declared_in_bytecode(true);
     field.set_has_pragma(has_pragma);
@@ -2026,7 +2026,6 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
                                         0);
     field.set_has_nontrivial_initializer(has_nontrivial_initializer);
-    field.set_is_late((flags & kIsLateFlag) != 0);
     field.set_is_extension_member(is_extension_member);
     field.set_has_initializer(has_initializer);
 
@@ -2134,13 +2133,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
 
   if (cls.is_enum_class()) {
     // Add static field 'const _deleted_enum_sentinel'.
-    field =
-        Field::New(Symbols::_DeletedEnumSentinel(),
-                   /* is_static = */ true,
-                   /* is_final = */ true,
-                   /* is_const = */ true,
-                   /* is_reflectable = */ false, cls, Object::dynamic_type(),
-                   TokenPosition::kNoSource, TokenPosition::kNoSource);
+    field = Field::New(Symbols::_DeletedEnumSentinel(),
+                       /* is_static = */ true,
+                       /* is_final = */ true,
+                       /* is_const = */ true,
+                       /* is_reflectable = */ false,
+                       /* is_late = */ false, cls, Object::dynamic_type(),
+                       TokenPosition::kNoSource, TokenPosition::kNoSource);
 
     fields.SetAt(num_fields, field);
   }
