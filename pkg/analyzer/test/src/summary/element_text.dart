@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -1030,45 +1029,11 @@ class _ElementWriter {
   }
 
   void writeType(DartType type) {
-    if (type is InterfaceType) {
-      buffer.write(type.element.name);
-      if (type.element.typeParameters.isNotEmpty) {
-        writeList('<', '>', type.typeArguments, ', ', writeType);
-      }
-    } else if (type is FunctionType) {
-      writeType2(type.returnType);
-      buffer.write('Function');
-      writeTypeParameterElements(type.typeFormals);
-      buffer.write('(');
-      bool commaNeeded = false;
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isRequiredPositional),
-          commaNeeded,
-          '',
-          '');
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isOptionalPositional),
-          commaNeeded,
-          '[',
-          ']');
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isNamed), commaNeeded, '{', '}');
-      buffer.write(')');
-    } else {
-      buffer.write(type.displayName);
-    }
-    if (annotateNullability) {
-      switch ((type as TypeImpl).nullabilitySuffix) {
-        case NullabilitySuffix.none:
-          break;
-        case NullabilitySuffix.question:
-          buffer.write('?');
-          break;
-        case NullabilitySuffix.star:
-          buffer.write('*');
-          break;
-      }
-    }
+    buffer.write(
+      type.getDisplayString(
+        withNullability: annotateNullability,
+      ),
+    );
   }
 
   void writeType2(DartType type) {
@@ -1198,32 +1163,6 @@ class _ElementWriter {
   void _writelnWithIndent(String line) {
     buffer.write(indent);
     buffer.writeln(line);
-  }
-
-  bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
-      String prefix, String suffix) {
-    if (parameters.isEmpty) return commaNeeded;
-    if (commaNeeded) {
-      buffer.write(', ');
-      commaNeeded = false;
-    }
-    buffer.write(prefix);
-    for (var parameter in parameters) {
-      if (commaNeeded) {
-        buffer.write(', ');
-      }
-      if (parameter.isRequiredNamed) {
-        buffer.write('required ');
-      }
-      writeType(parameter.type);
-      if (parameter.isNamed) {
-        buffer.write(' ');
-        buffer.write(parameter.name);
-      }
-      commaNeeded = true;
-    }
-    buffer.write(suffix);
-    return commaNeeded;
   }
 
   void _writeResolvedMetadata(List<ElementAnnotation> metadata) {

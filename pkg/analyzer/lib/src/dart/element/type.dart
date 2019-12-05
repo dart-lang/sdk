@@ -256,8 +256,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   void appendTo(StringBuffer buffer, {@required bool withNullability}) {
-    // TODO(paulberry): eliminate code duplication with
-    // _ElementWriter.writeType.  See issue #35818.
     if (typeFormals.isNotEmpty) {
       StringBuffer typeParametersBuffer = StringBuffer();
       // To print a type with type variables, first make sure we have unique
