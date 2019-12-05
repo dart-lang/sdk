@@ -36,7 +36,9 @@ Future main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await File(helloFile).writeAsString('main() => print("Hello");');
-    await run('pkg/vm/tool/gen_kernel', <String>[
+    final genKernel = Platform.isWindows ?
+      "pkg\\vm\\tool\\gen_kernel.bat" : 'pkg/vm/tool/gen_kernel';
+    await run(genKernel, <String>[
       '--aot',
       '--platform=$platformDill',
       '-o',
