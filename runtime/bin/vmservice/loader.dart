@@ -957,8 +957,6 @@ const _Dart_kCanonicalizeUrl = 0; // Canonicalize the URL.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
 const _Dart_kInitLoader = 4; // Initialize the loader.
-const _Dart_kResourceLoad = 5; // Resource class support.
-const _Dart_kGetPackageRootUri = 6; // Uri of the packages/ directory.
 const _Dart_kGetPackageConfigUri = 7; // Uri of the .packages file.
 const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
@@ -1008,19 +1006,6 @@ _processLoadRequest(request) {
         loaderState.sp = sp;
         assert(isolateEmbedderData[isolateId] == loaderState);
       }
-      break;
-    case _Dart_kResourceLoad:
-      {
-        Uri uri = Uri.parse(request[4]);
-        _handleResourceRequest(
-            loaderState, sp, traceLoading, tag, uri, uri, null);
-      }
-      break;
-    case _Dart_kGetPackageRootUri:
-      loaderState._triggerPackageResolution(() {
-        // The package root is deprecated and now always returns null.
-        sp.send(null);
-      });
       break;
     case _Dart_kGetPackageConfigUri:
       loaderState._triggerPackageResolution(() {
