@@ -281,8 +281,8 @@ class ClosureContext {
         _inferredUnwrappedReturnOrYieldType = unwrappedType;
       } else {
         _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(
-                _inferredUnwrappedReturnOrYieldType, unwrappedType);
+            .getStandardUpperBound(_inferredUnwrappedReturnOrYieldType,
+                unwrappedType, inferrer.library.library);
       }
       return;
     }
@@ -332,8 +332,8 @@ class ClosureContext {
         _inferredUnwrappedReturnOrYieldType = unwrappedType;
       } else {
         _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(
-                _inferredUnwrappedReturnOrYieldType, unwrappedType);
+            .getStandardUpperBound(_inferredUnwrappedReturnOrYieldType,
+                unwrappedType, inferrer.library.library);
       }
     }
   }
@@ -452,8 +452,7 @@ abstract class TypeInferrer {
 class TypeInferrerImpl implements TypeInferrer {
   /// Marker object to indicate that a function takes an unknown number
   /// of arguments.
-  static final FunctionType unknownFunction =
-      new FunctionType(const [], const DynamicType(), Nullability.legacy);
+  final FunctionType unknownFunction;
 
   final TypeInferenceEngine engine;
 
@@ -503,6 +502,8 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
       this.thisType, this.library, this.assignedVariables, this.dataForTesting)
       : assert(library != null),
+        unknownFunction = new FunctionType(
+            const [], const DynamicType(), library.nonNullable),
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
@@ -1055,9 +1056,10 @@ class TypeInferrerImpl implements TypeInferrer {
     if (memberClass.typeParameters.isNotEmpty) {
       receiverType = resolveTypeParameter(receiverType);
       if (receiverType is InterfaceType) {
-        InterfaceType castedType =
-            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-        calleeType = Substitution.fromInterfaceType(castedType)
+        List<DartType> castedTypeArguments = classHierarchy
+            .getTypeArgumentsAsInstanceOf(receiverType, memberClass);
+        calleeType = Substitution.fromPairs(
+                memberClass.typeParameters, castedTypeArguments)
             .substituteType(calleeType);
       }
     }
@@ -1323,10 +1325,10 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType getDerivedTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType) {
-      InterfaceType typeAsInstanceOfClass =
-          classHierarchy.getTypeAsInstanceOf(type, class_);
-      if (typeAsInstanceOfClass != null) {
-        return typeAsInstanceOfClass.typeArguments[0];
+      List<DartType> typeArgumentsAsInstanceOfClass =
+          classHierarchy.getTypeArgumentsAsInstanceOf(type, class_);
+      if (typeArgumentsAsInstanceOfClass != null) {
+        return typeArgumentsAsInstanceOfClass[0];
       }
     }
     return null;
@@ -1368,9 +1370,10 @@ class TypeInferrerImpl implements TypeInferrer {
         if (memberClass.typeParameters.isNotEmpty) {
           receiverType = resolveTypeParameter(receiverType);
           if (receiverType is InterfaceType) {
-            InterfaceType castedType =
-                classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-            setterType = Substitution.fromInterfaceType(castedType)
+            setterType = Substitution.fromPairs(
+                    memberClass.typeParameters,
+                    classHierarchy.getTypeArgumentsAsInstanceOf(
+                        receiverType, memberClass))
                 .substituteType(setterType);
           }
         }
@@ -3184,7 +3187,8 @@ abstract class MixinInferrer {
     generateConstraints(mixinClass, baseType, mixinSupertype);
     // Solve them to get a map from type parameters to upper and lower
     // bounds.
-    Map<TypeParameter, TypeConstraint> result = gatherer.computeConstraints();
+    Map<TypeParameter, TypeConstraint> result =
+        gatherer.computeConstraints(classNode.enclosingLibrary);
     // Generate new type parameters with the solution as bounds.
     List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
       TypeConstraint constraint = result[p];

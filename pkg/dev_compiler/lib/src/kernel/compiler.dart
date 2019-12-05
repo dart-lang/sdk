@@ -2987,8 +2987,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   DartType _expectedReturnType(FunctionNode f, Class expected) {
     var type = f.thisFunctionType.returnType;
     if (type is InterfaceType) {
-      var match = _hierarchy.getTypeAsInstanceOf(type, expected);
-      if (match != null) return match.typeArguments[0];
+      var matchArguments =
+          _hierarchy.getTypeArgumentsAsInstanceOf(type, expected);
+      if (matchArguments != null) return matchArguments[0];
     }
     return const DynamicType();
   }

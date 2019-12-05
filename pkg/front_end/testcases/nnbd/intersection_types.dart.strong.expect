@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
 }
 class Foo<T extends self::A? = self::A?> extends core::Object {
-  synthetic constructor •() → self::Foo<self::Foo::T%>*
+  synthetic constructor •() → self::Foo<self::Foo::T%>
     : super core::Object::•()
     ;
   method doPromotionsToNullable(generic-covariant-impl self::Foo::T% t) → dynamic {

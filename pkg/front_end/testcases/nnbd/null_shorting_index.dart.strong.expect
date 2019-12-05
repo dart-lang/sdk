@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Class1 extends core::Object {
-  synthetic constructor •() → self::Class1*
+  synthetic constructor •() → self::Class1
     : super core::Object::•()
     ;
   get field() → self::Class2?
@@ -14,7 +14,7 @@ class Class1 extends core::Object {
 }
 class Class2 extends core::Object {
   field core::int field = null;
-  synthetic constructor •() → self::Class2*
+  synthetic constructor •() → self::Class2
     : super core::Object::•()
     ;
 }

@@ -142,12 +142,23 @@ class SourceLoader extends Loader {
 
   ClassHierarchyBuilder builderHierarchy;
 
-  // Used when building directly to kernel.
+  /// Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes _coreTypes;
-  // Used when checking whether a return type of an async function is valid.
+
+  /// Used when checking whether a return type of an async function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [futureOfBottom].
   DartType futureOfBottom;
+
+  /// Used when checking whether a return type of a sync* function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [iterableOfBottom].
   DartType iterableOfBottom;
+
+  /// Used when checking whether a return type of an async* function is valid.
+  ///
+  /// The said return type is valid if it's a subtype of [streamOfBottom].
   DartType streamOfBottom;
 
   TypeInferenceEngineImpl typeInferenceEngine;
@@ -888,12 +899,16 @@ class SourceLoader extends Loader {
     assert(_coreTypes == null, "CoreTypes has already been computed");
     _coreTypes = new CoreTypes(component);
 
+    // These types are used on the left-hand side of the is-subtype-of relation
+    // to check if the return types of functions with async, sync*, and async*
+    // bodies are correct.  It's valid to use the non-nullable types on the
+    // left-hand side in both opt-in and opt-out code.
     futureOfBottom = new InterfaceType(coreTypes.futureClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
     iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
     streamOfBottom = new InterfaceType(coreTypes.streamClass,
-        Nullability.legacy, <DartType>[const BottomType()]);
+        Nullability.nonNullable, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }
@@ -981,7 +996,7 @@ class SourceLoader extends Loader {
       if (builder.library.loader == this && !builder.isPatch) {
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
-          builder.checkMixinApplication(hierarchy);
+          builder.checkMixinApplication(hierarchy, coreTypes);
         }
       }
     }

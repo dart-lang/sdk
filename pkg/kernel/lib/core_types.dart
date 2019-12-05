@@ -171,6 +171,8 @@ class CoreTypes {
       new Map<Class, InterfaceType>.identity();
   final Map<Typedef, TypedefType> _thisTypedefTypes =
       new Map<Typedef, TypedefType>.identity();
+  final Map<Class, InterfaceType> _bottomInterfaceTypes =
+      new Map<Class, InterfaceType>.identity();
 
   CoreTypes(Component component)
       : index = new LibraryIndex.coreLibraries(component);
@@ -1221,5 +1223,20 @@ class CoreTypes {
   Constructor get lateInitializationErrorConstructor {
     return _lateInitializationErrorConstructor ??=
         index.getMember('dart:_internal', 'LateInitializationErrorImpl', '');
+  }
+
+  InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {
+    InterfaceType result = _bottomInterfaceTypes[klass];
+    if (result == null) {
+      return _bottomInterfaceTypes[klass] = new InterfaceType(
+          klass,
+          nullability,
+          new List<DartType>.filled(
+              klass.typeParameters.length, const BottomType()));
+    }
+    if (result.nullability != nullability) {
+      return _bottomInterfaceTypes[klass] = result.withNullability(nullability);
+    }
+    return result;
   }
 }

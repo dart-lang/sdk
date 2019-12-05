@@ -12,7 +12,7 @@ class Class extends core::Object {
   field core::int? lateInstanceFieldInit;
   field core::int? _#lateInstanceField;
   field core::bool _#lateInstanceField#isSet;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   static method initLateStaticField1(core::int value) → core::int?
     ;

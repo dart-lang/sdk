@@ -1281,12 +1281,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     return coreTypes.thisInterfaceType(this, nullability);
   }
 
-  InterfaceType _bottomType;
-  InterfaceType get bottomType {
-    return _bottomType ??= new InterfaceType(this, Nullability.legacy,
-        new List<DartType>.filled(typeParameters.length, const BottomType()));
-  }
-
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugQualifiedClassName(this);
@@ -2647,14 +2641,19 @@ abstract class Expression extends TreeNode {
           typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     if (type == context.typeEnvironment.nullType) {
-      return superclass.bottomType;
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, context.nullable);
     }
     if (type is InterfaceType) {
-      var upcastType =
-          context.typeEnvironment.getTypeAsInstanceOf(type, superclass);
-      if (upcastType != null) return upcastType;
+      List<DartType> upcastTypeArguments = context.typeEnvironment
+          .getTypeArgumentsAsInstanceOf(type, superclass);
+      if (upcastTypeArguments != null) {
+        return new InterfaceType(
+            superclass, type.nullability, upcastTypeArguments);
+      }
     } else if (type is BottomType) {
-      return superclass.bottomType;
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, context.nonNullable);
     }
     context.typeEnvironment
         .typeError(this, '$type is not a subtype of $superclass');
@@ -3038,9 +3037,10 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver = context.typeEnvironment
-        .getTypeAsInstanceOf(context.thisType, declaringClass);
-    return Substitution.fromInterfaceType(receiver)
+    List<DartType> receiverArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType, declaringClass);
+    return Substitution.fromPairs(
+            declaringClass.typeParameters, receiverArguments)
         .substituteType(interfaceTarget.getterType);
   }
 
@@ -3397,10 +3397,11 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(StaticTypeContext context) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType = context.typeEnvironment
-        .getTypeAsInstanceOf(context.thisType, superclass);
-    var returnType = Substitution.fromInterfaceType(receiverType)
-        .substituteType(interfaceTarget.function.returnType);
+    List<DartType> receiverTypeArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType, superclass);
+    DartType returnType =
+        Substitution.fromPairs(superclass.typeParameters, receiverTypeArguments)
+            .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
             interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);

@@ -2,7 +2,7 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   class Class extends dart.core::Object {
-    synthetic constructor •() → main::Class*
+    synthetic constructor •() → main::Class
       : super dart.core::Object::•()
       ;
   }

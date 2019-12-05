@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:kernel/ast.dart" show DartType;
+import "package:kernel/ast.dart" show DartType, Library;
 
 import "package:kernel/core_types.dart" show CoreTypes;
 
@@ -55,8 +55,8 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
 
   @override
   DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, CoreTypes coreTypes) {
-    return hierarchy.getKernelLegacyLeastUpperBound(a, b);
+      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getKernelLegacyLeastUpperBound(a, b, clientLibrary);
   }
 }
 

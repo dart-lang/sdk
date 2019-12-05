@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   field self::Class? field;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   method method() → self::Class?
     ;

@@ -13,7 +13,7 @@ class Class extends core::Object {
   late static final field core::int lateFinalStaticField1;
   late static final field core::int lateFinalStaticField2;
   late static final field core::int lateFinalStaticFieldWithInit;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   method method() → dynamic
     ;

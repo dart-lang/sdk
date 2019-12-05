@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         InvalidType,
+        Library,
         NamedType,
         TypeParameter,
         TypeParameterType,
@@ -38,14 +39,15 @@ abstract class StandardBounds {
   bool isSubtypeOf(DartType subtype, DartType supertype, SubtypeCheckMode mode);
 
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2);
+      InterfaceType type1, InterfaceType type2, Library clientLibrary);
 
   /// Computes the standard lower bound of [type1] and [type2].
   ///
   /// Standard lower bound is a lower bound function that imposes an
   /// ordering on the top types `void`, `dynamic`, and `object`.  This function
   /// additionally handles the unknown type that appears during type inference.
-  DartType getStandardLowerBound(DartType type1, DartType type2) {
+  DartType getStandardLowerBound(
+      DartType type1, DartType type2, Library clientLibrary) {
     // For all types T, SLB(T,T) = T.  Note that we don't test for equality
     // because we don't want to make the algorithm quadratic.  This is ok
     // because the check is not needed for correctness; it's just a speed
@@ -94,7 +96,7 @@ abstract class StandardBounds {
 
     // Function types have structural lower bounds.
     if (type1 is FunctionType && type2 is FunctionType) {
-      return _functionStandardLowerBound(type1, type2);
+      return _functionStandardLowerBound(type1, type2, clientLibrary);
     }
 
     // Otherwise, the lower bounds  of two types is one of them it if it is a
@@ -113,7 +115,7 @@ abstract class StandardBounds {
         if (type2.classNode == futureOrClass) {
           // GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
           DartType argument = getStandardLowerBound(
-              type1.typeArguments[0], type2.typeArguments[0]);
+              type1.typeArguments[0], type2.typeArguments[0], clientLibrary);
           return new InterfaceType(
               futureOrClass, argument.nullability, <DartType>[argument]);
         }
@@ -125,13 +127,14 @@ abstract class StandardBounds {
                   computeNullabilityOfFutureOr(type1, futureOrClass),
                   type2.nullability),
               <DartType>[
-                getStandardLowerBound(
-                    type1.typeArguments[0], type2.typeArguments[0])
+                getStandardLowerBound(type1.typeArguments[0],
+                    type2.typeArguments[0], clientLibrary)
               ]);
         }
       }
       // GLB(FutureOr<A>, B) == GLB(A, B)
-      return getStandardLowerBound(type1.typeArguments[0], type2);
+      return getStandardLowerBound(
+          type1.typeArguments[0], type2, clientLibrary);
     }
     // The if-statement below handles the following rule:
     //     GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
@@ -147,11 +150,12 @@ abstract class StandardBounds {
                 computeNullabilityOfFutureOr(type2, futureOrClass)),
             <DartType>[
               getStandardLowerBound(
-                  type2.typeArguments[0], type1.typeArguments[0])
+                  type2.typeArguments[0], type1.typeArguments[0], clientLibrary)
             ]);
       }
       // GLB(A, FutureOr<B>) == GLB(B, A)
-      return getStandardLowerBound(type2.typeArguments[0], type1);
+      return getStandardLowerBound(
+          type2.typeArguments[0], type1, clientLibrary);
     }
 
     // No subtype relation, so the lower bound is bottom.
@@ -163,7 +167,8 @@ abstract class StandardBounds {
   /// Standard upper bound is an upper bound function that imposes an ordering
   /// on the top types 'void', 'dynamic', and `object`.  This function
   /// additionally handles the unknown type that appears during type inference.
-  DartType getStandardUpperBound(DartType type1, DartType type2) {
+  DartType getStandardUpperBound(
+      DartType type1, DartType type2, Library clientLibrary) {
     // For all types T, SUB(T,T) = T.  Note that we don't test for equality
     // because we don't want to make the algorithm quadratic.  This is ok
     // because the check is not needed for correctness; it's just a speed
@@ -211,7 +216,7 @@ abstract class StandardBounds {
     if (type2 == nullType) return type1;
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
-      return _typeParameterStandardUpperBound(type1, type2);
+      return _typeParameterStandardUpperBound(type1, type2, clientLibrary);
     }
 
     // The standard upper bound of a function type and an interface type T is
@@ -226,11 +231,11 @@ abstract class StandardBounds {
     // At this point type1 and type2 should both either be interface types or
     // function types.
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      return _interfaceStandardUpperBound(type1, type2);
+      return _interfaceStandardUpperBound(type1, type2, clientLibrary);
     }
 
     if (type1 is FunctionType && type2 is FunctionType) {
-      return _functionStandardUpperBound(type1, type2);
+      return _functionStandardUpperBound(type1, type2, clientLibrary);
     }
 
     if (type1 is InvalidType || type2 is InvalidType) {
@@ -259,7 +264,8 @@ abstract class StandardBounds {
   ///   the resulting parameter type.
   ///
   /// - Use the SLB of their return types.
-  DartType _functionStandardLowerBound(FunctionType f, FunctionType g) {
+  DartType _functionStandardLowerBound(
+      FunctionType f, FunctionType g, Library clientLibrary) {
     // TODO(rnystrom,paulberry): Right now, this assumes f and g do not have any
     // type parameters. Revisit that in the presence of generic methods.
 
@@ -272,7 +278,8 @@ abstract class StandardBounds {
         DartType fType = f.positionalParameters[i];
         if (i < g.positionalParameters.length) {
           DartType gType = g.positionalParameters[i];
-          positionalParameters[i] = getStandardUpperBound(fType, gType);
+          positionalParameters[i] =
+              getStandardUpperBound(fType, gType, clientLibrary);
         } else {
           positionalParameters[i] = fType;
         }
@@ -307,7 +314,7 @@ abstract class StandardBounds {
               namedParameters.add(new NamedType(
                   fName,
                   getStandardUpperBound(f.namedParameters[i++].type,
-                      g.namedParameters[j++].type)));
+                      g.namedParameters[j++].type, clientLibrary)));
             }
           } else {
             namedParameters.addAll(f.namedParameters.skip(i));
@@ -326,7 +333,8 @@ abstract class StandardBounds {
     if (hasPositional && hasNamed) return const BottomType();
 
     // Calculate the SLB of the return type.
-    DartType returnType = getStandardLowerBound(f.returnType, g.returnType);
+    DartType returnType =
+        getStandardLowerBound(f.returnType, g.returnType, clientLibrary);
     return new FunctionType(positionalParameters, returnType,
         intersectNullabilities(f.nullability, g.nullability),
         namedParameters: namedParameters,
@@ -345,7 +353,8 @@ abstract class StandardBounds {
   ///
   /// - Compute the SLB of each corresponding pair of parameter types, and the
   ///   SUB of the return types.  Return a function type with those types.
-  DartType _functionStandardUpperBound(FunctionType f, FunctionType g) {
+  DartType _functionStandardUpperBound(
+      FunctionType f, FunctionType g, Library clientLibrary) {
     // TODO(rnystrom): Right now, this assumes f and g do not have any type
     // parameters. Revisit that in the presence of generic methods.
 
@@ -369,7 +378,7 @@ abstract class StandardBounds {
     List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
-          f.positionalParameters[i], g.positionalParameters[i]);
+          f.positionalParameters[i], g.positionalParameters[i], clientLibrary);
     }
 
     // Intersect the named parameters.
@@ -391,7 +400,7 @@ abstract class StandardBounds {
               namedParameters.add(new NamedType(
                   fName,
                   getStandardLowerBound(f.namedParameters[i++].type,
-                      g.namedParameters[j++].type)));
+                      g.namedParameters[j++].type, clientLibrary)));
             }
           } else {
             break;
@@ -403,7 +412,8 @@ abstract class StandardBounds {
     }
 
     // Calculate the SUB of the return type.
-    DartType returnType = getStandardUpperBound(f.returnType, g.returnType);
+    DartType returnType =
+        getStandardUpperBound(f.returnType, g.returnType, clientLibrary);
     return new FunctionType(positionalParameters, returnType,
         uniteNullabilities(f.nullability, g.nullability),
         namedParameters: namedParameters,
@@ -411,7 +421,7 @@ abstract class StandardBounds {
   }
 
   DartType _interfaceStandardUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
     // This currently does not implement a very complete standard upper bound
     // algorithm, but handles a couple of the very common cases that are
     // causing pain in real code.  The current algorithm is:
@@ -449,29 +459,30 @@ abstract class StandardBounds {
       List<DartType> tArgs = new List(tArgs1.length);
       for (int i = 0; i < tArgs1.length; i++) {
         if (tParams[i].variance == Variance.contravariant) {
-          tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i]);
+          tArgs[i] = getStandardLowerBound(tArgs1[i], tArgs2[i], clientLibrary);
         } else if (tParams[i].variance == Variance.invariant) {
           if (!isSubtypeOf(tArgs1[i], tArgs2[i],
                   SubtypeCheckMode.ignoringNullabilities) ||
               !isSubtypeOf(tArgs2[i], tArgs1[i],
                   SubtypeCheckMode.ignoringNullabilities)) {
             // No bound will be valid, find bound at the interface level.
-            return getLegacyLeastUpperBound(type1, type2);
+            return getLegacyLeastUpperBound(type1, type2, clientLibrary);
           }
           // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
           //  parameters.
           tArgs[i] = tArgs1[i];
         } else {
-          tArgs[i] = getStandardUpperBound(tArgs1[i], tArgs2[i]);
+          tArgs[i] = getStandardUpperBound(tArgs1[i], tArgs2[i], clientLibrary);
         }
       }
       return new InterfaceType(type1.classNode,
           uniteNullabilities(type1.nullability, type2.nullability), tArgs);
     }
-    return getLegacyLeastUpperBound(type1, type2);
+    return getLegacyLeastUpperBound(type1, type2, clientLibrary);
   }
 
-  DartType _typeParameterStandardUpperBound(DartType type1, DartType type2) {
+  DartType _typeParameterStandardUpperBound(
+      DartType type1, DartType type2, Library clientLibrary) {
     // This currently just implements a simple standard upper bound to
     // handle some common cases.  It also avoids some termination issues
     // with the naive spec algorithm.  The standard upper bound of two types
@@ -517,12 +528,14 @@ abstract class StandardBounds {
       return getStandardUpperBound(
           Substitution.fromMap({type1.parameter: objectLegacyRawType})
               .substituteType(type1.parameter.bound),
-          type2);
+          type2,
+          clientLibrary);
     } else if (type2 is TypeParameterType) {
       return getStandardUpperBound(
           type1,
           Substitution.fromMap({type2.parameter: objectLegacyRawType})
-              .substituteType(type2.parameter.bound));
+              .substituteType(type2.parameter.bound),
+          clientLibrary);
     } else {
       // We should only be called when at least one of the types is a
       // TypeParameterType

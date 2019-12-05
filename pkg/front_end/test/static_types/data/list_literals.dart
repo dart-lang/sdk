@@ -15,14 +15,14 @@ main() {
   [/*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0];
 
   /*cfe|dart2js.List<num>*/
-  /*cfe:nnbd.List<num>!*/
+  /*cfe:nnbd.List<num!>!*/
   [
     /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0,
     /*cfe|dart2js.double*/ /*cfe:nnbd.double!*/ 0.5
   ];
 
   /*cfe|dart2js.List<Object>*/
-  /*cfe:nnbd.List<Object>!*/
+  /*cfe:nnbd.List<Object!>!*/
   [
     /*cfe|dart2js.int*/ /*cfe:nnbd.int!*/ 0,
     /*cfe|dart2js.String*/ /*cfe:nnbd.String!*/ ''

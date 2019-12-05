@@ -7,7 +7,7 @@ class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
   static field core::int? _#lateStaticField2 = null;
   field core::int? _#lateInstanceField = null;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
   static get lateStaticField1() → core::int

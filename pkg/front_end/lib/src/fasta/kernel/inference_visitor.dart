@@ -415,8 +415,8 @@ class InferenceVisitor
         isReachable: isOtherwiseReachable);
     inferrer.flowAnalysis.conditional_end(node.condition, node.otherwise);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            thenResult.inferredType, otherwiseResult.inferredType);
+        .getStandardUpperBound(thenResult.inferredType,
+            otherwiseResult.inferredType, inferrer.library.library);
     node.staticType = inferredType;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -817,10 +817,11 @@ class InferenceVisitor
       if (inferredExpressionType is InterfaceType) {
         // TODO(johnniwinther): Should we use the type of
         //  `iterable.iterator.current` instead?
-        InterfaceType supertype = inferrer.classHierarchy
-            .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
-        if (supertype != null) {
-          inferredType = supertype.typeArguments[0];
+        List<DartType> supertypeArguments = inferrer.classHierarchy
+            .getTypeArgumentsAsInstanceOf(
+                inferredExpressionType, iterableClass);
+        if (supertypeArguments != null) {
+          inferredType = supertypeArguments[0];
         }
       }
     }
@@ -1147,7 +1148,8 @@ class InferenceVisitor
     //   UP(t0, t1)
     // - Then the inferred type is T.
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(lhsResult.inferredType, rhsResult.inferredType);
+        .getStandardUpperBound(lhsResult.inferredType, rhsResult.inferredType,
+            inferrer.library.library);
     VariableDeclaration variable =
         createVariable(lhsResult.expression, lhsResult.inferredType);
     MethodInvocation equalsNull = createEqualsNull(
@@ -1279,9 +1281,10 @@ class InferenceVisitor
 
   DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
     if (spreadType is InterfaceType) {
-      InterfaceType supertype = inferrer.typeSchemaEnvironment
-          .getTypeAsInstanceOf(spreadType, inferrer.coreTypes.iterableClass);
-      if (supertype != null) return supertype.typeArguments[0];
+      List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
+          .getTypeArgumentsAsInstanceOf(
+              spreadType, inferrer.coreTypes.iterableClass);
+      if (supertypeArguments != null) return supertypeArguments[0];
       if (spreadType.classNode == inferrer.coreTypes.nullClass && isNullAware) {
         return spreadType;
       }
@@ -1378,7 +1381,9 @@ class InferenceVisitor
           otherwiseResult == null
               ? thenResult.inferredType
               : inferrer.typeSchemaEnvironment.getStandardUpperBound(
-                  thenResult.inferredType, otherwiseResult.inferredType),
+                  thenResult.inferredType,
+                  otherwiseResult.inferredType,
+                  inferrer.library.library),
           element);
     } else if (element is ForElement) {
       // TODO(johnniwinther): Use _visitStatements instead.
@@ -1662,11 +1667,12 @@ class InferenceVisitor
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType> output, int offset) {
     if (spreadMapEntryType is InterfaceType) {
-      InterfaceType supertype = inferrer.typeSchemaEnvironment
-          .getTypeAsInstanceOf(spreadMapEntryType, inferrer.coreTypes.mapClass);
-      if (supertype != null) {
-        output[offset] = supertype.typeArguments[0];
-        output[offset + 1] = supertype.typeArguments[1];
+      List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
+          .getTypeArgumentsAsInstanceOf(
+              spreadMapEntryType, inferrer.coreTypes.mapClass);
+      if (supertypeArguments != null) {
+        output[offset] = supertypeArguments[0];
+        output[offset + 1] = supertypeArguments[1];
       } else if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass &&
           isNullAware) {
         output[offset] = output[offset + 1] = spreadMapEntryType;
@@ -1845,13 +1851,15 @@ class InferenceVisitor
             typeChecksNeeded);
         int length = actualTypes.length;
         actualTypes[length - 2] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualKeyType, actualTypes[length - 2]);
+            .getStandardUpperBound(actualKeyType, actualTypes[length - 2],
+                inferrer.library.library);
         actualTypes[length - 1] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualValueType, actualTypes[length - 1]);
+            .getStandardUpperBound(actualValueType, actualTypes[length - 1],
+                inferrer.library.library);
         int lengthForSet = actualTypesForSet.length;
         actualTypesForSet[lengthForSet - 1] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(
-                actualTypeForSet, actualTypesForSet[lengthForSet - 1]);
+            .getStandardUpperBound(actualTypeForSet,
+                actualTypesForSet[lengthForSet - 1], inferrer.library.library);
         entry.otherwise = otherwise..parent = entry;
       }
       return entry;
@@ -2132,8 +2140,11 @@ class InferenceVisitor
       iterableSpreadType = null;
       DartType spreadTypeContext = const UnknownType();
       if (typeContextIsIterable && !typeContextIsMap) {
-        spreadTypeContext = inferrer.typeSchemaEnvironment
-            .getTypeAsInstanceOf(typeContext, inferrer.coreTypes.iterableClass);
+        spreadTypeContext = inferrer.typeSchemaEnvironment.getTypeAsInstanceOf(
+            typeContext,
+            inferrer.coreTypes.iterableClass,
+            inferrer.library.library,
+            inferrer.coreTypes);
       } else if (!typeContextIsIterable && typeContextIsMap) {
         spreadTypeContext = new InterfaceType(
             inferrer.coreTypes.mapClass,
@@ -2517,7 +2528,8 @@ class InferenceVisitor
         .member;
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readType, writeResult.inferredType);
+        .getStandardUpperBound(
+            readType, writeResult.inferredType, inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -2577,8 +2589,8 @@ class InferenceVisitor
         .member;
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readResult.inferredType, writeResult.inferredType);
+        .getStandardUpperBound(readResult.inferredType,
+            writeResult.inferredType, inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -2923,7 +2935,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.ifNullExpression_end();
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readType, valueResult.inferredType);
+        .getStandardUpperBound(
+            readType, valueResult.inferredType, inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -3074,7 +3087,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.ifNullExpression_end();
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readType, valueResult.inferredType);
+        .getStandardUpperBound(
+            readType, valueResult.inferredType, inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -3228,7 +3242,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.ifNullExpression_end();
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readType, valueResult.inferredType);
+        .getStandardUpperBound(
+            readType, valueResult.inferredType, inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -4451,7 +4466,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.ifNullExpression_end();
 
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readType, valueResult.inferredType);
+        .getStandardUpperBound(
+            readType, valueResult.inferredType, inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -4778,7 +4794,10 @@ class InferenceVisitor
   ExpressionInferenceResult visitSuperPropertySet(
       SuperPropertySet node, DartType typeContext) {
     DartType receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
-        inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
+        inferrer.thisType,
+        inferrer.thisType.classNode.supertype.classNode,
+        inferrer.library.library,
+        inferrer.coreTypes);
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.name, node.fileOffset,

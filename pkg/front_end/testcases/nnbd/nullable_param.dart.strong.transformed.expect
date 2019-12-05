@@ -21,7 +21,7 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field core::int? field = null;
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
   abstract method bar(core::int? x) → core::int?;

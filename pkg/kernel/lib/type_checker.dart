@@ -255,9 +255,11 @@ class TypeCheckingVisitor
     }
     if (type is InterfaceType) {
       // The receiver type should implement the interface declaring the member.
-      var upcastType = hierarchy.getTypeAsInstanceOf(type, superclass);
-      if (upcastType != null) {
-        return Substitution.fromInterfaceType(upcastType);
+      List<DartType> upcastTypeArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+      if (upcastTypeArguments != null) {
+        return Substitution.fromPairs(
+            superclass.typeParameters, upcastTypeArguments);
       }
     }
     if (type is FunctionType && superclass == coreTypes.functionClass) {
@@ -909,17 +911,23 @@ class TypeCheckingVisitor
       var iteratorGetter =
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
-      var castedIterable = hierarchy.getTypeAsInstanceOf(
-          iterable, iteratorGetter.enclosingClass);
-      var iteratorType = Substitution.fromInterfaceType(castedIterable)
+      List<DartType> castedIterableArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(
+              iterable, iteratorGetter.enclosingClass);
+      DartType iteratorType = Substitution.fromPairs(
+              iteratorGetter.enclosingClass.typeParameters,
+              castedIterableArguments)
           .substituteType(iteratorGetter.getterType);
       if (iteratorType is InterfaceType) {
         var currentGetter =
             hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
         if (currentGetter == null) return const DynamicType();
-        var castedIteratorType = hierarchy.getTypeAsInstanceOf(
-            iteratorType, currentGetter.enclosingClass);
-        return Substitution.fromInterfaceType(castedIteratorType)
+        List<DartType> castedIteratorTypeArguments =
+            hierarchy.getTypeArgumentsAsInstanceOf(
+                iteratorType, currentGetter.enclosingClass);
+        return Substitution.fromPairs(
+                currentGetter.enclosingClass.typeParameters,
+                castedIteratorTypeArguments)
             .substituteType(currentGetter.getterType);
       }
     }
@@ -928,10 +936,10 @@ class TypeCheckingVisitor
 
   DartType getStreamElementType(DartType stream) {
     if (stream is InterfaceType) {
-      var asStream =
-          hierarchy.getTypeAsInstanceOf(stream, coreTypes.streamClass);
-      if (asStream == null) return const DynamicType();
-      return asStream.typeArguments.single;
+      List<DartType> asStreamArguments =
+          hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
+      if (asStreamArguments == null) return const DynamicType();
+      return asStreamArguments.single;
     }
     return const DynamicType();
   }
@@ -1026,13 +1034,13 @@ class TypeCheckingVisitor
       Class container = currentAsyncMarker == AsyncMarker.AsyncStar
           ? coreTypes.streamClass
           : coreTypes.iterableClass;
-      var type = visitExpression(node.expression);
-      var asContainer = type is InterfaceType
-          ? hierarchy.getTypeAsInstanceOf(type, container)
+      DartType type = visitExpression(node.expression);
+      List<DartType> asContainerArguments = type is InterfaceType
+          ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
           : null;
-      if (asContainer != null) {
+      if (asContainerArguments != null) {
         checkAssignable(
-            node.expression, asContainer.typeArguments[0], currentYieldType);
+            node.expression, asContainerArguments[0], currentYieldType);
       } else {
         fail(node.expression, '$type is not an instance of $container');
       }

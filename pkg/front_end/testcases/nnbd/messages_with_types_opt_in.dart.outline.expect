@@ -55,7 +55,7 @@ import "messages_with_types_opt_out.dart" as mes;
 import "org-dartlang-testcase:///messages_with_types_opt_out.dart";
 
 class SuperIn extends core::Object {
-  synthetic constructor •() → self::SuperIn*
+  synthetic constructor •() → self::SuperIn
     ;
   method nullableSame() → core::String?
     ;
@@ -67,7 +67,7 @@ class SuperIn extends core::Object {
     ;
 }
 class SubInIn extends self::SuperIn {
-  synthetic constructor •() → self::SubInIn*
+  synthetic constructor •() → self::SubInIn
     ;
   method nullableSame() → core::String?
     ;
@@ -79,7 +79,7 @@ class SubInIn extends self::SuperIn {
     ;
 }
 class SubOutIn extends mes::SuperOut {
-  synthetic constructor •() → self::SubOutIn*
+  synthetic constructor •() → self::SubOutIn
     ;
   method nullableSame() → core::String?
     ;

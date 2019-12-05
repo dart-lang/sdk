@@ -274,7 +274,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
       Message message, int fileOffset, int length,
       {List<LocatedMessage> context});
 
-  void checkMixinApplication(ClassHierarchy hierarchy);
+  void checkMixinApplication(ClassHierarchy hierarchy, CoreTypes coreTypes);
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
@@ -1094,8 +1094,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       bool isInterfaceCheck) {
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
-      interfaceSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(thisType, interfaceMember.enclosingClass));
+      Class enclosingClass = interfaceMember.enclosingClass;
+      interfaceSubstitution = Substitution.fromPairs(
+          enclosingClass.typeParameters,
+          types.hierarchy
+              .getKernelTypeArgumentsAsInstanceOf(thisType, enclosingClass));
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
@@ -1166,8 +1169,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Types types, Member declaredMember) {
     Substitution declaredSubstitution = Substitution.empty;
     if (declaredMember.enclosingClass.typeParameters.isNotEmpty) {
-      declaredSubstitution = Substitution.fromInterfaceType(types.hierarchy
-          .getKernelTypeAsInstanceOf(thisType, declaredMember.enclosingClass));
+      Class enclosingClass = declaredMember.enclosingClass;
+      declaredSubstitution = Substitution.fromPairs(
+          enclosingClass.typeParameters,
+          types.hierarchy
+              .getKernelTypeArgumentsAsInstanceOf(thisType, enclosingClass));
     }
     return declaredSubstitution;
   }
@@ -1534,7 +1540,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void checkMixinApplication(ClassHierarchy hierarchy) {
+  void checkMixinApplication(ClassHierarchy hierarchy, CoreTypes coreTypes) {
     // A mixin declaration can only be applied to a class that implements all
     // the declaration's superclass constraints.
     InterfaceType supertype = cls.supertype.asInterfaceType;
@@ -1542,7 +1548,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
       InterfaceType interface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      if (hierarchy.getTypeAsInstanceOf(supertype, interface.classNode) !=
+      if (hierarchy.getTypeAsInstanceOf(
+              supertype, interface.classNode, library.library, coreTypes) !=
           interface) {
         library.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
