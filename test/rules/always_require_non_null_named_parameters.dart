@@ -6,6 +6,17 @@
 
 import 'package:meta/meta.dart';
 
+var condition = true;
+
+m0({
+  Object a, // OK
+}) {
+  if (condition) {
+    return;
+  }
+  assert(a != null);
+}
+
 m1(
   a,
   b,

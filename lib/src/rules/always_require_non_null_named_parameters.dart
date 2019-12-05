@@ -120,6 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (final statement in body.block.statements) {
         if (statement is AssertStatement) {
           _checkAssert(statement.condition, params);
+        } else {
+          // Bail on first non-assert.
+          return;
         }
       }
     }
