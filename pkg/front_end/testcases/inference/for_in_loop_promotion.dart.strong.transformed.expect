@@ -1,11 +1,18 @@
 library test;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method test(core::List<core::num*>* nums) → void {
-  for (core::num* x in nums) {
-    if(x is core::int*) {
-      core::int* y = x{core::int*};
+  {
+    core::Iterator<core::num*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::num*>*>(nums).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::num* x = :sync-for-iterator.{core::Iterator::current};
+      {
+        if(x is core::int*) {
+          core::int* y = x{core::int*};
+        }
+      }
     }
   }
 }

@@ -715,7 +715,7 @@ ClosureCode {
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
-  Frame                7
+  Frame                6
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -755,20 +755,18 @@ L6:
   CompareIntLt
   JumpIfFalse          L2
   Push                 r4
+  Push                 r4
   LoadContextParent
   LoadContextParent
   LoadContextVar       0, 2
   InterfaceCall        CP#8, 1
-  PopLocal             r8
-  Push                 r4
-  Push                 r8
   StoreContextVar      2, 1
 L5:
   CheckStack           2
   Push                 r4
   LoadContextVar       2, 1
-  StoreLocal           r8
   InterfaceCall        CP#10, 1
+  AssertBoolean        0
   JumpIfFalse          L3
   AllocateContext      3, 1
   StoreLocal           r5
@@ -777,7 +775,9 @@ L5:
   StoreContextParent
   PopLocal             r4
   Push                 r4
-  Push                 r8
+  Push                 r4
+  LoadContextParent
+  LoadContextVar       2, 1
   InterfaceCall        CP#12, 1
   StoreContextVar      3, 0
   Push                 r4
@@ -829,7 +829,7 @@ L5:
   LoadContextParent
   LoadContextVar       0, 10
   DirectCall           CP#16, 4
-  PopLocal             r10
+  PopLocal             r9
   PushNull
   ReturnTOS
 L11:
@@ -919,7 +919,7 @@ L9:
   ReturnTOS
 Try #0 end:
 Try #0 handler:
-  SetFrame             11
+  SetFrame             10
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -2100,11 +2100,17 @@ ConstantPool {
         {
           dart.core::int* sum = 0;
           for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
-            for (dart.core::int* j in list) {
-              :async_temporary_1 = sum;
-              :async_temporary_0 = i.{dart.core::num::+}(j);
-              [yield] let dynamic #t4 = dart.async::_awaitHelper(#lib::foo(), :async_op_then, :async_op_error, :async_op) in null;
-              sum = :async_temporary_1.{dart.core::num::+}(:async_temporary_0.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result)));
+            {
+              dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+              for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+                dart.core::int* j = :sync-for-iterator.{dart.core::Iterator::current};
+                {
+                  :async_temporary_1 = sum;
+                  :async_temporary_0 = i.{dart.core::num::+}(j);
+                  [yield] let dynamic #t4 = dart.async::_awaitHelper(#lib::foo(), :async_op_then, :async_op_error, :async_op) in null;
+                  sum = :async_temporary_1.{dart.core::num::+}(:async_temporary_0.{dart.core::num::+}(dart._internal::unsafeCast<dart.core::int*>(:result)));
+                }
+              }
             }
           }
           for (dart.core::int* k = 0; k.{dart.core::num::<}(10); k = k.{dart.core::num::+}(1)) {

@@ -65,6 +65,9 @@ class CoreTypes {
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Procedure _objectEquals;
   Procedure _mapUnmodifiable;
+  Procedure _iterableGetIterator;
+  Procedure _iteratorMoveNext;
+  Procedure _iteratorGetCurrent;
 
   Class _internalSymbolClass;
 
@@ -323,8 +326,23 @@ class CoreTypes {
     return _iterableClass ??= index.getClass('dart:core', 'Iterable');
   }
 
+  Procedure get iterableGetIterator {
+    return _iterableGetIterator ??=
+        index.getMember('dart:core', 'Iterable', 'get:iterator');
+  }
+
   Class get iteratorClass {
     return _iteratorClass ??= index.getClass('dart:core', 'Iterator');
+  }
+
+  Procedure get iteratorMoveNext {
+    return _iteratorMoveNext ??=
+        index.getMember('dart:core', 'Iterator', 'moveNext');
+  }
+
+  Procedure get iteratorGetCurrent {
+    return _iteratorGetCurrent ??=
+        index.getMember('dart:core', 'Iterator', 'get:current');
   }
 
   Class get listClass {
