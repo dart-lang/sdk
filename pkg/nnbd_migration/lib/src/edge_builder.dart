@@ -1204,7 +1204,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       return type;
     } else if (staticElement is FunctionElement ||
-        staticElement is MethodElement) {
+        staticElement is MethodElement ||
+        staticElement is ConstructorElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       var elementType = getOrComputeElementType(staticElement);
@@ -1259,6 +1260,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitStringLiteral(StringLiteral node) {
     node.visitChildren(this);
     return _makeNonNullLiteralType(node);
+  }
+
+  @override
+  DecoratedType visitSuperConstructorInvocation(
+      SuperConstructorInvocation node) {
+    var callee = node.staticElement;
+    var nullabilityNode = NullabilityNode.forInferredType();
+    var createdType = DecoratedType(callee.returnType, nullabilityNode);
+    var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    _handleInvocationArguments(
+        node,
+        node.argumentList.arguments,
+        null /* typeArguments */,
+        [] /* typeArgumentTypes */,
+        calleeType,
+        [] /* constructorTypeParameters */);
+    return null;
   }
 
   @override
@@ -1933,7 +1951,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  /// Creates the necessary constraint(s) for an [argumentList] when invoking an
+  /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
   /// Returns the decorated return type of the invocation, after any necessary

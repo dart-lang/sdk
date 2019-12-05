@@ -220,7 +220,7 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
 /// check.
 ///
 /// Before the migration, there was no way to say `is int?`, and therefore,
-// `is int` should migrate to non-null int.
+/// `is int` should migrate to non-null int.
 class IsCheckMainTypeOrigin extends EdgeOrigin {
   IsCheckMainTypeOrigin(Source source, TypeAnnotation node)
       : super(source, node);
