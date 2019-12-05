@@ -65,6 +65,11 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('dynamic');
+  }
+
+  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
@@ -141,50 +146,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @deprecated
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
-
-  @override
-  String get displayName {
-    if (name == null || name.isEmpty) {
-      // Function types have an empty name when they are defined implicitly by
-      // either a closure or as part of a parameter declaration.
-      StringBuffer buffer = new StringBuffer();
-      appendTo(buffer);
-      if (nullabilitySuffix == NullabilitySuffix.question) {
-        buffer.write('?');
-      }
-      return buffer.toString();
-    }
-
-    List<DartType> typeArguments = this.typeArguments;
-
-    bool allTypeArgumentsAreDynamic() {
-      for (DartType type in typeArguments) {
-        if (type != null && !type.isDynamic) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(name);
-    // If there is at least one non-dynamic type, then list them out.
-    if (!allTypeArgumentsAreDynamic()) {
-      buffer.write("<");
-      for (int i = 0; i < typeArguments.length; i++) {
-        if (i != 0) {
-          buffer.write(", ");
-        }
-        DartType typeArg = typeArguments[i];
-        buffer.write(typeArg.displayName);
-      }
-      buffer.write(">");
-    }
-    if (nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-    return buffer.toString();
-  }
 
   @override
   FunctionTypedElement get element {
@@ -294,7 +255,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
     // TODO(paulberry): eliminate code duplication with
     // _ElementWriter.writeType.  See issue #35818.
     if (typeFormals.isNotEmpty) {
@@ -945,39 +906,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  String get displayName {
-    List<DartType> typeArguments = this.typeArguments;
-
-    bool allTypeArgumentsAreDynamic() {
-      for (DartType type in typeArguments) {
-        if (type != null && !type.isDynamic) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(name);
-    // If there is at least one non-dynamic type, then list them out.
-    if (!allTypeArgumentsAreDynamic()) {
-      buffer.write("<");
-      for (int i = 0; i < typeArguments.length; i++) {
-        if (i != 0) {
-          buffer.write(", ");
-        }
-        DartType typeArg = typeArguments[i];
-        buffer.write(typeArg.displayName);
-      }
-      buffer.write(">");
-    }
-    if (nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-    return buffer.toString();
-  }
-
-  @override
   ClassElement get element => super.element;
 
   @override
@@ -1175,8 +1103,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
-    buffer.write(name);
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write(element.name);
     int argumentCount = typeArguments.length;
     if (argumentCount > 0) {
       buffer.write("<");
@@ -1903,6 +1831,14 @@ class NeverTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('Never');
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
+  }
+
+  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
@@ -1963,7 +1899,9 @@ abstract class TypeImpl implements DartType {
   TypeImpl(this._element, this.name);
 
   @override
-  String get displayName => name;
+  String get displayName {
+    return getDisplayString(withNullability: false);
+  }
 
   @override
   Element get element => _element;
@@ -2028,15 +1966,13 @@ abstract class TypeImpl implements DartType {
   /**
    * Append a textual representation of this type to the given [buffer].
    */
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
-    if (name == null) {
-      buffer.write("<unnamed type>");
-    } else {
-      buffer.write(name);
-    }
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
+  void appendTo(StringBuffer buffer, {@required bool withNullability});
+
+  @override
+  String getDisplayString({bool withNullability = false}) {
+    var buffer = StringBuffer();
+    appendTo(buffer, withNullability: withNullability);
+    return buffer.toString();
   }
 
   /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
@@ -2061,9 +1997,7 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString({bool withNullability = false}) {
-    StringBuffer buffer = new StringBuffer();
-    appendTo(buffer, withNullability: withNullability);
-    return buffer.toString();
+    return getDisplayString(withNullability: withNullability);
   }
 
   /**
@@ -2081,11 +2015,6 @@ abstract class TypeImpl implements DartType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
   void _appendNullability(StringBuffer buffer) {
-    if (isDynamic || isVoid) {
-      // These types don't have nullability variations, so don't append
-      // anything.
-      return;
-    }
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         buffer.write('?');
@@ -2179,6 +2108,14 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
         other.element == element &&
         other.bound == bound &&
         other.nullabilitySuffix == nullabilitySuffix;
+  }
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write(element.name);
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
   }
 
   @override
@@ -2318,6 +2255,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('void');
+  }
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,

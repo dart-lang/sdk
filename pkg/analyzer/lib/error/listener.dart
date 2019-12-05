@@ -202,7 +202,7 @@ class ErrorReporter {
         if (name != null && name.isNotEmpty) {
           StringBuffer buffer = new StringBuffer();
           buffer.write(name);
-          (type as TypeImpl).appendTo(buffer);
+          (type as TypeImpl).appendTo(buffer, withNullability: false);
           return buffer.toString();
         }
       }
