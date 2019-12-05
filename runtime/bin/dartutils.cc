@@ -524,21 +524,10 @@ Dart_Handle DartUtils::SetupServiceLoadPort() {
   return Builtin::SetLoadPort(load_port);
 }
 
-Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
-                                        const char* packages_config) {
+Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
   Dart_Handle result = Dart_Null();
 
-  // Set up package root if specified.
-  if (package_root != NULL) {
-    ASSERT(packages_config == NULL);
-    result = NewString(package_root);
-    RETURN_IF_ERROR(result);
-    const int kNumArgs = 1;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                         NewString("_setPackageRoot"), kNumArgs, dart_args);
-  } else if (packages_config != NULL) {
+  if (packages_config != NULL) {
     result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;

@@ -74,8 +74,6 @@ Uri _workingDirectory;
 // package imports can be resolved relative to it. The root script is the basis
 // for the root library in the VM.
 Uri _rootScript;
-// The package root set on the command line.
-Uri _packageRoot;
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
@@ -155,38 +153,6 @@ void _setWorkingDirectory(String cwd) {
 }
 
 // Embedder Entrypoint:
-// The embedder calls this method with a custom package root.
-@pragma("vm:entry-point")
-String _setPackageRoot(String packageRoot) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  if (_traceLoading) {
-    _log('Setting package root: $packageRoot');
-  }
-  if (packageRoot.startsWith('file:') ||
-      packageRoot.startsWith('http:') ||
-      packageRoot.startsWith('https:')) {
-    packageRoot = _enforceTrailingSlash(packageRoot);
-    _packageRoot = _workingDirectory.resolve(packageRoot);
-  } else {
-    packageRoot = _sanitizeWindowsPath(packageRoot);
-    packageRoot = _trimWindowsPath(packageRoot);
-    _packageRoot = _workingDirectory.resolveUri(new Uri.directory(packageRoot));
-  }
-  // Now that we have determined the packageRoot value being used, set it
-  // up for use in Platform.packageRoot. This is only set when the embedder
-  // sets up the package root. Automatically discovered package root will
-  // not update the VMLibraryHooks value.
-  var packageRootStr = _packageRoot.toString();
-  VMLibraryHooks.packageRootString = packageRootStr;
-  if (_traceLoading) {
-    _log('Package root URI: $_packageRoot');
-  }
-  return packageRootStr;
-}
-
-// Embedder Entrypoint:
 @pragma("vm:entry-point")
 String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
@@ -244,12 +210,6 @@ String _resolveScriptUri(String scriptName) {
     _log('Resolved entry point to: $_rootScript');
   }
   return scriptUri.toString();
-}
-
-// Only used by vm/cc unit tests.
-Uri _resolvePackageUri(Uri uri) {
-  assert(_packageRoot != null);
-  return _packageRoot.resolve(uri.path);
 }
 
 // Register callbacks and hooks with the rest of the core libraries.

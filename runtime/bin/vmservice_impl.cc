@@ -202,12 +202,6 @@ bool VmService::Setup(const char* server_ip,
       Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
 
-  if (deterministic) {
-    result = Dart_SetField(library, DartUtils::NewString("_deterministic"),
-                           Dart_True());
-    SHUTDOWN_ON_ERROR(result);
-  }
-
   // Get _getWatchSignalInternal from dart:io.
   Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);
   SHUTDOWN_ON_ERROR(dart_io_str);

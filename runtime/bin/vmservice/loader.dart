@@ -30,44 +30,8 @@ _sanitizeWindowsPath(path) {
   return fixedPath;
 }
 
-_trimWindowsPath(path) {
-  // Convert /X:/ to X:/.
-  if (_isWindows == false) {
-    // Do nothing when not running Windows.
-    return path;
-  }
-  if (!path.startsWith('/') || (path.length < 3)) {
-    return path;
-  }
-  // Match '/?:'.
-  if ((path[0] == '/') && (path[2] == ':')) {
-    // Remove leading '/'.
-    return path.substring(1);
-  }
-  return path;
-}
-
-// Ensure we have a trailing slash character.
-_enforceTrailingSlash(uri) {
-  if (!uri.endsWith('/')) {
-    return '$uri/';
-  }
-  return uri;
-}
-
-class FileRequest {
-  final SendPort sp;
-  final int tag;
-  final Uri uri;
-  final Uri resolvedUri;
-  final String libraryUrl;
-  FileRequest(this.sp, this.tag, this.uri, this.resolvedUri, this.libraryUrl);
-}
-
 @pragma("vm:entry-point")
 bool _traceLoading = false;
-@pragma("vm:entry-point")
-bool _deterministic = false;
 
 // State associated with the isolate that is used for loading.
 class IsolateLoaderState extends IsolateEmbedderData {
@@ -86,10 +50,6 @@ class IsolateLoaderState extends IsolateEmbedderData {
     _workingDirectory = new Uri.directory(workingDirectory);
     if (rootScript != null) {
       _rootScript = Uri.parse(rootScript);
-    }
-    // If the --package-root flag was passed.
-    if (packageRootFlag != null) {
-      _setPackageRoot(packageRootFlag);
     }
     // If the --packages flag was passed.
     if (packagesConfigFlag != null) {
@@ -138,40 +98,6 @@ class IsolateLoaderState extends IsolateEmbedderData {
   // The map describing how certain package names are mapped to Uris.
   Uri _packageConfig = null;
   Map<String, Uri> _packageMap = null;
-
-  // We issue only 16 concurrent calls to File.readAsBytes() to stay within
-  // platform-specific resource limits (e.g. max open files). The rest go on
-  // _fileRequestQueue and are processed when we can safely issue them.
-  static final int _maxFileRequests = _deterministic ? 1 : 16;
-  int currentFileRequests = 0;
-  final List<FileRequest> _fileRequestQueue = new List<FileRequest>();
-
-  bool get shouldIssueFileRequest => currentFileRequests < _maxFileRequests;
-  void enqueueFileRequest(FileRequest fr) {
-    _fileRequestQueue.add(fr);
-  }
-
-  FileRequest dequeueFileRequest() {
-    if (_fileRequestQueue.length == 0) {
-      return null;
-    }
-    return _fileRequestQueue.removeAt(0);
-  }
-
-  _setPackageRoot(String packageRoot) {
-    packageRoot = _sanitizeWindowsPath(packageRoot);
-    if (packageRoot.startsWith('file:') ||
-        packageRoot.startsWith('http:') ||
-        packageRoot.startsWith('https:')) {
-      packageRoot = _enforceTrailingSlash(packageRoot);
-      _packageRoot = _workingDirectory.resolve(packageRoot);
-    } else {
-      packageRoot = _sanitizeWindowsPath(packageRoot);
-      packageRoot = _trimWindowsPath(packageRoot);
-      _packageRoot =
-          _workingDirectory.resolveUri(new Uri.directory(packageRoot));
-    }
-  }
 
   _setPackagesConfig(String packagesParam) {
     var packagesName = _sanitizeWindowsPath(packagesParam);
@@ -394,150 +320,6 @@ void _sendExtensionImportResponse(
   msg[3] = libraryUrl;
   msg[4] = resolvedUri;
   sp.send(msg);
-}
-
-void _loadHttp(
-    SendPort sp, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
-  if (_httpClient == null) {
-    _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
-  }
-  _httpClient
-      .getUrl(resolvedUri)
-      .then((HttpClientRequest request) => request.close())
-      .then((HttpClientResponse response) {
-    var builder = new BytesBuilder(copy: false);
-    response.listen(builder.add, onDone: () {
-      if (response.statusCode != 200) {
-        var msg = "Failure getting $resolvedUri:\n"
-            "  ${response.statusCode} ${response.reasonPhrase}";
-        _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, msg);
-      } else {
-        _sendResourceResponse(
-            sp, tag, uri, resolvedUri, libraryUrl, builder.takeBytes());
-      }
-    }, onError: (e) {
-      _sendResourceResponse(
-          sp, tag, uri, resolvedUri, libraryUrl, e.toString());
-    });
-  }).catchError((e) {
-    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
-  });
-  // It's just here to push an event on the event loop so that we invoke the
-  // scheduled microtasks.
-  Timer.run(() {});
-}
-
-void _loadFile(IsolateLoaderState loaderState, SendPort sp, int tag, Uri uri,
-    Uri resolvedUri, String libraryUrl) {
-  var path = resolvedUri.toFilePath();
-  var sourceFile = new File(path);
-  sourceFile.readAsBytes().then((data) {
-    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, data);
-  }, onError: (e) {
-    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl, e.toString());
-  }).whenComplete(() {
-    loaderState.currentFileRequests--;
-    while (loaderState.shouldIssueFileRequest) {
-      FileRequest fr = loaderState.dequeueFileRequest();
-      if (fr == null) {
-        break;
-      }
-      _loadFile(
-          loaderState, fr.sp, fr.tag, fr.uri, fr.resolvedUri, fr.libraryUrl);
-      loaderState.currentFileRequests++;
-    }
-  });
-}
-
-void _loadDataUri(
-    SendPort sp, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
-  try {
-    var mime = uri.data.mimeType;
-    if ((mime != "application/dart") && (mime != "text/plain")) {
-      throw "MIME-type must be application/dart or text/plain: $mime given.";
-    }
-    var charset = uri.data.charset;
-    if ((charset != "utf-8") && (charset != "US-ASCII")) {
-      // The C++ portion of the embedder assumes UTF-8.
-      throw "Only utf-8 or US-ASCII encodings are supported: $charset given.";
-    }
-    _sendResourceResponse(
-        sp, tag, uri, resolvedUri, libraryUrl, uri.data.contentAsBytes());
-  } catch (e) {
-    _sendResourceResponse(sp, tag, uri, resolvedUri, libraryUrl,
-        "Invalid data uri ($uri):\n  $e");
-  }
-}
-
-// Loading a package URI needs to first map the package name to a loadable
-// URI.
-_loadPackage(IsolateLoaderState loaderState, SendPort sp, bool traceLoading,
-    int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
-  if (loaderState._packagesReady) {
-    var resolvedUri;
-    try {
-      resolvedUri = loaderState._resolvePackageUri(uri);
-    } catch (e, s) {
-      if (traceLoading) {
-        _log("Exception ($e) when resolving package URI: $uri");
-      }
-      // Report error.
-      _sendResourceResponse(
-          sp, tag, uri, resolvedUri, libraryUrl, e.toString());
-      return;
-    }
-    // Recursively call with the new resolved uri.
-    _handleResourceRequest(
-        loaderState, sp, traceLoading, tag, uri, resolvedUri, libraryUrl);
-  } else {
-    if (loaderState._pendingPackageLoads.isEmpty) {
-      // Package resolution has not been setup yet, and this is the first
-      // request for package resolution & loading.
-      loaderState._requestPackagesMap();
-    }
-    // Register the action of loading this package once the package resolution
-    // is ready.
-    loaderState._pendingPackageLoads.add(() {
-      _handleResourceRequest(
-          loaderState, sp, traceLoading, tag, uri, uri, libraryUrl);
-    });
-    if (traceLoading) {
-      _log("Pending package load of '$uri': "
-          "${loaderState._pendingPackageLoads.length} pending");
-    }
-  }
-}
-
-// TODO(johnmccutchan): This and most other top level functions in this file
-// should be turned into methods on the IsolateLoaderState class.
-_handleResourceRequest(IsolateLoaderState loaderState, SendPort sp,
-    bool traceLoading, int tag, Uri uri, Uri resolvedUri, String libraryUrl) {
-  if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
-    if (loaderState.shouldIssueFileRequest) {
-      _loadFile(loaderState, sp, tag, uri, resolvedUri, libraryUrl);
-      loaderState.currentFileRequests++;
-    } else {
-      FileRequest fr = new FileRequest(sp, tag, uri, resolvedUri, libraryUrl);
-      loaderState.enqueueFileRequest(fr);
-    }
-  } else if ((resolvedUri.scheme == 'http') ||
-      (resolvedUri.scheme == 'https')) {
-    _loadHttp(sp, tag, uri, resolvedUri, libraryUrl);
-  } else if ((resolvedUri.scheme == 'data')) {
-    _loadDataUri(sp, tag, uri, resolvedUri, libraryUrl);
-  } else if ((resolvedUri.scheme == 'package')) {
-    _loadPackage(
-        loaderState, sp, traceLoading, tag, uri, resolvedUri, libraryUrl);
-  } else {
-    _sendResourceResponse(
-        sp,
-        tag,
-        uri,
-        resolvedUri,
-        libraryUrl,
-        'Unknown scheme (${resolvedUri.scheme}) for '
-        '$resolvedUri');
-  }
 }
 
 // Handling of packages requests. Finding and parsing of .packages file or
