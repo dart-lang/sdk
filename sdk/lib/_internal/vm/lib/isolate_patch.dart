@@ -327,7 +327,7 @@ class Isolate {
 
   @patch
   static Future<Uri> get packageRoot {
-    return null;
+    return Future.value(null);
   }
 
   @patch
