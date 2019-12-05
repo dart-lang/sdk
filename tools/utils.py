@@ -743,15 +743,13 @@ def CheckLinuxCoreDumpPattern(fatal=False):
         message = (
             'Invalid core_pattern configuration. '
             'The configuration of core dump handling is *not* correct for '
-            'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
-            '(see https://github.com/dart-lang/sdk/issues/39662)'.format(
-                core_pattern_file, expected_core_pattern, core_pattern))
-        # TODO(39662): Remove this once we know why this happens
-        fatal = False
+            'a buildbot. The content of {0} must be "{1}" instead of "{2}".'.
+            format(core_pattern_file, expected_core_pattern, core_pattern))
         if fatal:
             raise Exception(message)
         else:
             print(message)
+            return True  # TODO(39662): Remove once the core_pattern is fixed
             return False
     return True
 
@@ -807,7 +805,8 @@ class PosixCoreDumpEnabler(object):
         resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
 
     def __exit__(self, *_):
-        resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
+        if self._old_limits != None:
+            resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
 
 
 class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
