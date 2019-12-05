@@ -20,7 +20,7 @@ import 'utils.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
-  List<Element> children = <Element>[];
+  final children = <Element>[];
   visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
@@ -47,7 +47,7 @@ SimpleIdentifier getFieldIdentifier(FieldDeclaration decl, String name) {
 
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
-  AstNode mostSpecific = _getNodeToAnnotate(node);
+  final mostSpecific = _getNodeToAnnotate(node);
   return mostSpecific ?? node;
 }
 
@@ -96,7 +96,7 @@ bool hasOverrideAnnotation(Element element) {
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
 bool inPrivateMember(AstNode node) {
-  AstNode parent = node.parent;
+  final parent = node.parent;
   if (parent is NamedCompilationUnitMember) {
     return isPrivate(parent.name);
   }
@@ -170,7 +170,7 @@ bool isSimpleGetter(MethodDeclaration declaration) {
   if (body is ExpressionFunctionBody) {
     return _checkForSimpleGetter(declaration, body.expression);
   } else if (body is BlockFunctionBody) {
-    Block block = body.block;
+    final block = body.block;
     if (block.statements.length == 1) {
       var statement = block.statements[0];
       if (statement is ReturnStatement) {
@@ -200,7 +200,7 @@ bool isSimpleSetter(MethodDeclaration setter) {
   if (body is ExpressionFunctionBody) {
     return _checkForSimpleSetter(setter, body.expression);
   } else if (body is BlockFunctionBody) {
-    Block block = body.block;
+    final block = body.block;
     if (block.statements.length == 1) {
       var statement = block.statements[0];
       if (statement is ExpressionStatement) {
@@ -220,7 +220,7 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File locatePubspecFile(CompilationUnit compilationUnit) {
-  String fullName = compilationUnit?.declaredElement?.source?.fullName;
+  final fullName = compilationUnit?.declaredElement?.source?.fullName;
   if (fullName == null) {
     return null;
   }
@@ -231,12 +231,12 @@ File locatePubspecFile(CompilationUnit compilationUnit) {
     return null;
   }
 
-  File file = resourceProvider.getFile(fullName);
-  Folder folder = file.parent;
+  final file = resourceProvider.getFile(fullName);
+  var folder = file.parent;
 
   // Look for a pubspec.yaml file.
   while (folder != null) {
-    File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    final pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
     if (pubspecFile.exists) {
       return pubspecFile;
     }
@@ -272,7 +272,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   if (expression is! AssignmentExpression) {
     return false;
   }
-  AssignmentExpression assignment = expression as AssignmentExpression;
+  final assignment = expression as AssignmentExpression;
 
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
@@ -383,7 +383,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 
   @override
   void visitElement(Element element) {
-    bool visitChildren = processor(element);
+    final visitChildren = processor(element);
     if (visitChildren == true) {
       element.visitChildren(this);
     }

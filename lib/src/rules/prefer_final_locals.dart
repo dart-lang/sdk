@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
+    final function = node.thisOrAncestorOfType<FunctionBody>();
     if (function != null &&
         !function.isPotentiallyMutatedInScope(node.declaredElement)) {
       rule.reportLint(node.name);

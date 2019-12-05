@@ -7,7 +7,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/analyzer.dart';
 
 Annotation extractAnnotation(String line) {
-  int index = line.indexOf(RegExp(r'(//|#)[ ]?LINT'));
+  final index = line.indexOf(RegExp(r'(//|#)[ ]?LINT'));
 
   if (index == -1) {
     return null;
@@ -15,7 +15,7 @@ Annotation extractAnnotation(String line) {
 
   // Grab the first comment to see if there's one preceding the annotation.
   // Check for '#' first to allow for lints on dartdocs.
-  int comment = line.indexOf('#');
+  var comment = line.indexOf('#');
   if (comment == -1) {
     comment = line.indexOf('//');
   }
@@ -37,7 +37,7 @@ Annotation extractAnnotation(String line) {
     length = int.parse(annotation.substring(sep + 1, rightBrace));
   }
 
-  int msgIndex = annotation.indexOf(']') + 1;
+  var msgIndex = annotation.indexOf(']') + 1;
   if (msgIndex < 1) {
     msgIndex = annotation.indexOf('T') + 1;
   }

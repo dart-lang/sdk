@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  _visitFunctionBody(FunctionBody node) {
+  void _visitFunctionBody(FunctionBody node) {
     if (node is ExpressionFunctionBody &&
         DartTypeUtilities.isNullLiteral(node.expression)) {
       rule.reportLint(node);

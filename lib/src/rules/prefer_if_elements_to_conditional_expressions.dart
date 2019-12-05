@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     AstNode nodeToReplace = node;
-    AstNode parent = node.parent;
+    var parent = node.parent;
     while (parent is ParenthesizedExpression) {
       nodeToReplace = parent;
       parent = parent.parent;

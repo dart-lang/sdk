@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -84,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier identifier) {
     // Should be "length".
-    Element propertyElement = identifier.staticElement;
+    final propertyElement = identifier.staticElement;
     if (propertyElement?.name != 'length') {
       return;
     }
@@ -92,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     AstNode lengthAccess;
     InterfaceType type;
 
-    AstNode parent = identifier.parent;
+    final parent = identifier.parent;
     if (parent is PropertyAccess && identifier == parent.propertyName) {
       lengthAccess = parent;
       var parentType = parent.target?.staticType;
@@ -119,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    AstNode search = lengthAccess;
+    var search = lengthAccess;
     while (
         search != null && search is Expression && search is! BinaryExpression) {
       search = search.parent;
@@ -128,12 +127,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (search is! BinaryExpression) {
       return;
     }
-    BinaryExpression binaryExpression = search as BinaryExpression;
+    final binaryExpression = search as BinaryExpression;
 
-    Token operator = binaryExpression.operator;
+    final operator = binaryExpression.operator;
 
     // Comparing constants with length.
-    int value = _getIntValue(binaryExpression.rightOperand);
+    var value = _getIntValue(binaryExpression.rightOperand);
 
     if (value != null) {
       // Constant is on right side of comparison operator.

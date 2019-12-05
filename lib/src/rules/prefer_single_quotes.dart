@@ -124,7 +124,7 @@ class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
   final _children = <AstNode>[];
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     _children.add(node);
   }
 

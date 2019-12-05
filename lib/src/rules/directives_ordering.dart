@@ -188,7 +188,7 @@ class DirectivesOrdering extends LintRule
   }
 
   @override
-  visit(DartProject project) {
+  void visit(DartProject project) {
     this.project = project;
   }
 
@@ -242,7 +242,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    Set<AstNode> lintedNodes = <AstNode>{};
+    final lintedNodes = <AstNode>{};
     _checkDartDirectiveGoFirst(lintedNodes, node);
     _checkPackageDirectiveBeforeRelative(lintedNodes, node);
     _checkThirdPartyDirectiveBeforeOwn(lintedNodes, node);
@@ -293,7 +293,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeExports);
 
     if (project != null) {
-      _PackageBox packageBox = _PackageBox(project.name);
+      final packageBox = _PackageBox(project.name);
 
       final thirdPartyPackageImports =
           importDirectives.where(packageBox._isNotOwnPackageDirective);
@@ -367,7 +367,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     NamespaceDirective previousDirective;
-    for (NamespaceDirective directive in nodes) {
+    for (var directive in nodes) {
       if (previousDirective != null &&
           previousDirective.uriContent.compareTo(directive.uriContent) > 0) {
         reportDirective(directive);
@@ -398,7 +398,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Iterable<NamespaceDirective> getNodesToLint(
         Iterable<NamespaceDirective> directives) {
-      _PackageBox box = _PackageBox(project.name);
+      final box = _PackageBox(project.name);
       return directives
           .where(_isPackageDirective)
           .skipWhile(box._isNotOwnPackageDirective)

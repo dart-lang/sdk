@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -59,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAwaitExpression(AwaitExpression node) {
     if (node.expression is NullLiteral) return;
 
-    final DartType type = node.expression.staticType;
+    final type = node.expression.staticType;
     if (!(type == null ||
         type.isDartAsyncFuture ||
         type.isDynamic ||

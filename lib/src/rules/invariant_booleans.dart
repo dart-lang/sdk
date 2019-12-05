@@ -139,13 +139,13 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
   _InvariantBooleansVisitor(this.rule);
 
   @override
-  visitCondition(Expression node) {
+  void visitCondition(Expression node) {
     // Right part discards reporting a subexpression already reported.
     if (node?.staticType?.name != 'bool') {
       return;
     }
 
-    TestedExpressions testedNodes = _findPreviousTestedExpressions(node);
+    final testedNodes = _findPreviousTestedExpressions(node);
     testedNodes.evaluateInvariant().forEach((ContradictoryComparisons e) {
       final reportRule = _ContradictionReportRule(e);
       reportRule
@@ -155,8 +155,7 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
 
     // In dart booleanVariable == true is a valid comparison since the variable
     // can be null.
-    final BinaryExpression binaryExpression =
-        node is BinaryExpression ? node : null;
+    final binaryExpression = node is BinaryExpression ? node : null;
     if (binaryExpression != null &&
         !BooleanExpressionUtilities.EQUALITY_OPERATIONS
             .contains(binaryExpression.operator.type) &&
@@ -169,8 +168,8 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
 
   TestedExpressions _findPreviousTestedExpressions(Expression node) {
     final elements = _getElementsInExpression(node);
-    Set<Expression> conjunctions = getTrueExpressions(elements).toSet();
-    Set<Expression> negations = getFalseExpressions(elements).toSet();
+    final conjunctions = getTrueExpressions(elements).toSet();
+    final negations = getFalseExpressions(elements).toSet();
     return TestedExpressions(node, conjunctions, negations);
   }
 }

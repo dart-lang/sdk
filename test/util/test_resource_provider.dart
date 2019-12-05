@@ -10,24 +10,22 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:path/path.dart' as p;
 
 /// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
 DartLinter buildDriver(LintRule rule, File file, {String analysisOptions}) {
-  MemoryResourceProvider memoryResourceProvider = MemoryResourceProvider(
+  final memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
-  TestResourceProvider resourceProvider =
-      TestResourceProvider(memoryResourceProvider);
+  final resourceProvider = TestResourceProvider(memoryResourceProvider);
 
-  p.Context pathContext = memoryResourceProvider.pathContext;
-  String packageConfigPath = memoryResourceProvider.convertPath(pathContext
-      .join(pathContext.dirname(file.absolute.path), '.mock_packages'));
+  final pathContext = memoryResourceProvider.pathContext;
+  var packageConfigPath = memoryResourceProvider.convertPath(pathContext.join(
+      pathContext.dirname(file.absolute.path), '.mock_packages'));
   if (!resourceProvider.getFile(packageConfigPath).exists) {
     packageConfigPath = null;
   }
 
-  LinterOptions options = LinterOptions([rule], analysisOptions)
+  final options = LinterOptions([rule], analysisOptions)
     ..mockSdk = MockSdk(resourceProvider: memoryResourceProvider)
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;
@@ -44,19 +42,19 @@ class TestResourceProvider extends PhysicalResourceProvider {
 
   @override
   file_system.File getFile(String path) {
-    file_system.File file = memoryResourceProvider.getFile(path);
+    final file = memoryResourceProvider.getFile(path);
     return file.exists ? file : super.getFile(path);
   }
 
   @override
   file_system.Folder getFolder(String path) {
-    file_system.Folder folder = memoryResourceProvider.getFolder(path);
+    final folder = memoryResourceProvider.getFolder(path);
     return folder.exists ? folder : super.getFolder(path);
   }
 
   @override
   file_system.Resource getResource(String path) {
-    file_system.Resource resource = memoryResourceProvider.getResource(path);
+    final resource = memoryResourceProvider.getResource(path);
     return resource.exists ? resource : super.getResource(path);
   }
 }

@@ -73,14 +73,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    Map<String, MethodDeclaration> getters = {};
-    Map<String, MethodDeclaration> setters = {};
+    final getters = <String, MethodDeclaration>{};
+    final setters = <String, MethodDeclaration>{};
 
     // Build getter/setter maps
     var members = node.members.where(isMethod);
 
     for (var member in members) {
-      MethodDeclaration method = member as MethodDeclaration;
+      final method = member as MethodDeclaration;
       if (method.isGetter) {
         getters[method.name.toString()] = method;
       } else if (method.isSetter) {
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       ..forEach((id) => _visitGetterSetter(getters[id], setters[id]));
   }
 
-  _visitGetterSetter(MethodDeclaration getter, MethodDeclaration setter) {
+  void _visitGetterSetter(MethodDeclaration getter, MethodDeclaration setter) {
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&
         !isProtected(getter) &&

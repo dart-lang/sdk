@@ -5,7 +5,7 @@
 import 'package:linter/src/util/ascii_utils.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('fileNames', () {
     group('good', () {
       for (var name in goodFileNames) {

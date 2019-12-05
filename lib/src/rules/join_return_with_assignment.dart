@@ -63,27 +63,27 @@ class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
 class _AssignmentStatementVisitor extends SimpleAstVisitor {
   Expression expression;
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     expression = node.leftHandSide;
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement statement) {
+  void visitExpressionStatement(ExpressionStatement statement) {
     statement.expression.accept(this);
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.unParenthesized.accept(this);
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     expression = node.operand;
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     expression = node.operand;
   }
 }

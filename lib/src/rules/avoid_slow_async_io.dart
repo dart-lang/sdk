@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.argumentList.arguments.isEmpty) {
-      DartType type = node.target?.staticType;
+      final type = node.target?.staticType;
       _checkFileMethods(node, type);
       _checkDirectoryMethods(node, type);
       return;
@@ -120,9 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkFileSystemEntityMethods(MethodInvocation node) {
-    Expression target = node.target;
+    final target = node.target;
     if (target is Identifier) {
-      Element elem = target?.staticElement;
+      final elem = target?.staticElement;
       if (elem is ClassElement && elem.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName?.name)) {
           rule.reportLint(node);

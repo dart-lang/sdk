@@ -98,9 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
+    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    final sections = cascade.cascadeSections;
+    final target = cascade.target;
     // todo (pq): add support for Set literals.
     if (target is! ListLiteral ||
         (target is ListLiteralImpl && target.inConstantContext) ||
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    Expression argument = invocation.argumentList.arguments[0];
+    final argument = invocation.argumentList.arguments[0];
     if (argument is ListLiteral) {
       // Handled by: prefer_inlined_adds
       return;

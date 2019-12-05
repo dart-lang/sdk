@@ -17,8 +17,8 @@ final int _pipeCodeUnit = '|'.codeUnitAt(0);
 final int _slashCodeUnit = '\\'.codeUnitAt(0);
 
 String getLineContents(int lineNumber, AnalysisError error) {
-  String path = error.source.fullName;
-  File file = File(path);
+  final path = error.source.fullName;
+  final file = File(path);
   String failureDetails;
   if (!file.existsSync()) {
     failureDetails = 'file at $path does not exist';
@@ -45,12 +45,12 @@ String shorten(String fileRoot, String fullName) {
 
 Future writeBenchmarks(
     IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
-  Map<String, int> timings = <String, int>{};
-  for (int i = 0; i < benchmarkRuns; ++i) {
+  final timings = <String, int>{};
+  for (var i = 0; i < benchmarkRuns; ++i) {
     await lintFiles(DartLinter(lintOptions), filesToLint);
     lintRegistry.timers.forEach((n, t) {
-      int timing = t.elapsedMilliseconds;
-      int previous = timings[n];
+      final timing = t.elapsedMilliseconds;
+      final previous = timings[n];
       if (previous == null) {
         timings[n] = timing;
       } else {
@@ -79,23 +79,24 @@ String _escapePipe(String input) {
 }
 
 void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
-  List<String> names = timings.map((s) => s.name).toList();
+  final names = timings.map((s) => s.name).toList();
 
-  int longestName = names.fold(0, (prev, element) => max(prev, element.length));
-  int longestTime = 8;
-  int tableWidth = max(summaryLength, longestName + longestTime);
-  int pad = tableWidth - longestName;
-  String line = ''.padLeft(tableWidth, '-');
+  var longestName =
+      names.fold<int>(0, (prev, element) => max(prev, element.length));
+  final longestTime = 8;
+  final tableWidth = max(summaryLength, longestName + longestTime);
+  final pad = tableWidth - longestName;
+  final line = ''.padLeft(tableWidth, '-');
 
   out
     ..writeln()
     ..writeln(line)
     ..writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}')
     ..writeln(line);
-  int totalTime = 0;
+  var totalTime = 0;
 
   timings.sort();
-  for (_Stat stat in timings) {
+  for (var stat in timings) {
     totalTime += stat.elapsed;
     // TODO: Shame timings slower than 100ms?
     // TODO: Present both total times and time per count?
@@ -127,7 +128,7 @@ class DetailedReporter extends SimpleFormatter {
             quiet: quiet);
 
   @override
-  writeLint(AnalysisError error, {int offset, int line, int column}) {
+  void writeLint(AnalysisError error, {int offset, int line, int column}) {
     super.writeLint(error, offset: offset, column: column, line: line);
 
     if (!machineOutput) {
@@ -160,7 +161,7 @@ abstract class ReportFormatter {
           machineOutput: machineOutput,
           quiet: quiet);
 
-  write();
+  void write();
 }
 
 /// Simple formatter suitable for subclassing.
@@ -195,7 +196,7 @@ class SimpleFormatter implements ReportFormatter {
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
     // Severity
-    int compare = error2.errorCode.errorSeverity
+    var compare = error2.errorCode.errorSeverity
         .compareTo(error1.errorCode.errorSeverity);
     if (compare != 0) {
       return compare;
@@ -211,7 +212,7 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   @override
-  write() {
+  void write() {
     writeLints();
     writeSummary();
     if (showStatistics) {

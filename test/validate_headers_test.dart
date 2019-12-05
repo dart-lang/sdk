@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('check for copyright headers', () {
     test('... in lib', () async {
       await validate('lib');
@@ -18,13 +18,13 @@ main() {
 }
 
 Future validate(String dir) async {
-  List<String> violations = <String>[];
+  final violations = <String>[];
   await for (FileSystemEntity entity
       in Directory(dir).list(recursive: true, followLinks: false)) {
     if (entity is File && entity.path.endsWith('.dart')) {
-      RandomAccessFile file = await entity.open();
+      final file = await entity.open();
       List<int> bytes = await file.read(40);
-      String header = String.fromCharCodes(bytes);
+      final header = String.fromCharCodes(bytes);
       if (!header.startsWith(
           RegExp('// Copyright \\(c\\) 20[0-9][0-9], the Dart project'))) {
         violations.add(entity.path);

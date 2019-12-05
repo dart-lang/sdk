@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -57,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
-    ConstructorElement element = creation.staticElement;
+    final element = creation.staticElement;
     if (element?.name != 'fromIterable' ||
         element.enclosingElement != context.typeProvider.mapElement) {
       return;
@@ -66,22 +65,22 @@ class _Visitor extends SimpleAstVisitor<void> {
     //
     // Ensure that the arguments have the right form.
     //
-    NodeList<Expression> arguments = creation.argumentList.arguments;
+    final arguments = creation.argumentList.arguments;
     if (arguments.length != 3) {
       return;
     }
 
-    Expression secondArg = arguments[1];
-    Expression thirdArg = arguments[2];
+    final secondArg = arguments[1];
+    final thirdArg = arguments[2];
 
     Expression extractBody(FunctionExpression expression) {
-      FunctionBody body = expression.body;
+      final body = expression.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
       } else if (body is BlockFunctionBody) {
-        NodeList<Statement> statements = body.block.statements;
+        final statements = body.block.statements;
         if (statements.length == 1) {
-          Statement statement = statements[0];
+          final statement = statements[0];
           if (statement is ReturnStatement) {
             return statement.expression;
           }
@@ -92,10 +91,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     FunctionExpression extractClosure(String name, Expression argument) {
       if (argument is NamedExpression && argument.name.label.name == name) {
-        Expression expression = argument.expression.unParenthesized;
+        final expression = argument.expression.unParenthesized;
         if (expression is FunctionExpression) {
-          NodeList<FormalParameter> parameters =
-              expression.parameters.parameters;
+          final parameters = expression.parameters.parameters;
           if (parameters.length == 1 && parameters[0].isRequired) {
             if (extractBody(expression) != null) {
               return expression;
@@ -106,9 +104,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    FunctionExpression keyClosure =
+    final keyClosure =
         extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    FunctionExpression valueClosure =
+    final valueClosure =
         extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;

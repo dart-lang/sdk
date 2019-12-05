@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
     // TODO(danrubel): Consider moving this into analyzer
-    final AstNode parent = literal.parent;
+    final parent = literal.parent;
     if (parent is PrefixExpression) {
       if (parent.operator?.lexeme == '-') {
         return hasTypeDouble(parent);
@@ -80,25 +80,25 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool hasTypeDouble(Expression expression) {
-    final AstNode parent = expression.parent;
+    final parent = expression.parent;
     if (parent is ArgumentList) {
       return expression.staticParameterElement?.type?.name == 'double';
     } else if (parent is ListLiteral) {
-      NodeList<TypeAnnotation> typeArguments = parent.typeArguments?.arguments;
+      final typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
           typeArguments[0]?.type?.name == 'double';
     } else if (parent is NamedExpression) {
-      AstNode argList = parent.parent;
+      final argList = parent.parent;
       if (argList is ArgumentList) {
         return parent.staticParameterElement?.type?.name == 'double';
       }
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
     } else if (parent is ReturnStatement) {
-      BlockFunctionBody body = parent.thisOrAncestorOfType<BlockFunctionBody>();
+      final body = parent.thisOrAncestorOfType<BlockFunctionBody>();
       return hasReturnTypeDouble(body.parent);
     } else if (parent is VariableDeclaration) {
-      AstNode varList = parent.parent;
+      final varList = parent.parent;
       if (varList is VariableDeclarationList) {
         return varList.type?.type?.name == 'double';
       }
@@ -110,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     // Check if the double can be represented as an int
     try {
-      double value = node.value;
+      final value = node.value;
       if (value == null || value != value.truncate()) {
         return;
       }

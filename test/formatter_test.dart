@@ -11,11 +11,11 @@ import 'package:test/test.dart';
 
 import 'mocks.dart';
 
-main() {
+void main() {
   defineTests();
 }
 
-defineTests() {
+void defineTests() {
   group('formatter', () {
     test('shorten', () {
       expect(shorten('/foo/bar', '/foo/bar/baz'), '/baz');

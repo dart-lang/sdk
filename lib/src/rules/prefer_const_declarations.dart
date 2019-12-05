@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       _visitVariableDeclarationList(node.variables);
 
-  _visitVariableDeclarationList(VariableDeclarationList node) {
+  void _visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.isConst) return;
     if (!node.isFinal) return;
     if (node.variables.every((declaration) {

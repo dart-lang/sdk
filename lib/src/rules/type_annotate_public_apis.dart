@@ -131,14 +131,14 @@ class _VisitorHelper extends RecursiveAstVisitor {
   _VisitorHelper(this.rule);
 
   @override
-  visitSimpleFormalParameter(SimpleFormalParameter param) {
+  void visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null && !isJustUnderscores(param.identifier.name)) {
       rule.reportLint(param);
     }
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (!isPrivate(node.name) && !node.isConst) {
       rule.reportLint(node.name);
     }

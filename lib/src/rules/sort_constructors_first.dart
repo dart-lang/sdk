@@ -57,11 +57,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Sort members by offset.
-    List<ClassMember> members = node.members.toList()
+    final members = node.members.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
-    bool other = false;
-    for (ClassMember member in members) {
+    var other = false;
+    for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
           rule.reportLint(member.returnType);

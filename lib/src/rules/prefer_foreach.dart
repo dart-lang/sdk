@@ -68,19 +68,19 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   _PreferForEachVisitor(this.rule);
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     if (node.statements.length == 1) {
       node.statements.first.accept(this);
     }
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
       final element = loopParts.loopVariable?.declaredElement;
@@ -93,7 +93,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     final arguments = node.argumentList.arguments;
     if (arguments.length == 1 &&
         DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
@@ -103,7 +103,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     final arguments = node.argumentList.arguments;
     if (arguments.length == 1 &&
         DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
@@ -119,7 +119,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.unParenthesized.accept(this);
   }
 }
@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForEachParts) {
       final visitor = _PreferForEachVisitor(rule);

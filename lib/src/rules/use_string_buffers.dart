@@ -82,31 +82,31 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
   _IdentifierIsPrefixVisitor(this.rule, this.identifier);
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.PLUS) {
       node.leftOperand.accept(this);
     }
   }
 
   @override
-  visitInterpolationExpression(InterpolationExpression node) {
+  void visitInterpolationExpression(InterpolationExpression node) {
     node.expression.accept(this);
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.unParenthesized.accept(this);
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.staticElement == identifier.staticElement) {
       rule.reportLint(identifier);
     }
   }
 
   @override
-  visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(StringInterpolation node) {
     if (node.elements.length >= 2 &&
         _isEmptyInterpolationString(node.elements.first)) {
       node.elements[1].accept(this);
@@ -121,7 +121,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   _UseStringBufferVisitor(this.rule);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type != TokenType.PLUS_EQ &&
         node.operator.type != TokenType.EQ) return;
 
@@ -142,22 +142,22 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitBlock(Block block) {
+  void visitBlock(Block block) {
     block.visitChildren(this);
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     node.expression.accept(this);
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.unParenthesized.accept(this);
   }
 
   @override
-  visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (final variable in node.variables.variables) {
       localElements.add(variable.declaredElement);
     }

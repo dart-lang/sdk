@@ -63,7 +63,7 @@ class _Flutter {
     if (_isExactWidget(element, _nameWidget, _uriFramework)) {
       return true;
     }
-    for (InterfaceType type in element.allSupertypes) {
+    for (var type in element.allSupertypes) {
       if (_isExactWidget(type.element, _nameWidget, _uriFramework)) {
         return true;
       }

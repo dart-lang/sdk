@@ -50,14 +50,13 @@ DartType _findIterableTypeArgument(
     return null;
   }
 
-  _InterfaceTypePredicate predicate =
-      _buildImplementsDefinitionPredicate(definition);
+  final predicate = _buildImplementsDefinitionPredicate(definition);
   if (predicate(type)) {
     return type.typeArguments.first;
   }
 
-  List<InterfaceType> implementedInterfaces = _findImplementedInterfaces(type);
-  InterfaceType interface =
+  final implementedInterfaces = _findImplementedInterfaces(type);
+  final interface =
       implementedInterfaces.firstWhere(predicate, orElse: () => null);
   if (interface != null && interface.typeArguments.isNotEmpty) {
     return interface.typeArguments.first;
@@ -119,7 +118,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
         targetType = classDeclaration.declaredElement?.thisType;
       }
     }
-    Expression argument = node.argumentList.arguments.first;
+    final argument = node.argumentList.arguments.first;
 
     // Finally, determine whether the type of the argument is related to the
     // type of the method target.

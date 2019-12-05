@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 import 'util/test_utils.dart';
 
-main() {
+void main() {
   group('isDartFileName', () {
     testEach(['foo.dart'], isDartFileName, isTrue);
     testEach([

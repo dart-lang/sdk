@@ -58,7 +58,7 @@ class _AssertVisitor extends RecursiveAstVisitor {
   _AssertVisitor(this.constructorElement, this.classAndSuperClasses);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     final element = node.staticElement;
 
     // use method
@@ -76,7 +76,7 @@ class _AssertVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     needInstance = true;
   }
 

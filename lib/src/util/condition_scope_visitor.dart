@@ -136,13 +136,13 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       _getExpressions(elements);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     _addElementToEnvironment(_UndefinedExpression(_getLeftElement(node)));
     node.visitChildren(this);
   }
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {
+  void visitBlockFunctionBody(BlockFunctionBody node) {
     _addScope();
     _addElementToEnvironment(_UndefinedAllExpression());
     node.visitChildren(this);
@@ -150,7 +150,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     breakScope.add(node);
     node.visitChildren(this);
   }
@@ -158,7 +158,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   void visitCondition(Expression node);
 
   @override
-  visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     _addScope();
     visitCondition(node.condition);
     node.visitChildren(this);
@@ -172,7 +172,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _addScope();
     _addElementToEnvironment(_UndefinedAllExpression());
     node.visitChildren(this);
@@ -180,7 +180,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     _addScope();
     final loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
@@ -211,7 +211,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     final elseScope = _visitElseStatement(node.elseStatement, node.condition);
     _visitIfStatement(node);
     _propagateUndefinedExpressions(elseScope);
@@ -234,7 +234,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
       _addElementToEnvironment(_UndefinedExpression(operand.staticElement));
@@ -243,7 +243,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
       _addElementToEnvironment(_UndefinedExpression(operand.staticElement));
@@ -252,31 +252,31 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitRethrowExpression(RethrowExpression node) {
+  void visitRethrowExpression(RethrowExpression node) {
     node.visitChildren(this);
     _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
     _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
-  visitThrowExpression(ThrowExpression node) {
+  void visitThrowExpression(ThrowExpression node) {
     node.visitChildren(this);
     _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     _addElementToEnvironment(_UndefinedExpression(node.declaredElement));
     node.visitChildren(this);
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     _addScope();
     visitCondition(node.condition);
     node.condition?.accept(this);
@@ -378,7 +378,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     return _removeLastScope();
   }
 
-  _visitIfStatement(IfStatement node) {
+  void _visitIfStatement(IfStatement node) {
     _addScope();
     node.condition?.accept(this);
     visitCondition(node.condition);

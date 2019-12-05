@@ -212,7 +212,7 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
     final executableElement = _getExecutableElementFromMethodInvocation(node);
-    bool isNonStatic = executableElement?.isStatic == false;
+    final isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
       final isSimpleIdentifier = node.target is SimpleIdentifier;
       return _CascadableExpression._internal(

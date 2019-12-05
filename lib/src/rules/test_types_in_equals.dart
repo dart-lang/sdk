@@ -91,16 +91,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    MethodDeclaration declaration =
-        node.thisOrAncestorOfType<MethodDeclaration>();
+    final declaration = node.thisOrAncestorOfType<MethodDeclaration>();
     if (!_isEqualsOverride(declaration) ||
         node.expression is! SimpleIdentifier) {
       return;
     }
 
-    SimpleIdentifier identifier = node.expression as SimpleIdentifier;
+    final identifier = node.expression as SimpleIdentifier;
     var parameters = declaration.parameters;
-    String parameterName = parameters?.parameterElements?.first?.name;
+    final parameterName = parameters?.parameterElements?.first?.name;
     if (identifier.name == parameterName) {
       rule.reportLint(node);
     }

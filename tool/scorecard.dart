@@ -32,7 +32,7 @@ Iterable<LintRule> get registeredLints {
 
 Iterable<String> get registeredLintNames => registeredLints.map((r) => r.name);
 
-main() async {
+void main() async {
   var scorecard = await ScoreCard.calculate();
   var details = <Detail>[
     Detail.rule,
@@ -53,10 +53,10 @@ main() async {
 }
 
 StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
-  int pedanticLintCount = 0;
-  int flutterUserLintCount = 0;
-  int flutterRepoLintCount = 0;
-  int fixCount = 0;
+  var pedanticLintCount = 0;
+  var flutterUserLintCount = 0;
+  var flutterRepoLintCount = 0;
+  var fixCount = 0;
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
@@ -136,7 +136,7 @@ class _AssistCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     if (node.name.toString() == 'associatedErrorCodes:') {
-      ListLiteral list = node.expression as ListLiteral;
+      final list = node.expression as ListLiteral;
       for (var element in list.elements) {
         var name =
             element.toString().substring(1, element.toString().length - 1);

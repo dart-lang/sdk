@@ -9,7 +9,7 @@ import 'package:grinder/grinder.dart';
 import 'doc.dart';
 import 'rule.dart';
 
-main(List<String> args) => grind(args);
+void main(List<String> args) => grind(args);
 
 Iterable<String> get sourcePaths => sources.map((dir) => dir.path);
 
@@ -25,27 +25,27 @@ Iterable<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
     });
 
 @Task('Generate lint rule docs.')
-docs() {
-  TaskArgs args = context.invocation.arguments;
-  String dir = args.getOption('dir');
+void docs() {
+  final args = context.invocation.arguments;
+  final dir = args.getOption('dir');
   generateDocs(dir);
 }
 
 @Task('Format linter sources.')
-format() {
+void format() {
   Pub.run('dart_style',
       script: 'format', arguments: ['--overwrite', ...sourcePaths]);
 }
 
 @Task('Generate a lint rule stub.')
-rule() {
-  TaskArgs args = context.invocation.arguments;
-  String name = args.getOption('name');
+void rule() {
+  final args = context.invocation.arguments;
+  final name = args.getOption('name');
   generateRule(name, outDir: Directory.current.path);
 }
 
 @DefaultTask()
 @Task('Validate linter sources.')
-validate() {
+void validate() {
   Analyzer.analyze(sourcePaths, fatalWarnings: true);
 }

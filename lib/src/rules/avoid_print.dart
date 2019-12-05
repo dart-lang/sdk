@@ -43,9 +43,9 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
-  _validateArgument(Expression expression) {
+  void _validateArgument(Expression expression) {
     if (expression is SimpleIdentifier) {
-      final Element element = expression.staticElement;
+      final element = expression.staticElement;
       if (element is FunctionElement &&
           element.name == 'print' &&
           element.library.isDartCore) {
@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     bool isDartCore(MethodInvocation node) =>
         node.methodName.staticElement?.library?.name == 'dart.core';
 

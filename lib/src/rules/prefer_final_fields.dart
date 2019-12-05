@@ -180,10 +180,9 @@ class _Visitor extends SimpleAstVisitor<void> {
                 _containedInFormal(element, formal));
 
         final classDeclaration = node.parent;
-        final Iterable<ConstructorDeclaration> constructors =
-            classDeclaration is ClassDeclaration
-                ? classDeclaration.members.whereType<ConstructorDeclaration>()
-                : <ConstructorDeclaration>[];
+        final constructors = classDeclaration is ClassDeclaration
+            ? classDeclaration.members.whereType<ConstructorDeclaration>()
+            : <ConstructorDeclaration>[];
         final isFieldInConstructors = constructors.any(fieldInConstructor);
         final isFieldInAllConstructors = constructors.every(fieldInConstructor);
 

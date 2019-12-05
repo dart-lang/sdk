@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!isWidgetType(node.staticType)) {
       return;
     }
@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    for (int i = 0; i < arguments.length - 1; ++i) {
+    for (var i = 0; i < arguments.length - 1; ++i) {
       if (isChildArg(arguments[i])) {
         rule.reportLint(arguments[i]);
       }

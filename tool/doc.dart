@@ -136,15 +136,15 @@ Future<LintConfig> fetchConfig(String url) async {
 Map<String, SinceInfo> sinceInfo;
 
 Future<void> generateDocs(String dir) async {
-  String outDir = dir;
+  var outDir = dir;
   if (outDir != null) {
-    Directory d = Directory(outDir);
+    final d = Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
     if (!File('$outDir/options').existsSync()) {
-      Directory lintsChildDir = Directory('$outDir/lints');
+      final lintsChildDir = Directory('$outDir/lints');
       if (lintsChildDir.existsSync()) {
         outDir = lintsChildDir.path;
       }
@@ -213,7 +213,7 @@ class CountBadger {
   Iterable<LintRule> rules;
   CountBadger(this.rules);
 
-  generate(String dirPath) async {
+  Future<void> generate(String dirPath) async {
     var lintCount = rules.length;
 
     var client = http.Client();
@@ -254,7 +254,7 @@ class Generator {
     return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
 
-  generate([String filePath]) {
+  void generate([String filePath]) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/$name.html';
@@ -314,7 +314,7 @@ class Indexer {
   Iterable<LintRule> rules;
   Indexer(this.rules);
 
-  generate(String filePath) {
+  void generate(String filePath) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/index.html';
@@ -408,7 +408,7 @@ class OptionsSample {
   Iterable<LintRule> rules;
   OptionsSample(this.rules);
 
-  generate(String filePath) {
+  void generate(String filePath) {
     var generated = _generate();
     if (filePath != null) {
       var outPath = '$filePath/options/options.html';
@@ -420,7 +420,7 @@ class OptionsSample {
   }
 
   String generateOptions() {
-    StringBuffer sb = StringBuffer('''
+    final sb = StringBuffer('''
 ```
 linter:
   rules:
@@ -431,7 +431,7 @@ linter:
         .map((r) => r.name)
         .toList()
           ..sort();
-    for (String rule in sortedRules) {
+    for (var rule in sortedRules) {
       sb.write('    - $rule\n');
     }
     sb.write('```');

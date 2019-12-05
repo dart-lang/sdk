@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -52,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     final leftPart = node.leftHandSide.unParenthesized;
     if (leftPart is PropertyAccess) {
       _checkAssignment(leftPart.realTarget, leftPart.propertyName, node);
@@ -68,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // It is more efficient to first check if `src` (or `href`) is being
     // assigned, _then_ check if the target of an interesting  type.
     if (property.name == 'src') {
-      DartType type = target.staticType;
+      final type = target.staticType;
       if (type.isDynamic ||
           DartTypeUtilities.extendsClass(
               type, 'EmbedElement', 'dart.dom.html') ||
@@ -81,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(assignment, errorCode: srcAttributeCode);
       }
     } else if (property.name == 'href') {
-      DartType type = target.staticType;
+      final type = target.staticType;
       if (type.isDynamic ||
           DartTypeUtilities.extendsClass(
               type, 'AnchorElement', 'dart.dom.html')) {

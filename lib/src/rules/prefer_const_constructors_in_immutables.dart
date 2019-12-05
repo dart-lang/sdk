@@ -92,15 +92,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
     final clazz = node.declaredElement.enclosingElement;
     // construct with super
-    final SuperConstructorInvocation superInvocation = node.initializers
-        .firstWhere((e) => e is SuperConstructorInvocation,
-            orElse: () => null) as SuperConstructorInvocation;
+    final superInvocation = node.initializers.firstWhere(
+        (e) => e is SuperConstructorInvocation,
+        orElse: () => null) as SuperConstructorInvocation;
     if (superInvocation != null) return superInvocation.staticElement.isConst;
     // construct with this
-    final RedirectingConstructorInvocation redirectInvocation = node
-        .initializers
-        .firstWhere((e) => e is RedirectingConstructorInvocation,
-            orElse: () => null) as RedirectingConstructorInvocation;
+    final redirectInvocation = node.initializers.firstWhere(
+        (e) => e is RedirectingConstructorInvocation,
+        orElse: () => null) as RedirectingConstructorInvocation;
     if (redirectInvocation != null) {
       return redirectInvocation.staticElement.isConst;
     }
@@ -121,7 +120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   static Iterable<ClassElement> _getSelfAndInheritedClasses(
       ClassElement self) sync* {
-    ClassElement current = self;
+    var current = self;
     final seenElements = <ClassElement>{};
     while (current != null && seenElements.add(current)) {
       yield current;

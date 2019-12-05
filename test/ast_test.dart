@@ -7,7 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:linter/src/ast.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('HasConstErrorListener', () {
     test('has hasConstError false by default', () {
       final listener = HasConstErrorListener();

@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var last = node.initializers.length - 1;
 
-    for (int i = 0; i <= last; ++i) {
+    for (var i = 0; i <= last; ++i) {
       var init = node.initializers[i];
       if (init is SuperConstructorInvocation && i != last) {
         rule.reportLint(init);

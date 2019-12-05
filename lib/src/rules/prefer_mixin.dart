@@ -54,8 +54,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    for (TypeName type in node.mixinTypes) {
-      Element element = type.name.staticElement;
+    for (var type in node.mixinTypes) {
+      final element = type.name.staticElement;
       if (element is ClassElement && !element.isMixin) {
         rule.reportLint(type);
       }

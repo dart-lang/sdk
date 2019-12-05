@@ -15,15 +15,15 @@ import 'package:yaml/yaml.dart';
 import 'mocks.dart';
 import 'rules/experiments/experiments.dart';
 
-main() {
+void main() {
   defineTests();
 }
 
-defineTests() {
+void defineTests() {
   group('integration', () {
     group('avoid_web_libraries_in_flutter', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -86,8 +86,8 @@ defineTests() {
     });
 
     group('p2', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -123,8 +123,8 @@ defineTests() {
       });
     });
     group('p3', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
@@ -137,8 +137,8 @@ defineTests() {
       });
     });
     group('p4', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
@@ -154,8 +154,8 @@ defineTests() {
     });
 
     group('p5', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -178,8 +178,8 @@ defineTests() {
     });
 
     group('overridden_fields', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -203,8 +203,8 @@ defineTests() {
     });
 
     group('close_sinks', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -235,8 +235,8 @@ defineTests() {
     });
 
     group('cancel_subscriptions', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -264,8 +264,8 @@ defineTests() {
     });
 
     group('directives_ordering', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -428,8 +428,8 @@ defineTests() {
     });
 
     group('file_names', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -460,8 +460,8 @@ defineTests() {
     });
 
     group('flutter_style_todos', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -496,8 +496,8 @@ defineTests() {
     });
 
     group('lines_longer_than_80_chars', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -527,8 +527,8 @@ defineTests() {
     });
 
     group('only_throw_errors', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -557,8 +557,8 @@ defineTests() {
     });
 
     group('always_require_non_null_named_parameters', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -585,8 +585,8 @@ defineTests() {
     });
 
     group('prefer_asserts_in_initializer_lists', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -611,8 +611,8 @@ defineTests() {
     });
 
     group('prefer_const_constructors_in_immutables', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -639,8 +639,8 @@ defineTests() {
     });
 
     group('avoid_relative_lib_imports', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -667,8 +667,8 @@ defineTests() {
     });
 
     group('prefer_relative_imports', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -697,8 +697,8 @@ defineTests() {
     });
 
     group('public_member_api_docs', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -748,8 +748,8 @@ defineTests() {
     });
 
     group('avoid_renaming_method_parameters', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -785,8 +785,8 @@ defineTests() {
     });
 
     group('avoid_private_typedef_functions', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -817,8 +817,8 @@ defineTests() {
     });
 
     group('sort_pub_dependencies', () {
-      IOSink currentOut = outSink;
-      CollectingSink collectingOut = CollectingSink();
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -850,9 +850,9 @@ defineTests() {
 
     group('examples', () {
       test('all.yaml', () {
-        String src = readFile('example/all.yaml');
+        final src = readFile('example/all.yaml');
 
-        Map<String, YamlNode> options = _getOptionsFromString(src);
+        final options = _getOptionsFromString(src);
         var configuredLints =
             (options['linter'] as YamlMap)['rules'] as YamlList;
 
@@ -875,12 +875,12 @@ defineTests() {
 
 /// Provide the options found in [optionsSource].
 Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
-  Map<String, YamlNode> options = <String, YamlNode>{};
+  final options = <String, YamlNode>{};
   if (optionsSource == null) {
     return options;
   }
 
-  YamlNode doc = loadYamlNode(optionsSource);
+  final doc = loadYamlNode(optionsSource);
 
   // Empty options.
   if (doc is YamlScalar && doc.value == null) {

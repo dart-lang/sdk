@@ -71,7 +71,7 @@ class PackagePrefixedLibraryNames extends LintRule
   }
 
   @override
-  visit(DartProject project) {
+  void visit(DartProject project) {
     this.project = project;
   }
 }
@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (project == null) {
       return;
     }
-    Source source = node.element.source;
+    final source = node.element.source;
     var prefix = Analyzer.facade.createLibraryNamePrefix(
         libraryPath: source.fullName,
         projectRoot: project.root.absolute.path,

@@ -53,7 +53,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
     DartLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
-  ErrorWatchingSink errorWatcher = ErrorWatchingSink(errorSink);
+  final errorWatcher = ErrorWatchingSink(errorSink);
   errorSink = errorWatcher;
 
   final errors = await linter.lintFiles(filesToLint);
@@ -73,8 +73,8 @@ Iterable<AnalysisError> _filtered(
         : errors.where((AnalysisError e) => !filter.filter(e));
 
 int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
-  int max = 0;
-  for (AnalysisErrorInfo info in errors) {
+  var max = 0;
+  for (final info in errors) {
     _filtered(info.errors, filter).forEach((AnalysisError e) {
       max = math.max(max, e.errorCode.errorSeverity.ordinal);
     });

@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // `!(const [7]).contains(5);`, where the _parent's_ parent is the
       // PrefixExpression.
       if (parent is MethodInvocation) {
-        Expression target = parent.target;
+        var target = parent.target;
         if (parent.parent is PrefixExpression &&
             target == node &&
             _expressionStartsWithWhitespace(node.expression)) return;

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 
@@ -84,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Should be "indexOf".
-    final Element propertyElement = node.staticElement;
+    final propertyElement = node.staticElement;
     if (propertyElement?.name != 'indexOf') {
       return;
     }
@@ -92,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     MethodInvocation indexOfAccess;
     InterfaceType type;
 
-    final AstNode parent = node.parent;
+    final parent = node.parent;
     if (parent is MethodInvocation && node == parent.methodName) {
       indexOfAccess = parent;
       var parentType = parent.target?.staticType;
@@ -131,32 +129,30 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final BinaryExpression binaryExpression = search as BinaryExpression;
-    final Token operator = binaryExpression.operator;
+    final binaryExpression = search as BinaryExpression;
+    final operator = binaryExpression.operator;
 
-    final TypeProvider typeProvider = context.typeProvider;
-    final TypeSystem typeSystem = context.typeSystem;
+    final typeProvider = context.typeProvider;
+    final typeSystem = context.typeSystem;
 
-    final DeclaredVariables declaredVariables = context.declaredVariables;
+    final declaredVariables = context.declaredVariables;
 
     // Comparing constants with result of indexOf.
 
-    final ConstantVisitor visitor = ConstantVisitor(
+    final visitor = ConstantVisitor(
         ConstantEvaluationEngine(typeProvider, declaredVariables,
             typeSystem: typeSystem),
         ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
 
-    final DartObjectImpl rightValue =
-        binaryExpression.rightOperand.accept(visitor);
+    final rightValue = binaryExpression.rightOperand.accept(visitor);
     if (rightValue?.type?.name == 'int') {
       // Constant is on right side of comparison operator
       _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
       return;
     }
 
-    final DartObjectImpl leftValue =
-        binaryExpression.leftOperand.accept(visitor);
+    final leftValue = binaryExpression.leftOperand.accept(visitor);
     if (leftValue?.type?.name == 'int') {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),

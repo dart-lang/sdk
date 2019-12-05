@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/ast.dart'
         SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart' show Element;
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -68,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     AstNode isEmptyAccess;
     SimpleIdentifier isEmptyIdentifier;
 
-    AstNode parent = node.parent;
+    final parent = node.parent;
     if (parent is PropertyAccess) {
       isEmptyIdentifier = parent.propertyName;
       isEmptyAccess = parent;
@@ -82,19 +81,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Should be "isEmpty".
-    Element propertyElement = isEmptyIdentifier.staticElement;
+    final propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
     // Should have "isNotEmpty".
-    Element propertyTarget = propertyElement.enclosingElement;
+    final propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
 
     // Walk up any parentheses above the isEmpty / isNotEmpty.
-    AstNode isEmptyParent = isEmptyAccess.parent;
+    var isEmptyParent = isEmptyAccess.parent;
     while (isEmptyParent is ParenthesizedExpression) {
       isEmptyParent = isEmptyParent.parent;
     }

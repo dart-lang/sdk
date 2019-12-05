@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (final p in node.parameters) {
         // Only named parameters
         if (p.isNamed) {
-          DefaultFormalParameter parameter = p as DefaultFormalParameter;
+          final parameter = p as DefaultFormalParameter;
           // Without a default value or marked @required
           if (parameter.defaultValue == null &&
               !parameter.declaredElement.hasRequired) {

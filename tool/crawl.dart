@@ -127,7 +127,7 @@ Future<List<String>> rulesForVersion(int minor) async {
 
 Future<String> _crawlForVersion(String lint) async {
   var client = http.Client();
-  for (int minor = 1; minor < 31; ++minor) {
+  for (var minor = 1; minor < 31; ++minor) {
     var version = '0.1.$minor';
     var req =
         await client.get('$_rulePathPrefix/$version/lib/src/rules/$lint.dart');
@@ -194,7 +194,7 @@ Future<List<String>> _fetchSdkTags() {
 
 Future<int> _readLatestMinorVersion() async {
   var contents = await File('pubspec.yaml').readAsString();
-  YamlMap pubspec = loadYamlNode(contents) as YamlMap;
+  final pubspec = loadYamlNode(contents) as YamlMap;
   // 0.1.79 or 0.1.79-dev or 0.1.97+1
   return int.parse((pubspec['version'] as String)
       .split('.')

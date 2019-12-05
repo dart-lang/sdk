@@ -65,7 +65,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   _AllowedCommentVisitor(this.lineInfo);
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     var token = node.beginToken;
     while (token != null) {
       _getPrecedingComments(token).forEach(_visitComment);
@@ -75,7 +75,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   }
 
   Iterable<Token> _getPrecedingComments(Token token) sync* {
-    Token comment = token.precedingComments;
+    var comment = token.precedingComments;
     while (comment != null) {
       yield comment;
       comment = comment.next;
@@ -119,7 +119,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
   _AllowedLongLineVisitor(this.lineInfo);
 
   @override
-  visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
@@ -128,7 +128,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitStringInterpolation(StringInterpolation node) {
+  void visitStringInterpolation(StringInterpolation node) {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
@@ -142,7 +142,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
     }
   }
 
-  _handleMultilines(SingleStringLiteral node) {
+  void _handleMultilines(SingleStringLiteral node) {
     final startLine = lineInfo.getLocation(node.offset).lineNumber;
     final endLine = lineInfo.getLocation(node.end).lineNumber;
     for (var i = startLine; i <= endLine; i++) {
@@ -150,7 +150,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
     }
   }
 
-  _handleSingleLine(AstNode node, String value) {
+  void _handleSingleLine(AstNode node, String value) {
     if (_looksLikeUriOrPath(value)) {
       final line = lineInfo.getLocation(node.offset).lineNumber;
       allowedLines.add(line);
@@ -178,7 +178,7 @@ class _Visitor extends SimpleAstVisitor {
     final lineInfo = node.lineInfo;
     final lineCount = lineInfo.lineCount;
     final longLines = <_LineInfo>[];
-    for (int i = 0; i < lineCount; i++) {
+    for (var i = 0; i < lineCount; i++) {
       final start = lineInfo.getOffsetOfLine(i);
       int end;
       if (i == lineCount - 1) {

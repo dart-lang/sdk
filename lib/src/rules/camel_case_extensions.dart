@@ -52,8 +52,8 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitExtensionDeclaration(ExtensionDeclaration node) {
-    SimpleIdentifier name = node.name;
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    final name = node.name;
     if (name != null && !isCamelCase(name.name)) {
       rule.reportLint(name);
     }

@@ -88,7 +88,7 @@ class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
   }
 
   @override
-  visit(DartProject project) {
+  void visit(DartProject project) {
     this.project = project;
   }
 }
@@ -118,7 +118,7 @@ class _Visitor extends GeneralizingAstVisitor {
   ///  | [FieldDeclaration]
   ///  | [MethodDeclaration]
   @override
-  visitClassMember(ClassMember node) {
+  void visitClassMember(ClassMember node) {
     check(node);
   }
 
@@ -130,12 +130,12 @@ class _Visitor extends GeneralizingAstVisitor {
   ///  | [ClassTypeAlias]
   ///  | [FunctionTypeAlias]
   @override
-  visitCompilationUnitMember(CompilationUnitMember node) {
+  void visitCompilationUnitMember(CompilationUnitMember node) {
     check(node);
   }
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     // Don't visit children
   }
 }

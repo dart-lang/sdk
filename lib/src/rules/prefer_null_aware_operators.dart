@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node) {
     final condition = node.condition;
     if (condition is BinaryExpression &&
         (condition.operator.type == TokenType.EQ_EQ ||
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
-      Expression exp = condition.operator.type == TokenType.EQ_EQ
+      var exp = condition.operator.type == TokenType.EQ_EQ
           ? node.elseExpression
           : node.thenExpression;
       while (exp is PrefixedIdentifier ||

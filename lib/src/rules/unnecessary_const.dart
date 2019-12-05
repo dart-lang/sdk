@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.keyword == null) return;
 
     // remove keyword and check if there's const error
@@ -72,14 +72,14 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
+  void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _visitTypedLiteral(node);
   }
 
-  _visitTypedLiteral(TypedLiteral node) {
+  void _visitTypedLiteral(TypedLiteral node) {
     if (node.constKeyword == null) return;
 
     // remove keyword and check if there's const error

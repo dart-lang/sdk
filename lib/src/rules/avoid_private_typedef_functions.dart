@@ -50,7 +50,7 @@ class _CountVisitor extends RecursiveAstVisitor {
   _CountVisitor(this.type);
 
   @override
-  visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     if (node.name.name == type) count++;
     super.visitTypeName(node);
   }
@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  _countAndReport(String name, AstNode node) {
+  void _countAndReport(String name, AstNode node) {
     final visitor = _CountVisitor(name);
     for (final unit in context.allUnits) {
       unit.unit.visitChildren(visitor);

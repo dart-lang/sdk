@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-main() async {
+void main() async {
   print('Getting latest linter package info from pub...');
 
   final packageInfo =

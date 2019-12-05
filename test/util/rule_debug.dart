@@ -17,8 +17,8 @@ import '../rule_test.dart';
 /// To simply *run* a solo test, consider using `pub run test -N`:
 ///     pub run test -N valid_regexps
 ///
-main(List<String> args) {
-  String ruleName = args[0];
-  Directory dir = Directory(ruleDir).absolute;
+void main(List<String> args) {
+  final ruleName = args[0];
+  final dir = Directory(ruleDir).absolute;
   testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')), debug: true);
 }

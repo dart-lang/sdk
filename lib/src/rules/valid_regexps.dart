@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -53,16 +52,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ClassElement element = node.staticElement?.enclosingElement;
+    final element = node.staticElement?.enclosingElement;
     if (element?.name == 'RegExp' && element?.library?.name == 'dart.core') {
-      NodeList<Expression> args = node.argumentList.arguments;
+      final args = node.argumentList.arguments;
       if (args.isEmpty) {
         return;
       }
 
-      Expression sourceExpression = args.first;
+      final sourceExpression = args.first;
       if (sourceExpression is StringLiteral) {
-        String source = sourceExpression.stringValue;
+        final source = sourceExpression.stringValue;
         if (source != null) {
           try {
             RegExp(source);

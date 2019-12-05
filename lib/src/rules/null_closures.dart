@@ -244,9 +244,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    Expression target = node.target;
-    String methodName = node.methodName?.name;
-    Element element = target is Identifier ? target?.staticElement : null;
+    final target = node.target;
+    final methodName = node.methodName?.name;
+    final element = target is Identifier ? target?.staticElement : null;
     if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
@@ -259,7 +259,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else {
       // Instance method called, "target" is the instance.
-      DartType targetType = target?.staticType;
+      final targetType = target?.staticType;
       var method = _getInstanceMethod(targetType, methodName);
       if (method == null) {
         return;
@@ -271,9 +271,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkNullArgForClosure(
       ArgumentList node, List<int> positions, List<String> names) {
-    NodeList<Expression> args = node.arguments;
-    for (int i = 0; i < args.length; i++) {
-      Expression arg = args[i];
+    final args = node.arguments;
+    for (var i = 0; i < args.length; i++) {
+      final arg = args[i];
 
       if (arg is NamedExpression) {
         if (arg.expression is NullLiteral &&
@@ -298,15 +298,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    getMethod(String library, String className) => possibleMethods
-        .lookup(NonNullableFunction(library, className, methodName));
+    NonNullableFunction getMethod(String library, String className) =>
+        possibleMethods
+            .lookup(NonNullableFunction(library, className, methodName));
 
     var method = getMethod(type.element.library.name, type.name);
     if (method != null) {
       return method;
     }
 
-    ClassElement element = type.element as ClassElement;
+    final element = type.element as ClassElement;
     if (element.isSynthetic) {
       return null;
     }

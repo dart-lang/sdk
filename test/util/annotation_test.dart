@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'annotation.dart';
 import 'annotation_matcher.dart';
 
-main() {
+void main() {
   test('extraction', () {
     expect(extractAnnotation('int x; // LINT [1:3]'), isNotNull);
     expect(extractAnnotation('int x; //LINT'), isNotNull);

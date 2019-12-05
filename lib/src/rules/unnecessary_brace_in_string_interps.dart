@@ -58,11 +58,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitStringInterpolation(StringInterpolation node) {
     var expressions = node.elements.whereType<InterpolationExpression>();
-    for (InterpolationExpression expression in expressions) {
+    for (var expression in expressions) {
       var exp = expression.expression;
       if (exp is SimpleIdentifier) {
-        SimpleIdentifier identifier = exp;
-        Token bracket = expression.rightBracket;
+        final identifier = exp;
+        final bracket = expression.rightBracket;
         if (bracket != null &&
             !isIdentifierPart(bracket.next) &&
             !identifier.name.contains('\$')) {

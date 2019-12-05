@@ -121,7 +121,7 @@ class _Visitor extends SimpleAstVisitor {
       isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
     final type = node.declaredElement.thisType;
     if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
@@ -175,12 +175,12 @@ class _Visitor extends SimpleAstVisitor {
       return false;
     }
 
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
+    final classElement = member
+        .getAncestor((element) => element is ClassElement) as ClassElement;
     if (classElement == null) {
       return false;
     }
-    Uri libraryUri = classElement.library.source.uri;
+    final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
             classElement.thisType, Name(libraryUri, member.name)) !=
         null;

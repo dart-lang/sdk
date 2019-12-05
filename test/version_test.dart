@@ -8,7 +8,7 @@ import 'package:linter/src/version.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
-main() {
+void main() {
   group('package version', () {
     test('version file up to date', () {
       expect(readPackageVersion(), version,

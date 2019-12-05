@@ -50,16 +50,16 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation invocation) {
-    bool addAll = invocation.methodName.name == 'addAll';
+    final addAll = invocation.methodName.name == 'addAll';
     if ((invocation.methodName.name != 'add' && !addAll) ||
         !invocation.isCascaded ||
         invocation.argumentList.arguments.length != 1) {
       return;
     }
 
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
+    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    final sections = cascade.cascadeSections;
+    final target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
       // todo (pq): consider extending to handle set literals.
       return;

@@ -62,7 +62,7 @@ class HasParameterReferenceVisitor extends RecursiveAstVisitor {
   HasParameterReferenceVisitor(this.parameters);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (parameters.contains(node.staticElement)) {
       useParameter = true;
     } else {
@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
-    AstNode parent = node.parent;
+    final parent = node.parent;
     if (parent is ClassDeclaration) {
       if (parent.declaredElement.constructors.every((e) => !e.isConst)) {
         return;

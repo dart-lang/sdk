@@ -28,7 +28,7 @@ import 'util/annotation_matcher.dart';
 import 'util/test_resource_provider.dart';
 import 'util/test_utils.dart';
 
-main() {
+void main() {
   defineSanityTests();
   defineRuleTests();
   defineRuleUnitTests();
@@ -38,7 +38,7 @@ final String ruleDir = p.join('test', 'rules');
 final String testConfigDir = p.join('test', 'configs');
 
 /// Rule tests
-defineRuleTests() {
+void defineRuleTests() {
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
@@ -68,7 +68,7 @@ defineRuleTests() {
           final ruleTestDir = Directory(p.join(entry.path, 'rules'));
           for (var test in ruleTestDir.listSync()) {
             if (test is! File) continue;
-            File testFile = test as File;
+            final testFile = test as File;
             final ruleName = p.basenameWithoutExtension(test.path);
             testRule(ruleName, testFile,
                 analysisOptions: analysisOptions, debug: true);
@@ -91,7 +91,7 @@ defineRuleTests() {
     });
     group('format', () {
       registerLintRules();
-      for (LintRule rule in Registry.ruleRegistry.rules) {
+      for (final rule in Registry.ruleRegistry.rules) {
         test('`${rule.name}` description', () {
           expect(rule.description.endsWith('.'), isTrue,
               reason:
@@ -102,7 +102,7 @@ defineRuleTests() {
   });
 }
 
-defineRuleUnitTests() {
+void defineRuleUnitTests() {
   group('uris', () {
     group('isPackage', () {
       [
@@ -207,12 +207,12 @@ defineRuleUnitTests() {
 }
 
 /// Test framework sanity.
-defineSanityTests() {
+void defineSanityTests() {
   group('reporting', () {
     // https://github.com/dart-lang/linter/issues/193
     group('ignore synthetic nodes', () {
-      String path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
-      File file = File(path);
+      final path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
+      final file = File(path);
       testRule('non_constant_identifier_names', file);
     });
   });
@@ -224,7 +224,7 @@ defineSanityTests() {
 }
 
 /// Handy for debugging.
-defineSoloRuleTest(String ruleToTest) {
+void defineSoloRuleTest(String ruleToTest) {
   for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
@@ -234,7 +234,7 @@ defineSoloRuleTest(String ruleToTest) {
   }
 }
 
-testRule(String ruleName, File file,
+void testRule(String ruleName, File file,
     {bool debug = false, String analysisOptions}) {
   registerLintRules();
 
@@ -245,7 +245,7 @@ testRule(String ruleName, File file,
 
     var expected = <AnnotationMatcher>[];
 
-    int lineNumber = 1;
+    var lineNumber = 1;
     for (var line in file.readAsLinesSync()) {
       var annotation = extractAnnotation(line);
       if (annotation != null) {
@@ -255,17 +255,16 @@ testRule(String ruleName, File file,
       ++lineNumber;
     }
 
-    LintRule rule = Registry.ruleRegistry[ruleName];
+    final rule = Registry.ruleRegistry[ruleName];
     if (rule == null) {
       fail('rule `$ruleName` is not registered; unable to test.');
     }
 
-    DartLinter driver =
-        buildDriver(rule, file, analysisOptions: analysisOptions);
+    final driver = buildDriver(rule, file, analysisOptions: analysisOptions);
 
-    Iterable<AnalysisErrorInfo> lints = await driver.lintFiles([file]);
+    final lints = await driver.lintFiles([file]);
 
-    List<Annotation> actual = [];
+    final actual = <Annotation>[];
     lints.forEach((AnalysisErrorInfo info) {
       info.errors.forEach((AnalysisError error) {
         if (error.errorCode.type == ErrorType.LINT) {
@@ -299,7 +298,7 @@ testRule(String ruleName, File file,
   });
 }
 
-testRules(String ruleDir, {String analysisOptions}) {
+void testRules(String ruleDir, {String analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);

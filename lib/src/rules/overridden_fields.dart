@@ -75,8 +75,8 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   }
 
   accumulator.add(interface);
-  InterfaceType superclass = interface.superclass;
-  List<InterfaceType> interfaces = [];
+  final superclass = interface.superclass;
+  final interfaces = <InterfaceType>[];
   if (superclass != null) {
     interfaces.add(superclass);
   }
@@ -87,9 +87,9 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
 }
 
 Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
-  List<InterfaceType> supertypes = <InterfaceType>[];
-  List<InterfaceType> accumulator = <InterfaceType>[];
-  for (InterfaceType type in classElement.superclassConstraints) {
+  final supertypes = <InterfaceType>[];
+  final accumulator = <InterfaceType>[];
+  for (var type in classElement.superclassConstraints) {
     supertypes.add(type);
     supertypes.addAll(_findAllSupertypesAndMixins(type, accumulator));
   }
@@ -124,8 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     node.fields.variables.forEach((VariableDeclaration variable) {
-      PropertyAccessorElement field =
-          _getOverriddenMember(variable.declaredElement);
+      final field = _getOverriddenMember(variable.declaredElement);
       if (field != null) {
         rule.reportLint(variable.name);
       }
@@ -133,8 +132,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   PropertyAccessorElement _getOverriddenMember(Element member) {
-    String memberName = member.name;
-    LibraryElement library = member.library;
+    final memberName = member.name;
+    final library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) {
       if (a.isSynthetic && a.name == memberName) {
         // Ensure that private members are overriding a member of the same library.
@@ -161,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       interfaces =
           _findAllSupertypesAndMixins(classElement.thisType, <InterfaceType>[]);
     }
-    InterfaceType interface =
+    final interface =
         interfaces.firstWhere(containsOverriddenMember, orElse: () => null);
     return interface?.accessors?.firstWhere(isOverriddenMember);
   }

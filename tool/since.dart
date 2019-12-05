@@ -9,7 +9,7 @@ import 'package:yaml/yaml.dart';
 
 import 'crawl.dart';
 
-main() async {
+void main() async {
 // Uncomment to (re)generate since/linter.yaml contents.
 //  for (var lint in registeredLints) {
 //    var since = await findSinceLinter(lint.name);
@@ -38,7 +38,7 @@ Future<Map<String, SinceInfo>> get sinceMap async =>
 
 Future<Map<String, SinceInfo>> _getSinceInfo() async {
   var linterCache = await File('tool/since/linter.yaml').readAsString();
-  YamlMap linterVersionCache = loadYamlNode(linterCache) as YamlMap;
+  final linterVersionCache = loadYamlNode(linterCache) as YamlMap;
 
   var sinceMap = <String, SinceInfo>{};
   for (var lint in registeredLints.map((l) => l.name)) {
@@ -63,7 +63,7 @@ Map<String, String> _dartSdkMap;
 Future<Map<String, String>> get dartSdkMap async {
   if (_dartSdkMap == null) {
     var dartSdkCache = await File('tool/since/dart_sdk.yaml').readAsString();
-    YamlMap yamlMap = loadYamlNode(dartSdkCache) as YamlMap;
+    final yamlMap = loadYamlNode(dartSdkCache) as YamlMap;
     _dartSdkMap = yamlMap.map((k, v) => MapEntry(k.toString(), v.toString()));
 
     var sdks = await sdkTags;
@@ -109,7 +109,7 @@ Future<String> _sinceSdkForLinter(String linterVersionString) async {
 }
 
 Future<String> _nextLinterVersion(Version linterVersion) async {
-  for (String version in await linterVersions) {
+  for (final version in await linterVersions) {
     if (Version.parse(version).compareTo(linterVersion) > 0) {
       return version;
     }

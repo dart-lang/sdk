@@ -114,12 +114,12 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
 
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
+    final classElement = member
+        .getAncestor((element) => element is ClassElement) as ClassElement;
     if (classElement == null) {
       return null;
     }
-    Uri libraryUri = classElement.library.source.uri;
+    final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
       classElement.thisType,
       Name(libraryUri, member.name),
@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor {
       getOverriddenMember(node.declaredElement) != null;
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     if (!isInLibFolder) return;
 
     if (isPrivate(node.name)) return;
@@ -139,14 +139,14 @@ class _Visitor extends SimpleAstVisitor {
 
     // Check methods
 
-    Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
-    List<MethodDeclaration> setters = <MethodDeclaration>[];
+    final getters = <String, MethodDeclaration>{};
+    final setters = <MethodDeclaration>[];
 
     // Non-getters/setters.
-    List<MethodDeclaration> methods = <MethodDeclaration>[];
+    final methods = <MethodDeclaration>[];
 
     // Identify getter/setter pairs.
-    for (ClassMember member in node.members) {
+    for (var member in node.members) {
       if (member is MethodDeclaration && !isPrivate(member.name)) {
         if (member.isGetter) {
           getters[member.name.name] = member;
@@ -159,18 +159,18 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    Set<MethodDeclaration> missingDocs = <MethodDeclaration>{};
-    for (MethodDeclaration getter in getters.values) {
+    final missingDocs = <MethodDeclaration>{};
+    for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
       }
     }
 
     // But only setters whose getter is missing a doc.
-    for (MethodDeclaration setter in setters) {
-      MethodDeclaration getter = getters[setter.name.name];
+    for (var setter in setters) {
+      final getter = getters[setter.name.name];
       if (getter == null) {
-        Uri libraryUri = node.declaredElement.library.source.uri;
+        final libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
         Element getter = context.inheritanceManager.getMember(
           node.declaredElement.thisType,
@@ -192,7 +192,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     if (!isInLibFolder) return;
 
     if (!isPrivate(node.name)) {
@@ -201,21 +201,21 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     // Ignore this compilation unit if it's not in the lib/ folder.
     isInLibFolder = isInLibDir(node, context.package);
     if (!isInLibFolder) return;
 
-    Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
-    List<FunctionDeclaration> setters = <FunctionDeclaration>[];
+    final getters = <String, FunctionDeclaration>{};
+    final setters = <FunctionDeclaration>[];
 
     // Check functions.
 
     // Non-getters/setters.
-    List<FunctionDeclaration> functions = <FunctionDeclaration>[];
+    final functions = <FunctionDeclaration>[];
 
     // Identify getter/setter pairs.
-    for (CompilationUnitMember member in node.declarations) {
+    for (var member in node.declarations) {
       if (member is FunctionDeclaration) {
         var name = member.name;
         if (!isPrivate(name) && name.name != 'main') {
@@ -231,16 +231,16 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    Set<FunctionDeclaration> missingDocs = <FunctionDeclaration>{};
-    for (FunctionDeclaration getter in getters.values) {
+    final missingDocs = <FunctionDeclaration>{};
+    for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
       }
     }
 
     // But only setters whose getter is missing a doc.
-    for (FunctionDeclaration setter in setters) {
-      FunctionDeclaration getter = getters[setter.name.name];
+    for (var setter in setters) {
+      final getter = getters[setter.name.name];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -253,7 +253,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (!isInLibFolder) return;
 
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
@@ -262,7 +262,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     if (!isInLibFolder) return;
 
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
@@ -271,7 +271,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(EnumDeclaration node) {
     if (!isInLibFolder) return;
 
     if (!isPrivate(node.name)) {
@@ -280,7 +280,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
     if (!isInLibFolder) return;
 
     if (node.name == null || isPrivate(node.name)) {
@@ -291,14 +291,14 @@ class _Visitor extends SimpleAstVisitor {
 
     // Check methods
 
-    Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
-    List<MethodDeclaration> setters = <MethodDeclaration>[];
+    final getters = <String, MethodDeclaration>{};
+    final setters = <MethodDeclaration>[];
 
     // Non-getters/setters.
-    List<MethodDeclaration> methods = <MethodDeclaration>[];
+    final methods = <MethodDeclaration>[];
 
     // Identify getter/setter pairs.
-    for (ClassMember member in node.members) {
+    for (var member in node.members) {
       if (member is MethodDeclaration && !isPrivate(member.name)) {
         if (member.isGetter) {
           getters[member.name.name] = member;
@@ -311,16 +311,16 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    Set<MethodDeclaration> missingDocs = <MethodDeclaration>{};
-    for (MethodDeclaration getter in getters.values) {
+    final missingDocs = <MethodDeclaration>{};
+    for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
       }
     }
 
     // But only setters whose getter is missing a doc.
-    for (MethodDeclaration setter in setters) {
-      MethodDeclaration getter = getters[setter.name.name];
+    for (var setter in setters) {
+      final getter = getters[setter.name.name];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -331,11 +331,11 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     if (!isInLibFolder) return;
 
     if (!inPrivateMember(node)) {
-      for (VariableDeclaration field in node.fields.variables) {
+      for (var field in node.fields.variables) {
         if (!isPrivate(field.name)) {
           check(field);
         }
@@ -344,7 +344,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!isInLibFolder) return;
 
     if (!isPrivate(node.name)) {
@@ -353,10 +353,10 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (!isInLibFolder) return;
 
-    for (VariableDeclaration decl in node.variables.variables) {
+    for (var decl in node.variables.variables) {
       if (!isPrivate(decl.name)) {
         check(decl);
       }

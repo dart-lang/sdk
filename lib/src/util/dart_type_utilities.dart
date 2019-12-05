@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -156,10 +154,10 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    InterfaceType interfaceType = type as InterfaceType;
+    final interfaceType = type as InterfaceType;
     bool predicate(InterfaceType i) =>
         definitions.any((d) => isInterface(i, d.name, d.library));
-    ClassElement element = interfaceType.element;
+    final element = interfaceType.element;
     return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -169,9 +167,9 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    InterfaceType interfaceType = type as InterfaceType;
+    final interfaceType = type as InterfaceType;
     bool predicate(InterfaceType i) => isInterface(i, interface, library);
-    ClassElement element = interfaceType.element;
+    final element = interfaceType.element;
     return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -306,7 +304,7 @@ class DartTypeUtilities {
       return false;
     }
     final name = node.declaredElement.name;
-    final ClassOrMixinDeclaration clazz = parent as ClassOrMixinDeclaration;
+    final clazz = parent as ClassOrMixinDeclaration;
     final classElement = clazz.declaredElement;
     final library = classElement.library;
     return classElement.allSupertypes
@@ -323,7 +321,7 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
-    LinkedHashSet<AstNode> nodes = LinkedHashSet();
+    final nodes = <AstNode>{};
     void recursiveCall(node) {
       if (node is AstNode &&
           (excludeCriteria == null || !excludeCriteria(node))) {
@@ -391,7 +389,7 @@ class DartTypeUtilities {
           // against RangeError below.
           return false;
         }
-        for (int i = 0; i < leftTypeArguments.length; i++) {
+        for (var i = 0; i < leftTypeArguments.length; i++) {
           // If any of the pair-wise type arguments are unrelated, then
           // [leftType] and [rightType] are unrelated.
           if (unrelatedTypes(
@@ -426,7 +424,7 @@ class DartTypeUtilities {
     if (type2 is FunctionType) {
       return false;
     }
-    Element element2 = type2.element;
+    final element2 = type2.element;
     if (element2 is ClassElement &&
         element2.lookUpConcreteMethod('call', element2.library) != null) {
       return false;

@@ -7,7 +7,7 @@ import 'dart:io';
 
 const baseLinePath = 'tool/baseline/pana.json';
 
-main() async {
+void main() async {
   print('Reading baseline...');
   var contents = File(baseLinePath).readAsStringSync();
   var baseline = jsonDecode(contents)['scores'];

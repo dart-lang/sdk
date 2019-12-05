@@ -152,7 +152,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..packageConfigPath = packageConfigFile
     ..resourceProvider = PhysicalResourceProvider.INSTANCE;
 
-  List<File> filesToLint = [];
+  final filesToLint = <File>[];
   for (var path in options.rest) {
     filesToLint.addAll(collectFiles(path));
   }
@@ -166,7 +166,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   try {
     final timer = Stopwatch()..start();
-    Iterable<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
+    final errors = await lintFiles(linter, filesToLint);
     timer.stop();
 
     var commonRoot = getRoot(options.rest);

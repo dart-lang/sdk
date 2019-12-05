@@ -74,13 +74,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
+    final classElement = member
+        .getAncestor((element) => element is ClassElement) as ClassElement;
     if (classElement == null) {
       return null;
     }
 
-    Uri libraryUri = classElement.library.source.uri;
+    final libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
       classElement.thisType,
       Name(libraryUri, member.name),
@@ -89,10 +89,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    for (VariableDeclaration field in node.fields.variables) {
+    for (var field in node.fields.variables) {
       var element = field.declaredElement;
       if (element != null && !element.hasOverride) {
-        Element member = getOverriddenMember(element);
+        final member = getOverriddenMember(element);
         if (member != null) {
           rule.reportLint(field);
         }
@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     var element = node.declaredElement;
     if (element != null && !element.hasOverride) {
-      Element member = getOverriddenMember(element);
+      final member = getOverriddenMember(element);
       if (member != null) {
         rule.reportLint(node.name);
       }

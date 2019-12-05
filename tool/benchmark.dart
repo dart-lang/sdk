@@ -13,7 +13,7 @@ import '../test/ascii_utils_test.dart' as utils_test;
 /// More comprehensive benchmarks are run like so:
 ///
 ///     dart bin/linter.dart --benchmark -q -c example/all.yaml .
-main() {
+void main() {
   FileNameRegexpTestBenchmarkGood().report();
   FileNameCharLoopTestBenchmarkGood().report();
   FileNameRegexpTestBenchmarkBad().report();
@@ -43,7 +43,7 @@ class BaseBenchmark extends BenchmarkBase {
 
   @override
   void exercise() {
-    for (int i = 0; i < 100; i++) {
+    for (var i = 0; i < 100; i++) {
       run();
     }
   }
@@ -53,8 +53,8 @@ class DotScanBenchmark extends BaseBenchmark {
   const DotScanBenchmark() : super('DotScan');
 
   bool hasOneDot(String name) {
-    int count = 0;
-    for (int i = 0; i < name.length; ++i) {
+    var count = 0;
+    for (var i = 0; i < name.length; ++i) {
       final character = name.codeUnitAt(i);
       count += isDot(character) ? 1 : 0;
       if (count > 1) {

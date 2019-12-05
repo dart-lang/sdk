@@ -16,7 +16,7 @@ import 'validate_format_test.dart' as validate_format;
 import 'validate_headers_test.dart' as validate_headers;
 import 'version_test.dart' as version_test;
 
-main() {
+void main() {
   // Redirect output.
   outSink = MockIOSink();
 

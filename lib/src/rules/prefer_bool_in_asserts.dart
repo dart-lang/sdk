@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   DartType _unbound(DartType type) {
-    DartType t = type;
+    var t = type;
     while (t is TypeParameterType) {
       t = (t as TypeParameterType).bound;
     }

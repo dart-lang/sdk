@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  checkComment(Comment comment) {
+  void checkComment(Comment comment) {
     if (comment != null && isJavaStyle(comment)) {
       rule.reportLint(comment);
     }

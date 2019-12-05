@@ -43,10 +43,9 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      Iterable<AstNode> containerNodes =
-          DartTypeUtilities.traverseNodesInDFS(container);
+      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
 
-      List<Iterable<AstNode>> validators = <Iterable<AstNode>>[];
+      final validators = <Iterable<AstNode>>[];
       predicateBuilders.forEach((f) {
         validators.add(containerNodes.where(f(variable)));
       });
@@ -72,8 +71,7 @@ _VisitVariableDeclaration _buildVariableReporter(
 
 Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
     VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
-  Iterable<PrefixedIdentifier> prefixedIdentifiers =
-      containerNodes.whereType<PrefixedIdentifier>();
+  final prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) =>
       n.prefix.staticElement == variable.name.staticElement &&
       _hasMatch(predicates, variable.declaredElement.type,
@@ -82,8 +80,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  Iterable<MethodInvocation> prefixedIdentifiers =
-      containerNodes.whereType<MethodInvocation>();
+  final prefixedIdentifiers = containerNodes.whereType<MethodInvocation>();
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
@@ -180,14 +177,14 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    CompilationUnit unit = getCompilationUnit(node);
+    final unit = getCompilationUnit(node);
     node.fields.variables.forEach(_buildVariableReporter(
         unit, _fieldPredicateBuilders, rule, predicates));
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    FunctionBody function = node.thisOrAncestorOfType<FunctionBody>();
+    final function = node.thisOrAncestorOfType<FunctionBody>();
     node.variables.variables.forEach(_buildVariableReporter(
         function, _variablePredicateBuilders, rule, predicates));
   }
