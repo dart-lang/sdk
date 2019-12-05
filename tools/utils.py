@@ -743,8 +743,11 @@ def CheckLinuxCoreDumpPattern(fatal=False):
         message = (
             'Invalid core_pattern configuration. '
             'The configuration of core dump handling is *not* correct for '
-            'a buildbot. The content of {0} must be "{1}" instead of "{2}".'.
-            format(core_pattern_file, expected_core_pattern, core_pattern))
+            'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
+            '(see https://github.com/dart-lang/sdk/issues/39662)'.format(
+                core_pattern_file, expected_core_pattern, core_pattern))
+        # TODO(39662): Remove this once we know why this happens
+        fatal = False
         if fatal:
             raise Exception(message)
         else:
