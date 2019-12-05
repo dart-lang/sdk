@@ -159,3 +159,23 @@ customStreamIterator(StreamWithCustomIterator stream) async {
     e;
   }
 }
+
+void genericIterable<T extends Iterable<T>>(T x) {
+  /*current: T*/
+  for (var y in
+      /*cfe|dart2js.T*/
+      /*cfe:nnbd.T!*/
+      x) {
+    /*T*/ y;
+  }
+}
+
+void genericStream<T extends Stream<T>>(T x) async {
+  /*current: T*/
+  await for (var y in
+      /*cfe|dart2js.T*/
+      /*cfe:nnbd.T!*/
+      x) {
+    /*T*/ y;
+  }
+}

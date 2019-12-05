@@ -99,6 +99,11 @@ abstract class TypeEnvironment extends SubtypeTester {
   DartType forInElementType(ForInStatement node, DartType iterableType) {
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
+    while (iterableType is TypeParameterType) {
+      TypeParameterType typeParameterType = iterableType;
+      iterableType =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+    }
     if (node.isAsync) {
       InterfaceType type =
           getTypeAsInstanceOf(iterableType, coreTypes.streamClass);
