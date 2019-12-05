@@ -2077,6 +2077,15 @@ bar() {
     expect(type.returnType, isNotNull);
   }
 
+  test_function_metadata() async {
+    await analyze('''
+@deprecated
+void f() {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
   test_functionDeclaration_expression_body() async {
     await analyze('''
 int/*1*/ f(int/*2*/ i) => i/*3*/;

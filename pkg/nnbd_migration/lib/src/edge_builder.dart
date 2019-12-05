@@ -642,6 +642,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
+    node.metadata.accept(this);
     if (_flowAnalysis != null) {
       // This is a local function.
       node.functionExpression.accept(this);
