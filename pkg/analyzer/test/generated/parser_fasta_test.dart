@@ -2390,8 +2390,9 @@ class FastaParserTestCase
         code == ParserErrorCode.FINAL_CLASS ||
         code == ParserErrorCode.FINAL_ENUM ||
         code == ParserErrorCode.FINAL_TYPEDEF ||
-        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
+        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION) {
       return ParserErrorCode.EXTRANEOUS_MODIFIER;
+    }
     return code;
   }
 

@@ -11,7 +11,6 @@ analyzer:
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
     avoid_return_types_on_setters: ignore
-    curly_braces_in_flow_control_structures: ignore
     empty_catches: ignore
     prefer_iterable_wheretype: ignore
     # TODO(srawlins): At the time of writing, 230 violations in lib/. The fix

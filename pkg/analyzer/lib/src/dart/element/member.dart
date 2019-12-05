@@ -706,8 +706,9 @@ class MethodMember extends ExecutableMember implements MethodElement {
         var typeParameter = typeParameters[i];
         if (typeParameter is TypeParameterElementImpl) {
           typeParameter.appendTo(buffer);
-        } else
+        } else {
           (typeParameter as TypeParameterMember).appendTo(buffer);
+        }
       }
       buffer.write('>');
     }

@@ -1333,6 +1333,12 @@ class _MixinGenerator extends _BaseGenerator {
         return '_result[${quoted(name)}] = $convertField';
       }
 
+      void writeConditionalStatement(String condition, String statement) {
+        out('if ($condition) {');
+        out('  $statement;');
+        out('}');
+      }
+
       // Write toJson().
       out('@override');
       out('Map<String, Object> toJson() {');
@@ -1345,7 +1351,7 @@ class _MixinGenerator extends _BaseGenerator {
               if (field.logicalProperties == null) {
                 var condition = jsonCondition(field.type, field.name);
                 var storeField = jsonStore(field.type, field.name);
-                out('if ($condition) $storeField;');
+                writeConditionalStatement(condition, storeField);
               }
             }
             for (var variant in _computeVariants(cls)) {
@@ -1359,7 +1365,7 @@ class _MixinGenerator extends _BaseGenerator {
                       if (logicalProperty.variants.contains(variant)) {
                         var condition = jsonCondition(field.type, logicalName);
                         var storeField = jsonStore(field.type, logicalName);
-                        out('if ($condition) $storeField;');
+                        writeConditionalStatement(condition, storeField);
                       }
                     }
                   }
@@ -1373,7 +1379,7 @@ class _MixinGenerator extends _BaseGenerator {
             for (idl_model.FieldDeclaration field in cls.fields) {
               String condition = jsonCondition(field.type, field.name);
               String storeField = jsonStore(field.type, field.name);
-              out('if ($condition) $storeField;');
+              writeConditionalStatement(condition, storeField);
             }
           });
         }

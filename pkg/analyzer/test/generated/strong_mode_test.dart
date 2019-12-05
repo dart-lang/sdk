@@ -2487,7 +2487,9 @@ void test() {
       _isInstantiationOf(_hasElement(elementA))([_isInt])(init.staticType);
     }
 
-    for (var i = 0; i < 5; i++) check(i);
+    for (var i = 0; i < 5; i++) {
+      check(i);
+    }
   }
 
   test_inferConstructor_unknownTypeLowerBound() async {

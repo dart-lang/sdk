@@ -1282,7 +1282,7 @@ table UnlinkedNamespaceDirectiveConfiguration {
   uri:string (id: 2);
 
   /// The value to which the value of the declared variable will be compared,
-  /// or empty string if the condition does not include an equality test.
+  /// or the empty string if the condition does not include an equality test.
   value:string (id: 1);
 }
 
