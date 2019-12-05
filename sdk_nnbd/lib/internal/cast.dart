@@ -270,8 +270,8 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     _source[key as SK] = value as SV;
   }
 
-  V putIfAbsent(K key, V ifAbsent()) => _source.putIfAbsent(
-      key as SK, (ifAbsent == null) ? null : () => ifAbsent() as SV) as V;
+  V putIfAbsent(K key, V Function() ifAbsent) =>
+      _source.putIfAbsent(key as SK, () => ifAbsent() as SV) as V;
 
   void addAll(Map<K, V> other) {
     _source.addAll(new CastMap<K, V, SK, SV>(other));

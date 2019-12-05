@@ -116,8 +116,8 @@ class _DoubleLink<Link extends _DoubleLink<Link>> {
   void _link(Link? previous, Link? next) {
     _nextLink = next;
     _previousLink = previous;
-    if (previous != null) previous!._nextLink = this as Link;
-    if (next != null) next!._previousLink = this as Link;
+    if (previous != null) previous._nextLink = this as Link;
+    if (next != null) next._previousLink = this as Link;
   }
 
   void _unlink() {
@@ -344,7 +344,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     return result;
   }
 
-  bool remove(Object o) {
+  bool remove(Object? o) {
     _DoubleLinkedQueueEntry<E> entry =
         _sentinel._nextLink as _DoubleLinkedQueueEntry<E>;
     while (!identical(entry, _sentinel)) {
