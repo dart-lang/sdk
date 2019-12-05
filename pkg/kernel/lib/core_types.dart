@@ -155,9 +155,6 @@ class CoreTypes {
   InterfaceType _streamLegacyRawType;
   InterfaceType _streamNullableRawType;
   InterfaceType _streamNonNullableRawType;
-  InterfaceType _asyncAwaitCompleterLegacyRawType;
-  InterfaceType _asyncAwaitCompleterNullableRawType;
-  InterfaceType _asyncAwaitCompleterNonNullableRawType;
   InterfaceType _futureOrLegacyRawType;
   InterfaceType _futureOrNullableRawType;
   InterfaceType _futureOrNonNullableRawType;
@@ -1083,45 +1080,6 @@ class CoreTypes {
         return streamNullableRawType;
       case Nullability.nonNullable:
         return streamNonNullableRawType;
-      case Nullability.undetermined:
-      default:
-        throw new StateError(
-            "Unsupported nullability $nullability on an InterfaceType.");
-    }
-  }
-
-  InterfaceType get asyncAwaitCompleterLegacyRawType {
-    return _asyncAwaitCompleterLegacyRawType ??=
-        _legacyRawTypes[asyncAwaitCompleterClass] ??= new InterfaceType(
-            asyncAwaitCompleterClass,
-            Nullability.legacy,
-            const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType get asyncAwaitCompleterNullableRawType {
-    return _asyncAwaitCompleterNullableRawType ??=
-        _nullableRawTypes[asyncAwaitCompleterClass] ??= new InterfaceType(
-            asyncAwaitCompleterClass,
-            Nullability.nullable,
-            const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType get asyncAwaitCompleterNonNullableRawType {
-    return _asyncAwaitCompleterNonNullableRawType ??=
-        _nonNullableRawTypes[asyncAwaitCompleterClass] ??= new InterfaceType(
-            asyncAwaitCompleterClass,
-            Nullability.nonNullable,
-            const <DartType>[const DynamicType()]);
-  }
-
-  InterfaceType asyncAwaitCompleterRawType(Nullability nullability) {
-    switch (nullability) {
-      case Nullability.legacy:
-        return asyncAwaitCompleterLegacyRawType;
-      case Nullability.nullable:
-        return asyncAwaitCompleterNullableRawType;
-      case Nullability.nonNullable:
-        return asyncAwaitCompleterNonNullableRawType;
       case Nullability.undetermined:
       default:
         throw new StateError(
