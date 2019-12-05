@@ -145,8 +145,6 @@ for command; do
       --exclude out/ReleaseIA32/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
-      third_party/d8/linux/ia32/natives_blob.bin \
-      third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
@@ -158,7 +156,7 @@ for command; do
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/run_vm_tests \
-      third_party/d8/linux/ia32/d8 \
+      third_party/d8/linux/ia32 \
       sdk \
       samples-dev/swarm \
       third_party/pkg \
@@ -303,8 +301,6 @@ EOF
       --exclude out/ReleaseX64/dart-sdk/bin/model \
       --exclude pkg/front_end/testcases \
       -- \
-      third_party/d8/linux/x64/natives_blob.bin \
-      third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
@@ -314,7 +310,7 @@ EOF
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/run_vm_tests \
-      third_party/d8/linux/x64/d8 \
+      third_party/d8/linux/x64 \
       out/ReleaseX64/dart_precompiled_runtime \
       sdk \
       samples-dev/swarm \
