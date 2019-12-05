@@ -1774,23 +1774,23 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(nullNone, intNone, intQuestion);
     check(nullNone, intQuestion, intQuestion);
-    check(nullNone, intStar, intQuestion);
+    check(nullNone, intStar, intStar);
 
     check(nullQuestion, intNone, intQuestion);
     check(nullQuestion, intQuestion, intQuestion);
-    check(nullQuestion, intStar, intQuestion);
+    check(nullQuestion, intStar, intStar);
 
-    check(nullStar, intNone, intQuestion);
+    check(nullStar, intNone, intStar);
     check(nullStar, intQuestion, intQuestion);
-    check(nullStar, intStar, intQuestion);
+    check(nullStar, intStar, intStar);
 
     check(nullNone, listNone(intNone), listQuestion(intNone));
     check(nullNone, listQuestion(intNone), listQuestion(intNone));
-    check(nullNone, listStar(intNone), listQuestion(intNone));
+    check(nullNone, listStar(intNone), listStar(intNone));
 
     check(nullNone, futureOrNone(intNone), futureOrQuestion(intNone));
     check(nullNone, futureOrQuestion(intNone), futureOrQuestion(intNone));
-    check(nullNone, futureOrStar(intNone), futureOrQuestion(intNone));
+    check(nullNone, futureOrStar(intNone), futureOrStar(intNone));
 
     check(nullNone, futureOrNone(intQuestion), futureOrNone(intQuestion));
     check(nullNone, futureOrStar(intQuestion), futureOrStar(intQuestion));

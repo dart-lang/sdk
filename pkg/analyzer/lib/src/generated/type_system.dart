@@ -428,12 +428,22 @@ class Dart2TypeSystem extends TypeSystem {
       }
     }
 
+    var T1_impl = T1 as TypeImpl;
+    var T2_impl = T2 as TypeImpl;
+
+    var T1_nullability = T1_impl.nullabilitySuffix;
+    var T2_nullability = T2_impl.nullabilitySuffix;
+
     // UP(T1, T2) where NULL(T1)
     if (T1_isNull) {
       // * T2 if T2 is nullable
+      // * T2* if Null <: T2 or T1 <: Object (that is, T1 or T2 is legacy)
       // * T2? otherwise
       if (isNullable(T2)) {
         return T2;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        return T2_impl.withNullability(NullabilitySuffix.star);
       } else {
         return makeNullable(T2);
       }
@@ -442,9 +452,13 @@ class Dart2TypeSystem extends TypeSystem {
     // UP(T1, T2) where NULL(T2)
     if (T2_isNull) {
       // * T1 if T1 is nullable
+      // * T1* if Null <: T1 or T2 <: Object (that is, T1 or T2 is legacy)
       // * T1? otherwise
       if (isNullable(T1)) {
         return T1;
+      } else if (T1_nullability == NullabilitySuffix.star ||
+          T2_nullability == NullabilitySuffix.star) {
+        return T1_impl.withNullability(NullabilitySuffix.star);
       } else {
         return makeNullable(T1);
       }
@@ -485,12 +499,6 @@ class Dart2TypeSystem extends TypeSystem {
         return makeNullable(T2);
       }
     }
-
-    var T1_impl = T1 as TypeImpl;
-    var T2_impl = T2 as TypeImpl;
-
-    var T1_nullability = T1_impl.nullabilitySuffix;
-    var T2_nullability = T2_impl.nullabilitySuffix;
 
     // UP(T1*, T2*) = S* where S is UP(T1, T2)
     // UP(T1*, T2?) = S? where S is UP(T1, T2)
