@@ -142,7 +142,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
     BackendImpacts impacts =
-        new BackendImpacts(commonElements, compiler.options.experimentNewRti);
+        new BackendImpacts(commonElements, compiler.options);
     _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,

@@ -897,7 +897,7 @@ class RecordClassData implements JClassData {
   InterfaceType get instantiationToBounds => thisType;
 
   @override
-  List<Variance> getVariances() => null;
+  List<Variance> getVariances() => [];
 }
 
 /// A container for variables declared in a particular scope that are accessed

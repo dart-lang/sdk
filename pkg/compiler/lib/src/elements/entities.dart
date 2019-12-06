@@ -219,6 +219,7 @@ class AsyncMarker {
 }
 
 /// Values for variance annotations.
+/// This needs to be kept in sync with values of `Variance` in `dart:_rti`.
 enum Variance { legacyCovariant, covariant, contravariant, invariant }
 
 /// Stripped down super interface for constructor like entities.

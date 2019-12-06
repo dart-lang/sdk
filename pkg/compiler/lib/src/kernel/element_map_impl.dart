@@ -1750,6 +1750,11 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
+  List<Variance> getTypeVariableVariances(ClassEntity cls) {
+    return elementMap.getTypeVariableVariances(cls);
+  }
+
+  @override
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
     return new InterfaceType(cls, typeArguments);

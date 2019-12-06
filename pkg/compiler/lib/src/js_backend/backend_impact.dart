@@ -13,6 +13,7 @@ import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import '../universe/use.dart';
 import '../util/enumset.dart';
+import '../options.dart';
 
 /// Backend specific features required by a backend impact.
 enum BackendFeature {
@@ -90,9 +91,9 @@ class BackendImpact {
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
   final CommonElements _commonElements;
-  final bool _newRti;
+  final CompilerOptions _options;
 
-  BackendImpacts(this._commonElements, this._newRti);
+  BackendImpacts(this._commonElements, this._options);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -166,7 +167,7 @@ class BackendImpacts {
     return _typeVariableBoundCheck ??= new BackendImpact(staticUses: [
       _commonElements.throwTypeError,
       _commonElements.assertIsSubtype,
-      if (_newRti) _commonElements.checkTypeBound,
+      if (_options.experimentNewRti) _commonElements.checkTypeBound,
     ]);
   }
 
@@ -428,7 +429,7 @@ class BackendImpacts {
       _commonElements.typeLiteralClass
     ], staticUses: [
       _commonElements.createRuntimeType,
-      if (_newRti) _commonElements.typeLiteralMaker,
+      if (_options.experimentNewRti) _commonElements.typeLiteralMaker,
     ]);
   }
 
@@ -770,7 +771,7 @@ class BackendImpacts {
       _genericInstantiation[typeArgumentCount] ??=
           new BackendImpact(staticUses: [
         _commonElements.getInstantiateFunction(typeArgumentCount),
-        ..._newRti
+        ..._options.experimentNewRti
             ? [
                 _commonElements.instantiatedGenericFunctionTypeNewRti,
                 _commonElements.closureFunctionType
@@ -785,7 +786,7 @@ class BackendImpacts {
 
   /// Backend impact for --experiment-new-rti.
   List<BackendImpact> newRtiImpacts(String what) {
-    if (!_newRti) return [];
+    if (!_options.experimentNewRti) return [];
     // TODO(sra): Split into refined impacts.
     return [
       BackendImpact(staticUses: [
@@ -825,9 +826,12 @@ class BackendImpacts {
 
   BackendImpact _rtiAddRules;
 
+  // TODO(fishythefish): Split into refined impacts.
   BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(globalUses: [
         _commonElements.rtiAddRulesMethod,
-        _commonElements.rtiAddErasedTypesMethod
+        _commonElements.rtiAddErasedTypesMethod,
+        if (_options.enableVariance)
+          _commonElements.rtiAddTypeParameterVariancesMethod,
       ], otherImpacts: [
         _needsString('Needed to encode the new RTI ruleset.')
       ]);

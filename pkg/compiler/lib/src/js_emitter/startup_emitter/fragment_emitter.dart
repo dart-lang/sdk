@@ -439,6 +439,9 @@ var #staticStateDeclaration = {};
 // Adds the subtype rules for the new RTI.
 #typeRules;
 
+// Adds the variance table for the new RTI.
+#variances;
+
 // Shared types need to be initialized before constants.
 #sharedTypeRtis;
 
@@ -539,6 +542,9 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 
 // Adds the subtype rules for the new RTI.
 #typeRules;
+
+// Adds the variance table for the new RTI.
+#variances;
 
 #sharedTypeRtis;
 // Instantiates all constants of this deferred fragment.
@@ -702,6 +708,7 @@ class FragmentEmitter {
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
+      'variances': emitVariances(fragment),
       'sharedTypeRtis':
           _options.experimentNewRti ? TypeReferenceResource() : [],
       'nativeSupport': program.needsNativeSupport
@@ -786,6 +793,7 @@ class FragmentEmitter {
     var tearOffs = emitInstallTearOffs(fragment);
     var constants = emitConstants(fragment);
     var typeRules = emitTypeRules(fragment);
+    var variances = emitVariances(fragment);
     var staticNonFinalFields = emitStaticNonFinalFields(fragment);
     var lazyInitializers = emitLazilyInitializedStatics(fragment);
     // TODO(floitsch): only call emitNativeSupport if we need native.
@@ -828,6 +836,7 @@ class FragmentEmitter {
       'aliases': methodAliases,
       'tearOffs': tearOffs,
       'typeRules': typeRules,
+      'variances': variances,
       'constants': constants,
       'staticNonFinalFields': staticNonFinalFields,
       'lazyStatics': lazyInitializers,
@@ -2039,6 +2048,41 @@ class FragmentEmitter {
     }
 
     return js.Block(statements);
+  }
+
+  js.Statement emitVariances(Fragment fragment) {
+    if (!_options.enableVariance || !_options.experimentNewRti) {
+      return js.EmptyStatement();
+    }
+
+    Map<ClassEntity, List<Variance>> typeParameterVariances = {};
+    Iterable<Class> classes =
+        fragment.libraries.expand((Library library) => library.classes);
+    classes.forEach((Class cls) {
+      ClassEntity element = cls.element;
+      List<Variance> classVariances =
+          _elementEnvironment.getTypeVariableVariances(element);
+
+      // Emit variances for a class only if there is at least one explicit
+      // variance defined.
+      bool hasOnlyLegacyVariance = classVariances
+          .every((variance) => variance == Variance.legacyCovariant);
+      if (!hasOnlyLegacyVariance) {
+        typeParameterVariances[element] = classVariances;
+      }
+    });
+
+    if (typeParameterVariances.isNotEmpty) {
+      FunctionEntity addVariances =
+          _closedWorld.commonElements.rtiAddTypeParameterVariancesMethod;
+      return js.js.statement('#(init.#,JSON.parse(#));', [
+        _emitter.staticFunctionAccess(addVariances),
+        RTI_UNIVERSE,
+        _rulesetEncoder.encodeTypeParameterVariances(typeParameterVariances),
+      ]);
+    }
+
+    return js.EmptyStatement();
   }
 
   /// Returns an expression that creates the initial Rti Universe.

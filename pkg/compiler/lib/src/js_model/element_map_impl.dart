@@ -2295,6 +2295,11 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
+  List<Variance> getTypeVariableVariances(ClassEntity cls) {
+    return elementMap.getTypeVariableVariances(cls);
+  }
+
+  @override
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
     return elementMap._getTypeVariableDefaultType(typeVariable);
   }
