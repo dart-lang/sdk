@@ -389,7 +389,7 @@ abstract class AstNode implements SyntacticEntity {
 
   /// Return either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there is no such node.
-  T thisOrAncestorOfType<T extends AstNode>();
+  E thisOrAncestorOfType<E extends AstNode>();
 
   /// Return a textual description of this node in a form approximating valid
   /// source.

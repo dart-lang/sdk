@@ -646,6 +646,7 @@ abstract class Element implements AnalysisTarget {
   /// Return the most immediate ancestor of this element for which the
   /// [predicate] returns `true`, or `null` if there is no such ancestor. Note
   /// that this element will never be returned.
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   E getAncestor<E extends Element>(Predicate<Element> predicate);
 
   /// Return a display name for the given element that includes the path to the
@@ -663,6 +664,15 @@ abstract class Element implements AnalysisTarget {
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
   bool isAccessibleIn(LibraryElement library);
+
+  /// Return either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`, or `null` if there is no such
+  /// element.
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate);
+
+  /// Return either this element or the most immediate ancestor of this element
+  /// that has the given type, or `null` if there is no such element.
+  E thisOrAncestorOfType<E extends Element>();
 
   /// Use the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.

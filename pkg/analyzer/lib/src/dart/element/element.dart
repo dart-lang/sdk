@@ -2916,8 +2916,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  LibraryElement get library =>
-      getAncestor((element) => element is LibraryElement);
+  LibraryElement get library => thisOrAncestorOfType();
 
   @override
   Source get librarySource => library?.source;
@@ -3029,6 +3028,7 @@ abstract class ElementImpl implements Element {
     }
   }
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     var ancestor = _enclosingElement;
@@ -3085,6 +3085,24 @@ abstract class ElementImpl implements Element {
   /// correspond to the given [value].
   void setModifier(Modifier modifier, bool value) {
     _modifiers = BooleanArray.set(_modifiers, modifier.ordinal, value);
+  }
+
+  @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) {
+    Element element = this;
+    while (element != null && !predicate(element)) {
+      element = element.enclosingElement;
+    }
+    return element as E;
+  }
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() {
+    Element element = this;
+    while (element != null && element is! E) {
+      element = element.enclosingElement;
+    }
+    return element as E;
   }
 
   @override
@@ -6234,6 +6252,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) => null;
 
@@ -6254,6 +6273,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     return false;
   }
+
+  @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
+      null;
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() => null;
 
   @override
   String toString() {

@@ -1225,8 +1225,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // The target has been found.
       labelNode.staticElement = definingScope.element;
-      ExecutableElement labelContainer = definingScope.element
-          .getAncestor((element) => element is ExecutableElement);
+      ExecutableElement labelContainer =
+          definingScope.element.thisOrAncestorOfType();
       if (!identical(labelContainer, _resolver.enclosingFunction)) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,

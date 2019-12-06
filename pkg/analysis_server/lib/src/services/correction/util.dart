@@ -179,7 +179,7 @@ CompilationUnitElement getCompilationUnitElement(Element element) {
   if (element is CompilationUnitElement) {
     return element;
   }
-  return element.getAncestor((e) => e is CompilationUnitElement);
+  return element.thisOrAncestorOfType();
 }
 
 String getDefaultValueCode(DartType type) {

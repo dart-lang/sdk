@@ -814,7 +814,6 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
-    // TODO(brianwilkerson) It is a bug that this method can return `this`.
     AstNode node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
@@ -823,12 +822,12 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  T thisOrAncestorOfType<T extends AstNode>() {
+  E thisOrAncestorOfType<E extends AstNode>() {
     AstNode node = this;
-    while (node != null && node is! T) {
+    while (node != null && node is! E) {
       node = node.parent;
     }
-    return node as T;
+    return node as E;
   }
 
   @override

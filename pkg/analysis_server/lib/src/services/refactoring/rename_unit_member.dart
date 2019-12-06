@@ -253,7 +253,7 @@ class _RenameUnitMemberValidator {
   void _validateWillBeShadowed() {
     for (SearchMatch reference in references) {
       Element refElement = reference.element;
-      ClassElement refClass = refElement.getAncestor((e) => e is ClassElement);
+      ClassElement refClass = refElement.thisOrAncestorOfType();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {
@@ -304,8 +304,7 @@ class _RenameUnitMemberValidator {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        ClassElement refClass =
-            refElement.getAncestor((e) => e is ClassElement);
+        ClassElement refClass = refElement.thisOrAncestorOfType();
         if (refClass == declaringClass) {
           continue;
         }

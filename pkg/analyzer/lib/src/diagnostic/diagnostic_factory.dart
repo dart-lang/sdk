@@ -57,8 +57,7 @@ class DiagnosticFactory {
     List<DiagnosticMessage> contextMessages;
     int declarationOffset = staticElement.nameOffset;
     if (declarationOffset >= 0 && staticElement != null) {
-      CompilationUnitElement unit = staticElement
-          .getAncestor((element) => element is CompilationUnitElement);
+      CompilationUnitElement unit = staticElement.thisOrAncestorOfType();
       CharacterLocation location = unit.lineInfo.getLocation(declarationOffset);
       contextMessages = [
         DiagnosticMessageImpl(

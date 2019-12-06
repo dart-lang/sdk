@@ -73,8 +73,7 @@ class DartUnitHoverComputer {
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
-          ClassElement containingClass =
-              element.getAncestor((e) => e is ClassElement);
+          ClassElement containingClass = element.thisOrAncestorOfType();
           if (containingClass != null) {
             hover.containingClassDescription = containingClass.displayName;
           }

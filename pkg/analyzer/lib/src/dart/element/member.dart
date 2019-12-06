@@ -551,6 +551,7 @@ abstract class Member implements Element {
    */
   MapSubstitution get substitution => _substitution;
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) =>
       declaration.getAncestor(predicate);
@@ -574,6 +575,14 @@ abstract class Member implements Element {
       }
     }
   }
+
+  @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
+      declaration.thisOrAncestorMatching(predicate);
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() =>
+      declaration.thisOrAncestorOfType<E>();
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -840,6 +849,7 @@ class ParameterMember extends VariableMember
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     Element element = declaration.getAncestor(predicate);

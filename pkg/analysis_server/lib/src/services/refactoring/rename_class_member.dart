@@ -262,7 +262,7 @@ class _ClassMemberValidator {
     var visibleRangeMap = <LocalElement, SourceRange>{};
 
     Future<List<LocalElement>> getLocalElements(Element element) async {
-      var unitElement = element.getAncestor((e) => e is CompilationUnitElement);
+      var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
       var localElements = localElementMap[unitElement];
 
       if (localElements == null) {
