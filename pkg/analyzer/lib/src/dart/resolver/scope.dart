@@ -454,9 +454,10 @@ class LibraryImportScope extends Scope {
   @override
   bool shouldIgnoreUndefined(Identifier node) {
     Iterable<NamespaceCombinator> getShowCombinators(
-            ImportElement importElement) =>
-        importElement.combinators.where((NamespaceCombinator combinator) =>
-            combinator is ShowElementCombinator);
+        ImportElement importElement) {
+      return importElement.combinators.whereType<ShowElementCombinator>();
+    }
+
     if (node is PrefixedIdentifier) {
       String prefix = node.prefix.name;
       String name = node.identifier.name;

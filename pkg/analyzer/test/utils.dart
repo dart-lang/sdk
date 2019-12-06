@@ -16,8 +16,7 @@ import 'package:test/test.dart';
  */
 FunctionElement findLocalFunction(CompilationUnit unit, String name) {
   List<Element> elements = findElementsByName(unit, name);
-  List<Element> functions =
-      elements.where((e) => e is FunctionElement).toList();
+  List<Element> functions = elements.whereType<FunctionElement>().toList();
   expect(functions, hasLength(1));
   return functions[0];
 }
@@ -29,7 +28,7 @@ FunctionElement findLocalFunction(CompilationUnit unit, String name) {
 LocalVariableElement findLocalVariable(CompilationUnit unit, String name) {
   List<Element> elements = findElementsByName(unit, name);
   List<Element> localVariables =
-      elements.where((e) => e is LocalVariableElement).toList();
+      elements.whereType<LocalVariableElement>().toList();
   expect(localVariables, hasLength(1));
   return localVariables[0];
 }

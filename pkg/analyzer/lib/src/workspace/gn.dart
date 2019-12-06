@@ -252,8 +252,7 @@ class GnWorkspace extends Workspace {
     }
     return genDir
         .getChildren()
-        .where((resource) => resource is File)
-        .map((resource) => resource as File)
+        .whereType<File>()
         .where((File file) => pathContext.extension(file.path) == '.packages')
         .map((File file) => file.path)
         .toList();
@@ -285,11 +284,7 @@ class GnWorkspace extends Workspace {
     if (!outDirectory.exists) {
       return null;
     }
-    return outDirectory
-        .getChildren()
-        .where((resource) => resource is Folder)
-        .map((resource) => resource as Folder)
-        .firstWhere((Folder folder) {
+    return outDirectory.getChildren().whereType<Folder>().firstWhere((folder) {
       String baseName = pathContext.basename(folder.path);
       // Taking a best guess to identify a build dir. This is clearly a fallback
       // to the config-based method.
