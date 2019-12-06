@@ -611,7 +611,7 @@ class Dart2TypeSystem extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = new GenericInferrer(typeProvider, this, fnType.typeFormals);
+    var inferrer = GenericInferrer(typeProvider, this, fnType.typeFormals);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -664,7 +664,7 @@ class Dart2TypeSystem extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = new GenericInferrer(
+    var inferrer = GenericInferrer(
       typeProvider,
       this,
       typeParameters,
@@ -734,7 +734,7 @@ class Dart2TypeSystem extends TypeSystem {
       return const <DartType>[];
     }
 
-    Set<TypeParameterElement> all = new Set<TypeParameterElement>();
+    Set<TypeParameterElement> all = Set<TypeParameterElement>();
     // all ground
     Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
     // not ground
@@ -753,7 +753,7 @@ class Dart2TypeSystem extends TypeSystem {
 
     List<TypeParameterElement> getFreeParameters(DartType rootType) {
       List<TypeParameterElement> parameters;
-      Set<DartType> visitedTypes = new HashSet<DartType>();
+      Set<DartType> visitedTypes = HashSet<DartType>();
 
       void appendParameters(DartType type) {
         if (type == null) {
@@ -2041,7 +2041,7 @@ class Dart2TypeSystem extends TypeSystem {
             return false;
           }
         } else {
-          throw new StateError('Type parameter ${tParams[i]} has unknown '
+          throw StateError('Type parameter ${tParams[i]} has unknown '
               'variance $variance for subtype checking.');
         }
       }
@@ -2058,7 +2058,7 @@ class Dart2TypeSystem extends TypeSystem {
     // Dart 2 does not allow multiple implementations of the same generic type
     // with different type arguments. So we can track just the class element
     // to find cycles, rather than tracking the full interface type.
-    visitedTypes ??= new HashSet<ClassElement>();
+    visitedTypes ??= HashSet<ClassElement>();
     if (!visitedTypes.add(i1Element)) return false;
 
     InterfaceType superclass = i1.superclass;
@@ -2128,7 +2128,7 @@ class Dart2TypeSystem extends TypeSystem {
       var newTypeArgs = _transformList(
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
-      return new InterfaceTypeImpl.explicit(type.element, newTypeArgs,
+      return InterfaceTypeImpl.explicit(type.element, newTypeArgs,
           nullabilitySuffix: type.nullabilitySuffix);
     }
     if (type is FunctionType) {
@@ -2137,7 +2137,7 @@ class Dart2TypeSystem extends TypeSystem {
       var newParameters = _transformList(parameters, (ParameterElement p) {
         // Parameters are contravariant, so flip the constraint direction.
         var newType = _substituteType(p.type, !lowerBound, visitType);
-        return new ParameterElementImpl.synthetic(
+        return ParameterElementImpl.synthetic(
             p.name,
             newType,
             // ignore: deprecated_member_use_from_same_package
@@ -2150,7 +2150,7 @@ class Dart2TypeSystem extends TypeSystem {
         return type;
       }
 
-      return new FunctionTypeImpl(
+      return FunctionTypeImpl(
         typeFormals: type.typeFormals,
         parameters: newParameters,
         returnType: newReturnType,
@@ -2173,7 +2173,7 @@ class Dart2TypeSystem extends TypeSystem {
       var item = list[i];
       var newItem = f(item);
       if (!identical(item, newItem)) {
-        newList ??= new List.from(list);
+        newList ??= List.from(list);
         newList[i] = newItem;
       }
     }
@@ -2228,7 +2228,7 @@ class GenericInferrer {
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
       {ClassElement genericClass}) {
-    var origin = new _TypeConstraintFromArgument(
+    var origin = _TypeConstraintFromArgument(
         argumentType, parameterType, parameterName,
         genericClass: genericClass);
     tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
@@ -2238,7 +2238,7 @@ class GenericInferrer {
   /// [contextType].
   void constrainGenericFunctionInContext(
       FunctionType fnType, DartType contextType) {
-    var origin = new _TypeConstraintFromFunctionContext(fnType, contextType);
+    var origin = _TypeConstraintFromFunctionContext(fnType, contextType);
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -2254,7 +2254,7 @@ class GenericInferrer {
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType) {
-    var origin = new _TypeConstraintFromReturnType(declaredType, contextType);
+    var origin = _TypeConstraintFromReturnType(declaredType, contextType);
     tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
@@ -2277,8 +2277,8 @@ class GenericInferrer {
     //
     // In the downwards phase, they all start as `?` to offer reasonable
     // degradation for f-bounded type parameters.
-    var inferredTypes = new List<DartType>.filled(
-        typeFormals.length, UnknownInferredType.instance);
+    var inferredTypes =
+        List<DartType>.filled(typeFormals.length, UnknownInferredType.instance);
 
     for (int i = 0; i < typeFormals.length; i++) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
@@ -2286,7 +2286,7 @@ class GenericInferrer {
       TypeParameterElementImpl typeParam = typeFormals[i];
       _TypeConstraint extendsClause;
       if (considerExtendsClause && typeParam.bound != null) {
-        extendsClause = new _TypeConstraint.fromExtends(
+        extendsClause = _TypeConstraint.fromExtends(
             typeParam,
             Substitution.fromPairs(typeFormals, inferredTypes)
                 .substituteType(typeParam.bound));
@@ -2322,7 +2322,7 @@ class GenericInferrer {
       if (success && !typeParamBound.isDynamic) {
         // If everything else succeeded, check the `extends` constraint.
         var extendsConstraint =
-            new _TypeConstraint.fromExtends(typeParam, typeParamBound);
+            _TypeConstraint.fromExtends(typeParam, typeParamBound);
         constraints.add(extendsConstraint);
         success = extendsConstraint.isSatisifedBy(_typeSystem, inferred);
       }
@@ -2377,7 +2377,7 @@ class GenericInferrer {
     }
 
     // Use instantiate to bounds to finish things off.
-    var hasError = new List<bool>.filled(typeFormals.length, false);
+    var hasError = List<bool>.filled(typeFormals.length, false);
     var result = _typeSystem.instantiateTypeFormalsToBounds(typeFormals,
         hasError: hasError, knownTypes: knownTypes);
 
@@ -2646,28 +2646,24 @@ class GenericInferrer {
         Variance parameterVariance =
             (typeParameterElement as TypeParameterElementImpl).variance;
         if (parameterVariance.isCovariant) {
-          if (!_matchSubtypeOf(
-              tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
+          if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
               covariant: covariant)) {
             return false;
           }
         } else if (parameterVariance.isContravariant) {
-          if (!_matchSubtypeOf(
-              tArgs2[i], tArgs1[i], new HashSet<Element>(), origin,
+          if (!_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
               covariant: !covariant)) {
             return false;
           }
         } else if (parameterVariance.isInvariant) {
-          if (!_matchSubtypeOf(
-                  tArgs1[i], tArgs2[i], new HashSet<Element>(), origin,
+          if (!_matchSubtypeOf(tArgs1[i], tArgs2[i], HashSet<Element>(), origin,
                   covariant: covariant) ||
-              !_matchSubtypeOf(
-                  tArgs2[i], tArgs1[i], new HashSet<Element>(), origin,
+              !_matchSubtypeOf(tArgs2[i], tArgs1[i], HashSet<Element>(), origin,
                   covariant: !covariant)) {
             return false;
           }
         } else {
-          throw new StateError("Type parameter ${tParams[i]} has unknown "
+          throw StateError("Type parameter ${tParams[i]} has unknown "
               "variance $parameterVariance for inference.");
         }
       }
@@ -2679,7 +2675,7 @@ class GenericInferrer {
 
     // Guard against loops in the class hierarchy
     bool guardedInterfaceSubtype(InterfaceType t1) {
-      visited ??= new HashSet<Element>();
+      visited ??= HashSet<Element>();
       if (visited.add(t1.element)) {
         bool matched = _matchInterfaceSubtypeOf(t1, i2, visited, origin,
             covariant: covariant);
@@ -2731,7 +2727,7 @@ class GenericInferrer {
       var constraints = this.constraints[t1.element];
       if (constraints != null) {
         if (!identical(t2, UnknownInferredType.instance)) {
-          var constraint = new _TypeConstraint(origin, t1.element, upper: t2);
+          var constraint = _TypeConstraint(origin, t1.element, upper: t2);
           constraints.add(constraint);
           _undoBuffer.add(constraint);
         }
@@ -2742,7 +2738,7 @@ class GenericInferrer {
       var constraints = this.constraints[t2.element];
       if (constraints != null) {
         if (!identical(t1, UnknownInferredType.instance)) {
-          var constraint = new _TypeConstraint(origin, t2.element, lower: t1);
+          var constraint = _TypeConstraint(origin, t2.element, lower: t1);
           constraints.add(constraint);
           _undoBuffer.add(constraint);
         }
@@ -2823,7 +2819,7 @@ class GenericInferrer {
       // TODO(jmesserly): this function isn't guarding against anything (it's
       // not passsing down `visitedSet`, so adding the element has no effect).
       bool guardedSubtype(DartType t1, DartType t2) {
-        var visitedSet = visited ?? new HashSet<Element>();
+        var visitedSet = visited ?? HashSet<Element>();
         if (visitedSet.add(t1.element)) {
           bool matched = matchSubtype(t1, t2);
           visitedSet.remove(t1.element);
@@ -2897,7 +2893,7 @@ class GenericInferrer {
 
   static String _formatConstraints(Iterable<_TypeConstraint> constraints) {
     List<List<String>> lineParts =
-        new Set<_TypeConstraintOrigin>.from(constraints.map((c) => c.origin))
+        Set<_TypeConstraintOrigin>.from(constraints.map((c) => c.origin))
             .map((o) => o.formatError())
             .toList();
 
@@ -2905,7 +2901,7 @@ class GenericInferrer {
 
     // Use a set to prevent identical message lines.
     // (It's not uncommon for the same constraint to show up in a few places.)
-    var messageLines = new Set<String>.from(lineParts.map((parts) {
+    var messageLines = Set<String>.from(lineParts.map((parts) {
       var prefix = parts[0];
       var middle = parts[1];
       var prefixPad = ' ' * (prefixMax - prefix.length);
@@ -3119,12 +3115,12 @@ class InterfaceLeastUpperBoundHelper {
           //  parameters.
           args[i] = args1[i];
         } else {
-          throw new StateError('Type parameter ${params[i]} has unknown '
+          throw StateError('Type parameter ${params[i]} has unknown '
               'variance $parameterVariance for bounds calculation.');
         }
       }
 
-      return new InterfaceTypeImpl.explicit(
+      return InterfaceTypeImpl.explicit(
         type1.element,
         args,
         nullabilitySuffix: nullability,
@@ -3284,7 +3280,7 @@ class InterfaceLeastUpperBoundHelper {
     List<InstantiatedClass> types,
   ) {
     // for each element in Set s, compute the largest inheritance path to Object
-    List<int> depths = new List<int>.filled(types.length, 0);
+    List<int> depths = List<int>.filled(types.length, 0);
     int maxDepth = 0;
     for (int i = 0; i < types.length; i++) {
       depths[i] = computeLongestInheritancePathToObject(types[i].element);
@@ -3545,7 +3541,7 @@ abstract class TypeSystem implements public.TypeSystem {
     List<DartType> destTypes,
   ) {
     var typeParameters = mixinElement.typeParameters;
-    var inferrer = new GenericInferrer(typeProvider, this, typeParameters);
+    var inferrer = GenericInferrer(typeProvider, this, typeParameters);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -3739,7 +3735,7 @@ abstract class TypeSystem implements public.TypeSystem {
    */
   List<DartType> _searchTypeHierarchyForFutureTypeParameters(DartType type) {
     List<DartType> result = <DartType>[];
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     void recurse(InterfaceTypeImpl type) {
       if (type.isDartAsyncFuture && type.typeArguments.isNotEmpty) {
         result.add(type.typeArguments[0]);
@@ -3784,7 +3780,7 @@ class TypeSystemImpl extends Dart2TypeSystem {
 /// example `List<?>`. This is distinct from `List<dynamic>`. These types will
 /// never appear in the final resolved AST.
 class UnknownInferredType extends TypeImpl {
-  static final UnknownInferredType instance = new UnknownInferredType._();
+  static final UnknownInferredType instance = UnknownInferredType._();
 
   UnknownInferredType._()
       : super(UnknownInferredTypeElement.instance, Keyword.DYNAMIC.lexeme);
@@ -3861,7 +3857,7 @@ class UnknownInferredType extends TypeImpl {
 class UnknownInferredTypeElement extends ElementImpl
     implements TypeDefiningElement {
   static final UnknownInferredTypeElement instance =
-      new UnknownInferredTypeElement._();
+      UnknownInferredTypeElement._();
 
   UnknownInferredTypeElement._() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
@@ -3893,8 +3889,7 @@ class _TypeConstraint extends _TypeRange {
 
   _TypeConstraint.fromExtends(
       TypeParameterElement element, DartType extendsType)
-      : this(
-            new _TypeConstraintFromExtendsClause(element, extendsType), element,
+      : this(_TypeConstraintFromExtendsClause(element, extendsType), element,
             upper: extendsType);
 
   bool get isDownwards => origin is! _TypeConstraintFromArgument;

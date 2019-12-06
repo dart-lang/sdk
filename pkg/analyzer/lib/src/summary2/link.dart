@@ -114,8 +114,8 @@ class Linker {
       library.buildInitialExportScope();
     }
 
-    var exporters = new Set<LibraryBuilder>();
-    var exportees = new Set<LibraryBuilder>();
+    var exporters = Set<LibraryBuilder>();
+    var exportees = Set<LibraryBuilder>();
 
     for (var library in builders.values) {
       library.addExporters();
@@ -130,7 +130,7 @@ class Linker {
       }
     }
 
-    var both = new Set<LibraryBuilder>();
+    var both = Set<LibraryBuilder>();
     for (var exported in exportees) {
       if (exporters.contains(exported)) {
         both.add(exported);

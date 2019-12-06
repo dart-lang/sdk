@@ -45,7 +45,7 @@ class LibraryContext {
   final ByteStore byteStore;
   final AnalysisSession analysisSession;
   final SummaryDataStore externalSummaries;
-  final SummaryDataStore store = new SummaryDataStore([]);
+  final SummaryDataStore store = SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
   /// When it reaches [_maxLinkedDataInBytes] the whole context is thrown away.
@@ -78,7 +78,7 @@ class LibraryContext {
     _createElementFactory();
     load2(targetLibrary);
 
-    inheritanceManager = new InheritanceManager3();
+    inheritanceManager = InheritanceManager3();
   }
 
   /**

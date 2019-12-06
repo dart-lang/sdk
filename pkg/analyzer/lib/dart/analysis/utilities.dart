@@ -124,7 +124,7 @@ ParseStringResult parseString(
   ParseStringResult result =
       ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
-    throw new ArgumentError('Content produced diagnostics when parsed');
+    throw ArgumentError('Content produced diagnostics when parsed');
   }
   return result;
 }
@@ -149,13 +149,13 @@ Future<ResolvedUnitResult> resolveFile(
 /// If a [resourceProvider] is given, it will be used to access the file system.
 AnalysisContext _createAnalysisContext(
     {@required String path, ResourceProvider resourceProvider}) {
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+  AnalysisContextCollection collection = AnalysisContextCollection(
     includedPaths: <String>[path],
     resourceProvider: resourceProvider ?? PhysicalResourceProvider.INSTANCE,
   );
   List<AnalysisContext> contexts = collection.contexts;
   if (contexts.length != 1) {
-    throw new ArgumentError('path must be an absolute path to a single file');
+    throw ArgumentError('path must be an absolute path to a single file');
   }
   return contexts[0];
 }

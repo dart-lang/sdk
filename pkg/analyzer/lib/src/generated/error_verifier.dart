@@ -217,13 +217,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The return statements found in the method or function that we are currently
    * visiting that have a return value.
    */
-  List<ReturnStatement> _returnsWith = new List<ReturnStatement>();
+  List<ReturnStatement> _returnsWith = List<ReturnStatement>();
 
   /**
    * The return statements found in the method or function that we are currently
    * visiting that do not have a return value.
    */
-  List<ReturnStatement> _returnsWithout = new List<ReturnStatement>();
+  List<ReturnStatement> _returnsWithout = List<ReturnStatement>();
 
   /**
    * This map is initialized when visiting the contents of a class declaration.
@@ -246,25 +246,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * this library.
    */
   Map<String, LibraryElement> _nameToExportElement =
-      new HashMap<String, LibraryElement>();
+      HashMap<String, LibraryElement>();
 
   /**
    * A table mapping name of the library to the import directive which import
    * this library.
    */
   Map<String, LibraryElement> _nameToImportElement =
-      new HashMap<String, LibraryElement>();
+      HashMap<String, LibraryElement>();
 
   /**
    * A table mapping names to the exported elements.
    */
-  Map<String, Element> _exportedElements = new HashMap<String, Element>();
+  Map<String, Element> _exportedElements = HashMap<String, Element>();
 
   /**
    * A set of the names of the variable initializers we are visiting now.
    */
   HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
-      new HashSet<String>();
+      HashSet<String>();
 
   /**
    * The elements that will be defined later in the current scope, but right
@@ -297,7 +297,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       {this.disableConflictingGenericsCheck = false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
-            new _UninstantiatedBoundChecker(errorReporter),
+            _UninstantiatedBoundChecker(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
@@ -433,7 +433,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _hiddenElements = new HiddenElements(_hiddenElements, node);
+    _hiddenElements = HiddenElements(_hiddenElements, node);
     try {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
@@ -451,8 +451,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _inAsync = node.isAsynchronous;
       _inGenerator = node.isGenerator;
-      _returnsWith = new List<ReturnStatement>();
-      _returnsWithout = new List<ReturnStatement>();
+      _returnsWith = List<ReturnStatement>();
+      _returnsWithout = List<ReturnStatement>();
       super.visitBlockFunctionBody(node);
     } finally {
       _inAsync = wasInAsync;
@@ -1526,7 +1526,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     Map<FieldElement, INIT_STATE> fieldElementsMap =
-        new HashMap<FieldElement, INIT_STATE>.from(_initialFieldElementsMap);
+        HashMap<FieldElement, INIT_STATE>.from(_initialFieldElementsMap);
     // Visit all of the field formal parameters
     NodeList<FormalParameter> formalParameters =
         constructor.parameters.parameters;
@@ -1833,7 +1833,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     // check exported names
     Namespace namespace =
-        new NamespaceBuilder().createExportNamespaceForDirective(exportElement);
+        NamespaceBuilder().createExportNamespaceForDirective(exportElement);
     Map<String, Element> definedNames = namespace.definedNames;
     for (String name in definedNames.keys) {
       Element element = definedNames[name];
@@ -1862,7 +1862,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = element.displayName;
       List<Element> conflictingMembers = element.conflictingElements;
       int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
+      List<String> libraryNames = List<String>(count);
       for (int i = 0; i < count; i++) {
         libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }
@@ -2212,9 +2212,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       // find inherited property accessor
       ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, name));
+          enclosingType, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, '$name='));
+          enclosingType, Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2239,9 +2239,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       // find inherited method or property accessor
       ExecutableElement inherited = _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, name));
+          enclosingType, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited(
-          enclosingType, new Name(libraryUri, '$name='));
+          enclosingType, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2653,7 +2653,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     int count = directives.length;
     if (count > 0) {
       Map<PrefixElement, List<ImportDirective>> prefixToDirectivesMap =
-          new HashMap<PrefixElement, List<ImportDirective>>();
+          HashMap<PrefixElement, List<ImportDirective>>();
       for (int i = 0; i < count; i++) {
         Directive directive = directives[i];
         if (directive is ImportDirective) {
@@ -2663,7 +2663,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             if (element is PrefixElement) {
               List<ImportDirective> elements = prefixToDirectivesMap[element];
               if (elements == null) {
-                elements = new List<ImportDirective>();
+                elements = List<ImportDirective>();
                 prefixToDirectivesMap[element] = elements;
               }
               elements.add(directive);
@@ -3903,7 +3903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     InterfaceTypeImpl enclosingType = _enclosingClass.thisType;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
-      var nameObject = new Name(mixinLibraryUri, name);
+      var nameObject = Name(mixinLibraryUri, name);
 
       var superMember = _inheritanceManager.getMember(enclosingType, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
@@ -4030,7 +4030,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
     if (element != null && _hasConcreteSuperMethod(node)) {
-      _InvocationCollector collector = new _InvocationCollector();
+      _InvocationCollector collector = _InvocationCollector();
       node.accept(collector);
       if (!collector.superCalls.contains(element.name)) {
         _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
@@ -4635,7 +4635,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _hiddenElements != null &&
         _hiddenElements.contains(node.staticElement) &&
         node.parent is! CommentReference) {
-      _errorReporter.reportError(new DiagnosticFactory()
+      _errorReporter.reportError(DiagnosticFactory()
           .referencedBeforeDeclaration(_errorReporter.source, node));
     }
   }
@@ -4646,7 +4646,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     int count = typeNames.length;
-    List<bool> detectedRepeatOnIndex = new List<bool>.filled(count, false);
+    List<bool> detectedRepeatOnIndex = List<bool>.filled(count, false);
     for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
       detectedRepeatOnIndex[i] = false;
     }
@@ -5718,7 +5718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         Queue.of(classElement.mixins.map((i) => i.element))
           ..addAll(classElement.superclassConstraints.map((i) => i.element))
           ..add(classElement.supertype?.element);
-    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    Set<ClassElement> visitedClasses = Set<ClassElement>();
     while (superclasses.isNotEmpty) {
       ClassElement ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
@@ -5811,7 +5811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return library.definingCompilationUnit.source.uri.toString();
       }
     }
-    List<String> indirectSources = new List<String>();
+    List<String> indirectSources = List<String>();
     for (int i = 0; i < count; i++) {
       LibraryElement importedLibrary = imports[i].importedLibrary;
       if (importedLibrary != null) {
@@ -5825,7 +5825,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     int indirectCount = indirectSources.length;
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write(library.definingCompilationUnit.source.uri.toString());
     if (indirectCount > 0) {
       buffer.write(" (via ");
@@ -5873,7 +5873,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * indirectly.
    */
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
+    Set<ConstructorElement> constructors = HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
     while (current != null) {
       if (constructors.contains(current)) {
@@ -5886,7 +5886,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _initializeInitialFieldElementsMap(List<FieldElement> fields) {
-    _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
+    _initialFieldElementsMap = HashMap<FieldElement, INIT_STATE>();
     for (FieldElement fieldElement in fields) {
       if (!fieldElement.isSynthetic) {
         _initialFieldElementsMap[fieldElement] =
@@ -5993,7 +5993,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   static List<FieldElement> computeNotInitializedFields(
       ConstructorDeclaration constructor) {
-    Set<FieldElement> fields = new Set<FieldElement>();
+    Set<FieldElement> fields = Set<FieldElement>();
     var classDeclaration = constructor.parent as ClassDeclaration;
     for (ClassMember fieldDeclaration in classDeclaration.members) {
       if (fieldDeclaration is FieldDeclaration) {
@@ -6069,7 +6069,7 @@ class HiddenElements {
    * A set containing the elements that will be declared in this scope, but are
    * not yet declared.
    */
-  Set<Element> _elements = new HashSet<Element>();
+  Set<Element> _elements = HashSet<Element>();
 
   /**
    * Initialize a newly created set of hidden elements to include all of the

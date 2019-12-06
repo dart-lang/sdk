@@ -147,7 +147,7 @@ class ContextBuilder {
    */
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
       {ContextBuilderOptions options})
-      : builderOptions = options ?? new ContextBuilderOptions();
+      : builderOptions = options ?? ContextBuilderOptions();
 
   /**
    * Return an analysis driver that is configured correctly to analyze code in
@@ -164,7 +164,7 @@ class ContextBuilder {
     }
     final sf = createSourceFactory(path, options, summaryData: summaryData);
 
-    AnalysisDriver driver = new AnalysisDriver(
+    AnalysisDriver driver = AnalysisDriver(
         analysisDriverScheduler,
         performanceLog,
         resourceProvider,
@@ -199,7 +199,7 @@ class ContextBuilder {
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    Map<String, List<Folder>> folderMap = new HashMap<String, List<Folder>>();
+    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
     if (packages != null && packages != Packages.noPackages) {
       var pathContext = resourceProvider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
@@ -239,9 +239,9 @@ class ContextBuilder {
   AnalysisOptions createDefaultOptions() {
     AnalysisOptions defaultOptions = builderOptions.defaultOptions;
     if (defaultOptions == null) {
-      return new AnalysisOptionsImpl();
+      return AnalysisOptionsImpl();
     }
-    return new AnalysisOptionsImpl.from(defaultOptions);
+    return AnalysisOptionsImpl.from(defaultOptions);
   }
 
   Packages createPackageMap(String rootDirectoryPath) {
@@ -251,7 +251,7 @@ class ContextBuilder {
       List<int> bytes = configFile.readAsBytesSync();
       Map<String, Uri> map = parse(bytes, configFile.toUri());
       resolveSymbolicLinks(map);
-      return new MapPackages(map);
+      return MapPackages(map);
     }
     String directoryPath = builderOptions.defaultPackagesDirectoryPath;
     if (directoryPath != null) {
@@ -279,7 +279,7 @@ class ContextBuilder {
   void declareVariablesInDriver(AnalysisDriver driver) {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
-      driver.declaredVariables = new DeclaredVariables.fromMap(variables);
+      driver.declaredVariables = DeclaredVariables.fromMap(variables);
       driver.configure();
     }
   }
@@ -308,7 +308,7 @@ class ContextBuilder {
         return Packages.noPackages;
       }
       resolveSymbolicLinks(map);
-      return new MapPackages(map);
+      return MapPackages(map);
     } else if (location is Folder) {
       return getPackagesFromFolder(location);
     }
@@ -323,15 +323,14 @@ class ContextBuilder {
       Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
-      return new SummaryBasedDartSdk(summaryPath, true,
+      return SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
     } else if (packageMap != null) {
-      SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
+      SdkExtensionFinder extFinder = SdkExtensionFinder(packageMap);
       List<String> extFilePaths = extFinder.extensionFilePaths;
-      EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
+      EmbedderYamlLocator locator = EmbedderYamlLocator(packageMap);
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-      EmbedderSdk embedderSdk =
-          new EmbedderSdk(resourceProvider, embedderYamls);
+      EmbedderSdk embedderSdk = EmbedderSdk(resourceProvider, embedderYamls);
       if (embedderSdk.sdkLibraries.isNotEmpty) {
         //
         // There is an embedder file that defines the content of the SDK and
@@ -344,7 +343,7 @@ class ContextBuilder {
               .path);
         }
         paths.addAll(extFilePaths);
-        SdkDescription description = new SdkDescription(paths, analysisOptions);
+        SdkDescription description = SdkDescription(paths, analysisOptions);
         DartSdk dartSdk = sdkManager.getSdk(description, () {
           if (extFilePaths.isNotEmpty) {
             embedderSdk.addExtensions(extFinder.urlMappings);
@@ -361,9 +360,9 @@ class ContextBuilder {
         String sdkPath = sdkManager.defaultSdkDirectory;
         List<String> paths = <String>[sdkPath];
         paths.addAll(extFilePaths);
-        SdkDescription description = new SdkDescription(paths, analysisOptions);
+        SdkDescription description = SdkDescription(paths, analysisOptions);
         return sdkManager.getSdk(description, () {
-          FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          FolderBasedDartSdk sdk = FolderBasedDartSdk(
               resourceProvider, resourceProvider.getFolder(sdkPath));
           if (extFilePaths.isNotEmpty) {
             sdk.addExtensions(extFinder.urlMappings);
@@ -376,7 +375,7 @@ class ContextBuilder {
     }
     String sdkPath = sdkManager.defaultSdkDirectory;
     SdkDescription description =
-        new SdkDescription(<String>[sdkPath], analysisOptions);
+        SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
       var sdk = FolderBasedDartSdk(
         resourceProvider,
@@ -407,7 +406,7 @@ class ContextBuilder {
         ContextBuilder.createWorkspace(resourceProvider, path, this);
     SourceFactory sourceFactory = workspace.createSourceFactory(null, null);
     AnalysisOptionsProvider optionsProvider =
-        new AnalysisOptionsProvider(sourceFactory);
+        AnalysisOptionsProvider(sourceFactory);
 
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
@@ -461,7 +460,7 @@ class ContextBuilder {
 
     var pubspecFile = _findPubspecFile(path);
     if (pubspecFile != null) {
-      var extractor = new SdkConstraintExtractor(pubspecFile);
+      var extractor = SdkConstraintExtractor(pubspecFile);
       var sdkVersionConstraint = extractor.constraint();
       if (sdkVersionConstraint != null) {
         options.sdkVersionConstraint = sdkVersionConstraint;
@@ -510,7 +509,7 @@ class ContextBuilder {
    */
   Packages getPackagesFromFolder(Folder folder) {
     Context pathContext = resourceProvider.pathContext;
-    Map<String, Uri> map = new HashMap<String, Uri>();
+    Map<String, Uri> map = HashMap<String, Uri>();
     for (Resource child in folder.getChildren()) {
       if (child is Folder) {
         // Inline resolveSymbolicLinks for performance reasons.
@@ -520,7 +519,7 @@ class ContextBuilder {
         map[packageName] = pathContext.toUri(uriPath);
       }
     }
-    return new MapPackages(map);
+    return MapPackages(map);
   }
 
   /**
@@ -734,7 +733,7 @@ class EmbedderYamlLocator {
   /**
    * A mapping from a package's library directory to the parsed YamlMap.
    */
-  final Map<Folder, YamlMap> embedderYamls = new HashMap<Folder, YamlMap>();
+  final Map<Folder, YamlMap> embedderYamls = HashMap<Folder, YamlMap>();
 
   /**
    * Initialize a newly created locator by processing the packages in the given

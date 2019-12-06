@@ -205,7 +205,7 @@ class ConstantVisitorTestSupport extends DriverResolutionTest {
       ConstantVisitor(
         ConstantEvaluationEngine(
           typeProvider,
-          new DeclaredVariables(),
+          DeclaredVariables(),
           experimentStatus: options.experimentStatus,
           typeSystem: this.result.typeSystem,
         ),

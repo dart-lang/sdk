@@ -173,7 +173,7 @@ class DocumentationGenerator {
         includedPaths.add(codePath.declarationPath);
       }
     }
-    AnalysisContextCollection collection = new AnalysisContextCollection(
+    AnalysisContextCollection collection = AnalysisContextCollection(
         includedPaths: includedPaths,
         resourceProvider: PhysicalResourceProvider.INSTANCE);
     for (CodePath codePath in codePaths) {
@@ -341,11 +341,11 @@ class DocumentationGenerator {
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
     if (session == null) {
-      throw new StateError('No session for "$path"');
+      throw StateError('No session for "$path"');
     }
     ParsedUnitResult result = session.getParsedUnit(path);
     if (result.state != ResultState.VALID) {
-      throw new StateError('Unable to parse "$path"');
+      throw StateError('Unable to parse "$path"');
     }
     return result;
   }

@@ -28,7 +28,7 @@ String getDartDocPlainText(String rawText) {
   rawText = rawText.trim();
 
   // Remove leading '* ' and '/// '.
-  var result = new StringBuffer();
+  var result = StringBuffer();
   var lines = rawText.split('\n');
   for (var line in lines) {
     line = line.trim();
@@ -56,7 +56,7 @@ String getDartDocPlainText(String rawText) {
 String getDartDocSummary(String completeText) {
   if (completeText == null) return null;
 
-  var result = new StringBuffer();
+  var result = StringBuffer();
   var lines = completeText.split('\n');
   for (var line in lines) {
     if (result.isNotEmpty) {

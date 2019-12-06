@@ -46,13 +46,13 @@ Uri _defaultDir = Uri.parse('file:///a/b/c/');
 Future<bool> checkTests<T>(
     String rawCode, DataComputer<T> dataComputer, FeatureSet featureSet) async {
   AnnotatedCode code =
-      new AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
+      AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
   String testFileName = 'test.dart';
   var testFileUri = _toTestUri(testFileName);
   var memorySourceFiles = {testFileName: code.sourceCode};
   var marker = 'analyzer';
   Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-    marker: new MemberAnnotations<IdValue>(),
+    marker: MemberAnnotations<IdValue>(),
   };
   computeExpectedMap(testFileUri, testFileName, code, expectedMaps,
       onFailure: onFailure);
@@ -108,31 +108,31 @@ Future<bool> runTestForConfig<T>(
     {bool fatalErrors, void onFailure(String message)}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
-  var resourceProvider = new MemoryResourceProvider();
+  var resourceProvider = MemoryResourceProvider();
   for (var entry in testData.memorySourceFiles.entries) {
     resourceProvider.newFile(
         resourceProvider.convertPath(_toTestUri(entry.key).path), entry.value);
   }
-  var sdk = new MockSdk(resourceProvider: resourceProvider);
-  var logBuffer = new StringBuffer();
-  var logger = new PerformanceLog(logBuffer);
-  var scheduler = new AnalysisDriverScheduler(logger);
+  var sdk = MockSdk(resourceProvider: resourceProvider);
+  var logBuffer = StringBuffer();
+  var logger = PerformanceLog(logBuffer);
+  var scheduler = AnalysisDriverScheduler(logger);
   // TODO(paulberry): Do we need a non-empty package map for any of these tests?
   var packageMap = <String, List<Folder>>{};
-  var byteStore = new MemoryByteStore();
+  var byteStore = MemoryByteStore();
   var analysisOptions = AnalysisOptionsImpl()
     ..contextFeatures = config.featureSet;
-  var driver = new AnalysisDriver(
+  var driver = AnalysisDriver(
       scheduler,
       logger,
       resourceProvider,
       byteStore,
-      new FileContentOverlay(),
+      FileContentOverlay(),
       null,
-      new SourceFactory([
-        new DartUriResolver(sdk),
-        new PackageMapUriResolver(resourceProvider, packageMap),
-        new ResourceUriResolver(resourceProvider)
+      SourceFactory([
+        DartUriResolver(sdk),
+        PackageMapUriResolver(resourceProvider, packageMap),
+        ResourceUriResolver(resourceProvider)
       ], null, resourceProvider),
       analysisOptions,
       retainDataForTesting: true);

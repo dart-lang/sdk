@@ -60,7 +60,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
   /**
    * The cache of absolute [Uri]s to [Source]s mappings.
    */
-  final Map<Uri, Source> _sourceCache = new HashMap<Uri, Source>();
+  final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
 
   PackageBuildPackageUriResolver(
       PackageBuildWorkspace workspace, this._normalUriResolver)
@@ -208,8 +208,8 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   @override
-  UriResolver get packageUriResolver => new PackageBuildPackageUriResolver(
-      this, new PackageMapUriResolver(provider, packageMap));
+  UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
+      this, PackageMapUriResolver(provider, packageMap));
 
   /**
    * For some package file, which may or may not be a package source (it could
@@ -246,16 +246,16 @@ class PackageBuildWorkspace extends Workspace {
   @override
   SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
     if (summaryData != null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Summary files are not supported in a package:build workspace.');
     }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
+      resolvers.add(DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
-    resolvers.add(new PackageBuildFileUriResolver(this));
-    return new SourceFactory(resolvers, packages, provider);
+    resolvers.add(PackageBuildFileUriResolver(this));
+    return SourceFactory(resolvers, packages, provider);
   }
 
   /**
@@ -288,7 +288,7 @@ class PackageBuildWorkspace extends Workspace {
     path.Context context = provider.pathContext;
     final folder = provider.getFolder(context.dirname(filePath));
     if (context.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= new PackageBuildWorkspacePackage(root, this);
+      _theOnlyPackage ??= PackageBuildWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -320,7 +320,7 @@ class PackageBuildWorkspace extends Workspace {
       if (dartToolBuildDir.exists && pubspec.exists) {
         try {
           final yaml = loadYaml(pubspec.readAsStringSync());
-          return new PackageBuildWorkspace._(
+          return PackageBuildWorkspace._(
               provider, folder.path, yaml['name'], builder);
         } on Exception {}
       }

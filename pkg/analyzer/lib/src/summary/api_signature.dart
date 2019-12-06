@@ -34,7 +34,7 @@ class ApiSignature {
   /**
    * Data accumulated so far.
    */
-  ByteData _data = new ByteData(4096);
+  ByteData _data = ByteData(4096);
 
   /**
    * Offset into [_data] where the next byte should be written.
@@ -117,14 +117,14 @@ class ApiSignature {
    * has been collected.
    */
   List<int> getBytes_forDebug() {
-    return new Uint8List.view(_data.buffer, 0, _offset).toList();
+    return Uint8List.view(_data.buffer, 0, _offset).toList();
   }
 
   /**
    * Return the bytes of the MD5 hash of the data collected so far.
    */
   List<int> toByteList() {
-    return md5.convert(new Uint8List.view(_data.buffer, 0, _offset)).bytes;
+    return md5.convert(Uint8List.view(_data.buffer, 0, _offset)).bytes;
   }
 
   /**
@@ -142,9 +142,9 @@ class ApiSignature {
     int oldLength = _data.lengthInBytes;
     if (_offset + spaceNeeded > oldLength) {
       int newLength = 2 * (_offset + spaceNeeded);
-      ByteData newData = new ByteData(newLength);
-      new Uint8List.view(newData.buffer)
-          .setRange(0, oldLength, new Uint8List.view(_data.buffer));
+      ByteData newData = ByteData(newLength);
+      Uint8List.view(newData.buffer)
+          .setRange(0, oldLength, Uint8List.view(_data.buffer));
       _data = newData;
     }
   }

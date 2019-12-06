@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new AssertStatementTest().buildAll();
+  AssertStatementTest().buildAll();
 }
 
 class AssertStatementTest extends PartialCodeTest {
@@ -17,12 +17,12 @@ class AssertStatementTest extends PartialCodeTest {
     buildTests(
         'assert_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'assert',
               [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
               "assert (_s_);"),
-          new TestDescriptor(
+          TestDescriptor(
               'leftParen',
               'assert (',
               [
@@ -39,28 +39,28 @@ class AssertStatementTest extends PartialCodeTest {
                 'localFunctionVoid',
                 'return'
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'condition',
               'assert (a',
               [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "assert (a);"),
-          new TestDescriptor(
+          TestDescriptor(
               'comma',
               'assert (a,',
               [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
               "assert (a,);",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'message',
               'assert (a, b',
               [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "assert (a, b);"),
-          new TestDescriptor(
+          TestDescriptor(
               'trailingComma',
               'assert (a, b,',
               [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "assert (a, b,);"),
-          new TestDescriptor('rightParen', 'assert (a, b)',
+          TestDescriptor('rightParen', 'assert (a, b)',
               [ParserErrorCode.EXPECTED_TOKEN], "assert (a, b);"),
         ],
         PartialCodeTest.statementSuffixes,

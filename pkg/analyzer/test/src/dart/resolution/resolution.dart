@@ -24,11 +24,11 @@ import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 
-final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
-final isNeverType = new TypeMatcher<NeverTypeImpl>();
+final isNeverType = TypeMatcher<NeverTypeImpl>();
 
-final isVoidType = new TypeMatcher<VoidTypeImpl>();
+final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
@@ -192,7 +192,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ResolvedUnitResult result,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    GatheringErrorListener errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors(expectedErrors);
   }
@@ -203,7 +203,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
    */
   void assertErrorsWithCodes(List<AnalysisError> errors,
       [List<ErrorCode> expected = const <ErrorCode>[]]) {
-    var errorListener = new GatheringErrorListener();
+    var errorListener = GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
@@ -567,8 +567,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
-    findNode = new FindNode(result.content, result.unit);
-    findElement = new FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Return a textual representation of the [type] that is appropriate for

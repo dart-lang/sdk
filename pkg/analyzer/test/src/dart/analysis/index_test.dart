@@ -51,11 +51,11 @@ class IndexTest extends BaseAnalysisDriverTest {
 
   _ElementIndexAssert assertThat(Element element) {
     List<_Relation> relations = _getElementRelations(element);
-    return new _ElementIndexAssert(this, element, relations);
+    return _ElementIndexAssert(this, element, relations);
   }
 
   _NameIndexAssert assertThatName(String name) {
-    return new _NameIndexAssert(this, name);
+    return _NameIndexAssert(this, name);
   }
 
   Element findElement(String name, [ElementKind kind]) {
@@ -1274,12 +1274,12 @@ main() {
     if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedLocation(testUnitElement, offset, length, isQualified);
+    return ExpectedLocation(testUnitElement, offset, length, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
     String packageIndexJsonString =
-        new JsonEncoder.withIndent('  ').convert(index.toJson());
+        JsonEncoder.withIndent('  ').convert(index.toJson());
     fail('$msg in\n' + packageIndexJsonString);
   }
 
@@ -1289,7 +1289,7 @@ main() {
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
     // Prepare the element that was put into the index.
-    IndexElementInfo info = new IndexElementInfo(element);
+    IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Prepare element's name components.
     int unitMemberId = index.nullStringId;
@@ -1335,7 +1335,7 @@ main() {
     List<_Relation> relations = <_Relation>[];
     for (int i = 0; i < index.usedElementOffsets.length; i++) {
       if (index.usedElements[i] == elementId) {
-        relations.add(new _Relation(
+        relations.add(_Relation(
             index.usedElementKinds[i],
             index.usedElementOffsets[i],
             index.usedElementLengths[i],
@@ -1383,7 +1383,7 @@ main() {
 
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
     List<int> indexBytes = indexBuilder.toBuffer();
-    index = new AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+    index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
   }
 }
 
@@ -1391,7 +1391,7 @@ main() {
 class IndexWithExtensionMethodsTest extends IndexTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_isInvokedBy_MethodElement_ofExtension_instance() async {

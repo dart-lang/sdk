@@ -65,7 +65,7 @@ class LibraryAnalyzer {
   /// A marker object used to prevent the initialization of
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
   /// failed.
-  static final VersionRange noSpecifiedRange = new VersionRange();
+  static final VersionRange noSpecifiedRange = VersionRange();
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
@@ -94,9 +94,9 @@ class LibraryAnalyzer {
    *
    * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
    */
-  final Set<ConstantEvaluationTarget> _libraryConstants = new Set();
+  final Set<ConstantEvaluationTarget> _libraryConstants = Set();
 
-  final Set<ConstantEvaluationTarget> _constants = new Set();
+  final Set<ConstantEvaluationTarget> _constants = Set();
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -146,7 +146,7 @@ class LibraryAnalyzer {
     });
 
     _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    _libraryScope = new LibraryScope(_libraryElement);
+    _libraryScope = LibraryScope(_libraryElement);
 
     timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
@@ -173,13 +173,12 @@ class LibraryAnalyzer {
       PerformanceStatistics.hints.makeCurrentWhile(() {
         units.forEach((file, unit) {
           {
-            var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+            var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
             unit.accept(visitor);
             _usedLocalElementsList.add(visitor.usedElements);
           }
           {
-            var visitor =
-                new GatherUsedImportedElementsVisitor(_libraryElement);
+            var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
             unit.accept(visitor);
             _usedImportedElementsList.add(visitor.usedElements);
           }
@@ -210,7 +209,7 @@ class LibraryAnalyzer {
     units.forEach((file, unit) {
       List<AnalysisError> errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
-      results[file] = new UnitAnalysisResult(file, unit, errors);
+      results[file] = UnitAnalysisResult(file, unit, errors);
     });
     timerLibraryAnalyzer.stop();
     return results;
@@ -236,7 +235,7 @@ class LibraryAnalyzer {
 
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier = new ConstantVerifier(
+    ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _typeProvider, _declaredVariables,
         featureSet: unit.featureSet, forAnalysisDriver: true);
     unit.accept(constantVerifier);
@@ -258,33 +257,33 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(new DeadCodeVerifier(errorReporter, unit.featureSet,
+    unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
         typeSystem: _typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
-      unit.accept(new Dart2JSVerifier(errorReporter));
+      unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    unit.accept(new BestPracticesVerifier(
+    unit.accept(BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
 
-    unit.accept(new OverrideVerifier(
+    unit.accept(OverrideVerifier(
       _inheritance,
       _libraryElement,
       errorReporter,
     ));
 
-    new TodoFinder(errorReporter).findIn(unit);
-    new InvalidLanguageVersionOverrideFinder(errorReporter).findIn(unit);
+    TodoFinder(errorReporter).findIn(unit);
+    InvalidLanguageVersionOverrideFinder(errorReporter).findIn(unit);
 
     // Verify imports.
     {
-      ImportsVerifier verifier = new ImportsVerifier();
+      ImportsVerifier verifier = ImportsVerifier();
       verifier.addImports(unit);
       _usedImportedElementsList.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
@@ -296,8 +295,8 @@ class LibraryAnalyzer {
     // Unused local elements.
     {
       UsedLocalElements usedElements =
-          new UsedLocalElements.merge(_usedLocalElementsList);
-      UnusedLocalElementsVerifier visitor = new UnusedLocalElementsVerifier(
+          UsedLocalElements.merge(_usedLocalElementsList);
+      UnusedLocalElementsVerifier visitor = UnusedLocalElementsVerifier(
           errorListener, usedElements, _inheritance, _libraryElement);
       unit.accept(visitor);
     }
@@ -308,7 +307,7 @@ class LibraryAnalyzer {
     //
     var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
     if (sdkVersionConstraint != null) {
-      SdkConstraintVerifier verifier = new SdkConstraintVerifier(
+      SdkConstraintVerifier verifier = SdkConstraintVerifier(
           errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
       unit.accept(verifier);
     }
@@ -323,7 +322,7 @@ class LibraryAnalyzer {
 
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
+    var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
 
     final workspacePackage = _getPackage(currentUnit.unit);
@@ -347,7 +346,7 @@ class LibraryAnalyzer {
         if (visitor != null) {
           if (_analysisOptions.enableTiming) {
             var timer = lintRegistry.getTimer(linter);
-            visitor = new TimedAstVisitor(visitor, timer);
+            visitor = TimedAstVisitor(visitor, timer);
           }
           visitors.add(visitor);
         }
@@ -355,12 +354,12 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(new LinterVisitor(
+    unit.accept(LinterVisitor(
         nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
 
     // Run visitor based lints.
     if (visitors.isNotEmpty) {
-      AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
           visitors, ExceptionHandlingDelegatingAstVisitor.logException);
       unit.accept(visitor);
     }
@@ -373,7 +372,7 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CodeChecker checker = new CodeChecker(
+    CodeChecker checker = CodeChecker(
       _typeProvider,
       _typeSystem,
       _inheritance,
@@ -397,14 +396,14 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        _typeSystem, _inheritance, errorReporter);
+    var inheritanceOverrideVerifier =
+        InheritanceOverrideVerifier(_typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
     // Use the ErrorVerifier to compute errors.
     //
-    ErrorVerifier errorVerifier = new ErrorVerifier(
+    ErrorVerifier errorVerifier = ErrorVerifier(
         errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
 
@@ -450,23 +449,23 @@ class LibraryAnalyzer {
 
   /// Find constants to compute.
   void _findConstants(CompilationUnit unit) {
-    ConstantFinder constantFinder = new ConstantFinder();
+    ConstantFinder constantFinder = ConstantFinder();
     unit.accept(constantFinder);
     _libraryConstants.addAll(constantFinder.constantsToCompute);
     _constants.addAll(constantFinder.constantsToCompute);
 
-    var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     unit.accept(dependenciesFinder);
     _constants.addAll(dependenciesFinder.dependencies);
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
-      _errorListeners.putIfAbsent(file, () => new RecordingErrorListener());
+      _errorListeners.putIfAbsent(file, () => RecordingErrorListener());
 
   ErrorReporter _getErrorReporter(FileState file) {
     return _errorReporters.putIfAbsent(file, () {
       RecordingErrorListener listener = _getErrorListener(file);
-      return new ErrorReporter(listener, file.source);
+      return ErrorReporter(listener, file.source);
     });
   }
 
@@ -498,13 +497,13 @@ class LibraryAnalyzer {
         directivesToResolve.add(directive);
         LibraryIdentifier libraryName = directive.libraryName;
         if (libraryName != null) {
-          return new _NameOrSource(libraryName.name, null);
+          return _NameOrSource(libraryName.name, null);
         }
         String uri = directive.uri?.stringValue;
         if (uri != null) {
           Source librarySource = _sourceFactory.resolveUri(partSource, uri);
           if (librarySource != null) {
-            return new _NameOrSource(null, librarySource);
+            return _NameOrSource(null, librarySource);
           }
         }
       }
@@ -554,7 +553,7 @@ class LibraryAnalyzer {
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
     LibraryIdentifier libraryNameNode;
-    var seenPartSources = new Set<Source>();
+    var seenPartSources = Set<Source>();
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
@@ -693,17 +692,12 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(new VariableResolverVisitor(
+    unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    unit.accept(new PartialResolverVisitor(
-        _inheritance,
-        _libraryElement,
-        source,
-        _typeProvider,
-        AnalysisErrorListener.NULL_LISTENER,
-        unit.featureSet));
+    unit.accept(PartialResolverVisitor(_inheritance, _libraryElement, source,
+        _typeProvider, AnalysisErrorListener.NULL_LISTENER, unit.featureSet));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
@@ -717,7 +711,7 @@ class LibraryAnalyzer {
           file.uri, flowAnalysisHelper.dataForTesting);
     }
 
-    unit.accept(new ResolverVisitor(
+    unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }

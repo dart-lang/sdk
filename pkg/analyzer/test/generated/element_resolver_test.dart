@@ -373,7 +373,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 
   void setUp() {
-    _listener = new GatheringErrorListener();
+    _listener = GatheringErrorListener();
     _createResolver();
   }
 
@@ -495,8 +495,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(label, -1, false, false);
+    LabelElementImpl labelElement = LabelElementImpl(label, -1, false, false);
     BreakStatement breakStatement = AstTestFactory.breakStatement2(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -523,7 +522,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
@@ -543,7 +542,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
@@ -563,7 +562,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = new EnclosedScope(null)
+    _visitor.nameScope = EnclosedScope(null)
       ..defineNameWithoutChecking('A', classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
@@ -609,8 +608,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(label, -1, false, false);
+    LabelElementImpl labelElement = LabelElementImpl(label, -1, false, false);
     ContinueStatement continueStatement =
         AstTestFactory.continueStatement(label);
     Expression condition = AstTestFactory.booleanLiteral(true);
@@ -639,7 +637,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.annotation(AstTestFactory.identifier3('a'));
     annotationNode.element = ElementFactory.classElement2('A');
     annotationNode.elementAnnotation =
-        new ElementAnnotationImpl(compilationUnitElement);
+        ElementAnnotationImpl(compilationUnitElement);
     enumNode.metadata.add(annotationNode);
     enumNode.name.staticElement = enumElement;
     List<ElementAnnotation> metadata = <ElementAnnotation>[
@@ -1121,8 +1119,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     var context = TestAnalysisContext();
     _typeProvider = context.typeProviderLegacy;
 
-    Source source = new FileSource(getFile("/test.dart"));
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
+    Source source = FileSource(getFile("/test.dart"));
+    CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
     _definingLibrary =
         ElementFactory.library(context, "test", isNonNullableByDefault: false);
@@ -1130,12 +1128,12 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
     _definingLibrary.typeSystem = context.typeSystemLegacy;
-    var inheritance = new InheritanceManager3();
+    var inheritance = InheritanceManager3();
 
-    _visitor = new ResolverVisitor(
+    _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: FeatureSet.forTesting(),
-        nameScope: new LibraryScope(_definingLibrary));
+        nameScope: LibraryScope(_definingLibrary));
     _resolver = _visitor.elementResolver;
   }
 
@@ -1199,8 +1197,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     Scope outerScope = _visitor.nameScope;
     try {
       _visitor.enclosingClass = enclosingClass;
-      EnclosedScope innerScope = new ClassScope(
-          new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+      EnclosedScope innerScope = ClassScope(
+          TypeParameterScope(outerScope, enclosingClass), enclosingClass);
       _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
@@ -1236,7 +1234,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
-      EnclosedScope innerScope = new EnclosedScope(outerScope);
+      EnclosedScope innerScope = EnclosedScope(outerScope);
       if (definedElements != null) {
         for (Element element in definedElements) {
           innerScope.define(element);
@@ -1265,7 +1263,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       if (labelElement == null) {
         innerScope = outerScope;
       } else {
-        innerScope = new LabelScope(
+        innerScope = LabelScope(
             outerScope, labelElement.name, labelTarget, labelElement);
       }
       _visitor.labelScope = innerScope;

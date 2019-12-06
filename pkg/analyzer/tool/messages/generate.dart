@@ -29,23 +29,23 @@ main() async {
   String frontEndSharedPkgPath =
       normalize(join(pkg_root.packageRoot, '_fe_analyzer_shared'));
 
-  Map<dynamic, dynamic> messagesYaml = loadYaml(
-      new File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
-  String errorConverterSource = new File(join(analyzerPkgPath,
+  Map<dynamic, dynamic> messagesYaml =
+      loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
+  String errorConverterSource = File(join(analyzerPkgPath,
           joinAll(posix.split('lib/src/fasta/error_converter.dart'))))
       .readAsStringSync();
-  String syntacticErrorsSource = new File(join(analyzerPkgPath,
+  String syntacticErrorsSource = File(join(analyzerPkgPath,
           joinAll(posix.split('lib/src/dart/error/syntactic_errors.dart'))))
       .readAsStringSync();
-  String parserSource = new File(join(frontEndSharedPkgPath,
+  String parserSource = File(join(frontEndSharedPkgPath,
           joinAll(posix.split('lib/src/parser/parser.dart'))))
       .readAsStringSync();
 
-  final codeGenerator = new _SyntacticErrorGenerator(
+  final codeGenerator = _SyntacticErrorGenerator(
       messagesYaml, errorConverterSource, syntacticErrorsSource, parserSource);
 
   await GeneratedContent.generateAll(analyzerPkgPath, <GeneratedContent>[
-    new GeneratedFile('lib/src/dart/error/syntactic_errors.g.dart',
+    GeneratedFile('lib/src/dart/error/syntactic_errors.g.dart',
         (String pkgPath) async {
       codeGenerator.generateFormatCode();
       return codeGenerator.out.toString();
@@ -93,8 +93,8 @@ class _SyntacticErrorGenerator {
   final String syntacticErrorsSource;
   final String parserSource;
   final translatedEntries = <Map>[];
-  final translatedFastaErrorCodes = new Set<String>();
-  final out = new StringBuffer('''
+  final translatedFastaErrorCodes = Set<String>();
+  final out = StringBuffer('''
 //
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -190,7 +190,7 @@ part of 'syntactic_errors.dart';
   }
 
   void generateFastaAnalyzerErrorCodeList() {
-    final sorted = new List<Map>(translatedEntries.length);
+    final sorted = List<Map>(translatedEntries.length);
     for (var entry in translatedEntries) {
       var index = entry['index'];
       if (index is int && index >= 1 && index <= sorted.length) {
@@ -227,15 +227,14 @@ part of 'syntactic_errors.dart';
     final messageToName = <String, String>{};
     for (ErrorCode errorCode in errorCodeValues) {
       if (errorCode is ParserErrorCode) {
-        String message =
-            errorCode.message.replaceAll(new RegExp(r'\{\d+\}'), '');
+        String message = errorCode.message.replaceAll(RegExp(r'\{\d+\}'), '');
         messageToName[message] = errorCode.name;
       }
     }
 
     String messageFromEntryTemplate(Map entry) {
       String template = entry['template'];
-      String message = template.replaceAll(new RegExp(r'#\w+'), '');
+      String message = template.replaceAll(RegExp(r'#\w+'), '');
       return message;
     }
 
@@ -250,7 +249,7 @@ part of 'syntactic_errors.dart';
 
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
-    final analyzerToFasta = new Map<String, List<String>>();
+    final analyzerToFasta = Map<String, List<String>>();
     messagesYaml.forEach((fastaName, entry) {
       if (entry is Map) {
         final analyzerName = messageToName[messageFromEntryTemplate(entry)];
@@ -278,7 +277,7 @@ part of 'syntactic_errors.dart';
     }
 
     // List error codes in the parser that have not been translated.
-    final untranslatedFastaErrorCodes = new Set<String>();
+    final untranslatedFastaErrorCodes = Set<String>();
     Token token = scanString(parserSource).tokens;
     while (!token.isEof) {
       if (token.isIdentifier) {

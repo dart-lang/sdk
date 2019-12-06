@@ -11,7 +11,7 @@ class Cache<K, V> {
   final int _maxSizeBytes;
   final int Function(V) _meter;
 
-  final _map = new LinkedHashMap<K, V>();
+  final _map = LinkedHashMap<K, V>();
   int _currentSizeBytes = 0;
 
   Cache(this._maxSizeBytes, this._meter);

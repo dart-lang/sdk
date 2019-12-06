@@ -2839,8 +2839,8 @@ class ToSourceVisitor2Test {
    * visiting the given [node].
    */
   void _assertSource(String expectedSource, AstNode node) {
-    StringBuffer buffer = new StringBuffer();
-    node.accept(new ToSourceVisitor(buffer));
+    StringBuffer buffer = StringBuffer();
+    node.accept(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
   }
 }

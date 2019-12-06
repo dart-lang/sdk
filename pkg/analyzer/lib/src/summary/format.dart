@@ -244,7 +244,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADEC");
   }
 
@@ -285,7 +285,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
 
 idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverExceptionContextReader().read(rootRef, 0);
 }
 
@@ -296,7 +296,7 @@ class _AnalysisDriverExceptionContextReader
   @override
   _AnalysisDriverExceptionContextImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverExceptionContextImpl(bc, offset);
+      _AnalysisDriverExceptionContextImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionContextImpl extends Object
@@ -434,7 +434,7 @@ class _AnalysisDriverExceptionFileReader
   @override
   _AnalysisDriverExceptionFileImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverExceptionFileImpl(bc, offset);
+      _AnalysisDriverExceptionFileImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionFileImpl extends Object
@@ -535,7 +535,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADRU");
   }
 
@@ -562,7 +562,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
 
 idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
 }
 
@@ -573,7 +573,7 @@ class _AnalysisDriverResolvedUnitReader
   @override
   _AnalysisDriverResolvedUnitImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverResolvedUnitImpl(bc, offset);
+      _AnalysisDriverResolvedUnitImpl(bc, offset);
 }
 
 class _AnalysisDriverResolvedUnitImpl extends Object
@@ -696,7 +696,7 @@ class _AnalysisDriverSubtypeReader
 
   @override
   _AnalysisDriverSubtypeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverSubtypeImpl(bc, offset);
+      _AnalysisDriverSubtypeImpl(bc, offset);
 }
 
 class _AnalysisDriverSubtypeImpl extends Object
@@ -892,7 +892,7 @@ class _AnalysisDriverUnitErrorReader
 
   @override
   _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnitErrorImpl(bc, offset);
+      _AnalysisDriverUnitErrorImpl(bc, offset);
 }
 
 class _AnalysisDriverUnitErrorImpl extends Object
@@ -1431,7 +1431,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADUI");
   }
 
@@ -1595,7 +1595,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 }
 
 idl.AnalysisDriverUnitIndex readAnalysisDriverUnitIndex(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverUnitIndexReader().read(rootRef, 0);
 }
 
@@ -1605,7 +1605,7 @@ class _AnalysisDriverUnitIndexReader
 
   @override
   _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnitIndexImpl(bc, offset);
+      _AnalysisDriverUnitIndexImpl(bc, offset);
 }
 
 class _AnalysisDriverUnitIndexImpl extends Object
@@ -1990,7 +1990,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADUU");
   }
 
@@ -2044,7 +2044,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
 
 idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverUnlinkedUnitReader().read(rootRef, 0);
 }
 
@@ -2055,7 +2055,7 @@ class _AnalysisDriverUnlinkedUnitReader
   @override
   _AnalysisDriverUnlinkedUnitImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
+      _AnalysisDriverUnlinkedUnitImpl(bc, offset);
 }
 
 class _AnalysisDriverUnlinkedUnitImpl extends Object
@@ -2616,7 +2616,7 @@ class _AvailableDeclarationReader
 
   @override
   _AvailableDeclarationImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableDeclarationImpl(bc, offset);
+      _AvailableDeclarationImpl(bc, offset);
 }
 
 class _AvailableDeclarationImpl extends Object
@@ -3049,7 +3049,7 @@ class AvailableFileBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UICF");
   }
 
@@ -3104,7 +3104,7 @@ class AvailableFileBuilder extends Object
 }
 
 idl.AvailableFile readAvailableFile(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AvailableFileReader().read(rootRef, 0);
 }
 
@@ -3113,7 +3113,7 @@ class _AvailableFileReader extends fb.TableReader<_AvailableFileImpl> {
 
   @override
   _AvailableFileImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableFileImpl(bc, offset);
+      _AvailableFileImpl(bc, offset);
 }
 
 class _AvailableFileImpl extends Object
@@ -3300,7 +3300,7 @@ class _AvailableFileExportReader
 
   @override
   _AvailableFileExportImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableFileExportImpl(bc, offset);
+      _AvailableFileExportImpl(bc, offset);
 }
 
 class _AvailableFileExportImpl extends Object
@@ -3432,7 +3432,7 @@ class _AvailableFileExportCombinatorReader
   @override
   _AvailableFileExportCombinatorImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AvailableFileExportCombinatorImpl(bc, offset);
+      _AvailableFileExportCombinatorImpl(bc, offset);
 }
 
 class _AvailableFileExportCombinatorImpl extends Object
@@ -3577,7 +3577,7 @@ class _DiagnosticMessageReader extends fb.TableReader<_DiagnosticMessageImpl> {
 
   @override
   _DiagnosticMessageImpl createObject(fb.BufferContext bc, int offset) =>
-      new _DiagnosticMessageImpl(bc, offset);
+      _DiagnosticMessageImpl(bc, offset);
 }
 
 class _DiagnosticMessageImpl extends Object
@@ -3726,7 +3726,7 @@ class _DirectiveInfoReader extends fb.TableReader<_DirectiveInfoImpl> {
 
   @override
   _DirectiveInfoImpl createObject(fb.BufferContext bc, int offset) =>
-      new _DirectiveInfoImpl(bc, offset);
+      _DirectiveInfoImpl(bc, offset);
 }
 
 class _DirectiveInfoImpl extends Object
@@ -10300,7 +10300,7 @@ class _LinkedNodeReader extends fb.TableReader<_LinkedNodeImpl> {
 
   @override
   _LinkedNodeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeImpl(bc, offset);
+      _LinkedNodeImpl(bc, offset);
 }
 
 class _LinkedNodeImpl extends Object
@@ -15485,7 +15485,7 @@ class LinkedNodeBundleBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "LNBn");
   }
 
@@ -15511,7 +15511,7 @@ class LinkedNodeBundleBuilder extends Object
 }
 
 idl.LinkedNodeBundle readLinkedNodeBundle(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _LinkedNodeBundleReader().read(rootRef, 0);
 }
 
@@ -15520,7 +15520,7 @@ class _LinkedNodeBundleReader extends fb.TableReader<_LinkedNodeBundleImpl> {
 
   @override
   _LinkedNodeBundleImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeBundleImpl(bc, offset);
+      _LinkedNodeBundleImpl(bc, offset);
 }
 
 class _LinkedNodeBundleImpl extends Object
@@ -15718,7 +15718,7 @@ class _LinkedNodeLibraryReader extends fb.TableReader<_LinkedNodeLibraryImpl> {
 
   @override
   _LinkedNodeLibraryImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeLibraryImpl(bc, offset);
+      _LinkedNodeLibraryImpl(bc, offset);
 }
 
 class _LinkedNodeLibraryImpl extends Object
@@ -15890,7 +15890,7 @@ class _LinkedNodeReferencesReader
 
   @override
   _LinkedNodeReferencesImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeReferencesImpl(bc, offset);
+      _LinkedNodeReferencesImpl(bc, offset);
 }
 
 class _LinkedNodeReferencesImpl extends Object
@@ -16197,7 +16197,7 @@ class _LinkedNodeTypeReader extends fb.TableReader<_LinkedNodeTypeImpl> {
 
   @override
   _LinkedNodeTypeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeImpl(bc, offset);
+      _LinkedNodeTypeImpl(bc, offset);
 }
 
 class _LinkedNodeTypeImpl extends Object
@@ -16450,7 +16450,7 @@ class _LinkedNodeTypeFormalParameterReader
   @override
   _LinkedNodeTypeFormalParameterImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeFormalParameterImpl(bc, offset);
+      _LinkedNodeTypeFormalParameterImpl(bc, offset);
 }
 
 class _LinkedNodeTypeFormalParameterImpl extends Object
@@ -16593,7 +16593,7 @@ class _LinkedNodeTypeSubstitutionReader
   @override
   _LinkedNodeTypeSubstitutionImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeSubstitutionImpl(bc, offset);
+      _LinkedNodeTypeSubstitutionImpl(bc, offset);
 }
 
 class _LinkedNodeTypeSubstitutionImpl extends Object
@@ -16711,7 +16711,7 @@ class _LinkedNodeTypeTypeParameterReader
   @override
   _LinkedNodeTypeTypeParameterImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeTypeParameterImpl(bc, offset);
+      _LinkedNodeTypeTypeParameterImpl(bc, offset);
 }
 
 class _LinkedNodeTypeTypeParameterImpl extends Object
@@ -16874,7 +16874,7 @@ class _LinkedNodeUnitReader extends fb.TableReader<_LinkedNodeUnitImpl> {
 
   @override
   _LinkedNodeUnitImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeUnitImpl(bc, offset);
+      _LinkedNodeUnitImpl(bc, offset);
 }
 
 class _LinkedNodeUnitImpl extends Object
@@ -16984,7 +16984,7 @@ class PackageBundleBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
 
@@ -17002,7 +17002,7 @@ class PackageBundleBuilder extends Object
 }
 
 idl.PackageBundle readPackageBundle(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _PackageBundleReader().read(rootRef, 0);
 }
 
@@ -17011,7 +17011,7 @@ class _PackageBundleReader extends fb.TableReader<_PackageBundleImpl> {
 
   @override
   _PackageBundleImpl createObject(fb.BufferContext bc, int offset) =>
-      new _PackageBundleImpl(bc, offset);
+      _PackageBundleImpl(bc, offset);
 }
 
 class _PackageBundleImpl extends Object
@@ -17135,7 +17135,7 @@ class _TopLevelInferenceErrorReader
 
   @override
   _TopLevelInferenceErrorImpl createObject(fb.BufferContext bc, int offset) =>
-      new _TopLevelInferenceErrorImpl(bc, offset);
+      _TopLevelInferenceErrorImpl(bc, offset);
 }
 
 class _TopLevelInferenceErrorImpl extends Object
@@ -18077,7 +18077,7 @@ class _UnlinkedInformativeDataReader
 
   @override
   _UnlinkedInformativeDataImpl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedInformativeDataImpl(bc, offset);
+      _UnlinkedInformativeDataImpl(bc, offset);
 }
 
 class _UnlinkedInformativeDataImpl extends Object
@@ -18875,7 +18875,7 @@ class _UnlinkedNamespaceDirectiveReader
   @override
   _UnlinkedNamespaceDirectiveImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _UnlinkedNamespaceDirectiveImpl(bc, offset);
+      _UnlinkedNamespaceDirectiveImpl(bc, offset);
 }
 
 class _UnlinkedNamespaceDirectiveImpl extends Object
@@ -19013,7 +19013,7 @@ class _UnlinkedNamespaceDirectiveConfigurationReader
   @override
   _UnlinkedNamespaceDirectiveConfigurationImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _UnlinkedNamespaceDirectiveConfigurationImpl(bc, offset);
+      _UnlinkedNamespaceDirectiveConfigurationImpl(bc, offset);
 }
 
 class _UnlinkedNamespaceDirectiveConfigurationImpl extends Object
@@ -19229,7 +19229,7 @@ class UnlinkedUnit2Builder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UUN2");
   }
 
@@ -19292,7 +19292,7 @@ class UnlinkedUnit2Builder extends Object
 }
 
 idl.UnlinkedUnit2 readUnlinkedUnit2(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _UnlinkedUnit2Reader().read(rootRef, 0);
 }
 
@@ -19301,7 +19301,7 @@ class _UnlinkedUnit2Reader extends fb.TableReader<_UnlinkedUnit2Impl> {
 
   @override
   _UnlinkedUnit2Impl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedUnit2Impl(bc, offset);
+      _UnlinkedUnit2Impl(bc, offset);
 }
 
 class _UnlinkedUnit2Impl extends Object

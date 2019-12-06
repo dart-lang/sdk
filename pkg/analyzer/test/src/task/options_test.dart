@@ -77,12 +77,12 @@ analyzer:
     List<ErrorProcessor> processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
-    var unused_local = new AnalysisError(
-        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+    var unused_local =
+        AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment = new AnalysisError(
-        new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+    var invalid_assignment = AnalysisError(
+        TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
@@ -210,7 +210,7 @@ class ErrorProcessorMatcher extends Matcher {
 
 @reflectiveTest
 class GenerateOldOptionsErrorsTaskTest with ResourceProviderMixin {
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
 
@@ -237,7 +237,7 @@ analyzer:
   void validate(String content, List<ErrorCode> expected) {
     final source = newFile(optionsFilePath, content: content).createSource();
     var options = optionsProvider.getOptionsFromSource(source);
-    final OptionsFileValidator validator = new OptionsFileValidator(source);
+    final OptionsFileValidator validator = OptionsFileValidator(source);
     var errors = validator.validate(options);
     expect(errors.map((AnalysisError e) => e.errorCode),
         unorderedEquals(expected));
@@ -246,9 +246,8 @@ analyzer:
 
 @reflectiveTest
 class OptionsFileValidatorTest {
-  final OptionsFileValidator validator =
-      new OptionsFileValidator(new TestSource());
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+  final OptionsFileValidator validator = OptionsFileValidator(TestSource());
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   test_analyzer_enableExperiment_badValue() {
     validate('''
@@ -324,7 +323,7 @@ analyzer:
   }
 
   test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(new TestRule());
+    Registry.ruleRegistry.register(TestRule());
     validate('''
 analyzer:
   errors:
@@ -417,7 +416,7 @@ analyzer:
   }
 
   test_linter_supported_rules() {
-    Registry.ruleRegistry.register(new TestRule());
+    Registry.ruleRegistry.register(TestRule());
     validate('''
 linter:
   rules:
@@ -450,11 +449,11 @@ class OptionsProviderTest {
   String get optionsFilePath => '/analysis_options.yaml';
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider();
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider);
-    provider = new AnalysisOptionsProvider(new SourceFactory([
-      new ResourceUriResolver(rawProvider),
+    var rawProvider = MemoryResourceProvider();
+    resourceProvider = TestResourceProvider(rawProvider);
+    pathTranslator = TestPathTranslator(rawProvider);
+    provider = AnalysisOptionsProvider(SourceFactory([
+      ResourceUriResolver(rawProvider),
     ]));
   }
 
@@ -488,8 +487,8 @@ linter:
 ''';
     pathTranslator.newFile(optionsFilePath, code);
 
-    final lowlevellint = new TestRule.withName('lowlevellint');
-    final toplevellint = new TestRule.withName('toplevellint');
+    final lowlevellint = TestRule.withName('lowlevellint');
+    final toplevellint = TestRule.withName('toplevellint');
     Registry.ruleRegistry.register(lowlevellint);
     Registry.ruleRegistry.register(toplevellint);
     final options = _getOptionsObject('/');
@@ -502,10 +501,10 @@ linter:
     expect(
         options.errorProcessors,
         unorderedMatches([
-          new ErrorProcessorMatcher(
-              new ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
-          new ErrorProcessorMatcher(
-              new ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
+          ErrorProcessorMatcher(
+              ErrorProcessor('toplevelerror', ErrorSeverity.WARNING)),
+          ErrorProcessorMatcher(
+              ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
         ]));
   }
 
@@ -516,7 +515,7 @@ linter:
 
   AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp = false}) {
     final map = _getOptions(posixPath, crawlUp: crawlUp);
-    final options = new AnalysisOptionsImpl();
+    final options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, map);
     return options;
   }

@@ -33,7 +33,7 @@ class InheritanceOverrideVerifier {
     var library = unit.declaredElement.library;
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        new _ClassVerifier(
+        _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -47,7 +47,7 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is ClassTypeAlias) {
-        new _ClassVerifier(
+        _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -60,7 +60,7 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {
-        new _ClassVerifier(
+        _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
           inheritance: _inheritance,
@@ -103,7 +103,7 @@ class _ClassVerifier {
 
   /// The set of unique supertypes of the current class.
   /// It is used to decide when to add a new element to [allSuperinterfaces].
-  final Set<InterfaceType> allSupertypes = new Set<InterfaceType>();
+  final Set<InterfaceType> allSupertypes = Set<InterfaceType>();
 
   /// The list of all superinterfaces, collected so far.
   final List<Interface> allSuperinterfaces = [];
@@ -270,7 +270,7 @@ class _ClassVerifier {
     if (member == null) return;
     if (member.isStatic) return;
 
-    var name = new Name(libraryUri, member.name);
+    var name = Name(libraryUri, member.name);
     for (var superInterface in allSuperinterfaces) {
       var superMember = superInterface.declared[name];
       if (superMember != null) {
@@ -392,7 +392,7 @@ class _ClassVerifier {
       var getter = interface.map[name];
       if (getter.kind == ElementKind.GETTER) {
         // TODO(scheglov) We should separate getters and setters.
-        var setter = interface.map[new Name(libraryUri, '${name.name}=')];
+        var setter = interface.map[Name(libraryUri, '${name.name}=')];
         if (setter != null && setter.parameters.length == 1) {
           var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
@@ -528,7 +528,7 @@ class _ClassVerifier {
         // Construct a string showing the cyclic implements path:
         // "A, B, C, D, A"
         String separator = ", ";
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = StringBuffer();
         for (int i = 0; i < size; i++) {
           buffer.write(path[i].displayName);
           buffer.write(separator);

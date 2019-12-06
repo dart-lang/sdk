@@ -60,24 +60,24 @@ class ContextBuilderImpl implements ContextBuilder {
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
-    var byteStore = new MemoryByteStore();
-    var fileContentOverlay = new FileContentOverlay();
-    performanceLog ??= new PerformanceLog(new StringBuffer());
+    var byteStore = MemoryByteStore();
+    var fileContentOverlay = FileContentOverlay();
+    performanceLog ??= PerformanceLog(StringBuffer());
 
     sdkPath ??= _defaultSdkPath;
     if (sdkPath == null) {
-      throw new ArgumentError('Cannot find path to the SDK');
+      throw ArgumentError('Cannot find path to the SDK');
     }
-    DartSdkManager sdkManager = new DartSdkManager(sdkPath, true);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath, true);
 
     if (scheduler == null) {
-      scheduler = new AnalysisDriverScheduler(performanceLog);
+      scheduler = AnalysisDriverScheduler(performanceLog);
       scheduler.start();
     }
 
     // TODO(brianwilkerson) Move the required implementation from the old
     // ContextBuilder to this class and remove the old class.
-    old.ContextBuilderOptions options = new old.ContextBuilderOptions();
+    old.ContextBuilderOptions options = old.ContextBuilderOptions();
     if (declaredVariables != null) {
       options.declaredVariables = _toMap(declaredVariables);
     }
@@ -89,8 +89,8 @@ class ContextBuilderImpl implements ContextBuilder {
     }
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
-    old.ContextBuilder builder = new old.ContextBuilder(
-        resourceProvider, sdkManager, new ContentCache(),
+    old.ContextBuilder builder = old.ContextBuilder(
+        resourceProvider, sdkManager, ContentCache(),
         options: options);
     builder.analysisDriverScheduler = scheduler;
     builder.byteStore = byteStore;
@@ -98,7 +98,7 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
 
-    old.ContextRoot oldContextRoot = new old.ContextRoot(
+    old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),
         pathContext: resourceProvider.pathContext);
     AnalysisDriver driver = builder.buildDriver(oldContextRoot);
@@ -109,7 +109,7 @@ class ContextBuilderImpl implements ContextBuilder {
     driver.exceptions.drain();
 
     DriverBasedAnalysisContext context =
-        new DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
+        DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
     return context;
   }
 

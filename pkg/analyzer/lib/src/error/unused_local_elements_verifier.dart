@@ -16,7 +16,7 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// An [AstVisitor] that fills [UsedLocalElements].
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
-  final UsedLocalElements usedElements = new UsedLocalElements();
+  final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
   ClassElement _enclosingClass;
@@ -304,7 +304,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   bool _overridesUsedElement(Element element) {
     Element enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
-      Name name = new Name(_libraryUri, element.name);
+      Name name = Name(_libraryUri, element.name);
       Iterable<ExecutableElement> overriddenElements = _inheritanceManager
           .getOverridden(enclosingElement.thisType, name)
           ?.map((ExecutableElement e) =>
@@ -320,8 +320,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   void _reportErrorForElement(
       ErrorCode errorCode, Element element, List<Object> arguments) {
     if (element != null) {
-      _errorListener.onError(new AnalysisError(element.source,
-          element.nameOffset, element.nameLength, errorCode, arguments));
+      _errorListener.onError(AnalysisError(element.source, element.nameOffset,
+          element.nameLength, errorCode, arguments));
     }
   }
 
@@ -394,29 +394,29 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 class UsedLocalElements {
   /// Resolved, locally defined elements that are used or potentially can be
   /// used.
-  final HashSet<Element> elements = new HashSet<Element>();
+  final HashSet<Element> elements = HashSet<Element>();
 
   /// [LocalVariableElement]s that represent exceptions in [CatchClause]s.
   final HashSet<LocalVariableElement> catchExceptionElements =
-      new HashSet<LocalVariableElement>();
+      HashSet<LocalVariableElement>();
 
   /// [LocalVariableElement]s that represent stack traces in [CatchClause]s.
   final HashSet<LocalVariableElement> catchStackTraceElements =
-      new HashSet<LocalVariableElement>();
+      HashSet<LocalVariableElement>();
 
   /// Resolved class members that are referenced in the library.
-  final HashSet<Element> members = new HashSet<Element>();
+  final HashSet<Element> members = HashSet<Element>();
 
   /// Resolved class members that are read in the library.
-  final HashSet<Element> readMembers = new HashSet<Element>();
+  final HashSet<Element> readMembers = HashSet<Element>();
 
   /// Unresolved class members that are read in the library.
-  final HashSet<String> unresolvedReadMembers = new HashSet<String>();
+  final HashSet<String> unresolvedReadMembers = HashSet<String>();
 
   UsedLocalElements();
 
   factory UsedLocalElements.merge(List<UsedLocalElements> parts) {
-    UsedLocalElements result = new UsedLocalElements();
+    UsedLocalElements result = UsedLocalElements();
     int length = parts.length;
     for (int i = 0; i < length; i++) {
       UsedLocalElements part = parts[i];

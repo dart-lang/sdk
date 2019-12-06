@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new IndexStatementTest().buildAll();
+  IndexStatementTest().buildAll();
 }
 
 class IndexStatementTest extends PartialCodeTest {
@@ -15,31 +15,31 @@ class IndexStatementTest extends PartialCodeTest {
     buildTests(
       'index_assignment',
       [
-        new TestDescriptor(
+        TestDescriptor(
           'missing_index_no_space',
           'intList[] = 0;',
           [ParserErrorCode.MISSING_IDENTIFIER],
           'intList[_s_] = 0;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'missing_index_with_space',
           'intList[ ] = 0;',
           [ParserErrorCode.MISSING_IDENTIFIER],
           'intList[_s_] = 0;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'trailing_comma',
           'intList[x,] = 0;',
           [ParserErrorCode.EXPECTED_TOKEN],
           'intList[x] = 0;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'trailing_comma_and_identifier',
           'intList[x,y] = 0;',
           [ParserErrorCode.EXPECTED_TOKEN],
           'intList[x] = 0;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'trailing_identifier_no_comma',
           'intList[x y] = 0;',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -53,7 +53,7 @@ class IndexStatementTest extends PartialCodeTest {
     buildTests(
       'index_partial',
       [
-        new TestDescriptor(
+        TestDescriptor(
           'open',
           'intList[',
           [
@@ -73,7 +73,7 @@ class IndexStatementTest extends PartialCodeTest {
             'return'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'identifier',
           'intList[x',
           [

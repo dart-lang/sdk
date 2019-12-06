@@ -33,31 +33,31 @@ main() {
 class FileSystemStateTest with ResourceProviderMixin {
   MockSdk sdk;
 
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   final _GeneratedUriResolverMock generatedUriResolver =
-      new _GeneratedUriResolverMock();
+      _GeneratedUriResolverMock();
   SourceFactory sourceFactory;
   PerformanceLog logger;
 
   FileSystemState fileSystemState;
 
   void setUp() {
-    logger = new PerformanceLog(logBuffer);
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
+    logger = PerformanceLog(logBuffer);
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
       generatedUriResolver,
-      new PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
+      PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
         'aaa': [getFolder('/aaa/lib')],
         'bbb': [getFolder('/bbb/lib')],
       }),
-      new ResourceUriResolver(resourceProvider)
+      ResourceUriResolver(resourceProvider)
     ], null, resourceProvider);
-    AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
-    fileSystemState = new FileSystemState(
+    AnalysisOptions analysisOptions = AnalysisOptionsImpl();
+    fileSystemState = FileSystemState(
         logger,
         byteStore,
         contentOverlay,
@@ -66,8 +66,8 @@ class FileSystemStateTest with ResourceProviderMixin {
         sourceFactory,
         analysisOptions,
         DeclaredVariables(),
-        new Uint32List(0),
-        new Uint32List(0));
+        Uint32List(0),
+        Uint32List(0));
   }
 
   test_definedClassMemberNames() {
@@ -393,7 +393,7 @@ class D implements C {}
     String templatePath = convertPath('/aaa/lib/foo.dart');
     String generatedPath = convertPath('/generated/aaa/lib/foo.dart');
 
-    Source generatedSource = new _SourceMock(generatedPath, uri);
+    Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction =
         (uri, actualUri) => generatedSource;
@@ -673,7 +673,7 @@ class _GeneratedUriResolverMock implements UriResolver {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 
   @override
@@ -704,6 +704,6 @@ class _SourceMock implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

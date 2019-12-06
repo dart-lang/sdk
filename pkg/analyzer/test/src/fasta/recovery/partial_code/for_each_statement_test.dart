@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ForEachStatementTest().buildAll();
+  ForEachStatementTest().buildAll();
 }
 
 class ForEachStatementTest extends PartialCodeTest {
@@ -21,7 +21,7 @@ class ForEachStatementTest extends PartialCodeTest {
     buildTests(
         'forEach_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'in',
               'for (var a in',
               [
@@ -32,7 +32,7 @@ class ForEachStatementTest extends PartialCodeTest {
               ],
               'for (var a in _s_) _s_;',
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'iterator',
               'for (var a in b',
               [
@@ -53,9 +53,9 @@ class ForEachStatementTest extends PartialCodeTest {
     buildTests(
         'forEach_statement',
         [
-          new TestDescriptor('await_keyword', 'await for',
+          TestDescriptor('await_keyword', 'await for',
               [ParserErrorCode.EXPECTED_TOKEN], 'await for (_s_ in _s_) _s_;'),
-          new TestDescriptor(
+          TestDescriptor(
               'await_leftParen',
               'await for (',
               [
@@ -70,7 +70,7 @@ class ForEachStatementTest extends PartialCodeTest {
               ],
               "await for (_s_ in _s_) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'await_variableName',
               'await for (a',
               [
@@ -82,7 +82,7 @@ class ForEachStatementTest extends PartialCodeTest {
               ],
               "await for (a in _s_) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'await_typeAndVariableName',
               'await for (A a',
               [
@@ -94,7 +94,7 @@ class ForEachStatementTest extends PartialCodeTest {
               ],
               "await for (A a in _s_) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'await_in',
               'await for (A a in',
               [
@@ -105,7 +105,7 @@ class ForEachStatementTest extends PartialCodeTest {
               ],
               "await for (A a in _s_) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'await_stream',
               'await for (A a in b',
               [

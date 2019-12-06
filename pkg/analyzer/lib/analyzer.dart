@@ -54,7 +54,7 @@ CompilationUnit parseCompilationUnit(String contents,
     FeatureSet featureSet}) {
   // TODO(paulberry): make featureSet a required parameter
   featureSet ??= FeatureSet.fromEnableFlags([]);
-  Source source = new StringSource(contents, name);
+  Source source = StringSource(contents, name);
   return _parseSource(contents, source, featureSet,
       suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
 }
@@ -79,17 +79,17 @@ CompilationUnit parseDartFile(String path,
     FeatureSet featureSet}) {
   // TODO(paulberry): Make featureSet a required parameter
   featureSet ??= FeatureSet.fromEnableFlags([]);
-  String contents = new File(path).readAsStringSync();
-  var sourceFactory = new SourceFactory(
-      [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
+  String contents = File(path).readAsStringSync();
+  var sourceFactory =
+      SourceFactory([ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
 
   var absolutePath = pathos.absolute(path);
   var source = sourceFactory.forUri(pathos.toUri(absolutePath).toString());
   if (source == null) {
-    throw new ArgumentError("Can't get source for path $path");
+    throw ArgumentError("Can't get source for path $path");
   }
   if (!source.exists()) {
-    throw new ArgumentError("Source $source doesn't exist");
+    throw ArgumentError("Source $source doesn't exist");
   }
 
   return _parseSource(contents, source, featureSet,
@@ -118,15 +118,15 @@ CompilationUnit parseDirectives(String contents,
     {String name, bool suppressErrors = false, FeatureSet featureSet}) {
   // TODO(paulberry): make featureSet a required parameter.
   featureSet ??= FeatureSet.fromEnableFlags([]);
-  var source = new StringSource(contents, name);
-  var errorCollector = new _ErrorCollector();
-  var reader = new CharSequenceReader(contents);
-  var scanner = new Scanner(source, reader, errorCollector)
+  var source = StringSource(contents, name);
+  var errorCollector = _ErrorCollector();
+  var reader = CharSequenceReader(contents);
+  var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector, featureSet: featureSet);
+  var parser = Parser(source, errorCollector, featureSet: featureSet);
   var unit = parser.parseDirectives(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
+  unit.lineInfo = LineInfo(scanner.lineStarts);
 
   if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
 
@@ -142,15 +142,15 @@ String stringLiteralToString(StringLiteral literal) {
 CompilationUnit _parseSource(
     String contents, Source source, FeatureSet featureSet,
     {bool suppressErrors = false, bool parseFunctionBodies = true}) {
-  var reader = new CharSequenceReader(contents);
-  var errorCollector = new _ErrorCollector();
-  var scanner = new Scanner(source, reader, errorCollector)
+  var reader = CharSequenceReader(contents);
+  var errorCollector = _ErrorCollector();
+  var scanner = Scanner(source, reader, errorCollector)
     ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector, featureSet: featureSet)
+  var parser = Parser(source, errorCollector, featureSet: featureSet)
     ..parseFunctionBodies = parseFunctionBodies;
   var unit = parser.parseCompilationUnit(token)
-    ..lineInfo = new LineInfo(scanner.lineStarts);
+    ..lineInfo = LineInfo(scanner.lineStarts);
 
   if (errorCollector.hasErrors && !suppressErrors) throw errorCollector.group;
 
@@ -165,7 +165,7 @@ class _ErrorCollector extends AnalysisErrorListener {
 
   /// The group of errors collected.
   AnalyzerErrorGroup get group =>
-      new AnalyzerErrorGroup.fromAnalysisErrors(_errors);
+      AnalyzerErrorGroup.fromAnalysisErrors(_errors);
 
   /// Whether any errors where collected.
   bool get hasErrors => _errors.isNotEmpty;

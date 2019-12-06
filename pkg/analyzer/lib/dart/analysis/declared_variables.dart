@@ -52,14 +52,14 @@ class DeclaredVariables {
   DartObject getBool(TypeProvider typeProvider, String name) {
     String value = _declaredVariables[name];
     if (value == null) {
-      return new DartObjectImpl(typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+      return DartObjectImpl(typeProvider.boolType, BoolState.UNKNOWN_VALUE);
     }
     if (value == "true") {
-      return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
+      return DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
     } else if (value == "false") {
-      return new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE);
+      return DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE);
     }
-    return new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
+    return DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
   }
 
   /// Return the value of the variable with the given [name] interpreted as an
@@ -69,15 +69,15 @@ class DeclaredVariables {
   DartObject getInt(TypeProvider typeProvider, String name) {
     String value = _declaredVariables[name];
     if (value == null) {
-      return new DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
     }
     int bigInteger;
     try {
       bigInteger = int.parse(value);
     } on FormatException {
-      return new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
+      return DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
     }
-    return new DartObjectImpl(typeProvider.intType, new IntState(bigInteger));
+    return DartObjectImpl(typeProvider.intType, IntState(bigInteger));
   }
 
   /// Return the value of the variable with the given [name] interpreted as a
@@ -89,9 +89,8 @@ class DeclaredVariables {
   DartObject getString(TypeProvider typeProvider, String name) {
     String value = _declaredVariables[name];
     if (value == null) {
-      return new DartObjectImpl(
-          typeProvider.stringType, StringState.UNKNOWN_VALUE);
+      return DartObjectImpl(typeProvider.stringType, StringState.UNKNOWN_VALUE);
     }
-    return new DartObjectImpl(typeProvider.stringType, new StringState(value));
+    return DartObjectImpl(typeProvider.stringType, StringState(value));
   }
 }

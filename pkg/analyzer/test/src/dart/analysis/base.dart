@@ -27,7 +27,7 @@ import 'package:test/test.dart';
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -48,14 +48,14 @@ typedef void _ElementVisitorFunction(Element element);
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
   final _GeneratedUriResolverMock generatedUriResolver =
-      new _GeneratedUriResolverMock();
+      _GeneratedUriResolverMock();
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
@@ -87,18 +87,18 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
-    return new AnalysisDriver(
+    return AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
+        SourceFactory([
+          DartUriResolver(sdk),
           generatedUriResolver,
-          new PackageMapUriResolver(resourceProvider, packageMap),
-          new ResourceUriResolver(resourceProvider)
+          PackageMapUriResolver(resourceProvider, packageMap),
+          ResourceUriResolver(resourceProvider)
         ], null, resourceProvider),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
@@ -106,7 +106,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
         externalSummaries: externalSummaries);
   }
 
-  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = analyzer.Parser.useFasta
     ..enabledExperiments = enabledExperiments;
 
@@ -140,11 +140,11 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
+    sdk = MockSdk(resourceProvider: resourceProvider);
     testProject = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
     driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
@@ -179,7 +179,7 @@ class _GeneratedUriResolverMock implements UriResolver {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 
   @override

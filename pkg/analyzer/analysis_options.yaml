@@ -21,10 +21,6 @@ analyzer:
     # is mechanical, via `dartfmt --fix-optional-const`, but not worth the
     # churn today.
     unnecessary_const: ignore
-    # TODO(srawlins): At the time of writing, 3200 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-optional-new`, but not worth the churn
-    # today.
-    unnecessary_new: ignore
 
 linter:
   rules:

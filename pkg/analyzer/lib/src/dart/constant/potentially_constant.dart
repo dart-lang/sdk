@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
 /// if doing this is valid.
-final temporaryConstConstructorElements = new Expando<bool>();
+final temporaryConstConstructorElements = Expando<bool>();
 
 /// Check if the [node] and all its sub-nodes are potentially constant.
 ///

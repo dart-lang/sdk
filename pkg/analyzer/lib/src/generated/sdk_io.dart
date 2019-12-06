@@ -25,7 +25,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
    */
-  LibraryMap libraryMap = new LibraryMap();
+  LibraryMap libraryMap = LibraryMap();
 
   /**
    * The [AnalysisOptions] to use to create the [context].
@@ -46,7 +46,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * The mapping from Dart URI's to the corresponding sources.
    */
-  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
+  Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
   /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
@@ -54,7 +54,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'Analysis options cannot be changed after context creation.');
     }
     _analysisOptions = options;
@@ -85,7 +85,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void set useSummary(bool use) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'The "useSummary" flag cannot be changed after context creation.');
     }
     _useSummary = use;
@@ -99,7 +99,7 @@ abstract class AbstractDartSdk implements DartSdk {
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
       String shortName = uri.substring(uri.indexOf(':') + 1);
-      SdkLibraryImpl library = new SdkLibraryImpl(shortName);
+      SdkLibraryImpl library = SdkLibraryImpl(shortName);
       library.path = path;
       libraryMap.setLibrary(uri, library);
     });
@@ -107,14 +107,14 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   Source fromFileUri(Uri uri) {
-    JavaFile file = new JavaFile.fromUri(uri);
+    JavaFile file = JavaFile.fromUri(uri);
 
     String path = _getPath(file);
     if (path == null) {
       return null;
     }
     try {
-      return new FileBasedSource(file, Uri.parse(path));
+      return FileBasedSource(file, Uri.parse(path));
     } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
@@ -170,8 +170,8 @@ abstract class AbstractDartSdk implements DartSdk {
     }
     String filePath = srcPath.replaceAll('/', JavaFile.separator);
     try {
-      JavaFile file = new JavaFile(filePath);
-      return new FileBasedSource(file, Uri.parse(dartUri));
+      JavaFile file = JavaFile(filePath);
+      return FileBasedSource(file, Uri.parse(dartUri));
     } on FormatException {
       return null;
     }
@@ -190,7 +190,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(JavaFile file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = new List(length);
+    List<String> paths = List(length);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;

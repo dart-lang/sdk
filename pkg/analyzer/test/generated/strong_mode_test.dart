@@ -1139,7 +1139,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult result = await super.computeAnalysisResult(source);
     if (_assertions == null) {
-      _assertions = new TypeAssertions(typeProvider);
+      _assertions = TypeAssertions(typeProvider);
       _isType = _assertions.isType;
       _hasElement = _assertions.hasElement;
       _isInstantiationOf = _assertions.isInstantiationOf;
@@ -1167,7 +1167,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl options = AnalysisOptionsImpl();
     resetWith(options: options);
   }
 
@@ -3897,9 +3897,9 @@ class B<T2, U2> {
 @reflectiveTest
 class StrongModeLocalInferenceTest_NNBD extends ResolverTestCase {
   @override
-  AnalysisOptions get analysisOptions => new AnalysisOptionsImpl()
+  AnalysisOptions get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures =
-        new FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
   @override
   void setUp() {

@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ConstructorTest().buildAll();
+  ConstructorTest().buildAll();
 }
 
 class ConstructorTest extends PartialCodeTest {
@@ -17,7 +17,7 @@ class ConstructorTest extends PartialCodeTest {
     buildTests(
         'constructor',
         [
-          new TestDescriptor(
+          TestDescriptor(
             'colon',
             'C() :',
             [
@@ -28,7 +28,7 @@ class ConstructorTest extends PartialCodeTest {
             adjustValidUnitBeforeComparison: setSeparator,
             failing: ['methodNonVoid', 'getter', 'setter'],
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'colon_field',
             'C() : f',
             [
@@ -38,7 +38,7 @@ class ConstructorTest extends PartialCodeTest {
             'C() : f = _s_ {}',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'colon_field_increment',
             'C() : f++',
             [
@@ -48,7 +48,7 @@ class ConstructorTest extends PartialCodeTest {
             'C() : _s_ = f++ {}',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'colon_field_comma',
             'C() : f = 0,',
             [
@@ -59,21 +59,21 @@ class ConstructorTest extends PartialCodeTest {
             adjustValidUnitBeforeComparison: setSeparator,
             failing: ['methodNonVoid', 'getter', 'setter'],
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'colon_block',
             'C() : {}',
             [ParserErrorCode.MISSING_INITIALIZER],
             'C() : _s_ = _s_ {}',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'colon_semicolon',
             'C() : ;',
             [ParserErrorCode.MISSING_INITIALIZER],
             'C() : _s_ = _s_ ;',
             adjustValidUnitBeforeComparison: setSeparator,
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'super',
             'C() : super',
             [
@@ -82,7 +82,7 @@ class ConstructorTest extends PartialCodeTest {
             ],
             'C() : super() {}',
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'super_dot',
             'C() : super.',
             [
@@ -93,7 +93,7 @@ class ConstructorTest extends PartialCodeTest {
             'C() : super._s_() {}',
             failing: ['fieldConst', 'methodNonVoid', 'getter', 'setter'],
           ),
-          new TestDescriptor(
+          TestDescriptor(
             'super_qdot',
             'C() : super?.',
             [
@@ -117,7 +117,7 @@ class ConstructorTest extends PartialCodeTest {
     ClassDeclaration declaration = unit.declarations[0];
     ConstructorDeclaration member = declaration.members[0];
     member.separator =
-        new Token(TokenType.COLON, member.parameters.endToken.charOffset + 1);
+        Token(TokenType.COLON, member.parameters.endToken.charOffset + 1);
     return unit;
   }
 }

@@ -22,7 +22,7 @@ class StrictRawType_WithExtensionsTest extends DriverResolutionTest
     with PackageMixin {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods])
     ..strictRawTypes = true;
 

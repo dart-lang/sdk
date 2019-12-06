@@ -40,7 +40,7 @@ class SdkPatcher {
     {
       Uri uri = source.uri;
       if (uri.scheme != 'dart') {
-        throw new ArgumentError(
+        throw ArgumentError(
             'The URI of the unit to patch must have the "dart" scheme: $uri');
       }
       List<String> uriSegments = uri.pathSegments;
@@ -55,7 +55,7 @@ class SdkPatcher {
     for (String path in patchPaths) {
       File patchFile = resourceProvider.getFile(path);
       if (!patchFile.exists) {
-        throw new ArgumentError(
+        throw ArgumentError(
             'The patch file ${patchFile.path} for $source does not exist.');
       }
       Source patchSource = patchFile.createSource();
@@ -75,7 +75,7 @@ class SdkPatcher {
   }
 
   void _failExternalKeyword(String name, int offset) {
-    throw new ArgumentError(
+    throw ArgumentError(
         'The keyword "external" was expected for "$name" in $_baseDesc @ $offset.');
   }
 
@@ -90,7 +90,7 @@ class SdkPatcher {
 
   void _failInPatch(String message, int offset) {
     String loc = _getLocationDesc3(_patchUnit, offset);
-    throw new ArgumentError(
+    throw ArgumentError(
         'The patch file $_patchDesc for $_baseDesc $message at $loc.');
   }
 
@@ -103,10 +103,10 @@ class SdkPatcher {
       FormalParameterList patchParameters, String context()) {
     if (baseParameters == null && patchParameters == null) return;
     if (baseParameters == null || patchParameters == null) {
-      throw new ArgumentError("${context()}, parameter lists don't match");
+      throw ArgumentError("${context()}, parameter lists don't match");
     }
     if (baseParameters.parameters.length != patchParameters.parameters.length) {
-      throw new ArgumentError(
+      throw ArgumentError(
           '${context()}, parameter lists have different lengths');
     }
     for (var i = 0; i < baseParameters.parameters.length; i++) {
@@ -118,7 +118,7 @@ class SdkPatcher {
   void _matchParameters(FormalParameter baseParameter,
       FormalParameter patchParameter, String whichParameter()) {
     if (baseParameter.identifier.name != patchParameter.identifier.name) {
-      throw new ArgumentError('${whichParameter()} has different name');
+      throw ArgumentError('${whichParameter()} has different name');
     }
     NormalFormalParameter baseParameterWithoutDefault =
         _withoutDefault(baseParameter);
@@ -140,16 +140,16 @@ class SdkPatcher {
           () => '${whichParameter()} parameters');
     } else if (baseParameterWithoutDefault is FieldFormalParameter &&
         patchParameter is FieldFormalParameter) {
-      throw new ArgumentError(
+      throw ArgumentError(
           '${whichParameter()} cannot be patched (field formal parameters are not supported)');
     } else {
-      throw new ArgumentError(
+      throw ArgumentError(
           '${whichParameter()} mismatch (different parameter kinds)');
     }
   }
 
   void _matchTypes(TypeName baseType, TypeName patchType, String whichType()) {
-    error() => new ArgumentError("${whichType()} doesn't match");
+    error() => ArgumentError("${whichType()} doesn't match");
     if (baseType == null && patchType == null) return;
     if (baseType == null || patchType == null) throw error();
     // Match up the types token by token; this is more restrictive than strictly
@@ -251,7 +251,7 @@ class SdkPatcher {
               }
               // The base constructor should not have initializers.
               if (baseMember.initializers.isNotEmpty) {
-                throw new ArgumentError(
+                throw ArgumentError(
                     'Cannot patch external constructors with initializers '
                     'in $_baseDesc.');
               }
@@ -411,13 +411,13 @@ class SdkPatcher {
       AnalysisErrorListener errorListener, FeatureSet featureSet) {
     String code = source.contents.data;
 
-    CharSequenceReader reader = new CharSequenceReader(code);
-    Scanner scanner = new Scanner(source, reader, errorListener)
+    CharSequenceReader reader = CharSequenceReader(code);
+    Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
+    Parser parser = Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

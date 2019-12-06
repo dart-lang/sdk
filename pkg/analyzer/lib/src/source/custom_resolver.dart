@@ -18,7 +18,7 @@ class CustomUriResolver extends UriResolver {
     if (mapping == null) {
       return null;
     }
-    Uri fileUri = new Uri.file(mapping);
+    Uri fileUri = Uri.file(mapping);
     if (!fileUri.isAbsolute) {
       return null;
     }

@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new MethodTest().buildAll();
+  MethodTest().buildAll();
 }
 
 class MethodTest extends PartialCodeTest {
@@ -28,7 +28,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance field, const.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'const_noName',
           'const',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -38,7 +38,7 @@ class MethodTest extends PartialCodeTest {
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'const_name',
           'const f',
           [
@@ -51,7 +51,7 @@ class MethodTest extends PartialCodeTest {
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'const_equals',
           'const f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -64,7 +64,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'const_initializer',
           'const f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -73,21 +73,21 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance field, final.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'final_noName',
           'final',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'final _s_;',
           failing: allExceptAnnotationAndEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'final_name',
           'final f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'final f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'final_equals',
           'final f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -100,7 +100,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'final_initializer',
           'final f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -109,28 +109,28 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance field, var.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'var_noName',
           'var',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'var _s_;',
           failing: allExceptAnnotationAndEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'var_name',
           'var f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'var f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'var_name_comma',
           'var f,',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'var f, _s_;',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'var_equals',
           'var f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -143,7 +143,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'var_initializer',
           'var f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -152,7 +152,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Instance field, type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'type_noName',
           'A',
           [
@@ -162,13 +162,13 @@ class MethodTest extends PartialCodeTest {
           'A _s_;',
           allFailing: true,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_name',
           'A f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'A f;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
             'type_name_comma',
             'A f,',
             [
@@ -177,7 +177,7 @@ class MethodTest extends PartialCodeTest {
             ],
             'A f, _s_;',
             failing: ['methodNonVoid', 'getter', 'setter']),
-        new TestDescriptor(
+        TestDescriptor(
           'type_equals',
           'A f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -190,7 +190,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'type_initializer',
           'A f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -199,7 +199,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Static field, const.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_const_noName',
           'static const',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -209,7 +209,7 @@ class MethodTest extends PartialCodeTest {
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_const_name',
           'static const f',
           [
@@ -222,7 +222,7 @@ class MethodTest extends PartialCodeTest {
             CompileTimeErrorCode.CONST_NOT_INITIALIZED
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_const_equals',
           'static const f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -235,7 +235,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_const_initializer',
           'static const f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -244,21 +244,21 @@ class MethodTest extends PartialCodeTest {
         //
         // Static field, final.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_final_noName',
           'static final',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'static final _s_;',
           failing: allExceptAnnotationAndEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_final_name',
           'static final f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'static final f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_final_equals',
           'static final f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -271,7 +271,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_final_initializer',
           'static final f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -280,21 +280,21 @@ class MethodTest extends PartialCodeTest {
         //
         // Static field, var.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_var_noName',
           'static var',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           'static var _s_;',
           failing: allExceptAnnotationAndEof,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_var_name',
           'static var f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'static var f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_var_equals',
           'static var f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -307,7 +307,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_var_initializer',
           'static var f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],
@@ -316,7 +316,7 @@ class MethodTest extends PartialCodeTest {
         //
         // Static field, type.
         //
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_noName',
           'static A',
           [
@@ -326,13 +326,13 @@ class MethodTest extends PartialCodeTest {
           'static A _s_;',
           allFailing: true,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_name',
           'static A f',
           [ParserErrorCode.EXPECTED_TOKEN],
           'static A f;',
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_equals',
           'static A f =',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
@@ -345,7 +345,7 @@ class MethodTest extends PartialCodeTest {
             'setter'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'static_type_initializer',
           'static A f = 0',
           [ParserErrorCode.EXPECTED_TOKEN],

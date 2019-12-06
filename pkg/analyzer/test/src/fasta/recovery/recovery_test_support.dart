@@ -39,8 +39,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
     }
 
     // Compare the structures before asserting valid errors.
-    GatheringErrorListener listener =
-        new GatheringErrorListener(checkRanges: true);
+    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
     CompilationUnit invalidUnit =
         parseCompilationUnit2(invalidCode, listener, featureSet: featureSet);
     validateTokenStream(invalidUnit.beginToken);
@@ -77,7 +76,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
  */
 class ResultComparator extends AstComparator {
   bool failDifferentLength(List first, List second) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeln('Expected a list of length ${second.length}');
     buffer.writeln('  $second');
     buffer.writeln('But found a list of length ${first.length}');
@@ -91,7 +90,7 @@ class ResultComparator extends AstComparator {
   @override
   bool failIfNotNull(Object first, Object second) {
     if (second != null) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.write('Expected null; found a ');
       buffer.writeln(second.runtimeType);
       if (second is AstNode) {
@@ -104,7 +103,7 @@ class ResultComparator extends AstComparator {
 
   @override
   bool failIsNull(Object first, Object second) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Expected a ');
     buffer.write(first.runtimeType);
     buffer.writeln('; found null');
@@ -116,7 +115,7 @@ class ResultComparator extends AstComparator {
 
   @override
   bool failRuntimeType(Object first, Object second) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Expected a ');
     buffer.writeln(second.runtimeType);
     buffer.write('; found ');
@@ -173,7 +172,7 @@ class ResultComparator extends AstComparator {
    * different.
    */
   static void compare(AstNode actual, AstNode expected) {
-    ResultComparator comparator = new ResultComparator();
+    ResultComparator comparator = ResultComparator();
     if (!comparator.isEqualNodes(actual, expected)) {
       fail('Expected: $expected\n   Found: $actual');
     }

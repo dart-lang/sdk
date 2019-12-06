@@ -20,7 +20,7 @@ import 'package:analyzer/src/summary2/lazy_ast.dart';
  */
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
-  final Set<ClassElement> elementsBeingInferred = new HashSet<ClassElement>();
+  final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
 
   bool isNonNullableLibrary;
   InterfaceType interfaceType;
@@ -67,14 +67,14 @@ class InstanceMemberInferrer {
 
     var overriddenGetters = inheritance.getOverridden(
       interfaceType,
-      new Name(accessor.library.source.uri, name),
+      Name(accessor.library.source.uri, name),
     );
 
     List<ExecutableElement> overriddenSetters;
     if (overriddenGetters == null || !accessor.variable.isFinal) {
       overriddenSetters = inheritance.getOverridden(
         interfaceType,
-        new Name(accessor.library.source.uri, '$name='),
+        Name(accessor.library.source.uri, '$name='),
       );
     }
 
@@ -97,7 +97,7 @@ class InstanceMemberInferrer {
     for (ExecutableElement overriddenElement in overriddenElements) {
       var overriddenElementKind = overriddenElement.kind;
       if (overriddenElement == null) {
-        return new _FieldOverrideInferenceResult(false, null, true);
+        return _FieldOverrideInferenceResult(false, null, true);
       }
 
       DartType type;
@@ -110,17 +110,17 @@ class InstanceMemberInferrer {
           isCovariant = isCovariant || parameter.isCovariant;
         }
       } else {
-        return new _FieldOverrideInferenceResult(false, null, true);
+        return _FieldOverrideInferenceResult(false, null, true);
       }
 
       if (impliedType == null) {
         impliedType = type;
       } else if (type != impliedType) {
-        return new _FieldOverrideInferenceResult(false, null, true);
+        return _FieldOverrideInferenceResult(false, null, true);
       }
     }
 
-    return new _FieldOverrideInferenceResult(isCovariant, impliedType, false);
+    return _FieldOverrideInferenceResult(isCovariant, impliedType, false);
   }
 
   /**
@@ -264,7 +264,7 @@ class InstanceMemberInferrer {
         // inherit from any class in the cycle. We could potentially limit the
         // algorithm to only not inferring types in the classes in the cycle,
         // but it isn't clear that the results would be significantly better.
-        throw new _CycleException();
+        throw _CycleException();
       }
       try {
         //
@@ -337,7 +337,7 @@ class InstanceMemberInferrer {
 
     List<ExecutableElement> overriddenElements = inheritance.getOverridden(
       interfaceType,
-      new Name(element.library.source.uri, element.name),
+      Name(element.library.source.uri, element.name),
     );
     if (overriddenElements == null ||
         !_allSameElementKind(element, overriddenElements)) {

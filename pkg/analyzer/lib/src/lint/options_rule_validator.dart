@@ -77,7 +77,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   validateRules(YamlNode rules, ErrorReporter reporter) {
     if (rules is YamlList) {
-      Set<String> seenRules = new HashSet<String>();
+      Set<String> seenRules = HashSet<String>();
       rules.nodes.forEach((YamlNode ruleNode) {
         Object value = ruleNode.value;
         if (value != null) {

@@ -135,7 +135,7 @@ class AstBuilder extends StackListener {
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri uri])
-      : this.errorReporter = new FastaErrorReporter(errorReporter),
+      : this.errorReporter = FastaErrorReporter(errorReporter),
         this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
         this.enableSpreadCollections =
             _featureSet.isEnabled(Feature.spread_collections),
@@ -196,7 +196,7 @@ class AstBuilder extends StackListener {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
-    push(new _Modifiers()..abstractKeyword = abstractToken);
+    push(_Modifiers()..abstractKeyword = abstractToken);
   }
 
   @override
@@ -236,7 +236,7 @@ class AstBuilder extends StackListener {
   @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
-    push(new _Modifiers()
+    push(_Modifiers()
       ..externalKeyword = externalToken
       ..finalConstOrVarKeyword = constToken);
   }
@@ -244,7 +244,7 @@ class AstBuilder extends StackListener {
   @override
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
-    push(new _Modifiers()
+    push(_Modifiers()
       ..covariantKeyword = covariantToken
       ..finalConstOrVarKeyword = varFinalOrConst
       ..requiredToken = requiredToken);
@@ -272,7 +272,7 @@ class AstBuilder extends StackListener {
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token getOrSet, Token name) {
-    _Modifiers modifiers = new _Modifiers();
+    _Modifiers modifiers = _Modifiers();
     if (externalToken != null) {
       assert(externalToken.isModifier);
       modifiers.externalKeyword = externalToken;
@@ -309,11 +309,11 @@ class AstBuilder extends StackListener {
   @override
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {
-    push(new _Modifiers()..abstractKeyword = abstractToken);
+    push(_Modifiers()..abstractKeyword = abstractToken);
   }
 
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
-    push(new _Modifiers()..externalKeyword = externalToken);
+    push(_Modifiers()..externalKeyword = externalToken);
   }
 
   @override
@@ -332,7 +332,7 @@ class AstBuilder extends StackListener {
       Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
     if (varFinalOrConst != null || lateToken != null) {
-      push(new _Modifiers()
+      push(_Modifiers()
         ..finalConstOrVarKeyword = varFinalOrConst
         ..lateToken = lateToken);
     } else {
@@ -633,7 +633,7 @@ class AstBuilder extends StackListener {
     } else {
       // TODO(danrubel): Skip the block rather than parsing it.
       push(ast.emptyFunctionBody(
-          new SyntheticToken(TokenType.SEMICOLON, leftBracket.charOffset)));
+          SyntheticToken(TokenType.SEMICOLON, leftBracket.charOffset)));
     }
   }
 
@@ -694,7 +694,7 @@ class AstBuilder extends StackListener {
       period = name.period;
       nameOrNull = name.identifier;
     } else {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'name is an instance of ${name.runtimeType} in endClassConstructor');
     }
 
@@ -882,7 +882,7 @@ class AstBuilder extends StackListener {
       operatorKeyword = name.operatorKeyword;
       nameId = name.name;
     } else {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'name is an instance of ${name.runtimeType} in endClassMethod');
     }
 
@@ -1853,7 +1853,7 @@ class AstBuilder extends StackListener {
         (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
     debugEvent("OptionalFormalParameters");
 
-    push(new _OptionalFormalParameters(
+    push(_OptionalFormalParameters(
         popTypedList(count), leftDelimeter, rightDelimeter));
   }
 
@@ -1899,7 +1899,7 @@ class AstBuilder extends StackListener {
     ConstructorName constructorName = pop();
     Token starToken = pop();
     Token asyncToken = pop();
-    push(new _RedirectingFactoryBody(
+    push(_RedirectingFactoryBody(
         asyncToken, starToken, equalToken, constructorName));
   }
 
@@ -1943,7 +1943,7 @@ class AstBuilder extends StackListener {
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
 
-    Set<String> labels = new Set<String>();
+    Set<String> labels = Set<String>();
     for (SwitchMember member in members) {
       for (Label label in member.labels) {
         if (!labels.add(label.label.name)) {
@@ -1991,10 +1991,10 @@ class AstBuilder extends StackListener {
           member.labels.insert(0, pop());
           --labelCount;
         }
-        members = new List<SwitchMember>(expressionCount + 1);
+        members = List<SwitchMember>(expressionCount + 1);
         members[expressionCount] = member;
       } else {
-        members = new List<SwitchMember>(expressionCount);
+        members = List<SwitchMember>(expressionCount);
       }
       for (int index = expressionCount - 1; index >= 0; --index) {
         SwitchMember member = pop();
@@ -2725,7 +2725,7 @@ class AstBuilder extends StackListener {
     assert(optional('operator', operatorKeyword));
     debugEvent("InvalidOperatorName");
 
-    push(new _OperatorName(
+    push(_OperatorName(
         operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
   }
 
@@ -2750,9 +2750,9 @@ class AstBuilder extends StackListener {
     TypeArgumentList invalidTypeArgs = pop();
     var node = pop();
     if (node is ConstructorName) {
-      push(new _ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
+      push(_ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
     } else {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments');
     }
   }
@@ -3077,7 +3077,7 @@ class AstBuilder extends StackListener {
     assert(token.type.isUserDefinableOperator);
     debugEvent("OperatorName");
 
-    push(new _OperatorName(
+    push(_OperatorName(
         operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
   }
 
@@ -3308,7 +3308,7 @@ class AstBuilder extends StackListener {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
-    push(popTypedList(count, new List<TypeParameter>(count)));
+    push(popTypedList(count, List<TypeParameter>(count)));
   }
 
   void handleUnaryPostfixAssignmentExpression(Token operator) {
@@ -3349,7 +3349,7 @@ class AstBuilder extends StackListener {
     debugEvent("ValuedFormalParameter");
 
     Expression value = pop();
-    push(new _ParameterDefaultValue(equals, value));
+    push(_ParameterDefaultValue(equals, value));
   }
 
   @override
@@ -3373,7 +3373,7 @@ class AstBuilder extends StackListener {
   List<CommentReference> parseCommentReferences(Token dartdoc) {
     // Parse dartdoc into potential comment reference source/offset pairs
     int count = parser.parseCommentReferences(dartdoc);
-    List sourcesAndOffsets = new List(count * 2);
+    List sourcesAndOffsets = List(count * 2);
     popList(count * 2, sourcesAndOffsets);
 
     // Parse each of the source/offset pairs into actual comment references
@@ -3391,13 +3391,13 @@ class AstBuilder extends StackListener {
       }
     }
 
-    final references = new List<CommentReference>(count);
+    final references = List<CommentReference>(count);
     popTypedList(count, references);
     return references;
   }
 
   List<CollectionElement> popCollectionElements(int count) {
-    final elements = new List<CollectionElement>()..length = count;
+    final elements = List<CollectionElement>()..length = count;
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
       elements[index] = element as CollectionElement;
@@ -3414,7 +3414,7 @@ class AstBuilder extends StackListener {
     if (count == 0) return null;
     assert(stack.length >= count);
 
-    final tailList = list ?? new List<T>.filled(count, null, growable: true);
+    final tailList = list ?? List<T>.filled(count, null, growable: true);
     stack.popList(count, tailList, null);
     return tailList;
   }

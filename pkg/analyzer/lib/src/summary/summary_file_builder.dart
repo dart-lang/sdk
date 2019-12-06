@@ -39,10 +39,10 @@ class SummaryBuilder {
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+    FolderBasedDartSdk sdk = FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(sdkPath));
     sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk.analysisOptions = AnalysisOptionsImpl();
 
     //
     // Prepare 'dart:' URIs to serialize.
@@ -51,28 +51,28 @@ class SummaryBuilder {
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
     uriSet.add('dart:html_common/html_common_dart2js.dart');
 
-    Set<Source> librarySources = new HashSet<Source>();
+    Set<Source> librarySources = HashSet<Source>();
     for (String uri in uriSet) {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context);
+    return SummaryBuilder(librarySources, sdk.context);
   }
 
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() => new _Builder(context, librarySources).build();
+  List<int> build() => _Builder(context, librarySources).build();
 }
 
 class _Builder {
   final AnalysisContext context;
   final Iterable<Source> librarySources;
 
-  final Set<String> libraryUris = new Set<String>();
+  final Set<String> libraryUris = Set<String>();
   final List<summary2.LinkInputLibrary> inputLibraries = [];
 
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
   _Builder(this.context, this.librarySources);
 
@@ -130,14 +130,14 @@ class _Builder {
   CompilationUnit _parse(Source source) {
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
     String code = source.contents.data;
-    CharSequenceReader reader = new CharSequenceReader(code);
+    CharSequenceReader reader = CharSequenceReader(code);
     // TODO(paulberry): figure out the appropriate featureSet to use here
     var featureSet = FeatureSet.fromEnableFlags([]);
-    Scanner scanner = new Scanner(source, reader, errorListener)
+    Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    Parser parser = new Parser(source, errorListener,
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
+    Parser parser = Parser(source, errorListener,
         featureSet: featureSet,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;

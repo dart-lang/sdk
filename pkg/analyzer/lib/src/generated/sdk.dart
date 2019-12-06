@@ -112,7 +112,7 @@ class DartSdkManager {
    * A table mapping (an encoding of) analysis options and SDK locations to the
    * DartSdk from that location that has been configured with those options.
    */
-  Map<SdkDescription, DartSdk> sdkMap = new HashMap<SdkDescription, DartSdk>();
+  Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /**
    * Initialize a newly created manager.
@@ -160,7 +160,7 @@ class LibraryMap {
   /**
    * Return a list containing all of the sdk libraries in this mapping.
    */
-  List<SdkLibrary> get sdkLibraries => new List.from(_libraryMap.values);
+  List<SdkLibrary> get sdkLibraries => List.from(_libraryMap.values);
 
   /**
    * Return a list containing the library URI's for which a mapping is available.
@@ -257,7 +257,7 @@ class SdkDescription {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     bool needsSeparator = false;
     void add(String optionName) {
       if (needsSeparator) {
@@ -327,7 +327,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
    * The library map that is populated by visiting the AST structure parsed from
    * the contents of the libraries file.
    */
-  LibraryMap _librariesMap = new LibraryMap();
+  LibraryMap _librariesMap = LibraryMap();
 
   /**
    * Return the library map that was populated by visiting the AST structure
@@ -362,7 +362,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
-      SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
+      SdkLibraryImpl library = SdkLibraryImpl(libraryName);
       List<Expression> arguments = value.argumentList.arguments;
       for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {

@@ -1712,7 +1712,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalNamed) {
       return LinkedNodeFormalParameterKind.optionalNamed;
     } else {
-      throw new StateError('Unknown kind of parameter');
+      throw StateError('Unknown kind of parameter');
     }
   }
 }

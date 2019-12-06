@@ -123,7 +123,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   ElementResolver(this._resolver, {this.reportConstEvaluationErrors = true})
       : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
-        _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
+        _methodInvocationResolver = MethodInvocationResolver(_resolver) {
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
   }
@@ -589,9 +589,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (prefixElement is PrefixElement) {
       Element element = _resolver.nameScope.lookup(node, _definingLibrary);
       if (element == null && identifier.inSetterContext()) {
-        Identifier setterName = new PrefixedIdentifierImpl.temp(
+        Identifier setterName = PrefixedIdentifierImpl.temp(
             node.prefix,
-            new SimpleIdentifierImpl(new StringToken(TokenType.STRING,
+            SimpleIdentifierImpl(StringToken(TokenType.STRING,
                 "${node.identifier.name}=", node.identifier.offset - 1)));
         element = _resolver.nameScope.lookup(setterName, _definingLibrary);
       }
@@ -1071,7 +1071,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else if (expression.operator.type == TokenType.MINUS_MINUS) {
       return TokenType.MINUS.lexeme;
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Unsupported postfix operator ${expression.operator.lexeme}');
     }
   }
@@ -1499,7 +1499,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     Namespace namespace =
-        new NamespaceBuilder().createExportNamespaceForLibrary(library);
+        NamespaceBuilder().createExportNamespaceForLibrary(library);
     for (Combinator combinator in combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator is HideCombinator) {
@@ -1829,7 +1829,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
       Identifier setterId =
-          new SyntheticIdentifier('${identifier.name}=', identifier);
+          SyntheticIdentifier('${identifier.name}=', identifier);
       element = _resolver.nameScope.lookup(setterId, _definingLibrary);
     }
     if (element == null) {
@@ -1983,7 +1983,7 @@ class SyntheticIdentifier extends IdentifierImpl {
     // Should never be called, since a SyntheticIdentifier never appears in the
     // AST--it is just used for lookup.
     assert(false);
-    return new ChildEntities();
+    return ChildEntities();
   }
 
   @override

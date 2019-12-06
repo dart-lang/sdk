@@ -83,7 +83,7 @@ class ConflictingGenericInterfacesWithNnbdTest
     extends ConflictingGenericInterfacesTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   test_class_extends_implements_nullability() async {

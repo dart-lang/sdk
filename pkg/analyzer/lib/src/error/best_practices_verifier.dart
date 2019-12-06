@@ -101,14 +101,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
-            new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
+            _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
     String libraryPath = _currentLibrary.source.fullName;
     _workspacePackage = _getPackage(libraryPath, resourceProvider);
 
     _linterContext = LinterContextImpl(
       null /* allUnits */,
-      new LinterContextUnit(content, unit),
+      LinterContextUnit(content, unit),
       declaredVariables,
       typeProvider,
       _typeSystem,
@@ -300,7 +300,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ExecutableElement getOverriddenPropertyAccessor() {
           final element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
-            Name name = new Name(_currentLibrary.source.uri, element.name);
+            Name name = Name(_currentLibrary.source.uri, element.name);
             Element enclosingElement = element.enclosingElement;
             if (enclosingElement is ClassElement) {
               InterfaceType classType = enclosingElement.thisType;
@@ -309,7 +309,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               // Check for a setter.
               if (overridden == null) {
                 Name setterName =
-                    new Name(_currentLibrary.source.uri, '${element.name}=');
+                    Name(_currentLibrary.source.uri, '${element.name}=');
                 overridden = _inheritanceManager
                     .getMember(classType, setterName, forSuper: true);
               }
@@ -887,10 +887,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     ClassElement element = node.declaredElement;
-    if (isOrInheritsImmutable(element, new HashSet<ClassElement>())) {
+    if (isOrInheritsImmutable(element, HashSet<ClassElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
-              element, new HashSet<ClassElement>());
+              element, HashSet<ClassElement>());
       if (nonFinalFields.isNotEmpty) {
         _errorReporter.reportErrorForNode(
             HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);

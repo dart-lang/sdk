@@ -90,7 +90,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
-    var name = new Name(_libraryUri, member.name);
+    var name = Name(_libraryUri, member.name);
     return _inheritance.getOverridden(_currentType, name) != null;
   }
 }

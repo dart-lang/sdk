@@ -155,6 +155,6 @@ class B extends A {
 class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 }

@@ -87,31 +87,29 @@ class ContextLocatorImpl implements ContextLocator {
     if (roots.isEmpty) {
       return const <AnalysisContext>[];
     }
-    PerformanceLog performanceLog = new PerformanceLog(new StringBuffer());
-    AnalysisDriverScheduler scheduler =
-        new AnalysisDriverScheduler(performanceLog);
+    PerformanceLog performanceLog = PerformanceLog(StringBuffer());
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
     DartSdkManager sdkManager =
-        new DartSdkManager(sdkPath ?? _defaultSdkPath, true);
+        DartSdkManager(sdkPath ?? _defaultSdkPath, true);
     scheduler.start();
-    ContextBuilderOptions options = new ContextBuilderOptions();
-    ContextBuilder builder = new ContextBuilder(
-        resourceProvider, sdkManager, null,
-        options: options);
+    ContextBuilderOptions options = ContextBuilderOptions();
+    ContextBuilder builder =
+        ContextBuilder(resourceProvider, sdkManager, null, options: options);
     if (packagesFile != null) {
       options.defaultPackageFilePath = packagesFile;
     }
     builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = new MemoryByteStore();
-    builder.fileContentOverlay = new FileContentOverlay();
+    builder.byteStore = MemoryByteStore();
+    builder.fileContentOverlay = FileContentOverlay();
     builder.performanceLog = performanceLog;
     List<AnalysisContext> contextList = <AnalysisContext>[];
     for (ContextRoot root in roots) {
-      old.ContextRoot contextRoot = new old.ContextRoot(
+      old.ContextRoot contextRoot = old.ContextRoot(
           root.root.path, root.excludedPaths.toList(),
           pathContext: resourceProvider.pathContext);
       AnalysisDriver driver = builder.buildDriver(contextRoot);
       DriverBasedAnalysisContext context =
-          new DriverBasedAnalysisContext(resourceProvider, root, driver);
+          DriverBasedAnalysisContext(resourceProvider, root, driver);
       contextList.add(context);
     }
     return contextList;
@@ -173,7 +171,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     List<ContextRoot> roots = <ContextRoot>[];
     for (Folder folder in includedFolders) {
-      ContextRootImpl root = new ContextRootImpl(resourceProvider, folder);
+      ContextRootImpl root = ContextRootImpl(resourceProvider, folder);
       root.packagesFile = defaultPackagesFile ?? _findPackagesFile(folder);
       root.optionsFile = defaultOptionsFile ?? _findOptionsFile(folder);
       root.included.add(folder);
@@ -185,7 +183,7 @@ class ContextLocatorImpl implements ContextLocator {
     for (File file in includedFiles) {
       Folder parent = file.parent;
       ContextRoot root = rootMap.putIfAbsent(parent, () {
-        ContextRootImpl root = new ContextRootImpl(resourceProvider, parent);
+        ContextRootImpl root = ContextRootImpl(resourceProvider, parent);
         root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
         root.optionsFile = defaultOptionsFile ?? _findOptionsFile(parent);
         roots.add(root);
@@ -247,7 +245,7 @@ class ContextLocatorImpl implements ContextLocator {
       if (packagesFile != null) {
         localPackagesFile = packagesFile;
       }
-      ContextRootImpl root = new ContextRootImpl(resourceProvider, folder);
+      ContextRootImpl root = ContextRootImpl(resourceProvider, folder);
       root.packagesFile = localPackagesFile ?? containingRoot.packagesFile;
       root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
       root.included.add(folder);
@@ -368,7 +366,7 @@ class ContextLocatorImpl implements ContextLocator {
                     excludedPath =
                         context.join(optionsFile.parent.path, excludedPath);
                   }
-                  patterns.add(new Glob(excludedPath, context: context));
+                  patterns.add(Glob(excludedPath, context: context));
                 }
               }
             }
@@ -434,7 +432,7 @@ class ContextLocatorImpl implements ContextLocator {
    * given list of [paths], sorted such that shorter paths are first.
    */
   List<String> _uniqueSortedPaths(List<String> paths) {
-    Set<String> uniquePaths = new HashSet<String>.from(paths);
+    Set<String> uniquePaths = HashSet<String>.from(paths);
     List<String> sortedPaths = uniquePaths.toList();
     sortedPaths.sort((a, b) => a.length - b.length);
     return sortedPaths;

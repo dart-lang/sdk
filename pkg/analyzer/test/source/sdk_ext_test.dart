@@ -36,25 +36,25 @@ class SdkExtUriResolverTest with ResourceProviderMixin {
   }
 
   test_create_badJSON() {
-    var resolver = new SdkExtUriResolver(null);
+    var resolver = SdkExtUriResolver(null);
     resolver.addSdkExt(r'''{{{,{{}}},}}''', null);
     expect(resolver.length, 0);
   }
 
   test_create_noSdkExtPackageMap() {
-    var resolver = new SdkExtUriResolver({
+    var resolver = SdkExtUriResolver({
       'fox': <Folder>[getFolder('/empty')]
     });
     expect(resolver.length, 0);
   }
 
   test_create_nullPackageMap() {
-    var resolver = new SdkExtUriResolver(null);
+    var resolver = SdkExtUriResolver(null);
     expect(resolver.length, 0);
   }
 
   test_create_sdkExtPackageMap() {
-    var resolver = new SdkExtUriResolver({
+    var resolver = SdkExtUriResolver({
       'fox': <Folder>[newFolder('/tmp')]
     });
     // We have four mappings.
@@ -67,7 +67,7 @@ class SdkExtUriResolverTest with ResourceProviderMixin {
   }
 
   test_restoreAbsolute() {
-    var resolver = new SdkExtUriResolver({
+    var resolver = SdkExtUriResolver({
       'fox': <Folder>[newFolder('/tmp')]
     });
     var source = resolver.resolveAbsolute(Uri.parse('dart:fox'));

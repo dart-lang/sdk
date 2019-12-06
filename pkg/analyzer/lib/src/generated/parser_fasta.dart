@@ -26,8 +26,8 @@ abstract class ParserAdapter implements Parser {
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
       FeatureSet featureSet,
       {bool allowNativeClause = false})
-      : fastaParser = new fasta.Parser(null),
-        astBuilder = new AstBuilder(errorReporter, fileUri, true, featureSet) {
+      : fastaParser = fasta.Parser(null),
+        astBuilder = AstBuilder(errorReporter, fileUri, true, featureSet) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -83,9 +83,8 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Expression parseArgument() {
-    currentToken = new SimpleToken(TokenType.OPEN_PAREN, 0)
-      ..setNext(currentToken);
-    appendToken(currentToken, new SimpleToken(TokenType.CLOSE_PAREN, 0));
+    currentToken = SimpleToken(TokenType.OPEN_PAREN, 0)..setNext(currentToken);
+    appendToken(currentToken, SimpleToken(TokenType.CLOSE_PAREN, 0));
     currentToken = fastaParser
         .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
         .next;
@@ -121,9 +120,9 @@ abstract class ParserAdapter implements Parser {
       null,
       null,
       null,
-      new Token(Keyword.CLASS, 0),
+      Token(Keyword.CLASS, 0),
       astFactory.simpleIdentifier(
-          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+          fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
       null,
       null,
       null,
@@ -344,8 +343,8 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeParameter parseTypeParameter() {
-    currentToken = new SyntheticBeginToken(TokenType.LT, 0)
-      ..endGroup = new SyntheticToken(TokenType.GT, 0)
+    currentToken = SyntheticBeginToken(TokenType.LT, 0)
+      ..endGroup = SyntheticToken(TokenType.GT, 0)
       ..setNext(currentToken);
     appendToken(currentToken, currentToken.endGroup);
     TypeParameterList typeParams = parseTypeParameterList();
@@ -381,8 +380,8 @@ class _Parser2 extends ParserAdapter {
   factory _Parser2(
       Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
       {bool allowNativeClause = false}) {
-    var errorReporter = new ErrorReporter(errorListener, source);
-    return new _Parser2._(source, errorReporter, source.uri, featureSet,
+    var errorReporter = ErrorReporter(errorListener, source);
+    return _Parser2._(source, errorReporter, source.uri, featureSet,
         allowNativeClause: allowNativeClause);
   }
 

@@ -75,7 +75,7 @@ class InSummarySource extends BasicSource {
   InSummarySource(Uri uri, this.summaryPath) : super(uri);
 
   @override
-  TimestampedData<String> get contents => new TimestampedData<String>(0, '');
+  TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
   @override
   int get modificationStamp => 0;
@@ -106,7 +106,7 @@ class InSummaryUriResolver extends UriResolver {
     String uriString = uri.toString();
     String summaryPath = _dataStore.uriToSummaryPath[uriString];
     if (summaryPath != null) {
-      return new InSummarySource(actualUri, summaryPath);
+      return InSummarySource(actualUri, summaryPath);
     }
     return null;
   }
@@ -190,10 +190,10 @@ class SummaryDataStore {
       var file = resourceProvider.getFile(path);
       buffer = file.readAsBytesSync();
     } else {
-      io.File file = new io.File(path);
+      io.File file = io.File(path);
       buffer = file.readAsBytesSync();
     }
-    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+    PackageBundle bundle = PackageBundle.fromBuffer(buffer);
     addBundle(path, bundle);
   }
 }

@@ -29,17 +29,17 @@ class DeprecatedLint extends LintRule {
 
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
-  LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator(
-      provider: () => [new DeprecatedLint(), new StableLint()]);
+  LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
+      provider: () => [DeprecatedLint(), StableLint()]);
 
 /**
  * Assert that when the validator is used on the given [content] the
  * [expectedErrorCodes] are produced.
  */
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(
-        listener, new StringSource(content, 'analysis_options.yaml'));
+    GatheringErrorListener listener = GatheringErrorListener();
+    ErrorReporter reporter =
+        ErrorReporter(listener, StringSource(content, 'analysis_options.yaml'));
     validator.validate(reporter, loadYamlNode(content));
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }

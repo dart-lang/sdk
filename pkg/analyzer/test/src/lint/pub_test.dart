@@ -43,7 +43,7 @@ dependency_overrides:
   foo: 1.2.0
 """;
 
-  Pubspec ps = new Pubspec.parse(src);
+  Pubspec ps = Pubspec.parse(src);
 
   group('pubspec', () {
     group('basic', () {

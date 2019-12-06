@@ -51,8 +51,7 @@ class SdkExtUriResolver extends UriResolver {
    * Return a table mapping the names of extensions to the paths where those
    * extensions can be found.
    */
-  Map<String, String> get urlMappings =>
-      new Map<String, String>.from(_urlMappings);
+  Map<String, String> get urlMappings => Map<String, String>.from(_urlMappings);
 
   /// Return the path mapping for [libName] or null if there is none.
   String operator [](String libName) => _urlMappings[libName];
@@ -74,7 +73,7 @@ class SdkExtUriResolver extends UriResolver {
       return null;
     }
     // This mapping points to the main entry file of the sdk extension.
-    Uri libraryEntry = new Uri.file(mapping);
+    Uri libraryEntry = Uri.file(mapping);
     if (!libraryEntry.isAbsolute) {
       // We expect an absolute path.
       return null;
@@ -189,17 +188,17 @@ class SdkExtUriResolver extends UriResolver {
   /// Resolve an import of an sdk extension.
   Source _resolveEntry(Uri libraryEntry, Uri importUri) {
     // Library entry.
-    JavaFile javaFile = new JavaFile.fromUri(libraryEntry);
-    return new FileBasedSource(javaFile, importUri);
+    JavaFile javaFile = JavaFile.fromUri(libraryEntry);
+    return FileBasedSource(javaFile, importUri);
   }
 
   /// Resolve a 'part' statement inside an sdk extension.
   Source _resolvePart(Uri libraryEntry, String partPath, Uri importUri) {
     // Library part.
     var directory = pathos.dirname(libraryEntry.path);
-    var partUri = new Uri.file(pathos.join(directory, partPath));
+    var partUri = Uri.file(pathos.join(directory, partPath));
     assert(partUri.isAbsolute);
-    JavaFile javaFile = new JavaFile.fromUri(partUri);
-    return new FileBasedSource(javaFile, importUri);
+    JavaFile javaFile = JavaFile.fromUri(partUri);
+    return FileBasedSource(javaFile, importUri);
   }
 }

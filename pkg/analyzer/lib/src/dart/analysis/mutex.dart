@@ -29,7 +29,7 @@ class Mutex {
     while (_lock != null) {
       await _lock.future;
     }
-    _lock = new Completer<void>();
+    _lock = Completer<void>();
   }
 
   /// Run the given [criticalSection] with acquired mutex.
@@ -49,7 +49,7 @@ class Mutex {
   /// Release a lock that has been acquired.
   void release() {
     if (_lock == null) {
-      throw new StateError('No lock to release.');
+      throw StateError('No lock to release.');
     }
     _lock.complete();
     _lock = null;

@@ -149,7 +149,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   }
 
   static bool assertLegacyTypes(CompilationUnit compilationUnit) {
-    new LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
+    LegacyTypeAsserter().visitCompilationUnit(compilationUnit);
     return true;
   }
 }

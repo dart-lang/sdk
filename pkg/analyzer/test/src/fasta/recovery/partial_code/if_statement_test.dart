@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new IfStatementTest().buildAll();
+  IfStatementTest().buildAll();
 }
 
 class IfStatementTest extends PartialCodeTest {
@@ -15,13 +15,13 @@ class IfStatementTest extends PartialCodeTest {
     buildTests(
       'if_statement',
       [
-        new TestDescriptor(
+        TestDescriptor(
           'keyword',
           'if',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           "if (_s_)",
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'leftParen',
           'if (',
           [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
@@ -35,7 +35,7 @@ class IfStatementTest extends PartialCodeTest {
             'return'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'condition',
           'if (a',
           [ScannerErrorCode.EXPECTED_TOKEN],
@@ -50,7 +50,7 @@ class IfStatementTest extends PartialCodeTest {
     buildTests(
       'if_statement',
       [
-        new TestDescriptor(
+        TestDescriptor(
           'keyword',
           'if',
           [
@@ -61,14 +61,14 @@ class IfStatementTest extends PartialCodeTest {
           "if (_s_);",
           allFailing: true,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'leftParen',
           'if (',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           "if (_s_);",
           allFailing: true,
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'condition',
           'if (a',
           [ParserErrorCode.EXPECTED_TOKEN],

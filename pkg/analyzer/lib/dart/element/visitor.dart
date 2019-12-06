@@ -469,7 +469,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R visitTypeParameterElement(TypeParameterElement element) => _throw(element);
 
   R _throw(Element element) {
-    throw new Exception(
-        'Missing implementation of visit${element.runtimeType}');
+    throw Exception('Missing implementation of visit${element.runtimeType}');
   }
 }

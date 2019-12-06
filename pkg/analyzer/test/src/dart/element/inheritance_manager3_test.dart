@@ -1114,7 +1114,7 @@ class _InheritanceManager3Base extends DriverResolutionTest {
   @override
   Future<void> resolveTestFile() async {
     await super.resolveTestFile();
-    manager = new InheritanceManager3();
+    manager = InheritanceManager3();
   }
 
   void _assertExecutable(ExecutableElement element, String expected) {
@@ -1140,7 +1140,7 @@ class _InheritanceManager3Base extends DriverResolutionTest {
 
     var member = manager.getInherited(
       interfaceType,
-      new Name(null, name),
+      Name(null, name),
     );
 
     _assertExecutable(member, expected);
@@ -1157,7 +1157,7 @@ class _InheritanceManager3Base extends DriverResolutionTest {
 
     var memberType = manager.getMember(
       interfaceType,
-      new Name(null, name),
+      Name(null, name),
       concrete: concrete,
       forSuper: forSuper,
     );

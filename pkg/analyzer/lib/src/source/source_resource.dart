@@ -31,7 +31,7 @@ class FileSource extends Source {
    * The URI and filepath are joined into a pair by separating them with an '@'
    * character.
    */
-  static final Map<String, int> _idTable = new HashMap<String, int>();
+  static final Map<String, int> _idTable = HashMap<String, int>();
 
   /**
    * The URI from which this source was originally derived.
@@ -88,7 +88,7 @@ class FileSource extends Source {
    * See [contents].
    */
   TimestampedData<String> get contentsFromFile {
-    return new TimestampedData<String>(
+    return TimestampedData<String>(
         modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 

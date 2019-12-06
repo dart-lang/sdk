@@ -285,7 +285,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     node.finallyBlock?.accept(this);
     NodeList<CatchClause> catchClauses = node.catchClauses;
     int numOfCatchClauses = catchClauses.length;
-    List<DartType> visitedTypes = new List<DartType>();
+    List<DartType> visitedTypes = List<DartType>();
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses[i];
       if (catchClause.onKeyword != null) {
@@ -369,7 +369,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// [library].
   void _checkCombinator(LibraryElement library, Combinator combinator) {
     Namespace namespace =
-        new NamespaceBuilder().createExportNamespaceForLibrary(library);
+        NamespaceBuilder().createExportNamespaceForLibrary(library);
     NodeList<SimpleIdentifier> names;
     ErrorCode hintCode;
     if (combinator is HideCombinator) {
@@ -442,11 +442,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   EvaluationResultImpl _getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
       if (expression.value) {
-        return new EvaluationResultImpl(
-            new DartObjectImpl(null, BoolState.from(true)));
+        return EvaluationResultImpl(DartObjectImpl(null, BoolState.from(true)));
       } else {
-        return new EvaluationResultImpl(
-            new DartObjectImpl(null, BoolState.from(false)));
+        return EvaluationResultImpl(
+            DartObjectImpl(null, BoolState.from(false)));
       }
     }
 
@@ -492,7 +491,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   /// Enter a new label scope in which the given [labels] are defined.
   void _pushLabels(List<Label> labels) {
-    labelTracker = new _LabelTracker(labelTracker, labels);
+    labelTracker = _LabelTracker(labelTracker, labels);
   }
 }
 
@@ -513,7 +512,7 @@ class _LabelTracker {
 
   /// Initialize a newly created label tracker.
   _LabelTracker(this.outerTracker, this.labels) {
-    used = new List.filled(labels.length, false);
+    used = List.filled(labels.length, false);
     for (int i = 0; i < labels.length; i++) {
       labelMap[labels[i].label.name] = i;
     }

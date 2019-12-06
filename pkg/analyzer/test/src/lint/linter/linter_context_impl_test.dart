@@ -29,14 +29,14 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
     var contextUnit = LinterContextUnit(result.content, result.unit);
 
     final libraryPath = result.libraryElement.source.fullName;
-    final builder = new ContextBuilder(
+    final builder = ContextBuilder(
         resourceProvider, null /* sdkManager */, null /* contentCache */);
     // todo (pq): get workspace from analysis context
     final workspace =
         ContextBuilder.createWorkspace(resourceProvider, libraryPath, builder);
     final workspacePackage = workspace.findPackageFor(libraryPath);
 
-    context = new LinterContextImpl(
+    context = LinterContextImpl(
       [contextUnit],
       contextUnit,
       result.session.declaredVariables,

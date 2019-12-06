@@ -60,7 +60,7 @@ class ContextRootImpl implements ContextRoot {
           yield* _includedFilesInFolder(resource);
         } else {
           Type type = resource.runtimeType;
-          throw new StateError('Unknown resource at path "$path" ($type)');
+          throw StateError('Unknown resource at path "$path" ($type)');
         }
       }
     }
@@ -85,7 +85,7 @@ class ContextRootImpl implements ContextRoot {
           yield* _includedFilesInFolder(resource);
         } else {
           Type type = resource.runtimeType;
-          throw new StateError('Unknown resource at path "$path" ($type)');
+          throw StateError('Unknown resource at path "$path" ($type)');
         }
       }
     }

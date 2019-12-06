@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ExportDirectivesTest().buildAll();
+  ExportDirectivesTest().buildAll();
 }
 
 class ExportDirectivesTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class ExportDirectivesTest extends PartialCodeTest {
     buildTests(
         'export_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'export',
               [
@@ -25,11 +25,11 @@ class ExportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "export '';"),
-          new TestDescriptor('emptyUri', "export ''",
+          TestDescriptor('emptyUri', "export ''",
               [ParserErrorCode.EXPECTED_TOKEN], "export '';"),
-          new TestDescriptor('uri', "export 'a.dart'",
+          TestDescriptor('uri', "export 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart';"),
-          new TestDescriptor(
+          TestDescriptor(
               'hide',
               "export 'a.dart' hide",
               [
@@ -38,9 +38,9 @@ class ExportDirectivesTest extends PartialCodeTest {
               ],
               "export 'a.dart' hide _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('hideName', "export 'a.dart' hide A",
+          TestDescriptor('hideName', "export 'a.dart' hide A",
               [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A;"),
-          new TestDescriptor(
+          TestDescriptor(
               'hideComma',
               "export 'a.dart' hide A,",
               [
@@ -49,9 +49,9 @@ class ExportDirectivesTest extends PartialCodeTest {
               ],
               "export 'a.dart' hide A, _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('hideCommaName', "export 'a.dart' hide A, B",
+          TestDescriptor('hideCommaName', "export 'a.dart' hide A, B",
               [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' hide A, B;"),
-          new TestDescriptor(
+          TestDescriptor(
               'hideShow',
               "export 'a.dart' hide A show",
               [
@@ -60,7 +60,7 @@ class ExportDirectivesTest extends PartialCodeTest {
               ],
               "export 'a.dart' hide A show _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor(
+          TestDescriptor(
               'show',
               "export 'a.dart' show",
               [
@@ -69,9 +69,9 @@ class ExportDirectivesTest extends PartialCodeTest {
               ],
               "export 'a.dart' show _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('showName', "export 'a.dart' show A",
+          TestDescriptor('showName', "export 'a.dart' show A",
               [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A;"),
-          new TestDescriptor(
+          TestDescriptor(
               'showComma',
               "export 'a.dart' show A,",
               [
@@ -80,9 +80,9 @@ class ExportDirectivesTest extends PartialCodeTest {
               ],
               "export 'a.dart' show A, _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('showCommaName', "export 'a.dart' show A, B",
+          TestDescriptor('showCommaName', "export 'a.dart' show A, B",
               [ParserErrorCode.EXPECTED_TOKEN], "export 'a.dart' show A, B;"),
-          new TestDescriptor(
+          TestDescriptor(
               'showHide',
               "export 'a.dart' show A hide",
               [

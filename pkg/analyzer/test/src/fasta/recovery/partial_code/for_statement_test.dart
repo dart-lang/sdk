@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ForStatementTest().buildAll();
+  ForStatementTest().buildAll();
 }
 
 class ForStatementTest extends PartialCodeTest {
@@ -17,9 +17,9 @@ class ForStatementTest extends PartialCodeTest {
     buildTests(
         'for_statement',
         [
-          new TestDescriptor('keyword', 'for', [ParserErrorCode.EXPECTED_TOKEN],
+          TestDescriptor('keyword', 'for', [ParserErrorCode.EXPECTED_TOKEN],
               'for (;;) _s_;'),
-          new TestDescriptor(
+          TestDescriptor(
               'emptyParen',
               'for ()',
               [
@@ -32,7 +32,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (_s_;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'leftParen',
               'for (',
               [
@@ -46,7 +46,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (_s_;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'var',
               'for (var',
               [
@@ -58,7 +58,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var _s_;;) _s_;",
               allFailing: true),
-          new TestDescriptor(
+          TestDescriptor(
               'varAndIdentifier',
               'for (var i',
               [
@@ -71,7 +71,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var i;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'equals',
               'for (var i =',
               [
@@ -85,7 +85,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var i = _s_;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'initializer',
               'for (var i = 0',
               [
@@ -98,7 +98,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var i = 0;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'firstSemicolon',
               'for (var i = 0;',
               [
@@ -110,7 +110,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var i = 0;_s_;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'secondSemicolon',
               'for (var i = 0;;',
               [
@@ -120,7 +120,7 @@ class ForStatementTest extends PartialCodeTest {
               ],
               "for (var i = 0;;) _s_;",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'rightParen',
               'for (var i = 0;;)',
               [

@@ -38,7 +38,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
    */
-  LibraryMap libraryMap = new LibraryMap();
+  LibraryMap libraryMap = LibraryMap();
 
   /**
    * The [AnalysisOptions] to use to create the [context].
@@ -59,7 +59,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * The mapping from Dart URI's to the corresponding sources.
    */
-  Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
+  Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
   PackageBundle _sdkBundle;
 
@@ -74,7 +74,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'Analysis options cannot be changed after context creation.');
     }
     _analysisOptions = options;
@@ -110,7 +110,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void set useSummary(bool use) {
     if (_analysisContext != null) {
-      throw new StateError(
+      throw StateError(
           'The "useSummary" flag cannot be changed after context creation.');
     }
     _useSummary = use;
@@ -123,7 +123,7 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
-      SdkLibraryImpl library = new SdkLibraryImpl(uri);
+      SdkLibraryImpl library = SdkLibraryImpl(uri);
       library.path = path;
       libraryMap.setLibrary(uri, library);
     });
@@ -152,7 +152,7 @@ abstract class AbstractDartSdk implements DartSdk {
     } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logInfo(
           "Failed to create URI: $path",
-          new CaughtException(exception, stackTrace));
+          CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -232,7 +232,7 @@ abstract class AbstractDartSdk implements DartSdk {
   String _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = new List(length);
+    List<String> paths = List(length);
     String filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
@@ -269,7 +269,7 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
-  final Map<String, String> _urlMappings = new HashMap<String, String>();
+  final Map<String, String> _urlMappings = HashMap<String, String>();
 
   Folder _embedderYamlLibFolder;
 
@@ -301,11 +301,11 @@ class EmbedderSdk extends AbstractDartSdk {
     try {
       if (file.exists) {
         List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
+        return PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          CaughtException.withMessage(
               'Failed to load SDK analysis summary from $file',
               exception,
               stackTrace));
@@ -363,7 +363,7 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     String libPath = libDir.canonicalizePath(file);
     _urlMappings[name] = libPath;
-    SdkLibraryImpl library = new SdkLibraryImpl(name);
+    SdkLibraryImpl library = SdkLibraryImpl(name);
     library.path = libPath;
     libraryMap.setLibrary(name, library);
   }
@@ -599,11 +599,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       File file = resourceProvider.getFile(path);
       if (file.exists) {
         List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
+        return PackageBundle.fromBuffer(bytes);
       }
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage(
+          CaughtException.withMessage(
               'Failed to load SDK analysis summary from $path',
               exception,
               stackTrace));
@@ -629,15 +629,15 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         lastStackTrace = stackTrace;
       }
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.writeln('Could not initialize the library map from $searchedPaths');
     if (resourceProvider is MemoryResourceProvider) {
       (resourceProvider as MemoryResourceProvider).writeOn(buffer);
     }
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        new SilentException(buffer.toString(), lastException, lastStackTrace));
-    return new LibraryMap();
+        SilentException(buffer.toString(), lastException, lastStackTrace));
+    return LibraryMap();
   }
 
   @override
@@ -701,7 +701,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     pathos.Context pathContext = resourceProvider.pathContext;
     if (pathContext.style != pathos.context.style) {
       // This will only happen when running tests.
-      if (exec.startsWith(new RegExp('[a-zA-Z]:'))) {
+      if (exec.startsWith(RegExp('[a-zA-Z]:'))) {
         exec = exec.substring(2);
       } else if (resourceProvider is MemoryResourceProvider) {
         exec = resourceProvider.convertPath(exec);
@@ -782,8 +782,7 @@ class SdkExtensionFinder {
    * Return a table mapping the names of extensions to the paths where those
    * extensions can be found.
    */
-  Map<String, String> get urlMappings =>
-      new Map<String, String>.from(_urlMappings);
+  Map<String, String> get urlMappings => Map<String, String>.from(_urlMappings);
 
   /**
    * Given a package [name] and a list of folders ([libDirs]), add any found sdk
@@ -886,17 +885,17 @@ class SdkLibrariesReader {
    * of the file is already known to be [libraryFileContents].
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
-    BooleanErrorListener errorListener = new BooleanErrorListener();
+    BooleanErrorListener errorListener = BooleanErrorListener();
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
     var featureSet = FeatureSet.fromEnableFlags([]);
-    Scanner scanner = new Scanner(
-        source, new CharSequenceReader(libraryFileContents), errorListener)
-      ..configureFeatures(featureSet);
-    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
+    Scanner scanner =
+        Scanner(source, CharSequenceReader(libraryFileContents), errorListener)
+          ..configureFeatures(featureSet);
+    Parser parser = Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        new SdkLibrariesReader_LibraryBuilder();
+        SdkLibrariesReader_LibraryBuilder();
     // If any syntactic errors were found then don't try to visit the AST
     // structure.
     if (!errorListener.errorReported) {

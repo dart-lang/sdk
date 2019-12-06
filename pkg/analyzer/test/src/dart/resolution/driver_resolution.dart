@@ -21,9 +21,9 @@ import 'resolution.dart';
 
 /// [AnalysisDriver] based implementation of [ResolutionTest].
 class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
-  final ByteStore byteStore = new MemoryByteStore();
+  final ByteStore byteStore = MemoryByteStore();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
   DartSdk sdk;
@@ -42,12 +42,12 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   void setUp() {
-    sdk = new MockSdk(
+    sdk = MockSdk(
       resourceProvider: resourceProvider,
       additionalLibraries: additionalMockSdkLibraries,
     );
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
 
     // TODO(brianwilkerson) Create an empty package map by default and only add
     //  packages in the tests that need them.
@@ -58,17 +58,17 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
       'meta': [getFolder('/.pub-cache/meta/lib')],
     };
 
-    driver = new AnalysisDriver(
+    driver = AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
         byteStore,
-        new FileContentOverlay(),
+        FileContentOverlay(),
         null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new PackageMapUriResolver(resourceProvider, packageMap),
-          new ResourceUriResolver(resourceProvider)
+        SourceFactory([
+          DartUriResolver(sdk),
+          PackageMapUriResolver(resourceProvider, packageMap),
+          ResourceUriResolver(resourceProvider)
         ], null, resourceProvider),
         analysisOptions);
 

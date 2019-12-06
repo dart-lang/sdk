@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class NameFilterTest {
   test_accepts_accessors_hide() {
-    NameFilter filter = new NameFilter(hides: ['bar']);
+    NameFilter filter = NameFilter(hides: ['bar']);
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('foo='), isTrue);
     expect(filter.accepts('bar'), isFalse);
@@ -23,7 +23,7 @@ class NameFilterTest {
   }
 
   test_accepts_accessors_show() {
-    NameFilter filter = new NameFilter(shows: ['foo']);
+    NameFilter filter = NameFilter(shows: ['foo']);
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('foo='), isTrue);
     expect(filter.accepts('bar'), isFalse);
@@ -39,7 +39,7 @@ class NameFilterTest {
 
   test_merge_hides_hides() {
     NameFilter filter =
-        new NameFilter(hides: ['foo']).merge(new NameFilter(hides: ['bar']));
+        NameFilter(hides: ['foo']).merge(NameFilter(hides: ['bar']));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -50,7 +50,7 @@ class NameFilterTest {
 
   test_merge_hides_identity() {
     NameFilter filter =
-        new NameFilter(hides: ['foo', 'bar']).merge(NameFilter.identity);
+        NameFilter(hides: ['foo', 'bar']).merge(NameFilter.identity);
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -60,8 +60,8 @@ class NameFilterTest {
   }
 
   test_merge_hides_shows() {
-    NameFilter filter = new NameFilter(hides: ['bar', 'baz'])
-        .merge(new NameFilter(shows: ['foo', 'bar']));
+    NameFilter filter = NameFilter(hides: ['bar', 'baz'])
+        .merge(NameFilter(shows: ['foo', 'bar']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);
@@ -72,7 +72,7 @@ class NameFilterTest {
 
   test_merge_identity_hides() {
     NameFilter filter =
-        NameFilter.identity.merge(new NameFilter(hides: ['foo', 'bar']));
+        NameFilter.identity.merge(NameFilter(hides: ['foo', 'bar']));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isTrue);
@@ -91,7 +91,7 @@ class NameFilterTest {
 
   test_merge_identity_shows() {
     NameFilter filter =
-        NameFilter.identity.merge(new NameFilter(shows: ['foo', 'bar']));
+        NameFilter.identity.merge(NameFilter(shows: ['foo', 'bar']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -101,8 +101,8 @@ class NameFilterTest {
   }
 
   test_merge_shows_hides() {
-    NameFilter filter = new NameFilter(shows: ['foo', 'bar'])
-        .merge(new NameFilter(hides: ['bar', 'baz']));
+    NameFilter filter = NameFilter(shows: ['foo', 'bar'])
+        .merge(NameFilter(hides: ['bar', 'baz']));
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);
@@ -113,7 +113,7 @@ class NameFilterTest {
 
   test_merge_shows_identity() {
     NameFilter filter =
-        new NameFilter(shows: ['foo', 'bar']).merge(NameFilter.identity);
+        NameFilter(shows: ['foo', 'bar']).merge(NameFilter.identity);
     expect(filter.accepts('foo'), isTrue);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -123,8 +123,8 @@ class NameFilterTest {
   }
 
   test_merge_shows_shows() {
-    NameFilter filter = new NameFilter(shows: ['foo', 'bar'])
-        .merge(new NameFilter(shows: ['bar', 'baz']));
+    NameFilter filter = NameFilter(shows: ['foo', 'bar'])
+        .merge(NameFilter(shows: ['bar', 'baz']));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isTrue);
     expect(filter.accepts('baz'), isFalse);
@@ -135,7 +135,7 @@ class NameFilterTest {
 
   test_merge_shows_shows_emptyResult() {
     NameFilter filter =
-        new NameFilter(shows: ['foo']).merge(new NameFilter(shows: ['bar']));
+        NameFilter(shows: ['foo']).merge(NameFilter(shows: ['bar']));
     expect(filter.accepts('foo'), isFalse);
     expect(filter.accepts('bar'), isFalse);
     expect(filter.accepts('baz'), isFalse);

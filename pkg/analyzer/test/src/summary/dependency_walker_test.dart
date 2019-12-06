@@ -25,7 +25,7 @@ class DependencyWalkerTest {
   }
 
   TestNode getNode(String name) =>
-      nodes.putIfAbsent(name, () => new TestNode(name));
+      nodes.putIfAbsent(name, () => TestNode(name));
 
   void makeGraph(Map<String, List<String>> graph) {
     graph.forEach((name, deps) {
@@ -171,7 +171,7 @@ class DependencyWalkerTest {
   }
 
   TestWalker walk(String startingNodeName) =>
-      new TestWalker()..walk(getNode(startingNodeName));
+      TestWalker()..walk(getNode(startingNodeName));
 }
 
 class TestNode extends Node<TestNode> {

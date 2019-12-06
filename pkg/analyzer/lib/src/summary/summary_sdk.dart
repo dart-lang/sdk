@@ -29,17 +29,17 @@ class SummaryBasedDartSdk implements DartSdk {
   SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
-    _dataStore = new SummaryDataStore(<String>[summaryPath],
+    _dataStore = SummaryDataStore(<String>[summaryPath],
         resourceProvider: resourceProvider);
-    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
   }
 
   SummaryBasedDartSdk.fromBundle(bool _, PackageBundle bundle,
       {this.resourceProvider}) {
-    _dataStore = new SummaryDataStore([], resourceProvider: resourceProvider);
+    _dataStore = SummaryDataStore([], resourceProvider: resourceProvider);
     _dataStore.addBundle('dart_sdk.sum', bundle);
-    _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = bundle;
   }
 
@@ -57,26 +57,26 @@ class SummaryBasedDartSdk implements DartSdk {
         null,
         resourceProvider,
       );
-      _analysisContext = new SdkAnalysisContext(analysisOptions, factory);
+      _analysisContext = SdkAnalysisContext(analysisOptions, factory);
     }
     return _analysisContext;
   }
 
   @override
   List<SdkLibrary> get sdkLibraries {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   String get sdkVersion {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   bool get strongMode => true;
 
   @override
   List<String> get uris {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override

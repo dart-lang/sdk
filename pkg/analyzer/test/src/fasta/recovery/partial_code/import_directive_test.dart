@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ImportDirectivesTest().buildAll();
+  ImportDirectivesTest().buildAll();
 }
 
 class ImportDirectivesTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class ImportDirectivesTest extends PartialCodeTest {
     buildTests(
         'import_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'import',
               [
@@ -25,11 +25,11 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "import '';"),
-          new TestDescriptor('emptyUri', "import ''",
+          TestDescriptor('emptyUri', "import ''",
               [ParserErrorCode.EXPECTED_TOKEN], "import '';"),
-          new TestDescriptor('fullUri', "import 'a.dart'",
+          TestDescriptor('fullUri', "import 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "import 'a.dart';"),
-          new TestDescriptor(
+          TestDescriptor(
               'if',
               "import 'a.dart' if",
               [
@@ -38,7 +38,7 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL
               ],
               "import 'a.dart' if (_s_) '';"),
-          new TestDescriptor(
+          TestDescriptor(
               'ifParen',
               "import 'a.dart' if (",
               [
@@ -49,7 +49,7 @@ class ImportDirectivesTest extends PartialCodeTest {
               ],
               "import 'a.dart' if (_s_) '';",
               failing: ['functionNonVoid', 'getter', 'setter']),
-          new TestDescriptor(
+          TestDescriptor(
               'ifId',
               "import 'a.dart' if (b",
               [
@@ -58,7 +58,7 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL
               ],
               "import 'a.dart' if (b) '';"),
-          new TestDescriptor(
+          TestDescriptor(
               'ifEquals',
               "import 'a.dart' if (b ==",
               [
@@ -68,7 +68,7 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL
               ],
               "import 'a.dart' if (b == '') '';"),
-          new TestDescriptor(
+          TestDescriptor(
               'ifCondition',
               "import 'a.dart' if (b)",
               [
@@ -76,7 +76,7 @@ class ImportDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_STRING_LITERAL
               ],
               "import 'a.dart' if (b) '';"),
-          new TestDescriptor(
+          TestDescriptor(
               'as',
               "import 'a.dart' as",
               [
@@ -85,7 +85,7 @@ class ImportDirectivesTest extends PartialCodeTest {
               ],
               "import 'a.dart' as _s_;",
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor(
+          TestDescriptor(
               'show',
               "import 'a.dart' show",
               [

@@ -147,7 +147,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Write the results.
     //
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (unmatchedExpected.isNotEmpty) {
       buffer.writeln('Expected but did not find:');
       for (ExpectedError expected in unmatchedExpected) {
@@ -215,7 +215,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// codes. The order in which the errors were gathered is ignored.
   void assertErrorsWithCodes(
       [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     //
     // Compute the expected number of each type of error.
     //
@@ -352,7 +352,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Set the line information associated with the given [source] to the given
   /// list of [lineStarts].
   void setLineInfo(Source source, List<int> lineStarts) {
-    _lineInfoMap[source] = new LineInfo(lineStarts);
+    _lineInfoMap[source] = LineInfo(lineStarts);
   }
 }
 
@@ -397,9 +397,9 @@ class TestSource extends Source {
     readCount++;
     if (generateExceptionOnRead) {
       String msg = "I/O Exception while getting the contents of " + _name;
-      throw new Exception(msg);
+      throw Exception(msg);
     }
-    return new TimestampedData<String>(0, _contents);
+    return TimestampedData<String>(0, _contents);
   }
 
   String get encoding => _name;
@@ -422,10 +422,10 @@ class TestSource extends Source {
     return _name;
   }
 
-  Uri get uri => new Uri.file(_name);
+  Uri get uri => Uri.file(_name);
 
   UriKind get uriKind {
-    throw new UnsupportedError('uriKind');
+    throw UnsupportedError('uriKind');
   }
 
   bool operator ==(Object other) {
@@ -438,12 +438,12 @@ class TestSource extends Source {
   bool exists() => exists2;
 
   Source resolve(String uri) {
-    throw new UnsupportedError('resolve');
+    throw UnsupportedError('resolve');
   }
 
   void setContents(String value) {
     generateExceptionOnRead = false;
-    _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+    _modificationStamp = DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
 

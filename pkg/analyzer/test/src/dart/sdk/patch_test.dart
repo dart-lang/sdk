@@ -27,8 +27,8 @@ class SdkPatcherTest with ResourceProviderMixin {
   Folder sdkFolder;
   FolderBasedDartSdk sdk;
 
-  SdkPatcher patcher = new SdkPatcher();
-  RecordingErrorListener listener = new RecordingErrorListener();
+  SdkPatcher patcher = SdkPatcher();
+  RecordingErrorListener listener = RecordingErrorListener();
 
   void setUp() {
     sdkFolder = getFolder('/sdk');
@@ -629,7 +629,7 @@ class C {
     ClassDeclaration cls = unit.declarations[0];
     MethodDeclaration method = cls.members[0];
     FormalParameter parameter = method.parameters.parameters[0];
-    expect(parameter, new TypeMatcher<DefaultFormalParameter>());
+    expect(parameter, TypeMatcher<DefaultFormalParameter>());
   }
 
   test_class_method_patch_success_implicitReturnType() {
@@ -1055,8 +1055,8 @@ int _bar;
   }
 
   void _createSdk() {
-    sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
-    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk = FolderBasedDartSdk(resourceProvider, sdkFolder);
+    sdk.analysisOptions = AnalysisOptionsImpl();
   }
 
   CompilationUnit _doTopLevelPatching(String baseCode, String patchCode) {

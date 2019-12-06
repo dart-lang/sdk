@@ -173,7 +173,7 @@ f(var p) {
 class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_instance_extendedHasSetter_extensionHasGetter() async {

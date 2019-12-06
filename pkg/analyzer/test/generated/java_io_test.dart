@@ -16,7 +16,7 @@ main() {
         expect(path.context.isAbsolute(absolutePath), isTrue,
             reason: '"$absolutePath" is not absolute');
         // test that toURI() returns an absolute URI
-        Uri uri = new JavaFile(absolutePath).toURI();
+        Uri uri = JavaFile(absolutePath).toURI();
         expect(uri.isAbsolute, isTrue);
         expect(uri.scheme, 'file');
       });
@@ -30,7 +30,7 @@ main() {
         // it may be not on Windows, if "temp" is on other disk.
         String relPath = path.context.relative(absolutePath);
         // test that toURI() returns an absolute URI
-        Uri uri = new JavaFile(relPath).toURI();
+        Uri uri = JavaFile(relPath).toURI();
         expect(uri.isAbsolute, isTrue);
         expect(uri.scheme, 'file');
       });

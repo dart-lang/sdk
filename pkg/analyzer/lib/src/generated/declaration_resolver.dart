@@ -162,7 +162,7 @@ class ElementWalker {
   void validate() {
     void check(List<Element> elements, int index) {
       if (elements != null && elements.length != index) {
-        throw new StateError(
+        throw StateError(
             'Unmatched ${elements[index].runtimeType} ${elements[index]}');
       }
     }

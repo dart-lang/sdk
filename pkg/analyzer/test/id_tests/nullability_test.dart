@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
   await runTests(dataDir,
       args: args,

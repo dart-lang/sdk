@@ -45,7 +45,7 @@ void applyCheckElementTextReplacements() {
       newCode =
           newCode.substring(0, r.offset) + r.text + newCode.substring(r.end);
     });
-    new File(_testPath).writeAsStringSync(newCode);
+    File(_testPath).writeAsStringSync(newCode);
   }
 }
 
@@ -67,7 +67,7 @@ void checkElementText(
   bool withTypes = false,
   bool annotateNullability = false,
 }) {
-  var writer = new _ElementWriter(
+  var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     withCodeRanges: withCodeRanges,
     withConstElements: withConstElements,
@@ -87,8 +87,8 @@ void checkElementText(
 
   if (_testPath != null && actualText != expected) {
     if (_testCode == null) {
-      _testCode = new File(_testPath).readAsStringSync();
-      _testCodeLines = new LineInfo.fromContent(_testCode);
+      _testCode = File(_testPath).readAsStringSync();
+      _testCodeLines = LineInfo.fromContent(_testCode);
     }
 
     try {
@@ -121,8 +121,8 @@ void checkElementText(
       expectationOffset += rawStringPrefix.length;
       int expectationEnd = _testCode.indexOf("'''", expectationOffset);
 
-      _replacements.add(new _Replacement(
-          expectationOffset, expectationEnd, '\n' + actualText));
+      _replacements.add(
+          _Replacement(expectationOffset, expectationEnd, '\n' + actualText));
     }
   }
 
@@ -149,7 +149,7 @@ class _ElementWriter {
   final bool withSyntheticFields;
   final bool withTypes;
   final bool annotateNullability;
-  final StringBuffer buffer = new StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   String indent = '';
 
@@ -222,7 +222,7 @@ class _ElementWriter {
 
     if (e.isMixin) {
       if (e.superclassConstraints.isEmpty) {
-        throw new StateError('At least Object is expected.');
+        throw StateError('At least Object is expected.');
       }
       writeList(' on ', '', e.superclassConstraints, ', ', writeType);
     }

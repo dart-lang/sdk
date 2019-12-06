@@ -148,8 +148,8 @@ class FileState {
         path = null,
         source = null,
         _exists = true {
-    _apiSignature = new Uint8List(16);
-    _libraryCycle = new LibraryCycle.external();
+    _apiSignature = Uint8List(16);
+    _libraryCycle = LibraryCycle.external();
   }
 
   /**
@@ -296,14 +296,14 @@ class FileState {
   }
 
   @visibleForTesting
-  FileStateTestView get test => new FileStateTestView(this);
+  FileStateTestView get test => FileStateTestView(this);
 
   /**
    * Return the set of transitive files - the file itself and all of the
    * directly or indirectly referenced files.
    */
   Set<FileState> get transitiveFiles {
-    var transitiveFiles = new Set<FileState>();
+    var transitiveFiles = Set<FileState>();
 
     void appendReferenced(FileState file) {
       if (transitiveFiles.add(file)) {
@@ -404,7 +404,7 @@ class FileState {
     // Prepare the unlinked bundle key.
     List<int> contentSignature;
     {
-      var signature = new ApiSignature();
+      var signature = ApiSignature();
       signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
       signature.addBool(_exists);
@@ -423,7 +423,7 @@ class FileState {
           var definedNames = computeDefinedNames(unit);
           var referencedNames = computeReferencedNames(unit).toList();
           var subtypedNames = computeSubtypedNames(unit).toList();
-          bytes = new AnalysisDriverUnlinkedUnitBuilder(
+          bytes = AnalysisDriverUnlinkedUnitBuilder(
             unit2: unlinkedUnit,
             definedTopLevelNames: definedNames.topLevelNames.toList(),
             definedClassMemberNames: definedNames.classMemberNames.toList(),
@@ -436,12 +436,12 @@ class FileState {
     }
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
+    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
     _unlinked2 = _driverUnlinkedUnit.unit2;
-    _lineInfo = new LineInfo(_unlinked2.lineStarts);
+    _lineInfo = LineInfo(_unlinked2.lineStarts);
 
     // Prepare API signature.
-    var newApiSignature = new Uint8List.fromList(_unlinked2.apiSignature);
+    var newApiSignature = Uint8List.fromList(_unlinked2.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
@@ -495,7 +495,7 @@ class FileState {
     _libraryFiles = [this]..addAll(_partedFiles);
 
     // Compute referenced files.
-    _directReferencedFiles = new Set<FileState>()
+    _directReferencedFiles = Set<FileState>()
       ..addAll(_importedFiles)
       ..addAll(_exportedFiles)
       ..addAll(_partedFiles);
@@ -507,7 +507,7 @@ class FileState {
     for (var name in _driverUnlinkedUnit.subtypedNames) {
       var files = _fsState._subtypedNameToFiles[name];
       if (files == null) {
-        files = new Set<FileState>();
+        files = Set<FileState>();
         _fsState._subtypedNameToFiles[name] = files;
       }
       files.add(this);
@@ -525,10 +525,10 @@ class FileState {
   String toString() => path ?? '<unresolved>';
 
   CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
-    var token = new Token.eof(0);
+    var token = Token.eof(0);
     return astFactory.compilationUnit(
         beginToken: token, endToken: token, featureSet: featureSet)
-      ..lineInfo = new LineInfo(const <int>[0]);
+      ..lineInfo = LineInfo(const <int>[0]);
   }
 
   /**
@@ -575,19 +575,19 @@ class FileState {
       return _createEmptyCompilationUnit(featureSet);
     }
 
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener)
+    CharSequenceReader reader = CharSequenceReader(content);
+    Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize(reportScannerErrors: false);
     });
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
     // Pass the feature set from the scanner to the parser
     // because the scanner may have detected a language version comment
     // and downgraded the feature set it holds.
-    Parser parser = new Parser(source, errorListener,
+    Parser parser = Parser(source, errorListener,
         featureSet: scanner.featureSet, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -740,7 +740,7 @@ class FileSystemState {
   /**
    * All known file paths.
    */
-  final Set<String> knownFilePaths = new Set<String>();
+  final Set<String> knownFilePaths = Set<String>();
 
   /**
    * All known files.
@@ -807,7 +807,7 @@ class FileSystemState {
       _resourceProvider,
       _contentOverlay,
     );
-    _testView = new FileSystemStateTestView(this);
+    _testView = FileSystemStateTestView(this);
   }
 
   @visibleForTesting
@@ -818,7 +818,7 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = new FileState._(this, null, null, null);
+      _unresolvedFile = FileState._(this, null, null, null);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -845,8 +845,8 @@ class FileSystemState {
         return file;
       }
       // Create a new file.
-      FileSource uriSource = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, uriSource);
+      FileSource uriSource = FileSource(resource, uri);
+      file = FileState._(this, path, uri, uriSource);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -869,7 +869,7 @@ class FileSystemState {
       if (externalSummaries != null) {
         String uriStr = uri.toString();
         if (externalSummaries.hasLinkedLibrary(uriStr)) {
-          file = new FileState._external(this, uri);
+          file = FileState._external(this, uri);
           _uriToFile[uri] = file;
           return file;
         }
@@ -886,8 +886,8 @@ class FileSystemState {
 
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
-      FileSource source = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, source);
+      FileSource source = FileSource(resource, uri);
+      file = FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
@@ -1024,14 +1024,14 @@ class _FileContentCache {
    * Outer key is a [FileContentOverlay].
    * Inner key is a [ResourceProvider].
    */
-  static final _instances = new Expando<Expando<_FileContentCache>>();
+  static final _instances = Expando<Expando<_FileContentCache>>();
 
   /**
    * Weak map of cache instances.
    *
    * Key is a [ResourceProvider].
    */
-  static final _instances2 = new Expando<_FileContentCache>();
+  static final _instances2 = Expando<_FileContentCache>();
 
   final ResourceProvider _resourceProvider;
   final FileContentOverlay _contentOverlay;
@@ -1070,7 +1070,7 @@ class _FileContentCache {
       List<int> contentHashBytes = md5.convert(contentBytes).bytes;
       String contentHash = hex.encode(contentHashBytes);
 
-      file = new _FileContent(path, exists, content, contentHash);
+      file = _FileContent(path, exists, content, contentHash);
       _pathToFile[path] = file;
     }
     return file;
@@ -1089,7 +1089,7 @@ class _FileContentCache {
     if (contentOverlay != null) {
       providerToInstance = _instances[contentOverlay];
       if (providerToInstance == null) {
-        providerToInstance = new Expando<_FileContentCache>();
+        providerToInstance = Expando<_FileContentCache>();
         _instances[contentOverlay] = providerToInstance;
       }
     } else {
@@ -1098,7 +1098,7 @@ class _FileContentCache {
 
     var instance = providerToInstance[resourceProvider];
     if (instance == null) {
-      instance = new _FileContentCache(resourceProvider, contentOverlay);
+      instance = _FileContentCache(resourceProvider, contentOverlay);
       providerToInstance[resourceProvider] = instance;
     }
     return instance;

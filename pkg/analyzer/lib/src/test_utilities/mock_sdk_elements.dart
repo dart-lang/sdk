@@ -822,7 +822,7 @@ class _MockSdkElementsBuilder {
       nullabilitySuffix == NullabilitySuffix.none,
     );
 
-    var asyncUnit = new CompilationUnitElementImpl();
+    var asyncUnit = CompilationUnitElementImpl();
     var asyncSource = analysisContext.sourceFactory.forUri('dart:async');
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
     asyncLibrary.definingCompilationUnit = asyncUnit;

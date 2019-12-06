@@ -12,8 +12,7 @@ class NameFilter {
   /**
    * A [NameFilter] representing no filtering at all (i.e. no combinators).
    */
-  static final NameFilter identity =
-      new NameFilter._(hiddenNames: new Set<String>());
+  static final NameFilter identity = NameFilter._(hiddenNames: Set<String>());
 
   /**
    * If this [NameFilter] accepts a finite number of names and hides all
@@ -40,12 +39,11 @@ class NameFilter {
    */
   factory NameFilter.forNamespaceCombinator(NamespaceCombinator combinator) {
     if (combinator is ShowElementCombinator) {
-      return new NameFilter._(shownNames: combinator.shownNames.toSet());
+      return NameFilter._(shownNames: combinator.shownNames.toSet());
     } else if (combinator is HideElementCombinator) {
-      return new NameFilter._(hiddenNames: combinator.hiddenNames.toSet());
+      return NameFilter._(hiddenNames: combinator.hiddenNames.toSet());
     } else {
-      throw new StateError(
-          'Unexpected combinator type ${combinator.runtimeType}');
+      throw StateError('Unexpected combinator type ${combinator.runtimeType}');
     }
   }
 
@@ -57,7 +55,7 @@ class NameFilter {
       List<NamespaceCombinator> combinators) {
     NameFilter result = identity;
     for (NamespaceCombinator combinator in combinators) {
-      result = result.merge(new NameFilter.forNamespaceCombinator(combinator));
+      result = result.merge(NameFilter.forNamespaceCombinator(combinator));
     }
     return result;
   }
@@ -86,19 +84,18 @@ class NameFilter {
   NameFilter merge(NameFilter other) {
     if (shownNames != null) {
       if (other.shownNames != null) {
-        return new NameFilter._(
+        return NameFilter._(
             shownNames: shownNames.intersection(other.shownNames));
       } else {
-        return new NameFilter._(
+        return NameFilter._(
             shownNames: shownNames.difference(other.hiddenNames));
       }
     } else {
       if (other.shownNames != null) {
-        return new NameFilter._(
+        return NameFilter._(
             shownNames: other.shownNames.difference(hiddenNames));
       } else {
-        return new NameFilter._(
-            hiddenNames: hiddenNames.union(other.hiddenNames));
+        return NameFilter._(hiddenNames: hiddenNames.union(other.hiddenNames));
       }
     }
   }

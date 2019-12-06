@@ -71,13 +71,13 @@ class Merger {
   YamlNode merge(YamlNode o1, YamlNode o2) {
     // Handle promotion first.
     YamlMap listToMap(YamlList list) {
-      Map<YamlNode, YamlNode> map = new HashMap<YamlNode,
-          YamlNode>(); // equals: _equals, hashCode: _hashCode
-      ScalarEvent event = new ScalarEvent(null, 'true', ScalarStyle.PLAIN);
+      Map<YamlNode, YamlNode> map =
+          HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
+      ScalarEvent event = ScalarEvent(null, 'true', ScalarStyle.PLAIN);
       for (var element in list.nodes) {
-        map[element] = new YamlScalar.internal(true, event);
+        map[element] = YamlScalar.internal(true, event);
       }
-      return new YamlMap.internal(map, null, CollectionStyle.BLOCK);
+      return YamlMap.internal(map, null, CollectionStyle.BLOCK);
     }
 
     if (isListOfString(o1) && isMapToBools(o2)) {
@@ -105,13 +105,13 @@ class Merger {
         list.add(n2);
       }
     }
-    return new YamlList.internal(list, null, CollectionStyle.BLOCK);
+    return YamlList.internal(list, null, CollectionStyle.BLOCK);
   }
 
   /// Merge maps (recursively).
   YamlMap mergeMap(YamlMap m1, YamlMap m2) {
-    Map<YamlNode, YamlNode> merged = new HashMap<YamlNode,
-        YamlNode>(); // equals: _equals, hashCode: _hashCode
+    Map<YamlNode, YamlNode> merged =
+        HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
     m1.nodes.forEach((k, v) {
       merged[k] = v;
     });
@@ -120,7 +120,7 @@ class Merger {
           .firstWhere((key) => key.value == k.value, orElse: () => k);
       merged[mergedKey] = merge(merged[mergedKey], v);
     });
-    return new YamlMap.internal(merged, null, CollectionStyle.BLOCK);
+    return YamlMap.internal(merged, null, CollectionStyle.BLOCK);
   }
 
   static bool isListOfString(Object o) =>

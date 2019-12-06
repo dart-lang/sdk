@@ -26,7 +26,7 @@ main() {
 class NonConstantValueInInitializer extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0',
         additionalFeatures: [Feature.constant_update_2018]);
 

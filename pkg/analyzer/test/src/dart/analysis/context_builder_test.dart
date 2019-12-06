@@ -38,13 +38,13 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   void setUp() {
     newFile(io.Platform.resolvedExecutable); // create folders
     var folder = newFolder('/home/test');
-    contextBuilder = new ContextBuilderImpl(resourceProvider: resourceProvider);
-    contextRoot = new ContextRootImpl(resourceProvider, folder);
+    contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
+    contextRoot = ContextRootImpl(resourceProvider, folder);
   }
 
   test_createContext_declaredVariables() {
     DeclaredVariables declaredVariables =
-        new DeclaredVariables.fromMap({'foo': 'true'});
+        DeclaredVariables.fromMap({'foo': 'true'});
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot, declaredVariables: declaredVariables);
     expect(context.analysisOptions, isNotNull);
@@ -54,8 +54,8 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   test_createContext_declaredVariables_sdkPath() {
     DeclaredVariables declaredVariables =
-        new DeclaredVariables.fromMap({'bar': 'true'});
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+        DeclaredVariables.fromMap({'bar': 'true'});
+    MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot,
         declaredVariables: declaredVariables,
@@ -75,7 +75,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_sdkPath() {
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     DriverBasedAnalysisContext context = contextBuilder.createContext(
         contextRoot: contextRoot,
         sdkPath: resourceProvider.convertPath(sdkRoot));

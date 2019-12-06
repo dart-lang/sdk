@@ -362,7 +362,7 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
-      _nullObject = new DartObjectImpl(nullType, NullState.NULL_STATE);
+      _nullObject = DartObjectImpl(nullType, NullState.NULL_STATE);
     }
     return _nullObject;
   }

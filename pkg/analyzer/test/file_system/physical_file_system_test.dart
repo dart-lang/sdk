@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'file_system_test_support.dart';
 
 main() {
-  if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
+  if (!bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
     defineReflectiveSuite(() {
       defineReflectiveTests(PhysicalFileTest);
       defineReflectiveTests(PhysicalFolderTest);
@@ -51,8 +51,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
-  PhysicalResourceProvider createProvider() =>
-      new PhysicalResourceProvider(null);
+  PhysicalResourceProvider createProvider() => PhysicalResourceProvider(null);
 
   File getFile({@required bool exists, String content, String filePath}) {
     File file = provider.getFile(filePath ?? defaultFilePath);
@@ -111,18 +110,18 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
   test_resolveSymbolicLinksSync_links_existing() {
     String pathA = join(tempPath, defaultFileContent);
     String pathB = join(pathA, 'b');
-    new io.Directory(pathB).createSync(recursive: true);
+    io.Directory(pathB).createSync(recursive: true);
     String filePath = join(pathB, 'test.txt');
-    io.File testFile = new io.File(filePath);
+    io.File testFile = io.File(filePath);
     testFile.writeAsStringSync('test');
 
     String pathC = join(tempPath, 'c');
     String pathD = join(pathC, 'd');
-    new io.Link(pathD).createSync(pathA, recursive: true);
+    io.Link(pathD).createSync(pathA, recursive: true);
 
     String pathE = join(tempPath, 'e');
     String pathF = join(pathE, 'f');
-    new io.Link(pathF).createSync(pathC, recursive: true);
+    io.Link(pathF).createSync(pathC, recursive: true);
 
     String linkPath = join(tempPath, 'e', 'f', 'd', 'b', 'test.txt');
     File file = provider.getFile(linkPath);

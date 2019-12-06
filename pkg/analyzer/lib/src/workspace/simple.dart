@@ -44,20 +44,20 @@ abstract class SimpleWorkspace extends Workspace {
 
   @override
   UriResolver get packageUriResolver =>
-      new PackageMapUriResolver(provider, packageMap);
+      PackageMapUriResolver(provider, packageMap);
 
   @override
   SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
     if (summaryData != null) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Summary files are not supported in a Pub workspace.');
     }
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
+      resolvers.add(DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
-    resolvers.add(new ResourceUriResolver(provider));
-    return new SourceFactory(resolvers, packages, provider);
+    resolvers.add(ResourceUriResolver(provider));
+    return SourceFactory(resolvers, packages, provider);
   }
 }

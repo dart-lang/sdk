@@ -20,7 +20,7 @@ Pubspec _findAndParsePubspec(Directory root) {
         .listSync(followLinks: false)
         .firstWhere((f) => isPubspecFile(f), orElse: () => null);
     if (pubspec != null) {
-      return new Pubspec.parse(pubspec.readAsStringSync(),
+      return Pubspec.parse(pubspec.readAsStringSync(),
           sourceUrl: p.toUri(pubspec.path));
     }
   }
@@ -51,7 +51,7 @@ class DartProject {
   DartProject._(AnalysisDriver driver, List<Source> sources, {Directory dir})
       : root = dir ?? Directory.current {
     _pubspec = _findAndParsePubspec(root);
-    _apiModel = new _ApiModel(driver, sources, root);
+    _apiModel = _ApiModel(driver, sources, root);
   }
 
   /// The project's name.
@@ -90,7 +90,7 @@ class DartProject {
       {Directory dir}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    DartProject project = new DartProject._(driver, sources, dir: dir);
+    DartProject project = DartProject._(driver, sources, dir: dir);
     await project._apiModel._calculate();
     return project;
   }
@@ -106,7 +106,7 @@ class _ApiModel {
   final AnalysisDriver driver;
   final List<Source> sources;
   final Directory root;
-  final Set<LibraryElement> elements = new Set();
+  final Set<LibraryElement> elements = Set();
 
   _ApiModel(this.driver, this.sources, this.root) {
     _calculate();
@@ -139,7 +139,7 @@ class _ApiModel {
         ResolvedUnitResult result = await driver.getResult(source.fullName);
         LibraryElement library = result.libraryElement;
 
-        NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
+        NamespaceBuilder namespaceBuilder = NamespaceBuilder();
         Namespace exports =
             namespaceBuilder.createExportNamespaceForLibrary(library);
         Namespace public =

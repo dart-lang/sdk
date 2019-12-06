@@ -18,11 +18,11 @@ main() {
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
-    throwsA(new TypeMatcher<EvaluationException>());
+    throwsA(TypeMatcher<EvaluationException>());
 
 @reflectiveTest
 class DartObjectImplTest {
-  TypeProvider _typeProvider = new TestTypeProvider();
+  TypeProvider _typeProvider = TestTypeProvider();
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -1360,11 +1360,8 @@ class DartObjectImplTest {
   }
 
   void test_shiftLeft_knownInt_tooLarge() {
-    _assertShiftLeft(
-        _intValue(null),
-        _intValue(6),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+    _assertShiftLeft(_intValue(null), _intValue(6),
+        DartObjectImpl(_typeProvider.intType, IntState(LONG_MAX_VALUE)));
   }
 
   void test_shiftLeft_knownInt_unknownInt() {
@@ -1396,11 +1393,8 @@ class DartObjectImplTest {
   }
 
   void test_shiftRight_knownInt_tooLarge() {
-    _assertShiftRight(
-        _intValue(null),
-        _intValue(48),
-        new DartObjectImpl(
-            _typeProvider.intType, new IntState(LONG_MAX_VALUE)));
+    _assertShiftRight(_intValue(null), _intValue(48),
+        DartObjectImpl(_typeProvider.intType, IntState(LONG_MAX_VALUE)));
   }
 
   void test_shiftRight_knownInt_unknownInt() {
@@ -1942,31 +1936,29 @@ class DartObjectImplTest {
 
   DartObjectImpl _boolValue(bool value) {
     if (value == null) {
-      return new DartObjectImpl(
-          _typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+      return DartObjectImpl(_typeProvider.boolType, BoolState.UNKNOWN_VALUE);
     } else if (identical(value, false)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.FALSE_STATE);
+      return DartObjectImpl(_typeProvider.boolType, BoolState.FALSE_STATE);
     } else if (identical(value, true)) {
-      return new DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
+      return DartObjectImpl(_typeProvider.boolType, BoolState.TRUE_STATE);
     }
     fail("Invalid boolean value used in test");
   }
 
   DartObjectImpl _doubleValue(double value) {
     if (value == null) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           _typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
     } else {
-      return new DartObjectImpl(
-          _typeProvider.doubleType, new DoubleState(value));
+      return DartObjectImpl(_typeProvider.doubleType, DoubleState(value));
     }
   }
 
   DartObjectImpl _intValue(int value) {
     if (value == null) {
-      return new DartObjectImpl(_typeProvider.intType, IntState.UNKNOWN_VALUE);
+      return DartObjectImpl(_typeProvider.intType, IntState.UNKNOWN_VALUE);
     } else {
-      return new DartObjectImpl(_typeProvider.intType, new IntState(value));
+      return DartObjectImpl(_typeProvider.intType, IntState(value));
     }
   }
 
@@ -1983,7 +1975,7 @@ class DartObjectImplTest {
   DartObjectImpl _mapValue(DartType keyType, DartType valueType,
       List<DartObjectImpl> keyElementPairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
-        new Map<DartObjectImpl, DartObjectImpl>();
+        Map<DartObjectImpl, DartObjectImpl>();
     int count = keyElementPairs.length;
     for (int i = 0; i < count;) {
       map[keyElementPairs[i++]] = keyElementPairs[i++];
@@ -1995,7 +1987,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _nullValue() {
-    return new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+    return DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
   }
 
   DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
@@ -2004,15 +1996,14 @@ class DartObjectImplTest {
 
   DartObjectImpl _stringValue(String value) {
     if (value == null) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           _typeProvider.stringType, StringState.UNKNOWN_VALUE);
     } else {
-      return new DartObjectImpl(
-          _typeProvider.stringType, new StringState(value));
+      return DartObjectImpl(_typeProvider.stringType, StringState(value));
     }
   }
 
   DartObjectImpl _symbolValue(String value) {
-    return new DartObjectImpl(_typeProvider.symbolType, new SymbolState(value));
+    return DartObjectImpl(_typeProvider.symbolType, SymbolState(value));
   }
 }

@@ -256,7 +256,7 @@ class UndefinedOperatorTestWithExtensionMethodsTest
     extends UndefinedOperatorTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_index_get_extendedHasNone_extensionHasGetter() async {

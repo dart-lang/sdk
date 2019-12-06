@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class GlobPosixTest {
   void test_case() {
-    Glob glob = new Glob(r'\', r'**.DaRt');
+    Glob glob = Glob(r'\', r'**.DaRt');
     expect(glob.matches(r'aaa.dart'), isTrue);
     expect(glob.matches(r'bbb.DART'), isTrue);
     expect(glob.matches(r'ccc.dArT'), isTrue);
@@ -24,14 +24,14 @@ class GlobPosixTest {
   }
 
   void test_question() {
-    Glob glob = new Glob(r'/', r'?.dart');
+    Glob glob = Glob(r'/', r'?.dart');
     expect(glob.matches(r'a.dart'), isTrue);
     expect(glob.matches(r'b.dart'), isTrue);
     expect(glob.matches(r'cc.dart'), isFalse);
   }
 
   void test_specialChars() {
-    Glob glob = new Glob(r'/', r'*.dart');
+    Glob glob = Glob(r'/', r'*.dart');
     expect(glob.matches(r'a.dart'), isTrue);
     expect(glob.matches('_-\a.dart'), isTrue);
     expect(glob.matches(r'^$*?.dart'), isTrue);
@@ -40,13 +40,13 @@ class GlobPosixTest {
   }
 
   void test_specialChars2() {
-    Glob glob = new Glob(r'/', r'a[]b.dart');
+    Glob glob = Glob(r'/', r'a[]b.dart');
     expect(glob.matches(r'a[]b.dart'), isTrue);
     expect(glob.matches(r'aNb.dart'), isFalse);
   }
 
   void test_star() {
-    Glob glob = new Glob(r'/', r'web/*.dart');
+    Glob glob = Glob(r'/', r'web/*.dart');
     expect(glob.matches(r'web/foo.dart'), isTrue);
     expect(glob.matches(r'web/barbaz.dart'), isTrue);
     // does not end with 'dart'
@@ -59,7 +59,7 @@ class GlobPosixTest {
   }
 
   void test_starStar() {
-    Glob glob = new Glob(r'/', r'**.dart');
+    Glob glob = Glob(r'/', r'**.dart');
     expect(glob.matches(r'foo/bar.dart'), isTrue);
     expect(glob.matches(r'foo/bar/baz.dart'), isTrue);
     expect(glob.matches(r'/foo/bar.dart'), isTrue);
@@ -69,7 +69,7 @@ class GlobPosixTest {
   }
 
   void test_starStar_star() {
-    Glob glob = new Glob(r'/', r'**/*.dart');
+    Glob glob = Glob(r'/', r'**/*.dart');
     expect(glob.matches(r'foo/bar.dart'), isTrue);
     expect(glob.matches(r'foo/bar/baz.dart'), isTrue);
     expect(glob.matches(r'/foo/bar.dart'), isTrue);
@@ -82,7 +82,7 @@ class GlobPosixTest {
 @reflectiveTest
 class GlobWindowsTest {
   void test_case() {
-    Glob glob = new Glob(r'\', r'**.dart');
+    Glob glob = Glob(r'\', r'**.dart');
     expect(glob.matches(r'aaa.dart'), isTrue);
     expect(glob.matches(r'bbb.DART'), isTrue);
     expect(glob.matches(r'ccc.dArT'), isTrue);
@@ -90,14 +90,14 @@ class GlobWindowsTest {
   }
 
   void test_question() {
-    Glob glob = new Glob(r'\', r'?.dart');
+    Glob glob = Glob(r'\', r'?.dart');
     expect(glob.matches(r'a.dart'), isTrue);
     expect(glob.matches(r'b.dart'), isTrue);
     expect(glob.matches(r'cc.dart'), isFalse);
   }
 
   void test_specialChars() {
-    Glob glob = new Glob(r'\', r'*.dart');
+    Glob glob = Glob(r'\', r'*.dart');
     expect(glob.matches(r'a.dart'), isTrue);
     expect(glob.matches('_-\a.dart'), isTrue);
     expect(glob.matches(r'^$*?.dart'), isTrue);
@@ -106,7 +106,7 @@ class GlobWindowsTest {
   }
 
   void test_star() {
-    Glob glob = new Glob(r'\', r'web/*.dart');
+    Glob glob = Glob(r'\', r'web/*.dart');
     expect(glob.matches(r'web\foo.dart'), isTrue);
     expect(glob.matches(r'web\barbaz.dart'), isTrue);
     // does not end with 'dart'
@@ -119,7 +119,7 @@ class GlobWindowsTest {
   }
 
   void test_starStar() {
-    Glob glob = new Glob(r'\', r'**.dart');
+    Glob glob = Glob(r'\', r'**.dart');
     expect(glob.matches(r'foo\bar.dart'), isTrue);
     expect(glob.matches(r'foo\bar\baz.dart'), isTrue);
     expect(glob.matches(r'C:\foo\bar.dart'), isTrue);

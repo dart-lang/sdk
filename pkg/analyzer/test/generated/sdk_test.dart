@@ -19,25 +19,25 @@ main() {
 @reflectiveTest
 class DartSdkManagerTest with ResourceProviderMixin {
   void test_anySdk() {
-    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
+    DartSdkManager manager = DartSdkManager('/a/b/c', false);
     expect(manager.anySdk, isNull);
 
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription description = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription description = SdkDescription(<String>['/c/d'], options);
+    DartSdk sdk = MockSdk(resourceProvider: resourceProvider);
     manager.getSdk(description, () => sdk);
     expect(manager.anySdk, same(sdk));
   }
 
   void test_getSdk_differentDescriptors() {
-    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription description1 = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk1 = new MockSdk(resourceProvider: resourceProvider);
+    DartSdkManager manager = DartSdkManager('/a/b/c', false);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription description1 = SdkDescription(<String>['/c/d'], options);
+    DartSdk sdk1 = MockSdk(resourceProvider: resourceProvider);
     DartSdk result1 = manager.getSdk(description1, () => sdk1);
     expect(result1, same(sdk1));
-    SdkDescription description2 = new SdkDescription(<String>['/e/f'], options);
-    DartSdk sdk2 = new MockSdk(resourceProvider: resourceProvider);
+    SdkDescription description2 = SdkDescription(<String>['/e/f'], options);
+    DartSdk sdk2 = MockSdk(resourceProvider: resourceProvider);
     DartSdk result2 = manager.getSdk(description2, () => sdk2);
     expect(result2, same(sdk2));
 
@@ -46,10 +46,10 @@ class DartSdkManagerTest with ResourceProviderMixin {
   }
 
   void test_getSdk_sameDescriptor() {
-    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription description = new SdkDescription(<String>['/c/d'], options);
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    DartSdkManager manager = DartSdkManager('/a/b/c', false);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription description = SdkDescription(<String>['/c/d'], options);
+    DartSdk sdk = MockSdk(resourceProvider: resourceProvider);
     DartSdk result = manager.getSdk(description, () => sdk);
     expect(result, same(sdk));
     manager.getSdk(description, _failIfAbsent);
@@ -63,53 +63,53 @@ class DartSdkManagerTest with ResourceProviderMixin {
 @reflectiveTest
 class SdkDescriptionTest {
   void test_equals_differentPaths_nested() {
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription left = new SdkDescription(<String>['/a/b/c'], options);
-    SdkDescription right = new SdkDescription(<String>['/a/b'], options);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription left = SdkDescription(<String>['/a/b/c'], options);
+    SdkDescription right = SdkDescription(<String>['/a/b'], options);
     expect(left == right, isFalse);
   }
 
   void test_equals_differentPaths_unrelated() {
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription left = new SdkDescription(<String>['/a/b/c'], options);
-    SdkDescription right = new SdkDescription(<String>['/d/e'], options);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription left = SdkDescription(<String>['/a/b/c'], options);
+    SdkDescription right = SdkDescription(<String>['/d/e'], options);
     expect(left == right, isFalse);
   }
 
   void test_equals_noPaths() {
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription left = new SdkDescription(<String>[], options);
-    SdkDescription right = new SdkDescription(<String>[], options);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription left = SdkDescription(<String>[], options);
+    SdkDescription right = SdkDescription(<String>[], options);
     expect(left == right, isTrue);
   }
 
   void test_equals_samePaths_differentOptions() {
     String path = '/a/b/c';
-    AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl()
+    AnalysisOptionsImpl leftOptions = AnalysisOptionsImpl()
       ..useFastaParser = false;
-    AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl()
+    AnalysisOptionsImpl rightOptions = AnalysisOptionsImpl()
       ..useFastaParser = true;
-    SdkDescription left = new SdkDescription(<String>[path], leftOptions);
-    SdkDescription right = new SdkDescription(<String>[path], rightOptions);
+    SdkDescription left = SdkDescription(<String>[path], leftOptions);
+    SdkDescription right = SdkDescription(<String>[path], rightOptions);
     expect(left == right, isFalse);
   }
 
   void test_equals_samePaths_sameOptions_multiple() {
     String leftPath = '/a/b/c';
     String rightPath = '/d/e';
-    AnalysisOptions options = new AnalysisOptionsImpl();
+    AnalysisOptions options = AnalysisOptionsImpl();
     SdkDescription left =
-        new SdkDescription(<String>[leftPath, rightPath], options);
+        SdkDescription(<String>[leftPath, rightPath], options);
     SdkDescription right =
-        new SdkDescription(<String>[leftPath, rightPath], options);
+        SdkDescription(<String>[leftPath, rightPath], options);
     expect(left == right, isTrue);
   }
 
   void test_equals_samePaths_sameOptions_single() {
     String path = '/a/b/c';
-    AnalysisOptions options = new AnalysisOptionsImpl();
-    SdkDescription left = new SdkDescription(<String>[path], options);
-    SdkDescription right = new SdkDescription(<String>[path], options);
+    AnalysisOptions options = AnalysisOptionsImpl();
+    SdkDescription left = SdkDescription(<String>[path], options);
+    SdkDescription right = SdkDescription(<String>[path], options);
     expect(left == right, isTrue);
   }
 }

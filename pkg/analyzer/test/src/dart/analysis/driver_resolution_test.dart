@@ -33,11 +33,11 @@ main() {
   });
 }
 
-final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
-final isNeverType = new TypeMatcher<NeverTypeImpl>();
+final isNeverType = TypeMatcher<NeverTypeImpl>();
 
-final isVoidType = new TypeMatcher<VoidTypeImpl>();
+final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /**
  * Integration tests for resolution.
@@ -250,8 +250,8 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   Future resolveTestFile() async {
     result = await driver.getResult(testFile);
-    findNode = new FindNode(result.content, result.unit);
-    findElement = new FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   test_adjacentStrings() async {

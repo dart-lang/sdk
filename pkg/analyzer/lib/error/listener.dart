@@ -22,7 +22,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  static final AnalysisErrorListener NULL_LISTENER = new _NullErrorListener();
+  static final AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
 
   /**
    * This method is invoked when an [error] has been found by the analysis
@@ -79,9 +79,9 @@ class ErrorReporter {
    */
   ErrorReporter(this._errorListener, this._defaultSource) {
     if (_errorListener == null) {
-      throw new ArgumentError("An error listener must be provided");
+      throw ArgumentError("An error listener must be provided");
     } else if (_defaultSource == null) {
-      throw new ArgumentError("A default source must be provided");
+      throw ArgumentError("A default source must be provided");
     }
     this._source = _defaultSource;
   }
@@ -139,8 +139,8 @@ class ErrorReporter {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
-    _errorListener.onError(
-        new AnalysisError(_source, offset, length, errorCode, arguments));
+    _errorListener
+        .onError(AnalysisError(_source, offset, length, errorCode, arguments));
   }
 
   /**
@@ -167,7 +167,7 @@ class ErrorReporter {
    */
   void reportErrorMessage(
       ErrorCode errorCode, int offset, int length, Message message) {
-    _errorListener.onError(new AnalysisError.forValues(
+    _errorListener.onError(AnalysisError.forValues(
         _source, offset, length, errorCode, message.message, message.tip));
   }
 
@@ -200,7 +200,7 @@ class ErrorReporter {
       if (type is FunctionType) {
         String name = type.name;
         if (name != null && name.isNotEmpty) {
-          StringBuffer buffer = new StringBuffer();
+          StringBuffer buffer = StringBuffer();
           buffer.write(name);
           (type as TypeImpl).appendTo(buffer, withNullability: false);
           return buffer.toString();
@@ -216,7 +216,7 @@ class ErrorReporter {
         String displayName = computeDisplayName(argument);
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
-        types.add(new _TypeToConvert(i, argument, displayName));
+        types.add(_TypeToConvert(i, argument, displayName));
       }
     }
     for (List<_TypeToConvert> typeGroup in typeGroups.values) {
@@ -230,7 +230,7 @@ class ErrorReporter {
         for (_TypeToConvert typeToConvert in typeGroup) {
           for (Element element in typeToConvert.allElements()) {
             Set<Element> elements = nameToElementMap.putIfAbsent(
-                element.name, () => new Set<Element>());
+                element.name, () => Set<Element>());
             elements.add(element);
           }
         }
@@ -243,7 +243,7 @@ class ErrorReporter {
             String name = element.name;
             if (nameToElementMap[name].length > 1) {
               if (buffer == null) {
-                buffer = new StringBuffer();
+                buffer = StringBuffer();
                 buffer.write('where ');
               } else {
                 buffer.write(', ');
@@ -293,7 +293,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    _errors ??= new HashSet<AnalysisError>();
+    _errors ??= HashSet<AnalysisError>();
     _errors.add(error);
   }
 }
@@ -323,7 +323,7 @@ class _TypeToConvert {
 
   List<Element> allElements() {
     if (_allElements == null) {
-      Set<Element> elements = new Set<Element>();
+      Set<Element> elements = Set<Element>();
 
       void addElementsFrom(DartType type) {
         if (type is FunctionType) {

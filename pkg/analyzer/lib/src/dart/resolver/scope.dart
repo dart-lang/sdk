@@ -22,7 +22,7 @@ class BlockScope extends EnclosedScope {
    */
   BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
     if (block == null) {
-      throw new ArgumentError("block cannot be null");
+      throw ArgumentError("block cannot be null");
     }
     _defineElements(block);
   }
@@ -66,7 +66,7 @@ class ClassScope extends EnclosedScope {
   ClassScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new ArgumentError("class element cannot be null");
+      throw ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
   }
@@ -192,9 +192,9 @@ class FunctionScope extends EnclosedScope {
    * that represents the given [_functionElement].
    */
   FunctionScope(Scope enclosingScope, this._functionElement)
-      : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
+      : super(EnclosedScope(EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
-      throw new ArgumentError("function element cannot be null");
+      throw ArgumentError("function element cannot be null");
     }
     _defineTypeParameters();
   }
@@ -246,7 +246,7 @@ class FunctionTypeScope extends EnclosedScope {
    * that represents the given [_typeElement].
    */
   FunctionTypeScope(Scope enclosingScope, this._typeElement)
-      : super(new EnclosedScope(enclosingScope)) {
+      : super(EnclosedScope(enclosingScope)) {
     _defineTypeParameters();
   }
 
@@ -323,7 +323,7 @@ class ImplicitLabelScope {
    * with the newly created scope.
    */
   ImplicitLabelScope nest(Statement statement) =>
-      new ImplicitLabelScope._(this, statement);
+      ImplicitLabelScope._(this, statement);
 }
 
 /**
@@ -506,7 +506,7 @@ class LibraryImportScope extends Scope {
   void _createImportedNamespaces() {
     List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
-    _importedNamespaces = new List<Namespace>(count);
+    _importedNamespaces = List<Namespace>(count);
     for (int i = 0; i < count; i++) {
       _importedNamespaces[i] = imports[i].namespace;
     }
@@ -518,9 +518,9 @@ class LibraryImportScope extends Scope {
    */
   void _definePrefixedNameWithoutChecking(
       String prefix, String name, Element element) {
-    _definedPrefixedNames ??= new HashMap<String, Map<String, Element>>();
+    _definedPrefixedNames ??= HashMap<String, Map<String, Element>>();
     Map<String, Element> unprefixedNames = _definedPrefixedNames.putIfAbsent(
-        prefix, () => new HashMap<String, Element>());
+        prefix, () => HashMap<String, Element>());
     unprefixedNames[name] = element;
   }
 
@@ -570,8 +570,8 @@ class LibraryImportScope extends Scope {
     }
 
     if (hasPotentialConflict) {
-      var sdkElements = new Set<Element>();
-      var nonSdkElements = new Set<Element>();
+      var sdkElements = Set<Element>();
+      var nonSdkElements = Set<Element>();
       for (int i = 0; i < _importedNamespaces.length; i++) {
         Element element = lookup(_importedNamespaces[i]);
         if (element != null) {
@@ -586,7 +586,7 @@ class LibraryImportScope extends Scope {
         var conflictingElements = <Element>[]
           ..addAll(sdkElements)
           ..addAll(nonSdkElements);
-        return new MultiplyDefinedElementImpl(
+        return MultiplyDefinedElementImpl(
             _definingLibrary.context,
             _definingLibrary.session,
             conflictingElements.first.name,
@@ -614,7 +614,7 @@ class LibraryScope extends EnclosedScope {
    * [definingLibrary].
    */
   LibraryScope(LibraryElement definingLibrary)
-      : super(new LibraryImportScope(definingLibrary)) {
+      : super(LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
 
     // For `dart:core` to be able to pass analysis, it has to have `dynamic`
@@ -683,7 +683,7 @@ class Namespace {
   /**
    * An empty namespace.
    */
-  static Namespace EMPTY = new Namespace(new HashMap<String, Element>());
+  static Namespace EMPTY = Namespace(HashMap<String, Element>());
 
   /**
    * A table mapping names that are defined in this namespace to the element
@@ -735,7 +735,7 @@ class NamespaceBuilder {
     }
     Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -743,7 +743,7 @@ class NamespaceBuilder {
    */
   Namespace createExportNamespaceForLibrary(LibraryElement library) {
     Map<String, Element> exportedNames = _getExportMapping(library);
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -762,9 +762,9 @@ class NamespaceBuilder {
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     PrefixElement prefix = element.prefix;
     if (prefix != null) {
-      return new PrefixedNamespace(prefix.name, exportedNames);
+      return PrefixedNamespace(prefix.name, exportedNames);
     }
-    return new Namespace(exportedNames);
+    return Namespace(exportedNames);
   }
 
   /**
@@ -772,7 +772,7 @@ class NamespaceBuilder {
    * [library].
    */
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = HashMap<String, Element>();
     _addPublicNames(definedNames, library.definingCompilationUnit);
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
@@ -787,7 +787,7 @@ class NamespaceBuilder {
       definedNames['Never'] = NeverTypeImpl.instance.element;
     }
 
-    return new Namespace(definedNames);
+    return Namespace(definedNames);
   }
 
   /**
@@ -874,7 +874,7 @@ class NamespaceBuilder {
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
-      Map<String, Element> definedNames = new HashMap<String, Element>();
+      Map<String, Element> definedNames = HashMap<String, Element>();
       for (ExportElement element in library.exports) {
         LibraryElement exportedLibrary = element.exportedLibrary;
         if (exportedLibrary != null &&
@@ -905,11 +905,11 @@ class NamespaceBuilder {
     }
     if (library is LibraryElementImpl) {
       Map<String, Element> exportMapping =
-          _computeExportMapping(library, new HashSet<LibraryElement>());
-      library.exportNamespace = new Namespace(exportMapping);
+          _computeExportMapping(library, HashSet<LibraryElement>());
+      library.exportNamespace = Namespace(exportMapping);
       return exportMapping;
     }
-    return _computeExportMapping(library, new HashSet<LibraryElement>());
+    return _computeExportMapping(library, HashSet<LibraryElement>());
   }
 
   /**
@@ -918,8 +918,7 @@ class NamespaceBuilder {
    */
   Map<String, Element> _hide(
       Map<String, Element> definedNames, List<String> hiddenNames) {
-    Map<String, Element> newNames =
-        new HashMap<String, Element>.from(definedNames);
+    Map<String, Element> newNames = HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
       newNames.remove(name);
       newNames.remove("$name=");
@@ -932,7 +931,7 @@ class NamespaceBuilder {
    */
   Map<String, Element> _show(
       Map<String, Element> definedNames, List<String> shownNames) {
-    Map<String, Element> newNames = new HashMap<String, Element>();
+    Map<String, Element> newNames = HashMap<String, Element>();
     for (String name in shownNames) {
       Element element = definedNames[name];
       if (element != null) {
@@ -1054,7 +1053,7 @@ abstract class Scope {
   void define(Element element) {
     String name = _getName(element);
     if (name != null && name.isNotEmpty) {
-      _definedNames ??= new HashMap<String, Element>();
+      _definedNames ??= HashMap<String, Element>();
       _definedNames.putIfAbsent(name, () => element);
     }
   }
@@ -1064,7 +1063,7 @@ abstract class Scope {
    * hiding.
    */
   void defineNameWithoutChecking(String name, Element element) {
-    _definedNames ??= new HashMap<String, Element>();
+    _definedNames ??= HashMap<String, Element>();
     _definedNames[name] = element;
   }
 
@@ -1073,7 +1072,7 @@ abstract class Scope {
    * hiding.
    */
   void defineWithoutChecking(Element element) {
-    _definedNames ??= new HashMap<String, Element>();
+    _definedNames ??= HashMap<String, Element>();
     _definedNames[_getName(element)] = element;
   }
 
@@ -1189,7 +1188,7 @@ class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(Scope enclosingScope, TypeParameterizedElement element)
       : super(enclosingScope) {
     if (element == null) {
-      throw new ArgumentError("element cannot be null");
+      throw ArgumentError("element cannot be null");
     }
     _defineTypeParameters(element);
   }

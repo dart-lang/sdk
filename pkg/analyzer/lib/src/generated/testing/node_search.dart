@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
  */
 List<SimpleIdentifier> findDeclaredIdentifiersByName(
     CompilationUnit unit, String name) {
-  var finder = new _DeclaredIdentifiersByNameFinder(name);
+  var finder = _DeclaredIdentifiersByNameFinder(name);
   unit.accept(finder);
   return finder.identifiers;
 }

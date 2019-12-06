@@ -29,7 +29,7 @@ class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String>[];
 
-  static Interner INTERNER = new NullInterner();
+  static Interner INTERNER = NullInterner();
 
   /**
    * Compute line starts for the given [content].
@@ -179,13 +179,13 @@ class StringUtilities {
    */
   static String printListOfQuotedNames(List<String> names) {
     if (names == null) {
-      throw new ArgumentError("The list must not be null");
+      throw ArgumentError("The list must not be null");
     }
     int count = names.length;
     if (count < 2) {
-      throw new ArgumentError("The list must contain at least two names");
+      throw ArgumentError("The list must contain at least two names");
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("'");
     buffer.write(names[0]);
     buffer.write("'");
@@ -277,5 +277,5 @@ class UUID {
   final String id;
   UUID(this.id);
   String toString() => id;
-  static UUID randomUUID() => new UUID((__nextId).toString());
+  static UUID randomUUID() => UUID((__nextId).toString());
 }

@@ -101,7 +101,7 @@ class Modifiers {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     bool needsSpace = _appendKeyword(buffer, false, abstractKeyword);
     needsSpace = _appendKeyword(buffer, needsSpace, constKeyword);
     needsSpace = _appendKeyword(buffer, needsSpace, externalKeyword);
@@ -204,11 +204,10 @@ class Parser {
       {bool useFasta, @required FeatureSet featureSet}) {
     featureSet ??= FeatureSet.fromEnableFlags([]);
     if (useFasta ?? Parser.useFasta) {
-      return new _Parser2(source, errorListener, featureSet,
+      return _Parser2(source, errorListener, featureSet,
           allowNativeClause: true);
     } else {
-      return new Parser.withoutFasta(source, errorListener,
-          featureSet: featureSet);
+      return Parser.withoutFasta(source, errorListener, featureSet: featureSet);
     }
   }
 
@@ -302,7 +301,7 @@ class Parser {
   /// is `true` if this is the first token in a string literal. The flag
   /// [isLast] is `true` if this is the last token in a string literal.
   String computeStringValue(String lexeme, bool isFirst, bool isLast) {
-    StringLexemeHelper helper = new StringLexemeHelper(lexeme, isFirst, isLast);
+    StringLexemeHelper helper = StringLexemeHelper(lexeme, isFirst, isLast);
     int start = helper.start;
     int end = helper.end;
     bool stringEndsAfterStart = end >= start;
@@ -315,7 +314,7 @@ class Parser {
     if (helper.isRaw) {
       return lexeme.substring(start, end);
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     int index = start;
     while (index < end) {
       index = _translateCharacter(buffer, lexeme, index);
@@ -332,7 +331,7 @@ class Parser {
       // synthetic identifier. By creating SyntheticStringToken we can
       // distinguish a real identifier from synthetic. In the code completion
       // behavior will depend on a cursor position - before or on "is".
-      syntheticToken = _injectToken(new SyntheticStringToken(
+      syntheticToken = _injectToken(SyntheticStringToken(
           TokenType.IDENTIFIER, _currentToken.lexeme, _currentToken.offset));
     } else {
       syntheticToken = _createSyntheticToken(TokenType.IDENTIFIER);
@@ -1518,7 +1517,7 @@ class Parser {
       _validateModifiersForGetterOrSetterOrMethod(modifiers);
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_GET);
       _currentToken = _injectToken(
-          new SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
+          SyntheticKeywordToken(Keyword.GET, _currentToken.offset));
       return parseGetter(commentAndMetadata, modifiers.externalKeyword,
           modifiers.staticKeyword, type);
     }
@@ -1586,7 +1585,7 @@ class Parser {
         tokens = optionalTokens;
       }
     }
-    return new CommentAndMetadata(parseDocumentationComment(tokens), metadata);
+    return CommentAndMetadata(parseDocumentationComment(tokens), metadata);
   }
 
   /// Parse a comment reference from the source between square brackets. The
@@ -1602,9 +1601,9 @@ class Parser {
     // TODO(brianwilkerson) The errors are not getting the right offset/length
     // and are being duplicated.
     try {
-      BooleanErrorListener listener = new BooleanErrorListener();
-      Scanner scanner = new Scanner(
-          null, new SubSequenceReader(referenceSource, sourceOffset), listener)
+      BooleanErrorListener listener = BooleanErrorListener();
+      Scanner scanner = Scanner(
+          null, SubSequenceReader(referenceSource, sourceOffset), listener)
         ..configureFeatures(_featureSet);
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
@@ -1613,7 +1612,7 @@ class Parser {
       }
       if (firstToken.type == TokenType.EOF) {
         Token syntheticToken =
-            new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+            SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
         syntheticToken.setNext(firstToken);
         return astFactory.commentReference(
             null, astFactory.simpleIdentifier(syntheticToken));
@@ -1756,13 +1755,12 @@ class Parser {
               int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(
                   comment, leftIndex + 1);
               String name = comment.substring(leftIndex + 1, nameEnd);
-              nameToken =
-                  new StringToken(TokenType.IDENTIFIER, name, nameOffset);
+              nameToken = StringToken(TokenType.IDENTIFIER, name, nameOffset);
             } else {
-              nameToken = new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', nameOffset);
+              nameToken =
+                  SyntheticStringToken(TokenType.IDENTIFIER, '', nameOffset);
             }
-            nameToken.setNext(new Token.eof(nameToken.end));
+            nameToken.setNext(Token.eof(nameToken.end));
             references.add(astFactory.commentReference(
                 null, astFactory.simpleIdentifier(nameToken)));
             // next character
@@ -1865,7 +1863,7 @@ class Parser {
           } else {
             // Internal error: this method should not have been invoked if the
             // current token was something other than one of the above.
-            throw new StateError(
+            throw StateError(
                 "parseDirective invoked in an invalid state (currentToken = $_currentToken)");
           }
         }
@@ -1890,7 +1888,7 @@ class Parser {
           member = parseCompilationUnitMember(commentAndMetadata);
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
-          Token eof = new Token.eof(0);
+          Token eof = Token.eof(0);
           return astFactory.compilationUnit(
               beginToken: eof, endToken: eof, featureSet: _featureSet);
         }
@@ -2352,7 +2350,7 @@ class Parser {
     } else {
       // Internal error: this method should not have been invoked if the current
       // token was something other than one of the above.
-      throw new StateError(
+      throw StateError(
           "parseDirective invoked in an invalid state; currentToken = $_currentToken");
     }
   }
@@ -2616,7 +2614,7 @@ class Parser {
   ///       | throwExpression
   Expression parseExpression2() {
     if (_treeDepth > _MAX_TREE_DEPTH) {
-      throw new _TooDeepTreeError();
+      throw _TooDeepTreeError();
     }
     _treeDepth++;
     try {
@@ -2758,7 +2756,7 @@ class Parser {
       // This is not supported if the type is required.
       type;
     }
-    return new FinalConstVarOrType(keywordToken, type);
+    return FinalConstVarOrType(keywordToken, type);
   }
 
   /// Parse a formal parameter. At most one of `isOptional` and `isNamed` can be
@@ -3740,7 +3738,7 @@ class Parser {
   ///     modifiers ::=
   ///         ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')*
   Modifiers parseModifiers() {
-    Modifiers modifiers = new Modifiers();
+    Modifiers modifiers = Modifiers();
     bool progress = true;
     while (progress) {
       TokenType nextType = _peek().type;
@@ -4611,7 +4609,7 @@ class Parser {
   ///         label* nonLabeledStatement
   Statement parseStatement2() {
     if (_treeDepth > _MAX_TREE_DEPTH) {
-      throw new _TooDeepTreeError();
+      throw _TooDeepTreeError();
     }
     _treeDepth++;
     try {
@@ -4690,7 +4688,7 @@ class Parser {
     bool wasInSwitch = _inSwitch;
     _inSwitch = true;
     try {
-      HashSet<String> definedLabels = new HashSet<String>();
+      HashSet<String> definedLabels = HashSet<String>();
       Token keyword = _expectKeyword(Keyword.SWITCH);
       Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
       Expression expression = parseExpression2();
@@ -5108,8 +5106,7 @@ class Parser {
         //
         if (type == TokenType.MINUS_MINUS) {
           Token firstOperator = _createToken(operator, TokenType.MINUS);
-          Token secondOperator =
-              new Token(TokenType.MINUS, operator.offset + 1);
+          Token secondOperator = Token(TokenType.MINUS, operator.offset + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
@@ -5441,7 +5438,7 @@ class Parser {
     if (token.type == TokenType.GT) {
       return token.next;
     } else if (token.type == TokenType.GT_GT) {
-      Token second = new Token(TokenType.GT, token.offset + 1);
+      Token second = Token(TokenType.GT, token.offset + 1);
       second.setNextWithoutSettingPrevious(token.next);
       return second;
     }
@@ -5552,19 +5549,19 @@ class Parser {
 
   void _configureFeatures(FeatureSet featureSet) {
     if (featureSet.isEnabled(Feature.control_flow_collections)) {
-      throw new UnimplementedError('control_flow_collections experiment'
+      throw UnimplementedError('control_flow_collections experiment'
           ' not supported by analyzer parser');
     }
     if (featureSet.isEnabled(Feature.non_nullable)) {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'non-nullable experiment not supported by analyzer parser');
     }
     if (featureSet.isEnabled(Feature.spread_collections)) {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'spread_collections experiment not supported by analyzer parser');
     }
     if (featureSet.isEnabled(Feature.triple_shift)) {
-      throw new UnimplementedError('triple_shift experiment'
+      throw UnimplementedError('triple_shift experiment'
           ' not supported by analyzer parser');
     }
     _featureSet = featureSet;
@@ -5636,11 +5633,11 @@ class Parser {
 
   /// Return a synthetic token representing the given [keyword].
   Token _createSyntheticKeyword(Keyword keyword) =>
-      _injectToken(new SyntheticKeywordToken(keyword, _currentToken.offset));
+      _injectToken(SyntheticKeywordToken(keyword, _currentToken.offset));
 
   /// Return a synthetic token with the given [type].
   Token _createSyntheticToken(TokenType type) =>
-      _injectToken(new StringToken(type, "", _currentToken.offset));
+      _injectToken(StringToken(type, "", _currentToken.offset));
 
   /// Create and return a new token with the given [type]. The token will
   /// replace the first portion of the given [token], so it will have the same
@@ -5649,13 +5646,13 @@ class Parser {
     CommentToken comments = token.precedingComments;
     if (comments == null) {
       if (isBegin) {
-        return new BeginToken(type, token.offset);
+        return BeginToken(type, token.offset);
       }
-      return new Token(type, token.offset);
+      return Token(type, token.offset);
     } else if (isBegin) {
-      return new BeginToken(type, token.offset, comments);
+      return BeginToken(type, token.offset, comments);
     }
-    return new Token(type, token.offset, comments);
+    return Token(type, token.offset, comments);
   }
 
   /// Check that the given [expression] is assignable and report an error if it
@@ -5976,7 +5973,7 @@ class Parser {
       return true;
     } else if (currentType == TokenType.GT_GT) {
       Token first = _createToken(_currentToken, TokenType.GT);
-      Token second = new Token(TokenType.GT, _currentToken.offset + 1);
+      Token second = Token(TokenType.GT, _currentToken.offset + 1);
       second.setNext(_currentToken.next);
       first.setNext(second);
       _currentToken.previous.setNext(first);
@@ -5984,7 +5981,7 @@ class Parser {
       return true;
     } else if (currentType == TokenType.GT_EQ) {
       Token first = _createToken(_currentToken, TokenType.GT);
-      Token second = new Token(TokenType.EQ, _currentToken.offset + 1);
+      Token second = Token(TokenType.EQ, _currentToken.offset + 1);
       second.setNext(_currentToken.next);
       first.setNext(second);
       _currentToken.previous.setNext(first);
@@ -5993,8 +5990,8 @@ class Parser {
     } else if (currentType == TokenType.GT_GT_EQ) {
       int offset = _currentToken.offset;
       Token first = _createToken(_currentToken, TokenType.GT);
-      Token second = new Token(TokenType.GT, offset + 1);
-      Token third = new Token(TokenType.EQ, offset + 2);
+      Token second = Token(TokenType.GT, offset + 1);
+      Token third = Token(TokenType.EQ, offset + 2);
       third.setNext(_currentToken.next);
       second.setNext(third);
       first.setNext(second);
@@ -7099,7 +7096,7 @@ class Parser {
         Token endToken = token.previous;
         token = _currentToken;
         int endOffset = token.end;
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = StringBuffer();
         buffer.write(token.lexeme);
         while (token != endToken) {
           token = token.next;
@@ -7111,7 +7108,7 @@ class Parser {
         }
         String value = buffer.toString();
         Token newToken =
-            new StringToken(TokenType.STRING, "'$value'", _currentToken.offset);
+            StringToken(TokenType.STRING, "'$value'", _currentToken.offset);
         _reportErrorForToken(
             ParserErrorCode.NON_STRING_LITERAL_AS_URI, newToken);
         _currentToken = endToken.next;
@@ -7194,8 +7191,8 @@ class Parser {
   /// the given [node].
   void _reportErrorForNode(ParserErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    _reportError(new AnalysisError(
-        _source, node.offset, node.length, errorCode, arguments));
+    _reportError(
+        AnalysisError(_source, node.offset, node.length, errorCode, arguments));
   }
 
   /// Report an error with the given [errorCode] and [arguments] associated with
@@ -7205,8 +7202,8 @@ class Parser {
     if (token.type == TokenType.EOF) {
       token = token.previous;
     }
-    _reportError(new AnalysisError(_source, token.offset,
-        math.max(token.length, 1), errorCode, arguments));
+    _reportError(AnalysisError(_source, token.offset, math.max(token.length, 1),
+        errorCode, arguments));
   }
 
   /// Skips a block with all containing blocks.
@@ -7452,7 +7449,7 @@ class Parser {
         depth--;
       } else if (_tokenMatches(next, TokenType.GT_EQ)) {
         if (depth == 1) {
-          Token fakeEquals = new Token(TokenType.EQ, next.offset + 2);
+          Token fakeEquals = Token(TokenType.EQ, next.offset + 2);
           fakeEquals.setNextWithoutSettingPrevious(next.next);
           return fakeEquals;
         }
@@ -7463,7 +7460,7 @@ class Parser {
         if (depth < 2) {
           return null;
         } else if (depth == 2) {
-          Token fakeEquals = new Token(TokenType.EQ, next.offset + 2);
+          Token fakeEquals = Token(TokenType.EQ, next.offset + 2);
           fakeEquals.setNextWithoutSettingPrevious(next.next);
           return fakeEquals;
         }
@@ -7482,7 +7479,7 @@ class Parser {
         _currentToken, TokenType.OPEN_SQUARE_BRACKET,
         isBegin: true);
     Token rightBracket =
-        new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
+        Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
     leftBracket.endToken = rightBracket;
     rightBracket.setNext(_currentToken.next);
     leftBracket.setNext(rightBracket);
@@ -7656,7 +7653,7 @@ class Parser {
   /// [reportError] wont report any error.
   void _unlockErrorListener() {
     if (_errorListenerLock == 0) {
-      throw new StateError("Attempt to unlock not locked error listener.");
+      throw StateError("Attempt to unlock not locked error listener.");
     }
     _errorListenerLock--;
   }

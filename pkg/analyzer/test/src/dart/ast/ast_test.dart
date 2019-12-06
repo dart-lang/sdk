@@ -28,9 +28,9 @@ class ExpressionImplTest extends ParserTestCase {
   void assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    NodeLocator visitor = new NodeLocator(index);
+    NodeLocator visitor = NodeLocator(index);
     AstNodeImpl node = visitor.searchWithin(testUnit);
-    expect(node, new TypeMatcher<ExpressionImpl>());
+    expect(node, TypeMatcher<ExpressionImpl>());
     expect((node as ExpressionImpl).inConstantContext,
         isInContext ? isTrue : isFalse);
   }
@@ -472,7 +472,7 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
   void assertIsConst(String snippet, bool expectedResult) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    NodeLocator visitor = new NodeLocator(index);
+    NodeLocator visitor = NodeLocator(index);
     AstNodeImpl node = visitor.searchWithin(testUnit);
     node = node.thisOrAncestorOfType<InstanceCreationExpressionImpl>();
     expect(node, isNotNull);

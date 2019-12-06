@@ -346,13 +346,8 @@ class FastaErrorReporter {
     if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
       ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter.reportError(new AnalysisError.forValues(
-            errorReporter.source,
-            offset,
-            length,
-            errorCode,
-            message.message,
-            message.tip));
+        errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+            offset, length, errorCode, message.message, message.tip));
         return;
       }
     }
@@ -369,13 +364,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter.reportError(new AnalysisError.forValues(
-          errorReporter.source,
-          offset,
-          length,
-          errorCode,
-          message.message,
-          null));
+      errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
+          offset, length, errorCode, message.message, null));
     }
   }
 }

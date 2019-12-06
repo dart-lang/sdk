@@ -46,21 +46,21 @@ main() {
  * any code to run, as long as it's not waiting on some external event.
  */
 Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return new Future.value();
+  if (times == 0) return Future.value();
   // We use a delayed future to allow microtask events to finish. The
   // Future.value or Future() constructors use scheduleMicrotask themselves and
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
-  return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+  return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
 }
 
 @reflectiveTest
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   DartSdk sdk;
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
+  final ByteStore byteStore = MemoryByteStore();
+  final FileContentOverlay contentOverlay = FileContentOverlay();
 
-  final StringBuffer logBuffer = new StringBuffer();
+  final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;
 
   AnalysisDriverScheduler scheduler;
@@ -68,27 +68,27 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   List<ResolvedUnitResult> allResults = [];
 
   AnalysisDriver newDriver() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    AnalysisDriver driver = new AnalysisDriver(
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    AnalysisDriver driver = AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
-        new AnalysisOptionsImpl());
+        SourceFactory(
+            [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
+            null,
+            resourceProvider),
+        AnalysisOptionsImpl());
     driver.results.forEach(allResults.add);
     return driver;
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
+    sdk = MockSdk(resourceProvider: resourceProvider);
+    logger = PerformanceLog(logBuffer);
+    scheduler = AnalysisDriverScheduler(logger);
     scheduler.start();
   }
 
@@ -287,7 +287,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver2.addFile(b);
     driver2.addFile(c);
 
-    Monitor idleStatusMonitor = new Monitor();
+    Monitor idleStatusMonitor = Monitor();
     List<AnalysisStatus> allStatuses = [];
     // awaiting times out.
     // ignore: unawaited_futures
@@ -318,7 +318,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
     driver1.addFile(a);
     driver2.addFile(b);
 
-    Monitor idleStatusMonitor = new Monitor();
+    Monitor idleStatusMonitor = Monitor();
     List<AnalysisStatus> allStatuses = [];
     // awaiting times out.
     // ignore: unawaited_futures
@@ -1106,7 +1106,7 @@ aaa() {}
 bbb() {}
 ''');
 
-    Source generatedSource = new _SourceMock(generatedPath, uri);
+    Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction =
         (uri, actualUri) => generatedSource;
@@ -3021,7 +3021,7 @@ var v = 0
     await scheduler.waitForIdle();
 
     if (allExceptions.isNotEmpty) {
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
       for (var exception in allExceptions) {
         buffer.writeln('Path: ${exception.path}');
         buffer.writeln('Exception: ${exception.exception}');
@@ -3222,6 +3222,6 @@ class _SourceMock implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

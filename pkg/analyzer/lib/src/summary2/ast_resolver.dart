@@ -48,7 +48,7 @@ class AstResolver {
     );
     node = getNode();
 
-    var variableResolverVisitor = new VariableResolverVisitor(
+    var variableResolverVisitor = VariableResolverVisitor(
       _unitElement.library,
       _unitElement.source,
       _unitElement.library.typeProvider,
@@ -57,7 +57,7 @@ class AstResolver {
     );
     node.accept(variableResolverVisitor);
 
-    var resolverVisitor = new ResolverVisitor(
+    var resolverVisitor = ResolverVisitor(
       _linker.inheritance,
       _unitElement.library,
       _unitElement.source,

@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new WhileStatementTest().buildAll();
+  WhileStatementTest().buildAll();
 }
 
 class WhileStatementTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class WhileStatementTest extends PartialCodeTest {
     buildTests(
       'while_statement',
       <TestDescriptor>[
-        new TestDescriptor(
+        TestDescriptor(
           'keyword',
           'while',
           [
@@ -30,7 +30,7 @@ class WhileStatementTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_TOKEN
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'leftParen',
           'while (',
           [
@@ -45,7 +45,7 @@ class WhileStatementTest extends PartialCodeTest {
             ParserErrorCode.EXPECTED_TOKEN
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'condition',
           'while (a',
           [
@@ -67,14 +67,14 @@ class WhileStatementTest extends PartialCodeTest {
     buildTests(
       'while_statement',
       <TestDescriptor>[
-        new TestDescriptor(
+        TestDescriptor(
           'keyword',
           'while',
           [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           "while (_s_)",
           failing: ['break', 'continue'],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'leftParen',
           'while (',
           [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
@@ -90,7 +90,7 @@ class WhileStatementTest extends PartialCodeTest {
             'return'
           ],
         ),
-        new TestDescriptor(
+        TestDescriptor(
           'condition',
           'while (a',
           [ScannerErrorCode.EXPECTED_TOKEN],

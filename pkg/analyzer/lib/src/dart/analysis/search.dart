@@ -18,7 +18,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
-  var finder = new _ContainingElementFinder(offset);
+  var finder = _ContainingElementFinder(offset);
   unitElement.accept(finder);
   Element element = finder.containingElement;
   assert(element != null,
@@ -164,7 +164,7 @@ class Search {
         if (searchedFiles.add(file.path, this)) {
           AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
           if (index != null) {
-            var request = new _IndexRequest(index);
+            var request = _IndexRequest(index);
             request.addSubtypes(id, results, file);
           }
         }
@@ -226,7 +226,7 @@ class Search {
       if (searchedFiles.add(file, this)) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file);
         if (index != null) {
-          _IndexRequest request = new _IndexRequest(index);
+          _IndexRequest request = _IndexRequest(index);
           var fileResults = await request.getUnresolvedMemberReferences(
             name,
             const {
@@ -298,7 +298,7 @@ class Search {
     await null;
     AnalysisDriverUnitIndex index = await _driver.getIndex(file);
     if (index != null) {
-      _IndexRequest request = new _IndexRequest(index);
+      _IndexRequest request = _IndexRequest(index);
       int elementId = request.findElementId(element);
       if (elementId != -1) {
         List<SearchResult> fileResults = await request.getRelations(
@@ -418,7 +418,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _ImportElementReferencesVisitor visitor =
-          new _ImportElementReferencesVisitor(element, unitElement);
+          _ImportElementReferencesVisitor(element, unitElement);
       unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
@@ -441,7 +441,7 @@ class Search {
       CompilationUnit unit = unitResult.unit;
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
-          results.add(new SearchResult._(
+          results.add(SearchResult._(
               unit.declaredElement,
               SearchResultKind.REFERENCE,
               directive.libraryName.offset,
@@ -471,7 +471,7 @@ class Search {
     }
 
     // Prepare the node.
-    AstNode node = new NodeLocator(element.nameOffset).searchWithin(unit);
+    AstNode node = NodeLocator(element.nameOffset).searchWithin(unit);
     if (node == null) {
       return const <SearchResult>[];
     }
@@ -484,7 +484,7 @@ class Search {
 
     // Find the matches.
     _LocalReferencesVisitor visitor =
-        new _LocalReferencesVisitor(element, unit.declaredElement);
+        _LocalReferencesVisitor(element, unit.declaredElement);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -523,7 +523,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
       _LocalReferencesVisitor visitor =
-          new _LocalReferencesVisitor(element, unitElement);
+          _LocalReferencesVisitor(element, unitElement);
       unitResult.unit.accept(visitor);
       results.addAll(visitor.results);
     }
@@ -597,7 +597,7 @@ class SearchResult {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("SearchResult(kind=");
     buffer.write(kind);
     buffer.write(", enclosingElement=");
@@ -723,7 +723,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
   void _addResult(int offset, int length) {
     Element enclosingElement =
         _getEnclosingElement(enclosingUnitElement, offset);
-    results.add(new SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
+    results.add(SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
         offset, length, true, false));
   }
 
@@ -755,7 +755,7 @@ class _IndexRequest {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
       var subId = '${library.uriStr};${file.uriStr};$name';
-      results.add(new SubtypeResult(
+      results.add(SubtypeResult(
         library.uriStr,
         subId,
         name,
@@ -769,7 +769,7 @@ class _IndexRequest {
    * [element] is not referenced in the [index].
    */
   int findElementId(Element element) {
-    IndexElementInfo info = new IndexElementInfo(element);
+    IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
     // Find the id of the element's unit.
     int unitId = getUnitId(element);
@@ -882,7 +882,7 @@ class _IndexRequest {
         if (enclosingUnitElement != null) {
           Element enclosingElement =
               _getEnclosingElement(enclosingUnitElement, offset);
-          results.add(new SearchResult._(
+          results.add(SearchResult._(
               enclosingElement,
               resultKind,
               offset,
@@ -960,7 +960,7 @@ class _IndexRequest {
         if (enclosingUnitElement != null) {
           Element enclosingElement =
               _getEnclosingElement(enclosingUnitElement, offset);
-          results.add(new SearchResult._(enclosingElement, resultKind, offset,
+          results.add(SearchResult._(enclosingElement, resultKind, offset,
               name.length, false, index.usedNameIsQualifiedFlags[i]));
         }
       }
@@ -1044,7 +1044,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
     bool isQualified = node.parent is Label;
     Element enclosingElement =
         _getEnclosingElement(enclosingUnitElement, node.offset);
-    results.add(new SearchResult._(
+    results.add(SearchResult._(
         enclosingElement, kind, node.offset, node.length, true, isQualified));
   }
 }

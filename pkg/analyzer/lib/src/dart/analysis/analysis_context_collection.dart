@@ -32,7 +32,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       _throwIfNotAbsoluteNormalizedPath(sdkPath);
     }
 
-    var contextLocator = new ContextLocator(
+    var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
     );
     var roots = contextLocator.locateRoots(
@@ -40,7 +40,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       excludedPaths: excludedPaths,
     );
     for (var root in roots) {
-      var contextBuilder = new ContextBuilderImpl(
+      var contextBuilder = ContextBuilderImpl(
         resourceProvider: this.resourceProvider,
       );
       var context = contextBuilder.createContext(
@@ -62,7 +62,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       }
     }
 
-    throw new StateError('Unable to find the context to $path');
+    throw StateError('Unable to find the context to $path');
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].
@@ -77,7 +77,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (!pathContext.isAbsolute(path) || pathContext.normalize(path) != path) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'Only absolute normalized paths are supported: $path');
     }
   }

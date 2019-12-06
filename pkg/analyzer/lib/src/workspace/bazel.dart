@@ -51,7 +51,7 @@ class BazelPackageUriResolver extends UriResolver {
   /**
    * The cache of absolute [Uri]s to [Source]s mappings.
    */
-  final Map<Uri, Source> _sourceCache = new HashMap<Uri, Source>();
+  final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
 
   BazelPackageUriResolver(BazelWorkspace workspace)
       : _workspace = workspace,
@@ -202,20 +202,20 @@ class BazelWorkspace extends Workspace {
   Map<String, List<Folder>> get packageMap => null;
 
   @override
-  UriResolver get packageUriResolver => new BazelPackageUriResolver(this);
+  UriResolver get packageUriResolver => BazelPackageUriResolver(this);
 
   @override
   SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
-      resolvers.add(new DartUriResolver(sdk));
+      resolvers.add(DartUriResolver(sdk));
     }
     resolvers.add(packageUriResolver);
-    resolvers.add(new BazelFileUriResolver(this));
+    resolvers.add(BazelFileUriResolver(this));
     if (summaryData != null) {
       resolvers.add(InSummaryUriResolver(provider, summaryData));
     }
-    return new SourceFactory(resolvers, null, provider);
+    return SourceFactory(resolvers, null, provider);
   }
 
   /**
@@ -365,7 +365,7 @@ class BazelWorkspace extends Workspace {
           String symlinkPrefix =
               _findSymlinkPrefix(provider, root, binPaths: binPaths);
           binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-          return new BazelWorkspace._(provider, root, readonlyRoot, binPaths,
+          return BazelWorkspace._(provider, root, readonlyRoot, binPaths,
               context.join(root, '$symlinkPrefix-genfiles'));
         }
       }
@@ -377,8 +377,8 @@ class BazelWorkspace extends Workspace {
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-        return new BazelWorkspace._(provider, root, null /* readonly */,
-            binPaths, context.join(root, '$symlinkPrefix-genfiles'));
+        return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
+            context.join(root, '$symlinkPrefix-genfiles'));
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
@@ -388,8 +388,8 @@ class BazelWorkspace extends Workspace {
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
-        return new BazelWorkspace._(provider, root, null /* readonly */,
-            binPaths, context.join(root, '$symlinkPrefix-genfiles'));
+        return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
+            context.join(root, '$symlinkPrefix-genfiles'));
       }
 
       // Go up the folder.

@@ -14,14 +14,14 @@ main() {
 }
 
 List<int> _b(int length) {
-  return new List<int>(length);
+  return List<int>(length);
 }
 
 @reflectiveTest
 class MemoryCachingByteStoreTest {
   test_get_notFound_evict() {
-    var store = new NullByteStore();
-    var cachingStore = new MemoryCachingByteStore(store, 100);
+    var store = NullByteStore();
+    var cachingStore = MemoryCachingByteStore(store, 100);
 
     // Request '1'.  Nothing found.
     cachingStore.get('1');
@@ -33,9 +33,9 @@ class MemoryCachingByteStoreTest {
   }
 
   test_get_notFound_retry() {
-    var mockStore = new NullByteStore();
-    var baseStore = new MemoryCachingByteStore(mockStore, 1000);
-    var cachingStore = new MemoryCachingByteStore(baseStore, 100);
+    var mockStore = NullByteStore();
+    var baseStore = MemoryCachingByteStore(mockStore, 1000);
+    var cachingStore = MemoryCachingByteStore(baseStore, 100);
 
     // Request '1'.  Nothing found.
     expect(cachingStore.get('1'), isNull);
@@ -49,8 +49,8 @@ class MemoryCachingByteStoreTest {
   }
 
   test_get_put_evict() {
-    var store = new NullByteStore();
-    var cachingStore = new MemoryCachingByteStore(store, 100);
+    var store = NullByteStore();
+    var cachingStore = MemoryCachingByteStore(store, 100);
 
     // Keys: [1, 2].
     cachingStore.put('1', _b(40));
@@ -69,8 +69,8 @@ class MemoryCachingByteStoreTest {
   }
 
   test_put_evict_first() {
-    var store = new NullByteStore();
-    var cachingStore = new MemoryCachingByteStore(store, 100);
+    var store = NullByteStore();
+    var cachingStore = MemoryCachingByteStore(store, 100);
 
     // 40 + 50 < 100
     cachingStore.put('1', _b(40));
@@ -87,8 +87,8 @@ class MemoryCachingByteStoreTest {
   }
 
   test_put_evict_firstAndSecond() {
-    var store = new NullByteStore();
-    var cachingStore = new MemoryCachingByteStore(store, 100);
+    var store = NullByteStore();
+    var cachingStore = MemoryCachingByteStore(store, 100);
 
     // 10 + 80 < 100
     cachingStore.put('1', _b(10));
@@ -108,7 +108,7 @@ class MemoryCachingByteStoreTest {
 @reflectiveTest
 class NullByteStoreTest {
   test_get() {
-    var store = new NullByteStore();
+    var store = NullByteStore();
 
     expect(store.get('1'), isNull);
 

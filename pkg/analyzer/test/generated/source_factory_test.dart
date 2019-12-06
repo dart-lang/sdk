@@ -33,26 +33,26 @@ main() {
 
 Source createSource({String path, String uri}) =>
     //TODO(pquitslund): find some way to pass an actual URI into source creation
-    new MemoryResourceProvider()
+    MemoryResourceProvider()
         .getFile(path)
         .createSource(uri != null ? Uri.parse(uri) : null);
 
 void runPackageMapTests() {
-  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-  final Uri baseUri = new Uri.file('test/base');
+  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
+  final Uri baseUri = Uri.file('test/base');
   final List<UriResolver> testResolvers = [
-    new ResourceUriResolver(resourceProvider)
+    ResourceUriResolver(resourceProvider)
   ];
 
   Packages createPackageMap(Uri base, String configFileContents) {
     List<int> bytes = utf8.encode(configFileContents);
     Map<String, Uri> map = pkgfile.parse(bytes, base);
-    return new MapPackages(map);
+    return MapPackages(map);
   }
 
   Map<String, List<Folder>> getPackageMap(String config) {
     Packages packages = createPackageMap(baseUri, config);
-    SourceFactory factory = new SourceFactory(testResolvers, packages);
+    SourceFactory factory = SourceFactory(testResolvers, packages);
     return factory.packageMap;
   }
 
@@ -66,11 +66,11 @@ void runPackageMapTests() {
     if (customResolver != null) {
       resolvers.add(customResolver);
     }
-    SourceFactory factory = new SourceFactory(resolvers, packages);
+    SourceFactory factory = SourceFactory(resolvers, packages);
 
     expect(AnalysisEngine.instance.instrumentationService,
         InstrumentationService.NULL_SERVICE);
-    var instrumentor = new TestInstrumentor();
+    var instrumentor = TestInstrumentor();
     AnalysisEngine.instance.instrumentationService = instrumentor;
     try {
       Source source = factory.resolveUri(containingSource, uri);
@@ -89,7 +89,7 @@ void runPackageMapTests() {
     if (customResolver != null) {
       resolvers.add(customResolver);
     }
-    SourceFactory factory = new SourceFactory(resolvers, packages);
+    SourceFactory factory = SourceFactory(resolvers, packages);
     return factory.restoreUri(source);
   }
 
@@ -120,7 +120,7 @@ quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
           expect(uri, isNull);
         });
         test('Non-package URI', () {
-          var testResolver = new CustomUriResolver(uriPath: _p('/test.dart'));
+          var testResolver = CustomUriResolver(uriPath: _p('/test.dart'));
           String uri = resolvePackageUri(config: '''
 unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 ''', uri: 'custom:custom.dart', customResolver: testResolver);
@@ -137,7 +137,7 @@ unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
           expect(
               () => resolvePackageUri(
                   config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
-              throwsA(new TypeMatcher<FormatException>()));
+              throwsA(TypeMatcher<FormatException>()));
         });
         test('Valid URI that cannot be further resolved', () {
           String uri = resolvePackageUri(
@@ -163,7 +163,7 @@ unittest:${_u('/home/somebody/.pub/cache/unittest-0.9.9/lib/')}
 async:${_u('/home/somebody/.pub/cache/async-1.1.0/lib/')}
 quiver:${_u('/home/somebody/.pub/cache/quiver-1.2.1/lib')}
 ''',
-              source: new FileSource(resourceProvider.getFile(_p(
+              source: FileSource(resourceProvider.getFile(_p(
                   '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'))));
           expect(uri, isNotNull);
           expect(uri.toString(), equals('package:unittest/unittest.dart'));
@@ -205,7 +205,7 @@ class AbsoluteUriResolver extends UriResolver {
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return new FileSource(
+    return FileSource(
         resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
         actualUri);
   }
@@ -223,38 +223,38 @@ class CustomUriResolver extends UriResolver {
 @reflectiveTest
 class SourceFactoryTest with ResourceProviderMixin {
   void test_creation() {
-    expect(new SourceFactory([]), isNotNull);
+    expect(SourceFactory([]), isNotNull);
   }
 
   void test_resolveUri_absolute() {
-    UriResolver_absolute resolver = new UriResolver_absolute();
-    SourceFactory factory = new SourceFactory([resolver]);
+    UriResolver_absolute resolver = UriResolver_absolute();
+    SourceFactory factory = SourceFactory([resolver]);
     factory.resolveUri(null, "dart:core");
     expect(resolver.invoked, isTrue);
   }
 
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
-        new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
+        SourceFactory([AbsoluteUriResolver(resourceProvider)]);
     String sourcePath = convertPath('/does/not/exist.dart');
     String targetRawPath = '/does/not/matter.dart';
     String targetPath = convertPath(targetRawPath);
     String targetUri = toUri(targetRawPath).toString();
-    Source sourceSource = new FileSource(getFile(sourcePath));
+    Source sourceSource = FileSource(getFile(sourcePath));
     Source result = factory.resolveUri(sourceSource, targetUri);
     expect(result.fullName, targetPath);
   }
 
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
-        new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
-    Source containingSource = new FileSource(getFile('/does/not/have.dart'));
+        SourceFactory([AbsoluteUriResolver(resourceProvider)]);
+    Source containingSource = FileSource(getFile('/does/not/have.dart'));
     Source result = factory.resolveUri(containingSource, 'exist.dart');
     expect(result.fullName, convertPath('/does/not/exist.dart'));
   }
 
   void test_resolveUri_nonAbsolute_relative_package() {
-    MemoryResourceProvider provider = new MemoryResourceProvider();
+    MemoryResourceProvider provider = MemoryResourceProvider();
     pathos.Context context = provider.pathContext;
     String packagePath =
         context.joinAll([context.separator, 'path', 'to', 'package']);
@@ -269,10 +269,10 @@ class SourceFactoryTest with ResourceProviderMixin {
     File firstFile = provider.newFile(firstPath, '');
     provider.newFile(secondPath, '');
 
-    PackageMapUriResolver resolver = new PackageMapUriResolver(provider, {
+    PackageMapUriResolver resolver = PackageMapUriResolver(provider, {
       'package': [libFolder]
     });
-    SourceFactory factory = new SourceFactory([resolver]);
+    SourceFactory factory = SourceFactory([resolver]);
     Source librarySource =
         firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
 
@@ -285,11 +285,11 @@ class SourceFactoryTest with ResourceProviderMixin {
   void test_restoreUri() {
     File file1 = getFile("/some/file1.dart");
     File file2 = getFile("/some/file2.dart");
-    Source source1 = new FileSource(file1);
-    Source source2 = new FileSource(file2);
+    Source source1 = FileSource(file1);
+    Source source2 = FileSource(file2);
     Uri expected1 = Uri.parse("file:///my_file.dart");
     SourceFactory factory =
-        new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
+        SourceFactory([UriResolver_restoreUri(source1, expected1)]);
     expect(factory.restoreUri(source1), same(expected1));
     expect(factory.restoreUri(source2), same(null));
   }
@@ -332,7 +332,7 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (uri.toString() == encoding) {
-      return new TestSource();
+      return TestSource();
     }
     return null;
   }

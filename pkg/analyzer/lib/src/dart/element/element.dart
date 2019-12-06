@@ -295,7 +295,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   Iterable<PropertyAccessorElement> _implementationsOfGetter(
       String getterName) sync* {
     ClassElement classElement = this;
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     while (classElement != null && visitedClasses.add(classElement)) {
       PropertyAccessorElement getter = classElement.getGetter(getterName);
       if (getter != null) {
@@ -325,7 +325,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   Iterable<PropertyAccessorElement> _implementationsOfSetter(
       String setterName) sync* {
     ClassElement classElement = this;
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     while (classElement != null && visitedClasses.add(classElement)) {
       PropertyAccessorElement setter = classElement.getSetter(setterName);
       if (setter != null) {
@@ -354,7 +354,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// Object contains a definition of the method it will occur last.
   static Iterable<MethodElement> getImplementationsOfMethod(
       ClassElement classElement, String methodName) sync* {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     while (classElement != null && visitedClasses.add(classElement)) {
       MethodElement method = classElement.getMethod(methodName);
       if (method != null) {
@@ -473,7 +473,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    List<InterfaceType> list = new List<InterfaceType>();
+    List<InterfaceType> list = List<InterfaceType>();
     collectAllSupertypes(list, thisType, thisType);
     return list;
   }
@@ -531,7 +531,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (_constructors.isEmpty) {
-      var constructor = new ConstructorElementImpl('', -1);
+      var constructor = ConstructorElementImpl('', -1);
       constructor.isSynthetic = true;
       constructor.enclosingElement = this;
       _constructors = <ConstructorElement>[constructor];
@@ -594,8 +594,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get hasNonFinalField {
-    List<ClassElement> classesToVisit = new List<ClassElement>();
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    List<ClassElement> classesToVisit = List<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
@@ -713,7 +713,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isOrInheritsProxy =>
-      _safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
+      _safeIsOrInheritsProxy(this, HashSet<ClassElement>());
 
   @override
   bool get isProxy {
@@ -1023,7 +1023,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     // face of errors, so drop any extra type arguments and fill in any missing
     // ones with `dynamic`.
     var superClassParameters = superElement.typeParameters;
-    List<DartType> argumentTypes = new List<DartType>.filled(
+    List<DartType> argumentTypes = List<DartType>.filled(
         superClassParameters.length, DynamicTypeImpl.instance);
     for (int i = 0; i < supertype.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
@@ -1039,24 +1039,23 @@ class ClassElementImpl extends AbstractClassElementImpl
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
       ConstructorElementImpl implicitConstructor =
-          new ConstructorElementImpl(superclassConstructor.name, -1);
+          ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {
         List<ParameterElement> implicitParameters =
-            new List<ParameterElement>(count);
+            List<ParameterElement>(count);
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
           if (superParameter is DefaultParameterElementImpl) {
             implicitParameter =
-                new DefaultParameterElementImpl(superParameter.name, -1)
+                DefaultParameterElementImpl(superParameter.name, -1)
                   ..constantInitializer = superParameter.constantInitializer;
           } else {
-            implicitParameter =
-                new ParameterElementImpl(superParameter.name, -1);
+            implicitParameter = ParameterElementImpl(superParameter.name, -1);
           }
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
@@ -1119,7 +1118,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       var fieldRef = reference.getChild('@field').getChild(name);
       FieldElementImpl field = fieldRef.element;
       if (field == null) {
-        field = new FieldElementImpl(name, -1);
+        field = FieldElementImpl(name, -1);
         fieldRef.element = field;
         field.enclosingElement = this;
         field.isSynthetic = true;
@@ -1187,8 +1186,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
       InterfaceType startingType, InterfaceType excludeType) {
-    List<InterfaceType> typesToVisit = new List<InterfaceType>();
-    List<ClassElement> visitedClasses = new List<ClassElement>();
+    List<InterfaceType> typesToVisit = List<InterfaceType>();
+    List<ClassElement> visitedClasses = List<ClassElement>();
     typesToVisit.add(startingType);
     while (typesToVisit.isNotEmpty) {
       InterfaceType currentType = typesToVisit.removeAt(0);
@@ -1739,7 +1738,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           var fieldRef = unit.reference.getChild('@field').getChild(name);
           TopLevelVariableElementImpl field = fieldRef.element;
           if (field == null) {
-            field = new TopLevelVariableElementImpl(name, -1);
+            field = TopLevelVariableElementImpl(name, -1);
             fieldRef.element = field;
             field.enclosingElement = unit;
             field.isSynthetic = true;
@@ -1812,12 +1811,10 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   EvaluationResultImpl get evaluationResult {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        name: new DartObjectImpl(
-            library.typeProvider.intType, new IntState(_index))
+        name: DartObjectImpl(library.typeProvider.intType, IntState(_index))
       };
-      DartObjectImpl value =
-          new DartObjectImpl(type, new GenericState(fieldMap));
-      _evaluationResult = new EvaluationResultImpl(value);
+      DartObjectImpl value = DartObjectImpl(type, GenericState(fieldMap));
+      _evaluationResult = EvaluationResultImpl(value);
     }
     return _evaluationResult;
   }
@@ -1858,8 +1855,8 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
           constantValues.add(field.evaluationResult.value);
         }
       }
-      _evaluationResult = new EvaluationResultImpl(
-          new DartObjectImpl(type, new ListState(constantValues)));
+      _evaluationResult =
+          EvaluationResultImpl(DartObjectImpl(type, ListState(constantValues)));
     }
     return _evaluationResult;
   }
@@ -2934,9 +2931,9 @@ abstract class ElementImpl implements Element {
   ElementLocation get location {
     if (_cachedLocation == null) {
       if (library == null) {
-        return new ElementLocationImpl.con1(this);
+        return ElementLocationImpl.con1(this);
       }
-      _cachedLocation = new ElementLocationImpl.con1(this);
+      _cachedLocation = ElementLocationImpl.con1(this);
     }
     return _cachedLocation;
   }
@@ -3093,7 +3090,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     appendTo(buffer);
     return buffer.toString();
   }
@@ -3111,7 +3108,7 @@ abstract class ElementImpl implements Element {
       return const <ElementAnnotation>[];
     }
 
-    var annotations = new List<ElementAnnotation>(length);
+    var annotations = List<ElementAnnotation>(length);
     for (int i = 0; i < length; i++) {
       var ast = nodeList[i];
       annotations[i] = ElementAnnotationImpl(unit)
@@ -3164,7 +3161,7 @@ class ElementLocationImpl implements ElementLocation {
 
   /// Initialize a newly created location to represent the given [element].
   ElementLocationImpl.con1(Element element) {
-    List<String> components = new List<String>();
+    List<String> components = List<String>();
     Element ancestor = element;
     while (ancestor != null) {
       components.insert(0, (ancestor as ElementImpl).identifier);
@@ -3188,7 +3185,7 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   String get encoding {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     int length = _components.length;
     for (int i = 0; i < length; i++) {
       if (i > 0) {
@@ -3236,8 +3233,8 @@ class ElementLocationImpl implements ElementLocation {
   /// Decode the [encoding] of a location into a list of components and return
   /// the components.
   List<String> _decode(String encoding) {
-    List<String> components = new List<String>();
-    StringBuffer buffer = new StringBuffer();
+    List<String> components = List<String>();
+    StringBuffer buffer = StringBuffer();
     int index = 0;
     int length = encoding.length;
     while (index < length) {
@@ -3249,7 +3246,7 @@ class ElementLocationImpl implements ElementLocation {
           index += 2;
         } else {
           components.add(buffer.toString());
-          buffer = new StringBuffer();
+          buffer = StringBuffer();
           index++;
         }
       } else {
@@ -3452,7 +3449,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   /// Create the only method enums have - `toString()`.
   void createToStringMethodElement() {
-    var method = new MethodElementImpl('toString', -1);
+    var method = MethodElementImpl('toString', -1);
     method.isSynthetic = true;
     method.enclosingElement = this;
     if (linkedNode != null) {
@@ -3498,7 +3495,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       var constant = constants[i];
       var name = constant.name.name;
       var reference = containerRef.getChild(name);
-      var field = new ConstFieldElementImpl_EnumValue.forLinkedNode(
+      var field = ConstFieldElementImpl_EnumValue.forLinkedNode(
           this, reference, constant, i);
       fields.add(field);
       getters.add(field.getter);
@@ -4228,7 +4225,7 @@ class ExtensionElementImpl extends ElementImpl
       var fieldRef = reference.getChild('@field').getChild(name);
       FieldElementImpl field = fieldRef.element;
       if (field == null) {
-        field = new FieldElementImpl(name, -1);
+        field = FieldElementImpl(name, -1);
         fieldRef.element = field;
         field.enclosingElement = this;
         field.isSynthetic = true;
@@ -4873,8 +4870,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
 
     if (typeArguments.length != typeParameters.length) {
-      throw new ArgumentError(
-          "typeArguments.length (${typeArguments.length}) != "
+      throw ArgumentError("typeArguments.length (${typeArguments.length}) != "
           "typeParameters.length (${typeParameters.length})");
     }
 
@@ -4947,7 +4943,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("show ");
     int count = hiddenNames.length;
     for (int i = 0; i < count; i++) {
@@ -5065,7 +5061,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   Namespace get namespace {
     return _namespace ??=
-        new NamespaceBuilder().createImportNamespaceForDirective(this);
+        NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
   PrefixElement get prefix {
@@ -5077,7 +5073,7 @@ class ImportElementImpl extends UriReferencedElementImpl
       if (prefix != null) {
         var name = prefix.name;
         var library = enclosingElement as LibraryElementImpl;
-        _prefix = new PrefixElementImpl.forLinkedNode(
+        _prefix = PrefixElementImpl.forLinkedNode(
           library,
           library.reference.getChild('@prefix').getChild(name),
           prefix,
@@ -5337,7 +5333,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<LibraryElement> get exportedLibraries {
-    HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
+    HashSet<LibraryElement> libraries = HashSet<LibraryElement>();
     for (ExportElement element in exports) {
       LibraryElement library = element.exportedLibrary;
       if (library != null) {
@@ -5428,7 +5424,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<LibraryElement> get importedLibraries {
-    HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
+    HashSet<LibraryElement> libraries = HashSet<LibraryElement>();
     for (ImportElement element in imports) {
       LibraryElement library = element.importedLibrary;
       if (library != null) {
@@ -5499,7 +5495,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
   bool get isOrImportsBrowserLibrary {
-    List<LibraryElement> visited = new List<LibraryElement>();
+    List<LibraryElement> visited = List<LibraryElement>();
     Source htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
@@ -5612,7 +5608,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = new List<CompilationUnitElement>();
+    List<CompilationUnitElement> units = List<CompilationUnitElement>();
     units.add(_definingCompilationUnit);
     units.addAll(_parts);
     return units;
@@ -5701,7 +5697,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   static List<PrefixElement> buildPrefixesFromImports(
       List<ImportElement> imports) {
-    HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
+    HashSet<PrefixElement> prefixes = HashSet<PrefixElement>();
     for (ImportElement element in imports) {
       PrefixElement prefix = element.prefix;
       if (prefix != null) {
@@ -5714,7 +5710,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static List<ImportElement> getImportsWithPrefixFromImports(
       PrefixElement prefixElement, List<ImportElement> imports) {
     int count = imports.length;
-    List<ImportElement> importList = new List<ImportElement>();
+    List<ImportElement> importList = List<ImportElement>();
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].prefix, prefixElement)) {
         importList.add(imports[i]);
@@ -5961,7 +5957,7 @@ class MixinElementImpl extends ClassElementImpl {
 
   @override
   void set supertype(InterfaceType supertype) {
-    throw new StateError('Attempt to set a supertype for a mixin declaratio.');
+    throw StateError('Attempt to set a supertype for a mixin declaratio.');
   }
 
   @override
@@ -6264,7 +6260,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     bool needsSeparator = false;
     void writeList(List<Element> elements) {
       for (Element element in elements) {
@@ -6388,7 +6384,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (_initializer == null) {
       if (linkedNode != null) {
         if (linkedContext.hasInitializer(linkedNode)) {
-          _initializer = new FunctionElementImpl('', -1)
+          _initializer = FunctionElementImpl('', -1)
             ..isSynthetic = true
             .._type = FunctionTypeImpl(
               typeFormals: const [],
@@ -6488,7 +6484,7 @@ class ParameterElementImpl extends VariableElementImpl
   /// Creates a synthetic parameter with [name], [type] and [kind].
   factory ParameterElementImpl.synthetic(
       String name, DartType type, ParameterKind kind) {
-    ParameterElementImpl element = new ParameterElementImpl(name, -1);
+    ParameterElementImpl element = ParameterElementImpl(name, -1);
     element.type = type;
     element.isSynthetic = true;
     element.parameterKind = kind;
@@ -7177,7 +7173,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   @override
   List<ParameterElement> get parameters {
     return _parameters ??= <ParameterElement>[
-      new ParameterElementImpl_ofImplicitSetter(this)
+      ParameterElementImpl_ofImplicitSetter(this)
     ];
   }
 
@@ -7333,7 +7329,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("show ");
     int count = shownNames.length;
     for (int i = 0; i < count; i++) {
@@ -7524,7 +7520,7 @@ class TypeParameterElementImpl extends ElementImpl
     // of whether it appears in a migrated library.  This is because for type
     // parameters of synthetic function types, the ancestor chain is broken and
     // we can't find the enclosing library to tell whether it is migrated.
-    return _type ??= new TypeParameterTypeImpl(this);
+    return _type ??= TypeParameterTypeImpl(this);
   }
 
   void set type(TypeParameterType type) {
@@ -7721,8 +7717,7 @@ abstract class VariableElementImpl extends ElementImpl
   /// Set the result of evaluating this variable's initializer as a compile-time
   /// constant expression to the given [result].
   void set evaluationResult(EvaluationResultImpl result) {
-    throw new StateError(
-        "Invalid attempt to set a compile-time constant result");
+    throw StateError("Invalid attempt to set a compile-time constant result");
   }
 
   @override

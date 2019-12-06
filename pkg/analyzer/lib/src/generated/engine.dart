@@ -123,7 +123,7 @@ class AnalysisEngine {
   static const String ANDROID_MANIFEST_FILE = 'AndroidManifest.xml';
 
   /// The unique instance of this class.
-  static final AnalysisEngine instance = new AnalysisEngine._();
+  static final AnalysisEngine instance = AnalysisEngine._();
 
   /// The instrumentation service that is to be used by this analysis engine.
   InstrumentationService _instrumentationService =
@@ -560,7 +560,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         analyzeFunctionBodiesPredicate, _analyzeNoFunctionBodies)) {
       return false;
     } else {
-      throw new StateError('analyzeFunctionBodiesPredicate in use');
+      throw StateError('analyzeFunctionBodiesPredicate in use');
     }
   }
 
@@ -578,7 +578,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set analyzeFunctionBodiesPredicate(AnalyzeFunctionBodiesPredicate value) {
     if (value == null) {
-      throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
+      throw ArgumentError.notNull('analyzeFunctionBodiesPredicate');
     }
     _analyzeFunctionBodiesPredicate = value;
   }
@@ -705,7 +705,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   Uint32List get signature {
     if (_signature == null) {
-      ApiSignature buffer = new ApiSignature();
+      ApiSignature buffer = ApiSignature();
 
       // Append environment.
       if (sdkVersionConstraint != null) {
@@ -748,7 +748,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
-      _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
+      _signature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _signature;
   }
@@ -765,7 +765,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The length of the list is guaranteed to equal [unlinkedSignatureLength].
   Uint32List get unlinkedSignature {
     if (_unlinkedSignature == null) {
-      ApiSignature buffer = new ApiSignature();
+      ApiSignature buffer = ApiSignature();
 
       // Append boolean flags.
       buffer.addBool(enableLazyAssignmentOperators);
@@ -779,7 +779,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
-      _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
+      _unlinkedSignature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _unlinkedSignature;
   }
@@ -849,7 +849,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 /// Container with global [AnalysisContext] performance statistics.
 class PerformanceStatistics {
   /// The [PerformanceTag] for `package:analyzer`.
-  static PerformanceTag analyzer = new PerformanceTag('analyzer');
+  static PerformanceTag analyzer = PerformanceTag('analyzer');
 
   /// The [PerformanceTag] for time spent in reading files.
   static PerformanceTag io = analyzer.createChild('io');
@@ -864,7 +864,7 @@ class PerformanceStatistics {
   static PerformanceTag parse = analyzer.createChild('parse');
 
   /// The [PerformanceTag] for time spent in resolving.
-  static PerformanceTag resolve = new PerformanceTag('resolve');
+  static PerformanceTag resolve = PerformanceTag('resolve');
 
   /// The [PerformanceTag] for time spent in error verifier.
   static PerformanceTag errors = analysis.createChild('errors');
@@ -876,7 +876,7 @@ class PerformanceStatistics {
   static PerformanceTag lints = analysis.createChild('lints');
 
   /// The [PerformanceTag] for time spent computing cycles.
-  static PerformanceTag cycles = new PerformanceTag('cycles');
+  static PerformanceTag cycles = PerformanceTag('cycles');
 
   /// The [PerformanceTag] for time spent in summaries support.
   static PerformanceTag summary = analyzer.createChild('summary');

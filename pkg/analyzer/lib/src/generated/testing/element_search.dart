@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
  * Search the [unit] for the [Element]s with the given [name].
  */
 List<Element> findElementsByName(CompilationUnit unit, String name) {
-  var finder = new _ElementsByNameFinder(name);
+  var finder = _ElementsByNameFinder(name);
   unit.accept(finder);
   return finder.elements;
 }

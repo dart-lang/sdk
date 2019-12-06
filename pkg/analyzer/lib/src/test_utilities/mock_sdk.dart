@@ -954,7 +954,7 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  String get sdkVersion => throw new UnimplementedError();
+  String get sdkVersion => throw UnimplementedError();
 
   @override
   List<String> get uris =>
@@ -1006,7 +1006,7 @@ class MockSdk implements DartSdk {
       } else {
         bytes = _computeLinkedBundleBytes();
       }
-      _bundle = new PackageBundle.fromBuffer(bytes);
+      _bundle = PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
   }
@@ -1026,7 +1026,7 @@ class MockSdk implements DartSdk {
     String path = uriMap[dartUri];
     if (path != null) {
       File file = resourceProvider.getResource(path);
-      Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
+      Uri uri = Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
     // If we reach here then we tried to use a dartUri that's not in the
@@ -1041,7 +1041,7 @@ class MockSdk implements DartSdk {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(librarySources, context).build();
+    return SummaryBuilder(librarySources, context).build();
   }
 }
 
@@ -1051,25 +1051,25 @@ class MockSdkLibrary implements SdkLibrary {
   MockSdkLibrary(this.units);
 
   @override
-  String get category => throw new UnimplementedError();
+  String get category => throw UnimplementedError();
 
   @override
-  bool get isDart2JsLibrary => throw new UnimplementedError();
+  bool get isDart2JsLibrary => throw UnimplementedError();
 
   @override
-  bool get isDocumented => throw new UnimplementedError();
+  bool get isDocumented => throw UnimplementedError();
 
   @override
-  bool get isImplementation => throw new UnimplementedError();
+  bool get isImplementation => throw UnimplementedError();
 
   @override
   bool get isInternal => shortName.startsWith('dart:_');
 
   @override
-  bool get isShared => throw new UnimplementedError();
+  bool get isShared => throw UnimplementedError();
 
   @override
-  bool get isVmLibrary => throw new UnimplementedError();
+  bool get isVmLibrary => throw UnimplementedError();
 
   @override
   String get path => units[0].path;
