@@ -191,6 +191,8 @@ h2 {
   white-space: normal;
   width: 400px;
   z-index: 1;
+  opacity: 0%;
+  transition: visibility 0s linear 500ms, opacity 200ms ease 300ms;
 }
 
 .region .tooltip > * {
@@ -199,16 +201,8 @@ h2 {
 
 .region:hover .tooltip {
   visibility: visible;
-}
-
-.region .tooltip::after {
-  /* Make a larger hover target once the tooltip appears. */
-  content: '';
-  position: absolute;
-  top: -1em;
-  height: 2em;
-  left: -1ch;
-  width: 3ch;
+  opacity: 100%;
+  transition: opacity 150ms;
 }
 
 .nav {
