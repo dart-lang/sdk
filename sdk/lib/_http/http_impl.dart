@@ -89,7 +89,8 @@ class _CopyingBytesBuilder implements BytesBuilder {
 
   Uint8List takeBytes() {
     if (_length == 0) return _emptyList;
-    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
+    var buffer =
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length);
     clear();
     return buffer;
   }
@@ -97,7 +98,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
   Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
-        new Uint8List.view(_buffer.buffer, 0, _length));
+        new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
   }
 
   int get length => _length;
@@ -1276,7 +1277,8 @@ class _HttpGZipSink extends ByteConversionSink {
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (chunk is Uint8List) {
-      _consume(new Uint8List.view(chunk.buffer, start, end - start));
+      _consume(new Uint8List.view(
+          chunk.buffer, chunk.offsetInBytes + start, end - start));
     } else {
       _consume(chunk.sublist(start, end - start));
     }
@@ -1512,8 +1514,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
         if (_gzip) {
           _gzipAdd = socket.add;
           if (_gzipBufferLength > 0) {
-            _gzipSink.add(
-                new Uint8List.view(_gzipBuffer.buffer, 0, _gzipBufferLength));
+            _gzipSink.add(new Uint8List.view(_gzipBuffer.buffer,
+                _gzipBuffer.offsetInBytes, _gzipBufferLength));
           }
           _gzipBuffer = null;
           _gzipSink.close();
@@ -1523,7 +1525,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       }
       // Add any remaining data in the buffer.
       if (_length > 0) {
-        socket.add(new Uint8List.view(_buffer.buffer, 0, _length));
+        socket.add(
+            new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
       }
       // Clear references, for better GC.
       _buffer = null;
@@ -1584,7 +1587,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return;
     }
     if (chunk.length > _gzipBuffer.length - _gzipBufferLength) {
-      add(new Uint8List.view(_gzipBuffer.buffer, 0, _gzipBufferLength));
+      add(new Uint8List.view(
+          _gzipBuffer.buffer, _gzipBuffer.offsetInBytes, _gzipBufferLength));
       _gzipBuffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
       _gzipBufferLength = 0;
     }
@@ -1602,7 +1606,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       if (_buffer != null) {
         // If _buffer is not null, we have not written the header yet. Write
         // it now.
-        add(new Uint8List.view(_buffer.buffer, 0, _length));
+        add(new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
         _buffer = null;
         _length = 0;
       }
@@ -1610,7 +1614,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return;
     }
     if (chunk.length > _buffer.length - _length) {
-      add(new Uint8List.view(_buffer.buffer, 0, _length));
+      add(new Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
       _buffer = new Uint8List(_OUTGOING_BUFFER_SIZE);
       _length = 0;
     }

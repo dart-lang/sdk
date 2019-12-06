@@ -664,7 +664,8 @@ abstract class FileSystemEntity {
     }
     Uint8List nonNullTerminated = l;
     if (l.last == 0) {
-      nonNullTerminated = new Uint8List.view(l.buffer, 0, l.length - 1);
+      nonNullTerminated =
+          new Uint8List.view(l.buffer, l.offsetInBytes, l.length - 1);
     }
     return utf8.decode(nonNullTerminated, allowMalformed: true);
   }
