@@ -5418,7 +5418,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (typeValue.treatAsDynamic) {
+    if (typeValue.isTop) {
       stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
@@ -5550,7 +5550,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<DartType> bounds = thisType.typeArguments;
     for (int i = 0; i < bounds.length; i++) {
       DartType arg = type.typeArguments[i];
-      if (arg.treatAsDynamic) continue;
+      if (arg.isTop) continue;
       TypeVariableType typeVariable = bounds[i];
       DartType bound =
           _elementEnvironment.getTypeVariableBound(typeVariable.element);

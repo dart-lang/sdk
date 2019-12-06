@@ -36,14 +36,11 @@ abstract class DartType {
   DartType get unaliased => this;
 
   /// Is `true` if this type is a top type.
-  // TODO(fishythefish): Update this for normalization.
+  // TODO(fishythefish): Update this for NNBD.
   bool get isTop => false;
 
-  /// Is `true` if this type has no non-dynamic type arguments.
+  /// Is `true` if this type has no non-top type arguments.
   bool get treatAsRaw => true;
-
-  /// Is `true` if this type should be treated as the dynamic type.
-  bool get treatAsDynamic => false;
 
   /// Whether this type contains a type variable.
   bool get containsTypeVariables => false;
@@ -248,7 +245,7 @@ class InterfaceType extends DartType {
   @override
   bool get treatAsRaw {
     for (DartType type in typeArguments) {
-      if (!type.treatAsDynamic) return false;
+      if (!type.isTop) return false;
     }
     return true;
   }
@@ -310,7 +307,7 @@ class TypedefType extends DartType {
   @override
   bool get treatAsRaw {
     for (DartType type in typeArguments) {
-      if (!type.treatAsDynamic) return false;
+      if (!type.isTop) return false;
     }
     return true;
   }
@@ -483,9 +480,6 @@ class DynamicType extends DartType {
   bool get isTop => true;
 
   @override
-  bool get treatAsDynamic => true;
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitDynamicType(this, argument);
 
@@ -505,9 +499,6 @@ class ErasedType extends DartType {
 
   @override
   bool get isTop => true;
-
-  @override
-  bool get treatAsDynamic => true;
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -1741,13 +1732,13 @@ abstract class MoreSpecificVisitor<T extends DartType>
     if (identical(t, s) ||
         t is AnyType ||
         s is AnyType ||
-        s.treatAsDynamic ||
+        s.isTop ||
         s is VoidType ||
         s == commonElements.objectType ||
         t == commonElements.nullType) {
       return true;
     }
-    if (t.treatAsDynamic) {
+    if (t.isTop) {
       return false;
     }
 
@@ -1764,7 +1755,7 @@ abstract class MoreSpecificVisitor<T extends DartType>
 
   @override
   bool invalidFunctionReturnTypes(T t, T s) {
-    if (s.treatAsDynamic && t is VoidType) return true;
+    if (s.isTop && t is VoidType) return true;
     return s is! VoidType && !isMoreSpecific(t, s);
   }
 

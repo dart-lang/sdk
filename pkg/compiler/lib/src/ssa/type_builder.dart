@@ -256,7 +256,7 @@ abstract class TypeBuilder {
           sourceInformation: sourceInformation);
     }
     argument = argument.unaliased;
-    if (argument.treatAsDynamic) {
+    if (argument is DynamicType) {
       // Represent [dynamic] as [null].
       return builder.graph.addConstantNull(_closedWorld);
     }

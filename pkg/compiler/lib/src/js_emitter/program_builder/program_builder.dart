@@ -1171,8 +1171,8 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_elementEnvironment,
-        _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
+    FieldVisitor visitor = new FieldVisitor(
+        _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 

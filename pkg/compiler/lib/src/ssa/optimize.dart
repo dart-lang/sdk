@@ -1101,7 +1101,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    if (type == commonElements.objectType || type.treatAsDynamic) {
+    if (type.isTop) {
       return _graph.addConstantBool(true, _closedWorld);
     }
     InterfaceType interfaceType = type;

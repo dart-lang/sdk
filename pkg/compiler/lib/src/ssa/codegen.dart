@@ -3065,8 +3065,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else {
           checkNull(input);
         }
-      } else if (element ==
-          _commonElements.objectClass /* || type.treatAsDynamic*/) {
+      } else if (element == _commonElements.objectClass /* || type.isTop*/) {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative, sourceInformation));

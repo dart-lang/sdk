@@ -1164,7 +1164,7 @@ class TypeRepresentationGenerator
           visitList(type.typeVariables.map((v) => v.bound).toList(), emitter));
     }
 
-    if (!type.returnType.treatAsDynamic) {
+    if (type.returnType is! DynamicType) {
       addProperty(
           _rtiTags.functionTypeReturnTypeTag, visit(type.returnType, emitter));
     }
@@ -1270,7 +1270,7 @@ class TypeRepresentationGenerator
     // Type representations for FutureOr have a property which is a tag marking
     // them as FutureOr types. The value is not used, so '1' is just a dummy.
     addProperty(_rtiTags.futureOrTag, js.number(1));
-    if (!type.typeArgument.treatAsDynamic) {
+    if (type.typeArgument is! DynamicType) {
       addProperty(_rtiTags.futureOrTypeTag, visit(type.typeArgument, emitter));
     }
 
