@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This library defines runtime operations on objects used by the code
 /// generator.
 part of dart._runtime;
@@ -19,9 +17,9 @@ class InvocationImpl extends Invocation {
   final bool isSetter;
   final String failureMessage;
 
-  InvocationImpl(memberName, List<Object> positionalArguments,
+  InvocationImpl(memberName, List<Object?> positionalArguments,
       {namedArguments,
-      List typeArguments,
+      List typeArguments = [],
       this.isMethod = false,
       this.isGetter = false,
       this.isSetter = false,
@@ -30,9 +28,7 @@ class InvocationImpl extends Invocation {
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
         positionalArguments = List.unmodifiable(positionalArguments),
         namedArguments = _namedArgsToSymbols(namedArguments),
-        typeArguments = typeArguments == null
-            ? const []
-            : List.unmodifiable(typeArguments.map(wrapType));
+        typeArguments = List.unmodifiable(typeArguments.map(wrapType));
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
     if (namedArgs == null) return const {};
@@ -164,7 +160,7 @@ dput(obj, field, value, [@undefined mirrors]) {
 /// [actuals] and [namedActuals].
 ///
 /// Returns `null` if all checks pass.
-String _argumentErrors(FunctionType type, List actuals, namedActuals) {
+String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check for too few required arguments.
   int actualsCount = JS('!', '#.length', actuals);
   var required = type.args;
@@ -183,13 +179,13 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
 
   // Check if we have invalid named arguments.
-  Iterable names;
+  Iterable? names;
   var named = type.named;
   var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
-    for (var name in names) {
-      if (!JS('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named, name,
+    for (var name in names!) {
+      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named, name,
           requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";
       }
@@ -198,7 +194,7 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Verify that all required named parameters are provided an argument.
   Iterable requiredNames = getOwnPropertyNames(requiredNamed);
   for (var name in requiredNames) {
-    if (!JS('!', '#.hasOwnProperty(#)', namedActuals, name)) {
+    if (!JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name)) {
       return "Dynamic call with missing required named argument '$name'.";
     }
   }
@@ -436,9 +432,9 @@ cast(obj, type, @notNull bool isImplicit) {
   return castError(obj, type, isImplicit);
 }
 
-bool test(bool obj) {
+bool test(bool? obj) {
   if (obj == null) _throwBooleanConversionError();
-  return obj;
+  return obj!;
 }
 
 bool dtest(obj) {
@@ -476,7 +472,7 @@ _notNull(x) {
 }
 
 /// The global constant map table.
-final constantMaps = JS('', 'new Map()');
+final constantMaps = JS<Object>('!', 'new Map()');
 
 // TODO(leafp): This table gets quite large in apps.
 // Keeping the paths is probably expensive.  It would probably
@@ -486,7 +482,7 @@ Object _lookupNonTerminal(Object map, Object key) {
   var result = JS('', '#.get(#)', map, key);
   if (result != null) return result;
   JS('', '#.set(#, # = new Map())', map, key, result);
-  return result;
+  return result!;
 }
 
 Map<K, V> constMap<K, V>(JSArray elements) {
@@ -496,14 +492,14 @@ Map<K, V> constMap<K, V>(JSArray elements) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
   map = _lookupNonTerminal(map, K);
-  var result = JS('', '#.get(#)', map, V);
+  Map<K, V>? result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
   result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
   return result;
 }
 
-final constantSets = JS('', 'new Map()');
+final constantSets = JS<Object>('!', 'new Map()');
 var _immutableSetConstructor;
 
 // We cannot invoke private class constructors directly in Dart.
@@ -519,7 +515,7 @@ Set<E> constSet<E>(JSArray<E> elements) {
   for (var i = 0; i < count; i++) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  var result = JS('', '#.get(#)', map, E);
+  Set<E>? result = JS('', '#.get(#)', map, E);
   if (result != null) return result;
   result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);
@@ -570,7 +566,7 @@ multiKeyPutIfAbsent(map, keys, valueFn) => JS('', '''(() => {
 /// and value of the field.  The final map is
 /// indexed by runtime type, and contains the canonical
 /// version of the object.
-final constants = JS('', 'new Map()');
+final constants = JS('!', 'new Map()');
 
 ///
 /// Canonicalize a constant object.
@@ -689,7 +685,7 @@ runtimeType(obj) {
   return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }
 
-final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
+final identityHashCode_ = JS<Object>('!', 'Symbol("_identityHashCode")');
 
 /// Adapts a Dart `get iterator` into a JS `[Symbol.iterator]`.
 // TODO(jmesserly): instead of an adaptor, we could compile Dart iterators
