@@ -88,6 +88,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     if (node.inDeclarationContext()) {
       return;
     }
+    if (_inCommentReference(node)) {
+      return;
+    }
     Element element = node.staticElement;
     // Store un-parameterized members.
     if (element is ExecutableMember) {
@@ -131,18 +134,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     if (element == null) {
       return;
     }
-    // check if a local element
+    // Check if [element] is a local element.
     if (!identical(element.library, _enclosingLibrary)) {
       return;
     }
-    // ignore references to an element from itself
+    // Ignore references to an element from itself.
     if (identical(element, _enclosingClass)) {
       return;
     }
     if (identical(element, _enclosingExec)) {
       return;
     }
-    // ignore places where the element is not actually used
+    // Ignore places where the element is not actually used.
     if (node.parent is TypeName) {
       if (element is ClassElement) {
         AstNode parent2 = node.parent.parent;
@@ -161,13 +164,24 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     usedElements.addElement(element);
   }
 
+  /// Returns whether [identifier] is found in a [CommentReference].
+  static bool _inCommentReference(SimpleIdentifier identifier) {
+    var parent = identifier.parent;
+    return parent is CommentReference || parent?.parent is CommentReference;
+  }
+
+  /// Returns whether the value of [node] is _only_ being read at this position.
+  ///
+  /// Returns `false` if [node] is not a read access, or if [node] is a combined
+  /// read/write access.
   static bool _isReadIdentifier(SimpleIdentifier node) {
-    // not reading at all
+    // Not reading at all.
     if (!node.inGetterContext()) {
       return false;
     }
-    // check if useless reading
+    // Check if useless reading.
     AstNode parent = node.parent;
+
     if (parent.parent is ExpressionStatement) {
       if (parent is PrefixExpression || parent is PostfixExpression) {
         // v++;

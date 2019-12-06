@@ -264,6 +264,15 @@ main() {
     ]);
   }
 
+  test_functionTop_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_f] is a great function.
+_f(int p) => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 30, 2),
+    ]);
+  }
+
   test_functionTypeAlias_isUsed_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _F(a, b);
@@ -461,20 +470,6 @@ class A {
     ]);
   }
 
-  test_method_isNotUsed_hasSameNameAsUsed() async {
-    await assertErrorsInCode(r'''
-class A {
-  void _m1() {}
-}
-class B {
-  void public() => _m1();
-  void _m1() {}
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 17, 3),
-    ]);
-  }
-
   test_method_isUsed_hasReference_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -645,6 +640,20 @@ main() {
 ''');
   }
 
+  test_method_notUsed_hasSameNameAsUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m1() {}
+}
+class B {
+  void public() => _m1();
+  void _m1() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 17, 3),
+    ]);
+  }
+
   test_method_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -664,6 +673,29 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 2),
+    ]);
+  }
+
+  test_method_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [A] has a method, [_f].
+class A {
+  int _f(int p) => 7;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 44, 2),
+    ]);
+  }
+
+  test_method_notUsed_referenceInComment_outsideEnclosingClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int _f(int p) => 7;
+}
+/// This is similar to [A._f].
+int g() => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
     ]);
   }
 
@@ -751,6 +783,15 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 4, 2),
+    ]);
+  }
+
+  test_topLevelVariable_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_a] is a great variable.
+int _a = 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 34, 2),
     ]);
   }
 }
