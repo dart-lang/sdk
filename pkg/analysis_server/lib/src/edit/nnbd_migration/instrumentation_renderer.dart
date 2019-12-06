@@ -51,39 +51,45 @@ mustache.Template _template = mustache.Template(r'''
     document.addEventListener("DOMContentLoaded", highlightTarget);
     window.addEventListener("hashchange", highlightTarget);
     </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap">
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
-.code a:link {
-  color: inherit;
-  text-decoration-line: none;
-}
-
-.code a:visited {
-  color: inherit;
-  text-decoration-line: none;
-}
-
-.code a:hover {
-  text-decoration-line: underline;
-  font-weight: bold;
-}
-
 body {
-  font-family: sans-serif;
-  padding: 1em;
+  background-color: black;
+  color: white;
+  font-family: 'Open Sans', sans-serif;
+  /* This allows very small files to be displayed lower than the very top of the
+   * screen.
+   */
+  margin-bottom; 100px;
+  padding: 0.5em;
+}
+
+h1 {
+  font-size: 2.4em;
+  font-weight: 600;
+  margin: 0;
 }
 
 h2 {
-  font-size: 1em;
-  font-weight: bold;
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.horizontal {
+  display: flex;
+  flex-wrap: wrap-reverse;
 }
 
 .content {
+  flex: 1;
   font-family: monospace;
   /* Vertical margin around content. */
-  margin: 1em 0;
+  margin: 10px 0;
   /* Offset the margin introduced by the absolutely positioned child div. */
   margin-left: -0.5em;
+  min-width: 900px;
   position: relative;
   white-space: pre;
 }
@@ -96,22 +102,28 @@ h2 {
   line-height: 1.3;
   padding-left: 60px;
   position: inherit;
-  top: 0.5em;
 }
 
-.navigationHeader {
-  padding-left: 1em;
+.code a:link {
+  color: inherit;
+  text-decoration-line: none;
 }
 
-.navigationLinks {
-  padding-left: 2em;
+.code a:visited {
+  color: inherit;
+  text-decoration-line: none;
+}
+
+.code a:hover {
+  text-decoration-line: underline;
+  font-weight: 600;
 }
 
 .regions {
   padding: 0.5em;
   position: absolute;
   left: 0.5em;
-  top: 0.5em;
+  top: 0;
   /* The content of the regions is not visible; the user instead will see the
    * highlighted copy of the content. */
   visibility: hidden;
@@ -199,8 +211,41 @@ h2 {
   width: 3ch;
 }
 
-.selectedFile {
-  font-weight: bold;
+.nav {
+  background-color: #282b2e;
+  flex-basis: 0;
+  flex-grow: 1;
+  font-size: 14px;
+  /* 10px to match exact top margin of .content.
+   * 0.8em to pair with the -0.5em margin of .content, producing a net margin
+   * between the two of 0.3em.
+   */
+  margin: 10px 0.8em;
+  padding: 0.5em;
+}
+
+.nav :first-child {
+  margin-top: 0;
+}
+
+.nav .root {
+  margin: 0;
+}
+
+.nav .file-name {
+  margin-left: 1em;
+}
+
+.nav a:link {
+  color: #33ccff;
+}
+
+.nav a:visited {
+  color: #33ccff;
+}
+
+.nav .selected-file {
+  font-weight: 600;
 }
 
 .target {
@@ -212,24 +257,14 @@ h2 {
   </head>
   <body>
     <h1>Preview of NNBD migration</h1>
-    <p><b>
-    Select a migrated file to see the suggested modifications below.
-    </b></p>
-    <div class="navigationHeader">
-    {{ root }}
-    </div>
-    <div class="navigationLinks">
-      {{# links }}
-        {{# isLink }}<a href="{{ href }}">{{ name }}</a>{{/ isLink }}
-        {{^ isLink }}<span class="selectedFile">{{ name }}</span>{{/ isLink }}
-        {{ modificationCount }}
-        <br/>
-      {{/ links }}
-    </div>
     {{# units }}
     <p><b>
-    Hover over modified regions to see why the modification is suggested.
-    </b></p>'''
+    Hover over modified regions to see why the migration tool chose to make the
+    modification.
+    </b></p>
+    <h2>{{ thisUnit }}</h2>
+    <div class="panels">
+    <div class="horizontal">'''
     '<div class="content">'
     '<div class="code">'
     '{{! Write the file content, modified to include navigation information, }}'
@@ -241,10 +276,20 @@ h2 {
     '{{! the content, to provide tooltips for modified regions. }}'
     '{{{ regionContent }}}'
     '</div></div>'
-    '<div>'
-    '<i>Generated on {{ generationDate }}</i>'
-    '</div>'
-    r'''
+    '''
+    <div class="nav" style="">
+      <p>Select a source file below to preview the modifications.</p>
+      <p class="root">{{ root }}</p>
+      {{# links }}
+        {{# isLink }}<a class="file-name" href="{{ href }}">{{ name }}</a>{{/ isLink }}
+        {{^ isLink }}<span class="file-name selected-file">{{ name }}</span>{{/ isLink }}
+        {{ modificationCount }}
+        <br/>
+      {{/ links }}
+    </div><!-- /nav -->
+    </div><!-- /horizontal -->
+    <div><em>Generated on {{ generationDate }}</em></div>
+    </div><!-- /panels -->
     {{/ units }}
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -284,6 +329,7 @@ class InstrumentationRenderer {
     Map<String, dynamic> mustacheContext = {
       'root': migrationInfo.includedRoot,
       'units': <Map<String, dynamic>>[],
+      'thisUnit': migrationInfo._computeName(unitInfo),
       'links': migrationInfo.unitLinks(unitInfo),
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),

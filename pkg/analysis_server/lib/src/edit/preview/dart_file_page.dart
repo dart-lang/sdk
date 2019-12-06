@@ -81,7 +81,7 @@ class PreviewMigrationInfo implements MigrationInfo {
           count == 1 ? '(1 modification)' : '($count modifications)';
       bool isNotCurrent = unit != currentUnit;
       links.add({
-        'name': _computeName(unit),
+        'name': computeName(unit),
         'modificationCount': modificationCount,
         'isLink': isNotCurrent,
         if (isNotCurrent) 'href': _pathTo(target: unit, source: currentUnit)
@@ -92,7 +92,7 @@ class PreviewMigrationInfo implements MigrationInfo {
 
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
-  String _computeName(UnitInfo unit) =>
+  String computeName(UnitInfo unit) =>
       pathContext.relative(unit.path, from: includedRoot);
 
   /// The path to [target], relative to [from].
