@@ -457,13 +457,17 @@ class InstrumentationRenderer {
         regions.write('<ul>');
         for (var detail in region.details) {
           regions.write('<li>');
-          if (detail.target != null) {
-            String targetUri = _uriForTarget(detail.target, unitDir);
-            regions.write('<a href="$targetUri">');
-          }
           writeSplitLines(detail.description);
-          if (detail.target != null) {
-            regions.write('</a>');
+          NavigationTarget target = detail.target;
+          if (target != null) {
+            String relativePath = _relativePathToTarget(target, unitDir);
+            String targetUri = _uriForRelativePath(relativePath, target);
+            regions.write(' <a href="$targetUri">(');
+            regions.write(relativePath);
+            // TODO(brianwilkerson) Add the line number to the link text. This
+            //  will require that either the contents of all navigation targets
+            //  have been set or that line information has been saved.
+            regions.write(')</a>');
           }
           regions.write('</li>');
         }
@@ -507,14 +511,18 @@ class InstrumentationRenderer {
   }
 
   /// Return the URL that will navigate to the given [target].
-  String _uriForTarget(NavigationTarget target, String unitDir) {
+  String _relativePathToTarget(NavigationTarget target, String unitDir) {
     if (target == null) {
       // TODO(brianwilkerson) This is temporary support until we can get targets
       //  for all nodes.
       return '';
     }
-    String relativePath =
-        pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
+    return pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
+  }
+
+  /// Return the URL that will navigate to the given [target] in the file at the
+  /// given [relativePath].
+  String _uriForRelativePath(String relativePath, NavigationTarget target) {
     return '$relativePath#o${target.offset.toString()}';
   }
 }
