@@ -420,12 +420,23 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+ExtendsFutureOr:
+  template: "The type 'FutureOr' can't be used in an 'extends' clause."
+
 ImplementsFutureOr:
-  template: "'FutureOr' can't be used in an 'implements' clause."
-  script:
-    - >-
-      import 'dart:async';
-      class A implements FutureOr<int> {}
+  template: "The type 'FutureOr' can't be used in an 'implements' clause."
+
+ExtendsNever:
+  template: "The type 'Never' can't be used in an 'extends' clause."
+
+ImplementsNever:
+  template: "The type 'Never' can't be used in an 'implements' clause."
+
+ExtendsVoid:
+  template: "The type 'void' can't be used in an 'extends' clause."
+
+ImplementsVoid:
+  template: "The type 'void' can't be used in an 'implements' clause."
 
 ExpectedClassOrMixinBody:
   index: 8

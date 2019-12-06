@@ -235,6 +235,7 @@ backends
 backslash
 backslashes
 backspace
+backup
 backward
 backwards
 bad
@@ -1793,6 +1794,7 @@ modulo
 moment
 mongolian
 more
+moreover
 most
 mostly
 motivation
@@ -2957,6 +2959,8 @@ types
 typically
 typing
 unable
+unalias
+unaliased
 unambiguous
 unary
 unbalanced

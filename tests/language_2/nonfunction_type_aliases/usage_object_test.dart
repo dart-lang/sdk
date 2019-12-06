@@ -38,9 +38,6 @@ abstract class C {
 }
 
 class D1 extends T {}
-abstract class D2 extends C with T {}
-abstract class D3 implements T {}
-abstract class D4 = C with T;
 
 extension E on T {
   T foo(T t) => t;
@@ -58,8 +55,6 @@ main() {
   Set<List<T>> v16 = v15;
   v15 = v16;
   T();
-  T.named();
   T v17 = foo<T>(T());
   id(v17);
-  T.staticMethod<T>();
 }

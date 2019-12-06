@@ -272,6 +272,7 @@ ecma
 ecosystem
 ed
 eek
+eernst
 ef
 effects
 efficient
@@ -833,6 +834,7 @@ sum
 summarizing
 superclasses
 superinitializer
+superinterface
 superinterfaces
 supernode
 supers

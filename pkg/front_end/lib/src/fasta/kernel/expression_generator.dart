@@ -23,6 +23,7 @@ import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/unresolved_type.dart';
@@ -2977,8 +2978,13 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Name name = send.name;
     Arguments arguments = send.arguments;
 
-    if (declaration is DeclarationBuilder) {
-      DeclarationBuilder declaration = this.declaration;
+    TypeDeclarationBuilder declarationBuilder = declaration;
+    if (declarationBuilder is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = declarationBuilder;
+      declarationBuilder = aliasBuilder.unaliasDeclaration;
+    }
+    if (declarationBuilder is DeclarationBuilder) {
+      DeclarationBuilder declaration = declarationBuilder;
       Builder member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.libraryBuilder);
 

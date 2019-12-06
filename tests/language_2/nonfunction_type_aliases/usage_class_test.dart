@@ -44,9 +44,7 @@ abstract class C {
 }
 
 class D1 extends T {}
-abstract class D2 extends C with T {}
 abstract class D3 implements T {}
-abstract class D4 = C with T;
 
 extension E on T {
   T foo(T t) => t;

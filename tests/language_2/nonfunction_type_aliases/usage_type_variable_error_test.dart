@@ -6,7 +6,13 @@
 
 // Introduce an aliased type.
 
-typedef T<X extends num> = X;
+class A {
+  A();
+  A.named();
+  static void staticMethod<X>() {}
+}
+
+typedef T<X extends A> = X;
 
 // Use the aliased type.
 

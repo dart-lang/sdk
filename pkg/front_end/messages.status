@@ -208,6 +208,16 @@ ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
+ExtendsDynamic/example: Fail # Feature not yet enabled by default.
+ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsFunctionType/example: Fail # Feature not yet enabled by default.
+ExtendsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsFutureOr/example: Fail # Feature not yet enabled by default.
+ExtendsFutureOr/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsNever/example: Fail # Feature not yet enabled by default.
+ExtendsNever/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsVoid/example: Fail # Feature not yet enabled by default.
+ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
 ExternalConstructorWithFieldInitializers/example: Fail
@@ -311,8 +321,17 @@ ImplementsBeforeOn/part_wrapped_script: Fail
 ImplementsBeforeOn/script: Fail
 ImplementsBeforeWith/part_wrapped_script: Fail
 ImplementsBeforeWith/script: Fail
+ImplementsDynamic/example: Fail # Feature not yet enabled by default.
+ImplementsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsFunctionType/example: Fail # Feature not yet enabled by default.
+ImplementsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsFutureOr/example: Fail # Feature not yet enabled by default.
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsFutureOr/part_wrapped_script1: Fail # Importing file in the (now) part.
+ImplementsNever/example: Fail # Feature not yet enabled by default.
+ImplementsNever/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsVoid/example: Fail # Feature not yet enabled by default.
+ImplementsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail

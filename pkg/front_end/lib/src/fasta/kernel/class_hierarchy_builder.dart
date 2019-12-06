@@ -41,6 +41,7 @@ import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
@@ -1245,6 +1246,10 @@ class ClassHierarchyNodeBuilder {
         // recordSupertype(named.mixedInType);
         mixin = named.mixedInType.declaration;
       }
+      if (mixin is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = mixin;
+        mixin = aliasBuilder.unaliasDeclaration;
+      }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
       }
@@ -1429,6 +1434,10 @@ class ClassHierarchyNodeBuilder {
       debug?.log("In ${this.classBuilder.fullNameForErrors} "
           "recordSupertype(${supertype.fullNameForErrors})");
       Builder declaration = supertype.declaration;
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration;
+      }
       if (declaration is! ClassBuilder) return supertype;
       ClassBuilder classBuilder = declaration;
       if (classBuilder.isMixinApplication) {
@@ -1462,6 +1471,15 @@ class ClassHierarchyNodeBuilder {
   List<TypeBuilder> substSupertypes(
       NamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
     Builder declaration = supertype.declaration;
+    // TODO(eernst): perform substitution through the chain, like:
+    //typedef A1<T> = A<T>
+    //typedef A2<T> = A1<A<T>>
+    //typedef A3<T> = A2<A<T>>
+    //class B extends A3<B> {} // B extends A<A<A<B>>> and not just A<B>
+    if (declaration is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = declaration;
+      declaration = aliasBuilder.unaliasDeclaration;
+    }
     if (declaration is! ClassBuilder) return supertypes;
     ClassBuilder cls = declaration;
     List<TypeVariableBuilder> typeVariables = cls.typeVariables;
@@ -1498,14 +1516,24 @@ class ClassHierarchyNodeBuilder {
   }
 
   List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
-    ClassBuilder cls = type.declaration;
-    List<TypeBuilder> result = new List<TypeBuilder>(cls.typeVariables.length);
-    for (int i = 0; i < result.length; ++i) {
-      TypeVariableBuilder tv = cls.typeVariables[i];
-      result[i] = tv.defaultType ??
-          cls.library.loader.computeTypeBuilder(tv.parameter.defaultType);
+    TypeDeclarationBuilder cls = type.declaration;
+    if (cls is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = cls;
+      cls = aliasBuilder.unaliasDeclaration;
     }
-    return result;
+    if (cls is ClassBuilder) {
+      List<TypeBuilder> result =
+          new List<TypeBuilder>(cls.typeVariables.length);
+      for (int i = 0; i < result.length; ++i) {
+        TypeVariableBuilder tv = cls.typeVariables[i];
+        result[i] = tv.defaultType ??
+            cls.library.loader.computeTypeBuilder(tv.parameter.defaultType);
+      }
+      return result;
+    } else {
+      return unhandled("${cls.runtimeType}", "$cls", classBuilder.charOffset,
+          classBuilder.fileUri);
+    }
   }
 
   TypeBuilder addInterface(List<TypeBuilder> interfaces,
@@ -1824,12 +1852,20 @@ class ClassHierarchyNode {
         1 + superclasses.length + interfaces.length);
     for (int i = 0; i < superclasses.length; i++) {
       Builder declaration = superclasses[i].declaration;
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration;
+      }
       if (declaration is ClassBuilder) {
         result[i] = hierarchy.getNodeFromClass(declaration);
       }
     }
     for (int i = 0; i < interfaces.length; i++) {
       Builder declaration = interfaces[i].declaration;
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration;
+      }
       if (declaration is ClassBuilder) {
         result[i + superclasses.length] =
             hierarchy.getNodeFromClass(declaration);
@@ -2747,6 +2783,10 @@ void reportCantInferFieldType(ClassBuilder cls, FieldBuilder member) {
 
 ClassBuilder getClass(TypeBuilder type) {
   Builder declaration = type.declaration;
+  if (declaration is TypeAliasBuilder) {
+    TypeAliasBuilder aliasBuilder = declaration;
+    declaration = aliasBuilder.unaliasDeclaration;
+  }
   return declaration is ClassBuilder ? declaration : null;
 }
 

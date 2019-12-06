@@ -63,8 +63,13 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        messageExtendsFutureOr,
+        messageExtendsNever,
+        messageExtendsVoid,
         messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageImplementsFutureOr,
+        messageImplementsNever,
+        messageImplementsVoid,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
@@ -122,10 +127,14 @@ import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
+import 'never_type_builder.dart';
 import 'nullability_builder.dart';
 import 'procedure_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
+import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
+import 'void_type_builder.dart';
 
 abstract class ClassBuilder implements DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
@@ -635,17 +644,43 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
-    if (interfaces == null) return;
+    // Moreover, it checks that `FutureOr` and `void` are not among the
+    // supertypes.
 
-    // Extract super class (if it exists).
+    void fail(NamedTypeBuilder target, Message message) {
+      int nameOffset = target.nameOffset;
+      int nameLength = target.nameLength;
+      // TODO(eernst): nameOffset not fully implemented; use backup.
+      if (nameOffset == -1) {
+        nameOffset = this.charOffset;
+        nameLength = noLength;
+      }
+      addProblem(message, nameOffset, nameLength);
+    }
+
+    // Extract and check superclass (if it exists).
     ClassBuilder superClass;
     TypeBuilder superClassType = supertype;
     if (superClassType is NamedTypeBuilder) {
-      Builder decl = superClassType.declaration;
-      if (decl is ClassBuilder) {
+      TypeDeclarationBuilder decl = superClassType.declaration;
+      if (decl is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = decl;
+        decl = aliasBuilder.unaliasDeclaration;
+      }
+      // TODO(eernst): Should gather 'restricted supertype' checks in one place,
+      // e.g., dynamic/int/String/Null and more are checked elsewhere.
+      if (decl is VoidTypeBuilder) {
+        fail(superClassType, messageExtendsVoid);
+      } else if (decl is NeverTypeBuilder) {
+        fail(superClassType, messageExtendsNever);
+      } else if (decl is ClassBuilder) {
+        if (decl.cls == coreTypes.futureOrClass) {
+          fail(superClassType, messageExtendsFutureOr);
+        }
         superClass = decl;
       }
     }
+    if (interfaces == null) return;
 
     // Validate interfaces.
     Map<ClassBuilder, int> problems;
@@ -654,27 +689,36 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     for (TypeBuilder type in interfaces) {
       if (type is NamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
-        Builder decl = type.declaration;
+        TypeDeclarationBuilder typeDeclaration = type.declaration;
+        TypeDeclarationBuilder decl = typeDeclaration is TypeAliasBuilder
+            ? typeDeclaration.unaliasDeclaration
+            : typeDeclaration;
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
           if (superClass == interface) {
             addProblem(
                 templateImplementsSuperClass.withArguments(interface.name),
-                charOffset,
+                this.charOffset,
                 noLength);
           } else if (implemented.contains(interface)) {
             // Aggregate repetitions.
             problems ??= new Map<ClassBuilder, int>();
             problems[interface] ??= 0;
             problems[interface] += 1;
-
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= charOffset;
           } else if (interface.cls == coreTypes.futureOrClass) {
-            addProblem(messageImplementsFutureOr, charOffset,
-                interface.cls.name.length);
+            fail(type, messageImplementsFutureOr);
           } else {
             implemented.add(interface);
+          }
+        }
+        if (decl != superClass) {
+          // TODO(eernst): Have all 'restricted supertype' checks in one place.
+          if (decl is VoidTypeBuilder) {
+            fail(type, messageImplementsVoid);
+          } else if (decl is NeverTypeBuilder) {
+            fail(type, messageImplementsNever);
           }
         }
       }
@@ -1862,6 +1906,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         if (supertype is NamedTypeBuilder) {
           Object builder = supertype.declaration;
           if (builder is ClassBuilder) return builder;
+          if (builder is TypeAliasBuilder) {
+            TypeDeclarationBuilder declarationBuilder =
+                builder.unaliasDeclaration;
+            if (declarationBuilder is ClassBuilder) return declarationBuilder;
+          }
         }
         return null;
       }

@@ -59,6 +59,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
@@ -3968,6 +3969,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     String errorName;
     LocatedMessage message;
+
+    if (type is TypeAliasBuilder) {
+      errorName = debugName(type.name, name);
+      TypeAliasBuilder aliasBuilder = type;
+      type = aliasBuilder.unaliasDeclaration;
+    }
     if (type is ClassBuilder) {
       if (type is EnumBuilder) {
         return buildProblem(fasta.messageEnumInstantiation,
@@ -4016,7 +4023,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           buildProblem(message.messageObject, nameToken.charOffset,
               nameToken.lexeme.length));
     } else {
-      errorName = debugName(type.fullNameForErrors, name);
+      errorName ??= debugName(type.fullNameForErrors, name);
     }
     errorName ??= name;
 

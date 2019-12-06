@@ -756,6 +756,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (existing.isSetter && other.isGetter) return false;
     } else {
       if (next is ClassBuilder && !next.isMixinApplication) return true;
+      if (next is TypeAliasBuilder) {
+        TypeDeclarationBuilder aliasedBuilder = next.unaliasDeclaration;
+        if (aliasedBuilder is ClassBuilder &&
+            !aliasedBuilder.isMixinApplication) {
+          return true;
+        }
+      }
     }
     if (existing is ClassBuilder && other is ClassBuilder) {
       // We allow multiple mixin applications with the same name. An
