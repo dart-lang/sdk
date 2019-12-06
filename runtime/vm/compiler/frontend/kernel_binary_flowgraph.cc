@@ -2126,18 +2126,67 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition() : ReadPosition();
+  const TokenPosition pos = ReadPosition();
+  if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
   ReadUInt();              // read relative variable index.
   SkipOptionalDartType();  // read promoted type.
-  return LoadLocal(LookupVariable(variable_kernel_position));
+  return BuildVariableGetImpl(variable_kernel_position, pos);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableGet(uint8_t payload,
                                                      TokenPosition* position) {
-  (position != NULL) ? * position = ReadPosition() : ReadPosition();
+  const TokenPosition pos = ReadPosition();
+  if (position != nullptr) *position = pos;
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
-  return LoadLocal(LookupVariable(variable_kernel_position));
+  return BuildVariableGetImpl(variable_kernel_position, pos);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
+    intptr_t variable_kernel_position,
+    TokenPosition position) {
+  LocalVariable* variable = LookupVariable(variable_kernel_position);
+  if (!variable->is_late()) {
+    return LoadLocal(variable);
+  }
+
+  // Late variable, so check whether it has been initialized already.
+  Fragment instructions = LoadLocal(variable);
+  TargetEntryInstr *is_uninitialized, *is_initialized;
+  instructions += Constant(Object::sentinel());
+  instructions += flow_graph_builder_->BranchIfStrictEqual(&is_uninitialized,
+                                                           &is_initialized);
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  {
+    AlternativeReadingScope alt(&reader_, variable->late_init_offset());
+    const bool has_initializer = (ReadTag() != kNothing);
+
+    if (has_initializer) {
+      // If the variable isn't initialized, call the initializer and set it.
+      Fragment initialize(is_uninitialized);
+      initialize += BuildExpression();
+      initialize += StoreLocal(position, variable);
+      initialize += Drop();
+      initialize += Goto(join);
+    } else {
+      // The variable has no initializer, so throw a LateInitializationError.
+      Fragment initialize(is_uninitialized);
+      initialize += flow_graph_builder_->ThrowLateInitializationError(
+          position, variable->name());
+      initialize += Goto(join);
+    }
+  }
+
+  {
+    // Already initialized, so there's nothing to do.
+    Fragment already_initialized(is_initialized);
+    already_initialized += Goto(join);
+  }
+
+  Fragment done = Fragment(instructions.entry, join);
+  done += LoadLocal(variable);
+  return done;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableSet(TokenPosition* p) {
@@ -4932,22 +4981,26 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
   VariableDeclarationHelper helper(this);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   T.BuildType();        // read type.
-  Tag tag = ReadTag();  // read (first part of) initializer.
+  bool has_initializer = (ReadTag() != kNothing);
 
   Fragment instructions;
-  if (tag == kNothing) {
-    instructions += NullConstant();
-  } else {
-    if (helper.IsConst()) {
-      // Read const initializer form current position.
-      const Instance& constant_value =
-          Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression());
-      variable->SetConstValue(constant_value);
-      instructions += Constant(constant_value);
-    } else {
-      // Initializer
-      instructions += BuildExpression();  // read (actual) initializer.
+  if (variable->is_late()) {
+    // TODO(liama): Treat the field as non-late if the initializer is trivial.
+    if (has_initializer) {
+      SkipExpression();
     }
+    instructions += Constant(Object::sentinel());
+  } else if (!has_initializer) {
+    instructions += NullConstant();
+  } else if (helper.IsConst()) {
+    // Read const initializer form current position.
+    const Instance& constant_value =
+        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression());
+    variable->SetConstValue(constant_value);
+    instructions += Constant(constant_value);
+  } else {
+    // Initializer
+    instructions += BuildExpression();  // read (actual) initializer.
   }
 
   // Use position of equal sign if it exists. If the equal sign does not exist

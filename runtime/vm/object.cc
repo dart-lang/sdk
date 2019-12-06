@@ -15700,22 +15700,54 @@ void ContextScope::SetNameAt(intptr_t scope_index, const String& name) const {
   StorePointer(&(VariableDescAddr(scope_index)->name), name.raw());
 }
 
+void ContextScope::ClearFlagsAt(intptr_t scope_index) const {
+  StoreSmi(&(VariableDescAddr(scope_index)->flags), 0);
+}
+
+bool ContextScope::GetFlagAt(intptr_t scope_index, intptr_t mask) const {
+  return (Smi::Value(VariableDescAddr(scope_index)->flags) & mask) != 0;
+}
+
+void ContextScope::SetFlagAt(intptr_t scope_index,
+                             intptr_t mask,
+                             bool value) const {
+  intptr_t flags = Smi::Value(VariableDescAddr(scope_index)->flags);
+  StoreSmi(&(VariableDescAddr(scope_index)->flags),
+           Smi::New(value ? flags | mask : flags & ~mask));
+}
+
 bool ContextScope::IsFinalAt(intptr_t scope_index) const {
-  return Bool::Handle(VariableDescAddr(scope_index)->is_final).value();
+  return GetFlagAt(scope_index, RawContextScope::VariableDesc::kIsFinal);
 }
 
 void ContextScope::SetIsFinalAt(intptr_t scope_index, bool is_final) const {
-  StorePointer(&(VariableDescAddr(scope_index)->is_final),
-               Bool::Get(is_final).raw());
+  SetFlagAt(scope_index, RawContextScope::VariableDesc::kIsFinal, is_final);
+}
+
+bool ContextScope::IsLateAt(intptr_t scope_index) const {
+  return GetFlagAt(scope_index, RawContextScope::VariableDesc::kIsLate);
+}
+
+void ContextScope::SetIsLateAt(intptr_t scope_index, bool is_late) const {
+  SetFlagAt(scope_index, RawContextScope::VariableDesc::kIsLate, is_late);
 }
 
 bool ContextScope::IsConstAt(intptr_t scope_index) const {
-  return Bool::Handle(VariableDescAddr(scope_index)->is_const).value();
+  return GetFlagAt(scope_index, RawContextScope::VariableDesc::kIsConst);
 }
 
 void ContextScope::SetIsConstAt(intptr_t scope_index, bool is_const) const {
-  StorePointer(&(VariableDescAddr(scope_index)->is_const),
-               Bool::Get(is_const).raw());
+  SetFlagAt(scope_index, RawContextScope::VariableDesc::kIsConst, is_const);
+}
+
+intptr_t ContextScope::LateInitOffsetAt(intptr_t scope_index) const {
+  return Smi::Value(VariableDescAddr(scope_index)->late_init_offset);
+}
+
+void ContextScope::SetLateInitOffsetAt(intptr_t scope_index,
+                                       intptr_t late_init_offset) const {
+  StoreSmi(&(VariableDescAddr(scope_index)->late_init_offset),
+           Smi::New(late_init_offset));
 }
 
 RawAbstractType* ContextScope::TypeAt(intptr_t scope_index) const {

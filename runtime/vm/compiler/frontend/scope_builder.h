@@ -40,6 +40,7 @@ class ScopeBuilder {
   void VisitStatement();
   void VisitArguments();
   void VisitVariableDeclaration();
+  void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
   void VisitFunctionType(bool simple);
@@ -110,7 +111,7 @@ class ScopeBuilder {
   // Record an assignment or reference to a variable.  If the occurrence is
   // in a nested function, ensure that the variable is handled properly as a
   // captured variable.
-  void LookupVariable(intptr_t declaration_binary_offset);
+  LocalVariable* LookupVariable(intptr_t declaration_binary_offset);
 
   StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
                                              const Function& function);

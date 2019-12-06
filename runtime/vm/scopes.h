@@ -92,6 +92,8 @@ class LocalVariable : public ZoneAllocated {
         is_captured_parameter_(false),
         is_forced_stack_(false),
         is_explicit_covariant_parameter_(false),
+        is_late_(false),
+        late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
@@ -125,6 +127,14 @@ class LocalVariable : public ZoneAllocated {
   // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
+
+  bool is_late() const { return is_late_; }
+  void set_is_late() { is_late_ = true; }
+
+  intptr_t late_init_offset() const { return late_init_offset_; }
+  void set_late_init_offset(intptr_t late_init_offset) {
+    late_init_offset_ = late_init_offset;
+  }
 
   bool is_explicit_covariant_parameter() const {
     return is_explicit_covariant_parameter_;
@@ -212,6 +222,8 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured_parameter_;
   bool is_forced_stack_;
   bool is_explicit_covariant_parameter_;
+  bool is_late_;
+  intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
 

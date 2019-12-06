@@ -653,14 +653,14 @@ void ScopeBuilder::VisitExpression() {
           helper_.ReadUInt();          // read kernel position.
       helper_.ReadUInt();              // read relative variable index.
       helper_.SkipOptionalDartType();  // read promoted type.
-      LookupVariable(variable_kernel_offset);
+      VisitVariableGet(variable_kernel_offset);
       return;
     }
     case kSpecializedVariableGet: {
       helper_.ReadPosition();  // read position.
       intptr_t variable_kernel_offset =
           helper_.ReadUInt();  // read kernel position.
-      LookupVariable(variable_kernel_offset);
+      VisitVariableGet(variable_kernel_offset);
       return;
     }
     case kVariableSet: {
@@ -1260,6 +1260,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
 
+  intptr_t initializer_offset = helper_.ReaderOffset();
   Tag tag = helper_.ReadTag();  // read (first part of) initializer.
   if (tag == kSomething) {
     VisitExpression();  // read (actual) initializer.
@@ -1275,6 +1276,10 @@ void ScopeBuilder::VisitVariableDeclaration() {
       MakeVariable(helper.position_, end_position, name, type);
   if (helper.IsFinal()) {
     variable->set_is_final();
+  }
+  if (helper.IsLate()) {
+    variable->set_is_late();
+    variable->set_late_init_offset(initializer_offset);
   }
   // Lift the two special async vars out of the function body scope, into the
   // outer function declaration scope.
@@ -1710,7 +1715,20 @@ void ScopeBuilder::AddSwitchVariable() {
   }
 }
 
-void ScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
+void ScopeBuilder::VisitVariableGet(intptr_t declaration_binary_offset) {
+  LocalVariable* variable = LookupVariable(declaration_binary_offset);
+  if (variable->is_late()) {
+    // Late variable initializer expressions may also contain local variables
+    // that need to be captured.
+    AlternativeReadingScope alt(&helper_.reader_, variable->late_init_offset());
+    if (helper_.ReadTag() != kNothing) {
+      VisitExpression();
+    }
+  }
+}
+
+LocalVariable* ScopeBuilder::LookupVariable(
+    intptr_t declaration_binary_offset) {
   LocalVariable* variable = result_->locals.Lookup(declaration_binary_offset);
   if (variable == NULL) {
     // We have not seen a declaration of the variable, so it must be the
@@ -1745,6 +1763,7 @@ void ScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
   } else {
     ASSERT(variable->owner()->function_level() == scope_->function_level());
   }
+  return variable;
 }
 
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(

@@ -1805,8 +1805,11 @@ class RawContextScope : public RawObject {
     RawSmi* declaration_token_pos;
     RawSmi* token_pos;
     RawString* name;
-    RawBool* is_final;
-    RawBool* is_const;
+    RawSmi* flags;
+    static constexpr intptr_t kIsFinal = 0x1;
+    static constexpr intptr_t kIsConst = 0x2;
+    static constexpr intptr_t kIsLate = 0x4;
+    RawSmi* late_init_offset;
     union {
       RawAbstractType* type;
       RawInstance* value;  // iff is_const is true

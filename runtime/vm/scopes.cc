@@ -598,7 +598,13 @@ RawContextScope* LocalScope::PreserveOuterScope(
       context_scope.SetDeclarationTokenIndexAt(
           captured_idx, variable->declaration_token_pos());
       context_scope.SetNameAt(captured_idx, variable->name());
+      context_scope.ClearFlagsAt(captured_idx);
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
+      context_scope.SetIsLateAt(captured_idx, variable->is_late());
+      if (variable->is_late()) {
+        context_scope.SetLateInitOffsetAt(captured_idx,
+                                          variable->late_init_offset());
+      }
       context_scope.SetIsConstAt(captured_idx, variable->IsConst());
       if (variable->IsConst()) {
         context_scope.SetConstValueAt(captured_idx, *variable->ConstValue());
@@ -644,6 +650,10 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
+    }
+    if (context_scope.IsLateAt(i)) {
+      variable->set_is_late();
+      variable->set_late_init_offset(context_scope.LateInitOffsetAt(i));
     }
     // Create a fake owner scope describing the index and context level of the
     // variable. Function level and loop level are unused (set to 0), since
@@ -691,6 +701,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetTokenIndexAt(0, func.token_pos());
   context_scope.SetDeclarationTokenIndexAt(0, func.token_pos());
   context_scope.SetNameAt(0, Symbols::This());
+  context_scope.ClearFlagsAt(0);
   context_scope.SetIsFinalAt(0, true);
   context_scope.SetIsConstAt(0, false);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
