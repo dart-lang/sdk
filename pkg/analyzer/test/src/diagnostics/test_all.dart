@@ -273,6 +273,10 @@ import 'override_on_non_overriding_method_test.dart'
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'part_of_different_library_test.dart' as part_of_different_library;
+import 'redirect_generative_to_missing_constructor_test.dart'
+    as redirect_generative_to_missing_constructor;
+import 'redirect_generative_to_non_generative_constructor_test.dart'
+    as redirect_generative_to_non_generative_constructor;
 import 'redirect_to_invalid_function_type_test.dart'
     as redirect_to_invalid_function_type;
 import 'redirect_to_invalid_return_type_test.dart'
@@ -282,6 +286,12 @@ import 'redirect_to_missing_constructor_test.dart'
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
 import 'redirect_to_non_const_constructor_test.dart'
     as redirect_to_non_const_constructor;
+import 'referenced_before_declaration_test.dart'
+    as referenced_before_declaration;
+import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
+import 'return_in_generative_constructor_test.dart'
+    as return_in_generative_constructor;
+import 'return_in_generator_test.dart' as return_in_generator;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -305,6 +315,7 @@ import 'set_element_from_deferred_library_test.dart'
     as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
+import 'shared_deferred_prefix_test.dart' as shared_deferred_prefix;
 import 'spread_expression_from_deferred_library_test.dart'
     as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
@@ -314,10 +325,15 @@ import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
 import 'super_in_extension_test.dart' as super_in_extension;
+import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
+import 'super_in_redirecting_constructor_test.dart'
+    as super_in_redirecting_constructor;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
+import 'type_alias_cannot_reference_itself_test.dart'
+    as type_alias_cannot_reference_itself;
 import 'type_annotation_deferred_class_test.dart'
     as type_annotation_deferred_class;
 import 'type_argument_not_matching_bounds_test.dart'
@@ -557,11 +573,17 @@ main() {
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
     part_of_different_library.main();
+    redirect_generative_to_missing_constructor.main();
+    redirect_generative_to_non_generative_constructor.main();
     redirect_to_invalid_function_type.main();
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
     redirect_to_non_const_constructor.main();
+    referenced_before_declaration.main();
+    rethrow_outside_catch.main();
+    return_in_generative_constructor.main();
+    return_in_generator.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();
@@ -576,6 +598,7 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     set_element_type_not_assignable.main();
+    shared_deferred_prefix.main();
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();
@@ -583,9 +606,12 @@ main() {
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
     super_in_extension.main();
+    super_in_invalid_context.main();
+    super_in_redirecting_constructor.main();
     switch_expression_not_assignable.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
+    type_alias_cannot_reference_itself.main();
     type_annotation_deferred_class.main();
     type_argument_not_matching_bounds.main();
     type_check_is_not_null.main();
