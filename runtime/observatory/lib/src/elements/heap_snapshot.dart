@@ -873,8 +873,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     _updateLines(element.children[1].children, depth);
     element.children[2].text =
         Utils.formatPercentNormalized(node.shallowSize * 1.0 / _snapshot.size);
-    element.children[3].text =
-        Utils.formatSize(node.shallowSize + node.externalSize);
+    element.children[3].text = Utils.formatSize(node.shallowSize);
     element.children[4].text = node.instanceCount.toString();
     element.children[5].text = node.name;
   }

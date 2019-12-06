@@ -11,7 +11,7 @@ part of heap_snapshot;
 class HeapSnapshot implements M.HeapSnapshot {
   SnapshotGraph graph;
   DateTime timestamp;
-  int get size => graph.shallowSize + graph.externalSize;
+  int get size => graph.internalSize + graph.externalSize;
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<SnapshotClass> classes;
   SnapshotObject get root => graph.root;
