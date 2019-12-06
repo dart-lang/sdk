@@ -358,10 +358,9 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
   }
 
   test_addFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.addFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_addFile_shouldRefresh() async {
@@ -696,10 +695,9 @@ var A = B;
   }
 
   test_changeFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.changeFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_changeFile_notUsed() async {
@@ -1167,10 +1165,9 @@ bbb() {}
   }
 
   test_getErrors_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getErrors('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getFilesDefiningClassMemberName_class() async {
@@ -1286,10 +1283,9 @@ bbb() {}
   }
 
   test_getFileSync_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.getFileSync('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getFileSync_part() async {
@@ -1319,10 +1315,9 @@ main() {
   }
 
   test_getIndex_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getIndex('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getLibraryByUri() async {
@@ -1685,10 +1680,9 @@ main() {
   }
 
   test_getResult_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getResult('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getResult_notDartFile() async {
@@ -1823,10 +1817,9 @@ var A2 = B1;
   }
 
   test_getSourceKind_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getSourceKind('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getSourceKind_notDartFile() async {
@@ -1871,10 +1864,9 @@ import 'package:test/b.dart';
   }
 
   test_getUnitElement_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.getUnitElement('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_getUnitElement_notDart() async {
@@ -2140,10 +2132,9 @@ import 'b.dart';
   }
 
   test_parseFile_notAbsolutePath() async {
-    try {
+    expect(() async {
       await driver.parseFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_parseFile_notDart() async {
@@ -2173,10 +2164,9 @@ import 'b.dart';
   }
 
   test_parseFileSync_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.parseFileSync('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_parseFileSync_notDart() {
@@ -2742,10 +2732,9 @@ var A = B;
   }
 
   test_removeFile_notAbsolutePath() async {
-    try {
+    expect(() {
       driver.removeFile('not_absolute.dart');
-      fail('ArgumentError expected.');
-    } on ArgumentError {}
+    }, throwsArgumentError);
   }
 
   test_resetUriResolution() async {

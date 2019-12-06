@@ -276,7 +276,9 @@ class LibraryBuilder {
           if (uri != null) {
             LazyDirective.setSelectedUri(directive, '$uri');
           }
-        } on FormatException {}
+        } on FormatException {
+          // ignored
+        }
       }
     }
   }

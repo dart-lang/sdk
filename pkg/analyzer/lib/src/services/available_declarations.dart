@@ -355,7 +355,9 @@ class DeclarationsContext {
             visitFolder(resource);
           }
         }
-      } on FileSystemException {}
+      } on FileSystemException {
+        // ignored
+      }
     }
 
     visitFolder(_analysisContext.contextRoot.root);
@@ -481,7 +483,7 @@ class DeclarationsContext {
               devDependenciesNode.keys.whereType<String>().toList();
         }
       }
-    } catch (e) {}
+    } catch (_) {}
     return _PubspecDependencies(dependencies, devDependencies);
   }
 }
@@ -2010,7 +2012,9 @@ class _Package {
           return folder;
         }
       }
-    } on FileSystemException {}
+    } on FileSystemException {
+      // ignored
+    }
     return null;
   }
 }

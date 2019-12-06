@@ -413,7 +413,7 @@ class PackageUriResolver extends UriResolver {
               return Uri.parse(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
-          } catch (e) {}
+          } catch (_) {}
         }
       }
     }

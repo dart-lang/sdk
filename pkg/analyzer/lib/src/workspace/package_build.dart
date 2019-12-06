@@ -322,7 +322,7 @@ class PackageBuildWorkspace extends Workspace {
           final yaml = loadYaml(pubspec.readAsStringSync());
           return PackageBuildWorkspace._(
               provider, folder.path, yaml['name'], builder);
-        } on Exception {}
+        } catch (_) {}
       }
 
       // Go up the folder.
