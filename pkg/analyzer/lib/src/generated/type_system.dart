@@ -2888,7 +2888,7 @@ class GenericInferrer {
   /// Otherwise, return the original type.
   DartType _toLegacyType(DartType type) {
     if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(type);
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   static String _formatConstraints(Iterable<_TypeConstraint> constraints) {

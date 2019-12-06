@@ -593,7 +593,8 @@ abstract class Member implements Element {
   /// Otherwise, return the type unchanged.
   DartType _toLegacyType(DartType type) {
     if (isLegacy) {
-      return NullabilityEliminator.perform(type);
+      var typeProvider = declaration.library.typeProvider;
+      return NullabilityEliminator.perform(typeProvider, type);
     } else {
       return type;
     }

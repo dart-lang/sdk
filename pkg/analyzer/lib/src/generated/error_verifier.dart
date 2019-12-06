@@ -5984,7 +5984,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Otherwise, return the original type.
   DartType _toLegacyType(DartType type) {
     if (_isNonNullable) return type;
-    return NullabilityEliminator.perform(type);
+    return NullabilityEliminator.perform(_typeProvider, type);
   }
 
   /**

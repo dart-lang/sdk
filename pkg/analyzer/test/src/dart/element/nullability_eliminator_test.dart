@@ -95,6 +95,53 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
     );
   }
 
+  test_functionType_parameters_named() {
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intNone),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+
+    _verify(
+      functionTypeStar(
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+      functionTypeStar(
+        parameters: [
+          namedParameter(name: 'a', type: intStar),
+        ],
+        returnType: voidNone,
+      ),
+    );
+  }
+
   test_functionType_returnType() {
     _verify(
       functionTypeStar(returnType: intNone),
@@ -216,9 +263,13 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
   }
 
   test_neverType() {
-    _verify(neverNone, neverStar);
-    _verify(neverQuestion, neverStar);
-    _verifySame(neverStar);
+    _verify(neverNone, nullStar);
+    _verify(neverQuestion, nullStar);
+    _verify(neverStar, nullStar);
+
+    _verify(listNone(neverNone), listStar(nullStar));
+    _verify(listQuestion(neverNone), listStar(nullStar));
+    _verify(listStar(neverNone), listStar(nullStar));
   }
 
   test_typeParameterType() {
@@ -245,20 +296,20 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
   }
 
   void _verify(DartType input, DartType expected) {
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, isNot(same(input)));
     expect(result, expected);
   }
 
   void _verifySame(DartType input) {
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, same(input));
   }
 
   void _verifyStr(DartType input, String inputStr, String expectedStr) {
     expect(_typeToString(input), inputStr);
 
-    var result = NullabilityEliminator.perform(input);
+    var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, isNot(same(input)));
     expect(_typeToString(result), expectedStr);
   }

@@ -8,11 +8,18 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class NullabilityEliminator extends DartTypeVisitor<DartType> {
+  final TypeProviderImpl _typeProvider;
+
   int _counter = 0;
+
+  NullabilityEliminator(this._typeProvider);
 
   @override
   DartType defaultDartType(DartType type) {
@@ -35,10 +42,7 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
 
     type = _freshTypeParameters(type);
 
-    var parameters = type.parameters.map((parameter) {
-      var type = visit(parameter.type);
-      return _parameterElement(parameter, type);
-    }).toList();
+    var parameters = type.parameters.map(_parameterElement).toList();
 
     var returnType = visit(type.returnType);
     var typeArguments = type.typeArguments.map(visit).toList();
@@ -79,7 +83,8 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitNeverType(NeverTypeImpl type) {
-    return type.withNullability(NullabilitySuffix.star);
+    _counter++;
+    return _typeProvider.nullStar;
   }
 
   @override
@@ -159,28 +164,33 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
     }
   }
 
+  ParameterElementImpl _parameterElement(ParameterElement parameter) {
+    var type = visit(parameter.type);
+
+    // ignore: deprecated_member_use_from_same_package
+    var parameterKind = parameter.parameterKind;
+    if (parameter.isRequiredNamed) {
+      parameterKind = ParameterKind.NAMED;
+      _counter++;
+    }
+
+    var result = ParameterElementImpl.synthetic(
+      parameter.name,
+      type,
+      parameterKind,
+    );
+    result.isExplicitlyCovariant = parameter.isCovariant;
+    return result;
+  }
+
   /// If the [type] itself, or any of its components, has any nullability,
   /// return a new type with legacy nullability suffixes. Otherwise return the
   /// original instance.
-  static T perform<T extends DartType>(T type) {
+  static T perform<T extends DartType>(TypeProviderImpl typeProvider, T type) {
     if (type == null) {
       return type;
     }
 
-    return NullabilityEliminator().visit(type);
-  }
-
-  static ParameterElementImpl _parameterElement(
-    ParameterElement parameter,
-    DartType type,
-  ) {
-    var result = ParameterElementImpl.synthetic(
-      parameter.name,
-      type,
-      // ignore: deprecated_member_use_from_same_package
-      parameter.parameterKind,
-    );
-    result.isExplicitlyCovariant = parameter.isCovariant;
-    return result;
+    return NullabilityEliminator(typeProvider).visit(type);
   }
 }

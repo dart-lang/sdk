@@ -93,6 +93,8 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _symbolType;
   InterfaceType _typeType;
 
+  InterfaceTypeImpl _nullStar;
+
   InterfaceType _iterableForSetMapDisambiguation;
   InterfaceType _mapForSetMapDisambiguation;
 
@@ -357,6 +359,13 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get nullElement {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
+  }
+
+  InterfaceTypeImpl get nullStar {
+    return _nullStar ??= nullElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   @override

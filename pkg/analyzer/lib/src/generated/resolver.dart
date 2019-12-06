@@ -762,7 +762,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type) {
     if (_nonNullableEnabled) return type;
-    return NullabilityEliminator.perform(type);
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   @override
