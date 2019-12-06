@@ -469,9 +469,7 @@ class ProcessStarter {
     }
 #endif
 
-    VOID_TEMP_FAILURE_RETRY(
-        execvp(path_, const_cast<char* const*>(program_arguments_)));
-
+    execvp(path_, const_cast<char* const*>(program_arguments_));
     ReportChildError();
   }
 
@@ -526,8 +524,7 @@ class ProcessStarter {
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
-          VOID_TEMP_FAILURE_RETRY(
-              execvp(path_, const_cast<char* const*>(program_arguments_)));
+          execvp(path_, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
           // Exit the intermeiate process.

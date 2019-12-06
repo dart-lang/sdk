@@ -95,6 +95,7 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
+// TODO(bkonyi): remove this call once the prebuilt SDK is updated.
 // Spawned threads inherit their spawner's signal mask. We sometimes spawn
 // threads for running Dart code from a thread that is blocking SIGPROF.
 // This function explicitly unblocks SIGPROF so the profiler continues to
