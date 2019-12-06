@@ -238,7 +238,7 @@ class _KernelVisitor extends TreeVisitor<void> {
     if (procedure.isSyntheticForwarder) {
       return null;
     }
-    if (procedure.name.name.startsWith('__loadLibrary_')) {
+    if (procedure.name.name.startsWith('_#loadLibrary_')) {
       // Sometimes the front end generates procedures with this name that don't
       // correspond to anything in the source file.  Ignore them.
       return null;

@@ -50,7 +50,7 @@ class LoadLibraryBuilder extends BuilderImpl {
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
     tearoff = new Procedure(
-        new Name('__loadLibrary_$prefix', parent.library),
+        new Name('_#loadLibrary_$prefix', parent.library),
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
