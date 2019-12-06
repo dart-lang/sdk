@@ -191,8 +191,8 @@ class NativeCodeOracle {
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
-  Type handleNativeProcedure(
-      Member member, EntryPointsListener entryPointsListener) {
+  Type handleNativeProcedure(Member member,
+      EntryPointsListener entryPointsListener, TypesBuilder typesBuilder) {
     Type returnType = null;
     bool nullable = null;
 
@@ -243,8 +243,8 @@ class NativeCodeOracle {
     if (returnType != null) {
       return returnType;
     } else {
-      final coneType = new Type.cone(member.function.returnType);
-      return nullable == false ? coneType : new Type.nullable(coneType);
+      return typesBuilder.fromStaticType(
+          member.function.returnType, nullable ?? true);
     }
   }
 }

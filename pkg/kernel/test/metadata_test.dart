@@ -45,7 +45,7 @@ DartType getTypeForMetadata(TreeNode node) {
     if (parent.typeParameters.isEmpty) {
       return const VoidType();
     }
-    return new TypeParameterType(parent.typeParameters[0]);
+    return new TypeParameterType(parent.typeParameters[0], Nullability.legacy);
   }
   return getTypeForMetadata(parent);
 }

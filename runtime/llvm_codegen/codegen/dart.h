@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/IRBuilder.h"
@@ -14,6 +15,9 @@
 #include "llvm/IR/ValueSymbolTable.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/WithColor.h"
+
+// Ensure to use our own zone.
+#include "custom_zone.h"
 #include "vm/compiler/backend/sexpression.h"
 
 // This file introduces several representations that exist between
@@ -229,7 +233,7 @@ class DartInstruction {
 // an instance of a CheckStackOverflow instruction.
 class InstCheckStackOverflow : public DartInstruction {
  public:
-  explicit InstCheckStackOverflow() {}
+  InstCheckStackOverflow() {}
   ~InstCheckStackOverflow() override {}
   void Build(BasicBlockBuilder& bb_builder) const override;
   static llvm::Expected<std::unique_ptr<DartInstruction>> Construct(
@@ -273,7 +277,7 @@ class InstStaticCall : public DartInstruction {
 // instruction.
 class InstReturn : public DartInstruction {
  public:
-  explicit InstReturn() {}
+  InstReturn() {}
   ~InstReturn() override {}
   void Build(BasicBlockBuilder& bb_builder) const override;
   static llvm::Expected<std::unique_ptr<DartInstruction>> Construct(
@@ -303,7 +307,8 @@ struct DartFunction {
 // of the S-Expression is invalid then the llvm::Expected will hold an
 // error explaining the issue.
 llvm::Expected<DartFunction> MakeFunction(
+    dart::Zone* zone,
     dart::SExpression* sexpr,
     const llvm::StringMap<const DartValue*>& env);
 
-#endif  // RUNTIME_LLVM_CODEGEN_CODEGEN_DART_H
+#endif  // RUNTIME_LLVM_CODEGEN_CODEGEN_DART_H_

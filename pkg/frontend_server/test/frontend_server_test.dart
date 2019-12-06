@@ -102,6 +102,31 @@ Future<int> main() async {
       expect(await result, 0);
       inputStreamController.close();
     });
+
+    test('compile one file to JavaScript', () async {
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final ReceivePort compileCalled = new ReceivePort();
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
+          .thenAnswer((Invocation invocation) async {
+        expect(invocation.positionalArguments[0], equals('server.dart'));
+        expect(
+            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+        return true;
+      });
+
+      Future<int> result = starter(
+        ['--target=dartdevc', ...args],
+        compiler: compiler,
+        input: inputStreamController.stream,
+      );
+      inputStreamController.add('compile server.dart\n'.codeUnits);
+      await compileCalled.first;
+      inputStreamController.add('quit\n'.codeUnits);
+      expect(await result, 0);
+      inputStreamController.close();
+    });
   });
 
   group('interactive compile with mocked compiler', () {
@@ -410,6 +435,8 @@ Future<int> main() async {
   group('full compiler tests', () {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+    final ddcPlatformKernel =
+        computePlatformBinariesLocation().resolve('ddc_sdk.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
     Directory tempDir;
@@ -835,6 +862,7 @@ true
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--unsafe-package-serialization',
+        '--no-incremental-serialization',
       ];
 
       final StreamController<List<int>> inputStreamController =
@@ -879,12 +907,13 @@ true
             Component component = loadComponentFromBinary(dillFile.path);
 
             // Contains (at least) the 2 files we want.
-            component.libraries
+            expect(
+                component.libraries
                     .where((l) =>
                         l.importUri.toString() == "package:pkgB/a.dart" ||
-                        l.fileUri.toString().contains(fileB.path))
-                    .length ==
-                2;
+                        l.fileUri == fileB.uri)
+                    .length,
+                2);
 
             // Verifiable (together with the platform file).
             component =
@@ -988,17 +1017,136 @@ true
             Component component = loadComponentFromBinary(dillFile.path);
 
             // Contains (at least) the 2 files we want.
-            component.libraries
+            expect(
+                component.libraries
                     .where((l) =>
                         l.importUri.toString() == "package:pkgB/a.dart" ||
-                        l.fileUri.toString().contains(fileB.path))
-                    .length ==
-                2;
+                        l.fileUri == fileB.uri)
+                    .length,
+                2);
 
             // Verifiable (together with the platform file).
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             verifyComponent(component);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
+    test('incremental-serialization with reject', () async {
+      // Basically a reproduction of
+      // https://github.com/flutter/flutter/issues/44384.
+      var file = new File('${tempDir.path}/pkgA/.packages')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA:.");
+      file = new File('${tempDir.path}/pkgA/a.dart')
+        ..createSync(recursive: true);
+      file.writeAsStringSync("pkgA() {}");
+
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--incremental-serialization',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          new StreamController<List<int>>();
+      final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = new StreamController<Result>();
+      final outputParser = new OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        switch (count) {
+          case 0:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 1 procedure.
+            expect(libs.first.procedures.length, 1);
+
+            file.writeAsStringSync("pkgA() {} pkgA_2() {}");
+
+            count += 1;
+            outputParser.expectSources = false;
+            inputStreamController.add('reject\n'.codeUnits);
+            break;
+          case 1:
+            count += 1;
+            inputStreamController.add('reset\n'.codeUnits);
+            inputStreamController.add('recompile ${file.path} abc\n'
+                '${file.uri}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 2:
+            expect(dillFile.existsSync(), equals(true));
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 2 procedure.
+            expect(libs.first.procedures.length, 2);
+
+            file.writeAsStringSync("pkgA() {} pkgA_2() {} pkgA_3() {}");
+
+            count += 1;
+            inputStreamController.add('accept\n'.codeUnits);
+            inputStreamController.add('reset\n'.codeUnits);
+            inputStreamController.add('recompile ${file.path} abc\n'
+                '${file.uri}\n'
+                'abc\n'
+                .codeUnits);
+            break;
+          case 3:
+            expect(result.filename, dillFile.path);
+            expect(result.errorsCount, 0);
+            inputStreamController.add('quit\n'.codeUnits);
+
+            // Loadable.
+            Component component = loadComponentFromBinary(dillFile.path);
+
+            // Contain the file we want.
+            var libs = component.libraries
+                .where((l) => l.importUri.toString() == "package:pkgA/a.dart");
+            expect(libs.length, 1);
+
+            // Has 3 procedures.
+            expect(libs.first.procedures.length, 3);
         }
       });
       expect(await result, 0);
@@ -1094,6 +1242,52 @@ true
         '--filesystem-scheme=test-scheme',
         'test-scheme:///foo.dart'
       ];
+      expect(await starter(args), 0);
+    });
+
+    test('compile to JavaScript', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var packages = new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packages.path}',
+        '--target=dartdevc',
+        file.path,
+      ];
+
+      expect(await starter(args), 0);
+    });
+
+    test('compile to JavaScript with package scheme', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+        'package:hello/foo.dart'
+      ];
+
       expect(await starter(args), 0);
     });
 

@@ -116,4 +116,69 @@ const v = a;
     expect(typeArgument.element.enclosingElement, elementF);
     assertElementTypeStrings(typeArgument.typeArguments, ['double']);
   }
+
+  test_imported_prefixedIdentifier_staticField_class() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = C.f;
+
+class C {
+  static const int f = 42;
+}
+''');
+    await resolveTestCode(r'''
+import 'a.dart';
+''');
+
+    var import_ = findElement.importFind('package:test/a.dart');
+    var a = import_.topVar('a') as ConstVariableElement;
+    expect(a.computeConstantValue().toIntValue(), 42);
+  }
+
+  test_imported_prefixedIdentifier_staticField_extension() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = E.f;
+
+extension E on int {
+  static const int f = 42;
+}
+''');
+    await resolveTestCode(r'''
+import 'a.dart';
+''');
+
+    var import_ = findElement.importFind('package:test/a.dart');
+    var a = import_.topVar('a') as ConstVariableElement;
+    expect(a.computeConstantValue().toIntValue(), 42);
+  }
+
+  test_imported_prefixedIdentifier_staticField_mixin() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = M.f;
+
+class C {}
+
+mixin M on C {
+  static const int f = 42;
+}
+''');
+    await resolveTestCode(r'''
+import 'a.dart';
+''');
+
+    var import_ = findElement.importFind('package:test/a.dart');
+    var a = import_.topVar('a') as ConstVariableElement;
+    expect(a.computeConstantValue().toIntValue(), 42);
+  }
+
+  test_local_prefixedIdentifier_staticField_extension() async {
+    await assertNoErrorsInCode(r'''
+const a = E.f;
+
+extension E on int {
+  static const int f = 42;
+}
+''');
+    var a = findElement.topVar('a') as ConstVariableElement;
+    expect(a.computeConstantValue().toIntValue(), 42);
+  }
 }

@@ -19,6 +19,8 @@ class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
+  static const _isOperatorEqualParameterTypeFromObjectKey =
+      'lazyAst_isOperatorEqualParameterTypeFromObject';
   static const _rawFunctionTypeKey = 'lazyAst_rawFunctionType';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
@@ -56,6 +58,11 @@ class LazyAst {
     return node.getProperty(_typeInferenceErrorKey);
   }
 
+  static bool hasOperatorEqualParameterTypeFromObject(AstNode node) {
+    return node.getProperty(_isOperatorEqualParameterTypeFromObjectKey) ??
+        false;
+  }
+
   static bool hasOverrideInferenceDone(AstNode node) {
     return node.getProperty(_hasOverrideInferenceKey) ?? false;
   }
@@ -74,6 +81,10 @@ class LazyAst {
 
   static void setInheritsCovariant(AstNode node, bool value) {
     node.setProperty(_inheritsCovariantKey, value);
+  }
+
+  static void setOperatorEqualParameterTypeFromObject(AstNode node, bool b) {
+    node.setProperty(_isOperatorEqualParameterTypeFromObjectKey, b);
   }
 
   static void setOverrideInferenceDone(AstNode node) {

@@ -24,10 +24,6 @@
 #define ARCH_DEF "defined(TARGET_ARCH_IA32)"
 #elif defined(TARGET_ARCH_ARM64)
 #define ARCH_DEF "defined(TARGET_ARCH_ARM64)"
-#elif defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_32_BIT)
-#define ARCH_DEF "defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_32_BIT)"
-#elif defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_64_BIT)
-#define ARCH_DEF "defined(TARGET_ARCH_DBC) && defined(TARGET_ARCH_IS_64_BIT)"
 #else
 #error Unknown architecture
 #endif

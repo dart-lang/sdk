@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
 /// error.
@@ -277,10 +277,6 @@ class FastaErrorReporter {
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "TYPE_PARAMETER_ON_CONSTRUCTOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
         return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(

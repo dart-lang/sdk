@@ -6,13 +6,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';

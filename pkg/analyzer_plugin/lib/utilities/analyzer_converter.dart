@@ -241,7 +241,7 @@ class AnalyzerConverter {
       }
       parameters = element.parameters;
     } else if (element is analyzer.FunctionTypeAliasElement) {
-      parameters = element.parameters;
+      parameters = element.function.parameters;
     } else {
       return null;
     }
@@ -283,7 +283,7 @@ class AnalyzerConverter {
       analyzer.DartType type = element.type;
       return type != null ? type.displayName : 'dynamic';
     } else if (element is analyzer.FunctionTypeAliasElement) {
-      return element.returnType.toString();
+      return element.function.returnType.toString();
     }
     return null;
   }

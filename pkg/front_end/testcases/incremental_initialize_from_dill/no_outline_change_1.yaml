@@ -1,0 +1,55 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+
+type: newworld
+worlds:
+  - entry: actualMain.dart
+    useExperimentalInvalidation: true
+    sources:
+      actualMain.dart: |
+        import 'main.dart' as m;
+        main() {
+          m.main();
+        }
+      main.dart: |
+        import 'libA.dart';
+
+        main() {
+          whatever();
+        }
+        mainHello() {}
+      libA.dart: |
+        import 'main.dart';
+        import 'libB.dart';
+        class Foo {}
+        whatever() {
+          Bar bar = new Bar(new Foo());
+          mainHello();
+        }
+      libB.dart: |
+        import 'libA.dart';
+        class Bar {
+          Foo foo;
+          Bar(this.foo);
+        }
+    expectedLibraryCount: 4
+  - entry: actualMain.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        main() {
+          whatever();
+          mainHello();
+        }
+        mainHello() {}
+    expectedLibraryCount: 4
+    expectsRebuildBodiesOnly: true

@@ -9,15 +9,12 @@ import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:usage/usage.dart';
 
 main() {
   group('CommandLineOptions', () {
     group('parse', () {
-      int lastExitHandlerCode;
       StringBuffer outStringBuffer = new StringBuffer();
       StringBuffer errorStringBuffer = new StringBuffer();
 
@@ -30,9 +27,7 @@ main() {
         savedErrorSink = errorSink;
         savedExitHandler = exitHandler;
         savedExitCode = exitCode;
-        exitHandler = (int code) {
-          lastExitHandlerCode = code;
-        };
+        exitHandler = (int code) {};
         outSink = outStringBuffer;
         errorSink = errorStringBuffer;
       });
@@ -260,28 +255,6 @@ main() {
             printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
       });
-
-      if (telemetry.SHOW_ANALYTICS_UI) {
-        test('--analytics', () {
-          AnalyticsMock mock = new AnalyticsMock()..enabled = false;
-          setAnalytics(mock);
-          CommandLineOptions.parse(['--analytics']);
-          expect(mock.enabled, true);
-          expect(lastExitHandlerCode, 0);
-          expect(
-              outStringBuffer.toString(), contains('Analytics are currently'));
-        });
-
-        test('--no-analytics', () {
-          AnalyticsMock mock = new AnalyticsMock()..enabled = false;
-          setAnalytics(mock);
-          CommandLineOptions.parse(['--no-analytics']);
-          expect(mock.enabled, false);
-          expect(lastExitHandlerCode, 0);
-          expect(
-              outStringBuffer.toString(), contains('Analytics are currently'));
-        });
-      }
 
       test('--use-fasta-parser', () {
         CommandLineOptions options =

@@ -18,7 +18,7 @@ class UnusedFieldTest extends DriverResolutionTest {
   @override
   bool get enableUnusedElement => true;
 
-  test_unusedField_isUsed_argument() async {
+  test_isUsed_argument() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f = 0;
@@ -30,7 +30,23 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_isUsed_reference_implicitThis() async {
+  test_isUsed_parameterized_subclass() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {
+  T _f;
+  A._(this._f);
+}
+class B extends A<int> {
+  B._(int f) : super._(f);
+}
+void main() {
+  B b = B._(7);
+  print(b._f == 7);
+}
+''');
+  }
+
+  test_isUsed_reference_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -42,7 +58,7 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_isUsed_reference_implicitThis_expressionFunctionBody() async {
+  test_isUsed_reference_implicitThis_expressionFunctionBody() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -51,7 +67,7 @@ class A {
 ''');
   }
 
-  test_unusedField_isUsed_reference_implicitThis_subclass() async {
+  test_isUsed_reference_implicitThis_subclass() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -66,7 +82,7 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_isUsed_reference_qualified_propagatedElement() async {
+  test_isUsed_reference_qualified_propagatedElement() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -79,7 +95,7 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_isUsed_reference_qualified_staticElement() async {
+  test_isUsed_reference_qualified_staticElement() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -92,7 +108,7 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_isUsed_reference_qualified_unresolved() async {
+  test_isUsed_reference_qualified_unresolved() async {
     await assertNoErrorsInCode(r'''
 class A {
   int _f;
@@ -104,7 +120,7 @@ print(x) {}
 ''');
   }
 
-  test_unusedField_notUsed_compoundAssign() async {
+  test_notUsed_compoundAssign() async {
     await assertErrorsInCode(r'''
 class A {
   int _f;
@@ -117,7 +133,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_constructorFieldInitializers() async {
+  test_notUsed_constructorFieldInitializers() async {
     await assertErrorsInCode(r'''
 class A {
   int _f;
@@ -128,7 +144,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_fieldFormalParameter() async {
+  test_notUsed_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 class A {
   int _f;
@@ -139,7 +155,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_noReference() async {
+  test_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
   int _f;
@@ -149,7 +165,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_nullAssign() async {
+  test_notUsed_nullAssign() async {
     await assertNoErrorsInCode(r'''
 class A {
   var _f;
@@ -161,7 +177,7 @@ doSomething() => 0;
 ''');
   }
 
-  test_unusedField_notUsed_postfixExpr() async {
+  test_notUsed_postfixExpr() async {
     await assertErrorsInCode(r'''
 class A {
   int _f = 0;
@@ -174,7 +190,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_prefixExpr() async {
+  test_notUsed_prefixExpr() async {
     await assertErrorsInCode(r'''
 class A {
   int _f = 0;
@@ -187,7 +203,7 @@ class A {
     ]);
   }
 
-  test_unusedField_notUsed_simpleAssignment() async {
+  test_notUsed_simpleAssignment() async {
     await assertErrorsInCode(r'''
 class A {
   int _f;

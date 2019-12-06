@@ -30,6 +30,8 @@ import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
+import 'conflicting_generic_interfaces_test.dart'
+    as conflicting_generic_interfaces;
 import 'conflicting_static_and_instance_test.dart'
     as conflicting_static_and_instance;
 import 'const_constructor_param_type_mismatch_test.dart'
@@ -51,6 +53,7 @@ import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_paramter;
+import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
     as deprecated_function_class_declaration;
@@ -67,6 +70,7 @@ import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'export_suplicated_library_named_test.dart'
     as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
@@ -106,6 +110,7 @@ import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
+import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
@@ -134,12 +139,16 @@ import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
+import 'invalid_non_virtual_annotation_test.dart'
+    as invalid_non_virtual_annotation;
 import 'invalid_optional_parameter_type_test.dart'
     as invalid_optional_parameter_type;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
+import 'invalid_override_of_non_virtual_member_test.dart'
+    as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
@@ -186,11 +195,13 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
-import 'mixed_return_types_test.dart' as mixed_return_types;
+import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
+import 'must_be_a_native_function_type_test.dart'
+    as must_be_a_native_function_type;
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
@@ -217,8 +228,6 @@ import 'non_constant_map_value_from_deferred_library_test.dart'
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
-import 'non_constant_type_argument_to_pointer_test.dart'
-    as non_constant_type_argument_to_pointer;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
@@ -267,6 +276,8 @@ import 'redirect_to_invalid_return_type_test.dart'
 import 'redirect_to_missing_constructor_test.dart'
     as redirect_to_missing_constructor;
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
+import 'redirect_to_non_const_constructor_test.dart'
+    as redirect_to_non_const_constructor;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -378,6 +389,7 @@ main() {
     case_block_not_terminated.main();
     cast_to_non_type.main();
     concrete_class_with_abstract_member.main();
+    conflicting_generic_interfaces.main();
     conflicting_static_and_instance.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_mixin_with_field.main();
@@ -391,6 +403,7 @@ main() {
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
+    deferred_import_of_extension.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
     deprecated_member_use.main();
@@ -405,6 +418,7 @@ main() {
     equal_keys_in_const_map.main();
     export_suplicated_library_named.main();
     expression_in_map.main();
+    extends_disallowed_class.main();
     extends_non_class.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
@@ -428,6 +442,7 @@ main() {
     final_not_initialized.main();
     generic_struct_subclass.main();
     if_element_condition_from_deferred_library.main();
+    implements_disallowed_class.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
@@ -447,9 +462,11 @@ main() {
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
     invalid_literal_annotation.main();
+    invalid_non_virtual_annotation.main();
     invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
+    invalid_override_of_non_virtual_member.main();
     invalid_override.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();
@@ -482,10 +499,11 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
-    mixed_return_types.main();
+    mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
+    must_be_a_native_function_type.main();
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
@@ -506,7 +524,6 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
-    non_constant_type_argument_to_pointer.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
@@ -538,6 +555,7 @@ main() {
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
+    redirect_to_non_const_constructor.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();

@@ -11,13 +11,13 @@
 class C0 {
   int get m1 => 0;
   void set m2(int x) {}
-  int operator[](int index) => 0;
+  int operator [](int index) => 0;
 }
 
 extension E0 on C0 {
   void set m1(int x) {}
   int get m2 => 0;
-  void operator[]=(int index, int value) {}
+  void operator []=(int index, int value) {}
 }
 
 void test0() {
@@ -61,38 +61,32 @@ void test0() {
 
   c0[0];
   c0[0] = 0;
-  //^
+  //^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C0'.
-  // ^^^^^^
-  // [analyzer] unspecified
   E0(c0)[0];
-  // ^^^^^^
-  // [analyzer] unspecified
-  //    ^
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
   // [cfe] Getter not found: '[]'.
   E0(c0)[0] = 0;
 
   c0[0] += 0;
-  //^
+  //^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C0'.
-  // ^^^^^^
-  // [analyzer] unspecified
   c0[0]++;
-  //^
+  //^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C0'.
-  // ^^^^^^
-  // [analyzer] unspecified
 
   E0(c0)[0] += 0;
-  // ^^^^^^
-  // [analyzer] unspecified
-  //    ^
-  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
+  // [cfe] The method '[]' isn't defined for the class 'C0'.
   E0(c0)[0]++;
-  // ^^^^^^
-  // [analyzer] unspecified
-  //    ^
-  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
+  // [cfe] The method '[]' isn't defined for the class 'C0'.
 }
 
 // Conflicting extensions.
@@ -102,13 +96,13 @@ class C1<T> {}
 extension E1A<T> on C1<T> {
   int get m1 => 0;
   void set m2(int x) {}
-  int operator[](int index) => 0;
+  int operator [](int index) => 0;
 }
 
 extension E1B on C1<Object> {
   void set m1(int x) {}
   int get m2 => 0;
-  void operator[]=(int index, int value) {}
+  void operator []=(int index, int value) {}
 }
 
 void test1() {
@@ -128,22 +122,19 @@ void test1() {
   c1a.m2 = 0;
 
   c1a[0] = 0;
-  // ^
+  // ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1a[0] += 0;
-  // ^
+  // ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1a[0]++;
-  // ^
+  // ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1a[0];
 
@@ -179,32 +170,32 @@ void test1() {
   // [cfe] The getter 'm2' isn't defined for the class 'C1<Object>'.
 
   c1b[0];
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // ^
   // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1b[0] = 0;
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // ^
   // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1b[0] += 0;
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // ^
   // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
   // ^
   // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
-  //  ^^
-  // [analyzer] unspecified
 
   c1b[0]++;
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // ^
   // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
   // ^
   // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
-  //  ^^
-  // [analyzer] unspecified
 }
 
 // Getter on the extension itself.
@@ -212,15 +203,14 @@ class C2 {
   int get m1 => 0;
   void set m2(int x) {}
   int get mc => 0;
-  void operator[]=(int index, int value) {}
+  void operator []=(int index, int value) {}
 }
 
 extension E2 on C2 {
   void set m1(int x) {}
   int get m2 => 0;
   String get me => "";
-  int operator[](int index) => 0;
-
+  int operator [](int index) => 0;
 
   void test2() {
     // Using `this.member` means using the `on` type.
@@ -239,22 +229,19 @@ extension E2 on C2 {
 
     this[0] = 0;
     this[0];
-    //  ^
+    //  ^^^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
     // [cfe] The method '[]' isn't defined for the class 'C2'.
-    //   ^^
-    // [analyzer] unspecified
 
     this[0] += 0;
-    //  ^
+    //  ^^^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
     // [cfe] The method '[]' isn't defined for the class 'C2'.
-    //   ^^
-    // [analyzer] unspecified
 
-    this[0] ++;
-    //  ^
+    this[0]++;
+    //  ^^^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
     // [cfe] The method '[]' isn't defined for the class 'C2'.
-    //   ^^
-    // [analyzer] unspecified
 
     // Check that `this.mc` refers to `C2.mc`.
     this.mc.toRadixString(16);

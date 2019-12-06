@@ -55,12 +55,12 @@ class KernelImpactBuilder extends ImpactBuilderBase
       this.currentMember,
       this.reporter,
       this._options,
+      ir.StaticTypeContext staticTypeContext,
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember),
-        super(elementMap.typeEnvironment, elementMap.classHierarchy,
-            variableScopeModel);
+        super(staticTypeContext, elementMap.classHierarchy, variableScopeModel);
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
@@ -91,9 +91,11 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
   final MemberEntity currentMember;
   @override
   final ConstantValuefier _constantValuefier;
+  @override
+  final ir.StaticTypeContext staticTypeContext;
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
-      this._options, this._constantValuefier)
+      this._options, this._constantValuefier, this.staticTypeContext)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember);
 
   @override
@@ -125,6 +127,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   CommonElements get commonElements;
   NativeBasicData get _nativeBasicData;
   ConstantValuefier get _constantValuefier;
+  ir.StaticTypeContext get staticTypeContext;
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
@@ -142,7 +145,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerParameterCheck(ir.DartType irType) {
     DartType type = elementMap.getDartType(irType);
-    if (!type.isDynamic) {
+    if (type is! DynamicType) {
       impactBuilder.registerTypeUse(new TypeUse.parameterCheck(type));
     }
   }
@@ -355,8 +358,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     assert(node.isConst);
     ConstructorEntity constructor = elementMap.getConstructor(node.target);
     if (commonElements.isSymbolConstructor(constructor)) {
-      ConstantValue value =
-          elementMap.getConstantValue(node.arguments.positional.first);
+      ConstantValue value = elementMap.getConstantValue(
+          staticTypeContext, node.arguments.positional.first);
       if (!value.isString) {
         // TODO(het): Get the actual span for the Symbol constructor argument
         reporter.reportErrorMessage(
@@ -856,7 +859,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
     for (ir.SwitchCase switchCase in node.cases) {
       for (ir.Expression expression in switchCase.expressions) {
-        ConstantValue value = elementMap.getConstantValue(expression);
+        ConstantValue value =
+            elementMap.getConstantValue(staticTypeContext, expression);
         DartType type = value.getType(elementMap.commonElements);
         if (firstCaseType == null) {
           firstCase = expression;

@@ -6,6 +6,7 @@
 
 #include "vm/code_descriptors.h"
 #include "vm/elf.h"
+#include "vm/image_snapshot.h"
 #include "vm/object_store.h"
 
 namespace dart {
@@ -254,6 +255,8 @@ void Dwarf::WriteCompilationUnit() {
   uint8_t* buffer = nullptr;
   WriteStream stream(&buffer, ZoneReallocate, 64 * KB);
 
+  AssemblyCodeNamer namer(zone_);
+
   if (asm_stream_) {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
     Print(".section __DWARF,__debug_info,regular,debug\n");
@@ -314,8 +317,8 @@ void Dwarf::WriteCompilationUnit() {
   if (asm_stream_) {
     intptr_t last_code_index = codes_.length() - 1;
     const Code& last_code = *(codes_[last_code_index]);
-    Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", last_code_index,
-          last_code.Size());
+    Print(FORM_ADDR " %s + %" Pd "\n",
+          namer.AssemblyNameFor(last_code_index, last_code), last_code.Size());
   } else {
     addr(elf_->NextMemoryOffset());
   }
@@ -373,6 +376,7 @@ void Dwarf::WriteAbstractFunctions() {
 void Dwarf::WriteConcreteFunctions() {
   Function& function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
+  AssemblyCodeNamer namer(zone_);
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
     RELEASE_ASSERT(!code.IsNull());
@@ -403,14 +407,13 @@ void Dwarf::WriteConcreteFunctions() {
 
     // DW_AT_low_pc
     if (asm_stream_) {
-      Print(FORM_ADDR " .Lcode%" Pd "\n", i);
+      const char* asm_name = namer.AssemblyNameFor(i, code);
+      // DW_AT_low_pc
+      Print(FORM_ADDR " %s\n", asm_name);
+      // DW_AT_high_pc
+      Print(FORM_ADDR " %s + %" Pd "\n", asm_name, code.Size());
     } else {
       addr(code_offset);
-    }
-    // DW_AT_high_pc
-    if (asm_stream_) {
-      Print(FORM_ADDR " .Lcode%" Pd " + %" Pd "\n", i, code.Size());
-    } else {
       addr(code_offset + code.Size());
     }
 
@@ -418,7 +421,7 @@ void Dwarf::WriteConcreteFunctions() {
     if (node != NULL) {
       for (InliningNode* child = node->children_head; child != NULL;
            child = child->children_next) {
-        WriteInliningNode(child, i, script);
+        WriteInliningNode(child, i, script, &namer);
       }
     }
 
@@ -509,7 +512,8 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
 
 void Dwarf::WriteInliningNode(InliningNode* node,
                               intptr_t root_code_index,
-                              const Script& parent_script) {
+                              const Script& parent_script,
+                              AssemblyCodeNamer* namer) {
   intptr_t file = LookupScript(parent_script);
   intptr_t line = node->call_pos.value();
   intptr_t function_index = LookupFunction(node->function);
@@ -527,20 +531,21 @@ void Dwarf::WriteInliningNode(InliningNode* node,
   } else {
     u4(abstract_origins_[function_index]);
   }
-  // DW_AT_low_pc
+
   if (asm_stream_) {
-    Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
-          node->start_pc_offset);
+    const char* asm_name =
+        namer->AssemblyNameFor(root_code_index, *codes_[root_code_index]);
+    // DW_AT_low_pc
+    Print(FORM_ADDR " %s + %d\n", asm_name, node->start_pc_offset);
+    // DW_AT_high_pc
+    Print(FORM_ADDR " %s + %d\n", asm_name, node->end_pc_offset);
   } else {
+    // DW_AT_low_pc
     addr(root_code_index + node->start_pc_offset);
-  }
   // DW_AT_high_pc
-  if (asm_stream_) {
-    Print(FORM_ADDR " .Lcode%" Pd " + %d\n", root_code_index,
-          node->end_pc_offset);
-  } else {
     addr(root_code_index + node->end_pc_offset);
   }
+
   // DW_AT_call_file
   uleb128(file);
   // DW_AT_call_line
@@ -548,7 +553,7 @@ void Dwarf::WriteInliningNode(InliningNode* node,
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
-    WriteInliningNode(child, root_code_index, script);
+    WriteInliningNode(child, root_code_index, script, namer);
   }
 
   uleb128(0);  // End of children.
@@ -629,6 +634,7 @@ void Dwarf::WriteLines() {
   for (intptr_t i = 0; i < scripts_.length(); i++) {
     const Script& script = *(scripts_[i]);
     uri = script.url();
+    RELEASE_ASSERT(strlen(uri.ToCString()) != 0);
     string(uri.ToCString());  // NOLINT
     uleb128(0);  // Include directory index.
     uleb128(0);  // File modification time.
@@ -655,9 +661,15 @@ void Dwarf::WriteLines() {
   Array& functions = Array::Handle(zone_);
   GrowableArray<const Function*> function_stack(zone_, 8);
   GrowableArray<TokenPosition> token_positions(zone_, 8);
+  AssemblyCodeNamer namer(zone_);
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
     const Code& code = *(codes_[i]);
+
+    const char* asm_name = nullptr;
+    if (asm_stream_ != nullptr) {
+      asm_name = namer.AssemblyNameFor(i, code);
+    }
 
     CodeIndexPair* pair = code_to_index_.Lookup(&code);
     RELEASE_ASSERT(pair != NULL);
@@ -723,15 +735,16 @@ void Dwarf::WriteLines() {
             u1(1 + sizeof(void*));  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
             if (asm_stream_) {
-              Print(FORM_ADDR " .Lcode%" Pd " + %d\n", i, current_pc_offset);
+              Print(FORM_ADDR " %s + %d\n", asm_name, current_pc_offset);
             } else {
               addr(current_code_offset + current_pc_offset);
             }
           } else {
             u1(DW_LNS_advance_pc);
             if (asm_stream_) {
-              Print(".uleb128 .Lcode%" Pd " - .Lcode%" Pd " + %" Pd "\n", i,
-                    previous_code_offset,
+              const char* previous_asm_name = namer.AssemblyNameFor(
+                  previous_code_offset, *codes_[previous_code_offset]);
+              Print(".uleb128 %s - %s + %" Pd "\n", asm_name, previous_asm_name,
                     current_pc_offset - previous_pc_offset);
             } else {
               intptr_t delta = current_code_offset - previous_code_offset +
@@ -780,8 +793,13 @@ void Dwarf::WriteLines() {
 
   u1(DW_LNS_advance_pc);
   if (asm_stream_) {
-    Print(".uleb128 .Lcode%" Pd " - .Lcode%" Pd " + %" Pd "\n", last_code_index,
-          previous_code_offset, last_code.Size() - previous_pc_offset);
+    const char* last_asm_name =
+        namer.AssemblyNameFor(last_code_index, last_code);
+    ASSERT(previous_code_offset >= 0);
+    const char* previous_asm_name = namer.AssemblyNameFor(
+        previous_code_offset, *codes_[previous_code_offset]);
+    Print(".uleb128 %s - %s + %" Pd "\n", last_asm_name, previous_asm_name,
+          last_code.Size() - previous_pc_offset);
   } else {
     intptr_t delta = last_code_offset - previous_code_offset +
                      last_code.Size() - previous_pc_offset;

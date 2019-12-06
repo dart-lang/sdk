@@ -125,6 +125,8 @@ class DartAssistKind {
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
       const AssistKind('dart.assist.exchangeOperands', 30, "Exchange operands");
+
+  // Flutter assists
   static const FLUTTER_CONVERT_TO_CHILDREN = const AssistKind(
       'dart.assist.flutter.convert.childToChildren',
       30,
@@ -133,30 +135,38 @@ class DartAssistKind {
       'dart.assist.flutter.convert.toStatefulWidget',
       30,
       "Convert to StatefulWidget");
-  static const FLUTTER_MOVE_DOWN =
-      const AssistKind('dart.assist.flutter.move.down', 30, "Move widget down");
-  static const FLUTTER_MOVE_UP =
-      const AssistKind('dart.assist.flutter.move.up', 30, "Move widget up");
-  static const FLUTTER_REMOVE_WIDGET = const AssistKind(
-      'dart.assist.flutter.removeWidget', 30, "Remove this widget");
-  static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
-      'dart.assist.flutter.swap.withChild', 30, "Swap with child");
-  static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(
-      'dart.assist.flutter.swap.withParent', 30, "Swap with parent");
-  static const FLUTTER_WRAP_CENTER =
-      const AssistKind('dart.assist.flutter.wrap.center', 30, "Center widget");
-  static const FLUTTER_WRAP_COLUMN = const AssistKind(
-      'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
-  static const FLUTTER_WRAP_CONTAINER = const AssistKind(
-      'dart.assist.flutter.wrap.container', 30, "Wrap with Container");
+
+  // Flutter wrap specific assists
   static const FLUTTER_WRAP_GENERIC = const AssistKind(
-      'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
-  static const FLUTTER_WRAP_PADDING =
-      const AssistKind('dart.assist.flutter.wrap.padding', 30, "Add padding");
+      'dart.assist.flutter.wrap.generic', 31, "Wrap with widget...");
+
+  static const FLUTTER_WRAP_CENTER = const AssistKind(
+      'dart.assist.flutter.wrap.center', 32, "Wrap with Center");
+  static const FLUTTER_WRAP_COLUMN = const AssistKind(
+      'dart.assist.flutter.wrap.column', 32, "Wrap with Column");
+  static const FLUTTER_WRAP_CONTAINER = const AssistKind(
+      'dart.assist.flutter.wrap.container', 32, "Wrap with Container");
+  static const FLUTTER_WRAP_PADDING = const AssistKind(
+      'dart.assist.flutter.wrap.padding', 32, "Wrap with Padding");
   static const FLUTTER_WRAP_ROW =
-      const AssistKind('dart.assist.flutter.wrap.row', 30, "Wrap with Row");
+      const AssistKind('dart.assist.flutter.wrap.row', 32, "Wrap with Row");
   static const FLUTTER_WRAP_STREAM_BUILDER = const AssistKind(
-      'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
+      'dart.assist.flutter.wrap.streamBuilder', 32, "Wrap with StreamBuilder");
+
+  // Flutter re-order assists
+  static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
+      'dart.assist.flutter.swap.withChild', 33, "Swap with child");
+  static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(
+      'dart.assist.flutter.swap.withParent', 33, "Swap with parent");
+  static const FLUTTER_MOVE_DOWN =
+      const AssistKind('dart.assist.flutter.move.down', 34, "Move widget down");
+  static const FLUTTER_MOVE_UP =
+      const AssistKind('dart.assist.flutter.move.up', 34, "Move widget up");
+
+  // Flutter remove assist
+  static const FLUTTER_REMOVE_WIDGET = const AssistKind(
+      'dart.assist.flutter.removeWidget', 35, "Remove this widget");
+
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INLINE_INVOCATION =

@@ -30,26 +30,36 @@ class UnknownTypeTest {
     expect(isKnown(unknownType), isFalse);
     expect(isKnown(const DynamicType()), isTrue);
     var classA = new Class(name: 'A');
-    var A = new InterfaceType(classA);
+    var A = new InterfaceType(classA, Nullability.legacy);
     var typedefF = new Typedef('F', A);
     expect(isKnown(A), isTrue);
-    expect(isKnown(new InterfaceType(classA, [A])), isTrue);
-    expect(isKnown(new InterfaceType(classA, [unknownType])), isFalse);
-    expect(isKnown(new FunctionType([], const VoidType())), isTrue);
-    expect(isKnown(new FunctionType([], unknownType)), isFalse);
-    expect(isKnown(new FunctionType([A], const VoidType())), isTrue);
-    expect(isKnown(new FunctionType([unknownType], const VoidType())), isFalse);
+    expect(isKnown(new InterfaceType(classA, Nullability.legacy, [A])), isTrue);
     expect(
-        isKnown(new FunctionType([], const VoidType(),
+        isKnown(new InterfaceType(classA, Nullability.legacy, [unknownType])),
+        isFalse);
+    expect(isKnown(new FunctionType([], const VoidType(), Nullability.legacy)),
+        isTrue);
+    expect(isKnown(new FunctionType([], unknownType, Nullability.legacy)),
+        isFalse);
+    expect(isKnown(new FunctionType([A], const VoidType(), Nullability.legacy)),
+        isTrue);
+    expect(
+        isKnown(new FunctionType(
+            [unknownType], const VoidType(), Nullability.legacy)),
+        isFalse);
+    expect(
+        isKnown(new FunctionType([], const VoidType(), Nullability.legacy,
             namedParameters: [new NamedType('x', A)])),
         isTrue);
     expect(
-        isKnown(new FunctionType([], const VoidType(),
+        isKnown(new FunctionType([], const VoidType(), Nullability.legacy,
             namedParameters: [new NamedType('x', unknownType)])),
         isFalse);
-    expect(isKnown(new TypedefType(typedefF)), isTrue);
-    expect(isKnown(new TypedefType(typedefF, [A])), isTrue);
-    expect(isKnown(new TypedefType(typedefF, [unknownType])), isFalse);
+    expect(isKnown(new TypedefType(typedefF, Nullability.legacy)), isTrue);
+    expect(isKnown(new TypedefType(typedefF, Nullability.legacy, [A])), isTrue);
+    expect(
+        isKnown(new TypedefType(typedefF, Nullability.legacy, [unknownType])),
+        isFalse);
   }
 
   void test_ordinary_visitor_noOverrides() {
@@ -88,8 +98,8 @@ class UnknownTypeTest {
     expect(unknownType.toString(), isNot('?'));
     expect(typeSchemaToString(unknownType), '?');
     expect(
-        typeSchemaToString(
-            new FunctionType([unknownType, unknownType], unknownType)),
+        typeSchemaToString(new FunctionType(
+            [unknownType, unknownType], unknownType, Nullability.legacy)),
         '(?, ?) →* ?');
   }
 

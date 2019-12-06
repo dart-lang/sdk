@@ -49,6 +49,12 @@ class Socket : public ReferenceCounted<Socket> {
   explicit Socket(intptr_t fd);
 
   intptr_t fd() const { return fd_; }
+
+  // Close fd and may need to decrement the count of handle by calling
+  // release().
+  void CloseFd();
+  // Set fd_ to closed. On fuchsia and win, shared socket should not
+  // release handle but only SetClosedFd().
   void SetClosedFd();
 
   Dart_Port isolate_port() const { return isolate_port_; }
@@ -194,7 +200,7 @@ class ListeningSocketRegistry {
     bool v6_only;
     bool shared;
     int ref_count;
-    Socket* socketfd;
+    intptr_t fd;
 
     // Singly linked lists of OSSocket instances which listen on the same port
     // but on different addresses.
@@ -210,8 +216,9 @@ class ListeningSocketRegistry {
           v6_only(v6_only),
           shared(shared),
           ref_count(0),
-          socketfd(socketfd),
-          next(NULL) {}
+          next(NULL) {
+      fd = socketfd->fd();
+    }
   };
 
   static const intptr_t kInitialSocketsCount = 8;
@@ -246,7 +253,7 @@ class ListeningSocketRegistry {
   void InsertByFd(Socket* fd, OSSocket* socket);
   void RemoveByFd(Socket* fd);
 
-  bool CloseOneSafe(OSSocket* os_socket, bool update_hash_maps);
+  bool CloseOneSafe(OSSocket* os_socket, Socket* socket);
   void CloseAllSafe();
 
   SimpleHashMap sockets_by_port_;

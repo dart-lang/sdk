@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.core;
 
 /**
@@ -585,4 +587,21 @@ class CyclicInitializationError extends Error {
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";
+}
+
+/**
+ * Error thrown when a late variable is accessed in an invalid manner.
+ *
+ * A late variable must be initialized before it's read.
+ * If a late variable has no initializer expression and has not
+ * been written to, then reading it will throw a
+ * late initialization error.
+ *
+ * A late final variable with no initializer expression may only
+ * be written to once.
+ * If it is written to again, the writing will throw a
+ * late initialization error.
+ */
+abstract class LateInitializationError extends Error {
+  factory LateInitializationError._() => throw UnsupportedError("");
 }

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -16,7 +17,7 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisOptions _analysisOptions;
   TypeProviderImpl _typeProvider;
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   TestAnalysisContext({FeatureSet featureSet}) {
     _analysisOptions = AnalysisOptionsImpl()
@@ -30,15 +31,24 @@ class TestAnalysisContext implements AnalysisContext {
     );
 
     _typeProvider = TypeProviderImpl(
-      sdkElements.coreLibrary,
-      sdkElements.asyncLibrary,
+      coreLibrary: sdkElements.coreLibrary,
+      asyncLibrary: sdkElements.asyncLibrary,
+      isNonNullableByDefault: false,
     );
 
     if (_analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)) {
-      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+      _typeProvider = _typeProvider.asNonNullableByDefault;
     }
 
-    _typeSystem = Dart2TypeSystem(typeProvider);
+    _typeSystem = TypeSystemImpl(
+      implicitCasts: true,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
+
+    _setLibraryTypeSystem(sdkElements.coreLibrary);
+    _setLibraryTypeSystem(sdkElements.asyncLibrary);
   }
 
   @override
@@ -48,9 +58,14 @@ class TestAnalysisContext implements AnalysisContext {
   TypeProvider get typeProvider => _typeProvider;
 
   @override
-  TypeSystem get typeSystem => _typeSystem;
+  TypeSystemImpl get typeSystem => _typeSystem;
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
+    libraryElement.typeProvider = _typeProvider;
+    libraryElement.typeSystem = _typeSystem;
+  }
 }
 
 class _MockSource implements Source {

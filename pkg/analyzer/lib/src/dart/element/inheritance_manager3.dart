@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// Description of a failure to find a valid override from superinterfaces.
@@ -29,10 +30,8 @@ class Conflict {
 }
 
 /// Manages knowledge about interface types and their members.
-class InheritanceManager3 extends InheritanceManagerBase {
+class InheritanceManager3 {
   static final _noSuchMethodName = Name(null, 'noSuchMethod');
-
-  final TypeSystem _typeSystem;
 
   /// Cached instance interfaces for [InterfaceType].
   final Map<InterfaceType, Interface> _interfaces = {};
@@ -41,10 +40,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
   /// self-referencing cycles.
   final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
-  InheritanceManager3(this._typeSystem);
-
-  @override
-  InheritanceManager3 get asInheritanceManager3 => this;
+  InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
   /// Return the most specific signature of the member with the given [name]
   /// that the [type] inherits from the mixins, superclasses, or interfaces;
@@ -72,6 +68,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
     if (interface._inheritedMap == null) {
       interface._inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
+        type.element.library.typeSystem,
         interface._inheritedMap,
         interface._overridden,
       );
@@ -96,6 +93,8 @@ class InheritanceManager3 extends InheritanceManagerBase {
     if (!_processingClasses.add(classElement)) {
       return Interface._empty;
     }
+
+    var typeSystem = classElement.library.typeSystem;
 
     Map<Name, List<ExecutableElement>> namedCandidates = {};
     List<Map<Name, ExecutableElement>> superImplemented = [];
@@ -126,7 +125,11 @@ class InheritanceManager3 extends InheritanceManagerBase {
         // `mixin M on S1, S2 {}` can call using `super` any instance member
         // from its superclass constraints, whether it is abstract or concrete.
         var superClass = <Name, ExecutableElement>{};
-        _findMostSpecificFromNamedCandidates(superClass, superClassCandidates);
+        _findMostSpecificFromNamedCandidates(
+          typeSystem,
+          superClass,
+          superClassCandidates,
+        );
         superImplemented.add(superClass);
       } else {
         if (type.superclass != null) {
@@ -175,6 +178,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
     // signature becomes the signature of the class's interface.
     Map<Name, ExecutableElement> map = new Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
+      typeSystem,
       map,
       namedCandidates,
     );
@@ -236,7 +240,12 @@ class InheritanceManager3 extends InheritanceManagerBase {
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
-      return superImplemented.last[name];
+      if (superImplemented.isNotEmpty) {
+        return superImplemented.last[name];
+      } else {
+        assert(type.element.name == 'Object');
+        return null;
+      }
     }
     if (concrete) {
       return interface.implemented[name];
@@ -338,6 +347,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
+      TypeSystemImpl typeSystem,
       Map<Name, ExecutableElement> map,
       Map<Name, List<ExecutableElement>> namedCandidates) {
     List<Conflict> conflicts;
@@ -372,7 +382,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
         validOverride = candidates[i];
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
-          if (!_typeSystem.isOverrideSubtypeOf(
+          if (!typeSystem.isOverrideSubtypeOf(
               validOverride.type, candidate.type)) {
             validOverride = null;
             break;
@@ -425,14 +435,6 @@ class InheritanceManager3 extends InheritanceManagerBase {
         enclosing.supertype == null &&
         !enclosing.isMixin;
   }
-}
-
-/// A temporary bridge between the old and the new versions of inheritance
-/// managers. Clients may not reference, extend, implement, or mix-in this
-/// class. It will be removed in the next major version of analyser, together
-/// with "InheritanceManager2".
-abstract class InheritanceManagerBase {
-  InheritanceManager3 get asInheritanceManager3;
 }
 
 /// The instance interface of an [InterfaceType].

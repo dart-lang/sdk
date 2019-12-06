@@ -18,6 +18,11 @@ class Class extends core::Object {
   constructor •(self::Number* field) → self::Class*
     ;
 }
+class IntClass extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::IntClass*
+    ;
+}
 extension NumberExtension on self::Number* {
   operator + = self::NumberExtension|+;
   operator - = self::NumberExtension|-;
@@ -27,6 +32,12 @@ extension ClassExtension on self::Class* {
   method testImplicitProperties = self::ClassExtension|testImplicitProperties;
   tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
   set property = self::ClassExtension|set#property;
+}
+extension IntClassExtension on self::IntClass* {
+  get property = self::IntClassExtension|get#property;
+  method testImplicitProperties = self::IntClassExtension|testImplicitProperties;
+  tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
+  set property = self::IntClassExtension|set#property;
 }
 static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number*
   ;
@@ -40,15 +51,29 @@ static method ClassExtension|testImplicitProperties(final self::Class* #this) �
   ;
 static method ClassExtension|get#testImplicitProperties(final self::Class* #this) → () →* dynamic
   return () → dynamic => self::ClassExtension|testImplicitProperties(#this);
+static method IntClassExtension|get#property(final self::IntClass* #this) → core::int*
+  ;
+static method IntClassExtension|set#property(final self::IntClass* #this, core::int* value) → void
+  ;
+static method IntClassExtension|testImplicitProperties(final self::IntClass* #this) → dynamic
+  ;
+static method IntClassExtension|get#testImplicitProperties(final self::IntClass* #this) → () →* dynamic
+  return () → dynamic => self::IntClassExtension|testImplicitProperties(#this);
 static method main() → dynamic
   ;
 static method testLocals() → dynamic
   ;
 static method testProperties() → dynamic
   ;
+static method testIntProperties() → dynamic
+  ;
 static method testExplicitProperties() → dynamic
   ;
+static method testExplicitIntProperties() → dynamic
+  ;
 static method testExplicitNullAwareProperties(self::Class* v) → dynamic
+  ;
+static method testExplicitNullAwareIntProperties(self::IntClass* v) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual, [dynamic expectNull]) → dynamic
   ;

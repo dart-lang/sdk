@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -116,6 +118,8 @@ List Function() getImplements(clazz) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
 
+final _variances = JS('', 'Symbol("variances")');
+
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
@@ -176,6 +180,12 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+
+List getGenericArgVariances(type) =>
+    JS('List', '#', safeGetOwnProperty(type, _variances));
+
+void setGenericArgVariances(f, variances) =>
+    JS('', '#[#] = #', f, _variances, variances);
 
 List<TypeVariable> getGenericTypeFormals(genericClass) {
   return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));

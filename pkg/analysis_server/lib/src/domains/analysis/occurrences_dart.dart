@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   _DartUnitOccurrencesComputerVisitor visitor =
@@ -55,9 +54,6 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
-    return element;
+    return element?.declaration;
   }
 }

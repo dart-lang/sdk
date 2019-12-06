@@ -47,7 +47,7 @@ class CommandOutput {
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
-    if (hasFailed(testCase)) return Expectation.fail;
+    if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     return Expectation.pass;
@@ -111,22 +111,7 @@ class CommandOutput {
     return !hasTimedOut && exitCode == 0;
   }
 
-  // Reverse result of a negative test.
-  bool hasFailed(TestCase testCase) {
-    return testCase.isNegative ? !_didFail(testCase) : _didFail(testCase);
-  }
-
   bool get hasNonUtf8 => exitCode == nonUtfFakeExitCode;
-
-  Expectation _negateOutcomeIfNegativeTest(
-      Expectation outcome, bool isNegative) {
-    if (!isNegative) return outcome;
-    if (outcome == Expectation.ignore) return outcome;
-    if (outcome.canBeOutcomeOf(Expectation.fail)) {
-      return Expectation.pass;
-    }
-    return Expectation.fail;
-  }
 
   /// Called when producing output for a test failure to describe this output.
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -282,7 +267,7 @@ class BrowserCommandOutput extends CommandOutput
     with _UnittestSuiteMessagesMixin {
   final BrowserTestJsonResult _jsonResult;
   final BrowserTestOutput _result;
-  final Expectation _rawOutcome;
+  final Expectation _outcome;
 
   factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
     Expectation outcome;
@@ -317,7 +302,7 @@ class BrowserCommandOutput extends CommandOutput
   }
 
   BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
-      this._rawOutcome, this._jsonResult, List<int> stdout, List<int> stderr)
+      this._outcome, this._jsonResult, List<int> stdout, List<int> stderr)
       : _result = result,
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
@@ -332,11 +317,11 @@ class BrowserCommandOutput extends CommandOutput
 
     // Multitests are handled specially.
     if (testCase.hasRuntimeError) {
-      if (_rawOutcome == Expectation.runtimeError) return Expectation.pass;
+      if (_outcome == Expectation.runtimeError) return Expectation.pass;
       return Expectation.missingRuntimeError;
     }
 
-    return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
+    return _outcome;
   }
 
   /// Cloned code from member result(), with changes.
@@ -348,7 +333,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
-    return _rawOutcome;
+    return _outcome;
   }
 
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -507,13 +492,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);
-    }
-
-    // Handle negative.
-    if (testCase.isNegative) {
-      return errors.isNotEmpty
-          ? Expectation.pass
-          : Expectation.missingCompileTimeError;
     }
 
     // Handle errors / missing errors.
@@ -727,8 +705,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
       outcome = Expectation.fail;
     }
 
-    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
   }
 
   /// Cloned code from member result(), with changes.
@@ -835,9 +812,7 @@ class CompilationCommandOutput extends CommandOutput {
       return Expectation.compileTimeError;
     }
 
-    var outcome =
-        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
   }
 }
 
@@ -866,9 +841,7 @@ class DevCompilerCommandOutput extends CommandOutput {
           : Expectation.pass;
     }
 
-    var outcome =
-        exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
   }
 
   /// Cloned code from member result(), with changes.
@@ -930,16 +903,15 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     }
 
     // The actual outcome depends on the exitCode.
-    var outcome = Expectation.pass;
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
         exitCode == kBatchModeCompileTimeErrorExit) {
-      outcome = Expectation.compileTimeError;
+      return Expectation.compileTimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
-      outcome = Expectation.fail;
+      return Expectation.fail;
     }
 
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return Expectation.pass;
   }
 
   /// Cloned code from member result(), with changes.
@@ -1003,8 +975,7 @@ class JSCommandLineOutput extends CommandOutput
     }
 
     var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
-    outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
-    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
   }
 
   /// Cloned code from member result(), with changes.

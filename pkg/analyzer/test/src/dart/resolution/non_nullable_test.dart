@@ -5,6 +5,8 @@
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -54,6 +56,40 @@ class X = A with B implements C;
     assertType(findNode.typeName('A with'), 'A');
     assertType(findNode.typeName('B implements'), 'B');
     assertType(findNode.typeName('C;'), 'C');
+  }
+
+  test_field_functionTypeAlias() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(int, T);
+
+class C {
+  F? f;
+}
+''');
+    assertElementTypeString(
+      findElement.field('f').type,
+      'T Function<T>(int, T)?',
+    );
+  }
+
+  test_library_typeProvider_typeSystem() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+    await resolveTestCode(r'''
+// @dart = 2.5
+import 'a.dart';
+''');
+    var testLibrary = result.libraryElement;
+    var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
+    assertElementTypeString(testLibrary.typeProvider.intType, 'int*');
+    expect(testTypeSystem.isNonNullableByDefault, isFalse);
+
+    var aImport = findElement.importFind('package:test/a.dart');
+    var aLibrary = aImport.importedLibrary;
+    var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
+    assertElementTypeString(aLibrary.typeProvider.intType, 'int');
+    expect(aTypeSystem.isNonNullableByDefault, isTrue);
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {
@@ -173,7 +209,6 @@ main<T>(T a) {
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
-  @failingTest
   test_local_variable_genericFunctionType() async {
     await resolveTestCode('''
 main() {
@@ -184,7 +219,7 @@ main() {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -238,6 +273,19 @@ mixin X2 implements A {} // 2
     assertType(findNode.typeName('A {} // 2'), 'A');
   }
 
+  test_nonNullPromotion_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  void foo(T? t) {
+    T temp = t!;
+  }
+  T bar(T? t) {
+    return t!;
+  }
+}
+''');
+  }
+
   test_null_assertion_operator_changes_null_to_never() async {
     await resolveTestCode('''
 main() {
@@ -260,9 +308,26 @@ main() {
     assertType(findNode.postfix('x!'), 'Object');
   }
 
-  @FailingTest(
-    reason: 'The question token is not added to FieldFormalParameter yet',
-  )
+  test_parameter_functionTyped() async {
+    await assertNoErrorsInCode('''
+void f1(void p1()) {}
+void f2(void p2()?) {}
+void f3({void p3()?}) {}
+''');
+    assertElementTypeString(
+      findElement.parameter('p1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('p2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('p3').type,
+      'void Function()?',
+    );
+  }
+
   test_parameter_functionTyped_fieldFormal() async {
     await assertNoErrorsInCode('''
 class A {
@@ -284,26 +349,6 @@ class A {
     );
     assertElementTypeString(
       findElement.parameter('f3').type,
-      'void Function()?',
-    );
-  }
-
-  test_parameter_functionTyped() async {
-    await assertNoErrorsInCode('''
-void f1(void p1()) {}
-void f2(void p2()?) {}
-void f3({void p3()?}) {}
-''');
-    assertElementTypeString(
-      findElement.parameter('p1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('p2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('p3').type,
       'void Function()?',
     );
   }
@@ -330,7 +375,6 @@ f() {
     );
   }
 
-  @failingTest
   test_parameter_genericFunctionType() async {
     await resolveTestCode('''
 main(int? Function(bool, String?)? a) {
@@ -340,7 +384,7 @@ main(int? Function(bool, String?)? a) {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -458,7 +502,6 @@ main() {
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
-  @failingTest
   test_typedef_function() async {
     await resolveTestCode('''
 typedef F<T> = int? Function(bool, T, T?);
@@ -471,7 +514,7 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      'int? Function(bool!, String!, String?)?',
+      'int? Function(bool, String, String?)?',
     );
   }
 }

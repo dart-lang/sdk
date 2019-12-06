@@ -4,8 +4,6 @@
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,19 +42,12 @@ class InSummarySourceTest {
 }
 
 class MockSummaryDataStore implements SummaryDataStore {
-  final Map<String, LinkedLibrary> linkedMap;
-  final Map<String, UnlinkedUnit> unlinkedMap;
   final Map<String, String> uriToSummaryPath;
 
-  MockSummaryDataStore(this.linkedMap, this.unlinkedMap, this.uriToSummaryPath);
+  MockSummaryDataStore(this.uriToSummaryPath);
 
   factory MockSummaryDataStore.fake(Map<String, String> uriToSummary) {
-    // Create fake unlinked map.
-    // We don't populate the values as it is not needed for the test.
-    var unlinkedMap = new Map<String, UnlinkedUnit>.fromIterable(
-        uriToSummary.keys,
-        value: (uri) => new UnlinkedUnitBuilder());
-    return new MockSummaryDataStore(null, unlinkedMap, uriToSummary);
+    return new MockSummaryDataStore(uriToSummary);
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

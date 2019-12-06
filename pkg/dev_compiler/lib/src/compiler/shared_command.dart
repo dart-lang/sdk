@@ -196,6 +196,9 @@ class SharedCompilerOptions {
     // that build systems do not depend on passing windows-style paths here.
     return p.toUri(moduleName).toString();
   }
+
+  // TODO(nshahan) Cleanup when NNBD graduates experimental status.
+  bool get nonNullableEnabled => experiments['non-nullable'] ?? false;
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],
@@ -346,8 +349,15 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     var scheme = uri.scheme;
     if (scheme == 'dart' || scheme == 'package' || scheme == multiRootScheme) {
       if (scheme == multiRootScheme) {
-        var multiRootPath = '$multiRootOutputPath${uri.path}';
-        multiRootPath = p.relative(multiRootPath, from: sourceMapDir);
+        // TODO(sigmund): extract all source-map normalization outside ddc. This
+        // custom logic is BUILD specific and could be shared with other tools
+        // like dart2js.
+        var shortPath = uri.path
+            .replaceAll("/sdk/", "/dart-sdk/")
+            .replaceAll("/sdk_nnbd/", "/dart-sdk/");
+        var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
+        multiRootPath = multiRootPath;
+        multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
       return sourcePath;
@@ -361,7 +371,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     if (match != null) return match;
 
     // Fall back to a relative path against the source map itself.
-    sourcePath = p.relative(sourcePath, from: sourceMapDir);
+    sourcePath = p.url.relative(sourcePath, from: sourceMapDir);
 
     // Convert from relative local path to relative URI.
     return p.toUri(sourcePath).path;

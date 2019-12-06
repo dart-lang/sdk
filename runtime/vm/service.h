@@ -8,14 +8,13 @@
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
-#include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 27
+#define SERVICE_PROTOCOL_MINOR_VERSION 28
 
 class Array;
 class EmbedderServiceHandler;
@@ -24,6 +23,7 @@ class GCEvent;
 class GrowableObjectArray;
 class Instance;
 class Isolate;
+class IsolateGroup;
 class JSONStream;
 class JSONObject;
 class Object;
@@ -44,6 +44,9 @@ class ServiceIdZone {
 };
 
 #define ISOLATE_SERVICE_ID_FORMAT_STRING "isolates/%" Pd64 ""
+#define ISOLATE_GROUP_SERVICE_ID_PREFIX "isolateGroups/"
+#define ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING                                 \
+  ISOLATE_GROUP_SERVICE_ID_PREFIX "%" Pu64 ""
 
 class RingServiceIdZone : public ServiceIdZone {
  public:

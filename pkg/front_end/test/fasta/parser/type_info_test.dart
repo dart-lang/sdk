@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
+import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide scanString;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as scanner;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/parser/type_info.dart';
-import 'package:front_end/src/fasta/parser/type_info_impl.dart';
-import 'package:front_end/src/fasta/scanner.dart' hide scanString;
-import 'package:front_end/src/fasta/scanner.dart' as scanner;
-import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

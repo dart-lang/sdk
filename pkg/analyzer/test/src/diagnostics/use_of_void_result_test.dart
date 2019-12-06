@@ -529,7 +529,7 @@ dynamic main() {
   return x;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 36, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 
@@ -707,6 +707,22 @@ extension on void {
 }
 ''', [
       error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
+    ]);
+  }
+
+  test_void() async {
+    await assertErrorsInCode('''
+extension E on String {
+  int get g => 0;
+}
+
+void f() {}
+
+main() {
+  E(f()).g;
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
     ]);
   }
 }

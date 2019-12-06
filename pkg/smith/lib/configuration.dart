@@ -244,6 +244,7 @@ class Configuration {
         nnbdMode: nnbdMode,
         babel: stringOption("babel"),
         builderTag: stringOption("builder-tag"),
+        genKernelOptions: stringListOption("gen-kernel-options"),
         vmOptions: stringListOption("vm-options"),
         dart2jsOptions: stringListOption("dart2js-options"),
         experiments: stringListOption("enable-experiment"),
@@ -287,6 +288,8 @@ class Configuration {
   final String babel;
 
   final String builderTag;
+
+  final List<String> genKernelOptions;
 
   final List<String> vmOptions;
 
@@ -335,6 +338,7 @@ class Configuration {
       {NnbdMode nnbdMode,
       String babel,
       String builderTag,
+      List<String> genKernelOptions,
       List<String> vmOptions,
       List<String> dart2jsOptions,
       List<String> experiments,
@@ -354,6 +358,7 @@ class Configuration {
       : nnbdMode = nnbdMode ?? NnbdMode.legacy,
         babel = babel ?? "",
         builderTag = builderTag ?? "",
+        genKernelOptions = genKernelOptions ?? <String>[],
         vmOptions = vmOptions ?? <String>[],
         dart2jsOptions = dart2jsOptions ?? <String>[],
         experiments = experiments ?? <String>[],
@@ -382,6 +387,7 @@ class Configuration {
       nnbdMode == other.nnbdMode &&
       babel == other.babel &&
       builderTag == other.builderTag &&
+      _listsEqual(genKernelOptions, other.genKernelOptions) &&
       _listsEqual(vmOptions, other.vmOptions) &&
       _listsEqual(dart2jsOptions, other.dart2jsOptions) &&
       _listsEqual(experiments, other.experiments) &&
@@ -429,6 +435,7 @@ class Configuration {
       nnbdMode.hashCode ^
       babel.hashCode ^
       builderTag.hashCode ^
+      genKernelOptions.join(" & ").hashCode ^
       vmOptions.join(" & ").hashCode ^
       dart2jsOptions.join(" & ").hashCode ^
       experiments.join(" & ").hashCode ^
@@ -469,6 +476,7 @@ class Configuration {
 
     if (babel.isNotEmpty) fields.add("babel: $babel");
     if (builderTag.isNotEmpty) fields.add("builder-tag: $builderTag");
+    stringListField("gen-kernel-options", genKernelOptions);
     stringListField("vm-options", vmOptions);
     stringListField("dart2js-options", dart2jsOptions);
     stringListField("enable-experiment", experiments);
@@ -522,6 +530,8 @@ class Configuration {
     fields.add("nnbd: $nnbdMode ${other.nnbdMode}");
     stringField("babel", babel, other.babel);
     stringField("builder-tag", builderTag, other.builderTag);
+    stringListField(
+        "gen-kernel-options", genKernelOptions, other.genKernelOptions);
     stringListField("vm-options", vmOptions, other.vmOptions);
     stringListField("dart2js-options", dart2jsOptions, other.dart2jsOptions);
     stringListField("experiments", experiments, other.experiments);
@@ -553,14 +563,10 @@ class Architecture extends NamedEnum {
   static const arm = Architecture._('arm');
   static const arm_x64 = Architecture._('arm_x64');
   static const armv6 = Architecture._('armv6');
-  static const armv5te = Architecture._('armv5te');
   static const arm64 = Architecture._('arm64');
   static const simarm = Architecture._('simarm');
   static const simarmv6 = Architecture._('simarmv6');
-  static const simarmv5te = Architecture._('simarmv5te');
   static const simarm64 = Architecture._('simarm64');
-  static const simdbc = Architecture._('simdbc');
-  static const simdbc64 = Architecture._('simdbc64');
 
   static final List<String> names = _all.keys.toList();
 
@@ -569,15 +575,11 @@ class Architecture extends NamedEnum {
     x64,
     arm,
     armv6,
-    armv5te,
     arm_x64,
     arm64,
     simarm,
     simarmv6,
-    simarmv5te,
     simarm64,
-    simdbc,
-    simdbc64
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {

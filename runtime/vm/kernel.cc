@@ -6,7 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
-#include "vm/compiler/frontend/constant_evaluator.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
@@ -373,7 +373,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             if (temp_field.is_declared_in_bytecode()) {
               token_positions.Add(temp_field.token_pos().value());
               token_positions.Add(temp_field.end_token_pos().value());
-              if (temp_field.is_static() && temp_field.has_initializer()) {
+              if (temp_field.is_static() &&
+                  temp_field.has_nontrivial_initializer()) {
                 temp_function = temp_field.EnsureInitializerFunction();
                 CollectBytecodeFunctionTokenPositions(temp_function,
                                                       &token_positions);
@@ -454,7 +455,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (field.is_declared_in_bytecode()) {
           token_positions.Add(field.token_pos().value());
           token_positions.Add(field.end_token_pos().value());
-          if (field.is_static() && field.has_initializer()) {
+          if (field.is_static() && field.has_nontrivial_initializer()) {
             temp_function = field.EnsureInitializerFunction();
             CollectBytecodeFunctionTokenPositions(temp_function,
                                                   &token_positions);
@@ -488,8 +489,7 @@ class MetadataEvaluator : public KernelReaderHelper {
                            script,
                            data,
                            data_program_offset),
-        type_translator_(this, active_class, /* finalize= */ true),
-        constant_evaluator_(this, &type_translator_, active_class, nullptr) {}
+        constant_reader_(this, active_class) {}
 
   RawObject* EvaluateMetadata(intptr_t kernel_offset,
                               bool is_annotations_offset) {
@@ -518,12 +518,11 @@ class MetadataEvaluator : public KernelReaderHelper {
       }
     }
 
-    return constant_evaluator_.EvaluateAnnotations();
+    return constant_reader_.ReadAnnotations();
   }
 
  private:
-  TypeTranslator type_translator_;
-  ConstantEvaluator constant_evaluator_;
+  ConstantReader constant_reader_;
 
   DISALLOW_COPY_AND_ASSIGN(MetadataEvaluator);
 };
@@ -568,14 +567,12 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
                            script,
                            data,
                            data_program_offset),
-        type_translator_(this, active_class, /* finalize= */ true),
-        constant_evaluator_(this, &type_translator_, active_class, nullptr) {}
+        constant_reader_(this, active_class) {}
 
   RawObject* BuildParameterDescriptor(const Function& function);
 
  private:
-  TypeTranslator type_translator_;
-  ConstantEvaluator constant_evaluator_;
+  ConstantReader constant_reader_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterDescriptorBuilder);
 };
@@ -611,17 +608,17 @@ RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
 
     Tag tag = ReadTag();  // read (first part of) initializer.
     if ((tag == kSomething) && !function.is_abstract()) {
-      // this will (potentially) read the initializer, but reset the position.
+      // This will read the initializer.
       Instance& constant = Instance::ZoneHandle(
-          zone_, constant_evaluator_.EvaluateExpression(ReaderOffset()));
+          zone_, constant_reader_.ReadConstantExpression());
       param_descriptor.SetAt(entry_start + Parser::kParameterDefaultValueOffset,
                              constant);
     } else {
+      if (tag == kSomething) {
+        SkipExpression();  // Skip initializer.
+      }
       param_descriptor.SetAt(entry_start + Parser::kParameterDefaultValueOffset,
                              Object::null_instance());
-    }
-    if (tag == kSomething) {
-      SkipExpression();  // read (actual) initializer.
     }
 
     if (FLAG_enable_mirrors && (helper.annotation_count_ > 0)) {
@@ -629,7 +626,7 @@ RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
       VariableDeclarationHelper helper(this);
       helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
       Object& metadata =
-          Object::ZoneHandle(zone_, constant_evaluator_.EvaluateAnnotations());
+          Object::ZoneHandle(zone_, constant_reader_.ReadAnnotations());
       param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
                              metadata);
     } else {

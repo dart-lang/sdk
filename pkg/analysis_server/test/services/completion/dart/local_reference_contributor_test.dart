@@ -2537,6 +2537,51 @@ class B extends ^
     assertNoSuggestions();
   }
 
+  test_forEachPartsWithIdentifier_class() async {
+    addTestSource('''
+class C {}
+
+main() {
+ for(C in [0, 1, 2]) {
+   ^
+ }
+}
+''');
+    await computeSuggestions();
+    // Using `C` in for-each is invalid, but we should not crash.
+  }
+
+  test_forEachPartsWithIdentifier_localLevelVariable() async {
+    addTestSource('''
+main() {
+  int v;
+ for(v in [0, 1, 2]) {
+   ^
+ }
+}
+''');
+    await computeSuggestions();
+    // We don't actually use anything from the `for`, and `v` is suggested
+    // just because it is a visible top-level declaration.
+    assertSuggestLocalVariable('v', 'int');
+  }
+
+  test_forEachPartsWithIdentifier_topLevelVariable() async {
+    addTestSource('''
+int v;
+main() {
+ for(v in [0, 1, 2]) {
+   ^
+ }
+}
+''');
+    await computeSuggestions();
+    // We don't actually use anything from the `for`, and `v` is suggested
+    // just because it is a visible top-level declaration.
+    assertSuggestTopLevelVar('v', 'int',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
   test_ForEachStatement() async {
     // SimpleIdentifier  ForEachStatement
     addTestSource('main() {List<int> values; for (int index in ^)}');
@@ -2584,7 +2629,7 @@ class B extends ^
 
   test_ForEachStatement_body_untyped() async {
     // Block  ForEachStatement
-    addTestSource('main(args) {for (foo in bar) {^}}');
+    addTestSource('main(args) {for (var foo in bar) {^}}');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);

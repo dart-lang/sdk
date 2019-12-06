@@ -88,7 +88,6 @@ class Metric {
 
   static Metric* vm_head() { return vm_list_head_; }
 
- protected:
   // Override to get a callback when value is serialized to JSON.
   // Use this for metrics that produce their value on demand.
   virtual int64_t Value() const { return value(); }
@@ -131,52 +130,52 @@ class MinMetric : public Metric {
 };
 
 class MetricHeapOldUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapOldCapacity : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapOldExternal : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewCapacity : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapNewExternal : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricIsolateCount : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricCurrentRSS : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricPeakRSS : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 
 class MetricHeapUsed : public Metric {
- protected:
+ public:
   virtual int64_t Value() const;
 };
 

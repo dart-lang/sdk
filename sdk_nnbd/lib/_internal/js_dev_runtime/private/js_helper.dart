@@ -203,7 +203,7 @@ class Primitives {
   }
 
   static int timerFrequency;
-  static num Function() timerTicks;
+  static int Function() timerTicks;
 
   static bool get isD8 {
     return JS(
@@ -268,7 +268,7 @@ class Primitives {
   }
 
   @notNull
-  static String stringFromCharCodes(JSArray<int> charCodes) {
+  static String stringFromCharCodes(List<int> charCodes) {
     for (@nullCheck var i in charCodes) {
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
@@ -362,7 +362,7 @@ class Primitives {
     return -JS<int>('!', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(
+  static int valueFromDecomposedDate(
       @nullCheck int years,
       @nullCheck int month,
       @nullCheck int day,
@@ -375,10 +375,10 @@ class Primitives {
     var jsMonth = month - 1;
     num value;
     if (isUtc) {
-      value = JS('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth, day,
-          hours, minutes, seconds, milliseconds);
+      value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,
+          day, hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
+      value = JS<int>('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
           jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN ||
@@ -390,14 +390,14 @@ class Primitives {
     return value;
   }
 
-  static num patchUpY2K(value, years, isUtc) {
-    var date = JS('', r'new Date(#)', value);
+  static int patchUpY2K(value, years, isUtc) {
+    var date = JS<int>('!', r'new Date(#)', value);
     if (isUtc) {
-      JS('', r'#.setUTCFullYear(#)', date, years);
+      JS<int>('!', r'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('', r'#.setFullYear(#)', date, years);
+      JS<int>('!', r'#.setFullYear(#)', date, years);
     }
-    return JS('!', r'#.valueOf()', date);
+    return JS<int>('!', r'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.

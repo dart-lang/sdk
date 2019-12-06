@@ -65,7 +65,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
 import '../common_elements.dart' show CommonElements;
-import '../elements/entities.dart' show FunctionEntity;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
@@ -77,7 +76,15 @@ import '../js_model/type_recipe.dart'
         FullTypeEnvironmentRecipe;
 import '../serialization/serialization.dart';
 import '../util/util.dart' show Hashing;
+import 'frequency_assignment.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
+
+/// Run the minifier for 'type$' property names even in non-minified mode,
+/// making a name from minified name and the readable name. Usage:
+///
+///     DART_VM_OPTIONS='-DDebugMinifyTypesHolder=true' dart2js ...
+///
+const _debugMinify = bool.fromEnvironment('DebugMinifyTypesHolder');
 
 /// A [TypeReference] is a deferred JavaScript expression that refers to the
 /// runtime representation of a ground type or ground type environment.  The
@@ -91,9 +98,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   /// [typeRecipe] is a recipe for a ground type or type environment.
   final TypeRecipe typeRecipe;
 
+  // TODO(sra): Refine the concept of reference context and replace the
+  // 'forConstant' and 'forLazyInitializer' flags.
+
   // `true` if TypeReference is in code that initializes constant value.
-  // TODO(sra): Refine the concept of reference context.
   bool forConstant = false;
+
+  // `true` if TypeReference is in code for a lazy initializer of a static
+  // variable.
+  bool forLazyInitializer = false;
 
   js.Expression _value;
 
@@ -106,13 +119,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
   factory TypeReference.readFromDataSource(DataSource source) {
     source.begin(tag);
     TypeRecipe recipe = source.readTypeRecipe();
+    bool forLazyInitializer = source.readBool();
     source.end(tag);
-    return TypeReference(recipe);
+    return TypeReference(recipe)..forLazyInitializer = forLazyInitializer;
   }
 
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeTypeRecipe(typeRecipe);
+    sink.writeBool(forLazyInitializer);
     sink.end(tag);
   }
 
@@ -240,7 +255,9 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   void _registerTypeReference(TypeReference node) {
     TypeRecipe recipe = node.typeRecipe;
     _ReferenceSet refs = _referencesByRecipe[recipe] ??= _ReferenceSet(recipe);
-    refs.count += 1;
+    refs.count++;
+    if (node.forConstant) refs.countInConstant++;
+    if (node.forLazyInitializer) refs.countInLazyInitializer++;
     refs._references.add(node);
   }
 
@@ -251,19 +268,20 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   }
 
   void _updateReferences() {
-    js.Expression loadTypeCall(TypeRecipe recipe) {
-      FunctionEntity helperElement = _commonElements.findType;
+    js.Expression helperAccess =
+        _emitter.staticFunctionAccess(_commonElements.findType);
+
+    js.Expression loadTypeCall(TypeRecipe recipe, String helperLocal) {
       js.Expression recipeExpression =
           _recipeEncoder.encodeGroundRecipe(_emitter, recipe);
-      js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      return js.js(r'#(#)', [helper, recipeExpression]);
+      return js.js(r'#(#)', [helperLocal ?? helperAccess, recipeExpression]);
     }
 
     // Emit generate-at-use references.
     for (_ReferenceSet referenceSet in _referencesByRecipe.values) {
       if (referenceSet.generateAtUse) {
         TypeRecipe recipe = referenceSet.recipe;
-        js.Expression reference = loadTypeCall(recipe);
+        js.Expression reference = loadTypeCall(recipe, null);
         for (TypeReference ref in referenceSet._references) {
           ref.value = reference;
         }
@@ -277,20 +295,43 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
     // are grouped together.
     referenceSetsUsingProperties.sort((a, b) => a.name.compareTo(b.name));
 
+    // We can generate a literal with calls to H.findType (minified to typically
+    // e.g. H.xy) or cache H.findType in a local in a scope created by an IIFE.
+    // Doing so saves 2-3 bytes per entry, but with an overhead of 30+ bytes for
+    // the IIFE.  So it is smaller to use the IIFE only for over 10 or so types.
+    const minUseIIFE = 10;
+    String helperLocal =
+        referenceSetsUsingProperties.length < minUseIIFE ? null : 'findType';
+
     List<js.Property> properties = [];
     for (_ReferenceSet referenceSet in referenceSetsUsingProperties) {
       TypeRecipe recipe = referenceSet.recipe;
       var propertyName = js.string(referenceSet.propertyName);
-      properties.add(js.Property(propertyName, loadTypeCall(recipe)));
+      properties
+          .add(js.Property(propertyName, loadTypeCall(recipe, helperLocal)));
       var access = js.js('#.#', [typesHolderLocalName, propertyName]);
       for (TypeReference ref in referenceSet._references) {
         ref.value = access;
       }
     }
-    var initializer = js.ObjectInitializer(properties, isOneLiner: false);
 
-    _resource.value = js.js(r'var # = #',
-        [js.VariableDeclaration(typesHolderLocalName), initializer]);
+    if (properties.isEmpty) {
+      // We don't have a deferred statement sequence. "0;" is the smallest we
+      // can do with an expression statement.
+      // TODO(sra): Add deferred expression statement sequences.
+      _resource.value = js.js('0');
+    } else {
+      js.Expression initializer =
+          js.ObjectInitializer(properties, isOneLiner: false);
+      if (helperLocal != null) {
+        // A named IIFE helps attribute startup time in profiling.
+        var function = js.js(r'function rtii(){var # = #; return #}',
+            [js.VariableDeclaration(helperLocal), helperAccess, initializer]);
+        initializer = js.js('#()', js.Parentheses(function));
+      }
+      _resource.value = js.js(r'var # = #',
+          [js.VariableDeclaration(typesHolderLocalName), initializer]);
+    }
   }
 
   // This is a top-level local name in the generated JavaScript top-level
@@ -299,19 +340,45 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
   static const typesHolderLocalName = r'type$';
 
   void _allocateNames() {
-    // Step 1. Filter out generate-at-use cases and allocate unique
-    // characteristic names to the rest.
+    // Filter out generate-at-use cases and allocate unique names to the rest.
     List<_ReferenceSet> referencesInTable = [];
     Set<String> usedNames = {};
     for (_ReferenceSet referenceSet in _referencesByRecipe.values) {
-      // TODO(sra): Use more refined idea of context, e.g. single-use recipes in
-      // lazy initializers or 'throw' expressions.
+      // - If a type is used only once from a constant then the findType can be
+      // a subexpression of constant since it will be evaluated exactly once and
+      // need not be stored anywhere else.
+      if (referenceSet.count == 1 && referenceSet.countInConstant == 1) {
+        continue;
+      }
 
-      // If a type is used only once from a constant then the findType can be a
-      // subexpression of constant since it will be evaluated only once and need
-      // not be stored anywhere else.
-      if (referenceSet.count == 1 &&
-          referenceSet._references.single.forConstant) continue;
+      // - Lazy initializers are usually evaluated on demand and only once, so
+      // it is worth deferrering evaluating the type references until the lazy
+      // initializer is executed, provided it does not increase program
+      // size too much.
+      //
+      // Assuming minification in a large program, the size for precomputed is
+      //
+      //     abc:f("TTT"),/*once*/ +  type$.abc/*N times*/
+      //
+      // i.e. 13 + 5N. The size for repeated generate-at-use is
+      //
+      //      H.lookupType("TTT") /*N times*/
+      //
+      // i.e. 10N. Repeated is smaller when 10N < 13+5N, or N < 2.6. Since we
+      // get a startup benefit of not evaluating the type recipe, lets round
+      // up. Note that we don't know the size of the recipe ("TTT" assumes an
+      // infrequently referenced non-generic interface type), but if the recipe
+      // is larger, it is in a string so the program has the same number of
+      // tokens and the extra bytes will be parsed efficiently.
+      const int maxRepeatedLookups = 3;
+
+      if (referenceSet.countInLazyInitializer == referenceSet.count &&
+          referenceSet.count <= maxRepeatedLookups) {
+        continue;
+      }
+
+      // TODO(sra): There are other contexts that would be beneficial, e.g. a
+      // type reference occuring only in a throw expression.
 
       String suggestedName = _RecipeToIdentifier().run(referenceSet.recipe);
       if (usedNames.contains(suggestedName)) {
@@ -327,7 +394,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       referencesInTable.add(referenceSet);
     }
 
-    if (!_minify) {
+    if (!_minify && !_debugMinify) {
       // For unminified code, use the characteristic names as property names.
       // TODO(sra): Some of these names are long. We could truncate the names
       // after the unique prefix.
@@ -351,15 +418,20 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
       referenceSet.hash = _hashCharacteristicString(referenceSet.name);
     }
 
-    Iterator<String> names = minifiedNameSequence().iterator..moveNext();
-
-    // TODO(sra): It is highly unstable to allocate names in frequency
-    // order. Use a more stable frequency based allocation by assigning
-    // 'preferred' names.
-    for (_ReferenceSet referenceSet in referencesByFrequency) {
-      referenceSet.propertyName = names.current;
-      names.moveNext();
+    int hashOf(int index) => referencesByFrequency[index].hash;
+    int countOf(int index) => referencesByFrequency[index].count;
+    void assign(int index, String name) {
+      if (_minify) {
+        referencesByFrequency[index].propertyName = name;
+      } else {
+        var refSet = referencesByFrequency[index];
+        refSet.propertyName = name + '_' + refSet.name;
+      }
     }
+
+    //naiveFrequencyAssignment(
+    semistableFrequencyAssignment(referencesByFrequency.length,
+        minifiedNameSequence(), hashOf, countOf, assign);
   }
 
   static int _hashCharacteristicString(String s) {
@@ -420,6 +492,11 @@ class _ReferenceSet {
   // Number of times a TypeReference for [recipe] occurs in the tree-scan of the
   // JavaScript ASTs.
   int count = 0;
+
+  // Number tree-scan occurrences in a constant initializer.
+  int countInConstant = 0;
+  // Number tree-scan occurrences in a static lazy initializer.
+  int countInLazyInitializer = 0;
 
   // It is possible for the JavaScript AST to be a DAG, so collect
   // [TypeReference]s as set so we don't try to update one twice.
@@ -540,6 +617,23 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   void _visit(DartType type, DartType parent) {
     type.accept(this, parent);
+  }
+
+  @override
+  void visitLegacyType(covariant LegacyType type, _) {
+    _add('legacy');
+    _visit(type.baseType, type);
+  }
+
+  @override
+  void visitNullableType(covariant NullableType type, _) {
+    _add('nullable');
+    _visit(type.baseType, type);
+  }
+
+  @override
+  void visitNeverType(covariant NeverType type, _) {
+    _add('Never');
   }
 
   @override

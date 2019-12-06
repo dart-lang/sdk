@@ -2409,55 +2409,16 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
       target::ClassTable::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
   movl(temp_reg, Address(temp_reg, shared_table_offset));
   movl(temp_reg, Address(temp_reg, table_offset));
-  state_address = Address(temp_reg, state_offset);
-  testb(state_address,
-        Immediate(target::ClassHeapStats::TraceAllocationMask()));
+  cmpb(Address(temp_reg, class_offset), Immediate(0));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
   j(NOT_ZERO, trace, near_jump);
-}
-
-void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
-  ASSERT(cid > 0);
-  const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t counter_offset =
-      target::ClassTable::NewSpaceCounterOffsetFor(cid);
-
-  ASSERT(temp_reg != kNoRegister);
-  LoadIsolate(temp_reg);
-  movl(temp_reg, Address(temp_reg, shared_table_offset));
-  movl(temp_reg, Address(temp_reg, table_offset));
-  incl(Address(temp_reg, counter_offset));
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
-                                              Register size_reg,
-                                              Register temp_reg) {
-  ASSERT(cid > 0);
-  ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
-  addl(Address(temp_reg, size_offset), size_reg);
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
-                                              intptr_t size_in_bytes,
-                                              Register temp_reg) {
-  ASSERT(cid > 0);
-  ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
-  addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT
 
@@ -2484,7 +2445,6 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
-    NOT_IN_PRODUCT(UpdateAllocationStats(cid, temp_reg));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     const uint32_t tags =
@@ -2527,7 +2487,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movl(Address(THR, target::Thread::top_offset()), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, instance_size, temp_reg));
 
     // Initialize the tags.
     const uint32_t tags =

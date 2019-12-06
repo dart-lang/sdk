@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
-import 'dart:core' hide Symbol;
-import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
 import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
@@ -19,7 +15,7 @@ class Symbol implements core.Symbol {
 
   @patch
   int get hashCode {
-    int hash = JS('int|Null', '#._hashCode', this);
+    int? hash = JS('int|Null', '#._hashCode', this);
     if (hash != null) return hash;
     const arbitraryPrime = 664597;
     hash = 0x1fffffff & (arbitraryPrime * _name.hashCode);
@@ -40,13 +36,13 @@ void printToConsole(String line) {
 }
 
 @patch
-List<E> makeListFixedLength<E>(List<E> growableList) {
+List<T> makeListFixedLength<T>(List<T> growableList) {
   JSArray.markFixedList(growableList);
   return growableList;
 }
 
 @patch
-List<E> makeFixedListUnmodifiable<E>(List<E> fixedLengthList) {
+List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   JSArray.markUnmodifiableList(fixedLengthList);
   return fixedLengthList;
 }

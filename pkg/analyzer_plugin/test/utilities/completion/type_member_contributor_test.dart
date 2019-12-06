@@ -2070,6 +2070,14 @@ void f(C<int> c) {
     expect(suggestion.element.parameters, '(int value)');
   }
 
+  test_genericTypeAlias_noFunctionType() async {
+    addTestSource('''
+typedef F=;
+g(F.^
+''');
+    await computeSuggestions();
+  }
+
   test_IfStatement() async {
     // SimpleIdentifier  IfStatement
     addTestSource('''

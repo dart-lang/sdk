@@ -126,6 +126,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       WorldImpactBuilderImpl newRtiImpact = new WorldImpactBuilderImpl();
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
           _commonElements.rtiAddRulesMethod, CallStructure.TWO_ARGS));
+      newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
+          _commonElements.rtiAddErasedTypesMethod, CallStructure.TWO_ARGS));
       enqueuer.applyImpact(newRtiImpact);
       _isNewRtiUsed = true;
     }
@@ -172,7 +174,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
-      if (type.representedType.isInterfaceType) {
+      if (type.representedType is InterfaceType) {
         InterfaceType representedType = type.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }

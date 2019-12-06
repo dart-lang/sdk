@@ -41,14 +41,6 @@ class ScopedIsolateStackLimits : public ValueObject {
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
       : thread_(thread) {
     ASSERT(thread != NULL);
-    // Set the thread's stack_base based on the current
-    // stack pointer, we keep refining this value as we
-    // see higher stack pointers (Note: we assume the stack
-    // grows from high to low addresses).
-    OSThread* os_thread = thread->os_thread();
-    ASSERT(os_thread != NULL);
-    os_thread->RefineStackBoundsFromSP(current_sp);
-
     // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
@@ -167,20 +159,15 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-// Now Call the invoke stub which will invoke the dart function.
-#if !defined(TARGET_ARCH_DBC)
+  // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint =
       reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());
-#endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
-#if defined(TARGET_ARCH_DBC)
-  return Simulator::Current()->Call(code, arguments_descriptor, arguments,
-                                    thread);
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint), reinterpret_cast<intptr_t>(&code),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
@@ -372,11 +359,12 @@ RawArray* ArgumentsDescriptor::GetArgumentNames() const {
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
-                                   const Array& optional_arguments_names) {
+                                   const Array& optional_arguments_names,
+                                   Heap::Space space) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
-    return ArgumentsDescriptor::New(type_args_len, num_arguments);
+    return ArgumentsDescriptor::New(type_args_len, num_arguments, space);
   }
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
@@ -390,8 +378,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const intptr_t descriptor_len = LengthFor(num_named_args);
-  Array& descriptor =
-      Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
+  Array& descriptor = Array::Handle(zone, Array::New(descriptor_len, space));
 
   // Set length of type argument vector.
   descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(Smi::New(type_args_len)));
@@ -441,27 +428,28 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 }
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
-                                   intptr_t num_arguments) {
+                                   intptr_t num_arguments,
+                                   Heap::Space space) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
   if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount)) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(type_args_len, num_arguments, true);
+  return NewNonCached(type_args_len, num_arguments, true, space);
 }
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
-                                            bool canonicalize) {
+                                            bool canonicalize,
+                                            Heap::Space space) {
   // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
   // and a terminating null to simplify iterating in generated code.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const intptr_t descriptor_len = LengthFor(0);
-  Array& descriptor =
-      Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
+  Array& descriptor = Array::Handle(zone, Array::New(descriptor_len, space));
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
   // Set type argument vector length.
@@ -492,7 +480,8 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 
 void ArgumentsDescriptor::Init() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
-    cached_args_descriptors_[i] = NewNonCached(/*type_args_len=*/0, i, false);
+    cached_args_descriptors_[i] =
+        NewNonCached(/*type_args_len=*/0, i, false, Heap::kOld);
   }
 }
 

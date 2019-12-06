@@ -229,6 +229,9 @@ abstract class ServiceObject implements M.ObjectRef {
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
         break;
+      case 'IsolateGroup':
+        obj = new IsolateGroup._empty(owner.vm);
+        break;
       case 'Library':
         obj = new Library._empty(owner);
         break;
@@ -661,9 +664,12 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
   Map<String, ServiceObject> _cache = new Map<String, ServiceObject>();
   final Map<String, Isolate> _isolateCache = <String, Isolate>{};
+  final Map<String, IsolateGroup> _isolateGroupCache = <String, IsolateGroup>{};
 
   // The list of live isolates, ordered by isolate start time.
   final List<Isolate> isolates = <Isolate>[];
+
+  final List<IsolateGroup> isolateGroups = <IsolateGroup>[];
 
   final List<Service> services = <Service>[];
 
@@ -771,6 +777,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   }
 
   static final String _isolateIdPrefix = 'isolates/';
+  static final String _isolateGroupIdPrefix = 'isolateGroups/';
 
   ServiceObject getFromMap(Map map) {
     if (map == null) {
@@ -784,23 +791,44 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
 
     String id = map['id'];
-    if ((id != null) && id.startsWith(_isolateIdPrefix)) {
-      // Check cache.
-      var isolate = _isolateCache[id];
-      if (isolate == null) {
-        // Add new isolate to the cache.
-        isolate = new ServiceObject._fromMap(this, map);
-        _isolateCache[id] = isolate;
-        _buildIsolateList();
+    if ((id != null)) {
+      if (id.startsWith(_isolateIdPrefix)) {
+        // Check cache.
+        var isolate = _isolateCache[id];
+        if (isolate == null) {
+          // Add new isolate to the cache.
+          isolate = ServiceObject._fromMap(this, map);
+          _isolateCache[id] = isolate;
+          _buildIsolateList();
 
-        // Eagerly load the isolate.
-        isolate.load().catchError((e, stack) {
-          Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
-        });
-      } else {
-        isolate.updateFromServiceMap(map);
+          // Eagerly load the isolate.
+          isolate.load().catchError((e, stack) {
+            Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
+          });
+        } else {
+          isolate.updateFromServiceMap(map);
+        }
+        return isolate;
       }
-      return isolate;
+      if (id.startsWith(_isolateGroupIdPrefix)) {
+        // Check cache.
+        var isolateGroup = _isolateGroupCache[id];
+        if (isolateGroup == null) {
+          // Add new isolate to the cache.
+          isolateGroup = new ServiceObject._fromMap(this, map);
+          _isolateGroupCache[id] = isolateGroup;
+          _buildIsolateGroupList();
+
+          // Eagerly load the isolate.
+          isolateGroup.load().catchError((e, stack) {
+            Logger.root
+                .info('Eagerly loading an isolate group failed: $e\n$stack');
+          });
+        } else {
+          isolateGroup.updateFromServiceMap(map);
+        }
+        return isolateGroup;
+      }
     }
 
     // Build the object from the map directly.
@@ -815,6 +843,27 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return load().then((_) => getIsolate(isolateId)).catchError(_ignoreError);
     }
     return new Future.value(_isolateCache[isolateId]);
+  }
+
+  int _compareIsolateGroups(IsolateGroup a, IsolateGroup b) {
+    return a.id.compareTo(b.id);
+  }
+
+  void _buildIsolateGroupList() {
+    final isolateGroupList = _isolateGroupCache.values.toList();
+    isolateGroupList.sort(_compareIsolateGroups);
+    isolateGroups.clear();
+    isolateGroups.addAll(isolateGroupList);
+  }
+
+  void _removeDeadIsolateGroups(List newIsolateGroups) {
+    // Build a set of new isolates.
+    final Set newIsolateGroupSet =
+        newIsolateGroups.map((iso) => iso.id).toSet();
+
+    // Remove any old isolates which no longer exist.
+    _isolateGroupCache.removeWhere((id, _) => !newIsolateGroupSet.contains(id));
+    _buildIsolateGroupList();
   }
 
   // Implemented in subclass.
@@ -989,6 +1038,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
+    _removeDeadIsolateGroups(map['isolateGroups']);
   }
 
   // Reload all isolates.
@@ -1122,7 +1172,7 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final HeapObject parentField;
+  final String parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
@@ -1218,6 +1268,91 @@ class HeapSpace implements M.HeapSpace {
     totalCollectionTimeInSeconds = heapMap['time'];
     averageCollectionPeriodInMillis = heapMap['avgCollectionPeriodMillis'];
   }
+
+  void add(HeapSpace other) {
+    used += other.used;
+    capacity += other.capacity;
+    external += other.external;
+    collections += other.collections;
+    totalCollectionTimeInSeconds += other.totalCollectionTimeInSeconds;
+    if (collections == 0) {
+      averageCollectionPeriodInMillis = 0.0;
+    } else {
+      averageCollectionPeriodInMillis =
+          (totalCollectionTimeInSeconds / collections) * 1000.0;
+    }
+  }
+}
+
+class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
+  IsolateGroup._empty(ServiceObjectOwner owner)
+      : assert(owner is VM),
+        super._empty(owner);
+
+  @override
+  void _update(Map map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
+    number = int.tryParse(map['number']);
+    if (mapIsRef) {
+      return;
+    }
+    _loaded = true;
+    isolates.clear();
+    isolates.addAll(map['isolates'] as List<Isolate>);
+    isolates.sort(ServiceObject.LexicalSortName);
+    vm._buildIsolateGroupList();
+  }
+
+  @override
+  ServiceObject getFromMap(Map map) {
+    if (map == null) {
+      return null;
+    }
+    final mapType = _stripRef(map['type']);
+    if (mapType == 'IsolateGroup') {
+      // There are sometimes isolate group refs in ServiceEvents.
+      return vm.getFromMap(map);
+    }
+    String mapId = map['id'];
+    var obj = (mapId != null) ? _cache[mapId] : null;
+    if (obj != null) {
+      obj.updateFromServiceMap(map);
+      return obj;
+    }
+    // Build the object from the map directly.
+    obj = new ServiceObject._fromMap(this, map);
+    if ((obj != null) && obj.canCache) {
+      _cache[mapId] = obj;
+    }
+    return obj;
+  }
+
+  Future<Map> invokeRpcNoUpgrade(String method, Map params) {
+    params['isolateGroupId'] = id;
+    return vm.invokeRpcNoUpgrade(method, params);
+  }
+
+  Future<ServiceObject> invokeRpc(String method, Map params) {
+    return invokeRpcNoUpgrade(method, params)
+        .then((Map response) => getFromMap(response));
+  }
+
+  @override
+  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+    Map params = {
+      'isolateGroupId': id,
+    };
+    return vm.invokeRpcNoUpgrade('getIsolateGroup', params);
+  }
+
+  @override
+  final List<Isolate> isolates = <Isolate>[];
+
+  @override
+  int number;
+
+  final Map<String, ServiceObject> _cache = Map<String, ServiceObject>();
 }
 
 /// State for a running isolate.
@@ -2398,50 +2533,30 @@ class Library extends HeapObject implements M.Library {
   String toString() => "Library($uri)";
 }
 
-class AllocationCount implements M.AllocationCount {
-  int instances = 0;
-  int bytes = 0;
-
-  void reset() {
-    instances = 0;
-    bytes = 0;
-  }
-
-  bool get empty => (instances == 0) && (bytes == 0);
-  bool get notEmpty => (instances != 0) || (bytes != 0);
-}
-
 class Allocations implements M.Allocations {
   // Indexes into VM provided array. (see vm/class_table.h).
-  static const ALLOCATED_BEFORE_GC = 0;
-  static const ALLOCATED_BEFORE_GC_SIZE = 1;
-  static const LIVE_AFTER_GC = 2;
-  static const LIVE_AFTER_GC_SIZE = 3;
-  static const ALLOCATED_SINCE_GC = 4;
-  static const ALLOCATED_SINCE_GC_SIZE = 5;
-  static const ACCUMULATED = 6;
-  static const ACCUMULATED_SIZE = 7;
 
-  final AllocationCount accumulated = new AllocationCount();
-  final AllocationCount current = new AllocationCount();
+  int instances = 0;
+  int internalSize = 0;
+  int externalSize = 0;
+  int size = 0;
 
   void update(List stats) {
-    accumulated.instances = stats[ACCUMULATED];
-    accumulated.bytes = stats[ACCUMULATED_SIZE];
-    current.instances = stats[LIVE_AFTER_GC] + stats[ALLOCATED_SINCE_GC];
-    current.bytes = stats[LIVE_AFTER_GC_SIZE] + stats[ALLOCATED_SINCE_GC_SIZE];
+    instances = stats[0];
+    internalSize = stats[1];
+    externalSize = stats[2];
+    size = internalSize + externalSize;
   }
 
   void combine(Iterable<Allocations> allocations) {
-    accumulated.instances =
-        allocations.fold(0, (v, a) => v + a.accumulated.instances);
-    accumulated.bytes = allocations.fold(0, (v, a) => v + a.accumulated.bytes);
-    current.instances = allocations.fold(0, (v, a) => v + a.current.instances);
-    current.bytes = allocations.fold(0, (v, a) => v + a.current.bytes);
+    instances = allocations.fold(0, (v, a) => v + a.instances);
+    internalSize = allocations.fold(0, (v, a) => v + a.internalSize);
+    externalSize = allocations.fold(0, (v, a) => v + a.externalSize);
+    size = allocations.fold(0, (v, a) => v + a.size);
   }
 
-  bool get empty => accumulated.empty && current.empty;
-  bool get notEmpty => accumulated.notEmpty || current.notEmpty;
+  bool get empty => size == 0;
+  bool get notEmpty => size != 0;
 }
 
 class Class extends HeapObject implements M.Class {
@@ -2459,7 +2574,6 @@ class Class extends HeapObject implements M.Class {
 
   final Allocations newSpace = new Allocations();
   final Allocations oldSpace = new Allocations();
-  final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   bool get hasAllocations => newSpace.notEmpty || oldSpace.notEmpty;
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
@@ -2542,14 +2656,6 @@ class Class extends HeapObject implements M.Class {
 
     traceAllocations =
         (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
-
-    var allocationStats = map['_allocationStats'];
-    if (allocationStats != null) {
-      newSpace.update(allocationStats['_new']);
-      oldSpace.update(allocationStats['_old']);
-      promotedByLastNewGC.instances = allocationStats['promotedInstances'];
-      promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
-    }
   }
 
   void _addSubclass(Class subclass) {

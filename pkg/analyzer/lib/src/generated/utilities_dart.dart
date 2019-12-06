@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 
-export 'package:front_end/src/base/resolve_relative_uri.dart'
+export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
 /**

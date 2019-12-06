@@ -35,13 +35,14 @@ import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/kernel.dart' show Component, Procedure;
+import 'package:kernel/kernel.dart' show Component, Library, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/bytecode/gen_bytecode.dart'
     show createFreshComponentWithBytecode, generateBytecode;
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
-import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
+import 'package:vm/kernel_front_end.dart'
+    show createLoadedLibrariesSet, runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -157,7 +158,7 @@ abstract class Compiler {
       };
   }
 
-  Future<Component> compile(Uri script) {
+  Future<CompilerResult> compile(Uri script) {
     return runWithPrintToStderr(() async {
       CompilerResult compilerResult = await compileInternal(script);
       Component component = compilerResult.component;
@@ -169,11 +170,19 @@ abstract class Compiler {
       }
 
       if (options.bytecode && errors.isEmpty) {
+        final List<Library> libraries = new List<Library>();
+        final Set<Library> loadedLibraries = compilerResult.loadedLibraries;
+        for (Library library in component.libraries) {
+          if (loadedLibraries.contains(library)) continue;
+          libraries.add(library);
+        }
+
         await runWithFrontEndCompilerContext(script, options, component, () {
           // TODO(alexmarkov): disable local variables info,
           //  debugger stops and source files in VM PRODUCT mode.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
+              libraries: libraries,
               coreTypes: compilerResult.coreTypes,
               hierarchy: compilerResult.classHierarchy,
               options: new BytecodeOptions(
@@ -195,11 +204,17 @@ abstract class Compiler {
                 keepUnreachableCode: supportCodeCoverage,
                 avoidClosureCallInstructions: supportCodeCoverage,
               ));
-          component = createFreshComponentWithBytecode(component);
+          Component freshComponent =
+              createFreshComponentWithBytecode(component);
+          compilerResult = new CompilerResult(
+              freshComponent,
+              compilerResult.loadedLibraries,
+              compilerResult.classHierarchy,
+              compilerResult.coreTypes);
         });
       }
 
-      return component;
+      return compilerResult;
     });
   }
 
@@ -208,11 +223,17 @@ abstract class Compiler {
 
 class CompilerResult {
   final Component component;
+
+  /// Set of libraries loaded from .dill, with or without the SDK depending on
+  /// the compilation settings.
+  final Set<Library> loadedLibraries;
   final ClassHierarchy classHierarchy;
   final CoreTypes coreTypes;
 
-  CompilerResult(this.component, this.classHierarchy, this.coreTypes)
+  CompilerResult(
+      this.component, this.loadedLibraries, this.classHierarchy, this.coreTypes)
       : assert(component != null),
+        assert(loadedLibraries != null),
         assert(classHierarchy != null),
         assert(coreTypes != null);
 }
@@ -279,8 +300,8 @@ class IncrementalCompilerWrapper extends Compiler {
     }
     errors.clear();
     final component = await generator.compile(entryPoint: script);
-    return new CompilerResult(
-        component, generator.getClassHierarchy(), generator.getCoreTypes());
+    return new CompilerResult(component, const {},
+        generator.getClassHierarchy(), generator.getCoreTypes());
   }
 
   void accept() => generator.accept();
@@ -336,7 +357,12 @@ class SingleShotCompilerWrapper extends Compiler {
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)
         : await kernelForModule([script], options);
-    return new CompilerResult(compilerResult.component,
+
+    Set<Library> loadedLibraries = createLoadedLibrariesSet(
+        compilerResult?.loadedComponents, compilerResult?.sdkComponent,
+        includePlatform: !options.omitPlatform);
+
+    return new CompilerResult(compilerResult.component, loadedLibraries,
         compilerResult.classHierarchy, compilerResult.coreTypes);
   }
 }
@@ -678,12 +704,15 @@ Future _processLoadRequest(request) async {
       print("DFE: scriptUri: ${script}");
     }
 
-    Component component = await compiler.compile(script);
+    CompilerResult compilerResult = await compiler.compile(script);
+    Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
     if (compiler.errors.isNotEmpty) {
-      if (component != null) {
-        result = new CompilationResult.errors(compiler.errors,
-            serializeComponent(component, filter: (lib) => !lib.isExternal));
+      if (compilerResult.component != null) {
+        result = new CompilationResult.errors(
+            compiler.errors,
+            serializeComponent(compilerResult.component,
+                filter: (lib) => !loadedLibraries.contains(lib)));
       } else {
         result = new CompilationResult.errors(compiler.errors, null);
       }
@@ -692,8 +721,9 @@ Future _processLoadRequest(request) async {
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
       // decide what to exclude.
-      result = new CompilationResult.ok(
-          serializeComponent(component, filter: (lib) => !lib.isExternal));
+      result = new CompilationResult.ok(serializeComponent(
+          compilerResult.component,
+          filter: (lib) => !loadedLibraries.contains(lib)));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);

@@ -65,11 +65,6 @@
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, type_arguments_field_offset_in_words_offset)                    \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, TraceAllocationMask))                   \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, allocated_since_gc_new_space_offset))   \
-  NOT_IN_PRODUCT(                                                              \
-      FIELD(ClassHeapStats, allocated_size_since_gc_new_space_offset))         \
-  NOT_IN_PRODUCT(FIELD(ClassHeapStats, state_offset))                          \
   FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
   NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
@@ -149,75 +144,74 @@
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
-  NOT_IN_DBC(FIELD(Thread, array_write_barrier_code_offset))                   \
-  NOT_IN_DBC(FIELD(Thread, array_write_barrier_entry_point_offset))            \
+  FIELD(Thread, array_write_barrier_code_offset)                               \
+  FIELD(Thread, array_write_barrier_entry_point_offset)                        \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \
-  NOT_IN_DBC(FIELD(Thread, call_to_runtime_entry_point_offset))                \
-  NOT_IN_DBC(FIELD(Thread, call_to_runtime_stub_offset))                       \
+  FIELD(Thread, bootstrap_native_wrapper_entry_point_offset)                   \
+  FIELD(Thread, call_to_runtime_entry_point_offset)                            \
+  FIELD(Thread, call_to_runtime_stub_offset)                                   \
   FIELD(Thread, dart_stream_offset)                                            \
-  NOT_IN_DBC(FIELD(Thread, optimize_entry_offset))                             \
-  NOT_IN_DBC(FIELD(Thread, optimize_stub_offset))                              \
-  NOT_IN_DBC(FIELD(Thread, deoptimize_entry_offset))                           \
-  NOT_IN_DBC(FIELD(Thread, deoptimize_stub_offset))                            \
+  FIELD(Thread, optimize_entry_offset)                                         \
+  FIELD(Thread, optimize_stub_offset)                                          \
+  FIELD(Thread, deoptimize_entry_offset)                                       \
+  FIELD(Thread, deoptimize_stub_offset)                                        \
   FIELD(Thread, double_abs_address_offset)                                     \
   FIELD(Thread, double_negate_address_offset)                                  \
   FIELD(Thread, end_offset)                                                    \
-  NOT_IN_DBC(FIELD(Thread, enter_safepoint_stub_offset))                       \
+  FIELD(Thread, enter_safepoint_stub_offset)                                   \
   FIELD(Thread, execution_state_offset)                                        \
-  NOT_IN_DBC(FIELD(Thread, exit_safepoint_stub_offset))                        \
-  NOT_IN_DBC(FIELD(Thread, call_native_through_safepoint_stub_offset))         \
-  NOT_IN_DBC(FIELD(Thread, call_native_through_safepoint_entry_point_offset))  \
-  NOT_IN_DBC(FIELD(Thread, fix_allocation_stub_code_offset))                   \
-  NOT_IN_DBC(FIELD(Thread, fix_callers_target_code_offset))                    \
+  FIELD(Thread, exit_safepoint_stub_offset)                                    \
+  FIELD(Thread, call_native_through_safepoint_stub_offset)                     \
+  FIELD(Thread, call_native_through_safepoint_entry_point_offset)              \
+  FIELD(Thread, fix_allocation_stub_code_offset)                               \
+  FIELD(Thread, fix_callers_target_code_offset)                                \
   FIELD(Thread, float_absolute_address_offset)                                 \
   FIELD(Thread, float_negate_address_offset)                                   \
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  NOT_IN_DBC(FIELD(Thread, interpret_call_entry_point_offset))                 \
-  NOT_IN_DBC(FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset))        \
-  NOT_IN_DBC(FIELD(Thread, invoke_dart_code_stub_offset))                      \
+  FIELD(Thread, interpret_call_entry_point_offset)                             \
+  FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
+  FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, isolate_offset)                                                \
-  NOT_IN_DBC(FIELD(Thread, lazy_deopt_from_return_stub_offset))                \
-  NOT_IN_DBC(FIELD(Thread, lazy_deopt_from_throw_stub_offset))                 \
-  NOT_IN_DBC(FIELD(Thread, lazy_specialize_type_test_stub_offset))             \
+  FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
+  FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
+  FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
   FIELD(Thread, marking_stack_block_offset)                                    \
-  NOT_IN_DBC(FIELD(Thread, megamorphic_call_checked_entry_offset))             \
-  NOT_IN_DBC(FIELD(Thread, monomorphic_miss_entry_offset))                     \
-  NOT_IN_DBC(FIELD(Thread, monomorphic_miss_stub_offset))                      \
+  FIELD(Thread, megamorphic_call_checked_entry_offset)                         \
+  FIELD(Thread, monomorphic_miss_entry_offset)                                 \
+  FIELD(Thread, monomorphic_miss_stub_offset)                                  \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
-  NOT_IN_DBC(                                                                  \
-      FIELD(Thread, null_error_shared_with_fpu_regs_entry_point_offset))       \
-  NOT_IN_DBC(FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset))       \
-  NOT_IN_DBC(                                                                  \
-      FIELD(Thread, null_error_shared_without_fpu_regs_entry_point_offset))    \
-  NOT_IN_DBC(FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset))    \
+  FIELD(Thread, null_error_shared_with_fpu_regs_entry_point_offset)            \
+  FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
+                                                                               \
+  FIELD(Thread, null_error_shared_without_fpu_regs_entry_point_offset)         \
+  FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
   FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
-  NOT_IN_DBC(FIELD(Thread, slow_type_test_stub_offset))                        \
+  FIELD(Thread, slow_type_test_stub_offset)                                    \
   FIELD(Thread, stack_limit_offset)                                            \
+  FIELD(Thread, saved_stack_limit_offset)                                      \
   FIELD(Thread, stack_overflow_flags_offset)                                   \
-  NOT_IN_DBC(                                                                  \
-      FIELD(Thread, stack_overflow_shared_with_fpu_regs_entry_point_offset))   \
-  NOT_IN_DBC(FIELD(Thread, stack_overflow_shared_with_fpu_regs_stub_offset))   \
-  NOT_IN_DBC(FIELD(Thread,                                                     \
-                   stack_overflow_shared_without_fpu_regs_entry_point_offset)) \
-  NOT_IN_DBC(                                                                  \
-      FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset))       \
+  FIELD(Thread, stack_overflow_shared_with_fpu_regs_entry_point_offset)        \
+  FIELD(Thread, stack_overflow_shared_with_fpu_regs_stub_offset)               \
+  FIELD(Thread, stack_overflow_shared_without_fpu_regs_entry_point_offset)     \
+                                                                               \
+  FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
   FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
   FIELD(Thread, vm_tag_offset)                                                 \
-  NOT_IN_DBC(FIELD(Thread, write_barrier_code_offset))                         \
-  NOT_IN_DBC(FIELD(Thread, write_barrier_entry_point_offset))                  \
+  FIELD(Thread, write_barrier_code_offset)                                     \
+  FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(TimelineStream, enabled_offset)                                        \
@@ -238,14 +232,6 @@
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, NewSpaceCounterOffsetFor, ClassOffsetFor,                    \
-      ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(ClassTable, StateOffsetFor, ClassOffsetFor, \
-                                   ClassHeapStats::state_offset()))            \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
-      ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \

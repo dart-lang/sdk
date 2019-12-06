@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -34,7 +35,7 @@ import 'ast_properties.dart';
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
 /// gets the known static type of the expression.
 DartType getExpressionType(
-    Expression expression, TypeSystem typeSystem, TypeProvider typeProvider,
+    Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
     {bool read: false}) {
   DartType type;
   if (read) {
@@ -117,7 +118,7 @@ ExecutableElement _getMember(InterfaceType type, ExecutableElement member) {
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
   final TypeProvider typeProvider;
   final InheritanceManager3 inheritance;
   final AnalysisErrorListener reporter;
@@ -130,8 +131,8 @@ class CodeChecker extends RecursiveAstVisitor {
   bool _hasImplicitCasts;
   HashSet<ExecutableElement> _covariantPrivateMembers;
 
-  CodeChecker(TypeProvider typeProvider, Dart2TypeSystem rules,
-      this.inheritance, AnalysisErrorListener reporter, this._options)
+  CodeChecker(TypeProvider typeProvider, TypeSystemImpl rules, this.inheritance,
+      AnalysisErrorListener reporter, this._options)
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter {
@@ -889,8 +890,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // This member will need a check, however, because we are calling through
       // an unsafe target.
       if (element.isPrivate && element.parameters.isNotEmpty) {
-        _covariantPrivateMembers
-            .add(element is ExecutableMember ? element.baseElement : element);
+        _covariantPrivateMembers.add(element.declaration);
       }
 
       // Get the lower bound of the declared return type (e.g. `F<bottom>`) and
@@ -901,24 +901,22 @@ class CodeChecker extends RecursiveAstVisitor {
       // The member may be from a superclass, so we need to ensure the type
       // parameters are properly substituted.
       var classElement = targetType.element;
-      var classLowerBound = classElement.instantiate(
-        typeArguments: List.filled(
-          classElement.typeParameters.length,
-          BottomTypeImpl.instance,
-        ),
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-      var memberLowerBound = inheritance.getMember(
-        classLowerBound,
-        Name(element.librarySource.uri, element.name),
-      );
-      if (memberLowerBound == null &&
-          element.enclosingElement is ExtensionElement) {
-        return;
-      }
-      var expectedType = invokeType.returnType;
 
-      if (!rules.isSubtypeOf(memberLowerBound.returnType, expectedType)) {
+      var rawElement = element.declaration;
+      var rawReturnType = rawElement.returnType;
+
+      // Check if the return type uses a class type parameter contravariantly.
+      bool needsCheck = false;
+      for (var typeParameter in classElement.typeParameters) {
+        var variance = Variance(typeParameter, rawReturnType);
+        if (variance.isContravariant || variance.isInvariant) {
+          needsCheck = true;
+          break;
+        }
+      }
+
+      if (needsCheck) {
+        var expectedType = invokeType.returnType;
         var isMethod = element is MethodElement;
         var isCall = node is MethodInvocation;
 
@@ -962,8 +960,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkUnary(Expression operand, Token op, MethodElement element) {
-    bool isIncrementAssign =
-        op.type == TokenType.PLUS_PLUS || op.type == TokenType.MINUS_MINUS;
+    bool isIncrementAssign = op.type.isIncrementOperator;
     if (op.isUserDefinableOperator || isIncrementAssign) {
       if (element == null) {
         _recordDynamicInvoke(operand.parent, operand);
@@ -1411,7 +1408,7 @@ class CodeChecker extends RecursiveAstVisitor {
 /// check overrides between classes and superclasses, interfaces, and mixin
 /// applications.
 class _OverrideChecker {
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
 
   _OverrideChecker(CodeChecker checker) : rules = checker.rules;
 
@@ -1692,17 +1689,9 @@ class _OverrideChecker {
 
   static Set<Element> _createCovariantCheckSet() {
     return new LinkedHashSet(
-        equals: _equalMemberElements, hashCode: _hashCodeMemberElements);
-  }
-
-  /// When finding superclass covariance checks, we need to track the
-  /// substituted member/parameter type, but we don't want this type to break
-  /// equality, because [Member] does not implement equality/hashCode, so
-  /// instead we jump to the declaring element.
-  static bool _equalMemberElements(Element x, Element y) {
-    x = x is Member ? x.baseElement : x;
-    y = y is Member ? y.baseElement : y;
-    return x == y;
+      equals: (a, b) => a.declaration == b.declaration,
+      hashCode: (e) => e.declaration.hashCode,
+    );
   }
 
   /// Find all generic interfaces that are implemented by [element], including
@@ -1765,11 +1754,6 @@ class _OverrideChecker {
       }
     }
     return members;
-  }
-
-  static int _hashCodeMemberElements(Element x) {
-    x = x is Member ? x.baseElement : x;
-    return x.hashCode;
   }
 }
 

@@ -5,7 +5,10 @@
 #ifndef RUNTIME_VM_OBJECT_GRAPH_H_
 #define RUNTIME_VM_OBJECT_GRAPH_H_
 
+#include <memory>
+
 #include "vm/allocation.h"
+#include "vm/dart_api_state.h"
 #include "vm/thread_stack_resource.h"
 
 namespace dart {
@@ -198,6 +201,24 @@ class HeapSnapshotWriter : public ThreadStackResource {
   intptr_t external_property_count_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(HeapSnapshotWriter);
+};
+
+class CountObjectsVisitor : public ObjectVisitor, public HandleVisitor {
+ public:
+  CountObjectsVisitor(Thread* thread, intptr_t class_count);
+  ~CountObjectsVisitor() {}
+
+  void VisitObject(RawObject* obj);
+  void VisitHandle(uword addr);
+
+  std::unique_ptr<intptr_t[]> new_count_;
+  std::unique_ptr<intptr_t[]> new_size_;
+  std::unique_ptr<intptr_t[]> new_external_size_;
+  std::unique_ptr<intptr_t[]> old_count_;
+  std::unique_ptr<intptr_t[]> old_size_;
+  std::unique_ptr<intptr_t[]> old_external_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(CountObjectsVisitor);
 };
 
 #endif  // !defined(PRODUCT)

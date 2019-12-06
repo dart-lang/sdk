@@ -56,8 +56,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1,
-                   bool inlining_unchecked_entry = false,
-                   GrowableObjectArray* record_yield_position = nullptr);
+                   bool inlining_unchecked_entry = false);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
@@ -132,9 +131,16 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment LoadLateField(const Field& field, LocalVariable* instance);
+  Fragment StoreLateField(const Field& field,
+                          LocalVariable* instance,
+                          LocalVariable* setter_value);
+  Fragment InitInstanceField(const Field& field);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(TokenPosition position, bool omit_result_type_check = false);
+  Fragment Return(TokenPosition position,
+                  bool omit_result_type_check = false,
+                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -154,6 +160,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
+  Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
 
   Fragment EvaluateAssertion();
@@ -379,11 +387,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   ActiveClass active_class_;
 
-  GrowableObjectArray* record_yield_positions_;
-
   friend class BreakableBlock;
   friend class CatchBlock;
-  friend class ConstantEvaluator;
   friend class ProgramState;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;

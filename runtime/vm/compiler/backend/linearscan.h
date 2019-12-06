@@ -295,10 +295,6 @@ class FlowGraphAllocator : public ValueObject {
 
   intptr_t number_of_registers_;
 
-#if defined(TARGET_ARCH_DBC)
-  intptr_t last_used_register_;
-#endif
-
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
   // Those live ranges that end before the start of the current live range are

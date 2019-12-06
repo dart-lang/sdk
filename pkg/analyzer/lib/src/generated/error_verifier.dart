@@ -11,13 +11,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -82,7 +81,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * The type system primitives
    */
-  TypeSystem _typeSystem;
+  TypeSystemImpl _typeSystem;
 
   /**
    * The manager for the inheritance mappings.
@@ -141,15 +140,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * A flag indicating whether the visitor is currently within an instance
-   * variable declaration.
+   * variable declaration, which is not `late`.
    */
-  bool _isInInstanceVariableDeclaration = false;
-
-  /**
-   * A flag indicating whether the visitor is currently within an instance
-   * variable initializer.
-   */
-  bool _isInInstanceVariableInitializer = false;
+  bool _isInInstanceNotLateVariableDeclaration = false;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -187,16 +180,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * directive with a URI that uses the "dart-ext" scheme.
    */
   bool _hasExtUri = false;
-
-  /**
-   * This is set to `false` on the entry of every [BlockFunctionBody], and is
-   * restored to the enclosing value on exit. The value is used in
-   * [_checkForMixedReturns] to prevent both
-   * [StaticWarningCode.MIXED_RETURN_TYPES] and
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE] from being generated in the same
-   * function body.
-   */
-  bool _hasReturnWithoutValue = false;
 
   /**
    * The class containing the AST nodes being visited, or `null` if we are not
@@ -281,12 +264,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   HiddenElements _hiddenElements;
 
-  /**
-   * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
-   * and [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
-   */
-  List<InterfaceType> _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
-
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
 
   /// Setting this flag to `true` disables the check for conflicting generics.
@@ -306,23 +283,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Initialize a newly created error verifier.
-   *
-   * [inheritanceManager] should be an instance of either [InheritanceManager2]
-   * or [InheritanceManager3].  If an [InheritanceManager2] is supplied, it
-   * will be converted into an [InheritanceManager3] internally.  The ability
-   * to pass in [InheritanceManager2] exists for backward compatibility; in a
-   * future major version of the analyzer, an [InheritanceManager3] will
-   * be required.
    */
-  ErrorVerifier(
-      ErrorReporter errorReporter,
-      this._currentLibrary,
-      this._typeProvider,
-      InheritanceManagerBase inheritanceManager,
-      bool enableSuperMixins,
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
-        _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
@@ -333,13 +298,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isEnclosingConstructorConst = false;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
-    _isInInstanceVariableDeclaration = false;
-    _isInInstanceVariableInitializer = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
     _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
-    _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
@@ -475,8 +437,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     bool wasInAsync = _inAsync;
     bool wasInGenerator = _inGenerator;
-    bool previousHasReturnWithoutValue = _hasReturnWithoutValue;
-    _hasReturnWithoutValue = false;
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
     try {
@@ -485,13 +445,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _returnsWith = new List<ReturnStatement>();
       _returnsWithout = new List<ReturnStatement>();
       super.visitBlockFunctionBody(node);
-      _checkForMixedReturns(node);
     } finally {
       _inAsync = wasInAsync;
       _inGenerator = wasInGenerator;
       _returnsWith = previousReturnsWith;
       _returnsWithout = previousReturnsWithout;
-      _hasReturnWithoutValue = previousHasReturnWithoutValue;
     }
   }
 
@@ -505,11 +463,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
       }
     }
-  }
-
-  void visitCascadeExpression(CascadeExpression node) {
-    _checkForNullableDereference(node.target);
-    super.visitCascadeExpression(node);
   }
 
   @override
@@ -624,7 +577,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForAllRedirectConstructorErrorCodes(node);
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
-      _checkForRedirectToNonConstConstructor(node, constructorElement);
       _checkForReturnInGenerativeConstructor(node);
       super.visitConstructorDeclaration(node);
     } finally {
@@ -743,21 +695,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    var fields = node.fields;
     _isInStaticVariableDeclaration = node.isStatic;
-    _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
-    if (_isInInstanceVariableDeclaration) {
-      VariableDeclarationList variables = node.fields;
-      if (variables.isConst) {
+    _isInInstanceNotLateVariableDeclaration =
+        !node.isStatic && !node.fields.isLate;
+    if (!_isInStaticVariableDeclaration) {
+      if (fields.isConst) {
         _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword);
+            CompileTimeErrorCode.CONST_INSTANCE_FIELD, fields.keyword);
       }
     }
     try {
       _checkForNotInitializedNonNullableStaticField(node);
+      _checkForWrongTypeParameterVarianceInField(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
-      _isInInstanceVariableDeclaration = false;
+      _isInInstanceNotLateVariableDeclaration = false;
     }
   }
 
@@ -914,7 +868,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForDefaultValueInFunctionTypeAlias(node);
-    _checkForTypeAliasCannotReferenceItself_function(node);
+    _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -947,10 +901,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (_hasTypedefSelfReference(node.declaredElement)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
-    }
+    _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitGenericTypeAlias(node);
   }
 
@@ -982,6 +933,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
+      if (importElement.isDeferred) {
+        _checkForDeferredImportOfExtensions(node, importElement);
+      }
     }
     super.visitImportDirective(node);
   }
@@ -990,7 +944,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
     if (!node.isNullAware) {
-      _checkForNullableDereference(node.target);
+      _checkForNullableDereference(node.realTarget);
     }
     super.visitIndexExpression(node);
   }
@@ -1074,6 +1028,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
       _checkForMustCallSuper(node);
+      _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -1213,7 +1168,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         typeReference, node.target, propertyName);
     if (!node.isNullAware &&
         !_objectPropertyNames.contains(propertyName.name)) {
-      _checkForNullableDereference(node.target);
+      _checkForNullableDereference(node.realTarget);
     }
     _checkForUnnecessaryNullAware(node.target, node.operator);
     super.visitPropertyAccess(node);
@@ -1397,14 +1352,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // visit initializer
     String name = nameNode.name;
     _namesForReferenceToDeclaredVariableInInitializer.add(name);
-    bool wasInInstanceVariableInitializer = _isInInstanceVariableInitializer;
-    _isInInstanceVariableInitializer = _isInInstanceVariableDeclaration;
     try {
       if (initializerNode != null) {
         initializerNode.accept(this);
       }
     } finally {
-      _isInInstanceVariableInitializer = wasInInstanceVariableInitializer;
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
     }
     // declare the variable
@@ -1517,10 +1469,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * constructor and the return type is not assignable to `null`; that is, we
    * don't have `return;` if the enclosing method has a non-void containing
    * return type.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllEmptyReturnStatementErrorCodes(
       ReturnStatement statement, DartType expectedReturnType) {
@@ -1535,7 +1483,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // If we reach here, this is an invalid return
-    _hasReturnWithoutValue = true;
     _errorReporter.reportErrorForNode(
         StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
     return;
@@ -1818,10 +1765,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * Check that the return type matches the type of the declared return type in
    * the enclosing method or function.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR],
-   * [StaticWarningCode.RETURN_WITHOUT_VALUE], and
-   * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
     FunctionType functionType = _enclosingFunction?.type;
@@ -2298,26 +2241,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var visitedClasses = <ClassElement>[];
     var interfaces = <ClassElement, InterfaceType>{};
+
     void visit(InterfaceType type) {
       if (type == null) return;
+
       var element = type.element;
       if (visitedClasses.contains(element)) return;
       visitedClasses.add(element);
+
       if (element.typeParameters.isNotEmpty) {
+        type = _toLegacyType(type);
         var oldType = interfaces[element];
         if (oldType == null) {
           interfaces[element] = type;
         } else if (type != oldType) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-              node,
-              [_enclosingClass.name, oldType, type]);
+            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+            node,
+            [_enclosingClass.name, oldType, type],
+          );
         }
       }
+
       visit(type.superclass);
       type.mixins.forEach(visit);
       type.superclassConstraints.forEach(visit);
       type.interfaces.forEach(visit);
+
       visitedClasses.removeLast();
     }
 
@@ -2656,6 +2606,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
+   * Report a diagnostic if there are any extensions in the imported library
+   * that are not hidden.
+   */
+  void _checkForDeferredImportOfExtensions(
+      ImportDirective directive, ImportElement importElement) {
+    for (var element in importElement.namespace.definedNames.values) {
+      if (element is ExtensionElement) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
+          directive.uri,
+        );
+        return;
+      }
+    }
+  }
+
+  /**
    * Verify that any deferred imports in the given compilation [unit] have a
    * unique prefix.
    *
@@ -2908,7 +2875,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
+    return typeName.type is InterfaceType &&
+        _typeProvider.nonSubtypableClasses.contains(typeName.type.element);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
@@ -3162,7 +3130,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Similar logic applies for sync* and async*.
     //
     var lowerBound = expectedElement.instantiate(
-      typeArguments: [BottomTypeImpl.instance],
+      typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
     if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
@@ -3255,10 +3223,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForImplicitThisReferenceInInitializer(
       SimpleIdentifier identifier) {
+    if (_isInComment) {
+      return;
+    }
     if (!_isInConstructorInitializer &&
         !_isInStaticMethod &&
         !_isInFactory &&
-        !_isInInstanceVariableInitializer &&
+        !_isInInstanceNotLateVariableDeclaration &&
         !_isInStaticVariableDeclaration) {
       return;
     }
@@ -3277,12 +3248,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (enclosingElement is! ClassElement) {
       return;
     }
-    // comment
-    AstNode parent = identifier.parent;
-    if (parent is CommentReference) {
-      return;
-    }
     // qualified method invocation
+    AstNode parent = identifier.parent;
     if (parent is MethodInvocation) {
       if (identical(parent.methodName, identifier) &&
           parent.realTarget != null) {
@@ -3539,8 +3506,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       InstanceCreationExpression node, InterfaceType type) {
     if (!_isNonNullable) return;
 
-    if (node.argumentList.arguments.length == 1 &&
-        _isDartCoreList(type) &&
+    if (node.constructorName.name == null &&
+        node.argumentList.arguments.length == 1 &&
+        type.isDartCoreList &&
         _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
@@ -3787,30 +3755,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (_currentLibrary.hasJS != true) {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_JS_LIB_ANNOTATION, node);
-      }
-    }
-  }
-
-  /**
-   * Verify that the given function [body] does not contain return statements
-   * that both have and do not have return values.
-   *
-   * See [StaticWarningCode.MIXED_RETURN_TYPES].
-   */
-  void _checkForMixedReturns(BlockFunctionBody body) {
-    if (_hasReturnWithoutValue) {
-      return;
-    }
-    var nonVoidReturnsWith =
-        _returnsWith.where((stmt) => !getStaticType(stmt.expression).isVoid);
-    if (nonVoidReturnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
-      for (ReturnStatement returnWith in nonVoidReturnsWith) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWith.returnKeyword);
-      }
-      for (ReturnStatement returnWithout in _returnsWithout) {
-        _errorReporter.reportErrorForToken(
-            StaticWarningCode.MIXED_RETURN_TYPES, returnWithout.returnKeyword);
       }
     }
   }
@@ -4564,6 +4508,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameter.identifier);
         }
       }
+      _checkForRedirectToNonConstConstructor(declaration.declaredElement,
+          redirectedConstructor.staticElement, redirectedConstructor);
     }
     // check if there are redirected invocations
     int numRedirections = 0;
@@ -4596,6 +4542,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             }
           }
         }
+        // [declaration] is a redirecting constructor via a redirecting
+        // initializer.
+        _checkForRedirectToNonConstConstructor(declaration.declaredElement,
+            initializer.staticElement, initializer.constructorName);
         numRedirections++;
       }
     }
@@ -4622,41 +4572,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Check whether the given constructor [declaration] has redirected
-   * constructor and references itself directly or indirectly. The
-   * constructor [element] is the element introduced by the declaration.
+   * Check whether the redirecting constructor, [element], is const, and
+   * [redirectedElement], its redirectee, is not const.
    *
    * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
-  void _checkForRedirectToNonConstConstructor(
-      ConstructorDeclaration declaration, ConstructorElement element) {
-    // prepare redirected constructor
-    ConstructorName redirectedConstructorNode =
-        declaration.redirectedConstructor;
-    if (redirectedConstructorNode == null) {
-      return;
+  void _checkForRedirectToNonConstConstructor(ConstructorElement element,
+      ConstructorElement redirectedElement, AstNode reportingNode) {
+    // This constructor is const, but it redirects to a non-const constructor.
+    if (redirectedElement != null &&
+        element.isConst &&
+        !redirectedElement.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+          reportingNode);
     }
-    // prepare element
-    if (element == null) {
-      return;
-    }
-    // OK, it is not 'const'
-    if (!element.isConst) {
-      return;
-    }
-    // prepare redirected constructor
-    ConstructorElement redirectedConstructor = element.redirectedConstructor;
-    if (redirectedConstructor == null) {
-      return;
-    }
-    // OK, it is also 'const'
-    if (redirectedConstructor.isConst) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-        redirectedConstructorNode);
   }
 
   void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
@@ -4734,8 +4664,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * This method is called both by [_checkForAllReturnStatementErrorCodes]
    * and [visitExpressionFunctionBody].
-   *
-   * See [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForReturnOfInvalidType(
       Expression returnExpression, DartType expectedType,
@@ -4763,9 +4691,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
             returnExpression,
             [expressionType, expectedType]);
+      } else if (_enclosingFunction is MethodElement) {
+        _errorReporter.reportTypeErrorForNode(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+            returnExpression,
+            [expressionType, expectedType, displayName]);
       } else {
         _errorReporter.reportTypeErrorForNode(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
             returnExpression,
             [expressionType, expectedType, displayName]);
       }
@@ -4915,16 +4848,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Verify that the given function type [alias] does not reference itself
-   * directly.
+   * Verify that the given [element] does not reference itself directly.
+   * If it does, report the error on the [node].
    *
    * See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
    */
-  void _checkForTypeAliasCannotReferenceItself_function(
-      FunctionTypeAlias alias) {
-    if (_hasTypedefSelfReference(alias.declaredElement)) {
+  void _checkForTypeAliasCannotReferenceItself(
+    AstNode node,
+    FunctionTypeAliasElement element,
+  ) {
+    if ((element as GenericTypeAliasElementImpl).hasSelfReference) {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, alias);
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        node,
+      );
     }
   }
 
@@ -5134,7 +5071,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
-        !identical(expression.staticType, BottomTypeImpl.instance)) {
+        !identical(expression.staticType, NeverTypeImpl.instance)) {
       return false;
     }
 
@@ -5312,19 +5249,112 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          var fields = node.fields;
+          var fieldElement = fields.variables.first.declaredElement;
+          var fieldName = fields.variables.first.name;
+          Variance fieldVariance = Variance(typeParameter, fieldElement.type);
+
+          _checkForWrongVariancePosition(
+              fieldVariance, typeParameter, fieldName);
+          if (!fields.isFinal && node.covariantKeyword == null) {
+            _checkForWrongVariancePosition(
+                Variance.contravariant.combine(fieldVariance),
+                typeParameter,
+                fieldName);
+          }
+        }
+      }
+    }
+  }
+
+  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
+    // Only need to report errors for parameters with explicitly defined type
+    // parameters in classes or mixins.
+    if (_enclosingClass != null) {
+      for (var typeParameter in _enclosingClass.typeParameters) {
+        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // variance is added to the interface.
+        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+          if (method.typeParameters != null) {
+            for (var methodTypeParameter
+                in method.typeParameters.typeParameters) {
+              Variance methodTypeParameterVariance = Variance.invariant.combine(
+                  Variance(typeParameter, methodTypeParameter.bound.type));
+              _checkForWrongVariancePosition(methodTypeParameterVariance,
+                  typeParameter, methodTypeParameter);
+            }
+          }
+          if (method.parameters != null) {
+            for (int i = 0; i < method.parameters.parameters.length; i++) {
+              var methodParameterElement =
+                  method.parameters.parameterElements[i];
+              var methodParameterNode = method.parameters.parameters[i];
+              if (!methodParameterElement.isCovariant) {
+                Variance methodParameterVariance = Variance.contravariant
+                    .combine(
+                        Variance(typeParameter, methodParameterElement.type));
+                _checkForWrongVariancePosition(methodParameterVariance,
+                    typeParameter, methodParameterNode);
+              }
+            }
+          }
+          if (method.returnType != null) {
+            Variance methodReturnTypeVariance =
+                Variance(typeParameter, method.returnType.type);
+            _checkForWrongVariancePosition(
+                methodReturnTypeVariance, typeParameter, method.returnType);
+          }
+        }
+      }
+    }
+  }
+
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass.typeParameters) {
-          var variance = computeVariance(typeParameter, superInterface);
-          if (variance == Variance.contravariant ||
-              variance == Variance.invariant) {
-            _errorReporter.reportErrorForElement(
-              CompileTimeErrorCode
-                  .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-              typeParameter,
-              [typeParameter.name, superInterface],
-            );
+          var superVariance = Variance(typeParameter, superInterface);
+          // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+          // variance is added to the interface.
+          var typeParameterElementImpl =
+              typeParameter as TypeParameterElementImpl;
+          // Let `D` be a class or mixin declaration, let `S` be a direct
+          // superinterface of `D`, and let `X` be a type parameter declared by
+          // `D`.
+          // If `X` is an `out` type parameter, it can only occur in `S` in an
+          // covariant or unrelated position.
+          // If `X` is an `in` type parameter, it can only occur in `S` in an
+          // contravariant or unrelated position.
+          // If `X` is an `inout` type parameter, it can occur in `S` in any
+          // position.
+          if (!superVariance
+              .greaterThanOrEqual(typeParameterElementImpl.variance)) {
+            if (!typeParameterElementImpl.isLegacyCovariant) {
+              _errorReporter.reportErrorForElement(
+                CompileTimeErrorCode
+                    .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                typeParameter,
+                [
+                  typeParameter.name,
+                  typeParameterElementImpl.variance.toKeywordString(),
+                  superVariance.toKeywordString(),
+                  superInterface
+                ],
+              );
+            } else {
+              _errorReporter.reportErrorForElement(
+                CompileTimeErrorCode
+                    .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                typeParameter,
+                [typeParameter.name, superInterface],
+              );
+            }
           }
         }
       }
@@ -5334,6 +5364,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass.interfaces.forEach(checkOne);
     _enclosingClass.mixins.forEach(checkOne);
     _enclosingClass.superclassConstraints.forEach(checkOne);
+  }
+
+  /**
+   * Check for invalid variance positions in members of a class or mixin.
+   *
+   * Let `C` be a class or mixin declaration with type parameter `T`.
+   * If `T` is an `out` type parameter then `T` can only appear in covariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `in` type parameter then `T` can only appear in contravariant
+   * positions within the accessors and methods of `C`.
+   * If `T` is an `inout` type parameter or a type parameter with no explicit
+   * variance modifier then `T` can appear in any variant position within the
+   * accessors and methods of `C`.
+   *
+   * Errors should only be reported in classes and mixins since those are the
+   * only components that allow explicit variance modifiers.
+   */
+  void _checkForWrongVariancePosition(
+      Variance variance, TypeParameterElement typeParameter, AstNode node) {
+    TypeParameterElementImpl typeParameterImpl =
+        typeParameter as TypeParameterElementImpl;
+    if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        node,
+        [
+          typeParameterImpl.variance.toKeywordString(),
+          typeParameterImpl.name,
+          variance.toKeywordString()
+        ],
+      );
+    }
   }
 
   /**
@@ -5530,9 +5592,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       FormalParameter parameter = parameters[i];
       if (parameter.isOptional) {
         DartType type = parameter.declaredElement.type;
-        if (type.isDartAsyncFutureOr) {
-          type = (type as ParameterizedType).typeArguments[0];
-        }
         if ((parameter as DefaultFormalParameter).defaultValue == null) {
           if (_typeSystem.isPotentiallyNonNullable(type)) {
             SimpleIdentifier parameterName = _parameterName(parameter);
@@ -5789,12 +5848,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * indirectly.
    */
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    ConstructorElement nonMember(ConstructorElement constructor) {
-      return constructor is ConstructorMember
-          ? constructor.baseElement
-          : constructor;
-    }
-
     Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
     while (current != null) {
@@ -5802,25 +5855,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return identical(current, constructor);
       }
       constructors.add(current);
-      current = nonMember(current.redirectedConstructor);
+      current = current.redirectedConstructor?.declaration;
     }
     return false;
-  }
-
-  /**
-   * Return `true` if the given [element] has direct or indirect reference to
-   * itself from anywhere except a class element or type parameter bounds.
-   */
-  bool _hasTypedefSelfReference(GenericTypeAliasElement element) {
-    if (element == null) {
-      return false;
-    }
-    if (element is GenericTypeAliasElementImpl && element.linkedNode != null) {
-      return element.hasSelfReference;
-    }
-    var visitor = new _HasTypedefSelfReferenceVisitor(element.function);
-    element.accept(visitor);
-    return visitor.hasSelfReference;
   }
 
   void _initializeInitialFieldElementsMap(List<FieldElement> fields) {
@@ -5833,14 +5870,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 : INIT_STATE.INIT_IN_DECLARATION;
       }
     }
-  }
-
-  bool _isDartCoreList(InterfaceType type) {
-    ClassElement element = type.element;
-    if (element == null) {
-      return false;
-    }
-    return element.name == "List" && element.library.isDartCore;
   }
 
   bool _isFunctionType(DartType type) {
@@ -5924,6 +5953,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  /// If in a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType _toLegacyType(DartType type) {
+    if (_isNonNullable) return type;
+    return NullabilityEliminator.perform(type);
   }
 
   /**
@@ -6045,73 +6081,6 @@ class HiddenElements {
    */
   void _initializeElements(Block block) {
     _elements.addAll(BlockScope.elementsInBlock(block));
-  }
-}
-
-class _HasTypedefSelfReferenceVisitor extends GeneralizingElementVisitor<void> {
-  final GenericFunctionTypeElement element;
-  bool hasSelfReference = false;
-
-  _HasTypedefSelfReferenceVisitor(this.element);
-
-  @override
-  void visitClassElement(ClassElement element) {
-    // Typedefs are allowed to reference themselves via classes.
-  }
-
-  @override
-  void visitFunctionElement(FunctionElement element) {
-    _addTypeToCheck(element.returnType);
-    super.visitFunctionElement(element);
-  }
-
-  @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addTypeToCheck(element.returnType);
-    super.visitFunctionTypeAliasElement(element);
-  }
-
-  @override
-  void visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
-    _addTypeToCheck(element.returnType);
-    super.visitGenericFunctionTypeElement(element);
-  }
-
-  @override
-  void visitParameterElement(ParameterElement element) {
-    _addTypeToCheck(element.type);
-    super.visitParameterElement(element);
-  }
-
-  @override
-  void visitTypeParameterElement(TypeParameterElement element) {
-    _addTypeToCheck(element.bound);
-    super.visitTypeParameterElement(element);
-  }
-
-  void _addTypeToCheck(DartType type) {
-    if (hasSelfReference) {
-      return;
-    }
-    if (type == null) {
-      return;
-    }
-    if (type.element == element) {
-      hasSelfReference = true;
-      return;
-    }
-    if (type is FunctionType) {
-      _addTypeToCheck(type.returnType);
-      for (ParameterElement parameter in type.parameters) {
-        _addTypeToCheck(parameter.type);
-      }
-    }
-    // type arguments
-    if (type is InterfaceType) {
-      for (DartType typeArgument in type.typeArguments) {
-        _addTypeToCheck(typeArgument);
-      }
-    }
   }
 }
 

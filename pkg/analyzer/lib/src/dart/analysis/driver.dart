@@ -89,7 +89,7 @@ typedef Future<void> WorkToWaitAfterComputingResult(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 88;
+  static const int DATA_VERSION = 90;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -287,7 +287,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SummaryDataStore externalSummaries,
       bool retainDataForTesting: false})
       : _logger = logger,
-        _sourceFactory = sourceFactory.clone(),
+        _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
     _createNewSession(null);
@@ -946,6 +946,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _requestedFiles.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
         });
+        _clearLibraryContextAfterException();
       }
       return;
     }
@@ -962,6 +963,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _requestedLibraries.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
         });
+        _clearLibraryContextAfterException();
       }
       return;
     }
@@ -1052,6 +1054,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             }
           } catch (exception, stackTrace) {
             _reportException(path, exception, stackTrace);
+            _clearLibraryContextAfterException();
           } finally {
             _fileTracker.fileWasAnalyzed(path);
           }
@@ -1077,6 +1080,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
+        _clearLibraryContextAfterException();
       } finally {
         _fileTracker.fileWasAnalyzed(path);
       }
@@ -1101,6 +1105,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _requestedParts.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
         });
+        _clearLibraryContextAfterException();
       }
       return;
     }
@@ -1116,6 +1121,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _resultController.add(result);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
+        _clearLibraryContextAfterException();
       }
       return;
     }
@@ -1180,6 +1186,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _libraryContext = null;
     _priorityResults.clear();
     _scheduler.notify(this);
+  }
+
+  /// There was an exception during a file analysis, we don't know why.
+  /// But it might have been caused by an inconsistency of files state, and
+  /// the library context state. Reset the library context, and hope that
+  /// we will solve the inconsistency while loading / building summaries.
+  void _clearLibraryContextAfterException() {
+    _libraryContext = null;
   }
 
   /// Return the cached or newly computed analysis result of the file with the
@@ -2008,7 +2022,7 @@ class AnalysisResult extends ResolvedUnitResultImpl {
   TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
 
   @override
-  TypeSystem get typeSystem => unit.declaredElement.context.typeSystem;
+  TypeSystemImpl get typeSystem => unit.declaredElement.context.typeSystem;
 }
 
 class DriverPerformance {

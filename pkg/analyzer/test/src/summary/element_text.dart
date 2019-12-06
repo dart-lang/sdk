@@ -285,6 +285,7 @@ class _ElementWriter {
     writeIf(e.isExternal, 'external ');
     writeIf(e.isConst, 'const ');
     writeIf(e.isFactory, 'factory ');
+    expect(e.isAbstract, isFalse);
 
     buffer.write(e.enclosingElement.name);
     if (e.name.isNotEmpty) {
@@ -442,14 +443,6 @@ class _ElementWriter {
       } else {
         buffer.write('<null>');
       }
-    } else {
-      buffer.write('typedef ');
-      writeType2(e.returnType);
-
-      writeName(e);
-
-      writeTypeParameterElements(e.typeParameters);
-      writeParameterElements(e.parameters);
     }
 
     buffer.writeln(';');
@@ -1042,8 +1035,6 @@ class _ElementWriter {
       if (type.element.typeParameters.isNotEmpty) {
         writeList('<', '>', type.typeArguments, ', ', writeType);
       }
-    } else if (type is CircularFunctionTypeImpl) {
-      buffer.write('...');
     } else if (type is FunctionType) {
       writeType2(type.returnType);
       buffer.write('Function');
@@ -1087,6 +1078,12 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeMetadata(e, '', '\n');
+    // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+    // variance is added to the interface.
+    if (!(e as TypeParameterElementImpl).isLegacyCovariant) {
+      buffer.write(
+          (e as TypeParameterElementImpl).variance.toKeywordString() + ' ');
+    }
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {

@@ -134,6 +134,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 #endif
   ASSERT(__ constant_pool_allowed());
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    compiler->EmitYieldPositionMetadata(token_pos(), yield_index());
+  }
   __ LeaveDartFrame();  // Disallows constant pool use.
   __ ret();
   // This ReturnInstr may be emitted out of order by the optimizer. The next
@@ -527,7 +530,9 @@ static void EmitAssertBoolean(Register reg,
   compiler->GenerateRuntimeCall(token_pos, deopt_id,
                                 kNonBoolTypeErrorRuntimeEntry, 1, locs);
   // We should never return here.
+#if defined(DEBUG)
   __ int3();
+#endif
   __ Bind(&done);
 }
 
@@ -2840,6 +2845,36 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R10, compiler::Immediate(num_context_variables()));
   compiler->GenerateCall(token_pos(), StubCode::AllocateContext(),
                          RawPcDescriptors::kOther, locs());
+}
+
+LocationSummary* InitInstanceFieldInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_temp(0, Location::RegisterLocation(RCX));
+  return locs;
+}
+
+void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register instance = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  compiler::Label no_call;
+
+  __ movq(temp, compiler::FieldAddress(instance, field().Offset()));
+  __ CompareObject(temp, Object::sentinel());
+  __ j(NOT_EQUAL, &no_call, compiler::Assembler::kNearJump);
+
+  __ pushq(compiler::Immediate(0));  // Make room for (unused) result.
+  __ pushq(instance);
+  __ PushObject(Field::ZoneHandle(field().Original()));
+  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+                                kInitInstanceFieldRuntimeEntry, 2, locs());
+  __ Drop(3);  // Remove arguments and unused result.
+  __ Bind(&no_call);
 }
 
 LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.3</version>
+  <version>1.27.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -266,10 +266,6 @@
       <field name="pid">
         <ref>int</ref>
         <p>The process id of the analysis server process.</p>
-      </field>
-      <field name="sessionId" optional="true">
-        <ref>String</ref>
-        <p>The session id for this session.</p>
       </field>
     </params>
   </notification>
@@ -1441,7 +1437,7 @@
       </field>
     </params>
   </request>
-  <request method="registerLibraryPaths">
+  <request method="registerLibraryPaths" deprecated="true">
     <p>
       The client can make this request to express interest in certain
       libraries to receive completion suggestions from based on the client path.
@@ -2233,6 +2229,13 @@
         <p>
           If a name is specified that does not match the name of a known fix,
           an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+      <field name="port" optional="true">
+        <ref>int</ref>
+        <p>
+          The port to be used to listen for and respond to http requests for
+          preview pages.
         </p>
       </field>
       <field name="outputDir" optional="true">
@@ -3241,6 +3244,11 @@
           named argument is removed. If the property <tt>isRequired</tt> is
           true, <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</tt> error
           is generated.
+        </p>
+        <p>
+          If the <tt>expression</tt> is not a syntactically valid Dart code,
+          then <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</tt>
+          is reported.
         </p>
       </field>
     </params>
@@ -4895,6 +4903,12 @@
         <code>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</code>
         <p>
           The given location does not have a supported widget.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</code>
+        <p>
+          The given property expression is invalid, e.g. has a syntax error.
         </p>
       </value>
       <value>

@@ -12,8 +12,11 @@ String path(List<String> segments) {
   return "/" + segments.join("/");
 }
 
-test(String sdkRoot, {bool useElf: false}) async {
-  if (Platform.isMacOS && useElf) return;
+test(String sdkRoot, {bool useAsm: false}) async {
+  if (Platform.isMacOS || Platform.isWindows) {
+    // Missing necessary utilities.
+    return;
+  }
 
   // Generate the snapshot profile.
   final String thisTestPath =
@@ -28,11 +31,11 @@ test(String sdkRoot, {bool useElf: false}) async {
     snapshotPath,
   ];
 
-  if (useElf) {
-    precompiler2Args.insert(0, "--build-elf");
+  if (useAsm) {
+    precompiler2Args.insert(0, "--build-assembly");
   }
 
-  final ProcessResult result = await Process.run(
+  ProcessResult result = await Process.run(
     "pkg/vm/tool/precompiler2",
     precompiler2Args,
     workingDirectory: sdkRoot,
@@ -41,9 +44,7 @@ test(String sdkRoot, {bool useElf: false}) async {
 
   // The precompiler2 script tried using GCC for the wrong architecture. We
   // don't have a workaround for this now.
-  if (useElf &&
-      result.exitCode != 0 &&
-      result.stderr.contains("Assembler messages")) {
+  if (result.exitCode != 0 && result.stderr.contains("Assembler messages")) {
     return;
   }
 
@@ -52,8 +53,17 @@ test(String sdkRoot, {bool useElf: false}) async {
   print(result.stdout);
 
   Expect.equals(result.exitCode, 0);
-  Expect.equals(result.stderr, "");
-  Expect.equals(result.stdout, "");
+  Expect.equals("", result.stderr);
+  Expect.equals("", result.stdout);
+
+  result = await Process.run("strip", [snapshotPath]);
+
+  // Same issue: strip can't process a cross-compiled ELF.
+  if (result.exitCode != 0 &&
+      (result.stderr.contains("Unable to recognise") ||
+          result.stderr.contains("non-object and non-archive"))) {
+    return;
+  }
 
   final V8SnapshotProfile profile = V8SnapshotProfile.fromJson(JsonDecoder()
       .convert(File("${temp.path}/profile.heapsnapshot").readAsStringSync()));
@@ -83,12 +93,17 @@ test(String sdkRoot, {bool useElf: false}) async {
   // Verify that the actual size of the snapshot is close to the sum of the
   // shallow sizes of all objects in the profile. They will not be exactly equal
   // because of global headers and padding.
-  if (useElf) {
-    await Process.run("strip", [snapshotPath]);
-  }
   final int actual = await File(snapshotPath).length();
   final int expected = profile.accountedBytes;
-  Expect.isTrue((actual - expected).abs() / actual < 0.02);
+  print("Expected size: $expected, actual size: $actual.");
+  if ((actual - expected).abs() / actual > 0.03) {
+    if (useAsm) {
+      print("Failure on Assembly snapshot type.");
+    } else {
+      print("Failure on ELF snapshot type.");
+    }
+    Expect.fail("Difference cannot be greater than 3% of actual.");
+  }
 }
 
 Match matchComplete(RegExp regexp, String line) {
@@ -178,7 +193,7 @@ main() async {
       .replaceRange(sdkBaseSegments.length - 3, sdkBaseSegments.length, []);
   String sdkRoot = path(sdkBaseSegments);
 
-  test(sdkRoot, useElf: false);
-  test(sdkRoot, useElf: true);
+  await test(sdkRoot, useAsm: true);
+  await test(sdkRoot, useAsm: false);
   testMacros(sdkRoot);
 }

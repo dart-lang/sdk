@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -10,10 +12,16 @@ import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
 class TypeAliasSelfReferenceFinder {
+  NullabilitySuffix _unitNullability;
+
   /// Check typedefs and mark the ones having self references.
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
+        _unitNullability =
+            unitContext.unit.featureSet.isEnabled(Feature.non_nullable)
+                ? NullabilitySuffix.none
+                : NullabilitySuffix.star;
         for (var node in unitContext.unit.declarations) {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(node);
@@ -47,8 +55,12 @@ class TypeAliasSelfReferenceFinder {
     }
     node.functionType.returnType = null;
     node.functionType.parameters.parameters.clear();
-    (node.functionType as GenericFunctionTypeImpl).type =
-        FunctionTypeImpl.synthetic(DynamicTypeImpl.instance, [], []);
+    (node.functionType as GenericFunctionTypeImpl).type = FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: DynamicTypeImpl.instance,
+      nullabilitySuffix: _unitNullability,
+    );
   }
 }
 

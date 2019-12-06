@@ -194,7 +194,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     contextManager.callbacks = contextManagerCallbacks;
     searchEngine = new SearchEngineImpl(driverMap.values);
 
-    channel.listen(handleMessage, onDone: done, onError: error);
+    channel.listen(handleMessage, onDone: done, onError: socketError);
   }
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
@@ -221,14 +221,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * The socket from which messages are being read has been closed.
    */
   void done() {}
-
-  /**
-   * There was an error related to the socket from which messages are being
-   * read.
-   */
-  void error(error, stack) {
-    sendServerErrorNotification('Server error', error, stack);
-  }
 
   /// Return the LineInfo for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
@@ -328,7 +320,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           logException(errorMessage, error, stackTrace);
         }
       });
-    }, onError: error);
+    }, onError: socketError);
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -455,7 +447,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.sendResponse(response);
   }
 
-  void sendServerErrorNotification(String message, exception, stackTrace) {
+  @override
+  void sendServerErrorNotification(String message, exception, stackTrace,
+      {bool fatal = false}) {
     message = exception == null ? message : '$message: $exception';
 
     // Show message (without stack) to the user.
@@ -522,6 +516,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     });
 
     return new Future.value();
+  }
+
+  /**
+   * There was an error related to the socket from which messages are being
+   * read.
+   */
+  void socketError(error, stack) {
+    // Don't send to instrumentation service; not an internal error.
+    sendServerErrorNotification('Socket error', error, stack);
   }
 
   void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
@@ -625,7 +628,9 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (result.contextKey != null) {
         message += ' context: ${result.contextKey}';
       }
-      AnalysisEngine.instance.logger.logError(message, result.exception);
+      // TODO(39284): should this exception be silent?
+      AnalysisEngine.instance.instrumentationService.logException(
+          new SilentException.wrapInMessage(message, result.exception));
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

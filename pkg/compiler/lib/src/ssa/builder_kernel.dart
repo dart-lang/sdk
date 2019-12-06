@@ -150,7 +150,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
   Local _returnLocal;
   DartType _returnType;
-  bool _inLazyInitializerExpression = false;
 
   StackFrame _currentFrame;
 
@@ -586,7 +585,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   }
 
   void _buildField(ir.Field node) {
-    _inLazyInitializerExpression = node.isStatic;
+    graph.isLazyInitializer = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
     _openFunction(field, checks: TargetChecks.none);
     if (node.isInstanceMember &&
@@ -1485,11 +1484,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = _localsMap.getLocalTypeVariable(
-            new ir.TypeParameterType(typeParameter), _elementMap);
+            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy),
+            _elementMap);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
-        if (!bound.isDynamic &&
-            !bound.isVoid &&
+        if (bound is! DynamicType &&
+            bound is! VoidType &&
             bound != _commonElements.objectType) {
           if (options.experimentNewRti) {
             _checkTypeBound(newParameter, bound, local.name);
@@ -1709,11 +1709,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, checkLoad), import);
     HInstruction prefixConstant = graph.addConstantString(loadId, closedWorld);
-    HInstruction uriConstant =
-        graph.addConstantString('${import.uri}', closedWorld);
     _pushStaticInvocation(
         _commonElements.checkDeferredIsLoaded,
-        [prefixConstant, uriConstant],
+        [prefixConstant],
         _typeInferenceMap
             .getReturnTypeOf(_commonElements.checkDeferredIsLoaded),
         const <DartType>[],
@@ -4696,7 +4694,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     // TODO(sra): This should be JSArray<any>, created via
     // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
     InterfaceType interopType =
-        InterfaceType(_commonElements.jsArrayClass, [const DynamicType()]);
+        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction rti =
@@ -4995,8 +4993,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     // Native behavior effects here are similar to native/behavior.dart.
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(
-        options.trustJSInteropTypeAnnotations ? type : const DynamicType());
+    nativeBehavior.typesReturned
+        .add(options.trustJSInteropTypeAnnotations ? type : DynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -5527,7 +5525,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// Returns `true` if the checking of [type] is performed directly on the
   /// object and not on an interceptor.
   bool _hasDirectCheckFor(DartType type) {
-    if (!type.isInterfaceType) return false;
+    if (type is! InterfaceType) return false;
     InterfaceType interfaceType = type;
     ClassEntity element = interfaceType.element;
     return element == _commonElements.stringClass ||
@@ -5805,7 +5803,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       }
 
       // Do not inline code that is rarely executed unless it reduces size.
-      if (_inExpressionOfThrow || _inLazyInitializerExpression) {
+      if (_inExpressionOfThrow || graph.isLazyInitializer) {
         return reductiveHeuristic(inlineData);
       }
 

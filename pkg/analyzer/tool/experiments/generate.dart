@@ -4,8 +4,9 @@
  */
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
+    show $MINUS, $_;
 import 'package:analysis_tool/tools.dart';
-import 'package:front_end/src/fasta/scanner/characters.dart' show $MINUS, $_;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 

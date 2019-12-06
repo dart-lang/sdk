@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
     '..', '..', '..', 'language_model', 'lexeme');
-const expectedLookback = 50;
+const expectedLookback = 100;
 
 void main() {
   if (sizeOf<IntPtr>() == 4) {
@@ -37,7 +37,6 @@ void main() {
     final tokens =
         tokenize('if (list == null) { return; } for (final i = 0; i < list.');
     final suggestions = model.predict(tokens);
-    expect(suggestions, hasLength(model.completions));
     expect(suggestions.first, 'length');
   });
 
@@ -47,8 +46,7 @@ void main() {
     final suggestions = model.predictWithScores(tokens);
     final best = suggestions.entries.first;
     expect(best.key, 'length');
-    expect(best.value, greaterThan(0.85));
-    expect(suggestions, hasLength(model.completions));
+    expect(best.value, greaterThan(0.9));
   });
 
   test('predict when no previous tokens', () {
@@ -65,6 +63,15 @@ void main() {
       expect(
           e.toString(), equals('Invalid argument(s): Unable to create model.'));
     }
+  });
+
+  test('isNumber', () {
+    expect(model.isNumber('0xCAb005E'), true);
+    expect(model.isNumber('foo'), false);
+    expect(model.isNumber('3.1415'), true);
+    expect(model.isNumber('1337'), true);
+    expect(model.isNumber('"four score and seven years ago"'), false);
+    expect(model.isNumber('0.0'), true);
   });
 }
 

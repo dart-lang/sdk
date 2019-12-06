@@ -7,7 +7,8 @@
  */
 import 'package:analyzer/error/error.dart';
 
-export 'package:front_end/src/scanner/errors.dart' show ScannerErrorCode;
+export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show ScannerErrorCode;
 
 part 'syntactic_errors.g.dart';
 
@@ -217,7 +218,8 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because the method `a` doesn't
+  // have a body:
   //
   // ```dart
   // extension E on String {
@@ -243,7 +245,8 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because there is a constructor
+  // declaration in `E`:
   //
   // ```dart
   // extension E on String {
@@ -268,7 +271,8 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `s` is an instance
+  // field:
   //
   // ```dart
   // extension E on String {
@@ -493,7 +497,8 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic:
+  // The following code produces this diagnostic because `i` is marked as being
+  // covariant:
   //
   // ```dart
   // extension E on String {
@@ -824,6 +829,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode TYPE_BEFORE_FACTORY = _TYPE_BEFORE_FACTORY;
 
   static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
+
+  static const ParserErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
+      _TYPE_PARAMETER_ON_CONSTRUCTOR;
 
   /**
    * Parameters:

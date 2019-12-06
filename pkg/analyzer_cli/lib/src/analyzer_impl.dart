@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -260,21 +260,22 @@ class AnalyzerImpl {
   }
 }
 
-/// This [Logger] prints out information comments to [outSink] and error messages
-/// to [errorSink].
-class StdLogger extends Logger {
-  StdLogger();
-
+/// This [InstrumentationService] prints out information comments to [outSink]
+/// and error messages to [errorSink].
+class StdInstrumentation extends NoopInstrumentationService {
   @override
-  void logError(String message, [CaughtException exception]) {
+  void logError(String message) {
     errorSink.writeln(message);
-    if (exception != null) {
-      errorSink.writeln(exception);
-    }
   }
 
   @override
-  void logInformation(String message, [CaughtException exception]) {
+  void logException(dynamic exception, [StackTrace stackTrace]) {
+    errorSink.writeln(exception);
+    errorSink.writeln(stackTrace);
+  }
+
+  @override
+  void logInfo(String message, [exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

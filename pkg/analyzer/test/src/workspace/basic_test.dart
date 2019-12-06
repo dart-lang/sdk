@@ -12,57 +12,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
 
-class MockContextBuilder implements ContextBuilder {
-  Map<String, Packages> packagesMapMap = <String, Packages>{};
-  Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
-      <Packages, Map<String, List<Folder>>>{};
-
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
-      packagesToMapMap[packages];
-
-  Packages createPackageMap(String rootDirectoryPath) =>
-      packagesMapMap[rootDirectoryPath];
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockPackages implements Packages {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BasicWorkspaceTest);
     defineReflectiveTests(BasicWorkspacePackageTest);
   });
-}
-
-@reflectiveTest
-class BasicWorkspaceTest with ResourceProviderMixin {
-  setUp() {
-    newFolder('/workspace');
-  }
-
-  void test_find_fail_notAbsolute() {
-    expect(
-        () => BasicWorkspace.find(resourceProvider, convertPath('not_absolute'),
-            new MockContextBuilder()),
-        throwsA(TypeMatcher<ArgumentError>()));
-  }
-
-  void test_find_directory() {
-    BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
-    expect(workspace.root, convertPath('/workspace'));
-  }
-
-  void test_find_file() {
-    BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider,
-        convertPath('/workspace/project/lib/lib1.dart'),
-        new MockContextBuilder());
-    expect(workspace.root, convertPath('/workspace/project/lib'));
-  }
 }
 
 @reflectiveTest
@@ -79,24 +33,7 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
     newFolder('/workspace');
     workspace = BasicWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
-  }
-
-  void test_findPackageFor_unrelatedFile() {
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
-    expect(package, isNull);
-  }
-
-  void test_findPackageFor_includedFile() {
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
-    expect(package.workspace, equals(workspace));
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
@@ -128,4 +65,70 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
             TestSource(convertPath('/workspace/project/test/test.dart'))),
         isTrue);
   }
+
+  void test_findPackageFor_includedFile() {
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/workspace'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_findPackageFor_unrelatedFile() {
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
+    expect(package, isNull);
+  }
+}
+
+@reflectiveTest
+class BasicWorkspaceTest with ResourceProviderMixin {
+  setUp() {
+    newFolder('/workspace');
+  }
+
+  void test_find_directory() {
+    BasicWorkspace workspace = BasicWorkspace.find(
+        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.isBazel, isFalse);
+  }
+
+  void test_find_fail_notAbsolute() {
+    expect(
+        () => BasicWorkspace.find(resourceProvider, convertPath('not_absolute'),
+            new MockContextBuilder()),
+        throwsA(TypeMatcher<ArgumentError>()));
+  }
+
+  void test_find_file() {
+    BasicWorkspace workspace = BasicWorkspace.find(
+        resourceProvider,
+        convertPath('/workspace/project/lib/lib1.dart'),
+        new MockContextBuilder());
+    expect(workspace.root, convertPath('/workspace/project/lib'));
+    expect(workspace.isBazel, isFalse);
+  }
+}
+
+class MockContextBuilder implements ContextBuilder {
+  Map<String, Packages> packagesMapMap = <String, Packages>{};
+  Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
+      <Packages, Map<String, List<Folder>>>{};
+
+  Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
+      packagesToMapMap[packages];
+
+  Packages createPackageMap(String rootDirectoryPath) =>
+      packagesMapMap[rootDirectoryPath];
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockPackages implements Packages {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "lib/ffi.h"
-
 #include "include/dart_api.h"
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
@@ -279,7 +277,8 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
 
   auto& new_value_type =
       AbstractType::Handle(zone, new_value.GetType(Heap::kNew));
-  if (!new_value_type.IsSubtypeOf(pointer_type_arg, Heap::kNew)) {
+  if (!new_value_type.IsSubtypeOf(NNBDMode::kLegacy, pointer_type_arg,
+                                  Heap::kNew)) {
     const String& error = String::Handle(String::NewFormatted(
         "New value (%s) is not a subtype of '%s'.",
         String::Handle(new_value_type.UserVisibleName()).ToCString(),
@@ -421,10 +420,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
-#if defined(TARGET_ARCH_DBC)
-  Exceptions::ThrowUnsupportedError(
-      "FFI callbacks are not yet supported on DBC.");
-#elif defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   // Calls to this function are removed by the flow-graph builder in AOT.
   // See StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction().
   UNREACHABLE();
@@ -495,7 +491,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   thread->SetFfiCallbackCode(function.FfiCallbackId(), code);
 
   uword entry_point = code.EntryPoint();
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
     entry_point = isolate->native_callback_trampolines()->TrampolineForId(
         function.FfiCallbackId());
@@ -504,122 +500,5 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
 
   return Pointer::New(type_arg, entry_point);
 }
-
-#if defined(TARGET_ARCH_DBC)
-
-void FfiMarshalledArguments::SetFunctionAddress(uint64_t value) const {
-  data_[kOffsetFunctionAddress] = value;
-}
-
-static intptr_t ArgumentHostRegisterIndex(host::Register reg) {
-  for (intptr_t i = 0; i < host::CallingConventions::kNumArgRegs; i++) {
-    if (host::CallingConventions::ArgumentRegisters[i] == reg) {
-      return i;
-    }
-  }
-  UNREACHABLE();
-}
-
-void FfiMarshalledArguments::SetRegister(host::Register reg,
-                                         uint64_t value) const {
-  const intptr_t reg_index = ArgumentHostRegisterIndex(reg);
-  ASSERT(host::CallingConventions::ArgumentRegisters[reg_index] == reg);
-  const intptr_t index = kOffsetRegisters + reg_index;
-  data_[index] = value;
-}
-
-void FfiMarshalledArguments::SetFpuRegister(host::FpuRegister reg,
-                                            uint64_t value) const {
-  const intptr_t fpu_index = static_cast<intptr_t>(reg);
-  ASSERT(host::CallingConventions::FpuArgumentRegisters[fpu_index] == reg);
-  const intptr_t index = kOffsetFpuRegisters + fpu_index;
-  data_[index] = value;
-}
-
-void FfiMarshalledArguments::SetNumStackSlots(intptr_t num_args) const {
-  data_[kOffsetNumStackSlots] = num_args;
-}
-
-void FfiMarshalledArguments::SetAlignmentMask(uint64_t alignment_mask) const {
-  data_[kOffsetAlignmentMask] = alignment_mask;
-}
-
-intptr_t FfiMarshalledArguments::GetNumStackSlots() const {
-  return data_[kOffsetNumStackSlots];
-}
-
-void FfiMarshalledArguments::SetStackSlotValue(intptr_t index,
-                                               uint64_t value) const {
-  ASSERT(0 <= index && index < GetNumStackSlots());
-  data_[kOffsetStackSlotValues + index] = value;
-}
-
-uint64_t* FfiMarshalledArguments::New(
-    const compiler::ffi::FfiSignatureDescriptor& signature,
-    const uint64_t* arg_values) {
-  const intptr_t num_stack_slots = signature.num_stack_slots();
-  const uint64_t alignment_mask = ~(OS::ActivationFrameAlignment() - 1);
-  const intptr_t size =
-      FfiMarshalledArguments::kOffsetStackSlotValues + num_stack_slots;
-  uint64_t* data = Thread::Current()->GetFfiMarshalledArguments(size);
-  const auto& descr = FfiMarshalledArguments(data);
-
-  descr.SetFunctionAddress(arg_values[compiler::ffi::kFunctionAddressRegister]);
-  const intptr_t num_args = signature.length();
-  descr.SetNumStackSlots(num_stack_slots);
-  descr.SetAlignmentMask(alignment_mask);
-  for (int i = 0; i < num_args; i++) {
-    uint64_t arg_value = arg_values[compiler::ffi::kFirstArgumentRegister + i];
-    HostLocation loc = signature.LocationAt(i);
-    // TODO(36809): For 32 bit, support pair locations.
-    if (loc.IsRegister()) {
-      descr.SetRegister(loc.reg(), arg_value);
-    } else if (loc.IsFpuRegister()) {
-      descr.SetFpuRegister(loc.fpu_reg(), arg_value);
-    } else {
-      ASSERT(loc.IsStackSlot() || loc.IsDoubleStackSlot());
-      ASSERT(loc.stack_index() < num_stack_slots);
-      descr.SetStackSlotValue(loc.stack_index(), arg_value);
-    }
-  }
-
-  return data;
-}
-
-#if defined(DEBUG)
-void FfiMarshalledArguments::Print() const {
-  OS::PrintErr("FfiMarshalledArguments data_ 0x%" Pp "\n",
-               reinterpret_cast<intptr_t>(data_));
-  OS::PrintErr("  00 0x%016" Px64 " (function address, int result)\n",
-               data_[0]);
-  for (intptr_t i = 0; i < host::CallingConventions::kNumArgRegs; i++) {
-    const intptr_t index = kOffsetRegisters + i;
-    const char* result_str = i == 0 ? ", float result" : "";
-    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (%s%s)\n", index, data_[index],
-                 RegisterNames::RegisterName(
-                     host::CallingConventions::ArgumentRegisters[i]),
-                 result_str);
-  }
-  for (intptr_t i = 0; i < host::CallingConventions::kNumFpuArgRegs; i++) {
-    const intptr_t index = kOffsetFpuRegisters + i;
-    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (%s)\n", index, data_[index],
-                 RegisterNames::FpuRegisterName(
-                     host::CallingConventions::FpuArgumentRegisters[i]));
-  }
-  const intptr_t alignment_mask = data_[kOffsetAlignmentMask];
-  OS::PrintErr("  %02" Pd " 0x%" Pp " (stack alignment mask)\n",
-               kOffsetAlignmentMask, alignment_mask);
-  const intptr_t num_stack_slots = data_[kOffsetNumStackSlots];
-  OS::PrintErr("  %02" Pd " 0x%" Pp " (number of stack slots)\n",
-               kOffsetNumStackSlots, num_stack_slots);
-  for (intptr_t i = 0; i < num_stack_slots; i++) {
-    const intptr_t index = kOffsetStackSlotValues + i;
-    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (stack slot %" Pd ")\n", index,
-                 data_[index], i);
-  }
-}
-#endif  // defined(DEBUG)
-
-#endif  // defined(TARGET_ARCH_DBC)
 
 }  // namespace dart

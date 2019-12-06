@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <utility>
+
 #include "dart.h"
 
 #include "llvm/ADT/StringSwitch.h"
-#include "vm/dart_api_state.h"
 
 using namespace llvm;
 
@@ -128,22 +129,22 @@ Expected<std::unique_ptr<DartInstruction>> InstPushArgument::Construct(
     return CreateError("PushArgument should have exactly 1 argument");
   }
   dart::SExpSymbol* arg = inst->At(1)->AsSymbol();
-  if (!arg) {
+  if (arg == nullptr) {
     return CreateError("Expected PushArgument's argument to be a symbol");
   }
   const DartValue* dvalue = bb_builder.GetDef(arg->value());
-  if (!dvalue) {
+  if (dvalue == nullptr) {
     return CreateError(Twine(arg->value()) + " is not a valid symbol");
   }
   return llvm::make_unique<InstPushArgument>(dvalue);
 }
 
 void InstStaticCall::Build(BasicBlockBuilder& bb_builder) const {
-  // inst = (StaticCall <function-symbol> <arg> ...)  
+  // inst = (StaticCall <function-symbol> <arg> ...)
 
   SmallVector<Value*, 8> args;
   size_t arg_count = args_len_;
-  while (arg_count) {
+  while (arg_count > 0) {
     arg_count--;
     args.push_back(bb_builder.PopArgument());
   }
@@ -196,15 +197,15 @@ Expected<std::unique_ptr<DartInstruction>> InstReturn::Construct(
   return llvm::make_unique<InstReturn>();
 }
 
-static Expected<StringMap<DartConstant>> MakeConstants(dart::SExpList* sexpr) {
-  dart::ApiZone zone;
+static Expected<StringMap<DartConstant>> MakeConstants(dart::Zone* zone,
+                                                       dart::SExpList* sexpr) {
   StringMap<DartConstant> out;
   for (intptr_t i = 1; i < sexpr->Length(); ++i) {
     DartConstant constant;
     dart::SExpList* def = sexpr->At(i)->AsList();
     if (!def) {
       return CreateError(Twine("Stray token in constants at location ") +
-                         Twine(i) + sexpr->At(i)->ToCString(zone.GetZone()));
+                         Twine(i) + sexpr->At(i)->ToCString(zone));
     }
     if (def->Length() != 3) {
       return CreateError("Constant definitions must have exactly 3 lines");
@@ -287,10 +288,10 @@ static Expected<DartBlock> MakeBlock(dart::SExpList* sexpr,
   return out;
 }
 
-Expected<DartFunction> MakeFunction(dart::SExpression* sexpr,
+Expected<DartFunction> MakeFunction(dart::Zone* zone,
+                                    dart::SExpression* sexpr,
                                     const StringMap<const DartValue*>& env) {
   // Basic checking that this s-expression looks like a function
-  dart::ApiZone zone;
   dart::SExpList* flist = sexpr->AsList();
   if (!flist) return CreateError("S-Expression was not a function list");
   if (flist->Length() < 2)
@@ -312,10 +313,10 @@ Expected<DartFunction> MakeFunction(dart::SExpression* sexpr,
   for (intptr_t i = 2; i < flist->Length(); ++i) {
     dart::SExpList* chunk = flist->At(i)->AsList();
     // Everything is a list so far so error out on other options
-    if (!chunk)
+    if (!chunk) {
       return CreateError(Twine("Stray token in function at location ") +
-                         Twine(i) + ": " +
-                         flist->At(i)->ToCString(zone.GetZone()));
+                         Twine(i) + ": " + flist->At(i)->ToCString(zone));
+    }
     dart::SExpSymbol* chunk_symbol = chunk->At(0)->AsSymbol();
     if (!chunk_symbol)
       return CreateError(Twine("Expected element ") + Twine(i) +
@@ -323,7 +324,7 @@ Expected<DartFunction> MakeFunction(dart::SExpression* sexpr,
     StringRef chunk_tag = chunk_symbol->value();
 
     if (chunk_tag == "constants") {
-      auto constants = MakeConstants(chunk);
+      auto constants = MakeConstants(zone, chunk);
       if (!constants) return constants.takeError();
       function.constants = std::move(*constants);
     }

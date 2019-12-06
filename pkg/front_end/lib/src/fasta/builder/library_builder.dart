@@ -4,6 +4,8 @@
 
 library fasta.library_builder;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show Combinator;
@@ -22,8 +24,6 @@ import '../messages.dart'
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess;
-
-import '../severity.dart' show Severity;
 
 import '../scope.dart';
 
@@ -51,11 +51,6 @@ abstract class LibraryBuilder implements ModifierBuilder {
   LibraryBuilder partOfLibrary;
 
   bool mayImplementRestrictedTypes;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target;
 
   /// Set the language version to a specific non-null major and minor version.
   ///
@@ -142,6 +137,12 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType);
 
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
+  int computeVariances() => 0;
+
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type variables
@@ -152,6 +153,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
   void becomeCoreLibrary();
 
   void addSyntheticDeclarationOfDynamic();
+
+  void addSyntheticDeclarationOfNever();
 
   /// Lookups the member [name] declared in this library.
   ///
@@ -215,15 +218,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isSynthetic => false;
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  @override
-  UnrelatedTarget get target => unsupported(
-      "LibraryBuilder.target is deprecated. "
-      "Use LibraryBuilder.library instead.",
-      charOffset,
-      fileUri);
 
   /// Set the language version to a specific non-null major and minor version.
   ///
@@ -297,20 +291,20 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
-        member.isSetter ? exportScope.setters : exportScope.local;
-    Builder existing = map[name];
-    if (existing == member) return false;
-    if (existing != null) {
+    Builder existing =
+        exportScope.lookupLocalMember(name, setter: member.isSetter);
+    if (existing == member) {
+      return false;
+    } else if (existing != null) {
       Builder result = computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
-      map[name] = result;
+      exportScope.addLocalMember(name, result, setter: member.isSetter);
       return result != existing;
     } else {
-      map[name] = member;
+      exportScope.addLocalMember(name, member, setter: member.isSetter);
+      return true;
     }
-    return true;
   }
 
   @override
@@ -364,6 +358,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
 
   @override
+  int computeVariances() => 0;
+
+  @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     return 0;
@@ -371,14 +368,17 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   void becomeCoreLibrary() {
-    if (scope.local["dynamic"] == null) {
+    if (scope.lookupLocalMember("dynamic", setter: false) == null) {
       addSyntheticDeclarationOfDynamic();
+    }
+    if (scope.lookupLocalMember("Never", setter: false) == null) {
+      addSyntheticDeclarationOfNever();
     }
   }
 
   @override
   Builder lookupLocalMember(String name, {bool required: false}) {
-    Builder builder = scope.local[name];
+    Builder builder = scope.lookupLocalMember(name, setter: false);
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

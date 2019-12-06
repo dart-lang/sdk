@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -646,6 +647,12 @@ class LinkedUnitContext {
     return node.bound;
   }
 
+  Token getTypeParameterVariance(TypeParameter node) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    return (node as TypeParameterImpl).varianceKeyword;
+  }
+
   TypeParameterList getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
       return node.typeParameters;
@@ -731,6 +738,10 @@ class LinkedUnitContext {
     return LazyVariableDeclaration.hasInitializer(node);
   }
 
+  bool hasOperatorEqualParameterTypeFromObject(MethodDeclaration node) {
+    return LazyAst.hasOperatorEqualParameterTypeFromObject(node);
+  }
+
   bool hasOverrideInferenceDone(AstNode node) {
     // Only nodes in the libraries being linked might be not inferred yet.
     if (_astReader.isLazy) return true;
@@ -743,6 +754,8 @@ class LinkedUnitContext {
       return node.abstractKeyword != null;
     } else if (node is ClassTypeAlias) {
       return node.abstractKeyword != null;
+    } else if (node is ConstructorDeclaration) {
+      return false;
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
@@ -902,7 +915,7 @@ class LinkedUnitContext {
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.bottom) {
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
@@ -936,8 +949,6 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-
       GenericTypeAliasElement typedefElement;
       List<DartType> typedefTypeArguments = const <DartType>[];
       if (linkedType.functionTypedef != 0) {
@@ -947,10 +958,16 @@ class LinkedUnitContext {
             linkedType.functionTypedefTypeArguments.map(readType).toList();
       }
 
-      return FunctionTypeImpl.synthetic(
-              returnType, typeParameters, formalParameters,
-              element: typedefElement, typeArguments: typedefTypeArguments)
-          .withNullability(nullabilitySuffix);
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+
+      return FunctionTypeImpl(
+        typeFormals: typeParameters,
+        parameters: formalParameters,
+        returnType: returnType,
+        nullabilitySuffix: nullabilitySuffix,
+        element: typedefElement,
+        typeArguments: typedefTypeArguments,
+      );
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
@@ -970,7 +987,10 @@ class LinkedUnitContext {
         element = bundleContext.elementOfIndex(index);
       }
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return TypeParameterTypeImpl(element).withNullability(nullabilitySuffix);
+      return TypeParameterTypeImpl(
+        element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {
@@ -988,6 +1008,10 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
+  }
+
+  void setOperatorEqualParameterTypeFromObject(AstNode node, bool value) {
+    LazyAst.setOperatorEqualParameterTypeFromObject(node, value);
   }
 
   void setOverrideInferenceDone(AstNode node) {

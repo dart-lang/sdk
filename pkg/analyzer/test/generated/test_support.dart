@@ -5,9 +5,8 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
@@ -357,19 +356,24 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 }
 
-/// Instances of the class [TestLogger] implement a logger that can be used by
-/// tests.
-class TestLogger implements Logger {
+/// Instances of the class [TestInstrumentor] implement an instrumentation
+/// service that can be used by tests.
+class TestInstrumentor extends NoopInstrumentationService {
   /// All logged messages.
   List<String> log = [];
 
   @override
-  void logError(String message, [CaughtException exception]) {
+  void logError(String message) {
     log.add("error: $message");
   }
 
   @override
-  void logInformation(String message, [CaughtException exception]) {
+  void logException(dynamic exception, [StackTrace stackTrace]) {
+    log.add("error: $exception $stackTrace");
+  }
+
+  @override
+  void logInfo(String message, [dynamic exception]) {
     log.add("info: $message");
   }
 }
@@ -432,9 +436,6 @@ class TestSource extends Source {
   }
 
   bool exists() => exists2;
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedError('getContentsToReceiver');
-  }
 
   Source resolve(String uri) {
     throw new UnsupportedError('resolve');

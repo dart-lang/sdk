@@ -54,11 +54,7 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
-import 'package:telemetry/crash_reporting.dart';
-import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
-
-const _analyticsID = 'UA-26406144-28';
 
 /// Shared IO sink for standard error reporting.
 @visibleForTesting
@@ -68,28 +64,10 @@ StringSink errorSink = io.stderr;
 @visibleForTesting
 StringSink outSink = io.stdout;
 
-telemetry.Analytics _analytics;
-
-/// The analytics instance for analyzer-cli.
-telemetry.Analytics get analytics => (_analytics ??=
-    telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli'));
-
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
   YamlNode linterNode = getValue(options, 'linter');
   return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
-}
-
-/// Make sure that we create an analytics instance that doesn't send for this
-/// session.
-void disableAnalyticsForSession() {
-  _analytics = telemetry.createAnalyticsInstance(_analyticsID, 'analyzer-cli',
-      disableForSession: true);
-}
-
-@visibleForTesting
-void setAnalytics(telemetry.Analytics replacementAnalytics) {
-  _analytics = replacementAnalytics;
 }
 
 class Driver with HasContextMixin implements CommandLineStarter {
@@ -127,24 +105,13 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
 
-  CrashReportSender _crashReportSender;
-
   /// The [PathFilter] for excluded files with wildcards, etc.
   PathFilter pathFilter;
 
   /// Create a new Driver instance.
   ///
   /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting: false}) {
-    if (isTesting) {
-      disableAnalyticsForSession();
-    }
-  }
-
-  /// The crash reporting instance for analyzer-cli.
-  /// TODO(devoncarew): Replace with the real crash product ID.
-  CrashReportSender get crashReportSender => (_crashReportSender ??=
-      new CrashReportSender('Dart_analyzer_cli', analytics));
+  Driver({bool isTesting: false});
 
   /**
    * Converts the given [filePath] into absolute and normalized.
@@ -169,15 +136,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
-
-    if (options.batchMode || options.buildMode) {
-      disableAnalyticsForSession();
-    }
-
-    // Ping analytics with our initial call.
-    analytics.sendScreenView('home');
-
-    var timer = analytics.startTimer('analyze');
 
     // Do analysis.
     if (options.buildMode) {
@@ -222,21 +180,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
       _analyzedFileCount += analysisDriver.knownFiles.length;
     }
 
-    // Send how long analysis took.
-    timer.finish();
-
-    // Send how many files were analyzed.
-    analytics.sendEvent('analyze', 'fileCount', value: _analyzedFileCount);
-
     if (options.perfReport != null) {
       String json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
       new io.File(options.perfReport).writeAsStringSync(json);
     }
-
-    // Wait a brief time for any analytics calls to finish.
-    await analytics.waitForLastPing(timeout: new Duration(milliseconds: 200));
-    analytics.close();
   }
 
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
@@ -245,11 +193,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
     PerformanceTag previous = _analyzeAllTag.makeCurrent();
     try {
       return await _analyzeAllImpl(options);
-    } catch (e, st) {
-      // Catch and ignore any exceptions when reporting exceptions (network
-      // errors or other).
-      crashReportSender.sendReport(e, stackTrace: st).catchError((_) {});
-      rethrow;
     } finally {
       previous.makeCurrent();
     }
@@ -613,7 +556,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Set up logging.
     if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
+      AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
     }
 
     // Save stats from previous context before clobbering it.
@@ -770,7 +713,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         String dartSdkPath = options.dartSdkPath;
         FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath), true);
+            resourceProvider, resourceProvider.getFolder(dartSdkPath));
         dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);

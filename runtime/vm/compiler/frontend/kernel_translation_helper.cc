@@ -733,6 +733,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
 
   intptr_t pos = 0;
   if (is_method) {
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -847,8 +848,8 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kFunctionNode);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
@@ -987,8 +988,8 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kField);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1008,11 +1009,7 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
-        flags_ = helper_->ReadUInt();
-      } else {
-        flags_ = helper_->ReadFlags();
-      }
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1025,8 +1022,8 @@ void FieldHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kType:
       helper_->SkipDartType();  // read type.
       if (++next_read_ == field) return;
@@ -1051,8 +1048,8 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kProcedure);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1080,11 +1077,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
-        flags_ = helper_->ReadUInt();
-      } else {
-        flags_ = helper_->ReadFlags();
-      }
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1097,8 +1090,8 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kForwardingStubSuperTarget:
       forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
@@ -1127,8 +1120,8 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kConstructor);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1165,8 +1158,8 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kFunction:
       helper_->SkipFunctionNode();  // read function.
       if (++next_read_ == field) return;
@@ -1194,8 +1187,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       Tag tag = helper_->ReadTag();  // read tag.
       ASSERT(tag == kClass);
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCanonicalName:
       canonical_name_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name.
@@ -1232,8 +1225,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kTypeParameters:
       helper_->SkipTypeParametersList();  // read type parameters.
       if (++next_read_ == field) return;
@@ -1244,16 +1237,16 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         helper_->SkipDartType();  // read super class type (part 2).
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kMixinType: {
       Tag type_tag = helper_->ReadTag();  // read mixin type (part 1).
       if (type_tag == kSomething) {
         helper_->SkipDartType();  // read mixin type (part 2).
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kImplementedClasses:
       helper_->SkipListOfDartTypes();  // read implemented_classes.
       if (++next_read_ == field) return;
@@ -1266,8 +1259,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
         field_helper.ReadUntilExcluding(FieldHelper::kEnd);  // read field.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kConstructors: {
       intptr_t list_length =
           helper_->ReadListLength();  // read constructors list length.
@@ -1277,8 +1270,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
             ConstructorHelper::kEnd);  // read constructor.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kProcedures: {
       procedure_count_ = helper_->ReadListLength();  // read procedures #.
       for (intptr_t i = 0; i < procedure_count_; i++) {
@@ -1287,8 +1280,8 @@ void ClassHelper::ReadUntilExcluding(Field field) {
             ProcedureHelper::kEnd);  // read procedure.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kClassIndex:
       // Read class index.
       for (intptr_t i = 0; i < procedure_count_; ++i) {
@@ -1316,10 +1309,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
       FALL_THROUGH;
     }
     case kLanguageVersion: {
-      if (binary_version_ >= 27) {
-        helper_->ReadUInt();  // Read major language version.
-        helper_->ReadUInt();  // Read minor language version.
-      }
+      helper_->ReadUInt();  // Read major language version.
+      helper_->ReadUInt();  // Read minor language version.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     }
@@ -1343,8 +1334,8 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
         helper_->SkipBytes(helper_->ReadUInt());  // read strings.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kAnnotations:
       helper_->SkipListOfExpressions();  // read annotations.
       if (++next_read_ == field) return;
@@ -1381,18 +1372,18 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
         helper_->SkipExpression();  // read ith expression.
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kTargetLibrary: {
       target_library_canonical_name_ = helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kName: {
       name_index_ = helper_->ReadStringReference();
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kCombinators: {
       intptr_t count = helper_->ReadListLength();
       for (intptr_t i = 0; i < count; ++i) {
@@ -1402,8 +1393,8 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
         helper_->SkipListOfStrings();
       }
       if (++next_read_ == field) return;
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case kEnd:
       return;
   }
@@ -1977,6 +1968,9 @@ void KernelReaderHelper::SkipDartType() {
     case kBottomType:
       // those contain nothing.
       return;
+    case kNeverType:
+      ReadNullability();
+      return;
     case kInterfaceType:
       SkipInterfaceType(false);
       return;
@@ -2041,9 +2035,7 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       SkipStringReference();
       SkipDartType();  // read named_parameters[i].type.
-      if (translation_helper_.info().kernel_binary_version() >= 29) {
-        SkipBytes(1);  // read flags
-      }
+      SkipBytes(1);    // read flags
     }
   }
 
@@ -2222,13 +2214,11 @@ void KernelReaderHelper::SkipExpression() {
       SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
-    case kConstStaticInvocation:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read procedure_reference.
       SkipArguments();               // read arguments.
       return;
     case kConstructorInvocation:
-    case kConstConstructorInvocation:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
@@ -2255,15 +2245,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();           // read position.
       SkipListOfExpressions();  // read list of expressions.
       return;
-    case kListConcatenation:
-    case kSetConcatenation:
-    case kMapConcatenation:
-    case kInstanceCreation:
-    case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are removed by the constant evaluator.
-      UNREACHABLE();
-      break;
     case kIsExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
@@ -2274,9 +2255,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipFlags();       // read flags.
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
-      return;
-    case kSymbolLiteral:
-      SkipStringReference();  // read index into string table.
       return;
     case kTypeLiteral:
       SkipDartType();  // read type.
@@ -2291,19 +2269,16 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read expression.
       return;
     case kListLiteral:
-    case kConstListLiteral:
       ReadPosition();           // read position.
       SkipDartType();           // read type.
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kSetLiteral:
-    case kConstSetLiteral:
       // Set literals are currently desugared in the frontend and will not
       // reach the VM. See http://dartbug.com/35124 for discussion.
       UNREACHABLE();
       return;
-    case kMapLiteral:
-    case kConstMapLiteral: {
+    case kMapLiteral: {
       ReadPosition();                           // read position.
       SkipDartType();                           // read key type.
       SkipDartType();                           // read value type.
@@ -2358,13 +2333,26 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();  // read type.
       SkipConstantReference();
       return;
-    case kDeprecated_ConstantExpression:
-      SkipConstantReference();
-      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kConstStaticInvocation:
+    case kConstConstructorInvocation:
+    case kConstListLiteral:
+    case kConstSetLiteral:
+    case kConstMapLiteral:
+    case kSymbolLiteral:
+      // Const invocations and const literals are removed by the
+      // constant evaluator.
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are internal to the front end and
+      // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();
@@ -2781,8 +2769,13 @@ void TypeTranslator::BuildTypeInternal() {
       result_ = Object::void_type().raw();
       break;
     case kBottomType:
-      result_ =
-          Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
+      result_ = I->object_store()->null_type();
+      ASSERT(result_.IsNullable());
+      break;
+    case kNeverType:
+      helper_->ReadNullability();
+      // Ignore nullability, as Never type is non-nullable.
+      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2810,7 +2803,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
@@ -2823,12 +2816,13 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   if (simple) {
     if (finalize_ || klass.is_type_finalized()) {
       // Fast path for non-generic types: retrieve or populate the class's only
-      // canonical type, which is its declaration type.
-      result_ = klass.DeclarationType();
+      // canonical type (as long as only one nullability variant is used), which
+      // is its declaration type.
+      result_ = klass.DeclarationType(nullability);
     } else {
       // Note that the type argument vector is not yet extended.
-      result_ =
-          Type::New(klass, Object::null_type_arguments(), klass.token_pos());
+      result_ = Type::New(klass, Object::null_type_arguments(),
+                          klass.token_pos(), nullability);
     }
     return;
   }
@@ -2838,6 +2832,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
+  Type::Cast(result_).set_nullability(nullability);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -2852,7 +2847,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
 
-  helper_->ReadNullability();  // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2915,10 +2910,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
-      if (translation_helper_.info().kernel_binary_version() >= 29) {
-        // TODO(markov): Store 'required' bit.
-        helper_->ReadFlags();  // read flags
-      }
+      // TODO(markov): Store 'required' bit.
+      helper_->ReadFlags();  // read flags
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }
@@ -2934,7 +2927,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   finalize_ = finalize;
 
   Type& signature_type =
-      Type::ZoneHandle(Z, signature_function.SignatureType());
+      Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
 
   if (finalize_) {
     signature_type ^=
@@ -2948,7 +2941,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
-  helper_->ReadNullability();                      // read nullability.
+  const Nullability nullability = helper_->ReadNullability();
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -2958,6 +2951,8 @@ void TypeTranslator::BuildTypeParameterType() {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
     result_ = class_types.TypeAt(parameter_index);
+    result_ =
+        TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
     return;
   }
   parameter_index -= class_types.Length();
@@ -2983,6 +2978,8 @@ void TypeTranslator::BuildTypeParameterType() {
       //
       if (class_types.Length() > parameter_index) {
         result_ = class_types.TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         return;
       }
       parameter_index -= class_types.Length();
@@ -2998,6 +2995,8 @@ void TypeTranslator::BuildTypeParameterType() {
         result_ =
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
                 .TypeAt(parameter_index);
+        result_ =
+            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
         if (finalize_) {
           result_ =
               ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3011,6 +3010,8 @@ void TypeTranslator::BuildTypeParameterType() {
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
+      result_ =
+          TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -3166,6 +3167,7 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
                      klass.token_pos());
   }
+  // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
   return type;
 }
 
@@ -3216,6 +3218,7 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
+    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;

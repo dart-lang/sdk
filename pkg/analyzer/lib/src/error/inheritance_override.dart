@@ -12,7 +12,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -21,7 +20,7 @@ import 'package:analyzer/src/generated/type_system.dart';
 class InheritanceOverrideVerifier {
   static const _missingOverridesKey = 'missingOverrides';
 
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   final TypeProvider _typeProvider;
   final InheritanceManager3 _inheritance;
   final ErrorReporter _reporter;
@@ -85,7 +84,7 @@ class InheritanceOverrideVerifier {
 }
 
 class _ClassVerifier {
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final TypeProvider typeProvider;
   final InheritanceManager3 inheritance;
   final ErrorReporter reporter;
@@ -331,7 +330,8 @@ class _ClassVerifier {
     }
 
     DartType type = typeName.type;
-    if (typeProvider.nonSubtypableTypes.contains(type)) {
+    if (type is InterfaceType &&
+        typeProvider.nonSubtypableClasses.contains(type.element)) {
       reporter.reportErrorForNode(errorCode, typeName, [type.displayName]);
       return true;
     }
@@ -450,10 +450,7 @@ class _ClassVerifier {
     for (var i = 0; i < baseParameterElements.length; ++i) {
       var baseParameter = baseParameterElements[i];
       if (baseParameter.isOptional) {
-        if (baseParameter is ParameterMember) {
-          baseParameter = (baseParameter as ParameterMember).baseElement;
-        }
-        baseOptionalElements.add(baseParameter);
+        baseOptionalElements.add(baseParameter.declaration);
       }
     }
 

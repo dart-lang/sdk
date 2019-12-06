@@ -4,6 +4,9 @@
 
 library fasta.library_graph;
 
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
+
 import 'package:kernel/kernel.dart'
     show Library, LibraryDependency, LibraryPart;
 
@@ -39,13 +42,24 @@ class LibraryGraph implements Graph<Uri> {
     // Normally there won't be libraries for these, but if, for instance,
     // the part didn't exist there will be a synthetic library.
     for (LibraryPart part in library.parts) {
-      Uri partUri = library.importUri.resolve(part.partUri);
-      Uri fileUri = library.fileUri.resolve(part.partUri);
+      Uri partUri = getPartUri(library.importUri, part.partUri);
+      Uri fileUri = getPartUri(library.fileUri, part.partUri);
       if (libraries.containsKey(partUri)) {
         yield partUri;
       } else if (fileUri != partUri && libraries.containsKey(fileUri)) {
         yield fileUri;
       }
+    }
+  }
+
+  Uri getPartUri(Uri base, String part) {
+    try {
+      return base.resolve(part);
+    } on FormatException {
+      // This is also done in [SourceLibraryBuilder.resolve]
+      return new Uri(
+          scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+          query: Uri.encodeQueryComponent(part));
     }
   }
 }

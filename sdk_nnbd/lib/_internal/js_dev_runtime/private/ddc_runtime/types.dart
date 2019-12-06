@@ -7,6 +7,13 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+/// Sets the mode of the runtime subtype checks.
+///
+/// Changing the mode after any calls to dart.isSubtype() is not supported.
+void strictSubtypeChecks(bool flag) {
+  JS('', 'dart.__strictSubtypeChecks = #', flag);
+}
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// Types in dart are represented internally at runtime as follows.
@@ -202,43 +209,60 @@ anonymousJSType(String name) {
   return ret;
 }
 
-/// Returns a nullable version of [type].
-///
-/// The resulting type will be normalized to avoid nesting the use of nullable
-/// (question) and legacy (star).
-@notNull
-DartType nullable(type) {
-  // Normalize and / or wrap the type.
-  // Given: T? -> T | Null
-  // Then: T?? -> T? | Null -> T | Null | Null -> T?
-  if (type is NullableType) return type;
-  // Then T*? -> (T? | T)? -> T?? | T? -> T?
-  if (type is LegacyType) return nullable(type.type);
+/// A javascript Symbol used to store a canonical version of T? on T.
+final _cachedNullable = JS('', 'Symbol("cachedNullable")');
 
-  return NullableType(type);
+/// A javascript Symbol used to store a canonical version of T* on T.
+final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
+
+/// Returns a nullable (question, ?) version of [type].
+///
+/// The resulting type returned in a normalized form based on the rules from the
+/// normalization doc: https://github.com/dart-lang/language/pull/456
+// TODO(nshahan): Update after the normalization doc PR lands.
+@notNull
+Object nullable(type) {
+  if (_isNullable(type) || _isTop(type) || _isNullType(type)) return type;
+  if (type == never_) return unwrapType(Null);
+  if (_isLegacy(type)) type = type.type;
+
+  // Check if a nullable version of this type has already been created.
+  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedNullable)) {
+    return JS<NullableType>('!', '#[#]', type, _cachedNullable);
+  }
+  // Cache a canonical nullable version of this type on this type.
+  var cachedType = NullableType(type);
+  JS('', '#[#] = #', type, _cachedNullable, cachedType);
+  return cachedType;
 }
 
-/// Returns a legacy version of [type].
+/// Returns a legacy (star, *) version of [type].
 ///
-/// The resulting type will be normalized to avoid nesting the use of nullable
-/// (question) and legacy (star).
+/// The resulting type returned in a normalized form based on the rules from the
+/// normalization doc: https://github.com/dart-lang/language/pull/456
+// TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
 DartType legacy(type) {
-  // Normalize and / or wrap the type.
-  // Given: T* -> T? | T
-  // Then: T** -> T*? | T* ->  (T? | T)? | T? | T -> T? | T -> T*
-  // Then: T?* -> T?? | T? -> T?
-  if (type is LegacyType || type is NullableType) return type;
+  // TODO(nshahan) Maybe normailize never*,  Null*.
+  if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
 
-  return LegacyType(type);
+  // Check if a legacy version of this type has already been created.
+  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedLegacy)) {
+    return JS<NullableType>('!', '#[#]', type, _cachedLegacy);
+  }
+  // Cache a canonical legacy version of this type on this type.
+  var cachedType = LegacyType(type);
+  JS('', '#[#] = #', type, _cachedLegacy, cachedType);
+  return cachedType;
 }
 
-// TODO(nshahan) Revisit this representation to support caching of the subtype
-// check results.
+/// A wrapper to identify a nullable (question, ?) type of the form [type]?.
 class NullableType extends DartType {
   final Type type;
 
-  NullableType(this.type);
+  NullableType(this.type)
+      : assert(type is! NullableType),
+        assert(type is! LegacyType);
 
   @override
   String get name => '$type?';
@@ -247,12 +271,13 @@ class NullableType extends DartType {
   String toString() => name;
 }
 
-// TODO(nshahan) Revisit this representation to support caching of the subtype
-// check results.
+/// A wrapper to identify a legacy (star, *) type of the form [type]*.
 class LegacyType extends DartType {
   final Type type;
 
-  LegacyType(this.type);
+  LegacyType(this.type)
+      : assert(type is! LegacyType),
+        assert(type is! NullableType);
 
   @override
   String get name => '$type*';
@@ -401,7 +426,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(returnType, required, [], JS('', '{}'))};
+ result = ${new FunctionType(returnType, required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -412,6 +437,7 @@ class FunctionType extends AbstractFunctionType {
   List optionals;
   // Named arguments native JS Object of the form { namedArgName: namedArgType }
   final named;
+  final requiredNamed;
   // TODO(vsm): This is just parameter metadata for now.
   // Suspected but not confirmed: Only used by mirrors for pageloader2 support.
   // The metadata is represented as a list of JS arrays, one for each argument
@@ -430,30 +456,34 @@ class FunctionType extends AbstractFunctionType {
   ///
   /// Note: Generic function subtype checks assume types have been canonicalized
   /// when testing if type bounds are equal.
-  static FunctionType create(returnType, List args, extra) {
-    // Note that if extra is ever passed as an empty array
-    // or an empty map, we can end up with semantically
-    // identical function types that don't canonicalize
-    // to the same object since we won't fall into this
-    // fast path.
-    if (extra == null && JS<bool>('!', '#.length < 3', args)) {
+  static FunctionType create(
+      returnType, List args, optionalArgs, requiredNamedArgs) {
+    // Note that if optionalArgs is ever passed as an empty array or an empty
+    // map, we can end up with semantically identical function types that don't
+    // canonicalize to the same object since we won't fall into this fast path.
+    var noOptionalArgs = optionalArgs == null && requiredNamedArgs == null;
+    if (noOptionalArgs && JS<bool>('!', '#.length < 3', args)) {
       return _createSmall(returnType, args);
     }
     args = _canonicalizeArray(args, _fnTypeArrayArgMap);
     var keys;
     FunctionType Function() create;
-    if (extra == null) {
+    if (noOptionalArgs) {
       keys = [returnType, args];
-      create = () => FunctionType(returnType, args, [], JS('', '{}'));
-    } else if (JS('!', '# instanceof Array', extra)) {
+      create =
+          () => FunctionType(returnType, args, [], JS('', '{}'), JS('', '{}'));
+    } else if (JS('!', '# instanceof Array', optionalArgs)) {
       var optionals =
-          _canonicalizeArray(JS('', '#', extra), _fnTypeArrayArgMap);
+          _canonicalizeArray(JS('', '#', optionalArgs), _fnTypeArrayArgMap);
       keys = [returnType, args, optionals];
-      create = () => FunctionType(returnType, args, optionals, JS('', '{}'));
+      create = () =>
+          FunctionType(returnType, args, optionals, JS('', '{}'), JS('', '{}'));
     } else {
-      var named = _canonicalizeNamed(extra, _fnTypeNamedArgMap);
-      keys = [returnType, args, named];
-      create = () => FunctionType(returnType, args, [], named);
+      var named = _canonicalizeNamed(optionalArgs, _fnTypeNamedArgMap);
+      var requiredNamed =
+          _canonicalizeNamed(requiredNamedArgs, _fnTypeNamedArgMap);
+      keys = [returnType, args, named, requiredNamed];
+      create = () => FunctionType(returnType, args, [], named, requiredNamed);
     }
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
@@ -478,7 +508,8 @@ class FunctionType extends AbstractFunctionType {
     return result;
   }
 
-  FunctionType(this.returnType, this.args, this.optionals, this.named) {
+  FunctionType(this.returnType, this.args, this.optionals, this.named,
+      this.requiredNamed) {
     this.args = _process(this.args);
     this.optionals = _process(this.optionals);
     // TODO(vsm): Named arguments were never used by pageloader2 so they were
@@ -495,9 +526,10 @@ class FunctionType extends AbstractFunctionType {
     return i < n ? args[i] : optionals[i + n];
   }
 
-  Map<String, Object> getNamedParameters() {
+  /// Maps argument names to their canonicalized type.
+  Map<String, Object> _createNameMap(List<String> names) {
     var result = <String, Object>{};
-    var names = getOwnPropertyNames(named);
+    // TODO: Remove this sort if ordering can be conserved.
     JS('', '#.sort()', names);
     for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
       String name = JS('!', '#[#]', names, i);
@@ -506,9 +538,16 @@ class FunctionType extends AbstractFunctionType {
     return result;
   }
 
+  /// Maps optional named parameter names to their canonicalized type.
+  Map<String, Object> getNamedParameters() =>
+      _createNameMap(getOwnPropertyNames(named));
+
+  /// Maps required named parameter names to their canonicalized type.
+  Map<String, Object> getRequiredNamedParameters() =>
+      _createNameMap(getOwnPropertyNames(requiredNamed));
+
   get name {
     if (_stringValue != null) return _stringValue;
-
     var buffer = '(';
     for (var i = 0; JS<bool>('!', '# < #.length', i, args); ++i) {
       if (i > 0) {
@@ -526,21 +565,32 @@ class FunctionType extends AbstractFunctionType {
         buffer += typeName(JS('', '#[#]', optionals, i));
       }
       buffer += ']';
-    } else if (JS('!', 'Object.keys(#).length > 0', named)) {
+    } else if (JS('!', 'Object.keys(#).length > 0 || Object.keys(#).length > 0',
+        named, requiredNamed)) {
       if (JS('!', '#.length > 0', args)) buffer += ', ';
       buffer += '{';
       var names = getOwnPropertyNames(named);
       JS('', '#.sort()', names);
-      for (var i = 0; JS<bool>('!', '# < #.length', i, names); ++i) {
+      for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
         if (i > 0) {
           buffer += ', ';
         }
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
+      if (JS('!', '#.length > 0', names)) buffer += ', ';
+      names = getOwnPropertyNames(requiredNamed);
+      JS('', '#.sort()', names);
+      for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
+        if (i > 0) {
+          buffer += ', ';
+        }
+        var typeNameString =
+            typeName(JS('', '#[#[#]]', requiredNamed, names, i));
+        buffer += 'required $typeNameString ${JS('', '#[#]', names, i)}';
+      }
       buffer += '}';
     }
-
     var returnTypeName = typeName(returnType);
     buffer += ') => $returnTypeName';
     _stringValue = buffer;
@@ -585,6 +635,13 @@ class TypeVariable extends DartType {
   toString() => name;
 }
 
+class Variance {
+  static const int unrelated = 0;
+  static const int covariant = 1;
+  static const int contravariant = 2;
+  static const int invariant = 3;
+}
+
 class GenericFunctionType extends AbstractFunctionType {
   final _instantiateTypeParts;
   final int formalCount;
@@ -619,8 +676,8 @@ class GenericFunctionType extends AbstractFunctionType {
 
   FunctionType instantiate(typeArgs) {
     var parts = JS('', '#.apply(null, #)', _instantiateTypeParts, typeArgs);
-    return FunctionType.create(
-        JS('', '#[0]', parts), JS('', '#[1]', parts), JS('', '#[2]', parts));
+    return FunctionType.create(JS('', '#[0]', parts), JS('', '#[1]', parts),
+        JS('', '#[2]', parts), JS('', '#[3]', parts));
   }
 
   List instantiateTypeBounds(List typeArgs) {
@@ -778,8 +835,9 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
 }
 
 /// Create a function type.
-FunctionType fnType(returnType, List args, [@undefined extra]) =>
-    FunctionType.create(returnType, args, extra);
+FunctionType fnType(returnType, List args,
+        [@undefined optional, @undefined requiredNamed]) =>
+    FunctionType.create(returnType, args, optional, requiredNamed);
 
 /// Creates a generic function type from [instantiateFn] and [typeBounds].
 ///
@@ -853,7 +911,7 @@ String typeName(type) => JS('', '''(() => {
 })()''');
 
 /// Returns true if [ft1] <: [ft2].
-_isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
+_isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
@@ -865,7 +923,7 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
   }
 
   for (let i = 0; i < args1.length; ++i) {
-    if (!$_isSubtype(args2[i], args1[i])) {
+    if (!$_isSubtype(args2[i], args1[i], strictMode)) {
       return false;
     }
   }
@@ -879,25 +937,51 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
 
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$_isSubtype(args2[i], optionals1[j])) {
+    if (!$_isSubtype(args2[i], optionals1[j], strictMode)) {
       return false;
     }
   }
 
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$_isSubtype(optionals2[i], optionals1[j])) {
+    if (!$_isSubtype(optionals2[i], optionals1[j], strictMode)) {
       return false;
     }
   }
 
+  // Named parameter invariants:
+  // 1) All named params in the superclass are named params in the subclass.
+  // 2) All required named params in the subclass are required named params
+  //    in the superclass.
   let named1 = $ft1.named;
+  let requiredNamed1 = $ft1.requiredNamed;
   let named2 = $ft2.named;
+  let requiredNamed2 = $ft2.requiredNamed;
 
-  let names = $getOwnPropertyNames(named2);
+  let names = $getOwnPropertyNames(requiredNamed1);
+  for (let i = 0; i < names.length; ++i) {
+    let name = names[i];
+    let n2 = requiredNamed2[name];
+    if (n2 === void 0) {
+      return false;
+    }
+  }
+  names = $getOwnPropertyNames(named2);
   for (let i = 0; i < names.length; ++i) {
     let name = names[i];
     let n1 = named1[name];
     let n2 = named2[name];
+    if (n1 === void 0) {
+      return false;
+    }
+    if (!$_isSubtype(n2, n1, strictMode)) {
+      return false;
+    }
+  }
+  names = $getOwnPropertyNames(requiredNamed2);
+  for (let i = 0; i < names.length; ++i) {
+    let name = names[i];
+    let n1 = named1[name] || requiredNamed1[name];
+    let n2 = requiredNamed2[name];
     if (n1 === void 0) {
       return false;
     }
@@ -906,7 +990,7 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
     }
   }
 
-  return $_isSubtype(ret1, ret2);
+  return $_isSubtype(ret1, ret2, strictMode);
 })()''');
 
 /// Returns true if [t1] <: [t2].
@@ -914,73 +998,87 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
-  // Object map;
-  // if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-  //   JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
-  //   _cacheMaps.add(map);
-  // } else {
-  //   map = JS('', '#[#]', t1, _subtypeCache);
-  //   bool result = JS('', '#.get(#)', map, t2);
-  //   if (JS('!', '# !== void 0', result)) return result;
-  // }
-  // TODO(nshahan) Read and write cache when it's stored on nnbd-wrapper type.
-  // TODO(nshahan): Add support for strict/weak mode.
-  var result = _isSubtype(t1, t2);
-  // JS('', '#.set(#, #)', map, t2, result);
-  return result;
+  Object map;
+  if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
+    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+    _cacheMaps.add(map);
+  } else {
+    map = JS('', '#[#]', t1, _subtypeCache);
+    bool result = JS('', '#.get(#)', map, t2);
+    if (JS('!', '# !== void 0', result)) return result;
+  }
+  var validSubtype = _isSubtype(t1, t2, true);
+
+  if (!validSubtype && !JS<bool>('!', 'dart.__strictSubtypeChecks')) {
+    validSubtype = _isSubtype(t1, t2, false);
+    if (validSubtype) {
+      // TODO(nshahan) Need more information to be helpful here.
+      // File and line number that caused the subtype check?
+      // Possibly break into debuger?
+      _warn("$t1 is not a subtype of $t2.\n"
+          "This will be a runtime failure when strict mode is enabled.");
+    }
+  }
+  JS('', '#.set(#, #)', map, t2, validSubtype);
+  return validSubtype;
 }
 
 final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
-// TODO(nshahan): Add support for strict/weak mode.
 @notNull
-bool _isBottom(type) => JS('!', '# == #', type, bottom);
+bool _isBottom(type, strictMode) =>
+    JS('!', '# == # || (!# && #)', type, bottom, strictMode, _isNullType(type));
 
 // TODO(nshahan): Add support for strict/weak mode.
 @notNull
 bool _isTop(type) {
-  if (_isFutureOr(type)) {
-    return _isTop(JS('', '#[0]', getGenericArgs(type)));
-  }
-
-  if (_isNullable(type)) {
-    if (JS('!', '# == #', type.type, Object)) {
-      return true;
-    }
-    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
-    // TODO(nshahan): Handle Object* in a way that ensures
-    // instanceOf(null, Object*) returns true.
-    return _isTop(type.type);
-  }
-
-  if (_isLegacy(type)) {
-    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
-    return _isTop(type.type);
-  }
+  // TODO(nshahan): Handle Object* in a way that ensures
+  // instanceOf(null, Object*) returns true.
+  if (_isFutureOr(type)) return _isTop(JS('', '#[0]', getGenericArgs(type)));
+  if (_isNullable(type)) return (JS('!', '# == #', type.type, Object));
 
   return JS('!', '# == # || # == #', type, dynamic, type, void_);
 }
 
-_isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
-_isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
+/// Returns `true` if [type] represents a nullable (question, ?) type.
+@notNull
+bool _isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
+
+/// Returns `true` if [type] represents a legacy (star, *) type.
+@notNull
+bool _isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
+
+/// Returns `true` if [type] is the [Null] type.
+@notNull
+bool _isNullType(Object type) => identical(type, unwrapType(Null));
 
 @notNull
 bool _isFutureOr(type) =>
     identical(getGenericClass(type), getGenericClass(FutureOr));
 
-bool _isSubtype(t1, t2) => JS('bool', '''(() => {
+bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
+  if (!$strictMode) {
+    // Strip nullable types when performing check in weak mode.
+    // TODO(nshahan) Investigate stripping off legacy types as well.
+    if (${_isNullable(t1)}) {
+      t1 = t1.type;
+    }
+    if (${_isNullable(t2)}) {
+      t2 = t2.type;
+    }
+  }
   if ($t1 === $t2) {
     return true;
   }
 
   // Trivially true, "Right Top" or "Left Bottom".
-  if (${_isTop(t2)} || ${_isBottom(t1)}) {
+  if (${_isTop(t2)} || ${_isBottom(t1, strictMode)}) {
     return true;
   }
 
   // "Left Top".
   if ($t1 == $dynamic || $t1 == $void_) {
-    return $_isSubtype($nullable($Object), $t2);
+    return $_isSubtype($nullable($Object), $t2, $strictMode);
   }
 
   // "Right Object".
@@ -989,15 +1087,15 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     // https://github.com/dart-lang/sdk/issues/38816
     if (${_isFutureOr(t1)}) {
       let t1TypeArg = ${getGenericArgs(t1)}[0];
-      return $_isSubtype(t1TypeArg, $Object);
+      return $_isSubtype(t1TypeArg, $Object, $strictMode);
     }
 
     if (${_isLegacy(t1)}) {
-      return $_isSubtype(t1.type, t2);
+      return $_isSubtype(t1.type, t2, $strictMode);
     }
 
-    if ($t1 == $dynamic || $t1 == $void_ || $t1 == $Null
-        || ${_isNullable(t1)}) {
+    if (${_isNullType(t1)} || ${_isNullable(t1)}) {
+      // Checks for t1 is dynamic or void already performed in "Left Top" test.
       return false;
     }
     return true;
@@ -1009,7 +1107,7 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     // https://github.com/dart-lang/sdk/issues/38816
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
-      return $_isSubtype($Null, t2TypeArg);
+      return $_isSubtype($Null, t2TypeArg, $strictMode);
     }
 
     return $t2 == $Null || ${_isLegacy(t2)} || ${_isNullable(t2)};
@@ -1017,12 +1115,12 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
 
   // "Left Legacy".
   if (${_isLegacy(t1)}) {
-    return $_isSubtype(t1.type, t2);
+    return $_isSubtype(t1.type, t2, $strictMode);
   }
 
   // "Right Legacy".
   if (${_isLegacy(t2)}) {
-    return $_isSubtype(t1, $nullable(t2.type));
+    return $_isSubtype(t1, $nullable(t2.type), $strictMode);
   }
 
   // Handle FutureOr<T> union type.
@@ -1033,21 +1131,21 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
       // FutureOr<A> <: FutureOr<B> iff A <: B
       // TODO(nshahan): Proven to not actually be true and needs cleanup.
       // https://github.com/dart-lang/sdk/issues/38818
-      return $_isSubtype(t1TypeArg, t2TypeArg);
+      return $_isSubtype(t1TypeArg, t2TypeArg, $strictMode);
     }
 
     // given t1 is Future<A> | A, then:
     // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
     let t1Future = ${getGenericClass(Future)}(t1TypeArg);
     // Known to handle the case FutureOr<Null> <: Future<Null>.
-    return $_isSubtype(t1Future, $t2) && $_isSubtype(t1TypeArg, $t2);
+    return $_isSubtype(t1Future, $t2, $strictMode) && $_isSubtype(t1TypeArg, $t2, $strictMode);
   }
 
   // "Left Nullable".
   if (${_isNullable(t1)}) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1.type, t2) && $_isSubtype($Null, t2);
+    return $_isSubtype(t1.type, t2, $strictMode) && $_isSubtype($Null, t2, $strictMode);
   }
 
   if ($_isFutureOr($t2)) {
@@ -1057,14 +1155,14 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     let t2Future = ${getGenericClass(Future)}(t2TypeArg);
     // TODO(nshahan) Need to handle type variables on the left.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype($t1, t2Future) || $_isSubtype($t1, t2TypeArg);
+    return $_isSubtype($t1, t2Future, $strictMode) || $_isSubtype($t1, t2TypeArg, $strictMode);
   }
 
   // "Right Nullable".
   if (${_isNullable(t2)}) {
     // TODO(nshahan) Need to handle type variables.
     // https://github.com/dart-lang/sdk/issues/38816
-    return $_isSubtype(t1, t2.type) || $_isSubtype(t1, $Null);
+    return $_isSubtype(t1, t2.type, $strictMode) || $_isSubtype(t1, $Null, $strictMode);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
@@ -1085,7 +1183,7 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
     }
 
     // Compare two interface types.
-    return ${_isInterfaceSubtype(t1, t2)};
+    return ${_isInterfaceSubtype(t1, t2, strictMode)};
   }
 
   // Function subtyping.
@@ -1143,10 +1241,10 @@ bool _isSubtype(t1, t2) => JS('bool', '''(() => {
   }
 
   // Handle non-generic functions.
-  return ${_isFunctionSubtype(t1, t2)};
+  return ${_isFunctionSubtype(t1, t2, strictMode)};
 })()''');
 
-bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
+bool _isInterfaceSubtype(t1, t2, strictMode) => JS('', '''(() => {
   // If we have lazy JS types, unwrap them.  This will effectively
   // reduce to a prototype check below.
   if ($t1 instanceof $LazyJSType) $t1 = $t1.rawJSTypeForCheck();
@@ -1179,21 +1277,35 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
     if (typeArguments1.length != typeArguments2.length) {
       $assertFailed();
     }
+    let variances = $getGenericArgVariances($t1);
     for (let i = 0; i < typeArguments1.length; ++i) {
-      if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
-        return false;
+      // When using implicit variance, variances will be undefined and
+      // considered covariant.
+      if (variances === void 0 || variances[i] == ${Variance.covariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode)) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.contravariant}) {
+        if (!$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.invariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i], $strictMode) ||
+            !$_isSubtype(typeArguments2[i], typeArguments1[i], $strictMode)) {
+          return false;
+        }
       }
     }
     return true;
   }
 
-  if ($_isInterfaceSubtype(t1.__proto__, $t2)) {
+  if ($_isInterfaceSubtype(t1.__proto__, $t2, $strictMode)) {
     return true;
   }
 
   // Check mixin.
   let m1 = $getMixin($t1);
-  if (m1 != null && $_isInterfaceSubtype(m1, $t2)) {
+  if (m1 != null && $_isInterfaceSubtype(m1, $t2, $strictMode)) {
     return true;
   }
 
@@ -1201,7 +1313,7 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      if ($_isInterfaceSubtype(i1, $t2)) {
+      if ($_isInterfaceSubtype(i1, $t2, $strictMode)) {
         return true;
       }
     }
@@ -1311,12 +1423,29 @@ class _TypeInferrer {
         return false;
       }
     }
+
+    // Named parameter invariants:
+    // 1) All named params in the superclass are named params in the subclass.
+    // 2) All required named params in the subclass are required named params
+    //    in the superclass.
     var supertypeNamed = supertype.getNamedParameters();
+    var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
+    var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
+    for (var name in subtypeRequiredNamed.keys) {
+      var supertypeParamType = supertypeRequiredNamed[name];
+      if (supertypeParamType == null) return false;
+    }
     for (var name in supertypeNamed.keys) {
       var subtypeParamType = subtypeNamed[name];
       if (subtypeParamType == null) return false;
       if (!_isSubtypeMatch(supertypeNamed[name], subtypeParamType)) {
+        return false;
+      }
+    }
+    for (var name in supertypeRequiredNamed.keys) {
+      var subtypeParamType = subtypeRequiredNamed[name] ?? subtypeNamed[name];
+      if (!_isSubtypeMatch(supertypeRequiredNamed[name], subtypeParamType)) {
         return false;
       }
     }
@@ -1357,8 +1486,6 @@ class _TypeInferrer {
     return true;
   }
 
-  bool _isNull(Object type) => identical(type, unwrapType(Null));
-
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
   /// constraints discovered in the process.
   ///
@@ -1391,7 +1518,7 @@ class _TypeInferrer {
     if (_isTop(supertype)) return true;
     // `Null` is a subtype match for any type `Q` under no constraints.
     // Note that nullable types will change this.
-    if (_isNull(subtype)) return true;
+    if (_isNullType(subtype)) return true;
 
     // Handle FutureOr<T> union type.
     if (_isFutureOr(subtype)) {

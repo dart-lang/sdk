@@ -77,14 +77,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
 // optimized function contains FP, PP (ARM only), PC-marker and
 // return-address. This section is copied as well, so that its contained
 // values can be updated before returning to the deoptimized function.
-// Note: on DBC stack grows upwards unlike on all other architectures.
-#if defined(TARGET_ARCH_DBC)
-  ASSERT(frame->sp() >= frame->fp());
-  const intptr_t frame_size = (frame->sp() - frame->fp()) / kWordSize;
-#else
   ASSERT(frame->fp() >= frame->sp());
   const intptr_t frame_size = (frame->fp() - frame->sp()) / kWordSize;
-#endif
 
   source_frame_size_ = +kDartFrameFixedSize   // For saved values below sp.
                        + frame_size           // For frame size incl. sp.
@@ -201,40 +195,23 @@ void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 intptr_t DeoptContext::DestStackAdjustment() const {
   return dest_frame_size_ - kDartFrameFixedSize - num_args_
-#if !defined(TARGET_ARCH_DBC)
          - 1  // For fp.
-#endif
          - kParamEndSlotFromFp;
 }
 
 intptr_t DeoptContext::GetSourceFp() const {
-#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp];
-#else
-  return source_frame_[num_args_ + kDartFrameFixedSize +
-                       kSavedCallerFpSlotFromFp];
-#endif
 }
 
 intptr_t DeoptContext::GetSourcePp() const {
-#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - 1 - num_args_ -
                        kParamEndSlotFromFp +
                        StackFrame::SavedCallerPpSlotFromFp()];
-#else
-  UNREACHABLE();
-  return 0;
-#endif
 }
 
 intptr_t DeoptContext::GetSourcePc() const {
-#if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - num_args_ + kSavedPcSlotFromSp];
-#else
-  return source_frame_[num_args_ + kDartFrameFixedSize +
-                       kSavedCallerPcSlotFromFp];
-#endif
 }
 
 intptr_t DeoptContext::GetCallerFp() const {
@@ -351,19 +328,12 @@ const CatchEntryMoves* DeoptContext::ToCatchEntryMoves(intptr_t num_vars) {
   intptr_t params =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   for (intptr_t i = 0; i < num_vars; i++) {
-#if defined(TARGET_ARCH_DBC)
-    const intptr_t len = deopt_instructions.length();
-    intptr_t slot = i < params ? i : i + kParamEndSlotFromFp;
-    DeoptInstr* instr = deopt_instructions[len - 1 - slot];
-    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
-#else
     const intptr_t len = deopt_instructions.length();
     intptr_t slot = i < params ? i
                                : i + kParamEndSlotFromFp -
                                      runtime_frame_layout.first_local_from_fp;
     DeoptInstr* instr = deopt_instructions[len - 1 - slot];
     intptr_t dest_index = i - params;
-#endif
     moves->At(i) = instr->ToCatchEntryMove(this, dest_index);
   }
 
@@ -1083,10 +1053,6 @@ FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
     Location::Kind stack_slot_kind) {
   if (loc.IsFpuRegister()) {
     return FpuRegisterSource(FpuRegisterSource::kRegister, loc.fpu_reg());
-#if defined(TARGET_ARCH_DBC)
-  } else if (loc.IsRegister()) {
-    return FpuRegisterSource(FpuRegisterSource::kRegister, loc.reg());
-#endif
   } else {
     ASSERT((stack_slot_kind == Location::kQuadStackSlot) ||
            (stack_slot_kind == Location::kDoubleStackSlot));
@@ -1133,12 +1099,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     deopt_instr = new (zone()) DeoptMaterializedObjectRefInstr(index);
   } else {
     ASSERT(!source_loc.IsInvalid());
-#if defined(TARGET_ARCH_DBC)
-    Representation rep =
-        (value == NULL) ? kTagged : value->definition()->representation();
-#else
     Representation rep = value->definition()->representation();
-#endif
     switch (rep) {
       case kTagged:
         deopt_instr =

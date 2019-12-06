@@ -17,7 +17,7 @@ Component createMockSdkComponent() {
   }
 
   var objectClass = addClass(coreLib, new Class(name: 'Object'));
-  var objectType = new InterfaceType(objectClass);
+  var objectType = new InterfaceType(objectClass, coreLib.nonNullable);
 
   TypeParameter typeParam(String name, [DartType bound]) {
     return new TypeParameter(name, bound ?? objectType);
@@ -47,7 +47,9 @@ Component createMockSdkComponent() {
         class_('List', typeParameters: [
           T
         ], implementedTypes: [
-          new Supertype(iterable, [new TypeParameterType(T)])
+          new Supertype(iterable, [
+            new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)
+          ])
         ]));
   }
   addClass(

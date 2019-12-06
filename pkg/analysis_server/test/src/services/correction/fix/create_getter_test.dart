@@ -234,8 +234,8 @@ class A {
     await resolveTestUnit('''
 class A {
   B b;
-  void f(Object p) {
-    p == b.test;
+  void f(dynamic context) {
+    context == b.test;
   }
 }
 class B {
@@ -244,8 +244,8 @@ class B {
     await assertHasFix('''
 class A {
   B b;
-  void f(Object p) {
-    p == b.test;
+  void f(dynamic context) {
+    context == b.test;
   }
 }
 class B {

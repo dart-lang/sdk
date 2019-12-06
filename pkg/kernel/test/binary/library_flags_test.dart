@@ -4,6 +4,8 @@
 
 import 'utils.dart';
 
+// ignore_for_file: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
+
 /// Test that library flags (external, synthetic)
 /// are serialized and read correctly.
 main() {

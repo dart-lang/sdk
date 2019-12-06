@@ -114,7 +114,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
       growable: true);
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+    map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
+        typeParameters[i], freshParameters[i]);
   }
   CloneVisitor cloner;
   for (int i = 0; i < typeParameters.length; ++i) {
@@ -125,6 +126,8 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
     freshTypeParameter.defaultType = typeParameter.defaultType != null
         ? substitute(typeParameter.defaultType, map)
         : null;
+    freshTypeParameter.variance =
+        typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     if (typeParameter.annotations.isNotEmpty) {
       // Annotations can't refer to type parameters, so the cloner shouldn't
       // perform the substitution.
@@ -148,12 +151,12 @@ class FreshTypeParameters {
   FunctionType applyToFunctionType(FunctionType type) => new FunctionType(
       type.positionalParameters.map(substitute).toList(),
       substitute(type.returnType),
+      type.nullability,
       namedParameters: type.namedParameters.map(substituteNamed).toList(),
       typeParameters: freshTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
       typedefType:
-          type.typedefType == null ? null : substitute(type.typedefType),
-      nullability: type.nullability);
+          type.typedefType == null ? null : substitute(type.typedefType));
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 
@@ -290,7 +293,7 @@ class _NullSubstitution extends Substitution {
   const _NullSubstitution();
 
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return new TypeParameterType(parameter);
+    return new TypeParameterType.forAlphaRenaming(parameter, parameter);
   }
 
   @override
@@ -385,13 +388,57 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType(fresh);
+    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
     }
     return fresh;
   }
+}
+
+/// Combines nullabilities of types during type substitution.
+///
+/// In a type substitution, for example, when `int` is substituted for `T` in
+/// `List<T?>`, the nullability of the occurrence of the type parameter should
+/// be combined with the nullability of the type that is being substituted for
+/// that type parameter.  In the example above it's the nullability of `T?`
+/// and `int`.  The function computes the nullability for the replacement as
+/// per the following table:
+///
+/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |-----------|-----|-----|-----|-----|
+/// |     !     |  !  |  ?  |  *  |  !  |
+/// |     ?     | N/A |  ?  |  ?  |  ?  |
+/// |     *     |  *  |  ?  |  *  |  *  |
+/// |     %     | N/A |  ?  |  *  |  %  |
+///
+/// Here `!` denotes `Nullability.nonNullable`, `?` denotes
+/// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
+/// `Nullability.neither`.  The table elements marked with N/A denote the
+/// cases that should yield a type error before the substitution is performed.
+Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
+  // In the table above we may extend the function given by it, replacing N/A
+  // with whatever is easier to implement.  In this implementation, we extend
+  // the table function as follows:
+  //
+  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |-----------|-----|-----|-----|-----|
+  // |     !     |  !  |  ?  |  *  |  !  |
+  // |     ?     |  ?  |  ?  |  ?  |  ?  |
+  // |     *     |  *  |  ?  |  *  |  *  |
+  // |     %     |  %  |  ?  |  *  |  %  |
+  //
+
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+
+  return a;
 }
 
 abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
@@ -441,13 +488,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
   DartType visitBottomType(BottomType node) => node;
+  DartType visitNeverType(NeverType node) => node;
 
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new InterfaceType(node.classNode, typeArguments, node.nullability);
+    return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -455,7 +503,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new TypedefType(node.typedefNode, typeArguments, node.nullability);
+    return new TypedefType(node.typedefNode, node.nullability, typeArguments);
   }
 
   List<TypeParameter> freshTypeParameters(List<TypeParameter> parameters) {
@@ -500,12 +548,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     DartType typedefType =
         node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
-    return new FunctionType(positionalParameters, returnType,
+    return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType,
-        nullability: node.nullability);
+        typedefType: typedefType);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -528,51 +575,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       environment = environment.outer;
     }
     return null;
-  }
-
-  /// Combines nullabilities of types during type substitution.
-  ///
-  /// In a type substitution, for example, when `int` is substituted for `T` in
-  /// `List<T?>`, the nullability of the occurrence of the type parameter should
-  /// be combined with the nullability of the type that is being substituted for
-  /// that type parameter.  In the example above it's the nullability of `T?`
-  /// and `int`.  The function computes the nullability for the replacement as
-  /// per the following table:
-  ///
-  /// | arg \ var |  !  |  ?  |  *  |  %  |
-  /// |-----------|-----|-----|-----|-----|
-  /// |     !     |  !  |  ?  |  *  |  !  |
-  /// |     ?     | N/A |  ?  |  ?  |  ?  |
-  /// |     *     |  *  |  ?  |  *  |  *  |
-  /// |     %     | N/A |  ?  |  *  |  %  |
-  ///
-  /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
-  /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
-  /// `Nullability.neither`.  The table elements marked with N/A denote the
-  /// cases that should yield a type error before the substitution is performed.
-  static Nullability combineNullabilitiesForSubstitution(
-      Nullability a, Nullability b) {
-    // In the table above we may extend the function given by it, replacing N/A
-    // with whatever is easier to implement.  In this implementation, we extend
-    // the table function as follows:
-    //
-    // | arg \ var |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  ?  |  *  |  !  |
-    // |     ?     |  ?  |  ?  |  ?  |  ?  |
-    // |     *     |  *  |  ?  |  *  |  *  |
-    // |     %     |  %  |  ?  |  *  |  %  |
-    //
-
-    if (a == Nullability.nullable || b == Nullability.nullable) {
-      return Nullability.nullable;
-    }
-
-    if (a == Nullability.legacy || b == Nullability.legacy) {
-      return Nullability.legacy;
-    }
-
-    return a;
   }
 
   DartType visitTypeParameterType(TypeParameterType node) {
@@ -717,7 +719,8 @@ class _TypeUnification {
       var rightInstance = <TypeParameter, DartType>{};
       for (int i = 0; i < type1.typeParameters.length; ++i) {
         var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType = new TypeParameterType(instantiator);
+        var instantiatorType = new TypeParameterType.forAlphaRenaming(
+            type1.typeParameters[i], instantiator);
         leftInstance[type1.typeParameters[i]] = instantiatorType;
         rightInstance[type2.typeParameters[i]] = instantiatorType;
         _universallyQuantifiedVariables.add(instantiator);
@@ -795,6 +798,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -842,6 +846,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;

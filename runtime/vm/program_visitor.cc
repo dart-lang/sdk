@@ -117,7 +117,6 @@ void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::BindStaticCalls() {
-#if !defined(TARGET_ARCH_DBC)
   if (FLAG_precompiled_mode) {
     return;
   }
@@ -173,7 +172,6 @@ void ProgramVisitor::BindStaticCalls() {
 
   BindJITStaticCallsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
-#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 void ProgramVisitor::ShareMegamorphicBuckets() {
@@ -201,84 +199,303 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
   }
 }
 
-class CompressedStackMapsKeyValueTrait {
+class StackMapEntry : public ZoneAllocated {
  public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const CompressedStackMaps* Key;
-  typedef const CompressedStackMaps* Value;
-  typedef const CompressedStackMaps* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
+  StackMapEntry(Zone* zone, const CompressedStackMapsIterator& it)
+      : maps_(CompressedStackMaps::Handle(zone, it.maps_.raw())),
+        bits_container_(
+            CompressedStackMaps::Handle(zone, it.bits_container_.raw())),
+        spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+        non_spill_slot_bit_count_(it.current_non_spill_slot_bit_count_),
+        bits_offset_(it.current_bits_offset_) {
+    ASSERT(!maps_.IsNull() && !maps_.IsGlobalTable());
+    ASSERT(!bits_container_.IsNull());
+    ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+    // Check that the iterator was fully loaded when we ran the initializing
+    // expressions above. By this point we enter the body of the constructor,
+    // it's too late to run EnsureFullyLoadedEntry().
+    ASSERT(it.HasLoadedEntry());
+    ASSERT(it.current_spill_slot_bit_count_ >= 0);
   }
+
+  static const intptr_t kHashBits = 30;
+
+  intptr_t Hashcode() {
+    if (hash_ != 0) return hash_;
+    uint32_t hash = 0;
+    hash = CombineHashes(hash, spill_slot_bit_count_);
+    hash = CombineHashes(hash, non_spill_slot_bit_count_);
+    for (intptr_t i = 0; i < PayloadLength(); i++) {
+      hash = CombineHashes(hash, PayloadByte(i));
+    }
+    hash_ = FinalizeHash(hash, kHashBits);
+    return hash_;
+  }
+
+  bool Equals(const StackMapEntry* other) const {
+    if (spill_slot_bit_count_ != other->spill_slot_bit_count_ ||
+        non_spill_slot_bit_count_ != other->non_spill_slot_bit_count_) {
+      return false;
+    }
+    // Since we ensure that bits in the payload that are not part of the
+    // actual stackmap data are cleared, we can just compare payloads by byte
+    // instead of calling IsObject for each bit.
+    for (intptr_t i = 0; i < PayloadLength(); i++) {
+      if (PayloadByte(i) != other->PayloadByte(i)) return false;
+    }
+    return true;
+  }
+
+  // Encodes this StackMapEntry to the given array of bytes and returns the
+  // initial offset of the entry in the array.
+  intptr_t EncodeTo(GrowableArray<uint8_t>* array) {
+    auto const current_offset = array->length();
+    CompressedStackMapsBuilder::EncodeLEB128(array, spill_slot_bit_count_);
+    CompressedStackMapsBuilder::EncodeLEB128(array, non_spill_slot_bit_count_);
+    for (intptr_t i = 0; i < PayloadLength(); i++) {
+      array->Add(PayloadByte(i));
+    }
+    return current_offset;
+  }
+
+  intptr_t UsageCount() const { return uses_; }
+  void IncrementUsageCount() { uses_ += 1; }
+
+ private:
+  intptr_t Length() const {
+    return spill_slot_bit_count_ + non_spill_slot_bit_count_;
+  }
+  intptr_t PayloadLength() const {
+    return Utils::RoundUp(Length(), kBitsPerByte) >> kBitsPerByteLog2;
+  }
+  intptr_t PayloadByte(intptr_t offset) const {
+    return bits_container_.PayloadByte(bits_offset_ + offset);
+  }
+
+  const CompressedStackMaps& maps_;
+  const CompressedStackMaps& bits_container_;
+  const intptr_t spill_slot_bit_count_;
+  const intptr_t non_spill_slot_bit_count_;
+  const intptr_t bits_offset_;
+
+  intptr_t uses_ = 1;
+  intptr_t hash_ = 0;
 };
 
-typedef DirectChainedHashMap<CompressedStackMapsKeyValueTrait>
+// Used for maps of indices and offsets. These are non-negative, and so the
+// value for entries may be 0. Since 0 is kNoValue for
+// RawPointerKeyValueTrait<const StackMapEntry, intptr_t>, we can't just use it.
+class StackMapEntryKeyIntValueTrait {
+ public:
+  typedef StackMapEntry* Key;
+  typedef intptr_t Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(nullptr), value(-1) {}
+    Pair(const Key key, const Value& value)
+        : key(ASSERT_NOTNULL(key)), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(kv.key); }
+};
+
+typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
+
+typedef DirectChainedHashMap<PointerKeyValueTrait<const CompressedStackMaps>>
     CompressedStackMapsSet;
 
-void ProgramVisitor::DedupCompressedStackMaps() {
-  class DedupCompressedStackMapsVisitor : public FunctionVisitor {
+void ProgramVisitor::NormalizeAndDedupCompressedStackMaps() {
+  // Walks all the CSMs in Code objects and collects their entry information
+  // for consolidation.
+  class CollectStackMapEntriesVisitor : public FunctionVisitor {
    public:
-    explicit DedupCompressedStackMapsVisitor(Zone* zone)
+    CollectStackMapEntriesVisitor(Zone* zone,
+                                  const CompressedStackMaps& global_table)
         : zone_(zone),
-          canonical_compressed_stackmaps_set_(),
+          old_global_table_(global_table),
           code_(Code::Handle(zone)),
-          compressed_stackmaps_(CompressedStackMaps::Handle(zone)) {}
-
-    void AddCompressedStackMaps(const CompressedStackMaps& maps) {
-      canonical_compressed_stackmaps_set_.Insert(
-          &CompressedStackMaps::ZoneHandle(zone_, maps.raw()));
+          compressed_stackmaps_(CompressedStackMaps::Handle(zone)),
+          collected_entries_(zone, 2),
+          entry_indices_(zone),
+          entry_offset_(zone) {
+      ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
     }
 
     void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
+      if (!function.HasCode()) return;
       code_ = function.CurrentCode();
       compressed_stackmaps_ = code_.compressed_stackmaps();
-      if (compressed_stackmaps_.IsNull()) return;
-      compressed_stackmaps_ = DedupCompressedStackMaps(compressed_stackmaps_);
-      code_.set_compressed_stackmaps(compressed_stackmaps_);
+      CompressedStackMapsIterator it(compressed_stackmaps_, old_global_table_);
+      while (it.MoveNext()) {
+        it.EnsureFullyLoadedEntry();
+        auto const entry = new (zone_) StackMapEntry(zone_, it);
+        auto const index = entry_indices_.LookupValue(entry);
+        if (index < 0) {
+          auto new_index = collected_entries_.length();
+          collected_entries_.Add(entry);
+          entry_indices_.Insert({entry, new_index});
+        } else {
+          collected_entries_.At(index)->IncrementUsageCount();
+        }
+      }
     }
 
-    RawCompressedStackMaps* DedupCompressedStackMaps(
-        const CompressedStackMaps& maps) {
-      auto const canonical_maps =
-          canonical_compressed_stackmaps_set_.LookupValue(&maps);
-      if (canonical_maps == nullptr) {
-        AddCompressedStackMaps(maps);
-        return maps.raw();
-      } else {
-        return canonical_maps->raw();
+    // Creates a new global table of stack map information. Also adds the
+    // offsets of encoded StackMapEntry objects to entry_offsets for use
+    // when normalizing CompressedStackMaps.
+    RawCompressedStackMaps* CreateGlobalTable(
+        StackMapEntryIntMap* entry_offsets) {
+      ASSERT(entry_offsets->IsEmpty());
+      if (collected_entries_.length() == 0) return CompressedStackMaps::null();
+      // First, sort the entries from most used to least used. This way,
+      // the most often used CSMs will have the lowest offsets, which means
+      // they will be smaller when LEB128 encoded.
+      collected_entries_.Sort(
+          [](StackMapEntry* const* e1, StackMapEntry* const* e2) {
+            return static_cast<int>((*e2)->UsageCount() - (*e1)->UsageCount());
+          });
+      GrowableArray<uint8_t> bytes;
+      // Encode the entries and record their offset in the payload. Sorting the
+      // entries may have changed their indices, so update those as well.
+      for (intptr_t i = 0, n = collected_entries_.length(); i < n; i++) {
+        auto const entry = collected_entries_.At(i);
+        entry_indices_.Update({entry, i});
+        entry_offsets->Insert({entry, entry->EncodeTo(&bytes)});
       }
+      const auto& data = CompressedStackMaps::Handle(
+          zone_, CompressedStackMaps::NewGlobalTable(bytes));
+      return data.raw();
     }
 
    private:
-    Zone* zone_;
+    Zone* const zone_;
+    const CompressedStackMaps& old_global_table_;
+
+    Code& code_;
+    CompressedStackMaps& compressed_stackmaps_;
+    GrowableArray<StackMapEntry*> collected_entries_;
+    StackMapEntryIntMap entry_indices_;
+    StackMapEntryIntMap entry_offset_;
+  };
+
+  // Walks all the CSMs in Code objects, normalizes them, and then dedups them.
+  //
+  // We use normalized to refer to CSMs whose entries are references to the
+  // new global table created during stack map collection, and non-normalized
+  // for CSMs that either have inlined entry information or whose entries are
+  // references to the _old_ global table in the object store, if any.
+  class NormalizeAndDedupCompressedStackMapsVisitor : public FunctionVisitor {
+   public:
+    NormalizeAndDedupCompressedStackMapsVisitor(
+        Zone* zone,
+        const CompressedStackMaps& global_table,
+        const StackMapEntryIntMap& entry_offsets)
+        : zone_(zone),
+          old_global_table_(global_table),
+          entry_offsets_(entry_offsets),
+          canonical_compressed_stackmaps_set_(),
+          code_(Code::Handle(zone)),
+          compressed_stackmaps_(CompressedStackMaps::Handle(zone)),
+          current_normalized_maps_(CompressedStackMaps::Handle(zone)) {
+      ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
+    }
+
+    // Creates a normalized CSM from the given non-normalized CSM.
+    RawCompressedStackMaps* NormalizeEntries(const CompressedStackMaps& maps) {
+      GrowableArray<uint8_t> new_payload;
+      CompressedStackMapsIterator it(maps, old_global_table_);
+      intptr_t last_offset = 0;
+      while (it.MoveNext()) {
+        it.EnsureFullyLoadedEntry();
+        StackMapEntry entry(zone_, it);
+        auto const entry_offset = entry_offsets_.LookupValue(&entry);
+        auto const pc_delta = it.pc_offset() - last_offset;
+        CompressedStackMapsBuilder::EncodeLEB128(&new_payload, pc_delta);
+        CompressedStackMapsBuilder::EncodeLEB128(&new_payload, entry_offset);
+        last_offset = it.pc_offset();
+      }
+      return CompressedStackMaps::NewUsingTable(new_payload);
+    }
+
+    RawCompressedStackMaps* NormalizeAndDedupCompressedStackMaps(
+        const CompressedStackMaps& maps) {
+      ASSERT(!maps.IsNull());
+      // First check is to make sure [maps] hasn't already been normalized,
+      // since any normalized map already has a canonical entry in the set.
+      auto canonical_maps =
+          canonical_compressed_stackmaps_set_.LookupValue(&maps);
+      if (canonical_maps != nullptr) return canonical_maps->raw();
+      current_normalized_maps_ = NormalizeEntries(compressed_stackmaps_);
+      // Use the canonical entry for the newly normalized CSM, if one exists.
+      canonical_maps = canonical_compressed_stackmaps_set_.LookupValue(
+          &current_normalized_maps_);
+      if (canonical_maps != nullptr) return canonical_maps->raw();
+      canonical_compressed_stackmaps_set_.Insert(
+          &CompressedStackMaps::ZoneHandle(zone_,
+                                           current_normalized_maps_.raw()));
+      return current_normalized_maps_.raw();
+    }
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) return;
+      code_ = function.CurrentCode();
+      compressed_stackmaps_ = code_.compressed_stackmaps();
+      // We represent empty CSMs as the null value, and thus those don't need to
+      // be normalized or deduped.
+      if (compressed_stackmaps_.IsNull()) return;
+      compressed_stackmaps_ =
+          NormalizeAndDedupCompressedStackMaps(compressed_stackmaps_);
+      code_.set_compressed_stackmaps(compressed_stackmaps_);
+    }
+
+   private:
+    Zone* const zone_;
+    const CompressedStackMaps& old_global_table_;
+    const StackMapEntryIntMap& entry_offsets_;
     CompressedStackMapsSet canonical_compressed_stackmaps_set_;
     Code& code_;
     CompressedStackMaps& compressed_stackmaps_;
+    CompressedStackMaps& current_normalized_maps_;
   };
 
-  DedupCompressedStackMapsVisitor visitor(Thread::Current()->zone());
-  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
-    // Prefer existing objects in the VM isolate.
-    const Array& object_table = Object::vm_isolate_snapshot_object_table();
-    Object& object = Object::Handle();
-    for (intptr_t i = 0; i < object_table.Length(); i++) {
-      object = object_table.At(i);
-      if (object.IsCompressedStackMaps()) {
-        visitor.AddCompressedStackMaps(CompressedStackMaps::Cast(object));
-      }
-    }
-  }
-  ProgramVisitor::VisitFunctions(&visitor);
+  // The stack map deduplication happens in two phases:
+  // 1) Visit all CompressedStackMaps (CSM) objects and collect individual entry
+  //    info as canonicalized StackMapEntries (SMEs). Also record the number of
+  //    times the same entry info was seen across all CSMs in each SME.
+  //
+  // The results of phase 1 are used to create a new global table with entries
+  // sorted by decreasing frequency, so that entries that appear more often in
+  // CSMs have smaller payload offsets (less bytes used in the LEB128 encoding).
+  //
+  // 2) Visit all CSMs and replace each with a canonicalized normalized version
+  //    that uses the new global table for non-PC offset entry information.
+  Thread* const t = Thread::Current();
+  StackZone temp_zone(t);
+  HandleScope temp_handles(t);
+  Zone* zone = temp_zone.GetZone();
+  auto object_store = t->isolate()->object_store();
+  const auto& old_global_table = CompressedStackMaps::Handle(
+      zone, object_store->canonicalized_stack_map_entries());
+  CollectStackMapEntriesVisitor collect_visitor(zone, old_global_table);
+  ProgramVisitor::VisitFunctions(&collect_visitor);
+
+  // We retrieve the new offsets for CSM entries by creating the new global
+  // table now. We go ahead and put it in place, as we already have a handle
+  // on the old table that we can pass to the normalizing visitor.
+  StackMapEntryIntMap entry_offsets(zone);
+  const auto& new_global_table = CompressedStackMaps::Handle(
+      zone, collect_visitor.CreateGlobalTable(&entry_offsets));
+  object_store->set_canonicalized_stack_map_entries(new_global_table);
+
+  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(
+      zone, old_global_table, entry_offsets);
+  ProgramVisitor::VisitFunctions(&dedup_visitor);
 }
 
 class PcDescriptorsKeyValueTrait {
@@ -859,12 +1076,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 
     RawInstructions* DedupOneInstructions(const Function& function,
                                           const Code& code) {
-      // Switchable calls rely on a unique PC -> Code mapping atm, so we do not
-      // dedup any instructions for instance methods.
-      if (function.IsDynamicFunction()) {
-        return code.instructions();
-      }
-
       const Code* canonical = canonical_set_.LookupValue(&code);
       if (canonical == nullptr) {
         canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
@@ -895,7 +1106,7 @@ void ProgramVisitor::Dedup() {
 
   BindStaticCalls();
   ShareMegamorphicBuckets();
-  DedupCompressedStackMaps();
+  NormalizeAndDedupCompressedStackMaps();
   DedupPcDescriptors();
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
 #if defined(DART_PRECOMPILER)

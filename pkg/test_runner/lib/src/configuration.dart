@@ -42,7 +42,6 @@ class TestConfiguration {
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
-      this.useKernelBytecode,
       this.writeDebugLog,
       this.writeResults,
       this.writeLogs,
@@ -94,7 +93,6 @@ class TestConfiguration {
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
-  final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeResults;
   final bool writeLogs;
@@ -146,6 +144,9 @@ class TestConfiguration {
 
   /// Extra dart2js options passed to the testing script.
   List<String> get dart2jsOptions => configuration.dart2jsOptions;
+
+  /// Extra gen_kernel options passed to the testing script.
+  List<String> get genKernelOptions => configuration.genKernelOptions;
 
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;

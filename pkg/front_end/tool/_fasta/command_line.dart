@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:io' show exit, stderr;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
 
@@ -43,8 +45,6 @@ import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
 
 import 'package:front_end/src/fasta/resolve_input_uri.dart'
     show resolveInputUri;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
@@ -249,6 +249,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--omit-platform": false,
   "--fatal": ",",
   "--fatal-skip": String,
+  "--force-late-lowering": false,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
   // supported.
@@ -304,7 +305,8 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags = new TargetFlags();
+  final TargetFlags flags = new TargetFlags(
+      forceLateLoweringForTesting: options["--force-late-lowering"]);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {

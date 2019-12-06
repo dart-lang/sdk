@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Interact with developer tools such as the debugger and inspector.
 ///
 /// This library is platform dependent and has separate implementations for

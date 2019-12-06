@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 
 import 'resynthesize_common.dart';
@@ -75,9 +74,6 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
   FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
   final Set<Source> serializedSources = new Set<Source>();
-
-  final Map<String, UnlinkedUnitBuilder> uriToUnit =
-      <String, UnlinkedUnitBuilder>{};
 
   PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
 }

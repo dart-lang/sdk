@@ -2,116 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
+import 'package:meta/meta.dart';
 
 /**
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
-  /**
-   * The set of analysis options controlling the behavior of this context.
-   */
-  AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
-
-  /**
-   * The source factory used to create the sources that can be analyzed in this
-   * context.
-   */
-  SourceFactory _sourceFactory;
-
-  /**
-   * The set of declared variables used when computing constant values.
-   */
-  DeclaredVariables _declaredVariables = new DeclaredVariables();
-
-  /**
-   * The [TypeProvider] for this context, `null` if not yet created.
-   */
-  TypeProvider _typeProvider;
-
-  /**
-   * The [TypeSystem] for this context, `null` if not yet created.
-   */
-  TypeSystem _typeSystem;
-
-  /**
-   * Initialize a newly created analysis context.
-   */
-  AnalysisContextImpl();
+  final SynchronousSession _synchronousSession;
 
   @override
-  AnalysisOptions get analysisOptions => _options;
+  final SourceFactory sourceFactory;
+
+  AnalysisContextImpl(this._synchronousSession, this.sourceFactory);
+
+  @override
+  AnalysisOptionsImpl get analysisOptions {
+    return _synchronousSession.analysisOptions;
+  }
 
   @override
   void set analysisOptions(AnalysisOptions options) {
-    this._options = options;
+    throw StateError('Cannot be changed.');
   }
 
   @override
-  DeclaredVariables get declaredVariables => _declaredVariables;
-
-  /**
-   * Set the declared variables to the give collection of declared [variables].
-   */
-  void set declaredVariables(DeclaredVariables variables) {
-    _declaredVariables = variables;
+  DeclaredVariables get declaredVariables {
+    return _synchronousSession.declaredVariables;
   }
-
-  @override
-  SourceFactory get sourceFactory => _sourceFactory;
 
   @override
   void set sourceFactory(SourceFactory factory) {
-    _sourceFactory = factory;
+    throw StateError('Cannot be changed.');
   }
 
   @override
   TypeProvider get typeProvider {
-    return _typeProvider;
+    return _synchronousSession.typeProvider;
   }
 
-  /**
-   * Sets the [TypeProvider] for this context.
-   */
+  TypeProviderImpl get typeProviderLegacy {
+    return _synchronousSession.typeProviderLegacy;
+  }
+
+  TypeProviderImpl get typeProviderNonNullableByDefault {
+    return _synchronousSession.typeProviderNonNullableByDefault;
+  }
+
   @override
-  void set typeProvider(TypeProvider typeProvider) {
-    _typeProvider = typeProvider;
+  TypeSystemImpl get typeSystem {
+    return _synchronousSession.typeSystem;
+  }
+
+  TypeSystemImpl get typeSystemLegacy {
+    return _synchronousSession.typeSystemLegacy;
+  }
+
+  TypeSystemImpl get typeSystemNonNullableByDefault {
+    return _synchronousSession.typeSystemNonNullableByDefault;
+  }
+
+  void clearTypeProvider() {
+    _synchronousSession.clearTypeProvider();
   }
 
   @override
-  TypeSystem get typeSystem {
-    return _typeSystem ??= Dart2TypeSystem(typeProvider);
-  }
-
-  /**
-   * Create an analysis cache based on the given source [factory].
-   */
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    throw UnimplementedError();
-  }
-}
-
-/**
- * An object that manages the partitions that can be shared between analysis
- * contexts.
- */
-class PartitionManager {
-  /**
-   * Clear any cached data being maintained by this manager.
-   */
-  void clearCache() {}
-
-  /**
-   * Return the partition being used for the given [sdk], creating the partition
-   * if necessary.
-   */
-  SdkCachePartition forSdk(DartSdk sdk) {
-    throw UnimplementedError();
+  void setTypeProviders({
+    @required TypeProvider legacy,
+    @required TypeProvider nonNullableByDefault,
+  }) {
+    _synchronousSession.setTypeProviders(
+      legacy: legacy,
+      nonNullableByDefault: nonNullableByDefault,
+    );
   }
 }
 
@@ -124,19 +93,6 @@ class SdkAnalysisContext extends AnalysisContextImpl {
    * Analysis options cannot be changed afterwards.  If the given [options] are
    * `null`, then default options are used.
    */
-  SdkAnalysisContext(AnalysisOptions options) {
-    if (options != null) {
-      super.analysisOptions = options;
-    }
-  }
-
-  @override
-  void set analysisOptions(AnalysisOptions options) {
-    throw new StateError('AnalysisOptions of SDK context cannot be changed.');
-  }
-
-  @override
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    throw UnimplementedError();
-  }
+  SdkAnalysisContext(AnalysisOptions options, SourceFactory sourceFactory)
+      : super(SynchronousSession(options, DeclaredVariables()), sourceFactory);
 }

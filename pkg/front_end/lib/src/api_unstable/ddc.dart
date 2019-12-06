@@ -4,15 +4,16 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
 import 'package:kernel/class_hierarchy.dart';
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
-
-import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -33,10 +34,13 @@ import 'modular_incremental_compilation.dart' as modular
 
 import 'util.dart' show equalLists, equalMaps;
 
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
+
+export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
-
-export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
@@ -59,8 +63,6 @@ export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 export '../fasta/kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody;
 
-export '../fasta/severity.dart' show Severity;
-
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;
 
@@ -69,11 +71,30 @@ export 'compiler_state.dart'
 
 class DdcResult {
   final Component component;
+  final Component sdkSummary;
   final List<Component> inputSummaries;
   final ClassHierarchy classHierarchy;
 
-  DdcResult(this.component, this.inputSummaries, this.classHierarchy)
+  DdcResult(
+      this.component, this.sdkSummary, this.inputSummaries, this.classHierarchy)
       : assert(classHierarchy != null);
+
+  Set<Library> computeLibrariesFromDill() {
+    Set<Library> librariesFromDill = new Set<Library>();
+
+    for (Component c in inputSummaries) {
+      for (Library lib in c.libraries) {
+        librariesFromDill.add(lib);
+      }
+    }
+    if (sdkSummary != null) {
+      for (Library lib in sdkSummary.libraries) {
+        librariesFromDill.add(lib);
+      }
+    }
+
+    return librariesFromDill;
+  }
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -106,8 +127,10 @@ Future<InitializedCompilerState> initializeCompiler(
     // as external.
     (await oldState.processedOpts.loadSdkSummary(null))
         .libraries
+        // ignore: DEPRECATED_MEMBER_USE
         .forEach((lib) => lib.isExternal = false);
     (await oldState.processedOpts.loadInputSummaries(null))
+        // ignore: DEPRECATED_MEMBER_USE
         .forEach((p) => p.libraries.forEach((lib) => lib.isExternal = false));
 
     return oldState;
@@ -186,7 +209,9 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
   Component component = compilerResult?.component;
   if (component == null) return null;
 
-  // This should be cached.
+  // These should be cached.
+  Component sdkSummary = await processedOpts.loadSdkSummary(null);
   List<Component> summaries = await processedOpts.loadInputSummaries(null);
-  return new DdcResult(component, summaries, compilerResult.classHierarchy);
+  return new DdcResult(
+      component, sdkSummary, summaries, compilerResult.classHierarchy);
 }

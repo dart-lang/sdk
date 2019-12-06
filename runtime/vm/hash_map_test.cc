@@ -172,6 +172,40 @@ TEST_CASE(DirectChainedHashMapIterator) {
   EXPECT(sum == 15);
 }
 
+TEST_CASE(DirectChainedHashMapIteratorWithCollisionInLastBucket) {
+  intptr_t values[] = {65,  325, 329, 73,  396, 207, 215, 93,  227, 39,
+                       431, 112, 176, 313, 188, 317, 61,  127, 447};
+  IntMap<intptr_t> map;
+
+  for (intptr_t value : values) {
+    map.Insert(value, value);
+  }
+
+  bool visited[ARRAY_SIZE(values)] = {};
+  intptr_t count = 0;
+  auto it = map.GetIterator();
+  for (auto* p = it.Next(); p != nullptr; p = it.Next()) {
+    ++count;
+    bool found = false;
+    intptr_t i = 0;
+    for (intptr_t v : values) {
+      if (v == p->key) {
+        EXPECT(v == p->value);
+        EXPECT(!visited[i]);
+        visited[i] = true;
+        found = true;
+        break;
+      }
+      ++i;
+    }
+    EXPECT(found);
+  }
+  EXPECT(count == ARRAY_SIZE(values));
+  for (bool is_visited : visited) {
+    EXPECT(is_visited);
+  }
+}
+
 TEST_CASE(CStringMap) {
   const char* const kConst1 = "test";
   const char* const kConst2 = "test 2";

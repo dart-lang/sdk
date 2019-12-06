@@ -33,9 +33,9 @@ abstract class ServerStarter {
   void set fileResolverProvider(ResolverProvider provider);
 
   /**
-   * Set the instrumentation [server] that is to be used by the analysis server.
+   * Set the instrumentation [service] that is to be used by the analysis server.
    */
-  void set instrumentationServer(InstrumentationServer server);
+  void set instrumentationService(InstrumentationService service);
 
   /**
    * Set the package resolver provider used to override the way package URI's

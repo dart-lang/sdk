@@ -240,7 +240,7 @@ class RuntimeTypeGenerator {
       return new jsAst.VariableUse(_getVariableName(variable.element.name));
     }
 
-    if (substitution.arguments.every((DartType type) => type.isDynamic)) {
+    if (substitution.arguments.every((DartType type) => type is DynamicType)) {
       return emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
@@ -323,6 +323,17 @@ class _TypeContainedInOutputUnitVisitor
   }
 
   @override
+  bool visitLegacyType(LegacyType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNullableType(NullableType type, OutputUnit argument) =>
+      visit(type.baseType, argument);
+
+  @override
+  bool visitNeverType(NeverType type, OutputUnit argument) => true;
+
+  @override
   bool visitFutureOrType(FutureOrType type, OutputUnit argument) {
     if (_outputUnitData.outputUnitForClass(_commonElements.functionClass) !=
         argument) {
@@ -333,6 +344,9 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitDynamicType(DynamicType type, OutputUnit argument) => true;
+
+  @override
+  bool visitErasedType(ErasedType type, OutputUnit argument) => true;
 
   @override
   bool visitAnyType(AnyType type, OutputUnit argument) => true;

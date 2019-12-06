@@ -40,14 +40,12 @@ m() async {
   }
 
   test_cascade() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m() {
   Null x;
   x..toString;
 }
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NULL_VALUE, 18, 1),
-    ]);
+''');
   }
 
   test_eq() async {

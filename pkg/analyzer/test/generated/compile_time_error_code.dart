@@ -16,21 +16,6 @@ import '../src/dart/resolution/driver_resolution.dart';
 import 'test_support.dart';
 
 class CompileTimeErrorCodeTestBase extends DriverResolutionTest {
-  disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
-    // There is an interface conflict here due to a loop in the class
-    // hierarchy leading to an infinite set of implemented types; this loop
-    // shouldn't cause non-termination.
-
-    // TODO(paulberry): this test is currently disabled due to non-termination
-    // bugs elsewhere in the analyzer.
-    await assertErrorsInCode('''
-class A<T> implements B<List<T>> {}
-class B<T> implements A<List<T>> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 0, 0),
-    ]);
-  }
-
   @failingTest
   test_accessPrivateEnumField() async {
     await assertErrorsInCode(r'''
@@ -1196,112 +1181,6 @@ class C = a.A with M;
     ]);
   }
 
-  test_extendsDisallowedClass_class_bool() async {
-    await assertErrorsInCode('''
-class A extends bool {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
-    ]);
-  }
-
-  test_extendsDisallowedClass_class_double() async {
-    await assertErrorsInCode('''
-class A extends double {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
-    ]);
-  }
-
-  test_extendsDisallowedClass_class_int() async {
-    await assertErrorsInCode('''
-class A extends int {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 3),
-    ]);
-  }
-
-  test_extendsDisallowedClass_class_Null() async {
-    await assertErrorsInCode('''
-class A extends Null {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
-    ]);
-  }
-
-  test_extendsDisallowedClass_class_num() async {
-    await assertErrorsInCode('''
-class A extends num {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 3),
-    ]);
-  }
-
-  test_extendsDisallowedClass_class_String() async {
-    await assertErrorsInCode('''
-class A extends String {}
-''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_bool() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = bool with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 4),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_double() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = double with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 6),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_int() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = int with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 3),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_Null() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = Null with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 4),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_num() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = num with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 3),
-    ]);
-  }
-
-  test_extendsDisallowedClass_classTypeAlias_String() async {
-    await assertErrorsInCode(r'''
-class M {}
-class C = String with M;
-''', [
-      error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 21, 6),
-    ]);
-  }
-
   test_extraPositionalArguments_const() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1732,134 +1611,6 @@ class C = B with M implements a.A;
     ]);
   }
 
-  test_implementsDisallowedClass_class_bool() async {
-    await assertErrorsInCode('''
-class A implements bool {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_double() async {
-    await assertErrorsInCode('''
-class A implements double {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_int() async {
-    await assertErrorsInCode('''
-class A implements int {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_Null() async {
-    await assertErrorsInCode('''
-class A implements Null {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_num() async {
-    await assertErrorsInCode('''
-class A implements num {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_String() async {
-    await assertErrorsInCode('''
-class A implements String {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
-    ]);
-  }
-
-  test_implementsDisallowedClass_class_String_num() async {
-    await assertErrorsInCode('''
-class A implements String, num {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 27, 3),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_bool() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements bool;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 4),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_double() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements double;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_int() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements int;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 3),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_Null() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements Null;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 4),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_num() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements num;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 3),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_String() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements String;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
-    ]);
-  }
-
-  test_implementsDisallowedClass_classTypeAlias_String_num() async {
-    await assertErrorsInCode(r'''
-class A {}
-class M {}
-class C = A with M implements String, num;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 60, 3),
-    ]);
-  }
-
   test_implementsNonClass_class() async {
     await assertErrorsInCode(r'''
 int A;
@@ -1930,79 +1681,6 @@ class M {}
 class B = A with M implements A;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 52, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_field2() async {
-    await assertErrorsInCode(r'''
-class A {
-  final x = 0;
-  final y = x;
-}
-''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 37, 1),
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 37, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_invocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f();
-  f() {}
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_invocationInStatic() async {
-    await assertErrorsInCode(r'''
-class A {
-  static var F = m();
-  int m() => 0;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 27, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p) {}
-  A.named() : this(f);
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 39, 1),
-    ]);
-  }
-
-  test_implicitThisReferenceInInitializer_superConstructorInvocation() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(p) {}
-}
-class B extends A {
-  B() : super(f);
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 56, 1),
     ]);
   }
 
@@ -3021,118 +2699,6 @@ class B extends Object with A {}
 class C = Object with B;
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 66, 1),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_bool() async {
-    await assertErrorsInCode('''
-class A extends Object with bool {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_double() async {
-    await assertErrorsInCode('''
-class A extends Object with double {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_int() async {
-    await assertErrorsInCode('''
-class A extends Object with int {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_Null() async {
-    await assertErrorsInCode('''
-class A extends Object with Null {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_num() async {
-    await assertErrorsInCode('''
-class A extends Object with num {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_class_String() async {
-    await assertErrorsInCode('''
-class A extends Object with String {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_bool() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with bool;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_double() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with double;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_int() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with int;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_Null() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with Null;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_num() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with num;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_String() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with String;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-    ]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C = A with String, num;
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 36, 3),
     ]);
   }
 
@@ -4418,17 +3984,6 @@ class B {
     ]);
   }
 
-  test_redirectToNonConstConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  A.a() {}
-  const factory A.b() = A.a;
-}
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 45, 3),
-    ]);
-  }
-
   test_referencedBeforeDeclaration_hideInBlock_comment() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -4795,7 +4350,7 @@ typedef A(A b());
   test_typeAliasCannotReferenceItself_generic() async {
     List<ExpectedError> expectedErrors = [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
     ];
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);

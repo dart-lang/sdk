@@ -39,6 +39,12 @@ var l = new List<int>(3);
     ]);
   }
 
+  test_notDefaultConstructor() async {
+    await assertNoErrorsInCode('''
+var x = List<int>.unmodifiable([]);
+''');
+  }
+
   test_nullableType() async {
     await assertNoErrorsInCode('''
 var l = new List<String?>(3);

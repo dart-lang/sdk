@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.async;
 
 /**
@@ -44,7 +42,7 @@ abstract class Timer {
    * The [callback] function is invoked after the given [duration].
    *
    */
-  factory Timer(Duration duration, void callback()) {
+  factory Timer(Duration duration, void Function() callback) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
@@ -69,6 +67,8 @@ abstract class Timer {
    * a `duration` after either when the previous callback ended,
    * when the previous callback started, or when the previous callback was
    * scheduled for - even if the actual callback was delayed.
+   *
+   * [duration] must a non-negative [Duration].
    */
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
@@ -85,7 +85,7 @@ abstract class Timer {
    *
    * This function is equivalent to `new Timer(Duration.zero, callback)`.
    */
-  static void run(void callback()) {
+  static void run(void Function() callback) {
     new Timer(Duration.zero, callback);
   }
 
@@ -123,7 +123,8 @@ abstract class Timer {
    */
   bool get isActive;
 
-  external static Timer _createTimer(Duration duration, void callback());
+  external static Timer _createTimer(
+      Duration duration, void Function() callback);
   external static Timer _createPeriodicTimer(
       Duration duration, void callback(Timer timer));
 }

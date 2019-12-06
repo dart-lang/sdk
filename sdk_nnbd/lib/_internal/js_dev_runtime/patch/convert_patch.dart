@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch file for dart:convert library.
 
 import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
-import 'dart:collection' show Maps, LinkedHashMap, MapBase;
+import 'dart:collection' show LinkedHashMap, MapBase;
 import 'dart:_native_typed_data' show NativeUint8List;
 
 /**
@@ -30,7 +28,7 @@ import 'dart:_native_typed_data' show NativeUint8List;
  * Throws [FormatException] if the input is not valid JSON text.
  */
 @patch
-_parseJson(String source, reviver(Object key, Object value)) {
+_parseJson(String source, reviver(key, value)?) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -53,8 +51,7 @@ _parseJson(String source, reviver(Object key, Object value)) {
  * Maps. [json] is expected to be freshly allocated so elements can be replaced
  * in-place.
  */
-_convertJsonToDart(json, reviver(Object key, Object value)) {
-  assert(reviver != null);
+_convertJsonToDart(json, reviver(Object? key, Object? value)) {
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
     if (JS<bool>('!', '# == null', e) ||
@@ -214,7 +211,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     return value;
   }
 
-  remove(Object key) {
+  remove(Object? key) {
     if (!_isUpgraded && !containsKey(key)) return null;
     return _upgrade().remove(key);
   }
@@ -298,7 +295,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     // safely force a concurrent modification error in case
     // someone is iterating over the map here.
     if (keys.isEmpty) {
-      keys.add(null);
+      keys.add("");
     } else {
       keys.clear();
     }
@@ -357,13 +354,13 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 
   /// Delegate to [parent.containsKey] to ensure the performance expected
   /// from [Map.keys.containsKey].
-  bool contains(Object key) => _parent.containsKey(key);
+  bool contains(Object? key) => _parent.containsKey(key);
 }
 
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
     return _JsonDecoderSink(_reviver, sink);
   }
 }
@@ -375,17 +372,16 @@ class JsonDecoder {
  * The sink only creates one object, but its input can be chunked.
  */
 // TODO(floitsch): don't accumulate everything before starting to decode.
-class _JsonDecoderSink extends _StringSinkConversionSink {
-  final Function(Object key, Object value) _reviver;
-  final Sink<Object> _sink;
+class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
+  final Object? Function(Object? key, Object? value)? _reviver;
+  final Sink<Object?> _sink;
 
   _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
     super.close();
-    StringBuffer buffer = _stringSink;
-    String accumulated = buffer.toString();
-    buffer.clear();
+    String accumulated = _stringSink.toString();
+    _stringSink.clear();
     Object decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
@@ -401,8 +397,8 @@ class Utf8Decoder {
 
   // Currently not intercepting UTF8 decoding.
   @patch
-  static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end) {
+  static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end) {
     // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
     // implemented by JavaScript's Uint8Array.
     if (JS<bool>('!', '# instanceof Uint8Array', codeUnits)) {
@@ -412,8 +408,8 @@ class Utf8Decoder {
     }
   }
 
-  static String _convertInterceptedUint8List(
-      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
+  static String? _convertInterceptedUint8List(
+      bool allowMalformed, NativeUint8List codeUnits, int start, int? end) {
     if (allowMalformed) {
       // TextDecoder with option {fatal: false} does not produce the same result
       // as [Utf8Decoder]. It disagrees on the number of `U+FFFD` (REPLACEMENT
@@ -444,12 +440,12 @@ class Utf8Decoder {
         JS<NativeUint8List>('!', '#.subarray(#, #)', codeUnits, start, end));
   }
 
-  static String _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
     if (_unsafe(codeUnits)) return null;
     return _useTextDecoderUnchecked(decoder, codeUnits);
   }
 
-  static String _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
     // If the input is malformed, catch the exception and return `null` to fall
     // back on unintercepted decoder. The fallback will either succeed in
     // decoding, or report the problem better than TextDecoder.

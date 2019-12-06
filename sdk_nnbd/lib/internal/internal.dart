@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._internal;
 
 import 'dart:collection';
@@ -18,7 +16,7 @@ import 'dart:async'
         Zone;
 import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
-import 'dart:core' as core;
+import 'dart:core' as core show Symbol;
 import 'dart:math' show Random;
 
 part 'async_cast.dart';

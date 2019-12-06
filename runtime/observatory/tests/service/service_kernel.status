@@ -53,15 +53,8 @@ eval_regression_flutter20255_test: SkipSlow # Timeout
 get_vm_timeline_rpc_test: Pass, Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
+[ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
-
-[ $arch == simdbc64 && $compiler == dartk ]
-eval_test: RuntimeError, Timeout # Issue #34736
-evaluate_in_frame_rpc_test: RuntimeError, Timeout # Issue #34736
-
-[ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
-eval_test: Pass, Slow
 
 [ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
 *: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
@@ -122,7 +115,7 @@ step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+[ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.

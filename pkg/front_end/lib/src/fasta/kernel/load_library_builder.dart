@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         LoadLibrary,
         Member,
         Name,
+        Nullability,
         Procedure,
         ProcedureKind,
         ReturnStatement;
@@ -54,7 +55,7 @@ class LoadLibraryBuilder extends BuilderImpl {
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
-                <DartType>[const DynamicType()])),
+                Nullability.legacy, <DartType>[const DynamicType()])),
         fileUri: parent.library.fileUri,
         isStatic: true)
       ..startFileOffset = charOffset

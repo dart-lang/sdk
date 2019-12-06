@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /**
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
@@ -89,13 +87,13 @@
  * [asynchronous-programming]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartasync---asynchronous-programming
  * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
  * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
- * [test-readme]: https://pub.dartlang.org/packages/test
+ * [test-readme]: https://pub.dev/packages/test
  *
  * {@category Core}
  */
 library dart.async;
 
-import "dart:collection" show HashMap, IterableBase;
+import "dart:collection" show HashMap;
 import "dart:_internal"
     show
         CastStream,

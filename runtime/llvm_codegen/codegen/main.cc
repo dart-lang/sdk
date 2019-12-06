@@ -13,8 +13,6 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
 
-#include "vm/dart_api_state.h"
-
 using namespace llvm;
 
 namespace {
@@ -102,24 +100,14 @@ int main(int argc, const char** argv) {
   tool_name = argv[0];
   cl::ParseCommandLineOptions(argc, argv, "llvm system compiler\n");
 
-  // Init dart
-  const char* err = Dart_SetVMFlags(0, argv + 2);
-  if (err != nullptr) error(Twine("Dart_SetVMFlags failed: ") + err);
-  Dart_InitializeParams init_params;
-  memset(&init_params, 0, sizeof(init_params));
-  init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  err = Dart_Initialize(&init_params);
-  if (err != nullptr) error(Twine("Dart Initialization failed: ") + err);
-
   // Read in the file
   auto file_or = MemoryBuffer::getFile(argv[1]);
   if (!file_or) reportError(argv[1], file_or.getError());
   std::unique_ptr<MemoryBuffer> file = std::move(file_or.get());
 
   // Parse the file
-  dart::ApiZone zone;
-  dart::SExpParser parser(zone.GetZone(), file->getBufferStart(),
-                          file->getBufferSize());
+  dart::Zone zone;
+  dart::SExpParser parser(&zone, file->getBufferStart(), file->getBufferSize());
   dart::SExpression* root = parser.Parse();
   if (root == nullptr)
     error(Twine("SExpParser failed: ") + parser.error_message());
@@ -130,7 +118,7 @@ int main(int argc, const char** argv) {
   prelude["dart:core::print"] = &print;
 
   // Convert the function into an error checked format
-  auto function_or = MakeFunction(root, prelude);
+  auto function_or = MakeFunction(&zone, root, prelude);
   if (!function_or) error(function_or.takeError());
   auto dart_function = std::move(*function_or);
   if (!dart_function.normal_entry)

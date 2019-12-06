@@ -45,6 +45,11 @@ class CaughtException implements Exception {
   final Object exception;
 
   /**
+   * The message describing where/how/why this was caught.
+   */
+  final String message;
+
+  /**
    * The stack trace associated with the exception.
    */
   StackTrace stackTrace;
@@ -53,15 +58,27 @@ class CaughtException implements Exception {
    * Initialize a newly created caught exception to have the given [exception]
    * and [stackTrace].
    */
-  CaughtException(this.exception, stackTrace) {
-    if (stackTrace == null) {
-      try {
-        throw this;
-      } catch (_, st) {
-        stackTrace = st;
-      }
+  CaughtException(exception, stackTrace)
+      : this.withMessage(null, exception, stackTrace);
+
+  /**
+   * Initialize a newly created caught exception to have the given [exception],
+   * [stackTrace], and [message].
+   */
+  CaughtException.withMessage(this.message, this.exception, stackTrace)
+      : this.stackTrace = stackTrace ?? StackTrace.current;
+
+  /**
+   * Recursively unwrap this [CaughtException] if it itself contains a
+   * [CaughtException].
+   *
+   * If it does not contain a [CaughtException], simply return this instance.
+   */
+  CaughtException get rootCaughtException {
+    if (exception is CaughtException) {
+      return (exception as CaughtException).rootCaughtException;
     }
-    this.stackTrace = stackTrace;
+    return this;
   }
 
   @override
@@ -76,6 +93,9 @@ class CaughtException implements Exception {
    * stack trace.
    */
   void _writeOn(StringBuffer buffer) {
+    if (message != null) {
+      buffer.writeln(message);
+    }
     if (exception is AnalysisException) {
       AnalysisException analysisException = exception;
       buffer.writeln(analysisException.message);
@@ -94,4 +114,21 @@ class CaughtException implements Exception {
       }
     }
   }
+}
+
+/**
+ * A form of [CaughtException] that should be silent to users.
+ *
+ * This is still considered an exceptional situation and will be sent to crash
+ * reporting.
+ */
+class SilentException extends CaughtException {
+  SilentException(String message, exception, stackTrace)
+      : super.withMessage(message, exception, stackTrace);
+
+  /**
+   * Create a [SilentException] to wrap a [CaughtException], adding a [message].
+   */
+  SilentException.wrapInMessage(String message, CaughtException exception)
+      : this(message, exception, null);
 }

@@ -51,37 +51,25 @@ class InstrumentationInputConverter extends CommonInputConverter {
     }
     // int timeStamp = int.parse(fields[0], onError: (_) => -1);
     String opCode = fields[1];
-    if (opCode == InstrumentationService.TAG_NOTIFICATION) {
+    if (opCode == InstrumentationLogAdapter.TAG_NOTIFICATION) {
       return convertNotification(decodeJson(line, fields[2]));
     } else if (opCode == 'Read') {
       // 1434096943209:Read:/some/file/path:1434095535000:<file content>
       //String filePath = fields[2];
       readBuffer = new StringBuffer(fields.length > 4 ? fields[4] : '');
       return null;
-    } else if (opCode == InstrumentationService.TAG_REQUEST) {
+    } else if (opCode == InstrumentationLogAdapter.TAG_REQUEST) {
       return convertRequest(decodeJson(line, fields[2]));
-    } else if (opCode == InstrumentationService.TAG_RESPONSE) {
+    } else if (opCode == InstrumentationLogAdapter.TAG_RESPONSE) {
       // 1434096937454:Res:{"id"::"0","result"::{"version"::"1.7.0"}}
       return convertResponse(decodeJson(line, fields[2]));
-    } else if (opCode == InstrumentationService.TAG_ANALYSIS_TASK) {
-      // 1434096943208:Task:/Users/
-      return null;
-    } else if (opCode == InstrumentationService.TAG_LOG_ENTRY) {
+    } else if (opCode == InstrumentationLogAdapter.TAG_LOG_ENTRY) {
       // 1434096937454:Res:{"id"::"0","result"::{"version"::"1.7.0"}}
       return null;
-    } else if (opCode == InstrumentationService.TAG_PERFORMANCE) {
-      //1434096960092:Perf:analysis_full:16884:context_id=0
-      return null;
-    } else if (opCode == InstrumentationService.TAG_SUBPROCESS_START) {
-      // 1434096938634:SPStart:0:/Users/da
-      return null;
-    } else if (opCode == InstrumentationService.TAG_SUBPROCESS_RESULT) {
-      // 1434096939068:SPResult:0:0:"{\"packages\"::{\"rpi_lidar\"::\"/Users
-      return null;
-    } else if (opCode == InstrumentationService.TAG_VERSION) {
+    } else if (opCode == InstrumentationLogAdapter.TAG_VERSION) {
       // 1434096937358:Ver:1421765742287333878467:org.dartlang.dartplugin
       return null;
-    } else if (opCode == InstrumentationService.TAG_WATCH_EVENT) {
+    } else if (opCode == InstrumentationLogAdapter.TAG_WATCH_EVENT) {
       // 1434097460414:Watch:/some/file/path
       return null;
     }

@@ -442,7 +442,7 @@ enum TopLevelInferenceErrorKind : byte {
   overrideConflictParameterType
 }
 
-/// TODO(scheglov) document
+/// Enum of token types, corresponding to AST token types.
 enum UnlinkedTokenType : byte {
   NOTHING,
 
@@ -724,7 +724,11 @@ enum UnlinkedTokenType : byte {
 
   WITH,
 
-  YIELD
+  YIELD,
+
+  INOUT,
+
+  OUT
 }
 
 /// Information about the context of an exception in analysis driver.
@@ -890,23 +894,20 @@ table AnalysisDriverUnitIndex {
 /// Information about an unlinked unit.
 table AnalysisDriverUnlinkedUnit {
   /// List of class member names defined by the unit.
-  definedClassMemberNames:[string] (id: 3);
+  definedClassMemberNames:[string] (id: 2);
 
   /// List of top-level names defined by the unit.
-  definedTopLevelNames:[string] (id: 2);
+  definedTopLevelNames:[string] (id: 1);
 
   /// List of external names referenced by the unit.
   referencedNames:[string] (id: 0);
 
   /// List of names which are used in `extends`, `with` or `implements` clauses
   /// in the file. Import prefixes and type arguments are not included.
-  subtypedNames:[string] (id: 4);
+  subtypedNames:[string] (id: 3);
 
   /// Unlinked information for the unit.
-  unit:UnlinkedUnit (id: 1);
-
-  /// Unlinked information for the unit.
-  unit2:UnlinkedUnit2 (id: 5);
+  unit2:UnlinkedUnit2 (id: 4);
 }
 
 /// Information about a single declaration.
@@ -1033,11 +1034,6 @@ table DirectiveInfo {
   templateValues:[string] (id: 1);
 }
 
-/// TODO(scheglov) Remove it.
-table LinkedLibrary {
-  placeholder:uint (id: 0);
-}
-
 /// Information about a linked AST node.
 table LinkedNode {
   /// The explicit or inferred return type of a function typed node.
@@ -1103,11 +1099,11 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
+  variantField_31:bool (id: 31);
+
   variantField_34:[string] (id: 34);
 
   name:string (id: 37);
-
-  variantField_31:bool (id: 31);
 
   variantField_35:UnlinkedTokenType (id: 35);
 
@@ -1205,17 +1201,15 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
-  isNNBD:bool (id: 4);
+  isNNBD:bool (id: 3);
 
-  isSynthetic:bool (id: 3);
+  isSynthetic:bool (id: 2);
 
-  node:LinkedNode (id: 2);
+  node:LinkedNode (id: 1);
 
   /// If the unit is a part, the URI specified in the `part` directive.
   /// Otherwise empty.
-  partUriStr:string (id: 5);
-
-  tokens:UnlinkedTokens (id: 1);
+  partUriStr:string (id: 4);
 
   /// The absolute URI.
   uriStr:string (id: 0);
@@ -1223,46 +1217,8 @@ table LinkedNodeUnit {
 
 /// Summary information about a package.
 table PackageBundle {
-  /// MD5 hash of the non-informative fields of the [PackageBundle] (not
-  /// including this one).  This can be used to identify when the API of a
-  /// package may have changed.
-  apiSignature:string (id: 7, deprecated);
-
   /// The version 2 of the summary.
-  bundle2:LinkedNodeBundle (id: 9);
-
-  /// Information about the packages this package depends on, if known.
-  dependencies:[PackageDependencyInfo] (id: 8, deprecated);
-
-  /// Linked libraries.
-  linkedLibraries:[LinkedLibrary] (id: 0, deprecated);
-
-  /// The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
-  /// `package:foo/bar.dart`.
-  linkedLibraryUris:[string] (id: 1, deprecated);
-
-  /// Major version of the summary format.  See
-  /// [PackageBundleAssembler.currentMajorVersion].
-  majorVersion:uint (id: 5);
-
-  /// Minor version of the summary format.  See
-  /// [PackageBundleAssembler.currentMinorVersion].
-  minorVersion:uint (id: 6);
-
-  /// List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
-  /// is encoded as a hexadecimal string using lower case letters.
-  unlinkedUnitHashes:[string] (id: 4, deprecated);
-
-  /// Unlinked information for the compilation units constituting the package.
-  unlinkedUnits:[UnlinkedUnit] (id: 2, deprecated);
-
-  /// The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
-  unlinkedUnitUris:[string] (id: 3, deprecated);
-}
-
-/// TODO(scheglov) Remove it.
-table PackageDependencyInfo {
-  placeholder:uint (id: 0);
+  bundle2:LinkedNodeBundle (id: 0);
 }
 
 /// Summary information about a top-level type inference error.
@@ -1305,16 +1261,6 @@ table UnlinkedInformativeData {
 
   /// The kind of the node.
   kind:LinkedNodeKind (id: 0);
-}
-
-/// TODO(scheglov) Remove it.
-table UnlinkedTokens {
-  placeholder:uint (id: 0);
-}
-
-/// TODO(scheglov) Remove it.
-table UnlinkedUnit {
-  placeholder:uint (id: 0);
 }
 
 /// Unlinked summary information about a compilation unit.

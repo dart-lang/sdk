@@ -12,6 +12,7 @@ class ExternalStateSnapshot {
 
   ExternalStateSnapshot(Component component)
       : snapshots = new List<ExternalState>.from(
+            // ignore: DEPRECATED_MEMBER_USE
             component.libraries.map((l) => new ExternalState(l, l.isExternal)));
 
   void restore() {
@@ -28,6 +29,7 @@ class ExternalState {
   ExternalState(this.library, this.isExternal);
 
   void restore() {
+    // ignore: DEPRECATED_MEMBER_USE
     library.isExternal = isExternal;
   }
 }

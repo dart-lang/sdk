@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -26,13 +27,23 @@ FreshTypeParameters getFreshTypeParameters(
 
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterTypeImpl(freshParameters[i]);
+    map[typeParameters[i]] = new TypeParameterTypeImpl(
+      freshParameters[i],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   var substitution = Substitution.fromMap(map);
 
   for (int i = 0; i < typeParameters.length; ++i) {
-    var bound = typeParameters[i].bound;
+    // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+    // variance is added to the interface.
+    var typeParameter = typeParameters[i] as TypeParameterElementImpl;
+    if (!typeParameter.isLegacyCovariant) {
+      freshParameters[i].variance = typeParameter.variance;
+    }
+
+    var bound = typeParameter.bound;
     if (bound != null) {
       var newBound = substitution.substituteType(bound);
       freshParameters[i].bound = newBound;
@@ -71,10 +82,10 @@ FunctionType replaceTypeParameters(
     )..isExplicitlyCovariant = p.isCovariant;
   }
 
-  return FunctionTypeImpl.synthetic(
-    substitution.substituteType(type.returnType),
-    newTypeParameters,
-    type.parameters.map(transformParameter).toList(),
+  return FunctionTypeImpl(
+    typeFormals: newTypeParameters,
+    parameters: type.parameters.map(transformParameter).toList(),
+    returnType: substitution.substituteType(type.returnType),
     nullabilitySuffix: type.nullabilitySuffix,
   );
 }
@@ -105,10 +116,9 @@ class FreshTypeParameters {
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
-    return new FunctionTypeImpl.synthetic(
-      substitute(type.returnType),
-      freshTypeParameters,
-      type.parameters.map((parameter) {
+    return new FunctionTypeImpl(
+      typeFormals: freshTypeParameters,
+      parameters: type.parameters.map((parameter) {
         return ParameterElementImpl.synthetic(
           parameter.name,
           substitute(parameter.type),
@@ -116,6 +126,8 @@ class FreshTypeParameters {
           parameter.parameterKind,
         );
       }).toList(),
+      returnType: substitute(type.returnType),
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
     );
   }
 
@@ -237,12 +249,20 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
     var freshElements = List<TypeParameterElement>(elements.length);
     for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
+      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // variance is added to the interface.
+      var element = elements[i] as TypeParameterElementImpl;
       var freshElement = TypeParameterElementImpl(element.name, -1);
       freshElements[i] = freshElement;
-      var freshType = TypeParameterTypeImpl(freshElement);
+      var freshType = freshElement.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       freshElement.type = freshType;
       substitution[element] = freshType;
+
+      if (!element.isLegacyCovariant) {
+        freshElement.variance = element.variance;
+      }
     }
 
     for (var i = 0; i < freshElements.length; i++) {
@@ -369,9 +389,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitBottomType(BottomTypeImpl type) => type;
-
-  @override
   DartType visitDynamicType(DynamicTypeImpl type) => type;
 
   @override
@@ -411,8 +428,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
-        element: type.element, typeArguments: typeArguments);
+    return FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      element: type.element,
+      typeArguments: typeArguments,
+    );
   }
 
   @override
@@ -488,6 +511,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     return new NamedTypeBuilder(
+      type.isNNBD,
       type.element,
       arguments,
       type.nullabilitySuffix,
@@ -495,8 +519,19 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitNeverType(NeverTypeImpl type) => type;
+
+  @override
   DartType visitTypeParameterType(TypeParameterType type) {
-    return getSubstitute(type.element) ?? type;
+    var argument = getSubstitute(type.element);
+    if (argument == null) {
+      return type;
+    }
+
+    var parameterSuffix = (type as TypeImpl).nullabilitySuffix;
+    var argumentSuffix = (argument as TypeImpl).nullabilitySuffix;
+    var nullability = _computeNullability(parameterSuffix, argumentSuffix);
+    return (argument as TypeImpl).withNullability(nullability);
   }
 
   @override
@@ -504,6 +539,30 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  ///  1. Substituting T=X! into T! yields X!
+  ///  2. Substituting T=X* into T! yields X*
+  ///  3. Substituting T=X? into T! yields X?
+  ///  4. Substituting T=X! into T* yields X*
+  ///  5. Substituting T=X* into T* yields X*
+  ///  6. Substituting T=X? into T* yields X?
+  ///  7. Substituting T=X! into T? yields X?
+  ///  8. Substituting T=X* into T? yields X?
+  ///  9. Substituting T=X? into T? yields X?
+  static NullabilitySuffix _computeNullability(
+    NullabilitySuffix parameterSuffix,
+    NullabilitySuffix argumentSuffix,
+  ) {
+    if (parameterSuffix == NullabilitySuffix.question ||
+        argumentSuffix == NullabilitySuffix.question) {
+      return NullabilitySuffix.question;
+    }
+    if (parameterSuffix == NullabilitySuffix.star ||
+        argumentSuffix == NullabilitySuffix.star) {
+      return NullabilitySuffix.star;
+    }
+    return NullabilitySuffix.none;
+  }
 
   static ParameterElementImpl _parameterElement(
     ParameterElement parameter,

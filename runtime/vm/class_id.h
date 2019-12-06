@@ -208,10 +208,11 @@ enum ClassId {
   // clang-format on
 
   // The following entries do not describe a predefined class, but instead
-  // are class indexes for pre-allocated instances (Null, dynamic and Void).
+  // are class indexes for pre-allocated instances (Null, dynamic, void, Never).
   kNullCid,
   kDynamicCid,
   kVoidCid,
+  kNeverCid,
 
   kNumPredefinedCids,
 };

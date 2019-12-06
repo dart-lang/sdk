@@ -25,15 +25,19 @@ import 'package:kernel/ast.dart'
         Library,
         Name,
         NamedExpression,
+        Nullability,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
         Source,
         SuperInitializer,
+        Supertype,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
         VariableGet;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitor;
 
@@ -42,6 +46,8 @@ import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
@@ -256,6 +262,7 @@ class KernelTarget extends TargetImplementation {
       loader.computeLibraryScopes();
       setupTopAndBottomTypes();
       loader.resolveTypes();
+      loader.computeVariances();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
           loader.checkSemantics(objectClassBuilder);
@@ -557,9 +564,12 @@ class KernelTarget extends TargetImplementation {
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(new TypeParameterType(typeParameter));
+      typeParameterTypes.add(
+          new TypeParameterType.withDefaultNullabilityForLibrary(
+              typeParameter, enclosingClass.enclosingLibrary));
     }
-    return new InterfaceType(enclosingClass, typeParameterTypes);
+    return new InterfaceType(
+        enclosingClass, Nullability.legacy, typeParameterTypes);
   }
 
   void setupTopAndBottomTypes() {
@@ -696,9 +706,14 @@ class KernelTarget extends TargetImplementation {
         for (VariableDeclaration formal
             in constructor.function.positionalParameters) {
           if (formal.isFieldFormal) {
-            Builder fieldBuilder = builder.scope.local[formal.name] ??
-                builder.origin.scope.local[formal.name];
-            if (fieldBuilder is FieldBuilder) {
+            Builder fieldBuilder =
+                builder.scope.lookupLocalMember(formal.name, setter: false) ??
+                    builder.origin.scope
+                        .lookupLocalMember(formal.name, setter: false);
+            // If next is not null it's a duplicated field,
+            // and it doesn't need to be initialized to null below
+            // (and doing it will crash serialization).
+            if (fieldBuilder?.next == null && fieldBuilder is FieldBuilder) {
               myInitializedFields.add(fieldBuilder.field);
             }
           }
@@ -729,23 +744,26 @@ class KernelTarget extends TargetImplementation {
     // set their initializer to `null`.
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
-        field.initializer = new NullLiteral()..parent = field;
-        if (field.isFinal &&
-            (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
-          String uri = '${field.enclosingLibrary.importUri}';
-          String file = field.fileUri.pathSegments.last;
-          if (uri == 'dart:html' ||
-              uri == 'dart:svg' ||
-              uri == 'dart:_native_typed_data' ||
-              uri == 'dart:_interceptors' && file == 'js_string.dart') {
-            // TODO(johnniwinther): Use external getters instead of final
-            // fields. See https://github.com/dart-lang/sdk/issues/33762
-          } else {
-            builder.library.addProblem(
-                templateFinalFieldNotInitialized.withArguments(field.name.name),
-                field.fileOffset,
-                field.name.name.length,
-                field.fileUri);
+        if (!field.isLate) {
+          field.initializer = new NullLiteral()..parent = field;
+          if (field.isFinal &&
+              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+            String uri = '${field.enclosingLibrary.importUri}';
+            String file = field.fileUri.pathSegments.last;
+            if (uri == 'dart:html' ||
+                uri == 'dart:svg' ||
+                uri == 'dart:_native_typed_data' ||
+                uri == 'dart:_interceptors' && file == 'js_string.dart') {
+              // TODO(johnniwinther): Use external getters instead of final
+              // fields. See https://github.com/dart-lang/sdk/issues/33762
+            } else {
+              builder.library.addProblem(
+                  templateFinalFieldNotInitialized
+                      .withArguments(field.name.name),
+                  field.fileOffset,
+                  field.name.name.length,
+                  field.fileUri);
+            }
           }
         }
       }
@@ -823,6 +841,12 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component);
+    ClassHierarchy hierarchy = new ClassHierarchy(component,
+        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+      // An error has already been reported.
+    });
+    verifyGetStaticType(
+        new TypeEnvironment(loader.coreTypes, hierarchy), component);
     ticker.logMs("Verified component");
   }
 
@@ -853,6 +877,10 @@ class KernelTarget extends TargetImplementation {
         }
       }
     }
+  }
+
+  void releaseAncillaryResources() {
+    component = null;
   }
 }
 

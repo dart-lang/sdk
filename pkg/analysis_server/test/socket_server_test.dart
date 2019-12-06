@@ -8,12 +8,12 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
-
-import 'mocks.dart';
 
 main() {
   group('SocketServer', () {
@@ -29,10 +29,9 @@ main() {
 
 class SocketServerTest {
   static void createAnalysisServer_alreadyStarted() {
-    SocketServer server = _createSocketServer();
     MockServerChannel channel1 = new MockServerChannel();
     MockServerChannel channel2 = new MockServerChannel();
-    server.createAnalysisServer(channel1);
+    SocketServer server = _createSocketServer(channel1);
     expect(
         channel1.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     server.createAnalysisServer(channel2);
@@ -54,9 +53,8 @@ class SocketServerTest {
   }
 
   static Future createAnalysisServer_successful() {
-    SocketServer server = _createSocketServer();
     MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
+    _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
@@ -70,9 +68,8 @@ class SocketServerTest {
   }
 
   static Future requestHandler_exception() {
-    SocketServer server = _createSocketServer();
     MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
+    SocketServer server = _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
@@ -91,9 +88,8 @@ class SocketServerTest {
   }
 
   static Future requestHandler_futureException() async {
-    SocketServer server = _createSocketServer();
     MockServerChannel channel = new MockServerChannel();
-    server.createAnalysisServer(channel);
+    SocketServer server = _createSocketServer(channel);
     _MockRequestHandler handler = new _MockRequestHandler(true);
     server.analysisServer.handlers = [handler];
     var request = new ServerGetVersionParams().toRequest('0');
@@ -104,16 +100,23 @@ class SocketServerTest {
     expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
   }
 
-  static SocketServer _createSocketServer() {
-    return new SocketServer(
+  static SocketServer _createSocketServer(MockServerChannel channel) {
+    final errorNotifier = new ErrorNotifier();
+    final server = new SocketServer(
         new AnalysisServerOptions(),
         new DartSdkManager('', false),
-        InstrumentationService.NULL_SERVICE,
+        errorNotifier,
         null,
         null,
         null,
         null,
         null);
+
+    server.createAnalysisServer(channel);
+    errorNotifier.server = server.analysisServer;
+    AnalysisEngine.instance.instrumentationService = errorNotifier;
+
+    return server;
   }
 }
 

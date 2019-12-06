@@ -34,7 +34,7 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
   test_nullableUnit_expressionStaticType_bottom() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    identifier.staticType = BottomTypeImpl.instance;
+    identifier.staticType = NeverTypeImpl.instance;
     expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
     }, throwsStateError);
@@ -43,7 +43,7 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
   test_nullableUnit_expressionStaticType_bottomQuestion() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    identifier.staticType = BottomTypeImpl.instanceNullable;
+    identifier.staticType = NeverTypeImpl.instanceNullable;
     LegacyTypeAsserter.assertLegacyTypes(unit);
   }
 

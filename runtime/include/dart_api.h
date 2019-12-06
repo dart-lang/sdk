@@ -908,8 +908,6 @@ Dart_CreateIsolateGroup(const char* script_uri,
                         const char* name,
                         const uint8_t* isolate_snapshot_data,
                         const uint8_t* isolate_snapshot_instructions,
-                        const uint8_t* shared_data,
-                        const uint8_t* shared_instructions,
                         Dart_IsolateFlags* flags,
                         void* isolate_group_data,
                         void* isolate_data,
@@ -2908,8 +2906,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 
 typedef enum {
   Dart_kCanonicalizeUrl = 0,
-  Dart_kScriptTag,
-  Dart_kSourceTag,
   Dart_kImportTag,
   Dart_kKernelTag,
   Dart_kImportExtensionTag,
@@ -2929,14 +2925,6 @@ typedef enum {
  * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
  * of this tag.  The return value should be a string holding the
  * canonicalized url.
- *
- * Dart_kScriptTag
- *
- * No longer used.
- *
- * Dart_kSourceTag
- *
- * No longer used.
  *
  * Dart_kImportTag
  *
@@ -3443,6 +3431,10 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *  provided directly as bytes that the embedder can load with mmap. The
  *  instructions pieces must be loaded with read and execute permissions; the
  *  other pieces may be loaded as read-only.
+ *
+ *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
+ *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
+ *  available in the target //runtime/bin:elf_loader.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
@@ -3452,9 +3444,7 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 const uint8_t* shared_data,
-                                 const uint8_t* shared_instructions);
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance
@@ -3475,7 +3465,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses();
  *  permissions; the data piece may be loaded as read-only.
  *
  *   - Requires the VM to have not been started with --precompilation.
- *   - Not supported when targeting IA32 or DBC.
+ *   - Not supported when targeting IA32.
  *   - The VM writing the snapshot and the VM reading the snapshot must be the
  *     same version, must be built in the same DEBUG/RELEASE/PRODUCT mode, must
  *     be targeting the same architecture, and must both be in checked mode or
@@ -3490,8 +3480,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 const uint8_t* reused_instructions);
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.

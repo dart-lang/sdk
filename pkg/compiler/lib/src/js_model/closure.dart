@@ -892,6 +892,9 @@ class RecordClassData implements JClassData {
 
   @override
   InterfaceType get rawType => thisType;
+
+  @override
+  InterfaceType get instantiationToBounds => thisType;
 }
 
 /// A container for variables declared in a particular scope that are accessed
@@ -1157,7 +1160,8 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
     ir.TreeNode sourceNode = definition.node;
     ir.DartType type;
     if (sourceNode is ir.Class) {
-      type = sourceNode.thisType;
+      type = sourceNode.getThisType(
+          elementMap.coreTypes, sourceNode.enclosingLibrary.nonNullable);
     } else if (sourceNode is ir.VariableDeclaration) {
       type = sourceNode.type;
     } else if (sourceNode is ir.Field) {

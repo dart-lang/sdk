@@ -133,7 +133,9 @@ class Heap {
   void CollectMostGarbage(GCReason reason = kFull);
 
   // Collect both generations by performing an evacuation followed by a
-  // mark-sweep. This function will collect all unreachable objects.
+  // mark-sweep. If incremental marking was in progress, perform another
+  // mark-sweep. This function will collect all unreachable objects, including
+  // those in inter-generational cycles or stored during incremental marking.
   void CollectAllGarbage(GCReason reason = kFull);
 
   bool NeedsGarbageCollection() const {
@@ -141,6 +143,7 @@ class Heap {
   }
 
   void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void StartConcurrentMarking(Thread* thread);
   void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
@@ -505,6 +508,47 @@ class BumpAllocateScope : ThreadStackResource {
 
   DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
 };
+
+#if defined(TESTING)
+class GCTestHelper : public AllStatic {
+ public:
+  // Collect new gen without triggering any side effects. The normal call to
+  // CollectGarbage(Heap::kNew) could potentially trigger an old gen collection
+  // if there is enough promotion, and this can perturb some tests.
+  static void CollectNewSpace() {
+    Thread* thread = Thread::Current();
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->heap()->new_space()->Scavenge();
+  }
+
+  // Fully collect old gen and wait for the sweeper to finish. The normal call
+  // to CollectGarbage(Heap::kOld) may leave so-called "floating garbage",
+  // objects that were seen by the incremental barrier but later made
+  // unreachable, and this can perturb some tests.
+  static void CollectOldSpace() {
+    Thread* thread = Thread::Current();
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    if (thread->is_marking()) {
+      thread->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+    }
+    thread->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+    WaitForGCTasks();
+  }
+
+  static void CollectAllGarbage() {
+    Thread* thread = Thread::Current();
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->heap()->CollectAllGarbage(Heap::kDebugging);
+  }
+
+  static void WaitForGCTasks() {
+    Thread* thread = Thread::Current();
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->heap()->WaitForMarkerTasks(thread);
+    thread->heap()->WaitForSweeperTasks(thread);
+  }
+};
+#endif  // TESTING
 
 }  // namespace dart
 

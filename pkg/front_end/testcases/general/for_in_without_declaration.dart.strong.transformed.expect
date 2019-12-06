@@ -52,11 +52,11 @@ library;
 //     for (unresolved in []) {}
 //          ^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/for_in_without_declaration.dart:38:21: Error: The setter 'foo' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/for_in_without_declaration.dart:38:10: Error: The getter 'unresolved' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //     for (unresolved.foo in []) {}
-//                     ^^^
+//          ^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/for_in_without_declaration.dart:39:12: Error: The setter 'unresolved' isn't defined for the class 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
@@ -130,11 +130,11 @@ Try correcting the name to the name of an existing setter, or defining a setter 
          ^^^^^^^^^^";
     }
     for (final dynamic #t14 in <dynamic>[]) {
-      invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:38:21: Error: The setter 'foo' isn't defined for the class 'C'.
+      invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:38:10: Error: The getter 'unresolved' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
     for (unresolved.foo in []) {}
-                    ^^^";
+         ^^^^^^^^^^".foo = #t14;
     }
     for (final dynamic #t15 in <dynamic>[]) {
       invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:39:12: Error: The setter 'unresolved' isn't defined for the class 'C'.

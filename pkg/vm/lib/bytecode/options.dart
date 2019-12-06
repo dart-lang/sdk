@@ -48,9 +48,15 @@ class BytecodeOptions {
       this.keepUnreachableCode = false,
       this.avoidClosureCallInstructions = false,
       this.showBytecodeSizeStatistics = false,
+      bool aot = false,
       this.environmentDefines = const <String, String>{}}) {
     causalAsyncStacks ??=
         environmentDefines['dart.developer.causal_async_stacks'] == 'true';
+    if (aot) {
+      emitSourcePositions = true;
+      emitLocalVarInfo = true;
+      causalAsyncStacks = true;
+    }
   }
 
   void parseCommandLineFlags(List<String> flags) {

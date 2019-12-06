@@ -1,9 +1,0 @@
-pkg/front_end/testcases/extensions/issue38745.dart:21:11: Context: Write to field@266
-    field = 23;
-          ^
-pkg/front_end/testcases/extensions/issue38745.dart:23:14: Context: Write to property@286
-    property = 23;
-             ^
-pkg/front_end/testcases/extensions/issue38745.dart:25:15: Context: Write to property2@349
-    property2 = 23;
-              ^

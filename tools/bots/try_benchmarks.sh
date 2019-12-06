@@ -396,6 +396,8 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --no-gen-bytecode --packages=.packages hello.dart blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart

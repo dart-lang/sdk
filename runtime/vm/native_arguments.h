@@ -22,10 +22,7 @@ class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
-#if defined(TARGET_ARCH_DBC)
-// C-stack is always aligned on DBC because we don't have any native code.
-#define CHECK_STACK_ALIGNMENT
-#elif defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR)
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
     uword current_sp = Simulator::Current()->get_register(SPREG);              \
@@ -47,10 +44,6 @@ class Thread;
 
 void VerifyOnTransition();
 
-#define VERIFY_ON_TRANSITION                                                   \
-  if (FLAG_verify_on_transition) {                                             \
-    VerifyOnTransition();                                                      \
-  }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
@@ -59,8 +52,6 @@ void VerifyOnTransition();
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {}
-#define VERIFY_ON_TRANSITION                                                   \
   {}
 #define DEOPTIMIZE_ALOT                                                        \
   {}
@@ -243,7 +234,7 @@ class NativeArguments {
   class ReverseArgOrderBit
       : public BitField<intptr_t, bool, kReverseArgOrderBit, 1> {};
   friend class Api;
-  friend class BootstrapNatives;
+  friend class NativeEntry;
   friend class Interpreter;
   friend class Simulator;
 

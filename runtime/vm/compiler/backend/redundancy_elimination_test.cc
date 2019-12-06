@@ -781,4 +781,74 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   EXPECT(boxed_result->value()->definition() == final_load);
 }
 
+static void CountLoadsStores(FlowGraph* flow_graph,
+                             intptr_t* loads,
+                             intptr_t* stores) {
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
+         it.Advance()) {
+      if (it.Current()->IsLoadField()) {
+        (*loads)++;
+      } else if (it.Current()->IsStoreInstanceField()) {
+        (*stores)++;
+      }
+    }
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
+  const char* kScript = R"(
+    class Bar {
+      Bar() { a = null; }
+      Object a;
+    }
+
+    Bar foo() {
+      Bar bar = new Bar();
+      bar.a = null;
+      bar.a = bar;
+      bar.a = bar.a;
+      return bar.a;
+    }
+
+    main() {
+      foo();
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "main");
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+  });
+
+  ASSERT(flow_graph != nullptr);
+
+  // Before CSE, we have 2 loads and 4 stores.
+  intptr_t bef_loads = 0;
+  intptr_t bef_stores = 0;
+  CountLoadsStores(flow_graph, &bef_loads, &bef_stores);
+  EXPECT_EQ(2, bef_loads);
+  EXPECT_EQ(4, bef_stores);
+
+  DominatorBasedCSE::Optimize(flow_graph);
+
+  // After CSE, no load and only one store remains.
+  intptr_t aft_loads = 0;
+  intptr_t aft_stores = 0;
+  CountLoadsStores(flow_graph, &aft_loads, &aft_stores);
+  EXPECT_EQ(0, aft_loads);
+  EXPECT_EQ(1, aft_stores);
+}
+
 }  // namespace dart

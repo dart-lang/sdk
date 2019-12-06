@@ -83,6 +83,9 @@ triple-shift:
 variance:
   help: "Sound variance."
 
+nonfunction-type-aliases:
+  help: "Type aliases define a <type>, not just a <functionType>."
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.

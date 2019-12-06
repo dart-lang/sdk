@@ -182,6 +182,10 @@ ConstEvalNotMapInSpread:
   template: "Only maps can be used in spreads in constant maps."
   analyzerCode: CONST_SPREAD_EXPECTED_MAP
 
+ConstEvalExtension:
+  template: "Extension operations can't be used in constant expressions."
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+
 ConstEvalUnevaluated:
   template: "Could not evaluate constant expression."
 
@@ -1294,8 +1298,10 @@ ConstructorWithReturnType:
     - "class C { int C() {} }"
 
 ConstructorWithTypeParameters:
+  index: 99
   template: "Constructors can't have type parameters."
-  analyzerCode: TYPE_PARAMETER_ON_CONSTRUCTOR
+  analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR
+  tip: "Try removing the type parameters."
   script:
     - "class C { C<T>() {} }"
     - "class C { C.foo<T>() {} }"
@@ -2112,6 +2118,10 @@ PlatformPrivateLibraryAccess:
 TypedefNotFunction:
   template: "Can't create typedef from non-function type."
   analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
+
+TypedefNotType:
+  template: "Can't create typedef from non-type."
+  analyzerCode: INVALID_TYPE_IN_TYPEDEF
 
 LibraryDirectiveNotFirst:
   index: 37
@@ -3367,15 +3377,6 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
-IntersectionTypeAsTypeArgument:
-  template: "Can't infer a type for '#name', it can be either '#type' or '#type2'."
-  tip: "Try adding a type argument selecting one of the options."
-  script: |
-    class A {}
-    class B extends A {}
-    f<T>(T t) => null;
-    g<S>(S t) => t is B ? f(t) : null;
-
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING
@@ -3615,11 +3616,33 @@ NonNullAwareSpreadIsNull:
       <int>[...null];
     }
 
-BadTypeVariableInSupertype:
-  template: "Found unsupported uses of '#name' in supertype '#name2'."
+InvalidTypeVariableInSupertype:
+  template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
+
+InvalidTypeVariableInSupertypeWithVariance:
+  template: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
+  script: >
+    class A<out X> {}
+    class B<out Y> extends A<Function(Y)> {}
+
+InvalidTypeVariableVariancePosition:
+  template: "Can't use '#string' type variable '#name' in an '#string2' position."
+  script: >
+    class A<out T> {
+      void method(T x) {}
+    }
+
+InvalidTypeVariableVariancePositionInReturnType:
+  template: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
+  script: >
+    class A<in T> {
+      T method() {
+        return null;
+      }
+    }
 
 IllegalRecursiveType:
   template: "Illegal recursive type '#type'."
@@ -3681,6 +3704,13 @@ ExplicitExtensionAsExpression:
 
 ExplicitExtensionAsLvalue:
   template: "Explicit extension application cannot be a target for assignment."
+
+DeferredExtensionImport:
+  template: "Extension '#name' cannot be imported through a deferred import."
+  tip: "Try adding the `hide #name` to the import."
+  script:
+    main.dart: "import 'lib.dart' deferred as prefix;"
+    lib.dart: "extension Extension on void {}"
 
 MultipleVarianceModifiers:
   index: 97

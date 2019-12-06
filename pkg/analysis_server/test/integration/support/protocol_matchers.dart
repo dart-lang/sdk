@@ -1526,6 +1526,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   DEBUG_PORT_COULD_NOT_BE_OPENED
  *   FILE_NOT_ANALYZED
  *   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+ *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
  *   FORMAT_INVALID_FILE
@@ -1561,6 +1562,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "DEBUG_PORT_COULD_NOT_BE_OPENED",
   "FILE_NOT_ANALYZED",
   "FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET",
+  "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION",
   "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID",
   "FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED",
   "FORMAT_INVALID_FILE",
@@ -2561,6 +2563,7 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
+ *   "port": optional int
  *   "outputDir": optional FilePath
  * }
  */
@@ -2572,6 +2575,7 @@ final Matcher isEditDartfixParams =
           "includePedanticFixes": isBool,
           "includeRequiredFixes": isBool,
           "excludedFixes": isListOf(isString),
+          "port": isInt,
           "outputDir": isFilePath
         }));
 
@@ -3506,13 +3510,11 @@ final Matcher isSearchResultsParams = new LazyMatcher(() =>
  * {
  *   "version": String
  *   "pid": int
- *   "sessionId": optional String
  * }
  */
 final Matcher isServerConnectedParams = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "server.connected params", {"version": isString, "pid": isInt},
-        optionalFields: {"sessionId": isString}));
+        "server.connected params", {"version": isString, "pid": isInt}));
 
 /**
  * server.error params

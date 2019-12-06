@@ -9,7 +9,28 @@ import 'package:kernel/ast.dart';
 /// De-duplication of identical mixin applications.
 void transformComponent(Component component) {
   final deduplicateMixins = new DeduplicateMixinsTransformer();
+  final interfaceTargetResolver = InterfaceTargetResolver(deduplicateMixins);
+
+  // Deduplicate mixins and re-resolve super initializers.
+  // (this is a shallow transformation)
   component.libraries.forEach(deduplicateMixins.visitLibrary);
+
+  // Do a deep transformation to re-resolve all interface targets that point to
+  // members of removed mixin application classes.
+
+  // This is necessary iff the component was assembled from individual modular
+  // kernel compilations:
+  //
+  //   * if the CFE reads in the entire program as source, interface targets
+  //     will point to the original mixin class
+  //
+  //   * if the CFE reads in dependencies as kernel, interface targets will
+  //     point to the already existing mixin application classes.
+  //
+  // TODO(dartbug.com/39375): Remove this extra O(N) pass over the AST if the
+  // CFE decides to consistently let the interface target point to the mixin
+  // class (instead of mixin application).
+  component.libraries.forEach(interfaceTargetResolver.visitLibrary);
 }
 
 class _DeduplicateMixinKey {
@@ -59,18 +80,12 @@ class DeduplicateMixinsTransformer extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    if (!node.isExternal) {
-      transformList(node.classes, this, node);
-    }
+    transformList(node.classes, this, node);
     return node;
   }
 
   @override
   TreeNode visitClass(Class c) {
-    if (c.enclosingLibrary.isExternal) {
-      return c;
-    }
-
     if (_duplicatedMixins.containsKey(c)) {
       return null; // Class was de-duplicated already, just remove it.
     }
@@ -94,7 +109,6 @@ class DeduplicateMixinsTransformer extends Transformer {
     if (canonical != c) {
       c.canonicalName?.unbind();
       _duplicatedMixins[c] = canonical;
-      // print('Replacing $c with $canonical');
       return null; // Remove class.
     }
 
@@ -124,6 +138,73 @@ class DeduplicateMixinsTransformer extends Transformer {
   @override
   TreeNode defaultTreeNode(TreeNode node) =>
       throw 'Unexpected node ${node.runtimeType}: $node';
+}
+
+/// Rewrites interface targets to point to the deduplicated mixin application
+/// class.
+class InterfaceTargetResolver extends RecursiveVisitor<TreeNode> {
+  final DeduplicateMixinsTransformer transformer;
+
+  InterfaceTargetResolver(this.transformer);
+
+  defaultTreeNode(TreeNode node) {
+    node.visitChildren(this);
+    return node;
+  }
+
+  visitPropertyGet(PropertyGet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitPropertyGet(node);
+  }
+
+  visitPropertySet(PropertySet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitPropertySet(node);
+  }
+
+  visitMethodInvocation(MethodInvocation node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitMethodInvocation(node);
+  }
+
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitSuperPropertyGet(node);
+  }
+
+  visitSuperPropertySet(SuperPropertySet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitSuperPropertySet(node);
+  }
+
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    return super.visitSuperMethodInvocation(node);
+  }
+
+  Member _resolveNewInterfaceTarget(Member m) {
+    final Class c = m?.enclosingClass;
+    if (c != null && c.isAnonymousMixin) {
+      final Class replacement = transformer._duplicatedMixins[c];
+      if (replacement != null) {
+        // The class got removed, so we need to re-resolve the interface target.
+        return _findMember(replacement, m);
+      }
+    }
+    return m;
+  }
+
+  Member _findMember(Class klass, Member m) {
+    if (m is Field) {
+      return klass.members.where((other) => other.name == m.name).single;
+    } else if (m is Procedure) {
+      return klass.procedures
+          .where((other) => other.kind == m.kind && other.name == m.name)
+          .single;
+    } else {
+      throw 'Hit unexpected interface target which is not a Field/Procedure';
+    }
+  }
 }
 
 /// Corrects forwarding constructors inserted by mixin resolution after

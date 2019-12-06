@@ -56,8 +56,8 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   EXPECT(it1.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it1.pc_offset());
-  EXPECT_EQ(kTestSpillSlotBitCount, it1.spill_slot_bit_count());
-  EXPECT_EQ(1024, it1.length());
+  EXPECT_EQ(kTestSpillSlotBitCount, it1.SpillSlotBitCount());
+  EXPECT_EQ(1024, it1.Length());
   value = true;
   for (int32_t i = 0; i < 1024; i++) {
     EXPECT_EQ(value, it1.IsObject(i));
@@ -88,8 +88,8 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   EXPECT(it2.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it2.pc_offset());
-  EXPECT_EQ(kTestSpillSlotBitCount, it2.spill_slot_bit_count());
-  EXPECT_EQ(2049, it2.length());
+  EXPECT_EQ(kTestSpillSlotBitCount, it2.SpillSlotBitCount());
+  EXPECT_EQ(2049, it2.Length());
   for (int32_t i = 0; i <= 256; i++) {
     EXPECT(!it2.IsObject(i));
   }

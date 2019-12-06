@@ -629,7 +629,7 @@ class Expect {
   static void notType<T>(dynamic object, [String reason = ""]) {
     if (object is! T) return;
     String msg = _getMessage(reason);
-    _fail("Expect.type($object is! $T$msg) fails"
+    _fail("Expect.type($object is! $T$msg) fails "
         "on ${Error.safeToString(object)}");
   }
 

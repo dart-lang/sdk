@@ -309,7 +309,8 @@ class H extends self::G implements self::C, self::A {}
         .map((name) => new TypeParameter(name, coreTypes.objectLegacyRawType))
         .toList();
     var typeParameterTypes = typeParameters
-        .map((parameter) => new TypeParameterType(parameter))
+        .map(
+            (parameter) => new TypeParameterType(parameter, Nullability.legacy))
         .toList();
     var supertype =
         extends_ != null ? extends_(typeParameterTypes) : objectSuper;
@@ -527,7 +528,7 @@ class C extends self::B {
     var a = addGenericClass('A', ['T', 'U']);
 
     var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
-    var bTT = new TypeParameterType(bT);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -555,7 +556,7 @@ class C extends self::B<core::int*> {}
     var a = addGenericClass('A', ['T', 'U']);
 
     var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
-    var bTT = new TypeParameterType(bT);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -589,7 +590,7 @@ class C implements self::B<core::int*> {}
     var a = addGenericClass('A', ['T', 'U']);
 
     var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
-    var bTT = new TypeParameterType(bT);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -1201,7 +1202,7 @@ class B extends self::A {
     var a = addGenericClass('A', ['T', 'U']);
 
     var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
-    var bTT = new TypeParameterType(bT);
+    var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
         typeParameters: [bT],
@@ -1212,11 +1213,11 @@ class A<T*, U*> {}
 class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
-    var b_int = new InterfaceType(b, [int]);
+    var b_int = new InterfaceType(b, Nullability.legacy, [int]);
     expect(hierarchy.getTypeAsInstanceOf(b_int, a),
-        new InterfaceType(a, [int, bool]));
+        new InterfaceType(a, Nullability.legacy, [int, bool]));
     expect(hierarchy.getTypeAsInstanceOf(b_int, objectClass),
-        new InterfaceType(objectClass));
+        new InterfaceType(objectClass, Nullability.legacy));
   }
 
   void _assertOverridePairs(Class class_, List<String> expected) {

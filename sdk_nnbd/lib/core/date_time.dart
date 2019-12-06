@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.core;
 
 /**
@@ -119,7 +117,7 @@ part of dart.core;
  *
  * The DateTime class does not provide internationalization.
  * To internationalize your code, use
- * the [intl](https://pub.dartlang.org/packages/intl) package.
+ * the [intl](https://pub.dev/packages/intl) package.
  *
  */
 class DateTime implements Comparable<DateTime> {
@@ -240,7 +238,8 @@ class DateTime implements Comparable<DateTime> {
    *   The time part is a two digit hour,
    *   then optionally a two digit minutes value,
    *   then optionally a two digit seconds value, and
-   *   then optionally a '.' or ',' followed by a one-to-six digit second fraction.
+   *   then optionally a '.' or ',' followed by at least a one digit
+   *   second fraction.
    *   The minutes and seconds may be separated from the previous parts by a
    *   ':'.
    *   Examples: "12", "12:30:24.124", "12:30:24,124", "123010.50".
@@ -263,8 +262,8 @@ class DateTime implements Comparable<DateTime> {
    * Examples of accepted strings:
    *
    * * `"2012-02-27 13:27:00"`
-   * * `"2012-02-27 13:27:00.123456z"`
-   * * `"2012-02-27 13:27:00,123456z"`
+   * * `"2012-02-27 13:27:00.123456789z"`
+   * * `"2012-02-27 13:27:00,123456789z"`
    * * `"20120227 13:27:00"`
    * * `"20120227T132700"`
    * * `"20120227"`
@@ -278,21 +277,20 @@ class DateTime implements Comparable<DateTime> {
   // Or not, that may be a breaking change.
   static DateTime parse(String formattedString) {
     var re = _parseFormat;
-    Match match = re.firstMatch(formattedString);
+    Match? match = re.firstMatch(formattedString);
     if (match != null) {
-      int parseIntOrZero(String matched) {
+      int parseIntOrZero(String? matched) {
         if (matched == null) return 0;
         return int.parse(matched);
       }
 
-      // Parses fractional second digits of '.(\d{1,6})' into the combined
-      // microseconds.
-      int parseMilliAndMicroseconds(String matched) {
+      // Parses fractional second digits of '.(\d+)' into the combined
+      // microseconds. We only use the first 6 digits because of DateTime
+      // precision of 999 milliseconds and 999 microseconds.
+      int parseMilliAndMicroseconds(String? matched) {
         if (matched == null) return 0;
         int length = matched.length;
         assert(length >= 1);
-        assert(length <= 6);
-
         int result = 0;
         for (int i = 0; i < 6; i++) {
           result *= 10;
@@ -303,32 +301,32 @@ class DateTime implements Comparable<DateTime> {
         return result;
       }
 
-      int years = int.parse(match[1]);
-      int month = int.parse(match[2]);
-      int day = int.parse(match[3]);
+      int years = int.parse(match[1]!);
+      int month = int.parse(match[2]!);
+      int day = int.parse(match[3]!);
       int hour = parseIntOrZero(match[4]);
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);
-      bool addOneMillisecond = false;
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
           milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
-      int microsecond =
-          milliAndMicroseconds.remainder(Duration.microsecondsPerMillisecond);
+      int microsecond = milliAndMicroseconds
+          .remainder(Duration.microsecondsPerMillisecond) as int;
       bool isUtc = false;
       if (match[8] != null) {
         // timezone part
         isUtc = true;
-        if (match[9] != null) {
+        String? tzSign = match[9];
+        if (tzSign != null) {
           // timezone other than 'Z' and 'z'.
-          int sign = (match[9] == '-') ? -1 : 1;
-          int hourDifference = int.parse(match[10]);
+          int sign = (tzSign == '-') ? -1 : 1;
+          int hourDifference = int.parse(match[10]!);
           int minuteDifference = parseIntOrZero(match[11]);
           minuteDifference += 60 * hourDifference;
           minute -= sign * minuteDifference;
         }
       }
-      int value = _brokenDownDateToValue(years, month, day, hour, minute,
+      int? value = _brokenDownDateToValue(years, month, day, hour, minute,
           second, millisecond, microsecond, isUtc);
       if (value == null) {
         throw FormatException("Time out of range", formattedString);
@@ -345,7 +343,7 @@ class DateTime implements Comparable<DateTime> {
    * Works like [parse] except that this function returns `null`
    * where [parse] would throw a [FormatException].
    */
-  static DateTime tryParse(String formattedString) {
+  static DateTime? tryParse(String formattedString) {
     // TODO: Optimize to avoid throwing.
     try {
       return parse(formattedString);
@@ -387,15 +385,12 @@ class DateTime implements Comparable<DateTime> {
    *
    * If [isUtc] is false then the date is in the local time zone.
    */
-  DateTime._withValue(this._value, {this.isUtc}) {
+  DateTime._withValue(this._value, {required this.isUtc}) {
     if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
         (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
             microsecond != 0)) {
       throw ArgumentError(
           "DateTime is outside valid range: $millisecondsSinceEpoch");
-    }
-    if (isUtc == null) {
-      throw ArgumentError("'isUtc' flag may not be 'null'");
     }
   }
 
@@ -414,7 +409,7 @@ class DateTime implements Comparable<DateTime> {
    * See [isAtSameMomentAs] for a comparison that compares moments in time
    * independently of their zones.
    */
-  external bool operator ==(dynamic other);
+  external bool operator ==(Object other);
 
   /**
    * Returns true if [this] occurs before [other].
@@ -562,7 +557,7 @@ class DateTime implements Comparable<DateTime> {
    * The returned string is constructed for the time zone of this instance.
    * The `toString()` method provides a simply formatted string.
    * It does not support internationalized strings.
-   * Use the [intl](https://pub.dartlang.org/packages/intl) package
+   * Use the [intl](https://pub.dev/packages/intl) package
    * at the pub shared packages repo.
    *
    * The resulting string can be parsed back using [parse].
@@ -693,7 +688,7 @@ class DateTime implements Comparable<DateTime> {
 
   /// Returns the time as value (millisecond or microsecond since epoch), or
   /// null if the values are out of range.
-  external static int _brokenDownDateToValue(
+  external static int? _brokenDownDateToValue(
       int year,
       int month,
       int day,
@@ -862,7 +857,7 @@ class DateTime implements Comparable<DateTime> {
    * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
    * minutes_opt ::= <empty> | colon_opt digit{2} seconds_opt
    * seconds_opt ::= <empty> | colon_opt digit{2} millis_opt
-   * micros_opt ::= <empty> | ('.' | ',') digit{1,6}
+   * micros_opt ::= <empty> | ('.' | ',') digit+
    * timezone_opt ::= <empty> | space_opt timezone
    * space_opt :: ' ' | <empty>
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
@@ -870,6 +865,6 @@ class DateTime implements Comparable<DateTime> {
    */
   static final RegExp _parseFormat = RegExp(
       r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d{1,6}))?)?)?' // Time part.
+      r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
       r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
 }

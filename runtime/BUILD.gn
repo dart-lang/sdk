@@ -100,18 +100,12 @@ config("dart_arch_config") {
   } else if (dart_target_arch == "armv6") {
     defines += [ "TARGET_ARCH_ARM" ]
     defines += [ "TARGET_ARCH_ARM_6" ]
-  } else if (dart_target_arch == "armv5te") {
-    defines += [ "TARGET_ARCH_ARM" ]
-    defines += [ "TARGET_ARCH_ARM_5TE" ]
   } else if (dart_target_arch == "arm64") {
     defines += [ "TARGET_ARCH_ARM64" ]
   } else if (dart_target_arch == "x64") {
     defines += [ "TARGET_ARCH_X64" ]
   } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
     defines += [ "TARGET_ARCH_IA32" ]
-  } else if (dart_target_arch == "dbc") {
-    defines += [ "TARGET_ARCH_DBC" ]
-    defines += [ "USING_SIMULATOR" ]
   } else {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)
@@ -168,6 +162,9 @@ config("dart_config") {
       "-fno-exceptions",
       "-Wimplicit-fallthrough",
     ]
+    if (!is_clang) {
+      cflags += [ "-Wno-cast-function-type" ]
+    }
 
     ldflags = []
     if (is_clang && dart_vm_code_coverage) {
@@ -223,7 +220,10 @@ library_for_all_configs("libdart") {
   }
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:fdio" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg:fdio",
+        "$fuchsia_sdk_root/pkg:trace-engine",
+      ]
     } else {
       extra_deps += [
         "//zircon/public/lib/fbl",

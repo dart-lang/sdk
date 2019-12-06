@@ -157,11 +157,4 @@ class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @failingTest
-  @override
-  test_forElement_inList_insideElement() async {
-    // todo: fails w/ StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-    await super.test_forElement_inList_insideElement();
-  }
 }

@@ -11,7 +11,8 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 
 class CodeCommentsWrapper final : public CodeComments {
  public:
@@ -36,7 +37,8 @@ class CodeCommentsWrapper final : public CodeComments {
 
 const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler);
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) &&                               \
+        // (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
 
 }  // namespace dart
 

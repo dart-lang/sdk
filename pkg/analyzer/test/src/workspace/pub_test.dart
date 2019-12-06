@@ -51,24 +51,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     workspace = PubWorkspace.find(
         resourceProvider, convertPath('/workspace'), contextBuilder);
-  }
-
-  void test_findPackageFor_unrelatedFile() {
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
-    expect(package, isNull);
-  }
-
-  void test_findPackageFor_includedFile() {
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
-    expect(package.workspace, equals(workspace));
+    expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
@@ -100,10 +83,36 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
             TestSource(convertPath('/workspace/project/test/test.dart'))),
         isTrue);
   }
+
+  void test_findPackageFor_includedFile() {
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/workspace'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_findPackageFor_unrelatedFile() {
+    newFile('/workspace/project/lib/file.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
+    expect(package, isNull);
+  }
 }
 
 @reflectiveTest
 class PubWorkspaceTest with ResourceProviderMixin {
+  void test_find_directory() {
+    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    PubWorkspace workspace = PubWorkspace.find(
+        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
+    expect(workspace.isBazel, isFalse);
+    expect(workspace.root, convertPath('/workspace'));
+  }
+
   void test_find_fail_notAbsolute() {
     expect(
         () => PubWorkspace.find(resourceProvider, convertPath('not_absolute'),
@@ -111,23 +120,16 @@ class PubWorkspaceTest with ResourceProviderMixin {
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
-  void test_find_missingPubspec() {
-    PubWorkspace workspace = PubWorkspace.find(resourceProvider,
-        convertPath('/workspace/lib/lib1.dart'), new MockContextBuilder());
-    expect(workspace, isNull);
-  }
-
-  void test_find_directory() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    PubWorkspace workspace = PubWorkspace.find(
-        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
-    expect(workspace.root, convertPath('/workspace'));
-  }
-
   void test_find_file() {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     PubWorkspace workspace = PubWorkspace.find(resourceProvider,
         convertPath('/workspace/lib/lib1.dart'), new MockContextBuilder());
     expect(workspace.root, convertPath('/workspace'));
+  }
+
+  void test_find_missingPubspec() {
+    PubWorkspace workspace = PubWorkspace.find(resourceProvider,
+        convertPath('/workspace/lib/lib1.dart'), new MockContextBuilder());
+    expect(workspace, isNull);
   }
 }

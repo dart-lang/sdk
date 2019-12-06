@@ -188,32 +188,27 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
-  if (array_index_ < map_.array_size_) {
-    // If we're not in the middle of a list, find the next array slot.
-    if (list_index_ == kNil) {
-      while ((array_index_ < map_.array_size_) &&
-             KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue) {
-        array_index_++;
-      }
-      if (array_index_ < map_.array_size_) {
-        // When we're done with the list, we'll continue with the next array
-        // slot.
-        const intptr_t old_array_index = array_index_;
-        array_index_++;
-        list_index_ = map_.array_[old_array_index].next;
-        return &map_.array_[old_array_index].kv;
-      } else {
-        return NULL;
-      }
-    }
-
-    // Otherwise, return the current lists_ entry, advancing list_index_.
+  // Return the current lists_ entry (if any), advancing list_index_.
+  if (list_index_ != kNil) {
     intptr_t current = list_index_;
     list_index_ = map_.lists_[current].next;
     return &map_.lists_[current].kv;
   }
 
-  return NULL;
+  // When we're done with the list, we'll continue with the next array
+  // slot.
+  while ((array_index_ < map_.array_size_) &&
+         KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue) {
+    ++array_index_;
+  }
+  if (array_index_ < map_.array_size_) {
+    const intptr_t old_array_index = array_index_;
+    ++array_index_;
+    list_index_ = map_.array_[old_array_index].next;
+    return &map_.array_[old_array_index].kv;
+  }
+
+  return nullptr;
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
@@ -281,7 +276,9 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
   lists_ = new_lists;
 
   if (old_lists != NULL) {
-    memmove(lists_, old_lists, old_size * sizeof(HashMapListElement));
+    for (intptr_t i = 0; i < old_size; i++) {
+      lists_[i] = old_lists[i];
+    }
   }
   for (intptr_t i = old_size; i < lists_size_; ++i) {
     lists_[i].next = free_list_head_;
@@ -383,7 +380,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
 
   // Finally, iterate through the rest of the bucket to see if we can find the
   // entry that matches our key.
-  intptr_t previous;
+  intptr_t previous = -1;
   while (!KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
     previous = current;
     current = lists_[current].next;

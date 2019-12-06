@@ -117,6 +117,6 @@ Notifies the client when analysis starts/completes.
 ### dart/textDocument/publishClosingLabels Notification
 
 Direction: Server -> Client
-Params: `{ uri: string, abels: { label: string, range: Range }[] }`
+Params: `{ uri: string, labels: { label: string, range: Range }[] }`
 
 Notifies the client when closing label information is available (or updated) for a file.

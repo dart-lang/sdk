@@ -83,15 +83,73 @@ class CodePath {
   }
 }
 
+/// An information holder containing information about a diagnostic that was
+/// extracted from the instance creation expression.
+class DiagnosticInformation {
+  /// The name of the diagnostic.
+  final String name;
+
+  /// The messages associated with the diagnostic.
+  List<String> messages;
+
+  /// The lines of documentation associated with the diagnostic.
+  List<String> documentation;
+
+  /// Initialize a newly created information holder with the given [name] and
+  /// [message].
+  DiagnosticInformation(this.name, String message) : messages = [message];
+
+  /// Return `true` if this diagnostic has documentation.
+  bool get hasDocumentation => documentation != null;
+
+  /// Return the full documentation for this diagnostic.
+  void writeOn(StringSink sink) {
+    messages.sort();
+    sink.writeln('### ${name.toLowerCase()}');
+    for (String message in messages) {
+      sink.writeln();
+      for (String line in _split('_${_escape(message)}_')) {
+        sink.writeln(line);
+      }
+    }
+    sink.writeln();
+    for (String line in documentation) {
+      sink.writeln(line);
+    }
+  }
+
+  /// Return a version of the [text] in which characters that have special
+  /// meaning in markdown have been escaped.
+  String _escape(String text) {
+    return text.replaceAll('_', '\\_');
+  }
+
+  /// Split the [message] into multiple lines, each of which is less than 80
+  /// characters long.
+  List<String> _split(String message) {
+    // This uses a brute force approach because we don't expect to have messages
+    // that need to be split more than once.
+    int length = message.length;
+    if (length <= 80) {
+      return [message];
+    }
+    int endIndex = message.lastIndexOf(' ', 80);
+    if (endIndex < 0) {
+      return [message];
+    }
+    return [message.substring(0, endIndex), message.substring(endIndex + 1)];
+  }
+}
+
 /// A class used to generate diagnostic documentation.
 class DocumentationGenerator {
   /// The absolute paths of the files containing the declarations of the error
   /// codes.
   final List<CodePath> codePaths;
 
-  /// A map from the name of a diagnostic code to the lines of the documentation
-  /// for that code.
-  Map<String, List<String>> docsByCode = {};
+  /// A map from the name of a diagnostic to the information about that
+  /// diagnostic.
+  Map<String, DiagnosticInformation> infoByName = {};
 
   /// Initialize a newly created documentation generator.
   DocumentationGenerator(this.codePaths) {
@@ -103,12 +161,6 @@ class DocumentationGenerator {
     _writeHeader(sink);
     _writeGlossary(sink);
     _writeDiagnostics(sink);
-  }
-
-  /// Return a version of the [text] in which characters that have special
-  /// meaning in markdown have been escaped.
-  String _escape(String text) {
-    return text.replaceAll('_', '\\_');
   }
 
   /// Extract documentation from all of the files containing the definitions of
@@ -139,6 +191,34 @@ class DocumentationGenerator {
         }
       }
     }
+  }
+
+  /// Extract information about a diagnostic from the [expression], or `null` if
+  /// the expression does not appear to be creating an error code. If the
+  /// expression is the name of a generated code, then the [generatedResult]
+  /// should have the unit in which the information can be found.
+  DiagnosticInformation _extractDiagnosticInformation(
+      Expression expression, ParsedUnitResult generatedResult) {
+    if (expression is InstanceCreationExpression) {
+      NodeList<Expression> arguments = expression.argumentList.arguments;
+      String name = _extractName(arguments);
+      String message = _extractMessage(arguments);
+      DiagnosticInformation info = infoByName[name];
+      if (info == null) {
+        info = DiagnosticInformation(name, message);
+        infoByName[name] = info;
+      } else {
+        info.messages.add(message);
+      }
+      return info;
+    } else if (expression is SimpleIdentifier && generatedResult != null) {
+      VariableDeclaration variable =
+          _findVariable(expression.name, generatedResult.unit);
+      if (variable != null) {
+        return _extractDiagnosticInformation(variable.initializer, null);
+      }
+    }
+    return null;
   }
 
   /// Extract documentation from the given [field] declaration.
@@ -187,26 +267,24 @@ class DocumentationGenerator {
   void _extractDocs(ParsedUnitResult result, ParsedUnitResult generatedResult) {
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
+      if (declaration is ClassDeclaration &&
+          declaration.name.name != 'StrongModeCode') {
         for (ClassMember member in declaration.members) {
-          if (member is FieldDeclaration) {
-            List<String> docs = _extractDoc(member);
-            if (docs != null) {
-              VariableDeclaration variable = member.fields.variables[0];
-              String variableName = variable.name.name;
-              if (docsByCode.containsKey(variableName)) {
-                throw StateError('Duplicate diagnostic code');
+          if (member is FieldDeclaration &&
+              member.isStatic &&
+              !_isDeprecated(member)) {
+            VariableDeclaration variable = member.fields.variables[0];
+            DiagnosticInformation info = _extractDiagnosticInformation(
+                variable.initializer, generatedResult);
+            if (info != null) {
+              List<String> docs = _extractDoc(member);
+              if (docs != null) {
+                if (info.documentation != null) {
+                  throw StateError(
+                      'Documentation defined multiple times for ${info.name}');
+                }
+                info.documentation = docs;
               }
-              String message =
-                  _extractMessage(variable.initializer, generatedResult);
-              docs = [
-                '### ${variableName.toLowerCase()}',
-                '',
-                ..._split('_${_escape(message)}_'),
-                '',
-                ...docs,
-              ];
-              docsByCode[variableName] = docs;
             }
           }
         }
@@ -214,23 +292,29 @@ class DocumentationGenerator {
     }
   }
 
-  /// Extract the message from the [expression]. If the expression is the name
-  /// of a generated code, then the [generatedResult] should have the unit in
-  /// which the message can be found.
-  String _extractMessage(
-      Expression expression, ParsedUnitResult generatedResult) {
-    if (expression is InstanceCreationExpression) {
-      return (expression.argumentList.arguments[1] as StringLiteral)
-          .stringValue;
-    } else if (expression is SimpleIdentifier && generatedResult != null) {
-      VariableDeclaration variable =
-          _findVariable(expression.name, generatedResult.unit);
-      if (variable != null) {
-        return _extractMessage(variable.initializer, null);
-      }
+  /// Return the message extracted from the list of [arguments].
+  String _extractMessage(NodeList<Expression> arguments) {
+    int positionalCount =
+        arguments.where((expression) => expression is! NamedExpression).length;
+    if (positionalCount == 2) {
+      return _extractString(arguments[1]);
+    } else if (positionalCount == 3) {
+      return _extractString(arguments[2]);
+    } else {
+      throw StateError(
+          'Invalid number of positional arguments: $positionalCount');
     }
-    throw StateError(
-        'Cannot extract a message from a ${expression.runtimeType}');
+  }
+
+  /// Return the name extracted from the list of [arguments].
+  String _extractName(NodeList<Expression> arguments) =>
+      _extractString(arguments[0]);
+
+  String _extractString(Expression expression) {
+    if (expression is StringLiteral) {
+      return expression.stringValue;
+    }
+    throw StateError('Cannot extract string from $expression');
   }
 
   /// Return the declaration of the top-level variable with the [name] in the
@@ -248,6 +332,10 @@ class DocumentationGenerator {
     return null;
   }
 
+  /// Return `true` if the [field] is marked as being deprecated.
+  bool _isDeprecated(FieldDeclaration field) =>
+      field.metadata.any((annotation) => annotation.name.name == 'Deprecated');
+
   /// Use the analysis context [collection] to parse the file at the given
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
@@ -262,22 +350,6 @@ class DocumentationGenerator {
     return result;
   }
 
-  /// Split the [message] into multiple lines, each of which is less than 80
-  /// characters long.
-  List<String> _split(String message) {
-    // This uses a brute force approach because we don't expect to have messages
-    // that need to be split more than once.
-    int length = message.length;
-    if (length <= 80) {
-      return [message];
-    }
-    int endIndex = message.lastIndexOf(' ', 80);
-    if (endIndex < 0) {
-      return [message];
-    }
-    return [message.substring(0, endIndex), message.substring(endIndex + 1)];
-  }
-
   /// Write the documentation for all of the diagnostics.
   void _writeDiagnostics(StringSink sink) {
     sink.write('''
@@ -288,13 +360,13 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 ''');
-    List<String> errorCodes = docsByCode.keys.toList();
+    List<String> errorCodes = infoByName.keys.toList();
     errorCodes.sort();
     for (String errorCode in errorCodes) {
-      List<String> docs = docsByCode[errorCode];
-      sink.writeln();
-      for (String line in docs) {
-        sink.writeln(line);
+      DiagnosticInformation info = infoByName[errorCode];
+      if (info.hasDocumentation) {
+        sink.writeln();
+        info.writeOn(sink);
       }
     }
   }

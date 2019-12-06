@@ -653,7 +653,7 @@ abstract class RuntimeTypesNeed {
   /// Serializes this [RuntimeTypesNeed] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [cls] needs type arguments at runtime type.
+  /// Returns `true` if [cls] needs type arguments at runtime.
   ///
   /// This is for instance the case for generic classes used in a type test:
   ///
@@ -664,6 +664,10 @@ abstract class RuntimeTypesNeed {
   ///   }
   ///
   bool classNeedsTypeArguments(ClassEntity cls);
+
+  /// Returns `true` if [cls] is a generic class which does not need type
+  /// arguments at runtime.
+  bool classHasErasedTypeArguments(ClassEntity cls);
 
   /// Returns `true` if [method] needs type arguments at runtime type.
   ///
@@ -727,6 +731,9 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   @override
   bool classNeedsTypeArguments(ClassEntity cls) =>
       _elementEnvironment.isGenericClass(cls);
+
+  @override
+  bool classHasErasedTypeArguments(ClassEntity cls) => false;
 
   @override
   bool methodNeedsSignature(FunctionEntity method) => true;
@@ -818,6 +825,13 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     return classesNeedingTypeArguments.contains(cls);
+  }
+
+  @override
+  bool classHasErasedTypeArguments(ClassEntity cls) {
+    assert(checkClass(cls));
+    if (!_elementEnvironment.isGenericClass(cls)) return false;
+    return !classesNeedingTypeArguments.contains(cls);
   }
 
   @override
@@ -1041,7 +1055,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
 
     void processChecks(Set<DartType> checks) {
       checks.forEach((DartType type) {
-        if (type.isInterfaceType) {
+        if (type is InterfaceType) {
           InterfaceType itf = type;
           if (!itf.treatAsRaw) {
             potentiallyNeedTypeArguments(itf.element);
@@ -1053,7 +1067,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             potentiallyNeedTypeArguments(typeDeclaration);
           });
-          if (type.isFunctionType) {
+          if (type is FunctionType) {
             checkClosures(potentialSubtypeOf: type);
           }
           if (type is FutureOrType) {
@@ -1086,8 +1100,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     void checkFunction(Entity function, FunctionType type) {
       for (FunctionTypeVariable typeVariable in type.typeVariables) {
         DartType bound = typeVariable.bound;
-        if (!bound.isDynamic &&
-            !bound.isVoid &&
+        if (bound is! DynamicType &&
+            bound is! VoidType &&
             bound != closedWorld.commonElements.objectType) {
           potentiallyNeedTypeArguments(function);
           break;

@@ -258,7 +258,7 @@ class FunctionTypeScope extends EnclosedScope {
       return;
     }
     _parametersDefined = true;
-    for (ParameterElement parameter in _typeElement.parameters) {
+    for (ParameterElement parameter in _typeElement.function.parameters) {
       define(parameter);
     }
   }
@@ -410,11 +410,9 @@ class LibraryImportScope extends Scope {
       List<ImportElement> imports = _definingLibrary.imports;
       int count = imports.length;
       for (int i = 0; i < count; i++) {
-        if (imports[i].prefix == null) {
-          for (var element in imports[i].namespace.definedNames.values) {
-            if (element is ExtensionElement && !_extensions.contains(element)) {
-              _extensions.add(element);
-            }
+        for (var element in imports[i].namespace.definedNames.values) {
+          if (element is ExtensionElement && !_extensions.contains(element)) {
+            _extensions.add(element);
           }
         }
       }
@@ -786,7 +784,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = BottomTypeImpl.instance.element;
+      definedNames['Never'] = NeverTypeImpl.instance.element;
     }
 
     return new Namespace(definedNames);
@@ -858,7 +856,7 @@ class NamespaceBuilder {
         definedNames = _show(definedNames, combinator.shownNames);
       } else {
         // Internal error.
-        AnalysisEngine.instance.logger
+        AnalysisEngine.instance.instrumentationService
             .logError("Unknown type of combinator: ${combinator.runtimeType}");
       }
     }

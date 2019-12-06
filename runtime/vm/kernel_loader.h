@@ -107,11 +107,6 @@ class LibraryIndex {
     return -1;
   }
 
-  bool HasSourceReferences() {
-    if (binary_version_ < 25) return false;
-    return true;
-  }
-
   intptr_t SourceReferencesOffset() { return source_references_offset_; }
 
  private:
@@ -228,6 +223,7 @@ class KernelLoader : public ValueObject {
 
   void ReadObfuscationProhibitions();
 
+ private:
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
   // constructor.
@@ -250,14 +246,6 @@ class KernelLoader : public ValueObject {
                          bool* is_potential_native,
                          bool* has_pragma_annotation);
 
-  const String& DartSymbolPlain(StringIndex index) {
-    return translation_helper_.DartSymbolPlain(index);
-  }
-  const String& DartSymbolObfuscate(StringIndex index) {
-    return translation_helper_.DartSymbolObfuscate(index);
-  }
-
- private:
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset,
@@ -290,10 +278,8 @@ class KernelLoader : public ValueObject {
     // Start reading library.
     // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
-    if (program_->binary_version() >= 27) {
-      reader.ReadUInt();  // Read major language version.
-      reader.ReadUInt();  // Read minor language version.
-    }
+    reader.ReadUInt();  // Read major language version.
+    reader.ReadUInt();  // Read minor language version.
     return reader.ReadCanonicalNameReference();
   }
 

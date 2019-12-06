@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
   TypeArgumentsVerifier(this._options, this._typeSystem, this._errorReporter);
@@ -187,76 +187,60 @@ class TypeArgumentsVerifier {
    * their bounds.
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    // prepare Type
-    DartType type = typeName.type;
-    if (type == null) {
+    var element = typeName.name.staticElement;
+    var type = typeName.type;
+
+    List<TypeParameterElement> typeParameters;
+    List<DartType> typeArguments;
+    if (type is InterfaceType) {
+      typeParameters = type.element.typeParameters;
+      typeArguments = type.typeArguments;
+    } else if (element is GenericTypeAliasElement && type is FunctionType) {
+      typeParameters = element.typeParameters;
+      typeArguments = type.typeArguments;
+    } else {
       return;
     }
-    if (type is ParameterizedType) {
-      var element = typeName.name.staticElement;
-      // prepare type parameters
-      List<TypeParameterElement> parameterElements;
-      if (element is ClassElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericTypeAliasElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericFunctionTypeElement) {
-        // TODO(paulberry): it seems like either this case or the one above
-        // should be unnecessary.
-        FunctionTypeAliasElement typedefElement = element.enclosingElement;
-        parameterElements = typedefElement.typeParameters;
-      } else if (type is FunctionType) {
-        parameterElements = type.typeFormals;
-      } else {
-        // There are no other kinds of parameterized types.
-        throw new UnimplementedError(
-            'Unexpected element associated with parameterized type: '
-            '${element.runtimeType}');
-      }
-      List<DartType> arguments = type.typeArguments;
-      // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeAnnotation> argumentNodes =
-          typeName.typeArguments?.arguments;
-      var typeArguments = type.typeArguments;
-      int loopThroughIndex =
-          math.min(typeArguments.length, parameterElements.length);
-      bool shouldSubstitute =
-          arguments.isNotEmpty && arguments.length == parameterElements.length;
-      for (int i = 0; i < loopThroughIndex; i++) {
-        DartType argType = typeArguments[i];
-        TypeAnnotation argumentNode =
-            argumentNodes != null && i < argumentNodes.length
-                ? argumentNodes[i]
-                : typeName;
-        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            argumentNode,
-          );
-          continue;
-        }
-        DartType boundType = parameterElements[i].bound;
-        if (argType != null && boundType != null) {
-          if (shouldSubstitute) {
-            boundType = Substitution.fromPairs(parameterElements, arguments)
-                .substituteType(boundType);
-          }
 
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            if (_shouldAllowSuperBoundedTypes(typeName)) {
-              var replacedType =
-                  (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
-              if (!identical(replacedType, argType) &&
-                  _typeSystem.isSubtypeOf(replacedType, boundType)) {
-                // Bound is satisfied under super-bounded rules, so we're ok.
-                continue;
-              }
+    // iterate over each bounded type parameter and corresponding argument
+    NodeList<TypeAnnotation> argumentNodes = typeName.typeArguments?.arguments;
+    int loopThroughIndex =
+        math.min(typeArguments.length, typeParameters.length);
+    bool shouldSubstitute = typeArguments.isNotEmpty;
+    for (int i = 0; i < loopThroughIndex; i++) {
+      DartType argType = typeArguments[i];
+      TypeAnnotation argumentNode =
+          argumentNodes != null && i < argumentNodes.length
+              ? argumentNodes[i]
+              : typeName;
+      if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+          argumentNode,
+        );
+        continue;
+      }
+      DartType boundType = typeParameters[i].bound;
+      if (argType != null && boundType != null) {
+        if (shouldSubstitute) {
+          boundType = Substitution.fromPairs(typeParameters, typeArguments)
+              .substituteType(boundType);
+        }
+
+        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+          if (_shouldAllowSuperBoundedTypes(typeName)) {
+            var replacedType =
+                (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
+            if (!identical(replacedType, argType) &&
+                _typeSystem.isSubtypeOf(replacedType, boundType)) {
+              // Bound is satisfied under super-bounded rules, so we're ok.
+              continue;
             }
-            _errorReporter.reportTypeErrorForNode(
-                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                argumentNode,
-                [argType, boundType]);
           }
+          _errorReporter.reportTypeErrorForNode(
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              argumentNode,
+              [argType, boundType]);
         }
       }
     }

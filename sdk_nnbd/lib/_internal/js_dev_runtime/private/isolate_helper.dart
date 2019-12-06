@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._isolate_helper;
 
 import 'dart:_runtime' as dart;
@@ -36,16 +34,19 @@ final global = dart.global_;
 
 class TimerImpl implements Timer {
   final bool _once;
-  int _handle;
+  int? _handle;
   int _tick = 0;
 
   TimerImpl(int milliseconds, void callback()) : _once = true {
     if (hasTimer()) {
+      int currentHotRestartIteration = dart.hotRestartIteration;
       void internalCallback() {
         _handle = null;
         dart.removeAsyncCallback();
         _tick = 1;
-        callback();
+        if (currentHotRestartIteration == dart.hotRestartIteration) {
+          callback();
+        }
       }
 
       dart.addAsyncCallback();
@@ -62,7 +63,12 @@ class TimerImpl implements Timer {
     if (hasTimer()) {
       dart.addAsyncCallback();
       int start = JS<int>('!', 'Date.now()');
+      int currentHotRestartIteration = dart.hotRestartIteration;
       _handle = JS<int>('!', '#.setInterval(#, #)', global, () {
+        if (currentHotRestartIteration != dart.hotRestartIteration) {
+          cancel();
+          return;
+        }
         int tick = this._tick + 1;
         if (milliseconds > 0) {
           int duration = JS<int>('!', 'Date.now()') - start;

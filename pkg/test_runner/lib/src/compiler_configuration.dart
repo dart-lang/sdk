@@ -51,8 +51,6 @@ abstract class CompilerConfiguration {
 
   bool get _isDebug => _configuration.mode.isDebug;
 
-  bool get _isProduct => _configuration.mode == Mode.product;
-
   bool get _isHostChecked => _configuration.isHostChecked;
 
   bool get _useSdk => _configuration.useSdk;
@@ -85,8 +83,7 @@ abstract class CompilerConfiguration {
 
       case Compiler.dartk:
       case Compiler.dartkb:
-        if (configuration.architecture == Architecture.simdbc64 ||
-            configuration.architecture == Architecture.simarm ||
+        if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
@@ -1052,8 +1049,6 @@ abstract class VMKernelCompilerMixin {
 
   bool get _useSdk;
 
-  bool get _isProduct;
-
   bool get _isAot;
 
   bool get _enableAsserts;
@@ -1101,11 +1096,7 @@ abstract class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      if (_configuration.useKernelBytecode) ...[
-        '--gen-bytecode',
-        '--drop-ast',
-        '--bytecode-options=source-positions${_isProduct ? '' : ',local-var-info,debugger-stops'}'
-      ]
+      ..._configuration.genKernelOptions,
     ];
 
     var batchArgs = [if (useAbiVersion != null) useAbiVersion];

@@ -252,14 +252,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
                                GetHashmapHashFromFd(fd));
             di->Close();
             delete di;
-            socket->SetClosedFd();
           }
+          socket->CloseFd();
         } else {
           ASSERT(new_mask == 0);
           socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
-          socket->SetClosedFd();
+          socket->CloseFd();
         }
 
         DartUtils::PostInt32(port, 1 << kDestroyedEvent);

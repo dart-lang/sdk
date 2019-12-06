@@ -14,6 +14,6 @@
 
 namespace dart {
 
-intptr_t ApiNativeScope::current_memory_usage_ = 0;
+RelaxedAtomic<intptr_t> ApiNativeScope::current_memory_usage_ = 0;
 
 }  // namespace dart

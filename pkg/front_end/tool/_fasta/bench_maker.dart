@@ -198,6 +198,23 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     return nodeNames[node] = name;
   }
 
+  void writeNullability(Nullability nullability, StringBuffer sb) {
+    switch (nullability) {
+      case Nullability.nullable:
+        sb.write("?");
+        break;
+      case Nullability.legacy:
+        sb.write("*");
+        break;
+      case Nullability.undetermined:
+        sb.write("%");
+        break;
+      case Nullability.nonNullable:
+      default:
+        break;
+    }
+  }
+
   @override
   void defaultDartType(DartType node, StringBuffer sb) {
     if (node is UnknownType) {
@@ -228,6 +245,12 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitNeverType(NeverType node, StringBuffer sb) {
+    sb.write("Never");
+    writeNullability(node.nullability, sb);
+  }
+
+  @override
   void visitInterfaceType(InterfaceType node, StringBuffer sb) {
     sb.write(computeName(node.classNode));
     if (node.typeArguments.isNotEmpty) {
@@ -240,6 +263,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       }
       sb.write(">");
     }
+    writeNullability(node.nullability, sb);
   }
 
   @override
@@ -280,7 +304,9 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       sb.write("}");
       first = false;
     }
-    sb.write(") -> ");
+    sb.write(") ->");
+    writeNullability(node.nullability, sb);
+    sb.write(" ");
     node.returnType.accept1(this, sb);
   }
 

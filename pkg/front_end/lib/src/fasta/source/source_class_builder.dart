@@ -10,11 +10,10 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/field_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
@@ -26,7 +25,8 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
-        templateBadTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertypeWithVariance,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -120,19 +120,15 @@ class SourceClassBuilder extends ClassBuilderImpl
             unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is FieldBuilder) {
-          // TODO(ahe): It would be nice to have a common interface for the
-          // build method to avoid duplicating these two cases.
-          Member field = declaration.build(library);
-          if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(field);
-          }
-        } else if (declaration is FunctionBuilder) {
-          Member member = declaration.build(library);
-          member.parent = cls;
-          if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(member);
-          }
+        } else if (declaration is MemberBuilderImpl) {
+          MemberBuilderImpl memberBuilder = declaration;
+          memberBuilder.buildMembers(library,
+              (Member member, BuiltMemberKind memberKind) {
+            member.parent = cls;
+            if (!memberBuilder.isPatch && !memberBuilder.isDuplicate) {
+              cls.addMember(member);
+            }
+          });
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
               declaration.charOffset, declaration.fileUri);
@@ -207,7 +203,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     });
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder member = scopeBuilder[name];
       if (member == null ||
           !(member.isField && !member.isFinal && !member.isConst ||
@@ -221,7 +217,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           member.charOffset, noLength);
     });
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, Builder setter) {
       Builder constructor = constructorScopeBuilder[name];
       if (constructor == null || !setter.isStatic) return;
       addProblem(templateConflictsWithConstructor.withArguments(name),
@@ -238,10 +234,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (typeVariables == null || supertype == null) return supertype;
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
-      int variance = computeVariance(typeVariables[i], supertype);
+      int variance = computeVariance(typeVariables[i], supertype, library);
       if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
-        message = templateBadTypeVariableInSupertype.withArguments(
-            typeVariables[i].name, supertype.name);
+        if (typeVariables[i].parameter.isLegacyCovariant) {
+          message = templateInvalidTypeVariableInSupertype.withArguments(
+              typeVariables[i].name,
+              Variance.keywordString(variance),
+              supertype.name);
+        } else {
+          message =
+              templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
+                  Variance.keywordString(typeVariables[i].variance),
+                  typeVariables[i].name,
+                  Variance.keywordString(variance),
+                  supertype.name);
+        }
         library.addProblem(message, charOffset, noLength, fileUri);
       }
     }

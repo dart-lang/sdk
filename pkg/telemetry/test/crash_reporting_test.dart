@@ -24,18 +24,20 @@ void main() {
     });
 
     test('CrashReportSender', () async {
+      EnablementCallback shouldSend = () {
+        return true;
+      };
+
       AnalyticsMock analytics = new AnalyticsMock()..enabled = true;
       CrashReportSender sender = new CrashReportSender(
-          analytics.trackingId, analytics,
+          analytics.trackingId, shouldSend,
           httpClient: mockClient);
 
       await sender.sendReport('test-error', stackTrace: StackTrace.current);
 
       String body = utf8.decode(request.bodyBytes);
       expect(body, contains('String')); // error.runtimeType
-      expect(body, contains(analytics.trackingId));
-      expect(body, contains('1.0.0'));
-      expect(body, contains(analytics.clientId));
-    }, skip: CRASH_REPORTING_DISABLED);
+      expect(body, contains('test-error'));
+    });
   });
 }

@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 23;
+const int currentBytecodeFormatVersion = 27;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -95,9 +95,11 @@ enum Opcode {
   kUnusedOpcode079,
   kUnusedOpcode080,
   kUnusedOpcode081,
-  kUnusedOpcode082,
-  kUnusedOpcode083,
-  kUnusedOpcode084,
+
+  // Late variables.
+  kJumpIfInitialized,
+  kJumpIfInitialized_Wide,
+  kPushUninitializedSentinel,
 
   kTrap,
 
@@ -181,9 +183,11 @@ enum Opcode {
   kStoreIndexedTOS,
   kUnused20,
 
+  // Late fields.
+  kInitLateField,
+  kInitLateField_Wide,
+
   // Static fields.
-  kUnused40,
-  kUnused41,
   kStoreStaticTOS,
   kStoreStaticTOS_Wide,
 
@@ -258,8 +262,8 @@ enum Opcode {
 
   // Null operations.
   kEqualsNull,
-  kCheckReceiverForNull,
-  kCheckReceiverForNull_Wide,
+  kNullCheck,
+  kNullCheck_Wide,
 
   // Int operations.
   kNegateInt,
@@ -412,6 +416,12 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreIndexedTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kInitLateField: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kPushUninitializedSentinel: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kJumpIfInitialized: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kLoadStatic: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreStaticTOS: const Format(
@@ -468,7 +478,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kEqualsNull: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCheckReceiverForNull: const Format(
+  Opcode.kNullCheck: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kNegateInt: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
@@ -534,7 +544,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
 };
 
-// Should match constant in runtime/vm/stack_frame_dbc.h.
+// Should match constant in runtime/vm/stack_frame_kbc.h.
 const int kParamEndSlotFromFp = 4;
 
 enum SpecialIndex {
@@ -638,6 +648,7 @@ bool isPush(Opcode opcode) {
     case Opcode.kPushTrue:
     case Opcode.kPushFalse:
     case Opcode.kPushInt:
+    case Opcode.kPushUninitializedSentinel:
       return true;
     default:
       return false;

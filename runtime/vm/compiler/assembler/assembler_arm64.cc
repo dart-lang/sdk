@@ -475,7 +475,9 @@ void Assembler::LoadObjectHelper(Register dst,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
+  if (IsSameObject(compiler::NullObject(), object)) {
+    mov(dst, NULL_REG);
+  } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(dst, Address(THR, offset));
   } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset = target::ObjectPool::element_offset(
@@ -499,7 +501,9 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   word offset = 0;
-  if (target::CanLoadFromThread(object, &offset)) {
+  if (IsSameObject(compiler::NullObject(), object)) {
+    CompareRegisters(reg, NULL_REG);
+  } else if (target::CanLoadFromThread(object, &offset)) {
     ldr(TMP, Address(THR, offset));
     CompareRegisters(reg, TMP);
   } else if (CanLoadFromObjectPool(object)) {
@@ -1083,8 +1087,12 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
-  LoadObject(TMP2, value);
-  str(TMP2, dest);
+  if (IsSameObject(compiler::NullObject(), value)) {
+    str(NULL_REG, dest);
+  } else {
+    LoadObject(TMP2, value);
+    str(TMP2, dest);
+  }
 }
 
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
@@ -1182,6 +1190,12 @@ void Assembler::RestoreCodePointer() {
   CheckCodePointer();
 }
 
+void Assembler::RestorePinnedRegisters() {
+  ldr(BARRIER_MASK,
+      compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
+  ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {
@@ -1207,13 +1221,30 @@ void Assembler::CheckCodePointer() {
 #endif
 }
 
+// The ARM64 ABI requires at all times
+//   - stack limit < CSP <= stack base
+//   - CSP mod 16 = 0
+//   - we do not access stack memory below CSP
+// Practically, this means we need to keep the C stack pointer ahead of the
+// Dart stack pointer and 16-byte aligned for signal handlers. We set
+// CSP to a value near the stack limit during SetupDartSP*, and use a different
+// register within our generated code to avoid the alignment requirement.
+// Note that Fuchsia does not have signal handlers.
+
 void Assembler::SetupDartSP() {
   mov(SP, CSP);
-#if defined(TARGET_OS_FUCHSIA)
-  // Make any future signal handlers fail fast. Verifies our assumption in
-  // EnterFrame.
-  orri(CSP, ZR, Immediate(16));
-#endif
+  // The caller doesn't have a Thread available. Just kick CSP forward a bit.
+  AddImmediate(CSP, CSP, -4096);
+}
+
+void Assembler::SetupCSPFromThread(Register thr) {
+  // Thread::saved_stack_limit_ is OSThread::overflow_stack_limit(), which is
+  // OSThread::stack_limit() with some headroom. Set CSP a bit below this value
+  // so that signal handlers won't stomp on the stack of Dart code that pushs a
+  // bit past overflow_stack_limit before its next overflow check. (We build
+  // frames before doing an overflow check.)
+  ldr(TMP, Address(thr, target::Thread::saved_stack_limit_offset()));
+  AddImmediate(CSP, TMP, -4096);
 }
 
 void Assembler::RestoreCSP() {
@@ -1221,25 +1252,6 @@ void Assembler::RestoreCSP() {
 }
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  // The ARM64 ABI requires at all times
-  //   - stack limit < CSP <= stack base
-  //   - CSP mod 16 = 0
-  //   - we do not access stack memory below CSP
-  // Pratically, this means we need to keep the C stack pointer ahead of the
-  // Dart stack pointer and 16-byte aligned for signal handlers. If we knew the
-  // real stack limit, we could just set CSP to a value near it during
-  // SetupDartSP, but we do not know the real stack limit for the initial
-  // thread or threads created by the embedder.
-  // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
-  // this requires adjustments to stack handling to maintain the 16-byte
-  // alignment.
-  // Note Fuchsia does not have signal handlers; see also SetupDartSP.
-#if !defined(TARGET_OS_FUCHSIA)
-  const intptr_t kMaxDartFrameSize = 4096;
-  sub(TMP, SP, Operand(kMaxDartFrameSize));
-  andi(CSP, TMP, Immediate(~15));
-#endif
-
   PushPair(FP, LR);  // low: FP, high: LR.
   mov(FP, SP);
 
@@ -1574,62 +1586,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
       target::ClassTable::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   LoadIsolate(temp_reg);
   ldr(temp_reg, Address(temp_reg, shared_table_offset));
   ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, state_offset);
-  ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(target::ClassHeapStats::TraceAllocationMask()));
-  b(trace, NE);
-}
-
-void Assembler::UpdateAllocationStats(intptr_t cid) {
-  ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t counter_offset =
-      target::ClassTable::NewSpaceCounterOffsetFor(cid);
-
-  LoadIsolate(TMP2);
-  ldr(TMP2, Address(TMP2, shared_table_offset));
-  ldr(TMP, Address(TMP2, table_offset));
-  AddImmediate(TMP2, TMP, counter_offset);
-  ldr(TMP, Address(TMP2, 0));
-  AddImmediate(TMP, 1);
-  str(TMP, Address(TMP2, 0));
-}
-
-void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
-  ASSERT(cid > 0);
-
-  const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-
-  const uword class_offset = target::ClassTable::ClassOffsetFor(cid);
-  const uword count_field_offset =
-      target::ClassHeapStats::allocated_since_gc_new_space_offset();
-  const uword size_field_offset =
-      target::ClassHeapStats::allocated_size_since_gc_new_space_offset();
-
-  LoadIsolate(TMP2);
-  ldr(TMP2, Address(TMP2, shared_table_offset));
-  ldr(TMP, Address(TMP2, table_offset));
-  AddImmediate(TMP2, TMP, class_offset);
-  ldr(TMP, Address(TMP2, count_field_offset));
-  AddImmediate(TMP, 1);
-  str(TMP, Address(TMP2, count_field_offset));
-  ldr(TMP, Address(TMP2, size_field_offset));
-  add(TMP, TMP, Operand(size_reg));
-  str(TMP, Address(TMP2, size_field_offset));
+  AddImmediate(temp_reg, class_offset);
+  ldr(temp_reg, Address(temp_reg, 0), kUnsignedByte);
+  cbnz(trace, temp_reg);
 }
 #endif  // !PRODUCT
 
@@ -1664,8 +1628,6 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(top_reg, Address(THR, target::Thread::top_offset()));
-
-    NOT_IN_PRODUCT(UpdateAllocationStats(cid));
 
     const uint32_t tags =
         target::MakeTagWordForNewSpaceObject(cid, instance_size);
@@ -1712,7 +1674,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(end_address, Address(THR, target::Thread::top_offset()));
     add(instance, instance, Operand(kHeapObjectTag));
     NOT_IN_PRODUCT(LoadImmediate(temp2, instance_size));
-    NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2));
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.
@@ -1742,80 +1703,72 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              Register array,
                                              intptr_t index) const {
   const int64_t offset =
-      index * index_scale +
-      (is_external ? 0
-                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * index_scale + HeapDataOffset(is_external, cid);
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
 }
 
-void Assembler::LoadElementAddressForIntIndex(Register address,
-                                              bool is_external,
-                                              intptr_t cid,
-                                              intptr_t index_scale,
-                                              Register array,
-                                              intptr_t index) {
+void Assembler::ComputeElementAddressForIntIndex(Register address,
+                                                 bool is_external,
+                                                 intptr_t cid,
+                                                 intptr_t index_scale,
+                                                 Register array,
+                                                 intptr_t index) {
   const int64_t offset =
-      index * index_scale +
-      (is_external ? 0
-                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * index_scale + HeapDataOffset(is_external, cid);
   AddImmediate(address, array, offset);
 }
 
-Address Assembler::ElementAddressForRegIndex(bool is_load,
-                                             bool is_external,
+Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             Register index) {
-  return ElementAddressForRegIndexWithSize(is_load,
-                                           is_external,
+                                             Register index,
+                                             Register temp) {
+  return ElementAddressForRegIndexWithSize(is_external,
                                            cid,
                                            Address::OperandSizeFor(cid),
                                            index_scale,
                                            array,
-                                           index);
+                                           index,
+                                           temp);
 }
 
-Address Assembler::ElementAddressForRegIndexWithSize(bool is_load,
-                                                     bool is_external,
+Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
                                                      intptr_t cid,
                                                      OperandSize size,
                                                      intptr_t index_scale,
                                                      Register array,
-                                                     Register index) {
+                                                     Register index,
+                                                     Register temp) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset =
-      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
-  ASSERT(array != TMP);
-  ASSERT(index != TMP);
-  const Register base = is_load ? TMP : index;
+  const int32_t offset = HeapDataOffset(is_external, cid);
+  ASSERT(array != temp);
+  ASSERT(index != temp);
   if ((offset == 0) && (shift == 0)) {
     return Address(array, index, UXTX, Address::Unscaled);
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(base, array, Operand(index, ASR, 1));
+    add(temp, array, Operand(index, ASR, 1));
   } else {
-    add(base, array, Operand(index, LSL, shift));
+    add(temp, array, Operand(index, LSL, shift));
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(base, offset, Address::Offset, size);
+  return Address(temp, offset, Address::Offset, size);
 }
 
-void Assembler::LoadElementAddressForRegIndex(Register address,
-                                              bool is_load,
-                                              bool is_external,
-                                              intptr_t cid,
-                                              intptr_t index_scale,
-                                              Register array,
-                                              Register index) {
+void Assembler::ComputeElementAddressForRegIndex(Register address,
+                                                 bool is_external,
+                                                 intptr_t cid,
+                                                 intptr_t index_scale,
+                                                 Register array,
+                                                 Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset =
-      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int32_t offset = HeapDataOffset(is_external, cid);
   if (shift == 0) {
     add(address, array, Operand(index));
   } else if (shift < 0) {

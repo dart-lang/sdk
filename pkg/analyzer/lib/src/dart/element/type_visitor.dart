@@ -13,8 +13,6 @@ class DartTypeVisitor<R> {
 
   R defaultDartType(DartType type) => null;
 
-  R visitBottomType(BottomTypeImpl type) => defaultDartType(type);
-
   R visitDynamicType(DynamicTypeImpl type) => defaultDartType(type);
 
   R visitFunctionType(FunctionType type) => defaultDartType(type);
@@ -25,6 +23,8 @@ class DartTypeVisitor<R> {
 
   R visitNamedTypeBuilder(NamedTypeBuilder type) => defaultDartType(type);
 
+  R visitNeverType(NeverTypeImpl type) => defaultDartType(type);
+
   R visitTypeParameterType(TypeParameterType type) => defaultDartType(type);
 
   R visitUnknownInferredType(UnknownInferredType type) => defaultDartType(type);
@@ -32,8 +32,8 @@ class DartTypeVisitor<R> {
   R visitVoidType(VoidType type) => defaultDartType(type);
 
   static R visit<R>(DartType type, DartTypeVisitor<R> visitor) {
-    if (type is BottomTypeImpl) {
-      return visitor.visitBottomType(type);
+    if (type is NeverTypeImpl) {
+      return visitor.visitNeverType(type);
     }
     if (type is DynamicTypeImpl) {
       return visitor.visitDynamicType(type);

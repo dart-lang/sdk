@@ -1,0 +1,11 @@
+main() {
+int i;
+for (i = 0; i < 10; i++) {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+int[StringToken] i[StringToken];[SimpleToken]
+for[KeywordToken] ([BeginToken]i[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken] i[StringToken] <[BeginToken] 10[StringToken];[SimpleToken] i[StringToken]++[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

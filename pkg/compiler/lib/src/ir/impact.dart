@@ -198,9 +198,12 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   final VariableScopeModel variableScopeModel;
 
-  ImpactBuilderBase(ir.TypeEnvironment typeEnvironment,
-      ir.ClassHierarchy classHierarchy, this.variableScopeModel)
-      : super(typeEnvironment, classHierarchy);
+  @override
+  final ir.StaticTypeContext staticTypeContext;
+
+  ImpactBuilderBase(this.staticTypeContext, ir.ClassHierarchy classHierarchy,
+      this.variableScopeModel)
+      : super(staticTypeContext.typeEnvironment, classHierarchy);
 
   @override
   void handleIntLiteral(ir.IntLiteral node) {
@@ -503,7 +506,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       // instantiated as int and String.
       registerNew(
           node.target,
-          new ir.InterfaceType(node.target.enclosingClass, typeArguments),
+          new ir.InterfaceType(
+              node.target.enclosingClass, ir.Nullability.legacy, typeArguments),
           positionArguments,
           namedArguments,
           node.arguments.types,
@@ -667,10 +671,10 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
   @override
   final inferEffectivelyFinalVariableTypes;
 
-  ImpactBuilder(ir.TypeEnvironment typeEnvironment,
+  ImpactBuilder(ir.StaticTypeContext staticTypeContext,
       ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
       {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
-      : super(typeEnvironment, classHierarchy, variableScopeModel);
+      : super(staticTypeContext, classHierarchy, variableScopeModel);
 
   ImpactBuilderData computeImpact(ir.Member node) {
     if (retainDataForTesting) {

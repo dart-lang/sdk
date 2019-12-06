@@ -30,11 +30,15 @@ Socket::Socket(intptr_t fd)
   ASSERT(handle != NULL);
 }
 
-void Socket::SetClosedFd() {
+void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
   ASSERT(handle != NULL);
   handle->Release();
+  SetClosedFd();
+}
+
+void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }
 

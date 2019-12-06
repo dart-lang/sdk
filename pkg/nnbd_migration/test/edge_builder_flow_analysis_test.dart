@@ -14,6 +14,108 @@ main() {
 
 @reflectiveTest
 class EdgeBuilderFlowAnalysisTest extends EdgeBuilderTestBase {
+  test_as() async {
+    await analyze('''
+void f(num n) {
+  h(n);
+  n as int;
+  g(n);
+}
+void g(int i) {}
+void h(num m) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var nNode = decoratedTypeAnnotation('num n').node;
+    var mNode = decoratedTypeAnnotation('num m').node;
+    // No edge from n to i because n is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(nNode, iNode);
+    // But there is an edge from n to m.
+    assertEdge(nNode, mNode, hard: true);
+  }
+
+  test_assert_initializer_condition_promotes_to_message() async {
+    await analyze('''
+class C {
+  C(int i)
+      : assert(i == null, g(i)) {
+    h(i);
+  }
+}
+String g(int j) => 'foo';
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k.
+    assertEdge(iNode, kNode, hard: true);
+  }
+
+  test_assert_initializer_does_not_promote_beyond_assert() async {
+    await analyze('''
+class C {
+  C(int i)
+      : assert(i != null) {
+    g(i);
+    if (i == null) return;
+    h(i);
+  }
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // There is an edge from i to j because i not promoted by the assert.
+    assertEdge(iNode, jNode, hard: true);
+    // But there is no edge from i to k.
+    assertNoEdge(iNode, kNode);
+  }
+
+  test_assert_statement_condition_promotes_to_message() async {
+    await analyze('''
+void f(int i) {
+  assert(i == null, g(i));
+  h(i);
+}
+String g(int j) => 'foo';
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k.
+    assertEdge(iNode, kNode, hard: true);
+  }
+
+  test_assert_statement_does_not_promote_beyond_assert() async {
+    await analyze('''
+void f(int i) {
+  assert(i != null);
+  g(i);
+  if (i == null) return;
+  h(i);
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // There is an edge from i to j because i not promoted by the assert.
+    assertEdge(iNode, jNode, hard: true);
+    // But there is no edge from i to k.
+    assertNoEdge(iNode, kNode);
+  }
+
   test_assignmentExpression() async {
     await analyze('''
 void f(int i, int j) {
@@ -62,6 +164,29 @@ int h(int k) => 1;
     assertEdge(gReturnNode, iNode, hard: false);
   }
 
+  test_assignmentExpression_null_aware() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  if (b) {
+    j ??= i is int ? i : throw 'foo';
+    g(i);
+    j = i is int ? i : throw 'foo';
+    h(i);
+  }
+}
+void g(int k) {}
+void h(int l) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    var lNode = decoratedTypeAnnotation('int l').node;
+    // No edge from i to l because i's type is promoted to non-nullable
+    assertNoEdge(iNode, lNode);
+    // But there is an edge from i to k, because the RHS of the `??=` is not
+    // guaranteed to execute
+    assertEdge(iNode, kNode, hard: false);
+  }
+
   test_assignmentExpression_write_after_rhs() async {
     await analyze('''
 void f(int i) {
@@ -94,9 +219,9 @@ bool g(int j) => j.isEven;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_binaryExpression_ampersandAmpersand_right() async {
@@ -111,9 +236,9 @@ void f(bool b, int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_binaryExpression_barBar_left() async {
@@ -124,9 +249,9 @@ bool g(int j) => j.isEven;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_binaryExpression_barBar_right() async {
@@ -141,9 +266,9 @@ void f(bool b, int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_booleanLiteral_false() async {
@@ -159,9 +284,9 @@ void f(int i, int j) {
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never i is known to be non-nullable at the site of
     // the call to i.isEven
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_booleanLiteral_true() async {
@@ -177,9 +302,9 @@ void f(int i, int j) {
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never i is known to be non-nullable at the site of
     // the call to i.isEven
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_break_labeled() async {
@@ -333,10 +458,10 @@ void f(bool b, int i, int j, int k) {
     var jNode = decoratedTypeAnnotation('int j').node;
     var kNode = decoratedTypeAnnotation('int k').node;
     // No edge from i to never because i is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there are edges from j and k to never.
-    assertEdge(jNode, never, hard: false);
-    assertEdge(kNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
+    assertEdge(kNode, inSet(pointsToNever), hard: false);
   }
 
   test_constructorDeclaration_assert() async {
@@ -348,9 +473,9 @@ class C {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_constructorDeclaration_initializer() async {
@@ -364,9 +489,9 @@ class C {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_constructorDeclaration_redirection() async {
@@ -379,9 +504,9 @@ class C {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_continue_labeled() async {
@@ -470,9 +595,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_do_cancels_promotions_for_assignments_in_condition() async {
@@ -487,9 +612,9 @@ bool g(int k) => true;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_do_continue_target() async {
@@ -615,9 +740,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_cancels_promotions_for_assignments_in_updaters() async {
@@ -634,9 +759,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_collection_cancels_promotions_for_assignments_in_body() async {
@@ -650,9 +775,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_collection_cancels_promotions_for_assignments_in_updaters() async {
@@ -666,9 +791,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_collection_preserves_promotions_for_assignments_in_initializer() async {
@@ -683,9 +808,9 @@ int h(bool b) => 0;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because it is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_continue_target() async {
@@ -756,9 +881,9 @@ void f(int i, int j, Iterable<Object> x) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_each_collection_assigns_to_declared_var() async {
@@ -797,9 +922,9 @@ void f(int i, int j, Iterable<Object> x) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_each_collection_preserves_promotions_for_assignments_in_iterable() async {
@@ -814,9 +939,9 @@ Iterable<Object> h(bool b) => <Object>[];
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because it is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_each_preserves_promotions_for_assignments_in_iterable() async {
@@ -831,9 +956,9 @@ Iterable<Object> h(bool b) => <Object>[];
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because it is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_for_preserves_promotions_for_assignments_in_initializer() async {
@@ -848,9 +973,9 @@ int h(bool b) => 0;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because it is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_functionDeclaration() async {
@@ -864,9 +989,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_functionDeclaration_expression_body() async {
@@ -877,9 +1002,9 @@ bool g(int j) => j.isEven;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -911,9 +1036,9 @@ void f() {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_if() async {
@@ -1034,9 +1159,9 @@ void f() {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_not() async {
@@ -1061,6 +1186,106 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
+  test_postfixDecrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    c1--;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator-(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the decrement un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_postfixIncrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    c1++;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator+(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the increment un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_prefixDecrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    --c1;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator-(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the decrement un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_prefixIncrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    ++c1;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator+(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the increment un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
   test_rethrow() async {
     await analyze('''
 void f(int i, int j) {
@@ -1077,9 +1302,9 @@ void g() {}
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_return() async {
@@ -1093,9 +1318,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_switch_break_target() async {
@@ -1178,10 +1403,10 @@ void f(int i, int j, int x, int y) {
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because the switch statement is guaranteed to
     // complete by returning, so i is promoted to non-nullable.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never, because the switch statement is not
     // guaranteed to complete by returning, so j is not promoted.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_throw() async {
@@ -1195,9 +1420,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to `never` because i's type is promoted to non-nullable
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to `never`.
-    assertEdge(jNode, never, hard: true);
+    assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
   test_topLevelVar_initializer() async {
@@ -1274,9 +1499,9 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_while_cancels_promotions_for_assignments_in_condition() async {
@@ -1291,9 +1516,9 @@ bool g(int k) => true;
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never because its promotion was cancelled.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
   test_while_promotes() async {
@@ -1308,8 +1533,8 @@ void f(int i, int j) {
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
     // No edge from i to never because is is promoted.
-    assertNoEdge(iNode, never);
+    assertNoEdge(iNode, inSet(pointsToNever));
     // But there is an edge from j to never.
-    assertEdge(jNode, never, hard: false);
+    assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 }

@@ -99,8 +99,13 @@ ParseStringResult parseFile2(
 ///
 /// If [throwIfDiagnostics] is `true` (the default), then if any diagnostics are
 /// produced because of syntactic errors in the [content] an `ArgumentError`
-/// will be thrown. If the parameter is `false`, then the caller can check the
-/// result to see whether there are any `errors`.
+/// will be thrown.  This behavior is not intended as a way for the client to
+/// find out about errors--it is intended to avoid causing problems for naive
+/// clients that might not be thinking about the possibility of parse errors
+/// (and might therefore make assumptions about the returned AST that don't hold
+/// in the presence of parse errors).  Clients interested in details about parse
+/// errors should pass `false` and check `result.errors` to determine what parse
+/// errors, if any, have occurred.
 ParseStringResult parseString(
     {@required String content,
     FeatureSet featureSet,

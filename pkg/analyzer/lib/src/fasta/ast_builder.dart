@@ -2,22 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ClassDeclarationImpl,
-        CompilationUnitImpl,
-        ExtensionDeclarationImpl,
-        MixinDeclarationImpl;
-import 'package:analyzer/src/fasta/error_converter.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/messages.dart'
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         LocatedMessage,
         Message,
@@ -40,26 +25,43 @@ import 'package:front_end/src/fasta/messages.dart'
         templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
+        templateInternalProblemUnhandled,
         templateUnexpectedToken;
-import 'package:front_end/src/fasta/parser.dart'
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
+        BlockKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
         optional,
         Parser;
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
-import 'package:front_end/src/fasta/quote.dart';
-import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
-import 'package:front_end/src/fasta/source/stack_listener.dart'
+import 'package:_fe_analyzer_shared/src/parser/quote.dart';
+import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValue, StackListener;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart'
+import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
+    show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken, SyntheticToken;
-import 'package:kernel/ast.dart' show AsyncMarker;
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show
+        ClassDeclarationImpl,
+        CompilationUnitImpl,
+        ExtensionDeclarationImpl,
+        MixinDeclarationImpl,
+        TypeParameterImpl;
+import 'package:analyzer/src/fasta/error_converter.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
 
@@ -72,10 +74,14 @@ class AstBuilder extends StackListener {
   ScriptTag scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
-  final localDeclarations = <int, AstNode>{};
 
   @override
   final Uri uri;
+
+  @override
+  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+    throw UnsupportedError(message.message);
+  }
 
   /// The parser that uses this listener, used to parse optional parts, e.g.
   /// `native` support.
@@ -318,7 +324,6 @@ class AstBuilder extends StackListener {
 
     Comment comment = _findComment(metadata, name.beginToken);
     var typeParameter = ast.typeParameter(comment, metadata, name, null, null);
-    localDeclarations[name.offset] = typeParameter;
     push(typeParameter);
   }
 
@@ -604,7 +609,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void endBlock(int count, Token leftBracket, Token rightBracket) {
+  void endBlock(
+      int count, Token leftBracket, Token rightBracket, BlockKind blockKind) {
     assert(optional('{', leftBracket));
     assert(optional('}', rightBracket));
     debugEvent("Block");
@@ -671,8 +677,11 @@ class AstBuilder extends StackListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     SimpleIdentifier prefixOrName;
@@ -752,8 +761,11 @@ class AstBuilder extends StackListener {
       redirectedConstructor = bodyObject.constructorName;
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     FormalParameterList parameters = pop();
@@ -855,8 +867,11 @@ class AstBuilder extends StackListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       body = ast.emptyFunctionBody(endToken);
     } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
     }
 
     Token operatorKeyword;
@@ -1295,7 +1310,8 @@ class AstBuilder extends StackListener {
             thisKeyword: thisKeyword,
             period: periodAfterThis,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters);
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
       }
     } else {
       TypeAnnotation type = typeOrFunctionTypedParameter;
@@ -1334,7 +1350,6 @@ class AstBuilder extends StackListener {
       parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
           defaultValue.separator, defaultValue.value);
     }
-    localDeclarations[nameToken.offset] = parameter;
     push(parameter);
   }
 
@@ -1575,7 +1590,11 @@ class AstBuilder extends StackListener {
     } else if (node is SimpleIdentifier) {
       variable = _makeVariableDeclaration(node, null, null);
     } else {
-      unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${node.runtimeType}", "identifier"),
+          nameToken.charOffset,
+          uri);
     }
     push(variable);
   }
@@ -1658,8 +1677,11 @@ class AstBuilder extends StackListener {
         } else if (part is InterpolationExpression) {
           elements.add(part);
         } else {
-          unhandled("${part.runtimeType}", "string interpolation",
-              first.charOffset, uri);
+          internalProblem(
+              templateInternalProblemUnhandled.withArguments(
+                  "${part.runtimeType}", "string interpolation"),
+              first.charOffset,
+              uri);
         }
       }
       elements.add(ast.interpolationString(
@@ -1696,7 +1718,6 @@ class AstBuilder extends StackListener {
         ast.functionExpression(typeParameters, parameters, body);
     var functionDeclaration = ast.functionDeclaration(
         null, metadata, null, returnType, null, name, functionExpression);
-    localDeclarations[name.offset] = functionDeclaration;
     push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
@@ -2121,9 +2142,13 @@ class AstBuilder extends StackListener {
 
     // Peek to leave type parameters on top of stack.
     List<TypeParameter> typeParameters = peek();
-    typeParameters[index]
+
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    (typeParameters[index] as TypeParameterImpl)
       ..extendsKeyword = extendsOrSuper
-      ..bound = bound;
+      ..bound = bound
+      ..varianceKeyword = variance;
   }
 
   @override
@@ -2195,41 +2220,6 @@ class AstBuilder extends StackListener {
 
     Expression expression = pop();
     push(ast.yieldStatement(yieldToken, starToken, expression, semicolon));
-  }
-
-  @override
-  void exitLocalScope() {}
-
-  @override
-  AstNode finishFields() {
-    debugEvent("finishFields");
-
-    if (classDeclaration != null) {
-      return classDeclaration.members
-          .removeAt(classDeclaration.members.length - 1);
-    } else if (mixinDeclaration != null) {
-      return mixinDeclaration.members
-          .removeAt(mixinDeclaration.members.length - 1);
-    } else {
-      return declarations.removeLast();
-    }
-  }
-
-  void finishFunction(formals, AsyncMarker asyncModifier, FunctionBody body) {
-    debugEvent("finishFunction");
-
-    Statement bodyStatement;
-    if (body is EmptyFunctionBody) {
-      bodyStatement = ast.emptyStatement(body.semicolon);
-    } else if (body is NativeFunctionBody) {
-      // TODO(danrubel): what do we need to do with NativeFunctionBody?
-    } else if (body is ExpressionFunctionBody) {
-      bodyStatement = ast.returnStatement(null, body.expression, null);
-    } else {
-      bodyStatement = (body as BlockFunctionBody).block;
-    }
-    // TODO(paulberry): what do we need to do with bodyStatement at this point?
-    bodyStatement; // Suppress "unused local variable" hint
   }
 
   void handleAsOperator(Token asOperator) {
@@ -2309,11 +2299,9 @@ class AstBuilder extends StackListener {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].identifier;
-        localDeclarations[exception.offset] = exception;
       }
       if (catchParameters.length > 1) {
         stackTrace = catchParameters[1].identifier;
-        localDeclarations[stackTrace.offset] = stackTrace;
       }
     }
     push(ast.catchClause(
@@ -2527,12 +2515,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleForInitializerExpressionStatement(Token token) {
+  void handleForInitializerExpressionStatement(Token token, bool forIn) {
     debugEvent("ForInitializerExpressionStatement");
   }
 
   @override
-  void handleForInitializerLocalVariableDeclaration(Token token) {
+  void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     debugEvent("ForInitializerLocalVariableDeclaration");
   }
 
@@ -3424,20 +3412,10 @@ class AstBuilder extends StackListener {
 
   List<T> popTypedList<T>(int count, [List<T> list]) {
     if (count == 0) return null;
-    assert(stack.arrayLength >= count);
-
-    final table = stack.array;
-    final length = stack.arrayLength;
+    assert(stack.length >= count);
 
     final tailList = list ?? new List<T>.filled(count, null, growable: true);
-    final startIndex = length - count;
-    for (int i = 0; i < count; i++) {
-      final value = table[startIndex + i];
-      tailList[i] = value is NullValue ? null : value;
-      table[startIndex + i] = null;
-    }
-    stack.arrayLength -= count;
-
+    stack.popList(count, tailList, null);
     return tailList;
   }
 
@@ -3554,10 +3532,7 @@ class AstBuilder extends StackListener {
 
   VariableDeclaration _makeVariableDeclaration(
       SimpleIdentifier name, Token equals, Expression initializer) {
-    var variableDeclaration =
-        ast.variableDeclaration(name, equals, initializer);
-    localDeclarations[name.offset] = variableDeclaration;
-    return variableDeclaration;
+    return ast.variableDeclaration(name, equals, initializer);
   }
 
   ParameterKind _toAnalyzerParameterKind(

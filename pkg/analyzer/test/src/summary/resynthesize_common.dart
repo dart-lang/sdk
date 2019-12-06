@@ -1643,6 +1643,38 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
+  test_class_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('class C<out T> {}');
+    checkElementText(library, r'''
+class C<out T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_contravariant() async {
+    var library = await checkLibrary('class C<in T> {}');
+    checkElementText(library, r'''
+class C<in T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_invariant() async {
+    var library = await checkLibrary('class C<inout T> {}');
+    checkElementText(library, r'''
+class C<inout T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_multiple() async {
+    var library = await checkLibrary('class C<inout T, in U, out V> {}');
+    checkElementText(library, r'''
+class C<inout T, in U, out V> {
+}
+''');
+  }
+
   test_classes() async {
     var library = await checkLibrary('class C {} class D {}');
     checkElementText(library, r'''
@@ -7512,6 +7544,75 @@ void f() {}
 ''');
   }
 
+  test_instanceInference_operator_equal_legacy() async {
+    var library = await checkLibrary(r'''
+class A1 {
+  bool operator==(other) => false;
+}
+class A2 {
+  bool operator==(int other) => false;
+}
+class B1 extends A1 {
+  bool operator==(other) => false;
+}
+class B2 extends A2 {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A1 {
+  bool* ==(dynamic other) {}
+}
+class A2 {
+  bool* ==(int* other) {}
+}
+class B1 extends A1* {
+  bool* ==(dynamic other) {}
+}
+class B2 extends A2* {
+  bool* ==(int* other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_instanceInference_operator_equal_nnbd() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A1 {
+  bool operator==(other) => false;
+}
+class A2 {
+  bool operator==(int other) => false;
+}
+class B1 extends A1 {
+  bool operator==(other) => false;
+}
+class B2 extends A2 {
+  bool operator==(other) => false;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A1 {
+  bool ==(Object other) {}
+}
+class A2 {
+  bool ==(int other) {}
+}
+class B1 extends A1 {
+  bool ==(Object other) {}
+}
+class B2 extends A2 {
+  bool ==(int other) {}
+}
+''',
+        annotateNullability: true);
+  }
+
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
     var library = await checkLibrary('''
 class C<S extends num, T extends C<S, T>> {}
@@ -7586,6 +7687,21 @@ F f;
     checkElementText(library, r'''
 typedef F<T extends num> = dynamic Function(T p);
 dynamic Function(num) f;
+''');
+  }
+
+  test_instantiateToBounds_genericFunctionAsBound() async {
+    var library = await checkLibrary('''
+class A<T> {}
+class B<T extends int Function(), U extends A<T>> {}
+B b;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+notSimplyBounded class B<T extends int Function(), U extends A<T>> {
+}
+B<int Function(), A<int Function()>> b;
 ''');
   }
 
@@ -9053,6 +9169,38 @@ mixin B on A {
 ''');
   }
 
+  test_mixin_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('mixin M<out T> {}');
+    checkElementText(library, r'''
+mixin M<out T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_contravariant() async {
+    var library = await checkLibrary('mixin M<in T> {}');
+    checkElementText(library, r'''
+mixin M<in T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_invariant() async {
+    var library = await checkLibrary('mixin M<inout T> {}');
+    checkElementText(library, r'''
+mixin M<inout T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_multiple() async {
+    var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
+    checkElementText(library, r'''
+mixin M<inout T, in U, out V> on Object {
+}
+''');
+  }
+
   test_nameConflict_exportedAndLocal() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/c.dart', '''
@@ -10048,6 +10196,7 @@ Never d;
         annotateNullability: true);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_legacy() async {
     featureSet = disableNnbd;
     var library = await checkLibrary('''
@@ -10065,6 +10214,7 @@ T f<T>(T t) {}
     expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
   }
 
+  @deprecated
   test_type_param_generic_function_type_nullability_migrated() async {
     featureSet = enableNnbd;
     var library = await checkLibrary('''
@@ -10495,8 +10645,8 @@ typedef F = int;
 F f;
 ''');
     checkElementText(library, r'''
-typedef F = <null>;
-dynamic f;
+typedef F = dynamic Function();
+dynamic Function() f;
 ''');
   }
 
@@ -11254,7 +11404,7 @@ const A<int> a;
         type: TypeName
           name: SimpleIdentifier
             staticElement: self::@class::A
-            staticType: A<dynamic>
+            staticType: null
             token: A
           type: A<int>
       staticElement: ConstructorMember

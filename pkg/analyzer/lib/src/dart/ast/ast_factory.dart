@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/scanner/token.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -421,7 +421,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
       new FieldFormalParameterImpl(comment, metadata, null, null, keyword, type,
-          thisKeyword, period, identifier, typeParameters, parameters);
+          thisKeyword, period, identifier, typeParameters, parameters, null);
 
   @override
   FieldFormalParameter fieldFormalParameter2(
@@ -435,7 +435,8 @@ class AstFactoryImpl extends AstFactory {
           @required Token period,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters}) =>
+          FormalParameterList parameters,
+          Token question}) =>
       new FieldFormalParameterImpl(
           comment,
           metadata,
@@ -447,7 +448,8 @@ class AstFactoryImpl extends AstFactory {
           period,
           identifier,
           typeParameters,
-          parameters);
+          parameters,
+          question);
 
   @override
   ForEachPartsWithDeclaration forEachPartsWithDeclaration(
@@ -1027,6 +1029,16 @@ class AstFactoryImpl extends AstFactory {
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,
           SimpleIdentifier name, Token extendsKeyword, TypeAnnotation bound) =>
       new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound);
+
+  TypeParameter typeParameter2(
+          {Comment comment,
+          List<Annotation> metadata,
+          SimpleIdentifier name,
+          Token extendsKeyword,
+          TypeAnnotation bound,
+          Token varianceKeyword}) =>
+      new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound)
+        ..varianceKeyword = varianceKeyword;
 
   @override
   TypeParameterList typeParameterList(Token leftBracket,

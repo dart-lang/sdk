@@ -187,9 +187,8 @@ final String _implCode = r'''
       } else {
         _processNotification(json);
       }
-    } else if(json.containsKey('id') && (
-                json.containsKey('result') || json.containsKey('error')
-              )) {
+    } else if (json.containsKey('id') &&
+        (json.containsKey('result') || json.containsKey('error'))) {
       _processResponse(json);
     }
     else {
@@ -715,8 +714,8 @@ abstract class VmServiceInterface {
     // Generate the json success response
     gen.write("""_responseSink.add({
   'jsonrpc': '2.0',
-  'result': response.toJson(),
   'id': id,
+  'result': response.toJson(),
 });
 """);
 
@@ -728,8 +727,8 @@ abstract class VmServiceInterface {
             : {'code': -32603, 'message': '$e\n$st'};
         _responseSink.add({
           'jsonrpc': '2.0',
-          'error': error,
           'id': request['id'],
+          'error': error,
         });
       }
 ''');

@@ -87,7 +87,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
       ['lib', 'src', 'error', 'codes.dart'],
-      ['..', 'front_end', 'lib', 'src', 'scanner', 'errors.dart']
+      ['..', '_fe_analyzer_shared', 'lib', 'src', 'scanner', 'errors.dart']
     ];
     for (List<String> path in declaringPaths) {
       for (String declaredCode in getDeclaredCodes(path)) {

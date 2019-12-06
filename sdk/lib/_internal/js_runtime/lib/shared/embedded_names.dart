@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -46,6 +48,10 @@ const NATIVE_SUPERCLASS_TAG_NAME = r"$nativeSuperclassTag";
 /// This property is set for all tear-offs of static functions, and provides
 /// the static function's unique (potentially minified) name.
 const STATIC_FUNCTION_NAME_PROPERTY_NAME = r'$static_name';
+
+/// The name of a property on the constructor function of Dart Object
+/// and interceptor types, used for caching Rti types.
+const CONSTRUCTOR_RTI_CACHE_PROPERTY_NAME = r'$ccache';
 
 /// The name of the embedded global for metadata.
 ///
@@ -265,6 +271,9 @@ enum JsGetName {
   /// Prefix used for generated type argument substitutions on classes.
   OPERATOR_AS_PREFIX,
 
+  /// Prefix used for generated type test property on classes.
+  OPERATOR_IS_PREFIX,
+
   /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
 
@@ -451,5 +460,6 @@ enum JsBuiltin {
 class RtiUniverseFieldNames {
   static String evalCache = 'eC';
   static String typeRules = 'tR';
+  static String erasedTypes = 'eT';
   static String sharedEmptyArray = 'sEA';
 }

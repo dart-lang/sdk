@@ -56,39 +56,11 @@ class CompletionPerformance {
   }
 
   void setContentsAndOffset(String contents, int offset) {
-    snippet = _computeSnippet(contents, offset);
+    snippet = computeCompletionSnippet(contents, offset);
   }
 
   void _logDuration(String tag, Duration elapsed) {
     operations.add(new OperationPerformance(tag, elapsed));
-  }
-
-  static String _computeSnippet(String contents, int offset) {
-    if (contents == null ||
-        offset == null ||
-        offset < 0 ||
-        contents.length < offset) {
-      return '???';
-    }
-    int start = offset;
-    while (start > 0) {
-      String ch = contents[start - 1];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      --start;
-    }
-    int end = offset;
-    while (end < contents.length) {
-      String ch = contents[end];
-      if (ch == '\r' || ch == '\n') {
-        break;
-      }
-      ++end;
-    }
-    String prefix = contents.substring(start, offset);
-    String suffix = contents.substring(offset, end);
-    return '$prefix^$suffix';
   }
 }
 
@@ -107,4 +79,38 @@ class OperationPerformance {
   final Duration elapsed;
 
   OperationPerformance(this.name, this.elapsed);
+}
+
+/**
+ * Compute a string representing a code completion operation at the
+ * given source and location.
+ *
+ * This string is useful for displaying to users in a diagnostic context.
+ */
+String computeCompletionSnippet(String contents, int offset) {
+  if (contents == null ||
+      offset == null ||
+      offset < 0 ||
+      contents.length < offset) {
+    return '???';
+  }
+  int start = offset;
+  while (start > 0) {
+    String ch = contents[start - 1];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    --start;
+  }
+  int end = offset;
+  while (end < contents.length) {
+    String ch = contents[end];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    ++end;
+  }
+  String prefix = contents.substring(start, offset);
+  String suffix = contents.substring(offset, end);
+  return '$prefix^$suffix';
 }

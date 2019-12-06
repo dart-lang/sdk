@@ -51,11 +51,15 @@ Socket::Socket(intptr_t fd)
       udp_receive_buffer_(NULL) {}
 
 void Socket::SetClosedFd() {
+  fd_ = kClosedFd;
+}
+
+void Socket::CloseFd() {
   ASSERT(fd_ != kClosedFd);
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
   ASSERT(handle != NULL);
   handle->Release();
-  fd_ = kClosedFd;
+  SetClosedFd();
 }
 
 static intptr_t Create(const RawAddr& addr) {

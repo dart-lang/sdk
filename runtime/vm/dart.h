@@ -57,8 +57,6 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     const uint8_t* shared_data,
-                                     const uint8_t* shared_instructions,
                                      const uint8_t* kernel_buffer,
                                      intptr_t kernel_buffer_size,
                                      void* data);
@@ -125,6 +123,8 @@ class Dart : public AllStatic {
   static Dart_EntropySource entropy_source_callback() {
     return entropy_source_callback_;
   }
+  static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
+  static bool non_nullable_flag() { return non_nullable_flag_; }
 
  private:
   static void WaitForIsolateShutdown();
@@ -143,6 +143,7 @@ class Dart : public AllStatic {
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
+  static bool non_nullable_flag_;
 };
 
 }  // namespace dart

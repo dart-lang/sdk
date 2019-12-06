@@ -73,8 +73,8 @@ class InfoBuilderTest extends AbstractAnalysisTest {
   /// in [infos].
   Future<void> buildInfo() async {
     // Compute the analysis results.
-    server.setAnalysisRoots(
-        '0', [resourceProvider.pathContext.dirname(testFile)], [], {});
+    String includedRoot = resourceProvider.pathContext.dirname(testFile);
+    server.setAnalysisRoots('0', [includedRoot], [], {});
     ResolvedUnitResult result = await server
         .getAnalysisDriver(testFile)
         .currentSession
@@ -91,26 +91,44 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
-    InfoBuilder builder = InfoBuilder(info, listener);
+    InfoBuilder builder = InfoBuilder(
+        resourceProvider, includedRoot, info, listener,
+        explainNonNullableTypes: true);
     infos = (await builder.explainMigration()).toList();
   }
 
+  /// Uses the InfoBuilder to build information for a single test file.
+  ///
+  /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
+  /// the singular UnitInfo which was built.
+  Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
+      {@required String migratedContent}) async {
+    addTestFile(originalContent);
+    await buildInfo();
+    // Ignore info for dart:core
+    var filteredInfos = [
+      for (var info in infos) if (info.path.indexOf('core.dart') == -1) info
+    ];
+    expect(filteredInfos, hasLength(1));
+    UnitInfo unit = filteredInfos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, migratedContent);
+    return unit;
+  }
+
   test_asExpression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([num a]) {
   int b = a as int;
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 void f([num? a]) {
   int? b = a as int?;
 }
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
-    assertRegion(region: regions[0], offset: 11);
+    // regions[0] is `num? a`.
     assertRegion(
         region: regions[1],
         offset: 24,
@@ -121,13 +139,128 @@ void f([num? a]) {
         details: ["The value of the expression is nullable"]);
   }
 
-  test_expressionFunctionReturnTarget() async {
-    addTestFile('''
-String g() => 1 == 2 ? "Hello" : null;
+  test_asExpression_insideReturn() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f([num a]) {
+  return a as int;
+}
+''', migratedContent: '''
+int? f([num? a]) {
+  return a as int?;
+}
 ''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is `inf? f`.
+    // regions[1] is `num? a`.
+    assertRegion(
+        region: regions[2],
+        offset: 36,
+        details: ["The value of the expression is nullable"]);
+  }
+
+  test_discardCondition() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(int i) {
+  print(i.isEven);
+  if (i != null) print('NULL');
+}
+''', migratedContent: '''
+void g(int i) {
+  print(i.isEven);
+  /* if (i != null) */ print('NULL');
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 37, length: 3);
+    assertRegion(region: regions[1], offset: 55, length: 3);
+  }
+
+  test_discardElse() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(int i) {
+  print(i.isEven);
+  if (i != null) print('NULL');
+  else print('NOT NULL');
+}
+''', migratedContent: '''
+void g(int i) {
+  print(i.isEven);
+  /* if (i != null) */ print('NULL'); /*
+  else print('NOT NULL'); */
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(4));
+    assertRegion(region: regions[0], offset: 37, length: 3);
+    assertRegion(region: regions[1], offset: 55, length: 3);
+    assertRegion(region: regions[2], offset: 72, length: 3);
+    assertRegion(region: regions[3], offset: 101, length: 3);
+  }
+
+  test_dynamicValueIsUsed() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+bool f(int i) {
+  if (i == null) return true;
+  else return false;
+}
+void g() {
+  dynamic i = null;
+  f(i);
+}
+''', migratedContent: '''
+bool f(int? i) {
+  if (i == null) return true;
+  else return false;
+}
+void g() {
+  dynamic i = null;
+  f(i);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 10, details: [
+      "A dynamic value, which is nullable is passed as an argument"
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 104, length: 1);
+  }
+
+  test_exactNullable() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(List<int> list) {
+  list[0] = null;
+}
+
+void g() {
+  f(<int>[]);
+}
+''', migratedContent: '''
+void f(List<int?> list) {
+  list[0] = null;
+}
+
+void g() {
+  f(<int?>[]);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is the hard edge that f's parameter is non-nullable.
+    assertRegion(region: regions[1], offset: 15, details: [
+      "An explicit 'null' is assigned",
+    ]);
+    assertRegion(
+        region: regions[2],
+        offset: 66,
+        details: ["This is later required to accept null."]);
+  }
+
+  test_expressionFunctionReturnTarget() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+String g() => 1 == 2 ? "Hello" : null;
+''', migratedContent: '''
 String? g() => 1 == 2 ? "Hello" : null;
 ''');
     assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
@@ -137,22 +270,17 @@ String? g() => 1 == 2 ? "Hello" : null;
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value"]);
+        details: ["This function returns a nullable value on line 1"]);
     assertDetail(detail: regions[0].details[0], offset: 11, length: 2);
   }
 
   test_field_fieldFormalInitializer_optional() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
   A([this._f]);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f;
   A([this._f]);
@@ -167,7 +295,7 @@ class A {
   }
 
   test_field_fieldFormalInitializer_required() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
   A(this._f);
@@ -175,12 +303,7 @@ class A {
 void g() {
   A(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f;
   A(this._f);
@@ -189,7 +312,7 @@ void g() {
   A(null);
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     // TODO(brianwilkerson) It would be nice if the target for the region could
     //  be the argument rather than the field formal parameter.
@@ -200,17 +323,12 @@ void g() {
   }
 
   test_field_initializer() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int _f2 = _f;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? _f2 = _f;
@@ -221,54 +339,250 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
         details: ["This field is initialized to a nullable value"]);
   }
 
+  test_insertedRequired_fieldFormal() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+  int level2;
+  C({this.level}) : this.level2 = level + 1;
+}
+''', migratedContent: '''
+class C {
+  int level;
+  int level2;
+  C({required this.level}) : this.level2 = level + 1;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 42, length: 9, details: [
+      "This parameter is non-nullable, so cannot have an implicit default "
+          "value of 'null'"
+    ]);
+  }
+
+  test_insertedRequired_parameter() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int level;
+  bool f({int lvl}) => lvl >= level;
+}
+''', migratedContent: '''
+class C {
+  int? level;
+  bool f({required int lvl}) => lvl >= level!;
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `int? s` fix.
+    assertRegion(region: regions[1], offset: 34, length: 9, details: [
+      "This parameter is non-nullable, so cannot have an implicit default "
+          "value of 'null'"
+    ]);
+    // regions[2] is the `level!` fix.
+  }
+
+  test_listAndSetLiteralTypeArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  String s = null;
+  var x = <String>["hello", s];
+  var y = <String>{"hello", s};
+}
+''', migratedContent: '''
+void f() {
+  String? s = null;
+  var x = <String?>["hello", s];
+  var y = <String?>{"hello", s};
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `String? s` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
+        details: ["This list is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[1].details[0], offset: 58, length: 1);
+    assertRegion(
+        region: regions[2],
+        offset: 81,
+        details: ["This set is initialized with a nullable value on line 4"]);
+    assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
+  }
+
+  test_listLiteralTypeArgument_collectionIf() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  String s = null;
+  var x = <String>[
+    "hello",
+    if (1 == 2) s
+  ];
+}
+''', migratedContent: '''
+void f() {
+  String? s = null;
+  var x = <String?>[
+    "hello",
+    if (1 == 2) s
+  ];
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is the `String? s` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
+        details: ["This list is initialized with a nullable value on line 5"]);
+    assertDetail(detail: regions[1].details[0], offset: 79, length: 1);
+  }
+
   test_localVariable() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
-  int _v1 = null;
-  int _v2 = _v1;
+  int v1 = null;
+  int v2 = v1;
+}
+''', migratedContent: '''
+void f() {
+  int? v1 = null;
+  int? v2 = v1;
 }
 ''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
-void f() {
-  int? _v1 = null;
-  int? _v2 = _v1;
-}
-''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
         offset: 16,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
-        offset: 35,
+        offset: 34,
         details: ["This variable is initialized to a nullable value"]);
   }
 
+  test_mapLiteralTypeArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  String s = null;
+  var x = <String, bool>{"hello": false, s: true};
+  var y = <bool, String>{false: "hello", true: s};
+}
+''', migratedContent: '''
+void f() {
+  String? s = null;
+  var x = <String?, bool>{"hello": false, s: true};
+  var y = <bool, String?>{false: "hello", true: s};
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `String? s` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 48,
+        details: ["This map is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[1].details[0], offset: 71, length: 1);
+    assertRegion(
+        region: regions[2],
+        offset: 106,
+        details: ["This map is initialized with a nullable value on line 4"]);
+    assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
+  }
+
+  test_nonNullableType_assert() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String s) {
+  assert(s != null);
+}
+''', migratedContent: '''
+void f(String s) {
+  assert(s != null);
+}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 7,
+        length: 6,
+        details: ["This value is asserted to be non-null"]);
+  }
+
+  test_nonNullableType_exclamationComment() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String /*!*/ s) {}
+''', migratedContent: '''
+void f(String /*!*/ s) {}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 7, length: 6, details: [
+      'This type is annotated with a non-nullability comment ("/*!*/")'
+    ]);
+  }
+
+  test_nonNullableType_unconditionalFieldAccess() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String s) {
+  print(s.length);
+}
+''', migratedContent: '''
+void f(String s) {
+  print(s.length);
+}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 7, length: 6, details: [
+      "This value is unconditionally used in a non-nullable context"
+    ]);
+  }
+
+  test_nullCheck_onFunctionArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C([this.value]);
+  void f() {
+    value.abs();
+  }
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C([this.value]);
+  void f() {
+    value!.abs();
+  }
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `int?`.
+    assertRegion(
+        region: regions[1],
+        offset: 65,
+        details: ["A nullable value can't be used here"]);
+  }
+
   test_parameter_fromInvocation_explicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g() {
   f(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f(String? s) {}
 void g() {
   f(null);
@@ -287,17 +601,12 @@ void g() {
     // Failing because the upstream edge ("always -(hard)-> type(13)")
     // associated with the reason (a _NullabilityNodeSimple) had a `null` origin
     // when the listener's `graphEdge` method was called.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g(p) {
   f(p);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f(String? s) {}
 void g(p) {
   f(p);
@@ -312,7 +621,7 @@ void g(p) {
   }
 
   test_parameter_fromOverriden_explicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(int p) {}
 }
@@ -322,12 +631,7 @@ class B extends A {
 void f(A a) {
   a.m(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   void m(int? p) {}
 }
@@ -338,7 +642,7 @@ void f(A a) {
   a.m(null);
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
@@ -349,20 +653,16 @@ void f(A a) {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39378')
   test_parameter_fromOverriden_implicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(p) {}
 }
 class B extends A {
   void m(Object p) {}
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   void m(p) {}
 }
@@ -370,7 +670,7 @@ class B extends A {
   void m(Object? p) {}
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     // TODO(brianwilkerson) The detail should read something like
     //  "The overridden method accepts a nullable type"
@@ -380,21 +680,35 @@ class B extends A {
         details: ["A nullable value is assigned"]);
   }
 
+  test_parameter_named_omittedInCall() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() { g(); }
+
+void g({int i}) {}
+''', migratedContent: '''
+void f() { g(); }
+
+void g({int? i}) {}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 30, details: [
+      "This named parameter was omitted in a call to this function",
+      "This parameter has an implicit default value of 'null'",
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
+  }
+
   @failingTest
   test_parameter_optional_explicitDefault_null() async {
     // Failing because we appear to never get an origin when the upstream node
     // for an edge is 'always'.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s = null}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f({String? s = null}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -406,19 +720,14 @@ void f({String? s = null}) {}
   test_parameter_optional_explicitDefault_nullable() async {
     // Failing because we appear to never get an origin when the upstream node
     // for an edge is 'always'.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 const sd = null;
 void f({String s = sd}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 const sd = null;
 void f({String? s = sd}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -427,17 +736,12 @@ void f({String? s = sd}) {}
   }
 
   test_parameter_optional_implicitDefault_named() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f({String? s}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -446,17 +750,12 @@ void f({String? s}) {}
   }
 
   test_parameter_optional_implicitDefault_positional() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([String s]) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f([String? s]) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -464,21 +763,15 @@ void f([String? s]) {}
         details: ["This parameter has an implicit default value of 'null'"]);
   }
 
-  @failingTest
   test_return_fromOverriden() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 abstract class A {
   String m();
 }
 class B implements A {
   String m() => 1 == 2 ? "Hello" : null;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 abstract class A {
   String? m();
 }
@@ -486,49 +779,44 @@ class B implements A {
   String? m() => 1 == 2 ? "Hello" : null;
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
         offset: 27,
         details: ["An overridding method has a nullable return value"]);
+    assertDetail(detail: regions[0].details[0], offset: 60, length: 6);
   }
 
   test_return_multipleReturns() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   int x = 1;
   if (x == 2) return x == 3 ? "Hello" : null;
   return "Hello";
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 String? g() {
   int x = 1;
   if (x == 2) return x == 3 ? "Hello" : null;
   return "Hello";
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value"]);
+        details: ["This function returns a nullable value on line 3"]);
     assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
   }
 
   test_returnDetailTarget() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   return 1 == 2 ? "Hello" : null;
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 String? g() {
   return 1 == 2 ? "Hello" : null;
 }
@@ -540,20 +828,15 @@ String? g() {
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value"]);
+        details: ["This function returns a nullable value on line 2"]);
     assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
   }
 
   test_returnType_function_expression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int f() => _f;
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 int? _f = null;
 int? f() => _f;
 ''');
@@ -562,27 +845,22 @@ int? f() => _f;
     assertRegion(
         region: regions[0],
         offset: 3,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 19,
-        details: ["This function returns a nullable value"]);
+        details: ["This function returns a nullable value on line 2"]);
   }
 
   test_returnType_getter_block() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int get f {
     return _f;
   }
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? get f {
@@ -595,25 +873,20 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This getter returns a nullable value"]);
+        details: ["This getter returns a nullable value on line 4"]);
   }
 
   test_returnType_getter_expression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int get f => _f;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? get f => _f;
@@ -624,35 +897,122 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This getter returns a nullable value"]);
+        details: ["This getter returns a nullable value on line 3"]);
+  }
+
+  test_setLiteralTypeArgument_nestedList() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  String s = null;
+  var x = <List<String>>{
+    ["hello"],
+    if (1 == 2) [s]
+  };
+}
+''', migratedContent: '''
+void f() {
+  String? s = null;
+  var x = <List<String?>>{
+    ["hello"],
+    if (1 == 2) [s]
+  };
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is the `String? s` fix.
+    assertRegion(
+        region: regions[1],
+        offset: 53,
+        details: ["This set is initialized with a nullable value on line 5"]);
+    // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
+    //  `s` should be marked. Minor bug for now.
+    assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
   }
 
   test_topLevelVariable() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int _f2 = _f;
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 int? _f = null;
 int? _f2 = _f;
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
         offset: 3,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 19,
         details: ["This variable is initialized to a nullable value"]);
+  }
+
+  test_uninitializedField() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C();
+  C.one() {
+    this.value = 7;
+  }
+  C.two() {}
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C();
+  C.one() {
+    this.value = 7;
+  }
+  C.two() {}
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    RegionInfo region = regions.single;
+    assertRegion(region: region, offset: 15, details: [
+      "The constructor 'C' does not initialize this field in its initializer "
+          "list",
+      "The constructor 'C.one' does not initialize this field in its "
+          "initializer list",
+      "The constructor 'C.two' does not initialize this field in its "
+          "initializer list",
+    ]);
+
+    assertDetail(detail: region.details[0], offset: 25, length: 1);
+    assertDetail(detail: region.details[1], offset: 34, length: 3);
+    assertDetail(detail: region.details[2], offset: 70, length: 3);
+  }
+
+  test_uninitializedVariable_notLate_uninitializedUse() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  int v1;
+  if (1 == 2) v1 = 7;
+  g(v1);
+}
+void g(int i) => print(i.isEven);
+''', migratedContent: '''
+void f() {
+  int? v1;
+  if (1 == 2) v1 = 7;
+  g(v1!);
+}
+void g(int i) => print(i.isEven);
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 16,
+        details: ["Used on line 4, when it is possibly uninitialized"]);
+    // regions[1] is the `v1!` fix.
   }
 }

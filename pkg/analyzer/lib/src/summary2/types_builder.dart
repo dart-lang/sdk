@@ -28,7 +28,7 @@ class NodesToBuildType {
 }
 
 class TypesBuilder {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   TypesBuilder(this.typeSystem);
 
@@ -77,10 +77,10 @@ class TypesBuilder {
       );
     }).toList();
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      formalParameters,
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: formalParameters,
+      returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -151,7 +151,7 @@ class TypesBuilder {
         node.typeParameters,
         node.type,
         parameterList,
-        _nullability(node, true), // TODO(scheglov) use 'question' token
+        _nullability(node, node.question != null),
       );
       LazyAst.setType(node, type);
     } else {
@@ -172,12 +172,6 @@ class TypesBuilder {
       _nullability(node, node.question != null),
     );
     LazyAst.setType(node, type);
-  }
-
-  NullabilitySuffix _noneOrStarSuffix(AstNode node) {
-    return _nonNullableEnabled(node)
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
   }
 
   bool _nonNullableEnabled(AstNode node) {
@@ -207,7 +201,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
 
@@ -347,7 +341,7 @@ class _MixinInference {
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
-  final Dart2TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   _MixinsInference(this.typeSystem);
 

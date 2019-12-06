@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import 'gen_util.dart';
 
@@ -654,6 +655,7 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
 """);
 
+  print("  static const VOID = const " + "DartType._withName(\"void\");");
   Set<String> instTypes = {};
 
   // Generate one static DartType instance for all instantiable types.
@@ -1123,7 +1125,10 @@ Set<InterfaceType> instantiatePTypes(
       } else {
         return true;
       }
-      ParameterizedType ptx = pType.instantiate([iType]);
+      ParameterizedType ptx = pType.element.instantiate(
+        typeArguments: [iType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
       newITypes.add(ptx);
       if (iType.typeArguments.length >= 1) {
         complexTypes.add(getConstName(ptx.displayName));
@@ -1141,7 +1146,10 @@ Set<InterfaceType> instantiatePTypes(
         } else {
           return true;
         }
-        ParameterizedType ptx = pType.instantiate([iType1, iType2]);
+        ParameterizedType ptx = pType.element.instantiate(
+          typeArguments: [iType1, iType2],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
         newITypes.add(ptx);
         if (iType1.typeArguments.length >= 1 ||
             iType2.typeArguments.length >= 1) {
@@ -1262,7 +1270,7 @@ visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
       // Compute heuristic to decide whether to include the type.
       int no = countOperators(classElement);
       if (no > operatorCountThreshold) {
-        allTypes.add(classElement.type);
+        allTypes.add(classElement.thisType);
       }
     }
   }

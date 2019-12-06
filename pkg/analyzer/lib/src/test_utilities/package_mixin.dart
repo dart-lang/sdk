@@ -33,6 +33,7 @@ const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
+const _NonVirtual nonVirtual = const _NonVirtual();
 const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 const _Protected protected = const _Protected();
 const Required required = const Required();
@@ -54,6 +55,9 @@ class _Literal {
 }
 class _MustCallSuper {
   const _MustCallSuper();
+}
+class _NonVirtual {
+  const _NonVirtual();
 }
 class _OptionalTypeArgs {
   const _OptionalTypeArgs();

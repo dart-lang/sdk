@@ -185,12 +185,21 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check if we have invalid named arguments.
   Iterable names;
   var named = type.named;
+  var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
     for (var name in names) {
-      if (!JS('!', '#.hasOwnProperty(#)', named, name)) {
+      if (!JS('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named, name,
+          requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";
       }
+    }
+  }
+  // Verify that all required named parameters are provided an argument.
+  Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+  for (var name in requiredNames) {
+    if (!JS('!', '#.hasOwnProperty(#)', namedActuals, name)) {
+      return "Dynamic call with missing required named argument '$name'.";
     }
   }
   // Now that we know the signature matches, we can perform type checks.
@@ -202,7 +211,8 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
   if (names != null) {
     for (var name in names) {
-      JS('', '#[#]._check(#[#])', named, name, namedActuals, name);
+      JS('', '(#[#] || #[#])._check(#[#])', named, name, requiredNamed, name,
+          namedActuals, name);
     }
   }
   return null;
@@ -331,8 +341,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
 dcall(f, args, [@undefined named]) => _checkAndCall(
     f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
-dgcall(f, typeArgs, args, [@undefined named]) =>
-    _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, named, 'call');
+dgcall(f, typeArgs, args, [@undefined named]) => _checkAndCall(f, null,
+    JS('', 'void 0'), typeArgs, args, named, JS('', "f.name || 'call'"));
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.

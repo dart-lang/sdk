@@ -514,6 +514,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       );
     } else {
       var builder = NamedTypeBuilder.of(
+        isNNBD,
         node,
         element,
         nullabilitySuffix,

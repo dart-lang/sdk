@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "import_via_prefix_lib.dart" as imp;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///import_via_prefix_lib.dart" as prefix;
+
+static method main() → dynamic {
+  self::expect(3, imp::Extension|method("foo"));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library;
+import self as imp;
+import "dart:core" as core;
+
+extension Extension on core::String* {
+  method method = imp::Extension|method;
+  tearoff method = imp::Extension|get#method;
+}
+static method Extension|method(final core::String* #this) → core::int*
+  return #this.{core::String::length};
+static method Extension|get#method(final core::String* #this) → () →* core::int*
+  return () → core::int* => imp::Extension|method(#this);

@@ -140,11 +140,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
-    if (FLAG_verify_gc_contains) {
-      ASSERT((visiting_old_object_ != NULL) ||
-             scavenger_->Contains(reinterpret_cast<uword>(first)) ||
-             !heap_->Contains(reinterpret_cast<uword>(first)));
-    }
     for (RawObject** current = first; current <= last; current++) {
       ScavengePointer(current);
     }
@@ -164,11 +159,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     ASSERT(obj->IsHeapObject());
-    if (FLAG_verify_gc_contains) {
-      uword ptr = reinterpret_cast<uword>(p);
-      ASSERT(!scavenger_->Contains(ptr));
-      ASSERT(heap_->DataContains(ptr));
-    }
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->IsRemembered()) {
       return;
@@ -255,7 +245,16 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
     // Update the reference.
     RawObject* new_obj = RawObject::FromAddr(new_addr);
-    *p = new_obj;
+    if (new_obj->IsOldObject()) {
+      // Setting the mark bit above must not be ordered after a publishing store
+      // of this object. Note this could be a publishing store even if the
+      // object was promoted by an early invocation of ScavengePointer. Compare
+      // Object::Allocate.
+      reinterpret_cast<std::atomic<RawObject*>*>(p)->store(
+          new_obj, std::memory_order_release);
+    } else {
+      *p = new_obj;
+    }
     // Update the store buffer as needed.
     if (visiting_old_object_ != NULL) {
       UpdateStoreBuffer(p, new_obj);
@@ -293,15 +292,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
       handle->UpdateUnreachable(thread()->isolate());
     } else {
       handle->UpdateRelocated(thread()->isolate());
-#ifndef PRODUCT
-      intptr_t cid = (*p)->GetClassIdMayBeSmi();
-      intptr_t size = handle->external_size();
-      if ((*p)->IsSmiOrOldObject()) {
-        class_table_->UpdateLiveOldExternal(cid, size);
-      } else {
-        class_table_->UpdateLiveNewExternal(cid, size);
-      }
-#endif  // !PRODUCT
     }
   }
 
@@ -491,8 +481,6 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 }
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
-  NOT_IN_PRODUCT(isolate->shared_class_table()->ResetCountersNew());
-
   isolate->ReleaseStoreBuffers();
   AbandonTLABs(isolate);
 
@@ -597,8 +585,6 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   if (heap_ != NULL) {
     heap_->UpdateGlobalMaxUsed();
   }
-
-  NOT_IN_PRODUCT(isolate->shared_class_table()->UpdatePromoted());
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
@@ -713,7 +699,6 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
-  NOT_IN_PRODUCT(auto class_table = visitor->isolate()->shared_class_table());
 
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
@@ -727,7 +712,6 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
         size = ProcessWeakProperty(raw_weak, visitor);
       }
-      NOT_IN_PRODUCT(class_table->UpdateLiveNewGC(class_id, size));
       resolved_top_ += size;
     }
     {
@@ -740,12 +724,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // objects to be resolved in the to space.
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
-        intptr_t size = raw_object->VisitPointersNonvirtual(visitor);
-#if defined(PRODUCT)
-        USE(size);
-#else
-        class_table->UpdateAllocatedOldGC(raw_object->GetClassId(), size);
-#endif
+        raw_object->VisitPointersNonvirtual(visitor);
         if (raw_object->IsMarked()) {
           // Complete our promise from ScavengePointer. Note that marker cannot
           // visit this object until it pops a block from the mark stack, which
@@ -1165,9 +1144,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
-  NOT_IN_PRODUCT(
-      heap_->isolate()->shared_class_table()->UpdateAllocatedExternalNew(cid,
-                                                                         size));
 }
 
 void Scavenger::FreeExternal(intptr_t size) {

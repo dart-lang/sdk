@@ -190,6 +190,12 @@ mixin C {
 ''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
   }
 
+  test_setter_topLevel() async {
+    await assertNoErrorsInCode(r'''
+set f(int x) => print(x);
+''');
+  }
+
   test_topLevelArrowFunction() async {
     await assertErrorsInCode(r'''
 f() => 7;

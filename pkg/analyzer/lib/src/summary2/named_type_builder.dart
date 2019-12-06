@@ -11,10 +11,14 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:meta/meta.dart';
 
 /// The type builder for a [TypeName].
 class NamedTypeBuilder extends TypeBuilder {
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
+
+  /// Indicates whether the library is opted into NNBD.
+  final bool isNNBD;
 
   final Element element;
   final List<DartType> arguments;
@@ -31,10 +35,12 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   DartType _type;
 
-  NamedTypeBuilder(this.element, this.arguments, this.nullabilitySuffix,
+  NamedTypeBuilder(
+      this.isNNBD, this.element, this.arguments, this.nullabilitySuffix,
       {this.node});
 
   factory NamedTypeBuilder.of(
+    bool isNNBD,
     TypeName node,
     Element element,
     NullabilitySuffix nullabilitySuffix,
@@ -47,7 +53,8 @@ class NamedTypeBuilder extends TypeBuilder {
       arguments = <DartType>[];
     }
 
-    return NamedTypeBuilder(element, arguments, nullabilitySuffix, node: node);
+    return NamedTypeBuilder(isNNBD, element, arguments, nullabilitySuffix,
+        node: node);
   }
 
   @override
@@ -71,19 +78,19 @@ class NamedTypeBuilder extends TypeBuilder {
         var arguments = _buildArguments(parameters);
         var substitution = Substitution.fromPairs(parameters, arguments);
         var instantiated = substitution.substituteType(rawType) as FunctionType;
-        _type = FunctionTypeImpl.synthetic(
-          instantiated.returnType,
-          instantiated.typeFormals,
-          instantiated.parameters,
+        _type = FunctionTypeImpl(
+          typeFormals: instantiated.typeFormals,
+          parameters: instantiated.parameters,
+          returnType: instantiated.returnType,
+          nullabilitySuffix: nullabilitySuffix,
           element: element,
           typeArguments: arguments,
-          nullabilitySuffix: nullabilitySuffix,
         );
       } else {
         _type = _dynamicType;
       }
     } else if (element is NeverElementImpl) {
-      _type = BottomTypeImpl.instance.withNullability(nullabilitySuffix);
+      _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(
         element,
@@ -98,7 +105,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString() {
+  String toString({bool withNullability = false}) {
     var buffer = StringBuffer();
     buffer.write(element.displayName);
     if (arguments.isNotEmpty) {
@@ -107,6 +114,16 @@ class NamedTypeBuilder extends TypeBuilder {
       buffer.write('>');
     }
     return buffer.toString();
+  }
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    if (this.nullabilitySuffix == nullabilitySuffix) {
+      return this;
+    }
+
+    return NamedTypeBuilder(isNNBD, element, arguments, nullabilitySuffix,
+        node: node);
   }
 
   /// Build arguments that correspond to the type [parameters].
@@ -141,9 +158,10 @@ class NamedTypeBuilder extends TypeBuilder {
       return _buildFormalParameterType(node.parameter);
     } else if (node is FunctionTypedFormalParameter) {
       return _buildFunctionType(
-        node.typeParameters,
-        node.returnType,
-        node.parameters,
+        typeParameterList: node.typeParameters,
+        returnTypeNode: node.returnType,
+        parameterList: node.parameters,
+        hasQuestion: node.question != null,
       );
     } else if (node is SimpleFormalParameter) {
       return _buildNodeType(node.type);
@@ -152,11 +170,12 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  FunctionType _buildFunctionType(
-    TypeParameterList typeParameterList,
-    TypeAnnotation returnTypeNode,
-    FormalParameterList parameterList,
-  ) {
+  FunctionType _buildFunctionType({
+    @required TypeParameterList typeParameterList,
+    @required TypeAnnotation returnTypeNode,
+    @required FormalParameterList parameterList,
+    @required bool hasQuestion,
+  }) {
     var returnType = _buildNodeType(returnTypeNode);
     var typeParameters = _typeParameters(typeParameterList);
 
@@ -169,11 +188,25 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     }).toList();
 
-    return FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      formalParameters,
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: formalParameters,
+      returnType: returnType,
+      nullabilitySuffix: _getNullabilitySuffix(hasQuestion),
     );
+  }
+
+  DartType _buildGenericFunctionType(GenericFunctionType node) {
+    if (node != null) {
+      return _buildType(node?.type);
+    } else {
+      return FunctionTypeImpl(
+        typeFormals: const <TypeParameterElement>[],
+        parameters: const <ParameterElement>[],
+        returnType: _dynamicType,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
   }
 
   DartType _buildNodeType(TypeAnnotation node) {
@@ -184,17 +217,22 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
+    if (hasQuestion) {
+      return NullabilitySuffix.question;
+    } else if (isNNBD) {
+      return NullabilitySuffix.none;
+    } else {
+      return NullabilitySuffix.star;
+    }
+  }
+
   DartType _getRawFunctionType(GenericTypeAliasElementImpl element) {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.
     if (!element.linkedContext.isLinking) {
-      var function = element.function;
-      if (function != null) {
-        return function.type;
-      } else {
-        return _dynamicType;
-      }
+      return element.function.type;
     }
 
     var typedefNode = element.linkedNode;
@@ -209,15 +247,16 @@ class NamedTypeBuilder extends TypeBuilder {
 
     if (typedefNode is FunctionTypeAlias) {
       var result = _buildFunctionType(
-        null,
-        typedefNode.returnType,
-        typedefNode.parameters,
+        typeParameterList: null,
+        returnTypeNode: typedefNode.returnType,
+        parameterList: typedefNode.parameters,
+        hasQuestion: false,
       );
       LazyAst.setRawFunctionType(typedefNode, result);
       return result;
     } else if (typedefNode is GenericTypeAlias) {
       var functionNode = typedefNode.functionType;
-      var functionType = _buildType(functionNode?.type);
+      var functionType = _buildGenericFunctionType(functionNode);
       LazyAst.setRawFunctionType(typedefNode, functionType);
       return functionType;
     } else {

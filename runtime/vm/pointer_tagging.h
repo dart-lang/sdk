@@ -51,6 +51,10 @@ static constexpr intptr_t kObjectAlignmentLog2 =
 static constexpr intptr_t kObjectAlignmentMask =
     HostObjectAlignment::kObjectAlignmentMask;
 
+// The largest value of kObjectAlignment across all configurations.
+static constexpr intptr_t kMaxObjectAlignment = 16;
+COMPILE_ASSERT(kMaxObjectAlignment >= kObjectAlignment);
+
 // On all targets heap pointers are tagged by set least significant bit.
 //
 // To recover address of the actual heap object kHeapObjectTag needs to be

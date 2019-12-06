@@ -41,6 +41,14 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
+    expect(test.externalDecoratedTypeParameterBound,
+        isNot(contains(typeParameter)));
+    test.externalDecoratedTypeParameterBound[typeParameter] = decoratedType;
+  }
+
+  @override
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
     test.fixes[fix] = reasons.toList();
   }
@@ -95,6 +103,9 @@ class _InstrumentationTest extends AbstractContextTest {
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
 
   final Map<Element, DecoratedTypeInfo> externalDecoratedType = {};
+
+  final Map<TypeParameterElement, DecoratedTypeInfo>
+      externalDecoratedTypeParameterBound = {};
 
   final List<EdgeInfo> edges = [];
 
@@ -155,6 +166,40 @@ main() {
         'void Function(Object)');
   }
 
+  test_externalDecoratedTypeParameterBound() async {
+    await analyze('''
+import 'dart:math';
+f(Point<int> x) {}
+''');
+    var pointElement = findNode.simple('Point').staticElement as ClassElement;
+    var pointElementTypeParameter = pointElement.typeParameters[0];
+    expect(
+        externalDecoratedTypeParameterBound[pointElementTypeParameter]
+            .type
+            .toString(),
+        'num');
+  }
+
+  test_externalType_nullability_dynamic_edge() async {
+    await analyze('''
+f(List<int> x) {}
+''');
+    var listElement = findNode.simple('List').staticElement as ClassElement;
+    var listElementTypeParameter = listElement.typeParameters[0];
+    var typeParameterBoundNode =
+        externalDecoratedTypeParameterBound[listElementTypeParameter].node;
+    var edge = edges
+        .where((e) =>
+            e.sourceNode == always &&
+            e.destinationNode == typeParameterBoundNode)
+        .single;
+    var origin = edgeOrigin[edge];
+    expect(origin.kind, EdgeOriginKind.alwaysNullableType);
+    expect(origin.element, same(listElementTypeParameter));
+    expect(origin.source, null);
+    expect(origin.node, null);
+  }
+
   test_fix_reason_edge() async {
     await analyze('''
 void f(int x) {
@@ -170,8 +215,9 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var entry =
-        fixes.entries.where((e) => e.key.location.offset == yUsage.end).single;
+    var entry = fixes.entries
+        .where((e) => e.key.locations.single.offset == yUsage.end)
+        .single;
     var reasons = entry.value;
     expect(reasons, hasLength(1));
     var edge = reasons[0] as EdgeInfo;
@@ -190,7 +236,7 @@ int x = null;
     var entries = fixes.entries.toList();
     expect(entries, hasLength(1));
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(entries.single.key.location.offset, intAnnotation.end);
+    expect(entries.single.key.locations.single.offset, intAnnotation.end);
     var reasons = entries.single.value;
     expect(reasons, hasLength(1));
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
@@ -284,6 +330,70 @@ main() {
     expect(kToL.isSatisfied, true);
   }
 
+  test_graphEdge_isUpstreamTriggered() async {
+    await analyze('''
+void f(int i, bool b) {
+  assert(i != null);
+  i.isEven; // unconditional
+  g(i);
+  h(i);
+  if (b) {
+    i.isEven; // conditional
+  }
+}
+void g(int/*?*/ j) {}
+void h(int k) {}
+''');
+    var iNode = explicitTypeNullability[findNode.typeAnnotation('int i')];
+    var jNode = explicitTypeNullability[findNode.typeAnnotation('int/*?*/ j')];
+    var kNode = explicitTypeNullability[findNode.typeAnnotation('int k')];
+    var assertNode = findNode.statement('assert');
+    var unconditionalUsageNode = findNode.simple('i.isEven; // unconditional');
+    var conditionalUsageNode = findNode.simple('i.isEven; // conditional');
+    var nonNullEdges = edgeOrigin.entries
+        .where((entry) =>
+            entry.key.sourceNode == iNode && entry.key.destinationNode == never)
+        .toList();
+    var assertEdge = nonNullEdges
+        .where((entry) => entry.value.node == assertNode)
+        .single
+        .key;
+    var unconditionalUsageEdge = edgeOrigin.entries
+        .where((entry) => entry.value.node == unconditionalUsageNode)
+        .single
+        .key;
+    var gCallEdge = edges
+        .where((e) => e.sourceNode == iNode && e.destinationNode == jNode)
+        .single;
+    var hCallEdge = edges
+        .where((e) => e.sourceNode == iNode && e.destinationNode == kNode)
+        .single;
+    var conditionalUsageEdge = edgeOrigin.entries
+        .where((entry) => entry.value.node == conditionalUsageNode)
+        .single
+        .key;
+    // Both assertEdge and unconditionalUsageEdge are upstream triggered because
+    // either of them would have been sufficient to cause i to be marked as
+    // non-nullable, even though only one of them was actually reported to have
+    // done so via propagationStep.
+    expect(propagationSteps.where((s) => s.node == iNode), hasLength(1));
+    expect(assertEdge.isUpstreamTriggered, true);
+    expect(unconditionalUsageEdge.isUpstreamTriggered, true);
+    // conditionalUsageEdge is not upstream triggered because it is a soft edge,
+    // so it would not have caused i to be marked as non-nullable.
+    expect(conditionalUsageEdge.isUpstreamTriggered, false);
+    // Even though gCallEdge is a hard edge, it is not upstream triggered
+    // because its destination node is nullable.
+    expect(gCallEdge.isHard, true);
+    expect(gCallEdge.isUpstreamTriggered, false);
+    // Even though hCallEdge is a hard edge and its destination node is
+    // non-nullable, it is not upstream triggered because k could have been made
+    // nullable without causing any problems, so the presence of this edge would
+    // not have caused i to be marked as non-nullable.
+    expect(hCallEdge.isHard, true);
+    expect(hCallEdge.isUpstreamTriggered, false);
+  }
+
   test_graphEdge_origin() async {
     await analyze('''
 int f(int x) => x;
@@ -294,6 +404,21 @@ int f(int x) => x;
         .where((e) => e.sourceNode == xNode && e.destinationNode == returnNode)
         .toList();
     var origin = edgeOrigin[matchingEdges.single];
+    expect(origin.source, source);
+    expect(origin.node, findNode.simple('x;'));
+  }
+
+  test_graphEdge_origin_dynamic_assignment() async {
+    await analyze('''
+int f(dynamic x) => x;
+''');
+    var xNode = explicitTypeNullability[findNode.typeAnnotation('dynamic x')];
+    var returnNode = explicitTypeNullability[findNode.typeAnnotation('int f')];
+    var matchingEdges = edges
+        .where((e) => e.sourceNode == xNode && e.destinationNode == returnNode)
+        .toList();
+    var origin = edgeOrigin[matchingEdges.single];
+    expect(origin.kind, EdgeOriginKind.dynamicAssignment);
     expect(origin.source, source);
     expect(origin.node, findNode.simple('x;'));
   }
@@ -349,7 +474,10 @@ int x = null;
     expect(always.isNullable, true);
     var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
     var edge = edges.where((e) => e.destinationNode == xNode).single;
-    expect(edge.sourceNode, always);
+    var edgeSource = edge.sourceNode;
+    var upstreamEdge =
+        edges.where((e) => e.destinationNode == edgeSource).single;
+    expect(upstreamEdge.sourceNode, always);
   }
 
   test_immutableNode_never() async {
@@ -435,6 +563,7 @@ int g() => 1;
         hasLength(1));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39370')
   test_implicitReturnType_functionTypeAlias() async {
     await analyze('''
 typedef F();
@@ -665,7 +794,7 @@ List<int> f() => g(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -692,7 +821,7 @@ List<int> f(C c) => c.g(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -717,7 +846,7 @@ C<int> f() => C(null);
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(edges.where((e) {
       var destination = e.destinationNode;
-      return e.sourceNode == always &&
+      return _isPointedToByAlways(e.sourceNode) &&
           destination is SubstitutionNodeInfo &&
           destination.innerNode == implicitInvocationTypeArgumentNode;
     }), hasLength(1));
@@ -738,7 +867,7 @@ List<int> f() => [null];
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitListLiteralElementNode),
         hasLength(1));
     expect(
@@ -762,7 +891,7 @@ Map<int, String> f() => {1: null};
         explicitTypeNullability[findNode.typeAnnotation('String')];
     expect(
         edges.where((e) =>
-            e.sourceNode == never &&
+            _pointsToNeverHard(e.sourceNode) &&
             e.destinationNode == implicitMapLiteralKeyNode),
         hasLength(1));
     expect(
@@ -772,7 +901,7 @@ Map<int, String> f() => {1: null};
         hasLength(1));
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitMapLiteralValueNode),
         hasLength(1));
     expect(
@@ -792,7 +921,7 @@ Set<int> f() => {null};
         explicitTypeNullability[findNode.typeAnnotation('int')];
     expect(
         edges.where((e) =>
-            e.sourceNode == always &&
+            _isPointedToByAlways(e.sourceNode) &&
             e.destinationNode == implicitSetLiteralElementNode),
         hasLength(1));
     expect(
@@ -817,7 +946,7 @@ List<Object> f(List l) => l;
         hasLength(1));
   }
 
-  test_propagationStep() async {
+  test_propagationStep_downstream() async {
     await analyze('''
 int x = null;
 ''');
@@ -825,8 +954,22 @@ int x = null;
     var step = propagationSteps.where((s) => s.node == xNode).single;
     expect(step.newState, NullabilityState.ordinaryNullable);
     expect(step.reason, StateChangeReason.downstream);
-    expect(step.edge.sourceNode, always);
+    expect(_isPointedToByAlways(step.edge.sourceNode), true);
     expect(step.edge.destinationNode, xNode);
+  }
+
+  test_propagationStep_upstream() async {
+    await analyze('''
+void f(int x) {
+  assert(x != null);
+}
+''');
+    var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
+    var step = propagationSteps.where((s) => s.node == xNode).single;
+    expect(step.newState, NullabilityState.nonNullable);
+    expect(step.reason, StateChangeReason.upstream);
+    expect(step.edge.sourceNode, xNode);
+    expect(step.edge.destinationNode, never);
   }
 
   test_substitutionNode() async {
@@ -845,5 +988,15 @@ voig g(C<int> x, int y) {
         explicitTypeNullability[findNode.typeAnnotation('int>')]);
     expect(sNode.outerNode,
         explicitTypeNullability[findNode.typeAnnotation('T t')]);
+  }
+
+  bool _isPointedToByAlways(NullabilityNodeInfo node) {
+    return edges
+        .any((e) => e.sourceNode == always && e.destinationNode == node);
+  }
+
+  bool _pointsToNeverHard(NullabilityNodeInfo node) {
+    return edges.any(
+        (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }
 }

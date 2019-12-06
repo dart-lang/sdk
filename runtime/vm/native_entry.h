@@ -33,39 +33,22 @@ class String;
   } while (0)
 #endif
 
+typedef RawObject* (*BootstrapNativeFunction)(Thread* thread,
+                                              Zone* zone,
+                                              NativeArguments* arguments);
+
 #define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
 #define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments);   \
-  void NATIVE_ENTRY_FUNCTION(name)(Dart_NativeArguments args) {                \
-    CHECK_STACK_ALIGNMENT;                                                     \
-    VERIFY_ON_TRANSITION;                                                      \
-    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);     \
-    /* Tell MemorySanitizer 'arguments' is initialized by generated code. */   \
-    MSAN_UNPOISON(arguments, sizeof(*arguments));                              \
+  RawObject* NATIVE_ENTRY_FUNCTION(name)(Thread * thread, Zone * zone,         \
+                                         NativeArguments * arguments) {        \
+    TRACE_NATIVE_CALL("%s", "" #name);                                         \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     /* Note: a longer type arguments vector may be passed */                   \
     ASSERT(arguments->NativeTypeArgCount() >= type_argument_count);            \
-    TRACE_NATIVE_CALL("%s", "" #name);                                         \
-    {                                                                          \
-      Thread* thread = arguments->thread();                                    \
-      ASSERT(thread == Thread::Current());                                     \
-      Isolate* isolate = thread->isolate();                                    \
-      TransitionGeneratedToVM transition(thread);                              \
-      StackZone zone(thread);                                                  \
-      /* Be careful holding return_value_unsafe without a handle here. */      \
-      /* A return of Object::sentinel means the return value has already */    \
-      /* been set. */                                                          \
-      RawObject* return_value_unsafe =                                         \
-          DN_Helper##name(isolate, thread, zone.GetZone(), arguments);         \
-      if (return_value_unsafe != Object::sentinel().raw()) {                   \
-        ASSERT(return_value_unsafe->IsDartInstance());                         \
-        arguments->SetReturnUnsafe(return_value_unsafe);                       \
-      }                                                                        \
-      DEOPTIMIZE_ALOT;                                                         \
-    }                                                                          \
-    VERIFY_ON_TRANSITION;                                                      \
+    return DN_Helper##name(thread->isolate(), thread, zone, arguments);        \
   }                                                                            \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments)

@@ -247,6 +247,10 @@ class FindNode {
     return _node(search, (n) => n is SuperExpression);
   }
 
+  SuperConstructorInvocation superConstructorInvocation(String search) {
+    return _node(search, (n) => n is SuperConstructorInvocation);
+  }
+
   SwitchStatement switchStatement(String search) {
     return _node(search, (n) => n is SwitchStatement);
   }

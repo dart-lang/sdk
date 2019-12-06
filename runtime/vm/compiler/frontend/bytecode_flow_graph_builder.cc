@@ -441,7 +441,6 @@ ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
   for (intptr_t i = count - 1; i >= 0; --i) {
     ASSERT(!IsStackEmpty());
     Definition* arg_def = B->stack_->definition();
-    ASSERT(!arg_def->HasSSATemp());
     ASSERT(arg_def->temp_index() >= i);
 
     PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
@@ -697,7 +696,6 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
 
   const intptr_t expected_num_type_args = DecodeOperandA().value();
   LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
-  ASSERT(function().IsGeneric());
 
   if (throw_no_such_method_ == nullptr) {
     throw_no_such_method_ = B->BuildThrowNoSuchMethod();
@@ -844,8 +842,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  switch (recognized_kind) {
+  switch (target.recognized_kind()) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       BuildFfiAsFunction();
       return;
@@ -1066,13 +1063,9 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   // A DebugStepCheck is performed as part of the calling stub.
 
-  const UnlinkedCall& selector =
-      UnlinkedCall::Cast(ConstantAt(DecodeOperandD()).value());
-
+  const String& name = String::Cast(ConstantAt(DecodeOperandD()).value());
   const ArgumentsDescriptor arg_desc(
-      Array::Handle(Z, selector.args_descriptor()));
-
-  const String& name = String::ZoneHandle(Z, selector.target_name());
+      Array::Cast(ConstantAt(DecodeOperandD(), 1).value()));
 
   Token::Kind token_kind;
   intptr_t checked_argument_count;
@@ -1218,13 +1211,15 @@ void BytecodeFlowGraphBuilder::BuildStoreFieldTOS() {
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Stores to _Closure fields are lower-level.
-    code_ += B->StoreInstanceField(position_, ClosureSlotByField(field));
+    code_ +=
+        B->StoreInstanceField(position_, ClosureSlotByField(field),
+                              StoreInstanceFieldInstr::Kind::kInitializing);
   } else {
     // The rest of the StoreFieldTOS are for field initializers.
     // TODO(alexmarkov): Consider adding a flag to StoreFieldTOS or even
     // adding a separate bytecode instruction.
-    code_ += B->StoreInstanceFieldGuarded(field,
-                                          /* is_initialization_store = */ true);
+    code_ += B->StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
   }
 }
 
@@ -1251,7 +1246,8 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 void BytecodeFlowGraphBuilder::BuildStoreContextParent() {
   LoadStackSlots(2);
 
-  code_ += B->StoreInstanceField(position_, Slot::Context_parent());
+  code_ += B->StoreInstanceField(position_, Slot::Context_parent(),
+                                 StoreInstanceFieldInstr::Kind::kInitializing);
 }
 
 void BytecodeFlowGraphBuilder::BuildLoadContextParent() {
@@ -1315,13 +1311,39 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildInitLateField() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  LoadStackSlots(1);
+  Operand cp_index = DecodeOperandD();
+
+  const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
+  ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
+         field.Offset());
+
+  code_ += B->Constant(Object::sentinel());
+  code_ += B->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+}
+
+void BytecodeFlowGraphBuilder::BuildPushUninitializedSentinel() {
+  code_ += B->Constant(Object::sentinel());
+}
+
+void BytecodeFlowGraphBuilder::BuildJumpIfInitialized() {
+  code_ += B->Constant(Object::sentinel());
+  BuildJumpIfStrictCompare(Token::kNE);
+}
+
 void BytecodeFlowGraphBuilder::BuildLoadStatic() {
   const Constant operand = ConstantAt(DecodeOperandD());
   const auto& field = Field::Cast(operand.value());
   // All constant expressions (including access to const fields) are evaluated
   // in bytecode. However, values of injected cid fields are only available in
   // the VM. In such case, evaluate const fields with known value here.
-  if (field.is_const() && !field.has_initializer()) {
+  if (field.is_const() && !field.has_nontrivial_initializer()) {
     const auto& value = Object::ZoneHandle(Z, field.StaticValue());
     ASSERT((value.raw() != Object::sentinel().raw()) &&
            (value.raw() != Object::transition_sentinel().raw()));
@@ -1329,18 +1351,6 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     return;
   }
   PushConstant(operand);
-  code_ += B->LoadStaticField();
-}
-
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
-              "Cleanup PushStatic bytecode instruction");
-void BytecodeFlowGraphBuilder::BuildPushStatic() {
-  // Note: Field object is both pushed into the stack and
-  // available in constant pool entry D.
-  // TODO(alexmarkov): clean this up. If we stop pushing field object
-  // explicitly, we might need the following code to get it from constant
-  // pool: PushConstant(ConstantAt(DecodeOperandD()));
-
   code_ += B->LoadStaticField();
 }
 
@@ -1424,7 +1434,7 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   code_ <<= instr;
 }
 
-void BytecodeFlowGraphBuilder::BuildCheckReceiverForNull() {
+void BytecodeFlowGraphBuilder::BuildNullCheck() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -1658,7 +1668,15 @@ void BytecodeFlowGraphBuilder::BuildReturnTOS() {
   BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
-  code_ += B->Return(position_);
+  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex;
+  if (function().IsAsyncClosure() || function().IsAsyncGenClosure()) {
+    if (pc_ == last_yield_point_pc_) {
+      // The return might actually be a yield point, if so we need to attach the
+      // yield index to the return instruction.
+      yield_index = last_yield_point_index_;
+    }
+  }
+  code_ += B->Return(position_, yield_index);
   ASSERT(IsStackEmpty());
 }
 
@@ -1932,9 +1950,6 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
 //             static tearoff
 // <type args> => [NativeSignatureType]
 void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
   const TypeArguments& type_args =
       TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
   ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
@@ -1956,7 +1971,6 @@ void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
                                   native_sig, target, exceptional_return));
   code_ += B->Constant(result);
   code_ += B->DropTempsPreserveTop(3);
-#endif
 }
 
 void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {
@@ -2012,8 +2026,7 @@ bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-      return MethodRecognizer::RecognizeKind(function()) ==
-             MethodRecognizer::kListFactory;
+      return function().recognized_kind() == MethodRecognizer::kListFactory;
 
     default:
       return false;
@@ -2322,6 +2335,10 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     while (update_position &&
            static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
+      if (source_pos_iter.IsYieldPoint()) {
+        last_yield_point_pc_ = source_pos_iter.PcOffset();
+        ++last_yield_point_index_;
+      }
       update_position = source_pos_iter.MoveNext();
     }
 

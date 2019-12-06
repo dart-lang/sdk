@@ -186,14 +186,15 @@ Fragment BaseFlowGraphBuilder::BranchIfStrictEqual(
   return Fragment(branch).closed();
 }
 
-Fragment BaseFlowGraphBuilder::Return(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::Return(TokenPosition position,
+                                      intptr_t yield_index) {
   Fragment instructions;
 
   Value* value = Pop();
   ASSERT(stack_ == nullptr);
 
   ReturnInstr* return_instr =
-      new (Z) ReturnInstr(position, value, GetNextDeoptId());
+      new (Z) ReturnInstr(position, value, GetNextDeoptId(), yield_index);
   if (exit_collector_ != nullptr) exit_collector_->AddExit(return_instr);
 
   instructions <<= return_instr;
@@ -478,19 +479,22 @@ const Field& BaseFlowGraphBuilder::MayCloneField(const Field& field) {
 Fragment BaseFlowGraphBuilder::StoreInstanceField(
     TokenPosition position,
     const Slot& field,
-    StoreBarrierType emit_store_barrier) {
+    StoreInstanceFieldInstr::Kind
+        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, Pop(), value, emit_store_barrier, position);
+      field, Pop(), value, emit_store_barrier, position, kind);
   return Fragment(store);
 }
 
 Fragment BaseFlowGraphBuilder::StoreInstanceField(
     const Field& field,
-    bool is_initialization_store,
+    StoreInstanceFieldInstr::Kind
+        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
@@ -499,16 +503,15 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
 
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       MayCloneField(field), Pop(), value, emit_store_barrier,
-      TokenPosition::kNoSource, parsed_function_,
-      is_initialization_store ? StoreInstanceFieldInstr::Kind::kInitializing
-                              : StoreInstanceFieldInstr::Kind::kOther);
+      TokenPosition::kNoSource, parsed_function_, kind);
 
   return Fragment(store);
 }
 
 Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
     const Field& field,
-    bool is_initialization_store) {
+    StoreInstanceFieldInstr::Kind
+        kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(field);
   if (I->use_field_guards()) {
@@ -537,7 +540,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
           new (Z) GuardFieldTypeInstr(Pop(), field_clone, GetNextDeoptId());
     }
   }
-  instructions += StoreInstanceField(field_clone, is_initialization_store);
+  instructions += StoreInstanceField(field_clone, kind);
   return instructions;
 }
 
@@ -628,10 +631,15 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   variable->set_index(
       VariableIndex(-parsed_function_->num_stack_locals() - index));
 
-  // The value has uses as if it were a local variable.  Mark the definition
-  // as used so that its temp index will not be cleared (causing it to never
-  // be materialized in the expression stack).
-  stack_->definition()->set_ssa_temp_index(0);
+  // The value on top of the stack has uses as if it were a local variable.
+  // Mark all definitions on the stack as used so that their temp indices
+  // will not be cleared (causing them to never be materialized in the
+  // expression stack and skew stack depth).
+  for (Value* item = stack_; item != nullptr; item = item->next_use()) {
+    if (!item->definition()->IsPushArgument()) {
+      item->definition()->set_ssa_temp_index(0);
+    }
+  }
 
   return variable;
 }
@@ -933,12 +941,13 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
 
   code += LoadLocal(closure);
   code += LoadLocal(context);
-  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context());
+  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context(),
+                             StoreInstanceFieldInstr::Kind::kInitializing);
 
   code += LoadLocal(closure);
   code += Constant(target);
-  code +=
-      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function());
+  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function(),
+                             StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Drop address and context.
   code += DropTempsPreserveTop(2);

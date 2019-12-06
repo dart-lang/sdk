@@ -7,8 +7,10 @@
 #include "vm/compiler/backend/il_deserializer.h"
 
 #include "vm/compiler/backend/il_serializer.h"
+#include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
+#include "vm/json_writer.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -40,11 +42,34 @@ struct RoundTripResults : public ValueObject {
   SExpression* error_sexp = nullptr;
 };
 
-static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
-  THR_Print("Results of round trip serialization: {\"function\":\"%s\"",
-            results.function.ToFullyQualifiedCString());
-  THR_Print(",\"success\":%s", results.success ? "true" : "false");
+// Return a textual description of how to find the sub-expression [to_find]
+// inside a [root] S-Expression.
+static const char* GetSExpressionPosition(Zone* zone,
+                                          SExpression* root,
+                                          SExpression* to_find) {
+  // The S-expression to find _is_ the root, so no description is needed.
+  if (root == to_find) return "";
+  // The S-expression to find cannot be a sub-expression of the given root,
+  // so return nullptr to signal this.
+  if (!root->IsList()) return nullptr;
+  auto const list = root->AsList();
+  for (intptr_t i = 0, n = list->Length(); i < n; i++) {
+    if (auto const str = GetSExpressionPosition(zone, list->At(i), to_find)) {
+      return OS::SCreate(zone, "element %" Pd "%s%s", i,
+                         *str == '\0' ? "" : " -> ", str);
+    }
+  }
+  auto it = list->ExtraIterator();
+  while (auto kv = it.Next()) {
+    if (auto const str = GetSExpressionPosition(zone, kv->value, to_find)) {
+      return OS::SCreate(zone, "label %s%s%s", kv->key,
+                         *str == '\0' ? "" : " -> ", str);
+    }
+  }
+  return nullptr;
+}
 
+static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   // A few checks to make sure we'll print out enough info. First, if there are
   // no unhandled instructions, then we should have serialized the flow graph.
   ASSERT(!results.unhandled.is_empty() || results.serialized != nullptr);
@@ -53,6 +78,12 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   ASSERT(results.success || !results.unhandled.is_empty() ||
          (results.error_message != nullptr && results.error_sexp != nullptr));
 
+  JSONWriter js;
+
+  js.OpenObject();
+  js.PrintProperty("function", results.function.ToFullyQualifiedCString());
+  js.PrintPropertyBool("success", results.success);
+
   if (!results.unhandled.is_empty()) {
     CStringMap<intptr_t> count_map(zone);
     for (auto inst : results.unhandled) {
@@ -60,44 +91,38 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
       auto const old_count = count_map.LookupValue(name);
       count_map.Update({name, old_count + 1});
     }
-    THR_Print(",\"unhandled\":{");
+
     auto count_it = count_map.GetIterator();
-    auto first_kv = count_it.Next();
-    THR_Print("\"%s\":%" Pd "", first_kv->key, first_kv->value);
+    js.OpenObject("unhandled");
     while (auto kv = count_it.Next()) {
-      THR_Print(",\"%s\":%" Pd "", kv->key, kv->value);
+      js.PrintProperty64(kv->key, kv->value);
     }
-    THR_Print("}");
+    js.CloseObject();
   }
+
   if (results.serialized != nullptr) {
     TextBuffer buf(1000);
     results.serialized->SerializeTo(zone, &buf, "");
-    // Now that the S-expression has been serialized to the TextBuffer, we now
-    // want to take that version and escape it since we will use it as the
-    // contents of a JSON string. Thankfully, escaping can be done via
-    // TextBuffer::AddEscapedString, so we steal the current buffer and then
-    // re-print it in escaped form into the now-cleared buffer.
-    char* const unescaped_sexp = buf.Steal();
-    buf.AddEscapedString(unescaped_sexp);
-    free(unescaped_sexp);
-    THR_Print(",\"serialized\":\"%s\"", buf.buf());
+    js.PrintProperty("serialized", buf.buf());
   }
+
   if (results.error_message != nullptr) {
-    TextBuffer buf(1000);
+    js.OpenObject("error");
+    js.PrintProperty("message", results.error_message);
+
     ASSERT(results.error_sexp != nullptr);
-    // Same serialized S-expression juggling as in the results.serialized case.
-    // We also escape the error message, in case it included quotes.
-    buf.AddEscapedString(results.error_message);
-    char* const escaped_message = buf.Steal();
+    TextBuffer buf(1000);
     results.error_sexp->SerializeTo(zone, &buf, "");
-    char* const unescaped_sexp = buf.Steal();
-    buf.AddEscapedString(unescaped_sexp);
-    free(unescaped_sexp);
-    THR_Print(",\"error\":{\"message\":\"%s\",\"expression\":\"%s\"}",
-              escaped_message, buf.buf());
-    free(escaped_message);
+    js.PrintProperty("expression", buf.buf());
+
+    auto const sexp_position =
+        GetSExpressionPosition(zone, results.serialized, results.error_sexp);
+    js.PrintProperty("path", sexp_position);
+    js.CloseObject();
   }
-  THR_Print("}\n");
+
+  js.CloseObject();
+  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buf());
 }
 
 void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
@@ -149,6 +174,10 @@ void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
       if (FLAG_trace_round_trip_serialization) {
         THR_Print("Failure during deserialization: %s\n", d.error_message());
         THR_Print("At S-expression %s\n", d.error_sexp()->ToCString(zone));
+        if (auto const pos = GetSExpressionPosition(zone, results.serialized,
+                                                    d.error_sexp())) {
+          THR_Print("Path from root: %s\n", pos);
+        }
       }
       results.error_message = d.error_message();
       results.error_sexp = d.error_sexp();
@@ -661,14 +690,7 @@ bool FlowGraphDeserializer::ParseBlockContents(SExpList* list,
   if (pos < 2) return false;
   Instruction* last_inst = current_block_;
   for (intptr_t i = pos, n = list->Length(); i < n; i++) {
-    auto const entry = CheckTaggedList(Retrieve(list, i));
-    if (entry == nullptr) return false;
-    Instruction* inst = nullptr;
-    if (entry->Tag()->Equals("def")) {
-      inst = ParseDefinition(entry);
-    } else {
-      inst = ParseInstruction(entry);
-    }
+    auto const inst = ParseInstruction(CheckTaggedList(Retrieve(list, i)));
     if (inst == nullptr) return false;
     last_inst = last_inst->AppendInstruction(inst);
   }
@@ -690,10 +712,29 @@ bool FlowGraphDeserializer::ParseBlockContents(SExpList* list,
 
 bool FlowGraphDeserializer::ParseDefinitionWithParsedBody(SExpList* list,
                                                           Definition* def) {
-  intptr_t index;
+  if (auto const type_sexp =
+          CheckTaggedList(list->ExtraLookupValue("type"), "CompileType")) {
+    CompileType* typ = ParseCompileType(type_sexp);
+    if (typ == nullptr) return false;
+    def->UpdateType(*typ);
+  }
+
+  if (auto const range_sexp =
+          CheckTaggedList(list->ExtraLookupValue("range"), "Range")) {
+    Range range;
+    if (!ParseRange(range_sexp, &range)) return false;
+    def->set_range(range);
+  }
+
   auto const name_sexp = CheckSymbol(Retrieve(list, 1));
   if (name_sexp == nullptr) return false;
 
+  // If the name is "_", this is a subclass of Definition where there's no real
+  // "result" that's being bound. We were just here to add Definition-specific
+  // extra info.
+  if (name_sexp->Equals("_")) return true;
+
+  intptr_t index;
   if (ParseSSATemp(name_sexp, &index)) {
     if (definition_map_.HasKey(index)) {
       StoreError(list, "multiple definitions for the same SSA index");
@@ -707,21 +748,16 @@ bool FlowGraphDeserializer::ParseDefinitionWithParsedBody(SExpList* list,
     return false;
   }
 
-  if (auto const type_sexp =
-          CheckTaggedList(list->ExtraLookupValue("type"), "CompileType")) {
-    CompileType* typ = ParseCompileType(type_sexp);
-    if (typ == nullptr) return false;
-    def->UpdateType(*typ);
-  }
-
   definition_map_.Insert(index, def);
   if (!FixPendingValues(index, def)) return false;
   return true;
 }
 
 Definition* FlowGraphDeserializer::ParseDefinition(SExpList* list) {
+  if (list == nullptr) return nullptr;
+  ASSERT(list->Tag() != nullptr && list->Tag()->Equals("def"));
   auto const inst_sexp = CheckTaggedList(Retrieve(list, 2));
-  Instruction* const inst = ParseInstruction(inst_sexp);
+  auto const inst = ParseInstruction(inst_sexp);
   if (inst == nullptr) return nullptr;
   if (auto const def = inst->AsDefinition()) {
     if (!ParseDefinitionWithParsedBody(list, def)) return nullptr;
@@ -735,6 +771,7 @@ Definition* FlowGraphDeserializer::ParseDefinition(SExpList* list) {
 Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
   if (list == nullptr) return nullptr;
   auto const tag = list->Tag();
+  if (tag->Equals("def")) return ParseDefinition(list);
 
   intptr_t deopt_id = DeoptId::kNone;
   if (auto const deopt_int = CheckInteger(list->ExtraLookupValue("deopt_id"))) {
@@ -772,6 +809,10 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
 
   if (inst == nullptr) return nullptr;
   if (env != nullptr) env->DeepCopyTo(zone(), inst);
+  if (auto const lifetime_sexp =
+          CheckInteger(list->ExtraLookupValue("lifetime_position"))) {
+    inst->set_lifetime_position(lifetime_sexp->value());
+  }
   return inst;
 }
 
@@ -841,6 +882,14 @@ AllocateObjectInstr* FlowGraphDeserializer::DeserializeAllocateObject(
     auto& closure_function = Function::Handle(zone());
     if (!ParseFunction(closure_sexp, &closure_function)) return nullptr;
     inst->set_closure_function(closure_function);
+  }
+
+  if (auto const ident_sexp = CheckSymbol(sexp->ExtraLookupValue("identity"))) {
+    auto id = AliasIdentity::Unknown();
+    if (!AliasIdentity::Parse(ident_sexp->value(), &id)) {
+      return nullptr;
+    }
+    inst->SetIdentity(id);
   }
 
   return inst;
@@ -1768,7 +1817,7 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
   // This isn't necessary the hash value we will have in the new FlowGraph, but
   // it will be how this type is referred to by TypeRefs in the serialized one.
   auto const old_hash = is_recursive ? hash_sexp->value() : 0;
-  ZoneGrowableArray<TypeRef*>* pending_typerefs;
+  ZoneGrowableArray<TypeRef*>* pending_typerefs = nullptr;
   if (is_recursive) {
     if (pending_typeref_map_.LookupValue(old_hash) != nullptr) {
       StoreError(sexp, "already parsing a type with hash %" Pd64 "",
@@ -1785,17 +1834,23 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
     StoreError(list, "non-class types not currently handled");
     return false;
   }
-  auto& cls = Class::ZoneHandle(zone());
-  if (!ParseClass(cls_sexp, &cls)) return false;
-  auto& type_args = TypeArguments::ZoneHandle(zone());
-  if (const auto ta_sexp = list->ExtraLookupValue("type_args")) {
-    if (!ParseTypeArguments(ta_sexp, &type_args)) return false;
-  }
   TokenPosition token_pos = TokenPosition::kNoSource;
   if (const auto pos_sexp = CheckInteger(list->ExtraLookupValue("token_pos"))) {
     token_pos = TokenPosition(pos_sexp->value());
   }
-  *out = Type::New(cls, type_args, token_pos, Heap::kOld);
+  auto type_args_ptr = &Object::null_type_arguments();
+  if (const auto ta_sexp = list->ExtraLookupValue("type_args")) {
+    // ParseTypeArguments may re-enter ParseType after setting the contents of
+    // the passed in handle, so we need to allocate a new handle here.
+    auto& type_args = TypeArguments::Handle(zone());
+    if (!ParseTypeArguments(ta_sexp, &type_args)) return false;
+    type_args_ptr = &type_args;
+  }
+  // Guaranteed not to re-enter ParseType.
+  if (!ParseClass(cls_sexp, &type_class_)) return false;
+  const Nullability nullability =
+      type_class_.IsNullClass() ? Nullability::kNullable : Nullability::kLegacy;
+  *out = Type::New(type_class_, *type_args_ptr, token_pos, nullability);
   auto& type = Type::Cast(*out);
   if (auto const sig_sexp = list->ExtraLookupValue("signature")) {
     auto& function = Function::Handle(zone());
@@ -1892,22 +1947,20 @@ bool FlowGraphDeserializer::ParseTypeParameter(SExpList* list, Object* out) {
     type_param_class_ = table->At(cid);
     cls = &type_param_class_;
   } else {
+    // If we weren't given an explicit source, check in the function for this
+    // flow graph.
     ASSERT(parsed_function_ != nullptr);
-    // If we weren't given an explicit source, check in the flow graph's
-    // function and in its owning class.
     function = &parsed_function_->function();
-    type_param_class_ = function->Owner();
-    cls = &type_param_class_;
   }
 
   auto const name_sexp = CheckSymbol(Retrieve(list, 1));
   if (name_sexp == nullptr) return false;
   tmp_string_ = String::New(name_sexp->value());
 
+  *out = TypeParameter::null();
   if (function != nullptr) {
     *out = function->LookupTypeParameter(tmp_string_, nullptr);
-  }
-  if (cls != nullptr && out->IsNull()) {
+  } else if (cls != nullptr) {
     *out = cls->LookupTypeParameter(tmp_string_);
   }
   if (out->IsNull()) {
@@ -2146,6 +2199,54 @@ bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
     default:
       *out = &Slot::GetNativeSlot(kind);
       break;
+  }
+  return true;
+}
+
+bool FlowGraphDeserializer::ParseRange(SExpList* list, Range* out) {
+  if (list == nullptr) return false;
+  RangeBoundary min, max;
+  if (!ParseRangeBoundary(Retrieve(list, 1), &min)) return false;
+  if (list->Length() == 2) {
+    max = min;
+  } else {
+    if (!ParseRangeBoundary(Retrieve(list, 2), &max)) return false;
+  }
+  out->min_ = min;
+  out->max_ = max;
+  return true;
+}
+
+bool FlowGraphDeserializer::ParseRangeBoundary(SExpression* sexp,
+                                               RangeBoundary* out) {
+  if (sexp == nullptr) return false;
+  if (auto const int_sexp = sexp->AsInteger()) {
+    out->kind_ = RangeBoundary::Kind::kConstant;
+    out->value_ = int_sexp->value();
+  } else if (auto const sym_sexp = sexp->AsSymbol()) {
+    if (!RangeBoundary::ParseKind(sym_sexp->value(), &out->kind_)) return false;
+  } else if (auto const list_sexp = sexp->AsList()) {
+    intptr_t index;
+    if (!ParseUse(CheckSymbol(Retrieve(list_sexp, 1)), &index)) return false;
+    auto const def = definition_map_.LookupValue(index);
+    if (def == nullptr) {
+      StoreError(list_sexp, "no definition for symbolic range boundary");
+      return false;
+    }
+    out->kind_ = RangeBoundary::Kind::kSymbol;
+    out->value_ = reinterpret_cast<intptr_t>(def);
+    if (auto const offset_sexp =
+            CheckInteger(list_sexp->ExtraLookupValue("offset"))) {
+      auto const offset = offset_sexp->value();
+      if (!RangeBoundary::IsValidOffsetForSymbolicRangeBoundary(offset)) {
+        StoreError(sexp, "invalid offset for symbolic range boundary");
+        return false;
+      }
+      out->offset_ = offset;
+    }
+  } else {
+    StoreError(sexp, "unexpected value for range boundary");
+    return false;
   }
   return true;
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.io;
 
 /**
@@ -704,11 +706,13 @@ abstract class RandomAccessFile {
   Future<int> readInto(List<int> buffer, [int start = 0, int end]);
 
   /**
-   * Synchronously reads into an existing [List<int>] from the file. If [start]
-   * is present, the bytes will be filled into [buffer] from at index [start],
-   * otherwise index 0.  If [end] is present, the [end] - [start] bytes will be
-   * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
-   * nothing happens.
+   * Synchronously reads into an existing [List<int>] from the file and returns
+   * the number of bytes read.
+   *
+   * If [start] is present, the bytes will be filled into [buffer] from at
+   * index [start], otherwise index 0.  If [end] is present, the
+   * [end] - [start] bytes will be read into [buffer], otherwise up to
+   * [buffer.length]. If [end] == [start] nothing happens.
    *
    * Throws a [FileSystemException] if the operation fails.
    */

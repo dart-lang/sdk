@@ -78,6 +78,7 @@ Future<Null> testeeBefore() async {
     expect(result['breakpoints'].length, isZero);
     expect(result['_heaps']['new']['type'], equals('HeapSpace'));
     expect(result['_heaps']['old']['type'], equals('HeapSpace'));
+    expect(result['isolate_group']['type'], equals('@IsolateGroup'));
   } catch (e) {
     fail('invalid request: $e');
   }

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -338,9 +337,7 @@ class _IndexAssembler {
    * [_ElementInfo.id] is filled by [assemble] during final sorting.
    */
   _ElementInfo _getElementInfo(Element element) {
-    if (element is Member) {
-      element = (element as Member).baseElement;
-    }
+    element = element.declaration;
     return elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitId(unitElement);

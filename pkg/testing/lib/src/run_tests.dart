@@ -188,5 +188,4 @@ Future<void> runTests(Map<String, Function> tests) =>
         const StdoutLogger()
             .logTestComplete(++completed, 0, tests.length, null, null);
       }
-      const StdoutLogger().logSuiteComplete();
     });

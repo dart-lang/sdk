@@ -602,83 +602,10 @@ void StubCodeCompiler::GenerateCallAutoScopeNativeStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
-  const intptr_t thread_offset = target::NativeArguments::thread_offset();
-  const intptr_t argc_tag_offset = target::NativeArguments::argc_tag_offset();
-  const intptr_t argv_offset = target::NativeArguments::argv_offset();
-  const intptr_t retval_offset = target::NativeArguments::retval_offset();
-
-  __ EnterStubFrame();
-
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to native code.
-  __ StoreToOffset(kWord, FP, THR,
-                   target::Thread::top_exit_frame_info_offset());
-
-#if defined(DEBUG)
-  {
-    Label ok;
-    // Check that we are always entering from Dart code.
-    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
-    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
-    __ b(&ok, EQ);
-    __ Stop("Not coming from Dart code.");
-    __ Bind(&ok);
-  }
-#endif
-
-  // Mark that the thread is executing native code.
-  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
-
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // R0) and align frame before entering the C++ world.
-  __ ReserveAlignedFrameSpace(target::NativeArguments::StructSize());
-
-  // Initialize target::NativeArguments structure and call native function.
-  // Registers R0, R1, R2, and R3 are used.
-
-  ASSERT(thread_offset == 0 * target::kWordSize);
-  // Set thread in NativeArgs.
-  __ mov(R0, Operand(THR));
-
-  // There are no native calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  ASSERT(argc_tag_offset == 1 * target::kWordSize);
-  // Set argc in target::NativeArguments: R1 already contains argc.
-
-  ASSERT(argv_offset == 2 * target::kWordSize);
-  // Set argv in target::NativeArguments: R2 already contains argv.
-
-  // Set retval in NativeArgs.
-  ASSERT(retval_offset == 3 * target::kWordSize);
-  __ add(R3, FP, Operand(2 * target::kWordSize));
-
-  // Passing the structure by value as in runtime calls would require changing
-  // Dart API for native functions.
-  // For now, space is reserved on the stack and we pass a pointer to it.
-  __ stm(IA, SP, (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
-  __ mov(R0, Operand(SP));  // Pass the pointer to the target::NativeArguments.
-
-  // Call native function or redirection via simulator.
-  __ blx(R9);
-
-  // Mark that the thread is executing Dart code.
-  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
-  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
-
-  // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, THR,
-                   target::Thread::top_exit_frame_info_offset());
-
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  }
-
-  __ LeaveStubFrame();
-  __ Ret();
+  GenerateCallNativeWithWrapperStub(
+      assembler,
+      Address(THR,
+              target::Thread::bootstrap_native_wrapper_entry_point_offset()));
 }
 
 // Input parameters:
@@ -1123,13 +1050,11 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R3, cid));
   __ str(NOTFP, Address(THR, target::Thread::top_offset()));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
-  // R3: allocation stats address.
   // NOTFP: new object end address.
   // R9: allocation size.
   {
@@ -1161,13 +1086,11 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
-  // R3: allocation stats address.
   // R8, R9: null
   // R4: iterator which initially points to the start of the variable
   // data area to be initialized.
   // NOTFP: new object end address.
   // R9: allocation size.
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R3, R9));
 
   __ LoadObject(R8, NullObject());
   __ mov(R9, Operand(R8));
@@ -1518,7 +1441,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
     __ str(R3, Address(THR, target::Thread::top_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -1527,7 +1449,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
     __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
@@ -1549,7 +1470,6 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables as integer value (not object).
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
 
     // Setup the parent field.
@@ -1557,8 +1477,8 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R4: allocation stats address.
     __ LoadObject(R8, NullObject());
+    __ MoveRegister(R9, R8);  // Needed for InitializeFieldsNoBarrier.
     __ StoreIntoObjectNoBarrier(
         R0, FieldAddress(R0, target::Context::parent_offset()), R8);
 
@@ -1568,12 +1488,10 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R8, R9: raw null.
-    // R4: allocation stats address.
     Label loop;
     __ AddImmediate(NOTFP, R0,
                     target::Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, NOTFP, R3, R8, R9);
-    NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1658,27 +1576,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Save values being destroyed.
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));
 
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-// TODO(21263): Implement 'swp' and use it below.
-#if !defined(USING_SIMULATOR)
-    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
-#endif
-    __ ldr(R2, FieldAddress(R1, target::Object::tags_offset()));
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
-    __ str(R2, FieldAddress(R1, target::Object::tags_offset()));
-  } else {
-    // Atomically set the remembered bit of the object header.
-    ASSERT(target::Object::tags_offset() == 0);
-    __ sub(R3, R1, Operand(kHeapObjectTag));
-    // R3: Untagged address of header word (ldrex/strex do not support offsets).
-    Label retry;
-    __ Bind(&retry);
-    __ ldrex(R2, R3);
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
-    __ strex(R4, R2, R3);
-    __ cmp(R4, Operand(1));
-    __ b(&retry, EQ);
-  }
+  // Atomically set the remembered bit of the object header.
+  ASSERT(target::Object::tags_offset() == 0);
+  __ sub(R3, R1, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldrex/strex do not support offsets).
+  Label retry;
+  __ Bind(&retry);
+  __ ldrex(R2, R3);
+  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
+  __ strex(R4, R2, R3);
+  __ cmp(R4, Operand(1));
+  __ b(&retry, EQ);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1717,28 +1625,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
 
   Label marking_retry, lost_race, marking_overflow;
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-// TODO(21263): Implement 'swp' and use it below.
-#if !defined(USING_SIMULATOR)
-    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
-#endif
-    __ ldr(R2, FieldAddress(R0, target::Object::tags_offset()));
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ str(R2, FieldAddress(R0, target::Object::tags_offset()));
-  } else {
-    // Atomically clear kOldAndNotMarkedBit.
-    ASSERT(target::Object::tags_offset() == 0);
-    __ sub(R3, R0, Operand(kHeapObjectTag));
-    // R3: Untagged address of header word (ldrex/strex do not support offsets).
-    __ Bind(&marking_retry);
-    __ ldrex(R2, R3);
-    __ tst(R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ b(&lost_race, ZERO);
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ strex(R4, R2, R3);
-    __ cmp(R4, Operand(1));
-    __ b(&marking_retry, EQ);
-  }
+  // Atomically clear kOldAndNotMarkedBit.
+  ASSERT(target::Object::tags_offset() == 0);
+  __ sub(R3, R0, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldrex/strex do not support offsets).
+  __ Bind(&marking_retry);
+  __ ldrex(R2, R3);
+  __ tst(R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ b(&lost_race, ZERO);
+  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ strex(R4, R2, R3);
+  __ cmp(R4, Operand(1));
+  __ b(&marking_retry, EQ);
 
   __ ldr(R4, Address(THR, target::Thread::marking_stack_block_offset()));
   __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));
@@ -1868,12 +1766,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     }
     __ str(kEndOfInstanceReg, Address(THR, target::Thread::top_offset()));
 
-    // Load the address of the allocation stats table. We split up the load
-    // and the increment so that the dependent load is not too nearby.
-    NOT_IN_PRODUCT(static Register kAllocationStatsReg = R4);
-    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(kAllocationStatsReg,
-                                                 target::Class::GetId(cls)));
-
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
     const uint32_t tags = target::MakeTagWordForNewSpaceObject(
@@ -1906,10 +1798,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       __ StoreIntoObjectNoBarrier(
           kInstanceReg, FieldAddress(kInstanceReg, offset), kTypeArgumentsReg);
     }
-
-    // Update allocation stats.
-    NOT_IN_PRODUCT(__ IncrementAllocationStats(kAllocationStatsReg,
-                                               target::Class::GetId(cls)));
 
     __ Ret();
     __ Bind(&slow_case);

@@ -21,6 +21,7 @@ src/api_prototype/compiler_options/Exports: Fail
 src/api_prototype/constant_evaluator/Exports: Fail
 src/api_prototype/front_end/Exports: Fail
 src/api_prototype/incremental_kernel_generator/Exports: Fail
+src/fasta/fasta_codes/Exports: Fail
 src/fasta/kernel/constant_evaluator/ExplicitType: Pass
 src/fasta/kernel/kernel_api/Exports: Fail
 src/fasta/kernel/kernel_ast_api/Exports: Fail

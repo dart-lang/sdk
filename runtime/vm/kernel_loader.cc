@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "vm/compiler/frontend/constant_evaluator.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
@@ -157,9 +157,7 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
   class_index_offset_ = procedure_index_offset_ - 4 - (class_count_ + 1) * 4;
 
   source_references_offset_ = -1;
-  if (binary_version >= 25) {
-    source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
-  }
+  source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
 }
 
 ClassIndex::ClassIndex(const uint8_t* buffer,
@@ -430,9 +428,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
     scripts.SetAt(index, script);
   }
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    bytecode_metadata_helper_.ReadBytecodeComponent();
-  }
+  bytecode_metadata_helper_.ReadBytecodeComponent();
 }
 
 KernelLoader::KernelLoader(const Script& script,
@@ -504,8 +500,7 @@ void KernelLoader::AnnotateNativeProcedures() {
   if (length == 0) return;
 
   // Prepare lazy constant reading.
-  ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                       &active_class_);
+  ConstantReader constant_reader(&helper_, &active_class_);
 
   // Obtain `dart:_internal::ExternalName.name`.
   EnsureExternalClassIsLookedUp();
@@ -528,20 +523,17 @@ void KernelLoader::AnnotateNativeProcedures() {
     const intptr_t annotation_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < annotation_count; ++j) {
       const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression || tag == kDeprecated_ConstantExpression) {
+      if (tag == kConstantExpression) {
         helper_.ReadByte();  // Skip the tag.
+        helper_.ReadPosition();  // Skip fileOffset.
+        helper_.SkipDartType();  // Skip type.
 
         // We have a candidate. Let's look if it's an instance of the
         // ExternalName class.
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-        }
         const intptr_t constant_table_offset = helper_.ReadUInt();
-        if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                  external_name_class_)) {
-          constant = constant_evaluator.EvaluateConstantExpression(
-              constant_table_offset);
+        if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                               external_name_class_)) {
+          constant = constant_reader.ReadConstant(constant_table_offset);
           ASSERT(constant.clazz() == external_name_class_.raw());
           // We found the annotation, let's flag the function as native and
           // set the native name!
@@ -625,8 +617,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
   }
 
   // Prepare lazy constant reading.
-  ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                       &active_class_);
+  ConstantReader constant_reader(&helper_, &active_class_);
 
   // Obtain `dart:_internal::ExternalName.name`.
   EnsureExternalClassIsLookedUp();
@@ -663,21 +654,17 @@ void KernelLoader::LoadNativeExtensionLibraries() {
         uri_path = String::null();
 
         const intptr_t tag = helper_.PeekTag();
-        if (tag == kConstantExpression ||
-            tag == kDeprecated_ConstantExpression) {
+        if (tag == kConstantExpression) {
           helper_.ReadByte();  // Skip the tag.
+          helper_.ReadPosition();  // Skip fileOffset.
+          helper_.SkipDartType();  // Skip type.
 
           // We have a candidate. Let's look if it's an instance of the
           // ExternalName class.
-          if (tag == kConstantExpression) {
-            helper_.ReadPosition();  // Skip fileOffset.
-            helper_.SkipDartType();  // Skip type.
-          }
           const intptr_t constant_table_offset = helper_.ReadUInt();
-          if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                    external_name_class_)) {
-            constant = constant_evaluator.EvaluateConstantExpression(
-                constant_table_offset);
+          if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                                 external_name_class_)) {
+            constant = constant_reader.ReadConstant(constant_table_offset);
             ASSERT(constant.clazz() == external_name_class_.raw());
             uri_path ^= constant.GetField(external_name_field_);
           }
@@ -734,12 +721,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    bool libraries_loaded = false;
-    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-      libraries_loaded = bytecode_metadata_helper_.ReadLibraries();
-    }
-
-    if (!libraries_loaded) {
+    if (!bytecode_metadata_helper_.ReadLibraries()) {
       // Note that `problemsAsJson` on Component is implicitly skipped.
       const intptr_t length = program_->library_count();
       for (intptr_t i = 0; i < length; i++) {
@@ -785,11 +767,9 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 void KernelLoader::LoadLibrary(const Library& library) {
   ASSERT(!library.Loaded());
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    bytecode_metadata_helper_.ReadLibrary(library);
-    if (library.Loaded()) {
-      return;
-    }
+  bytecode_metadata_helper_.ReadLibrary(library);
+  if (library.Loaded()) {
+    return;
   }
   const auto& uri = String::Handle(Z, library.url());
   const intptr_t num_libraries = program_->library_count();
@@ -916,11 +896,9 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
                                            bool* is_empty_program,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
-            modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
-      return;
-    }
+  if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
+          modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
+    return;
   }
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
@@ -974,11 +952,11 @@ void KernelLoader::CheckForInitializer(const Field& field) {
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
     if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
-      field.set_has_initializer(true);
+      field.set_has_nontrivial_initializer(true);
       return;
     }
   }
-  field.set_has_initializer(false);
+  field.set_has_nontrivial_initializer(false);
 }
 
 RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
@@ -1112,17 +1090,15 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   if (register_class) {
-    if (library_index.HasSourceReferences()) {
-      helper_.SetOffset(library_index.SourceReferencesOffset());
-      intptr_t count = helper_.ReadUInt();
-      const GrowableObjectArray& owned_scripts =
-          GrowableObjectArray::Handle(library.owned_scripts());
-      Script& script = Script::Handle(Z);
-      for (intptr_t i = 0; i < count; i++) {
-        intptr_t uri_index = helper_.ReadUInt();
-        script = ScriptAt(uri_index);
-        owned_scripts.Add(script);
-      }
+    helper_.SetOffset(library_index.SourceReferencesOffset());
+    intptr_t count = helper_.ReadUInt();
+    const GrowableObjectArray& owned_scripts =
+        GrowableObjectArray::Handle(library.owned_scripts());
+    Script& script = Script::Handle(Z);
+    for (intptr_t i = 0; i < count; i++) {
+      intptr_t uri_index = helper_.ReadUInt();
+      script = ScriptAt(uri_index);
+      owned_scripts.Add(script);
     }
   }
   if (!library.Loaded()) library.SetLoaded();
@@ -1796,8 +1772,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
       if (DetectPragmaCtor()) {
         *has_pragma_annotation = true;
       }
-    } else if (tag == kConstantExpression ||
-               tag == kDeprecated_ConstantExpression) {
+    } else if (tag == kConstantExpression) {
       const Array& constant_table_array =
           Array::Handle(kernel_program_info_.constants());
       if (constant_table_array.IsNull()) {
@@ -1818,11 +1793,8 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         // and avoid the "potential natives" list.
 
         helper_.ReadByte();  // Skip the tag.
-
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
-        }
+        helper_.ReadPosition();  // Skip fileOffset.
+        helper_.SkipDartType();  // Skip type.
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
         AlternativeReadingScopeWithNewData scope(
@@ -1847,8 +1819,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         const dart::Class& toplevel_class =
             Class::Handle(Z, library.toplevel_class());
         ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
-        ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
-                                             &active_class_);
+        ConstantReader constant_reader(&helper_, &active_class_);
 
         helper_.ReadByte();  // Skip the tag.
 
@@ -1865,14 +1836,13 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         const intptr_t constant_table_offset = helper_.ReadUInt();
         // We have a candidate. Let's look if it's an instance of the
         // ExternalName or Pragma class.
-        if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                  external_name_class_)) {
-          constant = constant_evaluator.EvaluateConstantExpression(
-              constant_table_offset);
+        if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                               external_name_class_)) {
+          constant = constant_reader.ReadConstant(constant_table_offset);
           ASSERT(constant.clazz() == external_name_class_.raw());
           *native_name ^= constant.GetField(external_name_field_);
-        } else if (constant_evaluator.IsInstanceConstant(constant_table_offset,
-                                                         pragma_class_)) {
+        } else if (constant_reader.IsInstanceConstant(constant_table_offset,
+                                                      pragma_class_)) {
           *has_pragma_annotation = true;
         }
       }
@@ -2070,7 +2040,7 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
       for (intptr_t i = 0; i < libs.Length(); i++) {
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
-        if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        if (!script.IsNull()) {
           sources = script.Source();
           line_starts = script.line_starts();
           break;
@@ -2082,13 +2052,11 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
   }
 
   const Script& script =
-      Script::Handle(Z, Script::New(import_uri_string, uri_string, sources,
-                                    RawScript::kKernelTag));
+      Script::Handle(Z, Script::New(import_uri_string, uri_string, sources));
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
   script.set_debug_positions(Array::null_array());
-  script.set_yield_positions(Array::null_array());
   return script.raw();
 }
 

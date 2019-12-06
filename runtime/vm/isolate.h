@@ -184,8 +184,6 @@ class IsolateGroupSource {
                      const char* name,
                      const uint8_t* snapshot_data,
                      const uint8_t* snapshot_instructions,
-                     const uint8_t* shared_data,
-                     const uint8_t* shared_instructions,
                      const uint8_t* kernel_buffer,
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
@@ -193,8 +191,6 @@ class IsolateGroupSource {
         name(strdup(name)),
         snapshot_data(snapshot_data),
         snapshot_instructions(snapshot_instructions),
-        shared_data(shared_data),
-        shared_instructions(shared_instructions),
         kernel_buffer(kernel_buffer),
         kernel_buffer_size(kernel_buffer_size),
         flags(flags),
@@ -208,8 +204,6 @@ class IsolateGroupSource {
   char* name;
   const uint8_t* snapshot_data;
   const uint8_t* snapshot_instructions;
-  const uint8_t* shared_data;
-  const uint8_t* shared_instructions;
   const uint8_t* kernel_buffer;
   const intptr_t kernel_buffer_size;
   Dart_IsolateFlags flags;
@@ -219,8 +213,52 @@ class IsolateGroupSource {
   intptr_t script_kernel_size;
 };
 
+// Tracks idle time and notifies heap when idle time expired.
+class IdleTimeHandler : public ValueObject {
+ public:
+  IdleTimeHandler() {}
+
+  // Initializes the idle time handler with the given [heap], to which
+  // idle notifications will be sent.
+  void InitializeWithHeap(Heap* heap);
+
+  // Returns whether the caller should check for idle timeouts.
+  bool ShouldCheckForIdle();
+
+  // Declares that the idle time should be reset to now.
+  void UpdateStartIdleTime();
+
+  // Returns whether idle time expired and [NotifyIdle] should be called.
+  bool ShouldNotifyIdle(int64_t* expiry);
+
+  // Notifies the heap that now is a good time to do compactions and indicates
+  // we have time for the GC until [deadline].
+  void NotifyIdle(int64_t deadline);
+
+  // Calls [NotifyIdle] with the default deadline.
+  void NotifyIdleUsingDefaultDeadline();
+
+ private:
+  friend class DisableIdleTimerScope;
+
+  Mutex mutex_;
+  Heap* heap_ = nullptr;
+  intptr_t disabled_counter_ = 0;
+  int64_t idle_start_time_ = 0;
+};
+
+// Disables firing of the idle timer while this object is alive.
+class DisableIdleTimerScope : public ValueObject {
+ public:
+  explicit DisableIdleTimerScope(IdleTimeHandler* handler);
+  ~DisableIdleTimerScope();
+
+ private:
+  IdleTimeHandler* handler_;
+};
+
 // Represents an isolate group and is shared among all isolates within a group.
-class IsolateGroup {
+class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
   IsolateGroup(std::unique_ptr<IsolateGroupSource> source, void* embedder_data);
   ~IsolateGroup();
@@ -264,6 +302,12 @@ class IsolateGroup {
     library_tag_handler_ = handler;
   }
 
+  // Runs the given [function] on every isolate in the isolate group.
+  //
+  // During the duration of this function, no new isolates can be added to the
+  // isolate group.
+  void ForEachIsolate(std::function<void(Isolate* isolate)> function);
+
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
@@ -282,6 +326,59 @@ class IsolateGroup {
     RunWithStoppedMutators(function, function);
   }
 
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream, bool ref = true);
+  void PrintToJSONObject(JSONObject* jsobj, bool ref);
+
+  // Creates an object with the total heap memory usage statistics for this
+  // isolate group.
+  void PrintMemoryUsageJSON(JSONStream* stream);
+#endif
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // By default the reload context is deleted. This parameter allows
+  // the caller to delete is separately if it is still needed.
+  bool ReloadSources(JSONStream* js,
+                     bool force_reload,
+                     const char* root_script_url = nullptr,
+                     const char* packages_url = nullptr,
+                     bool dont_delete_reload_context = false);
+
+  // If provided, the VM takes ownership of kernel_buffer.
+  bool ReloadKernel(JSONStream* js,
+                    bool force_reload,
+                    const uint8_t* kernel_buffer = nullptr,
+                    intptr_t kernel_buffer_size = 0,
+                    bool dont_delete_reload_context = false);
+
+  void set_last_reload_timestamp(int64_t value) {
+    last_reload_timestamp_ = value;
+  }
+  int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
+
+  IsolateGroupReloadContext* reload_context() {
+    return group_reload_context_.get();
+  }
+
+  void DeleteReloadContext();
+
+  bool IsReloading() const { return group_reload_context_ != nullptr; }
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  uint64_t id() { return id_; }
+
+  static void Init();
+  static void Cleanup();
+
+  static void ForEach(std::function<void(IsolateGroup*)> action);
+  static void RunWithIsolateGroup(uint64_t id,
+                                  std::function<void(IsolateGroup*)> action,
+                                  std::function<void()> not_found);
+
+  // Manage list of existing isolate groups.
+  static void RegisterIsolateGroup(IsolateGroup* isolate_group);
+  static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
+
  private:
   void* embedder_data_ = nullptr;
 
@@ -291,9 +388,20 @@ class IsolateGroup {
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  int64_t last_reload_timestamp_;
+  std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
+#endif
+
   std::unique_ptr<IsolateGroupSource> source_;
   std::unique_ptr<ThreadRegistry> thread_registry_;
   std::unique_ptr<SafepointHandler> safepoint_handler_;
+
+  static RwLock* isolate_groups_rwlock_;
+  static IntrusiveDList<IsolateGroup>* isolate_groups_;
+
+  Random isolate_group_random_;
+  uint64_t id_ = isolate_group_random_.NextUInt64();
 };
 
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
@@ -417,8 +525,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
 
+  IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
+
   Heap* heap() const { return heap_; }
-  void set_heap(Heap* value) { heap_ = value; }
+  void set_heap(Heap* value) {
+    idle_time_handler_.InitializeWithHeap(value);
+    heap_ = value;
+  }
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
@@ -432,7 +545,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
 
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines* native_callback_trampolines() {
     return &native_callback_trampolines_;
   }
@@ -456,23 +569,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void ScheduleInterrupts(uword interrupt_bits);
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // By default the reload context is deleted. This parameter allows
-  // the caller to delete is separately if it is still needed.
-  bool ReloadSources(JSONStream* js,
-                     bool force_reload,
-                     const char* root_script_url = nullptr,
-                     const char* packages_url = nullptr,
-                     bool dont_delete_reload_context = false);
-
-  // If provided, the VM takes ownership of kernel_buffer.
-  bool ReloadKernel(JSONStream* js,
-                    bool force_reload,
-                    const uint8_t* kernel_buffer = nullptr,
-                    intptr_t kernel_buffer_size = 0,
-                    bool dont_delete_reload_context = false);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   const char* MakeRunnable();
   void Run();
 
@@ -488,8 +584,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     }
 #endif
   }
-
-  void NotifyIdle(int64_t deadline);
 
   bool compaction_in_progress() const {
     return CompactionInProgressBit::decode(isolate_flags_);
@@ -695,8 +789,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  bool IsReloading() const { return reload_context_ != nullptr; }
-
   IsolateReloadContext* reload_context() { return reload_context_; }
 
   void DeleteReloadContext();
@@ -709,11 +801,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   bool CanReload() const;
-
-  void set_last_reload_timestamp(int64_t value) {
-    last_reload_timestamp_ = value;
-  }
-  int64_t last_reload_timestamp() const { return last_reload_timestamp_; }
 #else
   bool IsReloading() const { return false; }
   bool HasAttemptedReload() const { return false; }
@@ -1059,8 +1146,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MarkingStack* deferred_marking_stack_ = nullptr;
   Heap* heap_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
+  IdleTimeHandler idle_time_handler_;
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   NativeCallbackTrampolines native_callback_trampolines_;
 #endif
 
@@ -1076,10 +1164,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
-  V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \
-  V(ErrorOnBadType)                                                            \
-  V(ErrorOnBadOverride)                                                        \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
@@ -1140,11 +1225,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  intptr_t no_reload_scope_depth_ = 0;  // we can only reload when this is 0.
+  RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
+      0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_ = nullptr;
-  int64_t last_reload_timestamp_;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1251,6 +1336,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class Thread;
   friend class Timeline;
   friend class NoReloadScope;  // reload_block
+  friend class IsolateGroup;   // reload_context_
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

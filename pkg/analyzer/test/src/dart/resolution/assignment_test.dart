@@ -408,8 +408,7 @@ class C {
 
     var cRef = left.prefix;
     assertElement(cRef, findElement.class_('C'));
-    // TODO(scheglov) Why not `Type`? Should it even have a type?
-    assertType(cRef, 'C');
+    assertTypeNull(cRef);
 
     var fRef = left.identifier;
     assertElement(fRef, findElement.setter('f'));
@@ -862,7 +861,7 @@ bool b = a;
     var bDeclaration = findNode.variableDeclaration('b =');
     TopLevelVariableElement bElement = bDeclaration.declaredElement;
     assertElement(bDeclaration.name, findElement.topVar('b'));
-    assertType(bDeclaration.name, 'bool');
+    assertTypeNull(bDeclaration.name);
     expect(bElement.type.toString(), 'bool');
 
     SimpleIdentifier aRef = bDeclaration.initializer;
@@ -880,7 +879,7 @@ const bool b = a;
     var bDeclaration = findNode.variableDeclaration('b =');
     TopLevelVariableElement bElement = bDeclaration.declaredElement;
     assertElement(bDeclaration.name, bElement);
-    assertType(bDeclaration.name, 'bool');
+    assertTypeNull(bDeclaration.name);
     expect(bElement.type.toString(), 'bool');
 
     SimpleIdentifier aRef = bDeclaration.initializer;

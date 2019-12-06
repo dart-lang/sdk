@@ -72,4 +72,8 @@ class DillTarget extends TargetImplementation {
     libraryBuilders[library.importUri] =
         new DillLibraryBuilder(library, loader);
   }
+
+  void releaseAncillaryResources() {
+    libraryBuilders.clear();
+  }
 }

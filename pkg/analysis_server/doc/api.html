@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.27.3
+  1.27.4
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -257,7 +257,7 @@ a:focus, a:hover {
 
 <p><a href="#domain_completion">Completion</a></p><ul><li><a href="#request_completion.getSuggestions">completion.getSuggestions</a></li>
 <li><a href="#request_completion.setSubscriptions">completion.setSubscriptions</a></li>
-<li><a href="#request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></li>
+<li><a class="deprecated" href="#request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></li>
 <li><a href="#request_completion.getSuggestionDetails">completion.getSuggestionDetails</a></li>
 </ul>
 
@@ -432,7 +432,6 @@ a:focus, a:hover {
   "params": {
     "<b>version</b>": String
     "<b>pid</b>": int
-    "<b>sessionId</b>": <span style="color:#999999">optional</span> String
   }
 }</pre></div>
     <p>
@@ -452,9 +451,6 @@ a:focus, a:hover {
       </dd><dt class="field"><b>pid: int</b></dt><dd>
         
         <p>The process id of the analysis server process.</p>
-      </dd><dt class="field"><b>sessionId: String<span style="color:#999999"> (optional)</span></b></dt><dd>
-        
-        <p>The session id for this session.</p>
       </dd></dl></dd><dt class="notification"><a name="notification_server.error">server.error</a></dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
@@ -1522,7 +1518,7 @@ a:focus, a:hover {
   <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: List&lt;<a href="#type_CompletionService">CompletionService</a>&gt;</b></dt><dd>
         
         <p>A list of the services being subscribed to.</p>
-      </dd></dl></dd><dt class="request"><a name="request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></dt><dd><div class="box"><pre>request: {
+      </dd></dl></dd><dt class="request deprecated"><a name="request_completion.registerLibraryPaths">completion.registerLibraryPaths</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.registerLibraryPaths"
   "params": {
@@ -5134,6 +5130,11 @@ a:focus, a:hover {
         
         <p>
           The given location does not have a supported widget.
+        </p>
+      </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION</dt><dd>
+        
+        <p>
+          The given property expression is invalid, e.g. has a syntax error.
         </p>
       </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</dt><dd>
         

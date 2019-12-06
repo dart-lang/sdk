@@ -4,16 +4,19 @@
 
 library fasta.function_type_alias_builder;
 
+import 'package:front_end/src/fasta/builder/fixed_type_builder.dart';
+import 'package:front_end/src/fasta/builder/named_type_builder.dart';
 import 'package:kernel/ast.dart'
     show
         DartType,
         DynamicType,
-        FunctionType,
         InvalidType,
         Nullability,
         TypeParameter,
         Typedef,
-        VariableDeclaration;
+        TypedefType,
+        VariableDeclaration,
+        getAsTypeArguments;
 
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters, substitute;
@@ -21,11 +24,10 @@ import 'package:kernel/type_algebra.dart'
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
-import '../problems.dart' show unhandled, unsupported;
+import '../problems.dart' show unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_type_builder.dart';
 import 'library_builder.dart';
@@ -55,14 +57,6 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
                 fileUri: parent.library.fileUri)
               ..fileOffset = charOffset),
         super(metadata, 0, name, parent, charOffset);
-
-  // Deliberately unrelated return type to statically detect more accidental
-  // use until Builder.target is fully retired.
-  UnrelatedTarget get target => unsupported(
-      "TypeAliasBuilder.target is deprecated. "
-      "Use TypeAliasBuilder.typedef instead.",
-      charOffset,
-      fileUri);
 
   String get debugName => "TypeAliasBuilder";
 
@@ -95,11 +89,45 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
           }
         }
       }
+    } else if (type is NamedTypeBuilder || type is FixedTypeBuilder) {
+      // No error, but also no additional setup work.
     } else if (type != null) {
       unhandled("${type.fullNameForErrors}", "build", charOffset, fileUri);
     }
 
     return typedef;
+  }
+
+  TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
+    // At this point the bounds of `typedef.typeParameters` may not be assigned
+    // yet, so [getAsTypeArguments] may crash trying to compute the nullability
+    // of the created types from the bounds.  To avoid that, we use "dynamic"
+    // for the bound of all boundless variables and add them to the list for
+    // being recomputed later, when the bounds are assigned.
+    List<DartType> bounds =
+        new List<DartType>.filled(typedef.typeParameters.length, null);
+    for (int i = 0; i < bounds.length; ++i) {
+      bounds[i] = typedef.typeParameters[i].bound;
+      if (bounds[i] == null) {
+        typedef.typeParameters[i].bound = const DynamicType();
+      }
+    }
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedef.typeParameters, clientLibrary.library);
+    TypedefType result =
+        new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
+    for (int i = 0; i < bounds.length; ++i) {
+      if (bounds[i] == null) {
+        // If the bound is not assigned yet, put the corresponding
+        // type-parameter type into the list for the nullability re-computation.
+        // At this point, [parent] should be a [SourceLibraryBuilder] because
+        // otherwise it's a compiled library loaded from a dill file, and the
+        // bounds should have been assigned.
+        SourceLibraryBuilder parentLibrary = parent;
+        parentLibrary.pendingNullabilities.add(asTypeArguments[i]);
+      }
+    }
+    return result;
   }
 
   DartType buildThisType(LibraryBuilder library) {
@@ -116,8 +144,9 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = cyclicTypeAliasMarker;
     TypeBuilder type = this.type;
-    if (type is FunctionTypeBuilder) {
-      FunctionType builtType = type?.build(library, typedef.thisType);
+    if (type != null) {
+      DartType builtType =
+          type.build(library, thisTypedefType(typedef, library));
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables) {
@@ -129,12 +158,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       } else {
         return thisType = const InvalidType();
       }
-    } else if (type == null) {
-      return thisType = const InvalidType();
-    } else {
-      return unhandled(
-          "${type.fullNameForErrors}", "buildThisType", charOffset, fileUri);
     }
+    return thisType = const InvalidType();
   }
 
   /// [arguments] have already been built.
@@ -142,7 +167,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       Nullability nullability, List<DartType> arguments) {
     DartType thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
-    FunctionType result = thisType.withNullability(nullability);
+    DartType result = thisType.withNullability(nullability);
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {

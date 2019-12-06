@@ -154,7 +154,8 @@ class Value : public ZoneAllocated {
   const Object& BoundConstant() const;
 
   // Return true if storing the value into a heap object requires applying the
-  // write barrier.
+  // write barrier. Can change the reaching type of the Value or other Values
+  // in the same chain of redefinitions.
   bool NeedsWriteBarrier();
 
   bool Equals(Value* other) const;
@@ -177,17 +178,32 @@ class Value : public ZoneAllocated {
 // Represents a range of class-ids for use in class checks and polymorphic
 // dispatches.  The range includes both ends, i.e. it is [cid_start, cid_end].
 struct CidRange : public ZoneAllocated {
-  CidRange(const CidRange& o)
-      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
   CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
       : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
 
-  const CidRange& operator=(const CidRange& other) {
-    cid_start = other.cid_start;
-    cid_end = other.cid_end;
-    return *this;
+  bool IsSingleCid() const { return cid_start == cid_end; }
+  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  int32_t Extent() const { return cid_end - cid_start; }
+
+  // The number of class ids this range covers.
+  intptr_t size() const { return cid_end - cid_start + 1; }
+
+  bool IsIllegalRange() const {
+    return cid_start == kIllegalCid && cid_end == kIllegalCid;
   }
+
+  intptr_t cid_start;
+  intptr_t cid_end;
+
+  DISALLOW_COPY_AND_ASSIGN(CidRange);
+};
+
+struct CidRangeValue {
+  CidRangeValue(intptr_t cid_start_arg, intptr_t cid_end_arg)
+      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
+  CidRangeValue(const CidRange& other)  // NOLINT
+      : cid_start(other.cid_start), cid_end(other.cid_end) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
   bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
@@ -204,7 +220,7 @@ struct CidRange : public ZoneAllocated {
   intptr_t cid_end;
 };
 
-typedef MallocGrowableArray<CidRange> CidRangeVector;
+typedef MallocGrowableArray<CidRangeValue> CidRangeVector;
 
 class HierarchyInfo : public ThreadStackResource {
  public:
@@ -395,6 +411,7 @@ struct InstrAttrs {
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
   M(StoreInstanceField, _)                                                     \
+  M(InitInstanceField, _)                                                      \
   M(InitStaticField, _)                                                        \
   M(LoadStaticField, kNoGC)                                                    \
   M(StoreStaticField, kNoGC)                                                   \
@@ -494,7 +511,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
-  virtual type##Instr* As##type() { return this; }                             \
+  virtual const type##Instr* As##type() const { return this; }                 \
   virtual const char* DebugName() const { return #type; }
 
 // Functions required in all concrete instruction classes.
@@ -513,21 +530,11 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_INSTRUCTION_BACKEND()
 
-#if defined(TARGET_ARCH_DBC)
-#define DECLARE_COMPARISON_METHODS                                             \
-  virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
-      const;                                                                   \
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
-                                       BranchLabels labels);                   \
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,   \
-                                                BranchLabels labels);
-#else
 #define DECLARE_COMPARISON_METHODS                                             \
   virtual LocationSummary* MakeLocationSummary(Zone* zone, bool optimizing)    \
       const;                                                                   \
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,            \
                                        BranchLabels labels);
-#endif
 
 #define DECLARE_COMPARISON_INSTRUCTION(type)                                   \
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
@@ -576,6 +583,8 @@ struct TargetInfo : public CidRange {
   const Function* target;
   intptr_t count;
   StaticTypeExactnessState exactness;
+
+  DISALLOW_COPY_AND_ASSIGN(TargetInfo);
 };
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
@@ -885,8 +894,12 @@ class Instruction : public ZoneAllocated {
                                          FlowGraphSerializer* s) const;
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() { return (As##Name() != NULL); }                             \
-  virtual Type* As##Name() { return NULL; }
+  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  Type* As##Name() {                                                           \
+    auto const_this = static_cast<const Instruction*>(this);                   \
+    return const_cast<Type*>(const_this->As##Name());                          \
+  }                                                                            \
+  virtual const Type* As##Name() const { return nullptr; }
 #define INSTRUCTION_TYPE_CHECK(Name, Attrs)                                    \
   DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
 
@@ -1055,18 +1068,11 @@ class Instruction : public ZoneAllocated {
   // instead.
   Location::Kind RegisterKindForResult() const {
     const Representation rep = representation();
-#if !defined(TARGET_ARCH_DBC)
     if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
         (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
         (rep == kUnboxedFloat64x2)) {
       return Location::kFpuRegister;
     }
-#else
-    // DBC supports only unboxed doubles and does not have distinguished FPU
-    // registers.
-    ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
-           (rep != kUnboxedFloat64x2));
-#endif
     return Location::kRegister;
   }
 
@@ -1532,9 +1538,14 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
+  const GrowableArray<Definition*>* initial_definitions() const {
+    return &initial_definitions_;
+  }
 
-  virtual bool IsBlockEntryWithInitialDefs() { return true; }
   virtual BlockEntryWithInitialDefs* AsBlockEntryWithInitialDefs() {
+    return this;
+  }
+  virtual const BlockEntryWithInitialDefs* AsBlockEntryWithInitialDefs() const {
     return this;
   }
 
@@ -1989,6 +2000,36 @@ class AliasIdentity : public ValueObject {
     return AliasIdentity(kAllocationSinkingCandidate);
   }
 
+#define FOR_EACH_ALIAS_IDENTITY_VALUE(V)                                       \
+  V(Unknown, 0)                                                                \
+  V(NotAliased, 1)                                                             \
+  V(Aliased, 2)                                                                \
+  V(AllocationSinkingCandidate, 3)
+
+  const char* ToCString() {
+    switch (value_) {
+#define VALUE_CASE(name, val)                                                  \
+  case k##name:                                                                \
+    return #name;
+      FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_CASE)
+#undef VALUE_CASE
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }
+
+  static bool Parse(const char* str, AliasIdentity* out) {
+#define VALUE_CASE(name, val)                                                  \
+  if (strcmp(str, #name) == 0) {                                               \
+    out->value_ = k##name;                                                     \
+    return true;                                                               \
+  }
+    FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_CASE)
+#undef VALUE_CASE
+    return false;
+  }
+
   bool IsUnknown() const { return value_ == kUnknown; }
   bool IsAliased() const { return value_ == kAliased; }
   bool IsNotAliased() const { return (value_ & kNotAliased) != 0; }
@@ -2007,12 +2048,12 @@ class AliasIdentity : public ValueObject {
  private:
   explicit AliasIdentity(intptr_t value) : value_(value) {}
 
-  enum {
-    kUnknown = 0,
-    kNotAliased = 1,
-    kAliased = 2,
-    kAllocationSinkingCandidate = 3,
-  };
+#define VALUE_DEFN(name, val) k##name = val,
+  enum { FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_DEFN) };
+#undef VALUE_DEFN
+
+// Undef the FOR_EACH helper macro, since the enum is private.
+#undef FOR_EACH_ALIAS_IDENTITY_VALUE
 
   COMPILE_ASSERT((kUnknown & kNotAliased) == 0);
   COMPILE_ASSERT((kAliased & kNotAliased) == 0);
@@ -2184,11 +2225,16 @@ class Definition : public Instruction {
   // boxing/unboxing and constraint instructions.
   Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
+  // Helper method to determine if definition denotes an array length.
+  static bool IsArrayLength(Definition* def);
+
   virtual Definition* AsDefinition() { return this; }
+  virtual const Definition* AsDefinition() const { return this; }
 
  protected:
   friend class RangeAnalysis;
   friend class Value;
+  friend class FlowGraphSerializer;  // To access type_ directly.
 
   Range* range_ = nullptr;
 
@@ -2634,8 +2680,15 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  ReturnInstr(TokenPosition token_pos, Value* value, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+  // The [yield_index], if provided, will cause the instruction to emit extra
+  // yield_index -> pc offset into the [PcDescriptors].
+  ReturnInstr(TokenPosition token_pos,
+              Value* value,
+              intptr_t deopt_id,
+              intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex)
+      : TemplateInstruction(deopt_id),
+        token_pos_(token_pos),
+        yield_index_(yield_index) {
     SetInputAt(0, value);
   }
 
@@ -2643,6 +2696,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
+  intptr_t yield_index() const { return yield_index_; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Return instruction might turn into a Goto instruction after inlining.
@@ -2654,8 +2708,17 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool AttributesEqual(Instruction* other) const {
+    auto other_return = other->AsReturn();
+    return token_pos() == other_return->token_pos() &&
+           yield_index() == other_return->yield_index();
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   const TokenPosition token_pos_;
+  const intptr_t yield_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
@@ -2908,15 +2971,6 @@ class ComparisonInstr : public Definition {
   // opposite condition).  May also branch directly to the labels.
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels) = 0;
-
-#if defined(TARGET_ARCH_DBC)
-  // On the DBC platform EmitNativeCode needs to know ahead of time what
-  // 'Condition' will be returned by EmitComparisonCode. This call must return
-  // the same result as EmitComparisonCode, but should not emit any
-  // instructions.
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) = 0;
-#endif
 
   // Emits code that generates 'true' or 'false', depending on the comparison.
   // This implementation will call EmitComparisonCode.  If EmitComparisonCode
@@ -3716,7 +3770,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
-  const BinaryFeedback& BinaryFeedback();
+  const class BinaryFeedback& BinaryFeedback();
   void SetBinaryFeedback(const class BinaryFeedback* binary) {
     binary_ = binary;
   }
@@ -4248,7 +4302,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   const CallTargets& Targets();
-  const BinaryFeedback& BinaryFeedback();
+  const class BinaryFeedback& BinaryFeedback();
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
@@ -5332,10 +5386,7 @@ class AllocateUninitializedContextInstr
     : public TemplateAllocation<0, NoThrow> {
  public:
   AllocateUninitializedContextInstr(TokenPosition token_pos,
-                                    intptr_t num_context_variables)
-      : token_pos_(token_pos),
-        num_context_variables_(num_context_variables),
-        identity_(AliasIdentity::Unknown()) {}
+                                    intptr_t num_context_variables);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
@@ -5820,6 +5871,29 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
 
+class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
+ public:
+  InitInstanceFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), field_(field) {
+    SetInputAt(0, input);
+    CheckField(field);
+  }
+
+  virtual TokenPosition token_pos() const { return field_.token_pos(); }
+  const Field& field() const { return field_; }
+
+  DECLARE_INSTRUCTION(InitInstanceField)
+
+  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return true; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
+};
+
 class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
  public:
   InitStaticFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
@@ -5997,10 +6071,6 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
       : from_representation_(from_representation) {
     SetInputAt(0, value);
   }
-
-#if defined(TARGET_ARCH_DBC)
-  void EmitAllocateBox(FlowGraphCompiler* compiler);
-#endif
 
  private:
   intptr_t ValueOffset() const {
@@ -6577,8 +6647,6 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  RawInteger* Evaluate(const Integer& value) const;
-
   DEFINE_INSTRUCTION_TYPE_CHECK(UnaryIntegerOp)
 
  private:
@@ -6744,14 +6812,6 @@ class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
 
-#if defined(TARGET_ARCH_DBC)
-  virtual Condition GetNextInstructionCondition(FlowGraphCompiler* compiler,
-                                                BranchLabels labels) {
-    UNREACHABLE();
-    return INVALID_CONDITION;
-  }
-#endif
-
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
  private:
@@ -6804,8 +6864,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
   bool RightIsPowerOfTwoConstant() const;
-
-  RawInteger* Evaluate(const Integer& left, const Integer& right) const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7813,13 +7871,13 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
+  CheckClassIdInstr(Value* value, CidRangeValue cids, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), cids_(cids) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  const CidRange& cids() const { return cids_; }
+  const CidRangeValue& cids() const { return cids_; }
 
   DECLARE_INSTRUCTION(CheckClassId)
 
@@ -7837,7 +7895,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  private:
   bool Contains(intptr_t cid) const;
 
-  CidRange cids_;
+  CidRangeValue cids_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
@@ -7855,13 +7913,13 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
-  virtual bool IsCheckBoundBase() { return true; }
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+  virtual const CheckBoundBase* AsCheckBoundBase() const { return this; }
   virtual Value* RedefinedValue() const;
 
   // Returns true if the bounds check can be eliminated without
   // changing the semantics (viz. 0 <= index < length).
-  bool IsRedundant();
+  bool IsRedundant(bool use_loops = false);
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
@@ -8592,17 +8650,6 @@ class Environment : public ZoneAllocated {
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
-
-#if defined(TARGET_ARCH_DBC)
-  // Return/ReturnTOS instruction drops incoming arguments so
-  // we have to drop outgoing arguments from the innermost environment.
-  // On all other architectures caller drops outgoing arguments itself
-  // hence the difference.
-  // Note: this method can only be used at the code generation stage because
-  // it mutates environment in unsafe way (e.g. does not update def-use
-  // chains).
-  void DropArguments(intptr_t argc);
-#endif
 
  private:
   friend class ShallowIterator;

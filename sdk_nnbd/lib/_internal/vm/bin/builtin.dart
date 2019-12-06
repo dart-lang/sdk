@@ -47,7 +47,6 @@ int _isolateId;
 // Requests made to the service isolate over the load port.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
-const _Dart_kInitLoader = 4; // Initialize the loader.
 const _Dart_kResourceLoad = 5; // Resource class support.
 const _Dart_kGetPackageRootUri = 6; // Uri of the packages/ directory.
 const _Dart_kGetPackageConfigUri = 7; // Uri of the .packages file.

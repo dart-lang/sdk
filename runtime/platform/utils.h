@@ -340,11 +340,9 @@ class Utils {
   static uword NBitMask(uint32_t n) {
     ASSERT(n <= kBitsPerWord);
     if (n == kBitsPerWord) {
-#if defined(TARGET_ARCH_X64)
-      return 0xffffffffffffffffll;
-#else
-      return 0xffffffff;
-#endif
+      static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
+                            "Unexpected uword size");
+      return std::numeric_limits<uword>::max();
     }
     return (1ll << n) - 1;
   }

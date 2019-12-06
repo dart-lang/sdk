@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;

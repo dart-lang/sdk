@@ -47,6 +47,7 @@ class AstBinaryFlags {
 
   static final _hasQuestion = _checkBit(
     1,
+    FieldFormalParameter,
     GenericFunctionType,
     TypeName,
   );
@@ -406,7 +407,7 @@ class AstBinaryFlags {
   }
 
   static bool hasQuestion(int flags) {
-    return (flags & _isStringInterpolationIdentifier) != 0;
+    return (flags & _hasQuestion) != 0;
   }
 
   static bool hasSeparatorColon(int flags) {

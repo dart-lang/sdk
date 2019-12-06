@@ -70,6 +70,7 @@ Set<Uri> _definedLibraries(List<int> partialDill, Component context) {
   // partial.dill file.
   loadComponentFromBytes(partialDill, context);
   var result = context.libraries
+      // ignore: DEPRECATED_MEMBER_USE
       .where((l) => !l.isExternal)
       .map((l) => l.importUri)
       .toSet();
@@ -78,5 +79,6 @@ Set<Uri> _definedLibraries(List<int> partialDill, Component context) {
 }
 
 void _updateIsExternal(Component component, bool toValue) {
+  // ignore: DEPRECATED_MEMBER_USE
   component.libraries.forEach((lib) => lib.isExternal = toValue);
 }

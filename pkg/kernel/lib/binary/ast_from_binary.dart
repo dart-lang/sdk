@@ -9,7 +9,6 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import '../ast.dart';
-import '../src/bounds_checks.dart' show computeVariance;
 import '../transformations/flags.dart';
 import 'tag.dart';
 
@@ -73,6 +72,7 @@ class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
   int labelStackBase = 0;
+  int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
   final String filename;
@@ -1057,10 +1057,6 @@ class BinaryBuilder {
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
-    for (int i = 0; i < node.typeParameters.length; ++i) {
-      node.typeParameters[i].variance =
-          computeVariance(node.typeParameters[i], type);
-    }
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.name = name;
@@ -1509,6 +1505,7 @@ class BinaryBuilder {
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
     int oldLabelStackBase = labelStackBase;
+    int oldSwitchCaseStackBase = switchCaseStackBase;
 
     if (lazyLoadBody && outerEndOffset > 0) {
       lazyLoadBody = outerEndOffset - _byteOffset >
@@ -1518,6 +1515,7 @@ class BinaryBuilder {
     var body;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
+      switchCaseStackBase = switchCaseStack.length;
       body = readStatementOption();
     }
 
@@ -1533,18 +1531,20 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
 
     if (lazyLoadBody) {
-      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight);
+      _setLazyLoadFunction(result, oldLabelStackBase, oldSwitchCaseStackBase,
+          variableStackHeight);
     }
 
     labelStackBase = oldLabelStackBase;
+    switchCaseStackBase = oldSwitchCaseStackBase;
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
 
     return result;
   }
 
-  void _setLazyLoadFunction(
-      FunctionNode result, int oldLabelStackBase, int variableStackHeight) {
+  void _setLazyLoadFunction(FunctionNode result, int oldLabelStackBase,
+      int oldSwitchCaseStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
@@ -1562,6 +1562,7 @@ class BinaryBuilder {
       result.body = readStatementOption();
       result.body?.parent = result;
       labelStackBase = oldLabelStackBase;
+      switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
       if (result.parent is Procedure) {
@@ -2012,7 +2013,8 @@ class BinaryBuilder {
       case Tag.ContinueSwitchStatement:
         int offset = readOffset();
         int index = readUInt();
-        return new ContinueSwitchStatement(switchCaseStack[index])
+        return new ContinueSwitchStatement(
+            switchCaseStack[switchCaseStackBase + index])
           ..fileOffset = offset;
       case Tag.IfStatement:
         int offset = readOffset();
@@ -2099,6 +2101,11 @@ class BinaryBuilder {
 
   Supertype readSupertype() {
     InterfaceType type = readDartType();
+    assert(
+        type.nullability == _currentLibrary.nonNullable,
+        "In serialized form supertypes should have Nullability.legacy if they "
+        "are in a library that is opted out of the NNBD feature.  If they are "
+        "in an opted-in library, they should have Nullability.nonNullable.");
     return new Supertype.byReference(type.className, type.typeArguments);
   }
 
@@ -2154,7 +2161,7 @@ class BinaryBuilder {
       case Tag.TypedefType:
         int nullabilityIndex = readByte();
         return new TypedefType.byReference(readTypedefReference(),
-            readDartTypeList(), Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], readDartTypeList());
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:
@@ -2163,14 +2170,17 @@ class BinaryBuilder {
         return const DynamicType();
       case Tag.VoidType:
         return const VoidType();
+      case Tag.NeverType:
+        int nullabilityIndex = readByte();
+        return new NeverType(Nullability.values[nullabilityIndex]);
       case Tag.InterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),
-            readDartTypeList(), Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], readDartTypeList());
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),
-            const <DartType>[], Nullability.values[nullabilityIndex]);
+            Nullability.values[nullabilityIndex], const <DartType>[]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
         int nullabilityIndex = readByte();
@@ -2183,24 +2193,24 @@ class BinaryBuilder {
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
-        return new FunctionType(positional, returnType,
+        return new FunctionType(
+            positional, returnType, Nullability.values[nullabilityIndex],
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefType: typedefType,
-            nullability: Nullability.values[nullabilityIndex]);
+            typedefType: typedefType);
       case Tag.SimpleFunctionType:
         int nullabilityIndex = readByte();
         var positional = readDartTypeList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType,
-            nullability: Nullability.values[nullabilityIndex]);
+        return new FunctionType(
+            positional, returnType, Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
         int declaredNullabilityIndex = readByte();
         int index = readUInt();
         var bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index], bound,
-            Nullability.values[declaredNullabilityIndex]);
+        return new TypeParameterType(typeParameterStack[index],
+            Nullability.values[declaredNullabilityIndex], bound);
       default:
         throw fail('unexpected dart type tag: $tag');
     }
@@ -2231,7 +2241,12 @@ class BinaryBuilder {
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
-    node.variance = readByte();
+    int variance = readByte();
+    if (variance == TypeParameter.legacyCovariantSerializationMarker) {
+      node.variance = null;
+    } else {
+      node.variance = variance;
+    }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();

@@ -447,14 +447,15 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         di->Close();
         delete di;
-        socket->SetClosedFd();
+        socket->CloseFd();
       }
+      socket->SetClosedFd();
     } else {
       ASSERT(new_mask == 0);
       socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
       di->Close();
       delete di;
-      socket->SetClosedFd();
+      socket->CloseFd();
     }
     if (port != 0) {
       const bool success = DartUtils::PostInt32(port, 1 << kDestroyedEvent);

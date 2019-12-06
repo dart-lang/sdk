@@ -19,7 +19,9 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -85,6 +87,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
     Set<ElementKind> includedElementKinds,
+    Set<String> includedElementNames,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -112,6 +115,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
       var manager = new DartCompletionManager(
         includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
@@ -252,10 +256,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       }
       return null;
     }, onError: (exception, stackTrace) {
-      server.sendServerErrorNotification(
-          'Failed to handle completion domain request: ${request.toJson()}',
-          exception,
-          stackTrace);
+      AnalysisEngine.instance.instrumentationService.logException(
+          CaughtException.withMessage(
+              'Failed to handle completion domain request: ${request.toJson()}',
+              exception,
+              stackTrace));
     });
   }
 
@@ -346,9 +351,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
     Set<ElementKind> includedElementKinds;
+    Set<String> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       includedElementKinds = Set<ElementKind>();
+      includedElementNames = Set<String>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
@@ -357,21 +364,22 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       completionRequest,
       params,
       includedElementKinds,
+      includedElementNames,
       includedSuggestionRelevanceTags,
     ).then((CompletionResult result) {
       String libraryFile;
-      List<IncludedSuggestionSet> includedSuggestionSets;
+      List<IncludedSuggestionSet> includedSuggestionSets = [];
       if (includedElementKinds != null && resolvedUnit != null) {
         libraryFile = resolvedUnit.libraryElement.source.fullName;
         server.sendNotification(
           createExistingImportsNotification(resolvedUnit),
         );
-        includedSuggestionSets = computeIncludedSetList(
+        computeIncludedSetList(
           server.declarationsTracker,
           resolvedUnit,
+          includedSuggestionSets,
+          includedElementNames,
         );
-      } else {
-        includedSuggestionSets = [];
       }
 
       const SEND_NOTIFICATION_TAG = 'send notification';

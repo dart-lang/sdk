@@ -96,7 +96,8 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       TypeParameter newNode = new TypeParameter(typeParam.name)
         ..parent = fakeClass;
       typeParams[typeParam] = newNode;
-      typeSubstitution[typeParam] = new TypeParameterType(newNode);
+      typeSubstitution[typeParam] =
+          new TypeParameterType.forAlphaRenaming(typeParam, newNode);
     }
     CloneVisitor cloner = new CloneVisitor(
         typeSubstitution: typeSubstitution, typeParams: typeParams);

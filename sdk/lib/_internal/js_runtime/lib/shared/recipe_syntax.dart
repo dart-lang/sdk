@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Constants and predicates used for encoding and decoding type recipes.
 ///
 /// This library is shared between the compiler and the runtime system.
@@ -18,6 +20,8 @@ abstract class Recipe {
   static const int toType = _semicolon;
   static const String toTypeString = _semicolonString;
 
+  static const int pushErased = _hash;
+  static const String pushErasedString = _hashString;
   static const int pushDynamic = _at;
   static const String pushDynamicString = _atString;
   static const int pushVoid = _tilde;
@@ -170,6 +174,7 @@ abstract class Recipe {
 
     test("separator", separator, separatorString);
     test("toType", toType, toTypeString);
+    test("pushErased", pushErased, pushErasedString);
     test("pushDynamic", pushDynamic, pushDynamicString);
     test("pushVoid", pushVoid, pushVoidString);
     test("wrapStar", wrapStar, wrapStarString);

@@ -829,14 +829,16 @@ class ConstantPool {
           isSetter: invocationKind == InvocationKind.setter)));
 
   int _add(ConstantPoolEntry entry) {
-    return _canonicalizationCache.putIfAbsent(entry, () {
-      int index = entries.length;
+    int index = _canonicalizationCache[entry];
+    if (index == null) {
+      index = entries.length;
       if (index >= constantPoolIndexLimit) {
         throw new ConstantPoolIndexOverflowException();
       }
       _addEntry(entry);
-      return index;
-    });
+      _canonicalizationCache[entry] = index;
+    }
+    return index;
   }
 
   void _addEntry(ConstantPoolEntry entry) {

@@ -1,0 +1,38 @@
+main = <No Member>;
+library from "org-dartlang-test:///b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///b.dart:3:17: Error: Type 'A' not found.
+// class B extends A {}
+//                 ^
+//
+
+  import "org-dartlang-test:///nonexisting.dart";
+
+  class B extends dart.core::Object {
+    synthetic constructor •() → b::B*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+  class A extends b::B {
+    synthetic constructor •() → main::A*
+      : super b::B::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///nonexisting.dart" as non {
+//
+// Problems in library:
+//
+// org-dartlang-test:///b.dart:1:8: Error: Error when reading 'org-dartlang-test:///nonexisting.dart': File org-dartlang-test:///nonexisting.dart does not exist.
+// import "nonexisting.dart";
+//        ^
+//
+
+}

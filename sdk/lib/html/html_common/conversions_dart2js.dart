@@ -1,3 +1,5 @@
+// @dart = 2.6
+
 part of html_common;
 
 /// Converts a JavaScript object with properties into a Dart Map.
@@ -97,14 +99,6 @@ bool isImmutableJavaScriptArray(value) =>
     JS('bool', r'!!(#.immutable$list)', value);
 bool isJavaScriptPromise(value) =>
     JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
-
-Future<T> promiseToFuture<T>(promise) {
-  var completer = new Completer<T>();
-  var then = convertDartClosureToJS((r) => completer.complete(r), 1);
-  var error = convertDartClosureToJS((e) => completer.completeError(e), 1);
-  JS('', '#.then(#, #)', promise, then, error);
-  return completer.future;
-}
 
 const String _serializedScriptValue = 'num|String|bool|'
     'JSExtendableArray|=Object|'

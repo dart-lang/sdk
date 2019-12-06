@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         Expression,
         InterfaceType,
         Let,
+        Library,
         MethodInvocation,
         Name,
         Procedure,
@@ -35,6 +36,12 @@ class SetLiteralTransformer extends Transformer {
   final Procedure setFactory;
   final Procedure addMethod;
 
+  /// Library that contains the transformed nodes.
+  ///
+  /// The transformation of the nodes is affected by the NNBD opt-in status of
+  /// the library.
+  Library _currentLibrary;
+
   static Procedure _findSetFactory(CoreTypes coreTypes) {
     Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
     RedirectingFactoryBody body = factory?.function?.body;
@@ -57,7 +64,8 @@ class SetLiteralTransformer extends Transformer {
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
-        type: new InterfaceType(coreTypes.setClass, [node.typeArgument]));
+        type: new InterfaceType(coreTypes.setClass, _currentLibrary.nonNullable,
+            [node.typeArgument]));
     // Innermost body of let chain: setVar
     Expression setExp = new VariableGet(setVar);
     for (int i = node.expressions.length - 1; i >= 0; i--) {
@@ -72,5 +80,19 @@ class SetLiteralTransformer extends Transformer {
           setExp);
     }
     return new Let(setVar, setExp);
+  }
+
+  void enterLibrary(Library library) {
+    assert(
+        _currentLibrary == null,
+        "Attempting to enter library '${library.fileUri}' "
+        "without having exited library '${_currentLibrary.fileUri}'.");
+    _currentLibrary = library;
+  }
+
+  void exitLibrary() {
+    assert(_currentLibrary != null,
+        "Attempting to exit a library without having entered one.");
+    _currentLibrary = null;
   }
 }

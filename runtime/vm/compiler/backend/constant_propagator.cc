@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/constant_propagator.h"
 
 #include "vm/bit_vector.h"
+#include "vm/compiler/backend/evaluator.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -444,7 +445,7 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
 }
 
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
-  const auto kind = MethodRecognizer::RecognizeKind(instr->function());
+  const auto kind = instr->function().recognized_kind();
   switch (kind) {
     case MethodRecognizer::kOneByteString_equality:
     case MethodRecognizer::kTwoByteString_equality: {
@@ -769,6 +770,10 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitInitInstanceField(InitInstanceFieldInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
   // Nothing to do.
 }
@@ -832,9 +837,9 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
-        bool is_instance =
-            instance.IsInstanceOf(checked_type, Object::null_type_arguments(),
-                                  Object::null_type_arguments());
+        bool is_instance = instance.IsInstanceOf(
+            NNBDMode::kLegacy, checked_type, Object::null_type_arguments(),
+            Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;
       }
@@ -1007,18 +1012,15 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
   const Object& left = binary_op->left()->definition()->constant_value();
   const Object& right = binary_op->right()->definition()->constant_value();
   if (IsConstant(left) && IsConstant(right)) {
-    if (left.IsInteger() && right.IsInteger()) {
-      const Integer& left_int = Integer::Cast(left);
-      const Integer& right_int = Integer::Cast(right);
-      const Integer& result =
-          Integer::Handle(Z, binary_op->Evaluate(left_int, right_int));
-      if (!result.IsNull()) {
-        SetValue(binary_op, Integer::ZoneHandle(Z, result.raw()));
-        return;
-      }
+    const Integer& result = Integer::Handle(
+        Z, Evaluator::BinaryIntegerEvaluate(left, right, binary_op->op_kind(),
+                                            binary_op->is_truncating(),
+                                            binary_op->representation(), T));
+    if (!result.IsNull()) {
+      SetValue(binary_op, Integer::ZoneHandle(Z, result.raw()));
+      return;
     }
   }
-
   SetValue(binary_op, non_constant_);
 }
 
@@ -1077,9 +1079,10 @@ void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
 
 void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
   const Object& value = unary_op->value()->definition()->constant_value();
-  if (IsConstant(value) && value.IsInteger()) {
-    const Integer& value_int = Integer::Cast(value);
-    const Integer& result = Integer::Handle(Z, unary_op->Evaluate(value_int));
+  if (IsConstant(value)) {
+    const Integer& result = Integer::Handle(
+        Z, Evaluator::UnaryIntegerEvaluate(value, unary_op->op_kind(),
+                                           unary_op->representation(), T));
     if (!result.IsNull()) {
       SetValue(unary_op, Integer::ZoneHandle(Z, result.raw()));
       return;
@@ -1210,36 +1213,19 @@ static double ToDouble(const Object& value) {
 void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    SetValue(instr, non_constant_);
-  } else if (left.IsInteger() && right.IsInteger()) {
-    SetValue(instr, non_constant_);
-  } else if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right)) {
-    const double left_val = ToDouble(left);
-    const double right_val = ToDouble(right);
-    double result_val = 0.0;
-    switch (instr->op_kind()) {
-      case Token::kADD:
-        result_val = left_val + right_val;
-        break;
-      case Token::kSUB:
-        result_val = left_val - right_val;
-        break;
-      case Token::kMUL:
-        result_val = left_val * right_val;
-        break;
-      case Token::kDIV:
-        result_val = left_val / right_val;
-        break;
-      default:
-        UNREACHABLE();
+  if (IsConstant(left) && IsConstant(right)) {
+    const bool both_are_integers = left.IsInteger() && right.IsInteger();
+    if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right) &&
+        !both_are_integers) {
+      const double result_val = Evaluator::EvaluateDoubleOp(
+          ToDouble(left), ToDouble(right), instr->op_kind());
+      const Double& result =
+          Double::ZoneHandle(Double::NewCanonical(result_val));
+      SetValue(instr, result);
+      return;
     }
-    const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
-    SetValue(instr, result);
-  } else if (IsConstant(left) && IsConstant(right)) {
-    // Both values known, but no rule to evaluate this further.
-    SetValue(instr, non_constant_);
   }
+  SetValue(instr, non_constant_);
 }
 
 void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {

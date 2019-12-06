@@ -3299,7 +3299,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
   EXPECT_EQ(56, SimpleInvoke(lib, "main"));
 }
 
-TEST_CASE(IsolateReload_RunNewFieldInitializersMutateStaticField) {
+TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
   const char* kScript =
       "int myInitialValue = 8 * 7;\n"
       "class Foo {\n"
@@ -3327,17 +3327,119 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersMutateStaticField) {
       "Foo value;\n"
       "Foo value1;\n"
       "main() {\n"
-      "  return myInitialValue;\n"
+      "  return '${myInitialValue} ${value.y} ${value1.y} ${myInitialValue}';\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  // Verify that we ran field initializers on existing instances and that
-  // they affected the value of the field myInitialValue.
-  EXPECT_EQ(58, SimpleInvoke(lib, "main"));
+  // Verify that field initializers ran lazily.
+  EXPECT_STREQ("56 56 57 58", SimpleInvokeStr(lib, "main"));
 }
 
-// When an initializer expression throws, we leave the field as null.
+TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
+  const char* kScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y. Do not read it. Note field y does not get an initializer
+  // function in the VM because the initializer is a literal, but we should not
+  // eagerly initialize with the literal so that the behavior doesn't depend on
+  // this optimization.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = 5;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return 0;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(0, SimpleInvoke(lib, "main"));
+
+  // Change y's initializer and check this new initializer is used.
+  const char* kReloadScript2 =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = 6;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return value.y;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(6, SimpleInvoke(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
+  const char* kScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "Foo value1;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  value1 = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y. Do not touch y.
+  const char* kReloadScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = myInitialValue++;\n"
+      "}\n"
+      "Foo value;\n"
+      "Foo value1;\n"
+      "main() {\n"
+      "  return '${myInitialValue}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("56", SimpleInvokeStr(lib, "main"));
+
+  // Reload again. Field y's getter still needs to keep for initialization even
+  // though it is no longer new.
+  const char* kReloadScript2 =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = myInitialValue++;\n"
+      "}\n"
+      "Foo value;\n"
+      "Foo value1;\n"
+      "main() {\n"
+      "  return '${myInitialValue} ${value.y} ${value1.y} ${myInitialValue}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_VALID(lib);
+  // Verify that field initializers ran lazily.
+  EXPECT_STREQ("56 56 57 58", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
   const char* kScript =
       "class Foo {\n"
@@ -3357,17 +3459,56 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
   const char* kReloadScript =
       "class Foo {\n"
       "  int x = 4;\n"
-      "  int y = throw 'a';\n"
+      "  int y = throw 'exception';\n"
       "}\n"
       "Foo value;\n"
       "main() {\n"
-      "  return '${value.y == null}';"
+      "  try {\n"
+      "    return value.y.toString();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances.
-  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
+  const char* kScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = value.y;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  try {\n"
+      "    return value.y.toString();\n"
+      "  } catch (e) {\n"
+      "    return e.toString();\n"
+      "  }\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Stack Overflow", SimpleInvokeStr(lib, "main"));
 }
 
 // When an initializer expression has a syntax error, we detect it at reload
@@ -3476,7 +3617,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
   EXPECT_ERROR(lib, "......");
 }
 
-TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
+TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
   const char* kScript =
       "class Super {\n"
       "  static var foo = 'right';\n"
@@ -3513,7 +3654,11 @@ TEST_CASE(IsolateReload_RunNewFieldInitialiazersSuperClass) {
   EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances in the
   // correct scope.
-  EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
+  const char* actual = SimpleInvokeStr(lib, "main");
+  EXPECT(actual != nullptr);
+  if (actual != nullptr) {
+    EXPECT_STREQ("right", actual);
+  }
 }
 
 TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
@@ -3604,6 +3749,322 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   EXPECT_STREQ(
       "List<String> _InternalLinkedHashMap<String, String> List<int> "
       "_InternalLinkedHashMap<int, int>",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesType) {
+  const char* kScript = R"(
+    class Foo {
+      int x = 42;
+    }
+    Foo value;
+    main() {
+      value = new Foo();
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class Foo {
+      double x = 42.0;
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'int' is not a subtype of type 'double' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {
+  const char* kScript = R"(
+    int value = init();
+    init() => 42;
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    double value = init();
+    init() => 42.0;
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'int' is not a subtype of type 'double' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    class Foo {
+      A x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo(new B());
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    class Foo {
+      A x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirect) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    A value = init();
+    init() => new B();
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'B'", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    A value = init();
+    init() => new A();
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
+               SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    class Foo {
+      List<A> x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo(new List<B>());
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    class Foo {
+      List<A> x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectGeneric) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    List<A> value = init();
+    init() => new List<B>();
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("[]", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    List<A> value = init();
+    init() => new List<A>();
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    typedef bool Predicate(B b);
+    class Foo {
+      Predicate x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      value = new Foo((A a) => true);
+      return 'Okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    typedef bool Predicate(B b);
+    class Foo {
+      Predicate x;
+      Foo(this.x);
+    }
+    Foo value;
+    main() {
+      try {
+        return value.x.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
+      "result'",
+      SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
+  const char* kScript = R"(
+    class A {}
+    class B extends A {}
+    typedef bool Predicate(B b);
+    Predicate value = init();
+    init() => (A a) => true;
+    main() {
+      return value.toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Closure: (A) => bool", SimpleInvokeStr(lib, "main"));
+
+  // B is no longer a subtype of A.
+  const char* kReloadScript = R"(
+    class A {}
+    class B {}
+    typedef bool Predicate(B b);
+    Predicate value = init();
+    init() => (B a) => true;
+    main() {
+      try {
+        return value.toString();
+      } catch (e) {
+        return e.toString();
+      }
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ(
+      "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
+      "result'",
       SimpleInvokeStr(lib, "main"));
 }
 

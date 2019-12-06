@@ -2,20 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
@@ -76,14 +75,14 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   final TypeProvider typeProvider;
 
   /// The type system.
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   /// Variables for this migration run.
   final Variables _variables;
 
   /// If we are visiting a function body or initializer, instance of flow
   /// analysis.  Otherwise `null`.
-  FlowAnalysis<Statement, Expression, PromotableElement, DartType>
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
@@ -99,16 +98,11 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
 
   FixBuilder(this.source, this._decoratedClassHierarchy,
       TypeProvider typeProvider, this._typeSystem, this._variables)
-      : typeProvider = (typeProvider as TypeProviderImpl)
-            .withNullability(NullabilitySuffix.none);
+      : typeProvider =
+            (typeProvider as TypeProviderImpl).asNonNullableByDefault;
 
-  /// Called whenever a type annotation is found for which a `?` needs to be
-  /// inserted.
-  void addNullable(TypeAnnotation node);
-
-  /// Called whenever an expression is found for which a `!` needs to be
-  /// inserted.
-  void addNullCheck(Expression subexpression);
+  /// Called whenever an AST node is found that needs to be changed.
+  void addChange(AstNode node, NodeChange change);
 
   /// Called whenever code is found that can't be automatically fixed.
   void addProblem(AstNode node, Problem problem);
@@ -119,11 +113,26 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
     assert(_assignedVariables == null);
     _assignedVariables =
         FlowAnalysisHelper.computeAssignedVariables(node, parameters);
-    _flowAnalysis =
-        FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
-            TypeSystemTypeOperations(_typeSystem),
-            _assignedVariables.writtenAnywhere,
-            _assignedVariables.capturedAnywhere);
+    _flowAnalysis = FlowAnalysis<
+        AstNode,
+        Statement,
+        Expression,
+        PromotableElement,
+        DartType>(TypeSystemTypeOperations(_typeSystem), _assignedVariables);
+  }
+
+  @override
+  DartType visitArgumentList(ArgumentList node) {
+    for (var argument in node.arguments) {
+      Expression expression;
+      if (argument is NamedExpression) {
+        expression = argument.expression;
+      } else {
+        expression = argument;
+      }
+      visitSubexpression(expression, UnknownInferredType.instance);
+    }
+    return null;
   }
 
   @override
@@ -137,10 +146,10 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       // TODO(paulberry): if targetInfo.readType is non-nullable, then the
       // assignment is dead code.
       // See https://github.com/dart-lang/sdk/issues/38678
-      // TODO(paulberry): once flow analysis supports `??=`, integrate it here.
-      // See https://github.com/dart-lang/sdk/issues/38680
+      _flowAnalysis.ifNullExpression_rightBegin(node.leftHandSide);
       var rhsType =
           visitSubexpression(node.rightHandSide, targetInfo.writeType);
+      _flowAnalysis.ifNullExpression_end();
       return _typeSystem.leastUpperBound(
           _typeSystem.promoteToNonNull(targetInfo.readType as TypeImpl),
           rhsType);
@@ -176,10 +185,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   AssignmentTargetInfo visitAssignmentTarget(Expression node, bool isCompound) {
     if (node is SimpleIdentifier) {
       var writeType = _computeMigratedType(node.staticElement);
-      var auxiliaryElements = node.auxiliaryElements;
-      var readType = auxiliaryElements == null
-          ? writeType
-          : _computeMigratedType(auxiliaryElements.staticElement);
+      DartType readType;
+      var element = node.staticElement;
+      if (element is PromotableElement) {
+        readType = _flowAnalysis.variableRead(node, element) ??
+            _computeMigratedType(element);
+      } else {
+        var auxiliaryElements = node.auxiliaryElements;
+        readType = auxiliaryElements == null
+            ? writeType
+            : _computeMigratedType(auxiliaryElements.staticElement);
+      }
       return AssignmentTargetInfo(isCompound ? readType : null, writeType);
     } else if (node is IndexExpression) {
       var targetType = visitSubexpression(node.target, typeProvider.objectType);
@@ -209,8 +225,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       visitSubexpression(node.index, indexContext);
       return AssignmentTargetInfo(readType, writeType);
     } else if (node is PropertyAccess) {
-      return _handleAssignmentTargetForPropertyAccess(node, node.target,
-          node.propertyName, isNullAwareToken(node.operator.type), isCompound);
+      return _handleAssignmentTargetForPropertyAccess(
+          node, node.target, node.propertyName, node.isNullAware, isCompound);
     } else if (node is PrefixedIdentifier) {
       if (node.prefix.staticElement is ImportElement) {
         // TODO(paulberry)
@@ -253,7 +269,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
         // migrate it to `(a ?? b)!`.  We want to migrate it to `a ?? b!`.
         var leftType = visitSubexpression(node.leftOperand,
             _typeSystem.makeNullable(_contextType as TypeImpl));
-        _flowAnalysis.ifNullExpression_rightBegin();
+        _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand);
         var rightType = visitSubexpression(node.rightOperand, _contextType);
         _flowAnalysis.ifNullExpression_end();
         return _typeSystem.leastUpperBound(
@@ -301,6 +317,22 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   DartType visitExpressionStatement(ExpressionStatement node) {
     visitSubexpression(node.expression, UnknownInferredType.instance);
     return null;
+  }
+
+  @override
+  DartType visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    var targetType = visitSubexpression(node.function, typeProvider.objectType);
+    if (targetType is FunctionType) {
+      return _handleInvocationArguments(node, node.argumentList.arguments,
+          node.typeArguments, node.typeArgumentTypes, targetType, null,
+          invokeType: node.staticInvokeType);
+    } else {
+      // Dynamic dispatch.  The return type is `dynamic`.
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
+      return typeProvider.dynamicType;
+    }
   }
 
   @override
@@ -384,6 +416,44 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   }
 
   @override
+  DartType visitMethodInvocation(MethodInvocation node) {
+    var target = node.realTarget;
+    var callee = node.methodName.staticElement;
+    bool isNullAware = node.isNullAware;
+    DartType targetType;
+    if (target != null) {
+      if (callee is ExecutableElement && callee.isStatic) {
+        target.accept(this);
+      } else {
+        targetType = visitSubexpression(
+            target,
+            isNullAware || isDeclaredOnObject(node.methodName.name)
+                ? typeProvider.dynamicType
+                : typeProvider.objectType);
+      }
+    }
+    if (callee == null) {
+      // Dynamic dispatch.  The return type is `dynamic`.
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
+      return typeProvider.dynamicType;
+    }
+    var calleeType = _computeMigratedType(callee, targetType: targetType);
+    var expressionType = _handleInvocationArguments(
+        node,
+        node.argumentList.arguments,
+        node.typeArguments,
+        node.typeArgumentTypes,
+        calleeType as FunctionType,
+        null,
+        invokeType: node.staticInvokeType);
+    if (isNullAware) {
+      expressionType = _typeSystem.makeNullable(expressionType as TypeImpl);
+    }
+    return expressionType;
+  }
+
+  @override
   DartType visitNode(AstNode node) {
     // Every node type needs its own visit method.
     throw UnimplementedError('No visit method for ${node.runtimeType}');
@@ -410,7 +480,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
           'supported yet');
     } else {
       var targetInfo = visitAssignmentTarget(node.operand, true);
-      _handleIncrementOrDecrement(node.staticElement, targetInfo, node);
+      _handleIncrementOrDecrement(
+          node.staticElement, targetInfo, node, node.operand);
       return targetInfo.readType;
     }
   }
@@ -449,8 +520,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
         break;
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
-        return _handleIncrementOrDecrement(
-            node.staticElement, visitAssignmentTarget(operand, true), node);
+        return _handleIncrementOrDecrement(node.staticElement,
+            visitAssignmentTarget(operand, true), node, node.operand);
       default:
         throw StateError('Unexpected prefix operator: ${node.operator}');
     }
@@ -458,8 +529,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
 
   @override
   DartType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.target, node.propertyName,
-        isNullAwareToken(node.operator.type));
+    return _handlePropertyAccess(
+        node, node.target, node.propertyName, node.isNullAware);
   }
 
   @override
@@ -482,7 +553,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       _contextType = contextType;
       var type = subexpression.accept(this);
       if (_doesAssignmentNeedCheck(from: type, to: contextType)) {
-        addNullCheck(subexpression);
+        addChange(subexpression, NullCheck());
         _flowAnalysis.nonNullAssert_end(subexpression);
         return _typeSystem.promoteToNonNull(type as TypeImpl);
       } else {
@@ -517,7 +588,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       var element = decoratedType.type.element as ClassElement;
       bool isNullable = decoratedType.node.isNullable;
       if (isNullable) {
-        addNullable(node);
+        addChange(node, MakeNullable());
       }
       return InterfaceTypeImpl.explicit(element, arguments,
           nullabilitySuffix:
@@ -557,34 +628,27 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   /// type of the class within which [element] is being accessed; this is used
   /// to perform the correct substitutions.
   DartType _computeMigratedType(Element element, {DartType targetType}) {
-    Element baseElement;
-    if (element is Member) {
-      baseElement = element.baseElement;
-    } else {
-      baseElement = element;
-    }
+    element = element.declaration;
     DartType type;
-    if (baseElement is ClassElement || baseElement is TypeParameterElement) {
+    if (element is ClassElement || element is TypeParameterElement) {
       return typeProvider.typeType;
-    } else if (baseElement is PropertyAccessorElement) {
-      if (baseElement.isSynthetic) {
+    } else if (element is PropertyAccessorElement) {
+      if (element.isSynthetic) {
         type = _variables
-            .decoratedElementType(baseElement.variable)
+            .decoratedElementType(element.variable)
             .toFinalType(typeProvider);
       } else {
-        var functionType = _variables.decoratedElementType(baseElement);
-        var decoratedType = baseElement.isGetter
+        var functionType = _variables.decoratedElementType(element);
+        var decoratedType = element.isGetter
             ? functionType.returnType
             : functionType.positionalParameters[0];
         type = decoratedType.toFinalType(typeProvider);
       }
     } else {
-      type = _variables
-          .decoratedElementType(baseElement)
-          .toFinalType(typeProvider);
+      type = _variables.decoratedElementType(element).toFinalType(typeProvider);
     }
     if (targetType is InterfaceType && targetType.typeArguments.isNotEmpty) {
-      var superclass = baseElement.enclosingElement as ClassElement;
+      var superclass = element.enclosingElement as ClassElement;
       var class_ = targetType.element;
       if (class_ != superclass) {
         var supertype = _decoratedClassHierarchy
@@ -651,7 +715,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   }
 
   DartType _handleIncrementOrDecrement(MethodElement combiner,
-      AssignmentTargetInfo targetInfo, Expression node) {
+      AssignmentTargetInfo targetInfo, Expression node, Expression operand) {
     DartType combinedType;
     if (combiner == null) {
       combinedType = typeProvider.dynamicType;
@@ -667,7 +731,58 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       addProblem(node, const CompoundAssignmentCombinedNullable());
       combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
     }
+    if (operand is SimpleIdentifier) {
+      var element = operand.staticElement;
+      if (element is PromotableElement) {
+        _flowAnalysis.write(element, combinedType);
+      }
+    }
     return combinedType;
+  }
+
+  DartType _handleInvocationArguments(
+      AstNode node,
+      Iterable<AstNode> arguments,
+      TypeArgumentList typeArguments,
+      List<DartType> typeArgumentTypes,
+      FunctionType calleeType,
+      List<TypeParameterElement> constructorTypeParameters,
+      {DartType invokeType}) {
+    var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
+    if (typeFormals.isNotEmpty) {
+      throw UnimplementedError('TODO(paulberry): Invocation of generic method');
+    }
+    int i = 0;
+    var namedParameterTypes = <String, DartType>{};
+    var positionalParameterTypes = <DartType>[];
+    for (var parameter in calleeType.parameters) {
+      if (parameter.isNamed) {
+        namedParameterTypes[parameter.name] = parameter.type;
+      } else {
+        positionalParameterTypes.add(parameter.type);
+      }
+    }
+    for (var argument in arguments) {
+      String name;
+      Expression expression;
+      if (argument is NamedExpression) {
+        name = argument.name.label.name;
+        expression = argument.expression;
+      } else {
+        expression = argument as Expression;
+      }
+      DartType parameterType;
+      if (name != null) {
+        parameterType = namedParameterTypes[name];
+        assert(parameterType != null, 'Missing type for named parameter');
+      } else {
+        assert(i < positionalParameterTypes.length,
+            'Missing positional parameter at $i');
+        parameterType = positionalParameterTypes[i++];
+      }
+      visitSubexpression(expression, parameterType);
+    }
+    return calleeType.returnType;
   }
 
   DartType _handlePropertyAccess(Expression node, Expression target,
@@ -692,6 +807,26 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   /// types they ger migrated to.
   List<DartType> _visitTypeArgumentList(TypeArgumentList arguments) =>
       [for (var argument in arguments.arguments) argument.accept(this)];
+}
+
+/// [NodeChange] reprensenting a type annotation that needs to have a question
+/// mark added to it, to make it nullable.
+class MakeNullable implements NodeChange {
+  factory MakeNullable() => const MakeNullable._();
+
+  const MakeNullable._();
+}
+
+/// Base class representing a change the FixBuilder wishes to make to an AST
+/// node.
+abstract class NodeChange {}
+
+/// [NodeChange] representing an expression that needs to have a null check
+/// added to it.
+class NullCheck implements NodeChange {
+  factory NullCheck() => const NullCheck._();
+
+  const NullCheck._();
 }
 
 /// Common supertype for problems reported by [FixBuilder.addProblem].

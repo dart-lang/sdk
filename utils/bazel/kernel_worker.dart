@@ -142,7 +142,8 @@ final summaryArgsParser = new ArgParser()
   ..addOption('used-inputs')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addMultiOption('enable-experiment',
-      help: 'Enable a language experiment when invoking the CFE.');
+      help: 'Enable a language experiment when invoking the CFE.')
+  ..addMultiOption('define', abbr: 'D');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -166,6 +167,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     fe.InitializedCompilerState previousState}) async {
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
+
   var parsedArgs = summaryArgsParser.parse(args);
 
   if (parsedArgs['help']) {
@@ -244,6 +246,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
+  var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
+
   if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
 
@@ -286,6 +290,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         fileSystem,
         (parsedArgs['enable-experiment'] as List<String>),
         summaryOnly,
+        environmentDefines,
         trackNeededDillLibraries: recordUsedInputs);
   } else {
     state = await fe.initializeCompiler(
@@ -298,7 +303,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         linkedInputs,
         target,
         fileSystem,
-        (parsedArgs['enable-experiment'] as List<String>));
+        parsedArgs['enable-experiment'] as List<String>,
+        environmentDefines);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -447,4 +453,21 @@ Uri _toUri(String uriString) {
   // Windows-style paths use '\', so convert them to '/' in case they've been
   // concatenated with Unix-style paths.
   return Uri.base.resolve(uriString.replaceAll("\\", "/"));
+}
+
+Map<String, String> _parseEnvironmentDefines(List<String> args) {
+  var environment = <String, String>{};
+
+  for (var arg in args) {
+    var eq = arg.indexOf('=');
+    if (eq <= 0) {
+      var kind = eq == 0 ? 'name' : 'value';
+      throw FormatException('no $kind given to -D option `$arg`');
+    }
+    var name = arg.substring(0, eq);
+    var value = arg.substring(eq + 1);
+    environment[name] = value;
+  }
+
+  return environment;
 }

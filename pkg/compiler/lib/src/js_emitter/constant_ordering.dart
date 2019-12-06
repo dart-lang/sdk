@@ -212,19 +212,29 @@ class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
   }
 
   @override
-  int visitVoidType(covariant VoidType type, _) => 6;
-  @override
-  int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
-  @override
   int visitFunctionType(covariant FunctionType type, _) => 0;
   @override
   int visitInterfaceType(covariant InterfaceType type, _) => 1;
   @override
   int visitTypedefType(covariant TypedefType type, _) => 2;
   @override
+  int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
+  @override
+  int visitNeverType(covariant NeverType type, _) => 4;
+  @override
   int visitDynamicType(covariant DynamicType type, _) => 5;
   @override
+  int visitVoidType(covariant VoidType type, _) => 6;
+  @override
   int visitAnyType(covariant AnyType type, _) => 7;
+  @override
+  int visitErasedType(covariant ErasedType type, _) => 8;
+  @override
+  int visitLegacyType(covariant LegacyType type, _) => 9;
+  @override
+  int visitNullableType(covariant NullableType type, _) => 10;
+  @override
+  int visitFutureOrType(covariant FutureOrType type, _) => 11;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
@@ -241,6 +251,25 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
     r = a.accept(this, b);
     _root = null;
     return r;
+  }
+
+  @override
+  int visitLegacyType(covariant LegacyType type, covariant LegacyType other) =>
+      compare(type.baseType, other.baseType);
+
+  @override
+  int visitNullableType(
+          covariant NullableType type, covariant NullableType other) =>
+      visit(type.baseType, other.baseType);
+
+  @override
+  int visitFutureOrType(
+          covariant FutureOrType type, covariant FutureOrType other) =>
+      visit(type.typeArgument, other.typeArgument);
+
+  @override
+  int visitNeverType(covariant NeverType type, covariant NeverType other) {
+    throw UnsupportedError('Unreachable');
   }
 
   @override
@@ -292,6 +321,11 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   int visitDynamicType(
       covariant DynamicType type, covariant DynamicType other) {
     throw new UnsupportedError('Unreachable');
+  }
+
+  @override
+  int visitErasedType(covariant ErasedType type, covariant ErasedType other) {
+    throw UnsupportedError('Unreachable');
   }
 
   @override

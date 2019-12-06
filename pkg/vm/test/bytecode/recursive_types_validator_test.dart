@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:vm/bytecode/recursive_types_validator.dart';
 
 main() {
+  CoreTypes coreTypes;
   Library lib;
   Supertype objectSuper;
   DartType intType;
@@ -27,10 +28,10 @@ main() {
   setUp(() {
     // Start with mock SDK libraries.
     Component component = createMockSdkComponent();
-    CoreTypes coreTypes = new CoreTypes(component);
+    coreTypes = new CoreTypes(component);
     objectSuper = coreTypes.objectClass.asThisSupertype;
-    intType = new InterfaceType(coreTypes.intClass);
-    doubleType = new InterfaceType(coreTypes.doubleClass);
+    intType = new InterfaceType(coreTypes.intClass, Nullability.legacy);
+    doubleType = new InterfaceType(coreTypes.doubleClass, Nullability.legacy);
 
     // Add the test library.
     lib = new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib');
@@ -40,7 +41,7 @@ main() {
     // class Base<T>
     base = addClass('Base', [new TypeParameter('T')]);
 
-    validator = new RecursiveTypesValidator();
+    validator = new RecursiveTypesValidator(coreTypes);
   });
 
   tearDown(() {});
@@ -49,9 +50,10 @@ main() {
     // class Derived<T> extends Base<Derived<T>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
-    DartType derivedOfT =
-        new InterfaceType(derived, [new TypeParameterType(t)]);
-    DartType derivedOfInt = new InterfaceType(derived, [intType]);
+    DartType derivedOfT = new InterfaceType(derived, Nullability.legacy,
+        [new TypeParameterType(t, Nullability.legacy)]);
+    DartType derivedOfInt =
+        new InterfaceType(derived, Nullability.legacy, [intType]);
     derived.supertype = new Supertype(base, [derivedOfT]);
 
     validator.validateType(derivedOfT);
@@ -65,10 +67,12 @@ main() {
     // class Derived<T> extends Base<Derived<Derived<int>>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
-    DartType derivedOfT =
-        new InterfaceType(derived, [new TypeParameterType(t)]);
-    DartType derivedOfInt = new InterfaceType(derived, [intType]);
-    DartType derivedOfDerivedOfInt = new InterfaceType(derived, [derivedOfInt]);
+    DartType derivedOfT = new InterfaceType(derived, Nullability.legacy,
+        [new TypeParameterType(t, Nullability.legacy)]);
+    DartType derivedOfInt =
+        new InterfaceType(derived, Nullability.legacy, [intType]);
+    DartType derivedOfDerivedOfInt =
+        new InterfaceType(derived, Nullability.legacy, [derivedOfInt]);
     derived.supertype = new Supertype(base, [derivedOfDerivedOfInt]);
 
     validator.validateType(derivedOfT);
@@ -83,10 +87,12 @@ main() {
     // class Derived<T> extends Base<Derived<Derived<T>>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
-    DartType derivedOfT =
-        new InterfaceType(derived, [new TypeParameterType(t)]);
-    DartType derivedOfInt = new InterfaceType(derived, [intType]);
-    DartType derivedOfDerivedOfT = new InterfaceType(derived, [derivedOfT]);
+    DartType derivedOfT = new InterfaceType(derived, Nullability.legacy,
+        [new TypeParameterType(t, Nullability.legacy)]);
+    DartType derivedOfInt =
+        new InterfaceType(derived, Nullability.legacy, [intType]);
+    DartType derivedOfDerivedOfT =
+        new InterfaceType(derived, Nullability.legacy, [derivedOfT]);
     derived.supertype = new Supertype(base, [derivedOfDerivedOfT]);
 
     Expect.throws(() {
@@ -109,21 +115,23 @@ main() {
     TypeParameter v = new TypeParameter('V');
     Class derived2 = addClass('Derived2', [v]);
 
-    DartType derived2OfU =
-        new InterfaceType(derived2, [new TypeParameterType(u)]);
+    DartType derived2OfU = new InterfaceType(derived2, Nullability.legacy,
+        [new TypeParameterType(u, Nullability.legacy)]);
     derived1.supertype = new Supertype(base, [derived2OfU]);
 
-    DartType derived1OfV =
-        new InterfaceType(derived1, [new TypeParameterType(v)]);
+    DartType derived1OfV = new InterfaceType(derived1, Nullability.legacy,
+        [new TypeParameterType(v, Nullability.legacy)]);
     derived2.supertype = new Supertype(base, [derived1OfV]);
 
-    DartType derived1OfU =
-        new InterfaceType(derived1, [new TypeParameterType(u)]);
-    DartType derived1OfInt = new InterfaceType(derived1, [intType]);
+    DartType derived1OfU = new InterfaceType(derived1, Nullability.legacy,
+        [new TypeParameterType(u, Nullability.legacy)]);
+    DartType derived1OfInt =
+        new InterfaceType(derived1, Nullability.legacy, [intType]);
 
-    DartType derived2OfV =
-        new InterfaceType(derived2, [new TypeParameterType(v)]);
-    DartType derived2OfInt = new InterfaceType(derived2, [intType]);
+    DartType derived2OfV = new InterfaceType(derived2, Nullability.legacy,
+        [new TypeParameterType(v, Nullability.legacy)]);
+    DartType derived2OfInt =
+        new InterfaceType(derived2, Nullability.legacy, [intType]);
 
     validator.validateType(derived1OfU);
     Expect.isTrue(validator.isRecursive(derived1OfU));
@@ -149,16 +157,19 @@ main() {
     TypeParameter q2 = new TypeParameter('Q2');
     Class e = addClass('E', [q1, q2]);
 
-    DartType eOfQ1Int =
-        new InterfaceType(e, [new TypeParameterType(q1), intType]);
-    e.supertype = new Supertype(f, [eOfQ1Int, new TypeParameterType(q2)]);
+    DartType eOfQ1Int = new InterfaceType(e, Nullability.legacy,
+        [new TypeParameterType(q1, Nullability.legacy), intType]);
+    e.supertype = new Supertype(
+        f, [eOfQ1Int, new TypeParameterType(q2, Nullability.legacy)]);
 
-    DartType eOfIntDouble = new InterfaceType(e, [intType, doubleType]);
+    DartType eOfIntDouble =
+        new InterfaceType(e, Nullability.legacy, [intType, doubleType]);
 
     validator.validateType(eOfIntDouble);
-    validator.validateType(e.thisType);
+    validator.validateType(e.getThisType(coreTypes, lib.nonNullable));
 
     Expect.isFalse(validator.isRecursive(eOfIntDouble));
-    Expect.isFalse(validator.isRecursive(e.thisType));
+    Expect.isFalse(
+        validator.isRecursive(e.getThisType(coreTypes, lib.nonNullable)));
   });
 }

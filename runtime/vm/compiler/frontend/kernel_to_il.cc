@@ -40,8 +40,7 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id,
-    bool inlining_unchecked_entry,
-    GrowableObjectArray* record_yield_positions)
+    bool inlining_unchecked_entry)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
                            osr_id,
@@ -69,7 +68,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(NULL) {
   const Script& script =
       Script::Handle(Z, parsed_function->function().script());
-  record_yield_positions_ = record_yield_positions;
   H.InitFromScript(script);
 }
 
@@ -120,7 +118,8 @@ Fragment FlowGraphBuilder::PushContext(const LocalScope* scope) {
   instructions += LoadLocal(context);
   instructions += LoadLocal(parsed_function_->current_context_var());
   instructions +=
-      StoreInstanceField(TokenPosition::kNoSource, Slot::Context_parent());
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Context_parent(),
+                         StoreInstanceFieldInstr::Kind::kInitializing);
   instructions += StoreLocal(TokenPosition::kNoSource,
                              parsed_function_->current_context_var());
   ++context_depth_;
@@ -410,6 +409,153 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
+Fragment FlowGraphBuilder::LoadLateField(const Field& field,
+                                         LocalVariable* instance) {
+  Fragment instructions;
+  TargetEntryInstr *is_uninitialized, *is_initialized;
+  const TokenPosition position = field.token_pos();
+  const bool is_static = field.is_static();
+
+  // Check whether the field has been initialized already.
+  if (is_static) {
+    instructions += Constant(field);
+    instructions += LoadStaticField();
+  } else {
+    instructions += LoadLocal(instance);
+    instructions += LoadField(field);
+  }
+  LocalVariable* temp = MakeTemporary();
+  instructions += LoadLocal(temp);
+  instructions += Constant(Object::sentinel());
+  instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
+
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  if (field.has_initializer()) {
+    // has_nontrivial_initializer is required for EnsureInitializerFunction. The
+    // trivial initializer case is treated as a normal field.
+    ASSERT(field.has_nontrivial_initializer());
+
+    // If the field isn't initialized, call the initializer and set the field.
+    Function& init_function =
+        Function::ZoneHandle(Z, field.EnsureInitializerFunction());
+    Fragment initialize(is_uninitialized);
+    if (is_static) {
+      initialize += StaticCall(position, init_function,
+                               /* argument_count = */ 0, ICData::kStatic);
+    } else {
+      initialize += LoadLocal(instance);
+      initialize += PushArgument();
+      initialize += StaticCall(position, init_function,
+                               /* argument_count = */ 1, ICData::kStatic);
+    }
+    initialize += StoreLocal(position, temp);
+    initialize += Drop();
+    initialize += StoreLateField(field, instance, temp);
+    initialize += Goto(join);
+  } else {
+    // The field has no initializer, so throw a LateInitializationError.
+    Fragment initialize(is_uninitialized);
+    initialize += ThrowLateInitializationError(
+        position, String::ZoneHandle(Z, field.name()));
+    initialize += Goto(join);
+  }
+
+  {
+    // Already initialized, so there's nothing to do.
+    Fragment already_initialized(is_initialized);
+    already_initialized += Goto(join);
+  }
+
+  // Now that the field has been initialized, load it.
+  return Fragment(instructions.entry, join);
+}
+
+Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
+                                                        const String& name) {
+  const Class& klass = Class::ZoneHandle(
+      Z, Library::LookupCoreClass(Symbols::LateInitializationError()));
+  ASSERT(!klass.IsNull());
+
+  const Function& throw_new =
+      Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
+                                  H.DartSymbolObfuscate("_throwNew")));
+  ASSERT(!throw_new.IsNull());
+
+  Fragment instructions;
+
+  // Call _LateInitializationError._throwNew.
+  instructions += Constant(name);
+  instructions += PushArgument();  // name
+
+  instructions += StaticCall(position, throw_new,
+                             /* argument_count = */ 1, ICData::kStatic);
+  instructions += Drop();
+
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::StoreLateField(const Field& field,
+                                          LocalVariable* instance,
+                                          LocalVariable* setter_value) {
+  Fragment instructions;
+  TargetEntryInstr *is_uninitialized, *is_initialized;
+  const TokenPosition position = field.token_pos();
+  const bool is_static = field.is_static();
+  const bool is_final = field.is_final();
+
+  if (is_final) {
+    // Check whether the field has been initialized already.
+    if (is_static) {
+      instructions += Constant(field);
+      instructions += LoadStaticField();
+    } else {
+      instructions += LoadLocal(instance);
+      instructions += LoadField(field);
+    }
+    instructions += Constant(Object::sentinel());
+    instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
+    JoinEntryInstr* join = BuildJoinEntry();
+
+    {
+      // If the field isn't initialized, do nothing.
+      Fragment initialize(is_uninitialized);
+      initialize += Goto(join);
+    }
+
+    {
+      // If the field is already initialized, throw a LateInitializationError.
+      Fragment already_initialized(is_initialized);
+      already_initialized += ThrowLateInitializationError(
+          position, String::ZoneHandle(Z, field.name()));
+      already_initialized += Goto(join);
+    }
+
+    instructions = Fragment(instructions.entry, join);
+  }
+
+  if (!is_static) {
+    instructions += LoadLocal(instance);
+  }
+  instructions += LoadLocal(setter_value);
+  if (is_static) {
+    instructions += StoreStaticField(position, field);
+  } else {
+    instructions += StoreInstanceFieldGuarded(
+        field, StoreInstanceFieldInstr::Kind::kInitializing);
+  }
+
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
+  ASSERT(field.is_instance());
+  ASSERT(field.needs_load_guard());
+  InitInstanceFieldInstr* init = new (Z)
+      InitInstanceFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
+  return Fragment(init);
+}
+
 Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
   InitStaticFieldInstr* init = new (Z)
       InitStaticFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
@@ -430,7 +576,8 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
-                                  bool omit_result_type_check /* = false */) {
+                                  bool omit_result_type_check,
+                                  intptr_t yield_index) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
@@ -458,7 +605,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += Drop();
   }
 
-  instructions += BaseFlowGraphBuilder::Return(position);
+  instructions += BaseFlowGraphBuilder::Return(position, yield_index);
 
   return instructions;
 }
@@ -644,7 +791,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
   //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, kernel_data, kernel_data_program_offset, record_yield_positions_);
+      this, kernel_data, kernel_data_program_offset);
   return streaming_flow_graph_builder.BuildGraph();
 }
 
@@ -672,11 +819,9 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
 
 bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     const Function& function) {
-  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
-// On simdbc and the bytecode interpreter we fall back to natives.
-#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
     case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
@@ -718,7 +863,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
-#endif  // !defined(TARGET_ARCH_DBC)
     // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
     // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
     // bytecode interpreter in runtime/vm/interpreter.cc. Alternatively, these
@@ -777,10 +921,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
-  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
-// On simdbc we fall back to natives.
-#if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
       body += BuildTypedDataViewFactoryConstructor(function, kByteDataViewCid);
       break;
@@ -840,7 +982,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
-#endif  // !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kObjectEquals:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1005,9 +1146,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body +=
-          StoreInstanceField(TokenPosition::kNoSource,
-                             Slot::LinkedHashMap_hash_mask(), kNoStoreBarrier);
+      body += StoreInstanceField(
+          TokenPosition::kNoSource, Slot::LinkedHashMap_hash_mask(),
+          StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
@@ -1019,9 +1160,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body +=
-          StoreInstanceField(TokenPosition::kNoSource,
-                             Slot::LinkedHashMap_used_data(), kNoStoreBarrier);
+      body += StoreInstanceField(
+          TokenPosition::kNoSource, Slot::LinkedHashMap_used_data(),
+          StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
@@ -1033,9 +1174,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreInstanceField(TokenPosition::kNoSource,
-                                 Slot::LinkedHashMap_deleted_keys(),
-                                 kNoStoreBarrier);
+      body += StoreInstanceField(
+          TokenPosition::kNoSource, Slot::LinkedHashMap_deleted_keys(),
+          StoreInstanceFieldInstr::Kind::kOther, kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kAsyncStackTraceHelper:
@@ -1264,7 +1405,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Box(kUnboxedFfiIntPtr);
 #endif  // defined(TARGET_ARCH_IS_32_BIT)
       body += StoreInstanceField(TokenPosition::kNoSource,
-                                 Slot::Pointer_c_memory_address());
+                                 Slot::Pointer_c_memory_address(),
+                                 StoreInstanceFieldInstr::Kind::kInitializing);
     } break;
     case MethodRecognizer::kFfiGetAddress: {
       ASSERT(function.NumParameters() == 1);
@@ -1306,15 +1448,20 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
 
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
-  body += StoreInstanceField(token_pos, Slot::TypedDataView_data());
+  body += StoreInstanceField(token_pos, Slot::TypedDataView_data(),
+                             StoreInstanceFieldInstr::Kind::kInitializing);
 
   body += LoadLocal(view_object);
   body += LoadLocal(offset_in_bytes);
-  body += StoreInstanceField(token_pos, Slot::TypedDataView_offset_in_bytes());
+  body += StoreInstanceField(token_pos, Slot::TypedDataView_offset_in_bytes(),
+                             StoreInstanceFieldInstr::Kind::kInitializing,
+                             kNoStoreBarrier);
 
   body += LoadLocal(view_object);
   body += LoadLocal(length);
-  body += StoreInstanceField(token_pos, Slot::TypedDataBase_length());
+  body += StoreInstanceField(token_pos, Slot::TypedDataBase_length(),
+                             StoreInstanceFieldInstr::Kind::kInitializing,
+                             kNoStoreBarrier);
 
   // Update the inner pointer.
   //
@@ -1362,8 +1509,9 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   if (!target.HasInstantiatedSignature(kCurrentClass)) {
     fragment += LoadLocal(closure);
     fragment += LoadInstantiatorTypeArguments();
-    fragment += StoreInstanceField(TokenPosition::kNoSource,
-                                   Slot::Closure_instantiator_type_arguments());
+    fragment += StoreInstanceField(
+        TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
   // The function signature cannot have uninstantiated function type parameters,
@@ -1381,17 +1529,24 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += LoadLocal(closure);
   fragment += Constant(target);
   fragment +=
-      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function());
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function(),
+                         StoreInstanceFieldInstr::Kind::kInitializing);
 
   fragment += LoadLocal(closure);
   fragment += LoadLocal(context);
   fragment +=
-      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context());
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context(),
+                         StoreInstanceFieldInstr::Kind::kInitializing);
 
-  fragment += LoadLocal(closure);
-  fragment += Constant(Object::empty_type_arguments());
-  fragment += StoreInstanceField(TokenPosition::kNoSource,
-                                 Slot::Closure_delayed_type_arguments());
+  if (target.IsGeneric()) {
+    // Only generic functions need to have properly initialized
+    // delayed_type_arguments.
+    fragment += LoadLocal(closure);
+    fragment += Constant(Object::empty_type_arguments());
+    fragment += StoreInstanceField(
+        TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
+  }
 
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
@@ -1400,7 +1555,8 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += StoreInstanceField(
       TokenPosition::kNoSource,
       Slot::GetContextVariableSlotFor(
-          thread_, *implicit_closure_scope->context_variables()[0]));
+          thread_, *implicit_closure_scope->context_variables()[0]),
+      StoreInstanceFieldInstr::Kind::kInitializing);
 
   return fragment;
 }
@@ -2075,8 +2231,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos(),
-                       Heap::kOld);
+      type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos());
       type = ClassFinalizer::FinalizeType(owner, type);
       body += Constant(type);
     } else {
@@ -2448,6 +2603,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     field = function.accessor_field();
   }
 
+  const Class& owner = Class::ZoneHandle(Z, field.Owner());
+  const bool lib_is_nnbd = Library::ZoneHandle(Z, owner.library()).is_nnbd();
+
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2471,15 +2629,48 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
-    if (is_method) {
-      body += StoreInstanceFieldGuarded(field, false);
+    if (field.is_late()) {
+      if (is_method) {
+        body += Drop();
+      }
+      body += Drop();
+      if (field.is_final() && field.has_initializer()) {
+        body += ThrowLateInitializationError(
+            field.token_pos(), String::ZoneHandle(Z, field.name()));
+      } else {
+        body += StoreLateField(
+            field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
+            setter_value);
+      }
     } else {
-      body += StoreStaticField(TokenPosition::kNoSource, field);
+      if (is_method) {
+        body += StoreInstanceFieldGuarded(
+            field, StoreInstanceFieldInstr::Kind::kOther);
+      } else {
+        body += StoreStaticField(TokenPosition::kNoSource, field);
+      }
     }
     body += NullConstant();
   } else if (is_method) {
-    body += LoadLocal(parsed_function_->ParameterVariable(0));
-    body += LoadField(field);
+    if (field.needs_load_guard()) {
+#if defined(PRODUCT)
+      UNREACHABLE();
+#else
+      ASSERT(Isolate::Current()->HasAttemptedReload());
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += InitInstanceField(field);
+
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += LoadField(field);
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
+#endif
+    } else if (field.is_late() && !field.has_trivial_initializer()) {
+      body += LoadLateField(field, parsed_function_->ParameterVariable(0));
+    } else {
+      body += LoadLocal(parsed_function_->ParameterVariable(0));
+      body += LoadField(field);
+    }
   } else if (field.is_const()) {
     // If the parser needs to know the value of an uninitialized constant field
     // it will set the value to the transition sentinel (used to detect circular
@@ -2492,11 +2683,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   } else {
     // The field always has an initializer because static fields without
     // initializers are initialized eagerly and do not have implicit getters.
-    ASSERT(field.has_initializer());
-    body += Constant(field);
-    body += InitStaticField(field);
-    body += Constant(field);
-    body += LoadStaticField();
+    if (lib_is_nnbd) {
+      // In NNBD mode, static fields act like late fields regardless of whether
+      // they're marked late. The only behavioural difference is in compile
+      // errors that are handled by the front end.
+      body += LoadLateField(field, /* instance = */ nullptr);
+    } else {
+      ASSERT(field.has_nontrivial_initializer());
+      body += Constant(field);
+      body += InitStaticField(field);
+      body += Constant(field);
+      body += LoadStaticField();
+    }
+    if (field.needs_load_guard()) {
+#if defined(PRODUCT)
+      UNREACHABLE();
+#else
+      ASSERT(Isolate::Current()->HasAttemptedReload());
+      body += CheckAssignable(AbstractType::Handle(Z, field.type()),
+                              Symbols::FunctionResult());
+#endif
+    }
   }
   body += Return(TokenPosition::kNoSource);
 
@@ -2621,14 +2828,12 @@ Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
   return Fragment(extend);
 }
 
-#if !defined(TARGET_ARCH_DBC)
 Fragment FlowGraphBuilder::NativeReturn(Representation result) {
   auto* instr = new (Z)
       NativeReturnInstr(TokenPosition::kNoSource, Pop(), result,
                         compiler::ffi::ResultLocation(result), DeoptId::kNone);
   return Fragment(instr);
 }
-#endif
 
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   LocalVariable* address = MakeTemporary();
@@ -2654,7 +2859,8 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   code += LoadLocal(pointer);
   code += LoadLocal(address);
   code += StoreInstanceField(TokenPosition::kNoSource,
-                             Slot::Pointer_c_memory_address());
+                             Slot::Pointer_c_memory_address(),
+                             StoreInstanceFieldInstr::Kind::kInitializing);
   code += StoreLocal(TokenPosition::kNoSource, result);
   code += Drop();  // StoreLocal^
   code += Drop();  // address
@@ -2746,13 +2952,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += CheckStackOverflowInPrologue(function.token_pos());
 
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
-#if !defined(TARGET_ARCH_DBC)
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
   const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr;
-#else
-  const auto& arg_reps = *compiler::ffi::ArgumentHostRepresentations(signature);
-  const auto* arg_host_locs = compiler::ffi::HostArgumentLocations(arg_reps);
-#endif
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
 
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
@@ -2778,13 +2979,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += FfiCall(signature, arg_reps, arg_locs, arg_host_locs);
 
   ffi_type = signature.result_type();
-#if !defined(TARGET_ARCH_DBC)
   const Representation from_rep =
       compiler::ffi::ResultRepresentation(signature);
-#else
-  const Representation from_rep =
-      compiler::ffi::ResultHostRepresentation(signature);
-#endif  // !defined(TARGET_ARCH_DBC)
   body += FfiConvertArgumentToDart(ffi_type, from_rep);
   body += Return(TokenPosition::kNoSource);
 
@@ -2793,7 +2989,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
-#if !defined(TARGET_ARCH_DBC)
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
@@ -2875,9 +3070,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   PrologueInfo prologue_info(-1, -1);
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
-#else
-  UNREACHABLE();
-#endif
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

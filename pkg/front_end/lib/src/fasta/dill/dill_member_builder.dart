@@ -9,7 +9,9 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/library_builder.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -60,6 +62,80 @@ class DillMemberBuilder extends MemberBuilderImpl {
   }
 
   bool get isField => member is Field;
+
+  @override
+  bool get isAssignable => member is Field && member.hasSetter;
+
+  @override
+  Member get readTarget {
+    if (isField) {
+      return member;
+    } else if (isConstructor) {
+      return null;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+        return member;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    if (isField) {
+      return isAssignable ? member : null;
+    } else if (isConstructor) {
+      return null;
+    }
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return member;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    if (isField) {
+      return member;
+    } else if (isConstructor) {
+      return member;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return member;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    throw new UnsupportedError('DillMemberBuilder.buildMembers');
+  }
+
+  @override
+  List<ClassMember> get localMembers =>
+      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter ? <ClassMember>[this] : const <ClassMember>[];
 }
 
 int computeModifiers(Member member) {

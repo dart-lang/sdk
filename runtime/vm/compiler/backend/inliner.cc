@@ -1032,8 +1032,7 @@ class CallSiteInliner : public ValueObject {
 #endif
           CalleeGraphValidator::Validate(callee_graph);
         }
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
         if (FLAG_precompiled_mode) {
           callee_graph->PopulateWithICData(parsed_function->function());
         }
@@ -1128,8 +1127,7 @@ class CallSiteInliner : public ValueObject {
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
             AotCallSpecializer call_specializer(inliner_->precompiler_,
                                                 callee_graph,
                                                 inliner_->speculative_policy_);
@@ -1140,8 +1138,7 @@ class CallSiteInliner : public ValueObject {
             CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-        // !defined(TARGET_ARCH_IA32)
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
           } else {
             JitCallSpecializer call_specializer(callee_graph,
                                                 inliner_->speculative_policy_);
@@ -1676,7 +1673,7 @@ intptr_t PolymorphicInliner::AllocateBlockId() const {
 bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
     if ((target.raw() == inlined_variants_.TargetAt(i)->target->raw()) &&
-        !MethodRecognizer::PolymorphicTarget(target)) {
+        !target.is_polymorphic_target()) {
       // The call target is shared with a previous inlined variant.  Share
       // the graph.  This requires a join block at the entry, and edge-split
       // form requires a target for each branch.
@@ -1808,8 +1805,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
     ASSERT((last != nullptr && result != nullptr) ||
-           MethodRecognizer::RecognizeKind(target) ==
-               MethodRecognizer::kObjectConstructor);
+           (target.recognized_kind() == MethodRecognizer::kObjectConstructor));
     graph_entry->set_normal_entry(entry);
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
@@ -3324,11 +3320,10 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
     ASSERT((last != nullptr && result != nullptr) ||
-           MethodRecognizer::RecognizeKind(target) ==
-               MethodRecognizer::kObjectConstructor);
+           (target.recognized_kind() == MethodRecognizer::kObjectConstructor));
     // Determine if inlining instance methods needs a check.
     FlowGraph::ToCheck check = FlowGraph::ToCheck::kNoCheck;
-    if (MethodRecognizer::PolymorphicTarget(target)) {
+    if (target.is_polymorphic_target()) {
       check = FlowGraph::ToCheck::kCheckCid;
     } else {
       check = flow_graph->CheckForInstanceCall(call, target.kind());
@@ -3412,8 +3407,8 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
     ASSERT((last != nullptr && result != nullptr) ||
-           MethodRecognizer::RecognizeKind(call->function()) ==
-               MethodRecognizer::kObjectConstructor);
+           (call->function().recognized_kind() ==
+            MethodRecognizer::kObjectConstructor));
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -3690,7 +3685,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     FlowGraphInliner::ExactnessInfo* exactness) {
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
 
-  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+  const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:

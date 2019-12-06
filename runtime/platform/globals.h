@@ -299,8 +299,7 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
-    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
-    !defined(TARGET_ARCH_DBC)
+    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
@@ -319,12 +318,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IS_32_BIT 1
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 #define TARGET_ARCH_IS_64_BIT 1
-#elif defined(TARGET_ARCH_DBC)
-#if defined(ARCH_IS_32_BIT)
-#define TARGET_ARCH_IS_32_BIT 1
-#else
-#define TARGET_ARCH_IS_64_BIT 1
-#endif
 #else
 #error Automatic target architecture detection failed.
 #endif
@@ -362,9 +355,6 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(HOST_ARCH_ARM64)
 #define USING_SIMULATOR 1
 #endif
-
-#elif defined(TARGET_ARCH_DBC)
-#define USING_SIMULATOR 1
 
 #else
 #error Unknown architecture.
@@ -417,12 +407,6 @@ typedef simd128_value_t fpu_register_t;
     (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
      defined(TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
-#endif
-
-// Disable background threads by default on armv5te. The relevant
-// implementations are uniprocessors.
-#if !defined(TARGET_ARCH_ARM_5TE)
-#define ARCH_IS_MULTI_CORE 1
 #endif
 
 // Short form printf format specifiers

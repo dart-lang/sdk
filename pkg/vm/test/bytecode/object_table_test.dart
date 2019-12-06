@@ -40,7 +40,7 @@ main() {
     lib2.parent = component;
     component.libraries.add(lib2);
 
-    objectTable = new ObjectTable();
+    objectTable = new ObjectTable(coreTypes);
   });
 
   tearDown(() {});
@@ -81,8 +81,10 @@ main() {
   });
 
   test('simple-types', () {
-    final h1a = objectTable.getHandle(new InterfaceType(coreTypes.intClass));
-    final h1b = objectTable.getHandle(new InterfaceType(coreTypes.intClass));
+    final h1a = objectTable
+        .getHandle(new InterfaceType(coreTypes.intClass, Nullability.legacy));
+    final h1b = objectTable
+        .getHandle(new InterfaceType(coreTypes.intClass, Nullability.legacy));
     final h2a = objectTable.getHandle(const DynamicType());
     final h2b = objectTable.getHandle(new DynamicType());
     Expect.identical(h1a, h1b);
@@ -92,20 +94,28 @@ main() {
     Expect.equals(true, h2a.isCacheable);
     Expect.equals(false, h1a.shouldBeIncludedIntoIndexTable); // 2 uses
     objectTable.getHandle(new InterfaceType(
-        coreTypes.listClass, [new InterfaceType(coreTypes.intClass)]));
+        coreTypes.listClass,
+        Nullability.legacy,
+        [new InterfaceType(coreTypes.intClass, Nullability.legacy)]));
     Expect.equals(true, h1a.shouldBeIncludedIntoIndexTable); // 3 uses
   });
 
   test('recursive-types', () {
     final base = addClass(lib1, "Base", [new TypeParameter("T")]);
     final derived1 = addClass(lib1, "Derived");
-    derived1.supertype = new Supertype(base, [new InterfaceType(derived1)]);
+    derived1.supertype =
+        new Supertype(base, [new InterfaceType(derived1, Nullability.legacy)]);
     final derived2 = addClass(lib2, "Derived");
-    derived2.supertype = new Supertype(base, [new InterfaceType(derived2)]);
-    final h1a = objectTable.getHandle(new InterfaceType(derived1));
-    final h1b = objectTable.getHandle(new InterfaceType(derived1));
-    final h2a = objectTable.getHandle(new InterfaceType(derived2));
-    final h2b = objectTable.getHandle(new InterfaceType(derived2));
+    derived2.supertype =
+        new Supertype(base, [new InterfaceType(derived2, Nullability.legacy)]);
+    final h1a =
+        objectTable.getHandle(new InterfaceType(derived1, Nullability.legacy));
+    final h1b =
+        objectTable.getHandle(new InterfaceType(derived1, Nullability.legacy));
+    final h2a =
+        objectTable.getHandle(new InterfaceType(derived2, Nullability.legacy));
+    final h2b =
+        objectTable.getHandle(new InterfaceType(derived2, Nullability.legacy));
     Expect.identical(h1a, h1b);
     Expect.identical(h2a, h2b);
     Expect.notEquals(h1a, h2a);

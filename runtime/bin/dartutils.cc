@@ -634,6 +634,15 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
   Dart_Handle set_script_name =
       Dart_SetField(platform_type, script_name, dart_script);
   RETURN_IF_ERROR(set_script_name);
+
+  Dart_Handle network_profiling_type =
+      GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling");
+  RETURN_IF_ERROR(network_profiling_type);
+  Dart_Handle result =
+      Dart_Invoke(network_profiling_type,
+                  NewString("_registerServiceExtension"), 0, nullptr);
+  RETURN_IF_ERROR(result);
+
   return Dart_Null();
 }
 

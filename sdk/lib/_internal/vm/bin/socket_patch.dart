@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // part of "common_patch.dart";
 
 @patch
@@ -1506,7 +1508,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> bind(address, int port,
+  static Future<ServerSocket> _bind(address, int port,
       {int backlog: 0, bool v6Only: false, bool shared: false}) {
     return _ServerSocket.bind(address, port, backlog, v6Only, shared);
   }

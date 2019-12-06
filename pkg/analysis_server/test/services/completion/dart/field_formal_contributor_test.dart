@@ -22,6 +22,17 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     return new FieldFormalContributor();
   }
 
+  /// https://github.com/dart-lang/sdk/issues/39028
+  test_mixin_constructor() async {
+    addTestSource('''
+mixin M {
+  M(this.^);
+}
+''');
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
   test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''

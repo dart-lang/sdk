@@ -8,11 +8,13 @@ import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/index_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -46,7 +48,13 @@ class NonNullableFix extends FixCodeTask {
   /// as if in a directory structure rooted at [includedRoot].
   final String includedRoot;
 
+  /// The absolute path of the directory to which preview pages are to be
+  /// written, or `null` if no preview pages should be written to disk.
   final String outputDir;
+
+  /// The port on which preview pages should be served, or `null` if no preview
+  /// server should be started.
+  final int port;
 
   InstrumentationListener instrumentationListener;
 
@@ -57,12 +65,12 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener, this.outputDir,
+  NonNullableFix(this.listener, this.outputDir, this.port,
       {List<String> included = const []})
       : this.includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     instrumentationListener =
-        outputDir == null ? null : InstrumentationListener();
+        outputDir == null && port == null ? null : InstrumentationListener();
     migration = new NullabilityMigration(
         new NullabilityMigrationAdapter(listener),
         permissive: _usePermissiveMode,
@@ -82,6 +90,23 @@ class NonNullableFix extends FixCodeTask {
         outputFolder.create();
       }
       await _generateOutput(provider, outputFolder);
+    }
+    if (port != null) {
+      OverlayResourceProvider provider = listener.server.resourceProvider;
+      InfoBuilder infoBuilder = InfoBuilder(
+          provider, includedRoot, instrumentationListener.data, listener);
+      Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
+      var pathContext = provider.pathContext;
+      MigrationInfo migrationInfo = MigrationInfo(
+          unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
+      PathMapper pathMapper = PathMapper(provider, outputDir, includedRoot);
+
+      print(Uri(
+          scheme: 'http', host: 'localhost', port: port, path: includedRoot));
+
+      // TODO(brianwilkerson) Capture the server so that it can be closed
+      //  cleanly.
+      HttpPreviewServer(migrationInfo, pathMapper).serveHttp(port);
     }
   }
 
@@ -220,12 +245,12 @@ analyzer:
     // Remove any previously generated output.
     folder.getChildren().forEach((resource) => resource.delete());
     // Gather the data needed in order to produce the output.
-    InfoBuilder infoBuilder =
-        InfoBuilder(instrumentationListener.data, listener);
+    InfoBuilder infoBuilder = InfoBuilder(
+        provider, includedRoot, instrumentationListener.data, listener);
     Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
-    MigrationInfo migrationInfo =
-        MigrationInfo(unitInfos, pathContext, includedRoot);
+    MigrationInfo migrationInfo = MigrationInfo(
+        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
     PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
 
     /// Produce output for the compilation unit represented by the [unitInfo].
@@ -237,11 +262,23 @@ analyzer:
       output.writeAsStringSync(rendered);
     }
 
+    //
+    // Generate the index file.
+    //
+    String indexPath = pathContext.join(folder.path, 'index.html');
+    File output = provider.getFile(indexPath);
+    output.parent.create();
+    String rendered = IndexRenderer(migrationInfo, writeToDisk: true).render();
+    output.writeAsStringSync(rendered);
+    //
     // Generate the files in the package being migrated.
+    //
     for (UnitInfo unitInfo in unitInfos) {
       render(unitInfo);
     }
+    //
     // Generate other dart files.
+    //
     for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
       if (!unitInfos.contains(unitInfo)) {
         if (unitInfo.content == null) {
@@ -267,7 +304,8 @@ analyzer:
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(new NonNullableFix(listener, params.outputDir,
+    registrar.registerCodeTask(new NonNullableFix(
+        listener, params.outputDir, params.port,
         included: params.included));
   }
 
@@ -313,7 +351,9 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
 
   @override
   void addFix(SingleNullabilityFix fix) {
-    listener.addSuggestion(fix.description.appliedMessage, fix.location);
+    for (Location location in fix.locations) {
+      listener.addSuggestion(fix.description.appliedMessage, location);
+    }
   }
 
   @override

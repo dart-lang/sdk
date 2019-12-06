@@ -20,7 +20,7 @@ import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer, globalDebuggingNames;
 
 /// Determines whether a type schema contains `?` somewhere inside it.
-bool isKnown(DartType schema) => schema.accept(new _IsKnownVisitor());
+bool isKnown(DartType schema) => schema.accept(const _IsKnownVisitor());
 
 /// Converts a [DartType] to a string, representing the unknown type as `?`.
 String typeSchemaToString(DartType schema) {
@@ -87,6 +87,8 @@ class UnknownType extends DartType {
 
 /// Visitor that computes [isKnown].
 class _IsKnownVisitor extends DartTypeVisitor<bool> {
+  const _IsKnownVisitor();
+
   @override
   bool defaultDartType(DartType node) => node is! UnknownType;
 

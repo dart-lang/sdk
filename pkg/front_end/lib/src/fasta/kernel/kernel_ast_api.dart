@@ -82,7 +82,7 @@ export 'package:kernel/ast.dart'
         VoidType,
         setParents;
 
-export 'kernel_shadow_ast.dart'
+export 'internal_ast.dart'
     show
         ArgumentsImpl,
         Cascade,

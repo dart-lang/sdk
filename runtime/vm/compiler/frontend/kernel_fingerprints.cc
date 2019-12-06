@@ -229,9 +229,9 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kNeverType:
       // those contain nothing.
       break;
-      UNIMPLEMENTED();
     case kInterfaceType:
       CalculateInterfaceTypeFingerprint(false);
       break;
@@ -246,7 +246,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       break;
     case kTypeParameterType: {
       Nullability nullability = ReadNullability();
-      BuildHash(nullability);
+      BuildHash(static_cast<uint32_t>(nullability));
       ReadUInt();                              // read index for parameter.
       CalculateOptionalDartTypeFingerprint();  // read bound bound.
       break;
@@ -269,7 +269,7 @@ void KernelFingerprintHelper::CalculateOptionalDartTypeFingerprint() {
 
 void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
   Nullability nullability = ReadNullability();
-  BuildHash(nullability);
+  BuildHash(static_cast<uint32_t>(nullability));
   NameIndex kernel_class = ReadCanonicalNameReference();
   ASSERT(H.IsClass(kernel_class));
   const String& class_name = H.DartClassName(kernel_class);
@@ -285,7 +285,7 @@ void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
 
 void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
   Nullability nullability = ReadNullability();
-  BuildHash(nullability);
+  BuildHash(static_cast<uint32_t>(nullability));
 
   if (!simple) {
     CalculateTypeParametersListFingerprint();  // read type_parameters.
@@ -303,9 +303,7 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       CalculateStringReferenceFingerprint();
       CalculateDartTypeFingerprint();  // read named_parameters[i].type.
-      if (translation_helper_.info().kernel_binary_version() >= 29) {
-        BuildHash(ReadFlags());  // read flags.
-      }
+      BuildHash(ReadFlags());          // read flags.
     }
   }
 
@@ -433,13 +431,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kStaticInvocation:
-    case kConstStaticInvocation:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kConstructorInvocation:
-    case kConstConstructorInvocation:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
       CalculateArgumentsFingerprint();      // read arguments.
@@ -466,15 +462,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                           // read position.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
-    case kListConcatenation:
-    case kSetConcatenation:
-    case kMapConcatenation:
-    case kInstanceCreation:
-    case kFileUriExpression:
-      // Collection concatenation, instance creation operations and
-      // in-expression URI changes are removed by the constant evaluator.
-      UNREACHABLE();
-      break;
     case kIsExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
@@ -485,9 +472,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadFlags());            // read flags.
       CalculateExpressionFingerprint();  // read operand.
       CalculateDartTypeFingerprint();    // read type.
-      return;
-    case kSymbolLiteral:
-      CalculateStringReferenceFingerprint();  // read index into string table.
       return;
     case kTypeLiteral:
       CalculateDartTypeFingerprint();  // read type.
@@ -502,19 +486,16 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kListLiteral:
-    case kConstListLiteral:
       ReadPosition();                           // read position.
       CalculateDartTypeFingerprint();           // read type.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
     case kSetLiteral:
-    case kConstSetLiteral:
       // Set literals are currently desugared in the frontend and will not
       // reach the VM. See http://dartbug.com/35124 for discussion.
       UNREACHABLE();
       return;
-    case kMapLiteral:
-    case kConstMapLiteral: {
+    case kMapLiteral: {
       ReadPosition();                           // read position.
       CalculateDartTypeFingerprint();           // read type.
       CalculateDartTypeFingerprint();           // read value type.
@@ -573,13 +554,26 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       SkipDartType();
       SkipConstantReference();
       return;
-    case kDeprecated_ConstantExpression:
-      SkipConstantReference();
-      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kConstStaticInvocation:
+    case kConstConstructorInvocation:
+    case kConstListLiteral:
+    case kConstSetLiteral:
+    case kConstMapLiteral:
+    case kSymbolLiteral:
+      // Const invocations and const literals are removed by the
+      // constant evaluator.
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are internal to the front end and
+      // removed by the constant evaluator.
     default:
       ReportUnexpectedTag("expression", tag);
       UNREACHABLE();

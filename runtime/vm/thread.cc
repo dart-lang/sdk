@@ -60,6 +60,7 @@ Thread::~Thread() {
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
+      saved_stack_limit_(0),
       stack_overflow_flags_(0),
       write_barrier_mask_(RawObject::kGenerationalBarrierMask),
       isolate_(NULL),
@@ -89,7 +90,6 @@ Thread::Thread(bool is_vm_isolate)
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
-      saved_stack_limit_(0),
       defer_oob_messages_count_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
@@ -507,13 +507,13 @@ void Thread::RestoreOOBMessageInterrupts() {
 RawError* Thread::HandleInterrupts() {
   uword interrupt_bits = GetAndClearInterrupts();
   if ((interrupt_bits & kVMInterrupt) != 0) {
+    CheckForSafepoint();
     if (isolate()->store_buffer()->Overflowed()) {
       if (FLAG_verbose_gc) {
         OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
       }
       heap()->CollectGarbage(Heap::kNew);
     }
-    heap()->CheckFinishConcurrentMarking(this);
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =
@@ -951,7 +951,7 @@ int32_t Thread::AllocateFfiCallbackId() {
   const int32_t id = array.Length() - 1;
 
   // Allocate a native callback trampoline if necessary.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (NativeCallbackTrampolines::Enabled()) {
     auto* const tramps = isolate()->native_callback_trampolines();
     ASSERT(tramps->next_callback_id() == id);

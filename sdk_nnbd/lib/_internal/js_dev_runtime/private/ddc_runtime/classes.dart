@@ -118,6 +118,8 @@ List Function() getImplements(clazz) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
 
+final _variances = JS('', 'Symbol("variances")');
+
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 final mixinNew = JS('', 'Symbol("dart.mixinNew")');
@@ -178,6 +180,12 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 List getGenericArgs(type) =>
     JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+
+List getGenericArgVariances(type) =>
+    JS('List', '#', safeGetOwnProperty(type, _variances));
+
+void setGenericArgVariances(f, variances) =>
+    JS('', '#[#] = #', f, _variances, variances);
 
 List<TypeVariable> getGenericTypeFormals(genericClass) {
   return _typeFormalsFromFunction(getGenericTypeCtor(genericClass));

@@ -28,7 +28,6 @@ class AssertWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -50,7 +49,6 @@ class DoWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -72,7 +70,6 @@ class ForWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -84,7 +81,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
   }
 
-  @failingTest
   test_awaitForIn_int_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -95,7 +91,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
-  @failingTest
   test_for_downward() async {
     await resolveTestCode('''
 void f() {
@@ -106,7 +101,6 @@ T a<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
-  @failingTest
   test_forIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() {
@@ -118,7 +112,6 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
   }
 
-  @failingTest
   test_forIn_int_downward() async {
     await resolveTestCode('''
 void f() {
@@ -141,7 +134,6 @@ class IfWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -163,7 +155,6 @@ class WhileWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f() {

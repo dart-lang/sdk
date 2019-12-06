@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // part of "common_patch.dart";
 
 @patch
@@ -217,7 +219,9 @@ class _FileSystemWatcher {
         bool getIsDir(event) {
           if (Platform.isWindows) {
             // Windows does not get 'isDir' as part of the event.
-            return FileSystemEntity.isDirectorySync(getPath(event));
+            // Links should also be skipped.
+            return FileSystemEntity.isDirectorySync(getPath(event)) &&
+                !FileSystemEntity.isLinkSync(getPath(event));
           }
           return (event[0] & FileSystemEvent._isDir) != 0;
         }

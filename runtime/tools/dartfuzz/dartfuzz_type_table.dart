@@ -148,6 +148,7 @@ class DartType {
     return _allTypes;
   }
 
+  static const VOID = const DartType._withName("void");
   static const INT8LIST = const DartType._withName("Int8List");
   static const UINT8LIST = const DartType._withName("Uint8List");
   static const UINT8CLAMPEDLIST = const DartType._withName("Uint8ClampedList");
@@ -2939,6 +2940,8 @@ class DartTypeNoFp extends DartType {
     return _allTypes;
   }
 
+  static const VOID = const DartType._withName("void");
+
   // All types extracted from analyzer.
   static const _allTypes = {
     DartType.INT8LIST,
@@ -4648,6 +4651,8 @@ class DartTypeFlatTp extends DartType {
   Set<DartType> get allTypes {
     return _allTypes;
   }
+
+  static const VOID = const DartType._withName("void");
 
   // All types extracted from analyzer.
   static const _allTypes = {
@@ -6575,6 +6580,8 @@ class DartTypeNoFpFlatTp extends DartType {
   Set<DartType> get allTypes {
     return _allTypes;
   }
+
+  static const VOID = const DartType._withName("void");
 
   // All types extracted from analyzer.
   static const _allTypes = {

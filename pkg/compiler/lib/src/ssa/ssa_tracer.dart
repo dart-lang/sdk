@@ -681,6 +681,12 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitIsTestSimple(HIsTestSimple node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "IsTestSimple: ${node.dartType} $inputs";
+  }
+
+  @override
   String visitAsCheck(HAsCheck node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     String error = node.isTypeError ? 'TypeError' : 'CastError';

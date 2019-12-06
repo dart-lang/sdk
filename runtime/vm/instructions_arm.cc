@@ -121,7 +121,7 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t imm = 0;
   const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
+  if (version == ARMv6) {
     ASSERT((instr & 0xfff00000) == 0xe3800000);  // orr rd, rd, byte0
     imm |= (instr & 0x000000ff);
 
@@ -370,7 +370,7 @@ bool ReturnPattern::IsValid() const {
                         B21 | (0xfff << 8) | B4 |
                         (static_cast<int32_t>(LR) << kRmShift);
   const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
+  if (version == ARMv6) {
     return bx_lr->InstructionBits() == instruction;
   } else {
     ASSERT(version == ARMv7);

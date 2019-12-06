@@ -108,8 +108,6 @@ class Compiler : public AllStatic {
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
   static void ComputeLocalVarDescriptors(const Code& code);
-  // Collect yield positions for function and store into its script object
-  static void ComputeYieldPositions(const Function& function);
 
   // Eagerly compiles all functions in a class.
   //

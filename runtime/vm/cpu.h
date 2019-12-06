@@ -30,8 +30,6 @@ class CPU : public AllStatic {
 #include "vm/cpu_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/cpu_arm64.h"
-#elif defined(TARGET_ARCH_DBC)
-#include "vm/cpu_dbc.h"
 #else
 #error Unknown architecture.
 #endif

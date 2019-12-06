@@ -63,6 +63,7 @@ ccc
 charcode
 charset
 checkout
+cipd
 circular
 cli
 cloneable
@@ -284,6 +285,7 @@ rd
 reachability
 reality
 recompile
+recompiles
 redir
 redirections
 reducer
@@ -318,6 +320,7 @@ somehow
 spans
 spell
 spellcheck
+spelled
 spelling
 spent
 splitting
@@ -365,9 +368,11 @@ typeparam
 typeparambounds
 unawaited
 unbreak
+unpacked
 unregistered
 untransformed
 untrimmed
+upload
 uppercase
 upward
 uses8

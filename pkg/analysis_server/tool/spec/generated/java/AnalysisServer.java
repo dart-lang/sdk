@@ -439,6 +439,8 @@ public interface AnalysisServer {
    *         the client is interested in receiving completion suggestions. If one configured path is
    *         beneath another, the descendent will override the ancestors' configured libraries of
    *         interest.
+   *
+   * @deprecated
    */
   public void completion_registerLibraryPaths(List<LibraryPathSet> paths);
 
@@ -498,12 +500,13 @@ public interface AnalysisServer {
    * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
+   * @param port The port to be used to listen for and respond to http requests for preview pages.
    * @param outputDir The absolute and normalized path to a directory to which non-nullability
    *         migration output will be written. The output is only produced if the non-nullable fix is
    *         included. Files in the directory might be overwritten, but no previously existing files
    *         will be deleted.
    */
-  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, String outputDir, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, int port, String outputDir, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}
@@ -841,7 +844,9 @@ public interface AnalysisServer {
    * @param value The new value to set for the property. If absent, indicates that the property
    *         should be removed. If the property corresponds to an optional parameter, the
    *         corresponding named argument is removed. If the property isRequired is true,
-   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated. If the expression is
+   *         not a syntactically valid Dart code, then
+   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   public void flutter_setWidgetPropertyValue(int id, FlutterWidgetPropertyValue value, SetWidgetPropertyValueConsumer consumer);
 

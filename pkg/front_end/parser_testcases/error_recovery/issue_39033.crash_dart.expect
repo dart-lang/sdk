@@ -1,0 +1,37 @@
+Problems reported:
+
+parser/error_recovery/issue_39033.crash:1:11: Expected '>' after this.
+typedef F<Glib.=
+          ^^^^
+
+parser/error_recovery/issue_39033.crash:1:17: Expected a type, but got ''.
+typedef F<Glib.=
+                ^...
+
+parser/error_recovery/issue_39033.crash:1:17: Expected ';' after this.
+typedef F<Glib.=
+                ^...
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginFunctionTypeAlias(typedef)
+    handleIdentifier(F, typedefDeclaration)
+    beginTypeVariables(<)
+      beginMetadataStar(Glib)
+      endMetadataStar(0)
+      handleIdentifier(Glib, typeVariableDeclaration)
+      beginTypeVariable(Glib)
+        handleTypeVariablesDefined(Glib, 1)
+        handleNoType(Glib)
+      endTypeVariable(., 0, null, null)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], Glib, Glib)
+    endTypeVariables(<, >)
+    handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {token: }], , )
+    handleIdentifier(, typeReference)
+    handleNoTypeArguments()
+    handleType(, null)
+    handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+  endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration()
+endCompilationUnit(1, )

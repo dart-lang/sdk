@@ -130,7 +130,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* next object start and initialize the object. */                           \
   __ movq(Address(THR, target::Thread::top_offset()), RCX);                    \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));                  \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -2029,7 +2028,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(THR, target::Thread::top_offset()), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  NOT_IN_PRODUCT(__ UpdateAllocationStatsWithSize(cid, RDI));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.

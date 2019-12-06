@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// This mixin provides utilities that are useful to visitors implementing
@@ -16,20 +15,6 @@ mixin ResolutionUtils {
   /// `Object` (and is hence valid to call on a nullable type).
   bool isDeclaredOnObject(String name) =>
       (_objectGetNames ??= _computeObjectGetNames()).contains(name);
-
-  /// Determines whether the given property/method access token is null-aware.
-  bool isNullAwareToken(TokenType tokenType) {
-    switch (tokenType) {
-      case TokenType.PERIOD:
-      case TokenType.PERIOD_PERIOD:
-        return false;
-      case TokenType.QUESTION_PERIOD:
-        return true;
-      default:
-        throw new UnimplementedError(
-            'Unexpected token passed to isNullAwareToken: $tokenType');
-    }
-  }
 
   List<String> _computeObjectGetNames() {
     var result = <String>[];

@@ -1,0 +1,3 @@
+f() { (((foo.bar!)[arg])!)[arg2]; }
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken] ([BeginToken]([BeginToken]([BeginToken]foo[StringToken].[SimpleToken]bar[StringToken]![SimpleToken])[SimpleToken][[BeginToken]arg[StringToken]][SimpleToken])[SimpleToken]![SimpleToken])[SimpleToken][[BeginToken]arg2[StringToken]][SimpleToken];[SimpleToken] }[SimpleToken][SimpleToken]

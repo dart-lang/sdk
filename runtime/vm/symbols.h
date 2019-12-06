@@ -65,6 +65,7 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
+  V(LateInitializationError, "_LateInitializationError")                       \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
@@ -207,6 +208,7 @@ class ObjectPointerVisitor;
   V(MoveNext, "moveNext")                                                      \
   V(Namespace, "Namespace")                                                    \
   V(Native, "native")                                                          \
+  V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(NotInitialized, "<not initialized>")                                       \
@@ -577,6 +579,9 @@ class Symbols : public AllStatic {
   static const String& Star() { return *(symbol_handles_[kNullCharId + '*']); }
   static const String& Percent() {
     return *(symbol_handles_[kNullCharId + '%']);
+  }
+  static const String& QuestionMark() {
+    return *(symbol_handles_[kNullCharId + '?']);
   }
   static const String& Caret() { return *(symbol_handles_[kNullCharId + '^']); }
   static const String& Tilde() { return *(symbol_handles_[kNullCharId + '~']); }

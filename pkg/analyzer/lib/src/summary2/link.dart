@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -71,7 +70,7 @@ class Linker {
 
   TypeProvider get typeProvider => analysisContext.typeProvider;
 
-  Dart2TypeSystem get typeSystem => analysisContext.typeSystem;
+  TypeSystemImpl get typeSystem => analysisContext.typeSystem;
 
   void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
@@ -206,15 +205,15 @@ class Linker {
 
   void _createTypeSystem() {
     if (typeProvider != null) {
-      inheritance = InheritanceManager3(typeSystem);
+      inheritance = InheritanceManager3();
       return;
     }
 
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
-    analysisContext.typeProvider = TypeProviderImpl(coreLib, asyncLib);
+    elementFactory.createTypeProviders(coreLib, asyncLib);
 
-    inheritance = InheritanceManager3(typeSystem);
+    inheritance = InheritanceManager3();
   }
 
   void _performTopLevelInference() {

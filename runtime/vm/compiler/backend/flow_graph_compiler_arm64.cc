@@ -269,7 +269,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   ASSERT(type_class.NumTypeArguments() > 0);
   const Register kInstanceReg = R0;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
-  const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
+  const bool smi_is_ok =
+      smi_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld);
   // Fast case for type = FutureOr<int/num/top-type>.
   __ BranchIfSmi(kInstanceReg,
                  smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
@@ -301,7 +302,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     if (tp_argument.IsType()) {
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(tp_argument, Heap::kOld)) {
+      if (object_type.IsSubtypeOf(NNBDMode::kLegacy, tp_argument, Heap::kOld)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -349,7 +350,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   const Register kInstanceReg = R0;
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
+  if (Class::IsSubtypeOf(NNBDMode::kLegacy, smi_class,
+                         Object::null_type_arguments(), type_class,
                          Object::null_type_arguments(), Heap::kOld)) {
     // Fast case for type = int/num/top-type.
     __ BranchIfSmi(kInstanceReg, is_instance_lbl);
@@ -920,7 +922,9 @@ void FlowGraphCompiler::CompileGraph() {
 
   VisitBlocks();
 
+#if defined(DEBUG)
   __ brk(0);
+#endif
 
   if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
@@ -1297,7 +1301,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
 int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
                                                compiler::Label* label,
                                                Register class_id_reg,
-                                               const CidRange& range,
+                                               const CidRangeValue& range,
                                                int bias,
                                                bool jump_on_miss) {
   const intptr_t cid_start = range.cid_start;

@@ -33,6 +33,9 @@ extern intptr_t kPlatformStrongDillSize;
 
 namespace dart {
 
+DECLARE_FLAG(bool, gc_during_reload);
+DECLARE_FLAG(bool, force_evacuation);
+
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
@@ -114,9 +117,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   Isolate::FlagsInitialize(&api_flags);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
-                                      NULL, NULL, &api_flags, group_data,
-                                      isolate_data, &err);
+    isolate =
+        Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
+                                &api_flags, group_data, isolate_data, &err);
   } else {
     isolate = Dart_CreateIsolateGroupFromKernel(name, NULL, data_buffer, len,
                                                 &api_flags, group_data,
@@ -126,6 +129,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
     free(err);
   }
+
   EXPECT(isolate != NULL);
   return isolate;
 }
@@ -137,6 +141,20 @@ Dart_Isolate TestCase::CreateTestIsolate(const char* name,
                        0 /* Snapshots have length encoded within them. */,
                        bin::core_isolate_snapshot_instructions, name,
                        group_data, isolate_data);
+}
+
+void SetupCoreLibrariesForUnitTest() {
+  TransitionVMToNative transition(Thread::Current());
+
+  Dart_EnterScope();
+  bool ok = bin::DartUtils::SetOriginalWorkingDirectory();
+  RELEASE_ASSERT(ok);
+  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
+      /*is_service_isolate=*/false,
+      /*trace_loading=*/false);
+  Dart_ExitScope();
+
+  RELEASE_ASSERT(!Dart_IsError(result));
 }
 
 static const char* kPackageScheme = "package:";
@@ -359,11 +377,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
-  if (tag == Dart_kScriptTag) {
-    // Reload request.
-    UNREACHABLE();
-    return Dart_Null();
-  }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
   }
@@ -428,14 +441,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   // Do sync loading since unit_test doesn't support async.
   Dart_Handle source = DartUtils::ReadStringFromFile(resolved_url_chars);
   EXPECT_VALID(source);
-  if (tag == Dart_kImportTag) {
-    UNREACHABLE();
-    return Dart_Null();
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    UNREACHABLE();
-    return Dart_Null();
-  }
+  UNREACHABLE();
+  return Dart_Null();
 }
 
 static intptr_t BuildSourceFilesArray(
@@ -569,17 +576,22 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 #ifndef PRODUCT
 
 Dart_Handle TestCase::SetReloadTestScript(const char* script) {
-    Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    Dart_KernelCompilationResult compilation_result =
-        KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
-    delete[] sourcefiles;
-    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-      Dart_Handle result = Dart_NewApiError(compilation_result.error);
-      free(compilation_result.error);
-      return result;
-    }
-    return Api::Success();
+  // For our vm/cc/IsolateReload_* tests we flip the GC flag on, which will
+  // cause the isolate reload to do GCs before/after morphing, etc.
+  FLAG_gc_during_reload = true;
+  FLAG_force_evacuation = true;
+
+  Dart_SourceFile* sourcefiles = NULL;
+  intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
+  Dart_KernelCompilationResult compilation_result =
+      KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+  delete[] sourcefiles;
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    Dart_Handle result = Dart_NewApiError(compilation_result.error);
+    free(compilation_result.error);
+    return result;
+  }
+  return Api::Success();
 }
 
 Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
@@ -590,10 +602,11 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   bool success = false;
   {
     TransitionNativeToVM transition(thread);
-    success = isolate->ReloadKernel(&js,
-                                    false,  // force_reload
-                                    kernel_buffer, kernel_buffer_size,
-                                    true);  // dont_delete_reload_context
+    success =
+        isolate->group()->ReloadKernel(&js,
+                                       false,  // force_reload
+                                       kernel_buffer, kernel_buffer_size,
+                                       true);  // dont_delete_reload_context
     OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
@@ -604,9 +617,10 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 
   if (Dart_IsError(result)) {
     // Keep load error.
-  } else if (isolate->reload_context()->reload_aborted()) {
+  } else if (isolate->group()->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
-    result = Api::NewHandle(thread, isolate->reload_context()->error());
+    result = Api::NewHandle(
+        thread, isolate->reload_context()->group_reload_context()->error());
   } else {
     result = Dart_RootLibrary();
   }
@@ -614,6 +628,7 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   TransitionNativeToVM transition(thread);
   if (isolate->reload_context() != NULL) {
     isolate->DeleteReloadContext();
+    isolate->group()->DeleteReloadContext();
   }
 
   return result;
@@ -707,11 +722,10 @@ void AssemblerTest::Assemble() {
       String::ZoneHandle(Symbols::New(Thread::Current(), name_));
 
   // We make a dummy script so that exception objects can be composed for
-  // assembler instructions that do runtime calls, in particular on DBC.
+  // assembler instructions that do runtime calls.
   const char* kDummyScript = "assembler_test_dummy_function() {}";
   const Script& script = Script::Handle(
-      Script::New(function_name, String::Handle(String::New(kDummyScript)),
-                  RawScript::kSourceTag));
+      Script::New(function_name, String::Handle(String::New(kDummyScript))));
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));

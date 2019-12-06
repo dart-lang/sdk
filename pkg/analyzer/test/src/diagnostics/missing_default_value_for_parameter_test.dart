@@ -74,6 +74,16 @@ void f({int? a}) {}
 ''');
   }
 
+  test_class_nullable_named_optional_noDefault_fieldFormal() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(T);
+class C {
+  F? f;
+  C({this.f});
+}
+''');
+  }
+
   test_class_nullable_named_required() async {
     await assertNoErrorsInCode('''
 void f({required int? a}) {}
@@ -116,6 +126,178 @@ typedef void log({String});
   test_functionTypedParameter() async {
     await assertNoErrorsInCode('''
 void printToLog(void log({String})) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nonNullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int> a = 0}) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int> a}) {}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
+    ]);
+  }
+
+  test_futureOr_nonNullable_nonNullable_named_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({required FutureOr<int> a}) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nonNullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int> a = 0]) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int> a]) {}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
+    ]);
+  }
+
+  test_futureOr_nonNullable_nonNullable_positional_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(FutureOr<int> a) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int>? a = 0}) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int>? a}) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_named_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({required FutureOr<int>? a}) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int>? a = 0]) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int>? a]) {}
+''');
+  }
+
+  test_futureOr_nonNullable_nullable_positional_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(FutureOr<int>? a) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int?> a = 0}) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int?> a}) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_named_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({required FutureOr<int?> a}) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int?> a = 0]) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int?> a]) {}
+''');
+  }
+
+  test_futureOr_nullable_nonNullable_positional_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(FutureOr<int?> a) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int?>? a = 0}) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({FutureOr<int?>? a}) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_named_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f({required FutureOr<int?>? a}) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int?>? a = 0]) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f([FutureOr<int?>? a]) {}
+''');
+  }
+
+  test_futureOr_nullable_nullable_positional_required() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+void f(FutureOr<int?>? a) {}
 ''');
   }
 

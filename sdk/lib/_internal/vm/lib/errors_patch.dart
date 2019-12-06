@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // part of "core_patch.dart";
 
 @patch
@@ -587,4 +589,18 @@ class _DuplicatedFieldInitializerError extends Error {
   _DuplicatedFieldInitializerError(this._name);
 
   toString() => "Error: field '$_name' is already initialized.";
+}
+
+class _LateInitializationError extends Error
+    implements LateInitializationError {
+  _LateInitializationError(this._name);
+
+  @pragma("vm:entry-point")
+  static void _throwNew(String name) {
+    throw _LateInitializationError(name);
+  }
+
+  String toString() => "LateInitializationError: $_name";
+
+  final String _name;
 }

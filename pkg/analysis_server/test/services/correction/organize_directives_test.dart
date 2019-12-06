@@ -61,7 +61,23 @@ import 'dart:async' as async2;
 main() {
   async1.Future f;
   async2.Stream s;
-}''', removeUnresolved: true, removeUnused: true);
+}''', removeUnused: true);
+  }
+
+  test_keep_unresolvedDirectives() async {
+    var code = r'''
+import 'dart:noSuchImportSdkLibrary';
+
+import 'package:noSuchImportPackage/andLib.dart';
+
+export 'dart:noSuchExportSdkLibrary';
+
+export 'package:noSuchExportPackage/andLib.dart';
+
+part 'no_such_part.dart';
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code);
   }
 
   test_remove_duplicateImports() async {
@@ -78,7 +94,7 @@ import 'dart:async';
 
 main() {
   Future f;
-}''', removeUnresolved: true, removeUnused: true);
+}''', removeUnused: true);
   }
 
   test_remove_duplicateImports_differentText_uri() async {
@@ -95,7 +111,7 @@ import 'dart:async' as async;
 
 main() {
   async.Future f;
-}''', removeUnresolved: true, removeUnused: true);
+}''', removeUnused: true);
   }
 
   test_remove_duplicateImports_withSamePrefix() async {
@@ -112,48 +128,7 @@ import 'dart:async' as async;
 
 main() {
   async.Future f;
-}''', removeUnresolved: true, removeUnused: true);
-  }
-
-  test_remove_unresolvedDirectives() async {
-    addSource('/home/test/lib/existing_part1.dart', 'part of lib;');
-    addSource('/home/test/lib/existing_part2.dart', 'part of lib;');
-    await _computeUnitAndErrors(r'''
-library lib;
-
-import 'dart:async';
-import 'dart:noSuchImportSdkLibrary';
-import 'dart:math';
-import 'package:noSuchImportPackage/andLib.dart';
-
-export 'dart:noSuchExportSdkLibrary';
-export 'dart:async';
-export 'package:noSuchExportPackage/andLib.dart';
-export 'dart:math';
-
-part 'existing_part1.dart';
-part 'no_such_part.dart';
-part 'existing_part2.dart';
-
-main() {
-}
-''');
-    // validate change
-    _assertOrganize(r'''
-library lib;
-
-import 'dart:async';
-import 'dart:math';
-
-export 'dart:async';
-export 'dart:math';
-
-part 'existing_part1.dart';
-part 'existing_part2.dart';
-
-main() {
-}
-''', removeUnresolved: true);
+}''', removeUnused: true);
   }
 
   test_remove_unusedImports() async {
@@ -202,7 +177,7 @@ class A {}
 
 main() {
   Future f;
-}''', removeUnresolved: true, removeUnused: true);
+}''', removeUnused: true);
   }
 
   test_remove_unusedImports_hasUnresolvedError() async {
@@ -340,11 +315,10 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
-  void _assertOrganize(String expectedCode,
-      {bool removeUnresolved = false, bool removeUnused = false}) {
+  void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
     DirectiveOrganizer organizer = new DirectiveOrganizer(
         testCode, testUnit, testErrors,
-        removeUnresolved: removeUnresolved, removeUnused: removeUnused);
+        removeUnused: removeUnused);
     List<SourceEdit> edits = organizer.organize();
     String result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);

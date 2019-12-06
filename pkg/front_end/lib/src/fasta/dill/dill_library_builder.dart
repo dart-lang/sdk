@@ -18,6 +18,8 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Member,
         NamedNode,
+        NeverType,
+        Nullability,
         Procedure,
         Reference,
         StaticGet,
@@ -27,6 +29,7 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -56,32 +59,17 @@ import 'dill_loader.dart' show DillLoader;
 
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
-class LazyLibraryScope extends Scope {
+class LazyLibraryScope extends LazyScope {
   DillLibraryBuilder libraryBuilder;
 
-  LazyLibraryScope(Map<String, Builder> local, Map<String, Builder> setters,
-      Scope parent, String debugName, {bool isModifiable: true})
-      : super(
-            local: local,
-            setters: setters,
-            parent: parent,
-            debugName: debugName,
-            isModifiable: isModifiable);
-
   LazyLibraryScope.top({bool isModifiable: false})
-      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
+      : super(<String, Builder>{}, <String, MemberBuilder>{}, null, "top",
             isModifiable: isModifiable);
 
-  Map<String, Builder> get local {
+  @override
+  void ensureScope() {
     if (libraryBuilder == null) throw new StateError("No library builder.");
     libraryBuilder.ensureLoaded();
-    return super.local;
-  }
-
-  Map<String, Builder> get setters {
-    if (libraryBuilder == null) throw new StateError("No library builder.");
-    libraryBuilder.ensureLoaded();
-    return super.setters;
   }
 }
 
@@ -156,6 +144,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+  }
+
+  void addSyntheticDeclarationOfNever() {
+    addBuilder(
+        "Never",
+        new NeverTypeBuilder(
+            const NeverType(Nullability.nonNullable), this, -1),
+        -1);
   }
 
   void addClass(Class cls) {
@@ -312,10 +308,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       }
       Builder declaration;
       if (isSetter) {
-        declaration = library.exportScope.setters[name];
+        declaration = library.exportScope.lookupLocalMember(name, setter: true);
         exportScopeBuilder.addSetter(name, declaration);
       } else {
-        declaration = library.exportScope.local[name];
+        declaration =
+            library.exportScope.lookupLocalMember(name, setter: false);
         exportScopeBuilder.addMember(name, declaration);
       }
       if (declaration == null) {

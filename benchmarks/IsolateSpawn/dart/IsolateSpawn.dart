@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -11,10 +10,10 @@ import 'package:meta/meta.dart';
 
 import 'package:compiler/src/dart2js.dart' as dart2js_main;
 
-class SpawnLatencyAndMemory {
-  SpawnLatencyAndMemory(this.name);
+class SpawnLatency {
+  SpawnLatency(this.name);
 
-  Future<ResultMessageLatencyAndMemory> run() async {
+  Future<ResultMessageLatency> run() async {
     final completerResult = Completer();
     final receivePort = ReceivePort()..listen(completerResult.complete);
     final Completer<DateTime> isolateExitedCompleter = Completer<DateTime>();
@@ -24,14 +23,12 @@ class SpawnLatencyAndMemory {
       });
     final DateTime beforeSpawn = DateTime.now();
     await Isolate.spawn(
-        isolateCompiler,
-        StartMessageLatencyAndMemory(
-            receivePort.sendPort, beforeSpawn, ProcessInfo.currentRss),
+        isolateCompiler, StartMessageLatency(receivePort.sendPort, beforeSpawn),
         onExit: onExitReceivePort.sendPort,
         onError: onExitReceivePort.sendPort);
     final DateTime afterSpawn = DateTime.now();
 
-    final ResultMessageLatencyAndMemory result = await completerResult.future;
+    final ResultMessageLatency result = await completerResult.future;
     receivePort.close();
     final DateTime isolateExited = await isolateExitedCompleter.future;
     result.timeToExitUs = isolateExited.difference(beforeSpawn).inMicroseconds;
@@ -42,8 +39,7 @@ class SpawnLatencyAndMemory {
     return result;
   }
 
-  Future<AggregatedResultMessageLatencyAndMemory> measureFor(
-      int minimumMillis) async {
+  Future<AggregatedResultMessageLatency> measureFor(int minimumMillis) async {
     final minimumMicros = minimumMillis * 1000;
     final watch = Stopwatch()..start();
     final Metric toAfterIsolateSpawnUs = LatencyMetric("${name}ToAfterSpawn");
@@ -51,26 +47,24 @@ class SpawnLatencyAndMemory {
     final Metric toFinishRunningCodeUs =
         LatencyMetric("${name}ToFinishRunning");
     final Metric toExitUs = LatencyMetric("${name}ToExit");
-    final Metric deltaRss = MemoryMetric("${name}Delta");
     while (watch.elapsedMicroseconds < minimumMicros) {
-      final ResultMessageLatencyAndMemory result = await run();
+      final ResultMessageLatency result = await run();
       toAfterIsolateSpawnUs.add(result.timeToIsolateSpawnUs);
       toStartRunningCodeUs.add(result.timeToStartRunningCodeUs);
       toFinishRunningCodeUs.add(result.timeToFinishRunningCodeUs);
       toExitUs.add(result.timeToExitUs);
-      deltaRss.add(result.deltaRss);
     }
-    return AggregatedResultMessageLatencyAndMemory(toAfterIsolateSpawnUs,
-        toStartRunningCodeUs, toFinishRunningCodeUs, toExitUs, deltaRss);
+    return AggregatedResultMessageLatency(toAfterIsolateSpawnUs,
+        toStartRunningCodeUs, toFinishRunningCodeUs, toExitUs);
   }
 
-  Future<AggregatedResultMessageLatencyAndMemory> measure() async {
+  Future<AggregatedResultMessageLatency> measure() async {
     await measureFor(500); // warm-up
     return measureFor(4000); // actual measurement
   }
 
   Future<void> report() async {
-    final AggregatedResultMessageLatencyAndMemory result = await measure();
+    final AggregatedResultMessageLatency result = await measure();
     print(result);
   }
 
@@ -106,60 +100,50 @@ class Metric {
 }
 
 class LatencyMetric extends Metric {
-  LatencyMetric(String name) : super(prefix: "${name}(Latency", suffix: " us.");
+  LatencyMetric(String name) : super(prefix: "$name(Latency", suffix: " us.");
 }
 
-class MemoryMetric extends Metric {
-  MemoryMetric(String name) : super(prefix: "${name}Rss(MemoryUse", suffix: "");
-
-  toString() => "$prefix): ${_average()}$suffix\n";
-}
-
-class StartMessageLatencyAndMemory {
-  StartMessageLatencyAndMemory(this.sendPort, this.spawned, this.rss);
+class StartMessageLatency {
+  StartMessageLatency(this.sendPort, this.spawned);
 
   final SendPort sendPort;
   final DateTime spawned;
-  final int rss;
 }
 
-class ResultMessageLatencyAndMemory {
-  ResultMessageLatencyAndMemory(
+class ResultMessageLatency {
+  ResultMessageLatency(
       {this.timeToStartRunningCodeUs,
       this.timeToFinishRunningCodeUs,
-      this.deltaRss});
+      this.deltaHeap});
 
   final int timeToStartRunningCodeUs;
   final int timeToFinishRunningCodeUs;
-  final int deltaRss;
+  final int deltaHeap;
 
   int timeToIsolateSpawnUs;
   int timeToExitUs;
 }
 
-class AggregatedResultMessageLatencyAndMemory {
-  AggregatedResultMessageLatencyAndMemory(
+class AggregatedResultMessageLatency {
+  AggregatedResultMessageLatency(
     this.toAfterIsolateSpawnUs,
     this.toStartRunningCodeUs,
     this.toFinishRunningCodeUs,
     this.toExitUs,
-    this.deltaRss,
   );
 
   String toString() => """$toAfterIsolateSpawnUs
 $toStartRunningCodeUs
 $toFinishRunningCodeUs
-$toExitUs
-$deltaRss""";
+$toExitUs""";
 
   final Metric toAfterIsolateSpawnUs;
   final Metric toStartRunningCodeUs;
   final Metric toFinishRunningCodeUs;
   final Metric toExitUs;
-  final Metric deltaRss;
 }
 
-Future<void> isolateCompiler(StartMessageLatencyAndMemory start) async {
+Future<void> isolateCompiler(StartMessageLatency start) async {
   final DateTime timeRunningCodeUs = DateTime.now();
   await runZoned(
       () => dart2js_main.internalMain(<String>[
@@ -169,14 +153,13 @@ Future<void> isolateCompiler(StartMessageLatencyAndMemory start) async {
       zoneSpecification: ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));
   final DateTime timeFinishRunningCodeUs = DateTime.now();
-  start.sendPort.send(ResultMessageLatencyAndMemory(
+  start.sendPort.send(ResultMessageLatency(
       timeToStartRunningCodeUs:
           timeRunningCodeUs.difference(start.spawned).inMicroseconds,
       timeToFinishRunningCodeUs:
-          timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds,
-      deltaRss: ProcessInfo.currentRss - start.rss));
+          timeFinishRunningCodeUs.difference(start.spawned).inMicroseconds));
 }
 
 Future<void> main() async {
-  await SpawnLatencyAndMemory("IsolateSpawn.Dart2JS").report();
+  await SpawnLatency("IsolateSpawn.Dart2JS").report();
 }

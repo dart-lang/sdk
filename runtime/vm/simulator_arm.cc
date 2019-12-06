@@ -751,23 +751,20 @@ class Redirection {
                           int argument_count) {
     MutexLocker ml(mutex_);
 
-    for (Redirection* current = list_; current != NULL;
+    Redirection* old_head = list_.load(std::memory_order_relaxed);
+    for (Redirection* current = old_head; current != nullptr;
          current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
 
     Redirection* redirection =
         new Redirection(external_function, call_kind, argument_count);
-    redirection->next_ = list_;
+    redirection->next_ = old_head;
 
     // Use a memory fence to ensure all pending writes are written at the time
     // of updating the list head, so the profiling thread always has a valid
     // list to look at.
-    Redirection* old_head = list_;
-    Redirection* replaced_list_head =
-        AtomicOperations::CompareAndSwapPointer<Redirection>(&list_, old_head,
-                                                             redirection);
-    ASSERT(old_head == replaced_list_head);
+    list_.store(redirection, std::memory_order_release);
 
     return redirection;
   }
@@ -784,8 +781,8 @@ class Redirection {
   // allowed to hold any locks - which is precisely the reason why the list is
   // prepend-only and a memory fence is used when writing the list head [list_]!
   static uword FunctionForRedirect(uword address_of_svc) {
-    Redirection* current;
-    for (current = list_; current != NULL; current = current->next_) {
+    for (Redirection* current = list_.load(std::memory_order_acquire);
+         current != nullptr; current = current->next_) {
       if (current->address_of_svc_instruction() == address_of_svc) {
         return current->external_function_;
       }
@@ -808,11 +805,11 @@ class Redirection {
   int argument_count_;
   uint32_t svc_instruction_;
   Redirection* next_;
-  static Redirection* list_;
+  static std::atomic<Redirection*> list_;
   static Mutex* mutex_;
 };
 
-Redirection* Redirection::list_ = NULL;
+std::atomic<Redirection*> Redirection::list_ = {nullptr};
 Mutex* Redirection::mutex_ = new Mutex();
 
 uword Simulator::RedirectExternalReference(uword function,
@@ -1047,11 +1044,11 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Failure.
   }
 
-  uword old_value = exclusive_access_value_;
+  int32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
   ClearExclusive();
 
-  if (AtomicOperations::CompareAndSwapWord(reinterpret_cast<uword*>(addr),
-                                           old_value, value) == old_value) {
+  auto atomic_addr = reinterpret_cast<RelaxedAtomic<int32_t>*>(addr);
+  if (atomic_addr->compare_exchange_weak(old_value, value)) {
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -1642,14 +1639,11 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           case 2:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
-            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-              // umaal is only in ARMv6 and above.
-              UnimplementedInstruction(instr);
-            }
             FALL_THROUGH;
           case 5:
-          // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-          // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            FALL_THROUGH;
           case 7: {
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -1697,10 +1691,6 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-          UnimplementedInstruction(instr);
-          return;
-        }
         // synchronization primitives
         Register rd = instr->RdField();
         Register rn = instr->RnField();
@@ -2744,17 +2734,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 float sm_val = get_sregister(sm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtus'cond 'sd, 'sm");
-                  if (sm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (sm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(sm_val);
                   }
                 } else {
                   // Format(instr, "vcvtis'cond 'sd, 'sm");
-                  if (sm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (sm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (sm_val <= static_cast<float>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else {
                     id_val = static_cast<int32_t>(sm_val);
                   }
@@ -2765,17 +2755,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 double dm_val = get_dregister(dm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtud'cond 'sd, 'dm");
-                  if (dm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (dm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(dm_val);
                   }
                 } else {
                   // Format(instr, "vcvtid'cond 'sd, 'dm");
-                  if (dm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (dm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (dm_val <= static_cast<double>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else if (isnan(dm_val)) {
                     id_val = 0;
                   } else {

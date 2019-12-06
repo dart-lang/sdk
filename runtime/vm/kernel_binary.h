@@ -19,8 +19,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 35;
+static const uint32_t kMinSupportedKernelFormatVersion = 29;
+static const uint32_t kMaxSupportedKernelFormatVersion = 36;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -118,6 +118,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 35;
   V(AssertBlock, 81)                                                           \
   V(TypedefType, 87)                                                           \
   V(BottomType, 89)                                                            \
+  V(NeverType, 98)                                                             \
   V(InvalidType, 90)                                                           \
   V(DynamicType, 91)                                                           \
   V(VoidType, 92)                                                              \
@@ -127,7 +128,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 35;
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
   V(ConstantExpression, 106)                                                   \
-  V(Deprecated_ConstantExpression, 107)                                        \
   V(SpecializedVariableGet, 128)                                               \
   V(SpecializedVariableSet, 136)                                               \
   V(SpecializedIntLiteral, 144)
@@ -163,19 +163,12 @@ enum ConstantTag {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
-enum Nullability {
-  kNullable = 0,
-  kNonNullable = 1,
-  kNeither = 2,
-  kLegacy = 3,
-};
-
-// Keep in sync with package:kernel/lib/ast.dart
 enum Variance {
   kUnrelated = 0,
   kCovariant = 1,
   kContravariant = 2,
   kInvariant = 3,
+  kLegacyCovariant = 4,
 };
 
 static const int SpecializedIntLiteralBias = 3;

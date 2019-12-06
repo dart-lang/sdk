@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 library dart._http;
 
 import "dart:async";
@@ -563,6 +565,21 @@ void testClear() {
   Expect.isFalse(headers.chunkedTransferEncoding);
 }
 
+void testFolding() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add("a", "b");
+  headers.add("a", "c");
+  headers.add("a", "d");
+  // no folding by default
+  Expect.isTrue(headers.toString().contains('b, c, d'));
+  // Header name should be case insensitive
+  headers.noFolding('A');
+  var str = headers.toString();
+  Expect.isTrue(str.contains(': b'));
+  Expect.isTrue(str.contains(': c'));
+  Expect.isTrue(str.contains(': d'));
+}
+
 main() {
   testMultiValue();
   testDate();
@@ -581,4 +598,5 @@ main() {
   testInvalidFieldName();
   testInvalidFieldValue();
   testClear();
+  testFolding();
 }

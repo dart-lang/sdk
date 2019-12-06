@@ -120,6 +120,9 @@ def main(outdir=None, *inputs):
 
             # Create file containing all imports, and inlining all sources
             with open(outpath, 'w') as f:
+                prefix = os.environ.get('DART_HTML_PREFIX')
+                if prefix:
+                    f.write(prefix + '\n')
                 if library.name:
                     if library.comment:
                         f.write('%s' % (''.join(library.comment)))

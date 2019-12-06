@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:dart_style/dart_style.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
 class SetPropertyValueResult {
@@ -77,8 +78,15 @@ class WidgetDescriptions {
       var change = await property.removeValue();
       return SetPropertyValueResult._(change: change);
     } else {
-      var change = await property.changeValue(value);
-      return SetPropertyValueResult._(change: change);
+      try {
+        var change = await property.changeValue(value);
+        return SetPropertyValueResult._(change: change);
+      } on FormatterException {
+        return SetPropertyValueResult._(
+          errorCode: protocol.RequestErrorCode
+              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+        );
+      }
     }
   }
 

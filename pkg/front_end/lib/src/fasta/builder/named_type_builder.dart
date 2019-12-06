@@ -4,7 +4,9 @@
 
 library fasta.named_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
+import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
 
 import '../fasta_codes.dart'
     show
@@ -28,9 +30,8 @@ import '../problems.dart' show unhandled;
 
 import '../scope.dart';
 
-import '../severity.dart' show Severity;
-
 import 'builder.dart';
+import 'builtin_type_builder.dart';
 import 'class_builder.dart';
 import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -203,7 +204,8 @@ class NamedTypeBuilder extends TypeBuilder {
     return null;
   }
 
-  DartType build(LibraryBuilder library) {
+  // TODO(johnniwinther): Store [origin] on the built type.
+  DartType build(LibraryBuilder library, [TypedefType origin]) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     return declaration.buildType(library, nullabilityBuilder, arguments);
   }
@@ -284,7 +286,11 @@ class NamedTypeBuilder extends TypeBuilder {
     }
     NamedTypeBuilder newType =
         new NamedTypeBuilder(name, nullabilityBuilder, clonedArguments);
-    newTypes.add(newType);
+    if (declaration is BuiltinTypeBuilder) {
+      newType.declaration = declaration;
+    } else {
+      newTypes.add(newType);
+    }
     return newType;
   }
 

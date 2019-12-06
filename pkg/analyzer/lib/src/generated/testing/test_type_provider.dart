@@ -15,25 +15,30 @@ import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
  * for the core library.
  */
 class TestTypeProvider extends TypeProviderImpl {
-  factory TestTypeProvider([
-    AnalysisContext context,
-    Object analysisDriver,
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  ]) {
-    context ??= _MockAnalysisContext();
-    var sdkElements = MockSdkElements(context, nullabilitySuffix);
+  factory TestTypeProvider({
+    bool isNonNullableByDefault = false,
+  }) {
+    var context = _MockAnalysisContext();
+    var sdkElements = MockSdkElements(
+      context,
+      isNonNullableByDefault ? NullabilitySuffix.none : NullabilitySuffix.star,
+    );
     return TestTypeProvider._(
-      nullabilitySuffix,
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
+      isNonNullableByDefault,
     );
   }
 
   TestTypeProvider._(
-    NullabilitySuffix nullabilitySuffix,
     LibraryElement coreLibrary,
     LibraryElement asyncLibrary,
-  ) : super(coreLibrary, asyncLibrary, nullabilitySuffix: nullabilitySuffix);
+    bool isNonNullableByDefault,
+  ) : super(
+          coreLibrary: coreLibrary,
+          asyncLibrary: asyncLibrary,
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
 }
 
 class _MockAnalysisContext implements AnalysisContext {

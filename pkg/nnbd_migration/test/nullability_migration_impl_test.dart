@@ -32,7 +32,8 @@ class NullabilityMigrationImplTest {
     final text = 'void f() {}\nint g() => null;';
     final offset = text.indexOf('int') + 3;
     final potentialModification = _PotentialModificationMock(
-        _NullabilityFixDescriptionMock('Add ?'),
+        _NullabilityFixDescriptionMock(
+            'Add ?', NullabilityFixKind.makeTypeNullable),
         false,
         [SourceEdit(offset, 0, '?')]);
     final listener = NullabilityMigrationListenerMock();
@@ -47,11 +48,12 @@ class NullabilityMigrationImplTest {
         as SingleNullabilityFix;
     expect(fix.description.appliedMessage, 'Add ?');
     expect(fix.source, source);
-    expect(fix.location.offset, offset);
-    expect(fix.location.length, 0);
-    expect(fix.location.file, '/test.dart');
-    expect(fix.location.startLine, 2);
-    expect(fix.location.startColumn, 4);
+    Location location = fix.locations.single;
+    expect(location.offset, offset);
+    expect(location.length, 0);
+    expect(location.file, '/test.dart');
+    expect(location.startLine, 2);
+    expect(location.startColumn, 4);
     verifyNever(listener.reportException(any, any, any, any));
     final edit =
         verify(listener.addEdit(fix, captureAny)).captured.single as SourceEdit;
@@ -61,8 +63,9 @@ class NullabilityMigrationImplTest {
   }
 
   void test_noModifications_notReported() {
-    final potentialModification =
-        _PotentialModificationMock.empty(_NullabilityFixDescriptionMock('foo'));
+    final potentialModification = _PotentialModificationMock.empty(
+        _NullabilityFixDescriptionMock(
+            'foo', NullabilityFixKind.noModification));
     final listener = NullabilityMigrationListenerMock();
     final source = SourceMock('');
     when(variables.getPotentialModifications()).thenReturn({
@@ -105,8 +108,10 @@ class VariablesMock extends Mock implements Variables {}
 class _NullabilityFixDescriptionMock implements NullabilityFixDescription {
   @override
   final String appliedMessage;
+  @override
+  final NullabilityFixKind kind;
 
-  _NullabilityFixDescriptionMock(this.appliedMessage);
+  _NullabilityFixDescriptionMock(this.appliedMessage, this.kind);
 }
 
 class _PotentialModificationMock extends PotentialModification {

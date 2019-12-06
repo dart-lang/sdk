@@ -20,6 +20,7 @@ import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart';
 
 ArgParser parser = new ArgParser()
@@ -87,10 +88,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
 
   final coreTypes = new CoreTypes(component);
   final hierarchy = new ClassHierarchy(component);
+  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   switch (options['transformation']) {
     case 'continuation':
       bool productMode = defines["dart.vm.product"] == "true";
-      component = cont.transformComponent(coreTypes, component,
+      component = cont.transformComponent(typeEnvironment, component,
           productMode: productMode);
       break;
     case 'resolve-mixins':

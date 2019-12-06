@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
 
 /**
  * Abstract superclass of classes that provide information about the workspace
@@ -17,6 +18,11 @@ abstract class Workspace {
    * "project" depends upon flutter.
    */
   bool get hasFlutterDependency => packageMap?.containsKey('flutter') ?? false;
+
+  /**
+   * Return true iff this [Workspace] is a [BazelWorkspace].
+   */
+  bool get isBazel => false;
 
   /**
    * Return a (possibly null) map of package sources.

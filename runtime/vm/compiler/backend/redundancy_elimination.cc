@@ -1598,6 +1598,17 @@ class LoadOptimizer : public ValueObject {
     return forwarded_;
   }
 
+  // Only forward stores to normal arrays, float64, and simd arrays
+  // to loads because other array stores (intXX/uintXX/float32)
+  // may implicitly convert the value stored.
+  bool CanForwardStore(StoreIndexedInstr* array_store) {
+    return ((array_store == nullptr) ||
+            (array_store->class_id() == kArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
+            (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
+  }
+
   // Compute sets of loads generated and killed by each block.
   // Additionally compute upwards exposed and generated loads for each block.
   // Exposed loads are those that can be replaced if a corresponding
@@ -1652,30 +1663,44 @@ class LoadOptimizer : public ValueObject {
             killed = aliased_set_->GetKilledSet(old_alias_id);
           }
 
-          if (killed != NULL) {
+          // Find canonical place of store.
+          Place* canonical_place = nullptr;
+          if (CanForwardStore(instr->AsStoreIndexed())) {
+            canonical_place = aliased_set_->LookupCanonical(&place);
+            if (canonical_place != nullptr) {
+              // Is this a redundant store (stored value already resides
+              // in this field)?
+              const intptr_t place_id = canonical_place->id();
+              if (gen->Contains(place_id)) {
+                ASSERT((out_values != nullptr) &&
+                       ((*out_values)[place_id] != nullptr));
+                if ((*out_values)[place_id] == GetStoredValue(instr)) {
+                  if (FLAG_trace_optimization) {
+                    THR_Print("Removing redundant store to place %" Pd
+                              " in block B%" Pd "\n",
+                              instr->place_id(), block->block_id());
+                  }
+                  instr_it.RemoveCurrentFromGraph();
+                  continue;
+                }
+              }
+            }
+          }
+
+          // Update kill/gen/out_values (after inspection of incoming values).
+          if (killed != nullptr) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
             // because only those values that are in the GEN set
             // will ever be used.
             gen->RemoveAll(killed);
           }
-
-          // Only forward stores to normal arrays, float64, and simd arrays
-          // to loads because other array stores (intXX/uintXX/float32)
-          // may implicitly convert the value stored.
-          StoreIndexedInstr* array_store = instr->AsStoreIndexed();
-          if ((array_store == NULL) || (array_store->class_id() == kArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat32ArrayCid) ||
-              (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
-            Place* canonical_place = aliased_set_->LookupCanonical(&place);
-            if (canonical_place != NULL) {
-              // Store has a corresponding numbered place that might have a
-              // load. Try forwarding stored value to it.
-              gen->Add(canonical_place->id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[canonical_place->id()] = GetStoredValue(instr);
-            }
+          if (canonical_place != nullptr) {
+            // Store has a corresponding numbered place that might have a
+            // load. Try forwarding stored value to it.
+            gen->Add(canonical_place->id());
+            if (out_values == nullptr) out_values = CreateBlockOutValues();
+            (*out_values)[canonical_place->id()] = GetStoredValue(instr);
           }
 
           ASSERT(!instr->IsDefinition() ||
@@ -1707,31 +1732,40 @@ class LoadOptimizer : public ValueObject {
         }
 
         // For object allocation forward initial values of the fields to
-        // subsequent loads except for final fields of escaping objects.
-        // Final fields are initialized in constructor which potentially was
-        // not inlined into the function that we are currently optimizing.
-        // However at the same time we assume that values of the final fields
-        // can be forwarded across side-effects. If we add 'null' as known
-        // values for these fields here we will incorrectly propagate this
-        // null across constructor invocation.
-        AllocateObjectInstr* alloc = instr->AsAllocateObject();
-        if ((alloc != NULL)) {
+        // subsequent loads (and potential dead stores) except for final
+        // fields of escaping objects. Final fields are initialized in
+        // constructor which potentially was not inlined into the function
+        // that we are currently optimizing. However at the same time we
+        // assume that values of the final fields can be forwarded across
+        // side-effects. If we add 'null' as known values for these fields
+        // here we will incorrectly propagate this null across constructor
+        // invocation.
+        if (auto alloc = instr->AsAllocateObject()) {
           for (Value* use = alloc->input_use_list(); use != NULL;
                use = use->next_use()) {
-            // Look for all immediate loads from this object.
+            // Look for all immediate loads/stores from this object.
             if (use->use_index() != 0) {
               continue;
             }
+            const Slot* slot = nullptr;
+            intptr_t place_id = 0;
+            if (auto load = use->instruction()->AsLoadField()) {
+              slot = &load->slot();
+              place_id = load->place_id();
+            } else if (auto store =
+                           use->instruction()->AsStoreInstanceField()) {
+              slot = &store->slot();
+              place_id = store->place_id();
+            }
 
-            LoadFieldInstr* load = use->instruction()->AsLoadField();
-            if (load != NULL) {
-              // Found a load. Initialize current value of the field to null for
-              // normal fields, or with type arguments.
+            if (slot != nullptr) {
+              // Found a load/store. Initialize current value of the field
+              // to null for normal fields, or with type arguments.
 
               // If the object escapes then don't forward final fields - see
               // the comment above for explanation.
-              if (aliased_set_->CanBeAliased(alloc) &&
-                  load->slot().IsDartField() && load->slot().is_immutable()) {
+              if (aliased_set_->CanBeAliased(alloc) && slot->IsDartField() &&
+                  slot->is_immutable()) {
                 continue;
               }
 
@@ -1740,13 +1774,13 @@ class LoadOptimizer : public ValueObject {
                 ASSERT(alloc->ArgumentCount() == 1);
                 const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
                     graph_->thread(), alloc->cls());
-                if (load->slot().IsIdentical(type_args_slot)) {
+                if (slot->IsIdentical(type_args_slot)) {
                   forward_def = alloc->PushArgumentAt(0)->value()->definition();
                 }
               }
-              gen->Add(load->place_id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[load->place_id()] = forward_def;
+              gen->Add(place_id);
+              if (out_values == nullptr) out_values = CreateBlockOutValues();
+              (*out_values)[place_id] = forward_def;
             }
           }
           continue;

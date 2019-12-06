@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
@@ -20,7 +22,7 @@ import 'dart:_js_helper'
         quoteStringForRegExp,
         undefined;
 import 'dart:_runtime' as dart;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:collection' show UnmodifiableMapView;
 import 'dart:convert' show Encoding, utf8;
@@ -63,12 +65,39 @@ class Object {
 
   @patch
   Type get runtimeType => dart.wrapType(dart.getReifiedType(this));
+
+  // Everything is an Object.
+  @JSExportName('is')
+  static bool _is_Object(Object o) => true;
+
+  @JSExportName('as')
+  static Object _as_Object(Object o) => o;
+
+  @JSExportName('_check')
+  static Object _check_Object(Object o) => o;
 }
 
 @patch
 class Null {
   @patch
   int get hashCode => super.hashCode;
+
+  @JSExportName('is')
+  static bool _is_Null(Object o) => o == null;
+
+  @JSExportName('as')
+  static Object _as_Null(Object o) {
+    // Avoid extra function call to core.Null.is() by manually inlining.
+    if (o == null) return o;
+    return dart.cast(o, dart.unwrapType(Null), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_Null(Object o) {
+    // Avoid extra function call to core.Null.is() by manually inlining.
+    if (o == null) return o;
+    return dart.cast(o, dart.unwrapType(Null), true);
+  }
 }
 
 // Patch for Function implementation.
@@ -96,6 +125,24 @@ class Function {
       result[_symbolToString(symbol)] = value;
     });
     return result;
+  }
+
+  @JSExportName('is')
+  static bool _is_Function(Object o) =>
+      JS<bool>('!', 'typeof $o == "function"');
+
+  @JSExportName('as')
+  static Object _as_Function(Object o) {
+    // Avoid extra function call to core.Function.is() by manually inlining.
+    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(Function), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_Function(Object o) {
+    // Avoid extra function call to core.Function.is() by manually inlining.
+    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(Function), true);
   }
 }
 
@@ -157,6 +204,31 @@ class int {
     throw UnsupportedError(
         'int.fromEnvironment can only be used as a const constructor');
   }
+
+  @JSExportName('is')
+  static bool _is_int(Object o) {
+    return JS<bool>('!', 'typeof $o == "number" && Math.floor($o) == $o');
+  }
+
+  @JSExportName('as')
+  static Object _as_int(Object o) {
+    // Avoid extra function call to core.int.is() by manually inlining.
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
+        o == null) {
+      return o;
+    }
+    return dart.cast(o, dart.unwrapType(int), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_int(Object o) {
+    // Avoid extra function call to core.int.is() by manually inlining.
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
+        o == null) {
+      return o;
+    }
+    return dart.cast(o, dart.unwrapType(int), true);
+  }
 }
 
 @patch
@@ -170,6 +242,47 @@ class double {
   @patch
   static double tryParse(String source) {
     return Primitives.parseDouble(source, _kNull);
+  }
+
+  @JSExportName('is')
+  static bool _is_double(o) {
+    return JS<bool>('!', 'typeof $o == "number"');
+  }
+
+  @JSExportName('as')
+  static Object _as_double(o) {
+    // Avoid extra function call to core.double.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(double), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_double(o) {
+    // Avoid extra function call to core.double.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(double), true);
+  }
+}
+
+@patch
+abstract class num implements Comparable<num> {
+  @JSExportName('is')
+  static bool _is_num(o) {
+    return JS<bool>('!', 'typeof $o == "number"');
+  }
+
+  @JSExportName('as')
+  static Object _as_num(o) {
+    // Avoid extra function call to core.num.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(num), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_num(o) {
+    // Avoid extra function call to core.num.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(num), true);
   }
 }
 
@@ -528,6 +641,25 @@ class String {
     }
     return Primitives.stringFromCharCodes(list);
   }
+
+  @JSExportName('is')
+  static bool _is_String(Object o) {
+    return JS<bool>('!', 'typeof $o == "string"');
+  }
+
+  @JSExportName('as')
+  static Object _as_String(Object o) {
+    // Avoid extra function call to core.String.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(String), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_String(Object o) {
+    // Avoid extra function call to core.String.is() by manually inlining.
+    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(String), true);
+  }
 }
 
 @patch
@@ -541,6 +673,24 @@ class bool {
 
   @patch
   int get hashCode => super.hashCode;
+
+  @JSExportName('is')
+  static bool _is_bool(Object o) =>
+      JS<bool>('!', '$o === true || $o === false');
+
+  @JSExportName('as')
+  static Object _as_bool(Object o) {
+    // Avoid extra function call to core.bool.is() by manually inlining.
+    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(bool), false);
+  }
+
+  @JSExportName('_check')
+  static Object _check_bool(Object o) {
+    // Avoid extra function call to core.bool.is() by manually inlining.
+    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
+    return dart.cast(o, dart.unwrapType(bool), true);
+  }
 }
 
 @patch
@@ -801,6 +951,9 @@ class _DuplicatedFieldInitializerError {
 int _max(int a, int b) => a > b ? a : b;
 int _min(int a, int b) => a < b ? a : b;
 
+/// Empty list used as an initializer for local variables in the `_BigIntImpl`.
+final _dummyList = new Uint16List(0);
+
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -1046,9 +1199,6 @@ class _BigIntImpl implements BigInt {
       return null;
     }
 
-    if (radix is! int) {
-      throw ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
     if (radix < 2 || radix > 36) {
       throw RangeError.range(radix, 2, 36, 'radix');
     }
@@ -1410,8 +1560,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// Returns 0 if abs(this) == abs(other); a positive number if
   /// abs(this) > abs(other); and a negative number if abs(this) < abs(other).
-  int _absCompare(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  int _absCompare(_BigIntImpl other) {
     return _compareDigits(_digits, _used, other._digits, other._used);
   }
 
@@ -1421,8 +1570,7 @@ class _BigIntImpl implements BigInt {
    * Returns a negative number if `this` is less than `other`, zero if they are
    * equal, and a positive number if `this` is greater than `other`.
    */
-  int compareTo(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  int compareTo(covariant _BigIntImpl other) {
     if (_isNegative == other._isNegative) {
       var result = _absCompare(other);
       // Use 0 - result to avoid negative zero in JavaScript.
@@ -1564,7 +1712,8 @@ class _BigIntImpl implements BigInt {
     var digits = _digits;
     var otherDigits = other._digits;
     var resultDigits = Uint16List(resultUsed);
-    var l, m;
+    _BigIntImpl l;
+    int m;
     if (used < otherUsed) {
       l = other;
       m = used;
@@ -1590,7 +1739,8 @@ class _BigIntImpl implements BigInt {
     var digits = _digits;
     var otherDigits = other._digits;
     var resultDigits = Uint16List(resultUsed);
-    var l, m;
+    _BigIntImpl l;
+    int m;
     if (used < otherUsed) {
       l = other;
       m = used;
@@ -1618,8 +1768,7 @@ class _BigIntImpl implements BigInt {
    * Of both operands are negative, the result is negative, otherwise
    * the result is non-negative.
    */
-  _BigIntImpl operator &(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator &(covariant _BigIntImpl other) {
     if (_isZero || other._isZero) return zero;
     if (_isNegative == other._isNegative) {
       if (_isNegative) {
@@ -1634,7 +1783,7 @@ class _BigIntImpl implements BigInt {
       return _absAndSetSign(other, false);
     }
     // _isNegative != other._isNegative
-    var p, n;
+    _BigIntImpl p, n;
     if (_isNegative) {
       p = other;
       n = this;
@@ -1658,8 +1807,7 @@ class _BigIntImpl implements BigInt {
    * If both operands are non-negative, the result is non-negative,
    * otherwise the result us negative.
    */
-  _BigIntImpl operator |(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator |(covariant _BigIntImpl other) {
     if (_isZero) return other;
     if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
@@ -1675,7 +1823,7 @@ class _BigIntImpl implements BigInt {
       return _absOrSetSign(other, false);
     }
     // _neg != a._neg
-    var p, n;
+    _BigIntImpl p, n;
     if (_isNegative) {
       p = other;
       n = this;
@@ -1700,8 +1848,7 @@ class _BigIntImpl implements BigInt {
    * If the operands have the same sign, the result is non-negative,
    * otherwise the result is negative.
    */
-  _BigIntImpl operator ^(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator ^(covariant _BigIntImpl other) {
     if (_isZero) return other;
     if (other._isZero) return this;
     if (_isNegative == other._isNegative) {
@@ -1714,7 +1861,7 @@ class _BigIntImpl implements BigInt {
       return _absXorSetSign(other, false);
     }
     // _isNegative != a._isNegative
-    var p, n;
+    _BigIntImpl p, n;
     if (_isNegative) {
       p = other;
       n = this;
@@ -1749,8 +1896,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Addition operator.
-  _BigIntImpl operator +(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator +(covariant _BigIntImpl other) {
     if (_isZero) return other;
     if (other._isZero) return this;
     var isNegative = _isNegative;
@@ -1768,8 +1914,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Subtraction operator.
-  _BigIntImpl operator -(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator -(covariant _BigIntImpl other) {
     if (_isZero) return -other;
     if (other._isZero) return this;
     var isNegative = _isNegative;
@@ -1821,8 +1966,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Multiplication operator.
-  _BigIntImpl operator *(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator *(covariant _BigIntImpl other) {
     var used = _used;
     var otherUsed = other._used;
     if (used == 0 || otherUsed == 0) {
@@ -1870,8 +2014,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Returns `trunc(this / other)`, with `other != 0`.
-  _BigIntImpl _div(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl _div(_BigIntImpl other) {
     assert(other._used > 0);
     if (_used < other._used) {
       return zero;
@@ -1890,8 +2033,7 @@ class _BigIntImpl implements BigInt {
   }
 
   /// Returns `this - other * trunc(this / other)`, with `other != 0`.
-  _BigIntImpl _rem(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl _rem(_BigIntImpl other) {
     assert(other._used > 0);
     if (_used < other._used) {
       return this;
@@ -2091,8 +2233,7 @@ class _BigIntImpl implements BigInt {
    * seven.remainder(-three);   // => 1
    * ```
    */
-  _BigIntImpl operator ~/(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator ~/(covariant _BigIntImpl other) {
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -2106,8 +2247,7 @@ class _BigIntImpl implements BigInt {
    * `this == (this ~/ other) * other + r`.
    * As a consequence the remainder `r` has the same sign as the divider `this`.
    */
-  _BigIntImpl remainder(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl remainder(covariant _BigIntImpl other) {
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -2118,16 +2258,16 @@ class _BigIntImpl implements BigInt {
   double operator /(BigInt other) => this.toDouble() / other.toDouble();
 
   /** Relational less than operator. */
-  bool operator <(BigInt other) => compareTo(other) < 0;
+  bool operator <(covariant _BigIntImpl other) => compareTo(other) < 0;
 
   /** Relational less than or equal operator. */
-  bool operator <=(BigInt other) => compareTo(other) <= 0;
+  bool operator <=(covariant _BigIntImpl other) => compareTo(other) <= 0;
 
   /** Relational greater than operator. */
-  bool operator >(BigInt other) => compareTo(other) > 0;
+  bool operator >(covariant _BigIntImpl other) => compareTo(other) > 0;
 
   /** Relational greater than or equal operator. */
-  bool operator >=(BigInt other) => compareTo(other) >= 0;
+  bool operator >=(covariant _BigIntImpl other) => compareTo(other) >= 0;
 
   /**
    * Euclidean modulo operator.
@@ -2140,8 +2280,7 @@ class _BigIntImpl implements BigInt {
    *
    * See [remainder] for the remainder of the truncating division.
    */
-  _BigIntImpl operator %(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl operator %(covariant _BigIntImpl other) {
     if (other._used == 0) {
       throw const IntegerDivisionByZeroException();
     }
@@ -2204,9 +2343,8 @@ class _BigIntImpl implements BigInt {
    * The [exponent] must be non-negative and [modulus] must be
    * positive.
    */
-  _BigIntImpl modPow(BigInt bigExponent, BigInt bigModulus) {
-    _BigIntImpl exponent = bigExponent;
-    _BigIntImpl modulus = bigModulus;
+  _BigIntImpl modPow(
+      covariant _BigIntImpl exponent, covariant _BigIntImpl modulus) {
     if (exponent._isNegative) {
       throw ArgumentError("exponent must be positive: $exponent");
     }
@@ -2230,7 +2368,7 @@ class _BigIntImpl implements BigInt {
       resultDigits[j] = gDigits[j];
     }
     var resultUsed = gUsed;
-    var result2Used;
+    int result2Used;
     for (int i = exponentBitlen - 2; i >= 0; i--) {
       result2Used = z.sqr(resultDigits, resultUsed, result2Digits);
       if (!(exponent & (one << i))._isZero) {
@@ -2305,19 +2443,19 @@ class _BigIntImpl implements BigInt {
     // Variables a, b, c, and d require one more digit.
     final abcdUsed = maxUsed + 1;
     final abcdLen = abcdUsed + 2; // +2 to satisfy _absAdd.
-    var aDigits, bDigits, cDigits, dDigits;
-    bool aIsNegative, bIsNegative, cIsNegative, dIsNegative;
+    var aDigits = _dummyList;
+    var aIsNegative = false;
+    var cDigits = _dummyList;
+    var cIsNegative = false;
     if (ac) {
       aDigits = Uint16List(abcdLen);
-      aIsNegative = false;
       aDigits[0] = 1;
       cDigits = Uint16List(abcdLen);
-      cIsNegative = false;
     }
-    bDigits = Uint16List(abcdLen);
-    bIsNegative = false;
-    dDigits = Uint16List(abcdLen);
-    dIsNegative = false;
+    var bDigits = Uint16List(abcdLen);
+    var bIsNegative = false;
+    var dDigits = Uint16List(abcdLen);
+    var dIsNegative = false;
     dDigits[0] = 1;
 
     while (true) {
@@ -2510,8 +2648,7 @@ class _BigIntImpl implements BigInt {
    * It is an error if no modular inverse exists.
    */
   // Returns 1/this % modulus, with modulus > 0.
-  _BigIntImpl modInverse(BigInt bigInt) {
-    _BigIntImpl modulus = bigInt;
+  _BigIntImpl modInverse(covariant _BigIntImpl modulus) {
     if (modulus <= zero) {
       throw ArgumentError("Modulus must be strictly positive: $modulus");
     }
@@ -2536,8 +2673,7 @@ class _BigIntImpl implements BigInt {
    *
    * If both `this` and `other` is zero, the result is also zero.
    */
-  _BigIntImpl gcd(BigInt bigInt) {
-    _BigIntImpl other = bigInt;
+  _BigIntImpl gcd(covariant _BigIntImpl other) {
     if (_isZero) return other.abs();
     if (other._isZero) return this.abs();
     return _binaryGcd(this, other, false);
@@ -2856,8 +2992,8 @@ class _BigIntClassic implements _BigIntReduction {
                 _modulus._digits[_modulus._used - 1].bitLength);
 
   int convert(_BigIntImpl x, Uint16List resultDigits) {
-    var digits;
-    var used;
+    Uint16List digits;
+    int used;
     if (x._isNegative || x._absCompare(_modulus) >= 0) {
       var remainder = x._rem(_modulus);
       if (x._isNegative && remainder._used > 0) {

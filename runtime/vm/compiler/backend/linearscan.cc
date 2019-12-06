@@ -140,9 +140,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   // TODO(fschneider): Handle saving and restoring these registers when
   // generating intrinsic code.
   if (intrinsic_mode) {
-#if !defined(TARGET_ARCH_DBC)
     blocked_cpu_registers_[ARGS_DESC_REG] = true;
-#endif
 
 #if !defined(TARGET_ARCH_IA32)
     // Need to preserve CODE_REG to be able to store the PC marker
@@ -186,15 +184,6 @@ void SSALivenessAnalysis::ComputeInitialSets() {
 
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(zone(), true);  // opt
-#if defined(TARGET_ARCH_DBC)
-      // TODO(vegorov) remove this once we have ported all necessary
-      // instructions to DBC.
-      if (!current->HasLocs()) {
-        const char* msg = "SSALivenessAnalysis::ComputeInitialSets";
-        NOT_IN_PRODUCT(msg = current->ToCString());
-        graph_entry_->parsed_function().Bailout("SSALivenessAnalysis", msg);
-      }
-#endif
 
       LocationSummary* locs = current->locs();
 #if defined(DEBUG)
@@ -453,10 +442,6 @@ void FlowGraphAllocator::BlockLocation(Location loc,
                                        intptr_t to) {
   if (loc.IsRegister()) {
     BlockRegisterLocation(loc, from, to, blocked_cpu_registers_, cpu_regs_);
-#if defined(TARGET_ARCH_DBC)
-    last_used_register_ =
-        Utils::Maximum(last_used_register_, loc.register_code());
-#endif
   } else if (loc.IsFpuRegister()) {
     BlockRegisterLocation(loc, from, to, blocked_fpu_registers_, fpu_regs_);
   } else {
@@ -690,7 +675,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       SplitInitialDefinitionAt(range, block->lifetime_position() + 1);
       ConvertAllUses(range);
 
-      // On non-DBC we'll have exception/stacktrace in a register and need to
+      // We have exception/stacktrace in a register and need to
       // ensure this register is not available for register allocation during
       // the [CatchBlockEntry] to ensure it's not overwritten.
       if (loc.IsRegister()) {
@@ -698,40 +683,6 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
                       block->lifetime_position() + 1);
       }
       return;
-#if defined(TARGET_ARCH_DBC)
-    } else if (ParameterInstr* param = defn->AsParameter()) {
-      intptr_t slot_index = param->index();
-      AssignSafepoints(defn, range);
-      range->finger()->Initialize(range);
-      slot_index = kNumberOfCpuRegisters - 1 - slot_index;
-      if (slot_index < kMaxNumberOfFixedInputRegistersUsedByIL) {
-        // We ran out of registers for the catch block parameters.
-        // Bail out to unoptimized code
-        flow_graph_.parsed_function().Bailout("FlowGraphAllocator", "CATCH");
-        UNREACHABLE();
-      }
-      range->set_assigned_location(Location::RegisterLocation(slot_index));
-      SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
-      ConvertAllUses(range);
-      BlockLocation(Location::RegisterLocation(slot_index), 0, kMaxPosition);
-      return;
-    } else if (ConstantInstr* constant = defn->AsConstant()) {
-      ASSERT(constant != NULL);
-      range->set_assigned_location(Location::Constant(constant));
-      range->set_spill_slot(Location::Constant(constant));
-      AssignSafepoints(defn, range);
-      range->finger()->Initialize(range);
-      UsePosition* use =
-          range->finger()->FirstRegisterBeneficialUse(block->start_pos());
-      if (use != NULL) {
-        LiveRange* tail = SplitBetween(range, block->start_pos(), use->pos());
-        // Parameters and constants are tagged, so allocated to CPU registers.
-        ASSERT(constant->representation() == kTagged);
-        CompleteRange(tail, Location::kRegister);
-      }
-      ConvertAllUses(range);
-      return;
-#endif  // defined(TARGET_ARCH_DBC)
     }
   }
 
@@ -749,17 +700,6 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       slot_index = flow_graph_.num_direct_parameters() - 1 - slot_index;
     }
 
-#if defined(TARGET_ARCH_DBC)
-    ASSERT(param->base_reg() == FPREG);
-    if (slot_index >= 0) {
-      AssignSafepoints(defn, range);
-      range->finger()->Initialize(range);
-      range->set_assigned_location(Location::RegisterLocation(slot_index));
-      SplitInitialDefinitionAt(range, kNormalEntryPos);
-      ConvertAllUses(range);
-      return;
-    }
-#endif  // defined(TARGET_ARCH_DBC)
     if (param->base_reg() == FPREG) {
       slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
@@ -774,11 +714,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     SpecialParameterInstr* param = defn->AsSpecialParameter();
     ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
     Location loc;
-#if defined(TARGET_ARCH_DBC)
-    loc = LocationArgumentsDescriptorLocation();
-#else
     loc = Location::RegisterLocation(ARGS_DESC_REG);
-#endif  // defined(TARGET_ARCH_DBC)
     range->set_assigned_location(loc);
     if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
@@ -1438,9 +1374,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   }
 
 // Block all allocatable registers for calls.
-// Note that on DBC registers are always essentially spilled so
-// we don't need to block anything.
-#if !defined(TARGET_ARCH_DBC)
   if (locs->always_calls() && !locs->callee_safe_call()) {
     // Expected shape of live range:
     //
@@ -1490,7 +1423,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
 #endif
   }
-#endif
 
   if (locs->can_call()) {
     safepoints_.Add(current);
@@ -1971,14 +1903,6 @@ void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
 }
 
 void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
-#if defined(TARGET_ARCH_DBC)
-  // There is no need to support spilling on DBC because we have a lot of
-  // registers and registers and spill-slots have the same performance
-  // characteristics.
-  flow_graph_.parsed_function().Bailout("FlowGraphAllocator", "SPILL");
-  UNREACHABLE();
-#endif
-
   ASSERT(range->spill_slot().IsInvalid());
 
   // Compute range start and end.
@@ -2319,10 +2243,6 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
 
   registers_[candidate]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(candidate));
-#if defined(TARGET_ARCH_DBC)
-  last_used_register_ = Utils::Maximum(last_used_register_, candidate);
-#endif
-
   return true;
 }
 
@@ -2510,9 +2430,6 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
 
   registers_[reg]->Add(unallocated);
   unallocated->set_assigned_location(MakeRegisterLocation(reg));
-#if defined(TARGET_ARCH_DBC)
-  last_used_register_ = Utils::Maximum(last_used_register_, reg);
-#endif
 }
 
 bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
@@ -2595,16 +2512,10 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
   if (loc.IsMachineRegister()) {
     for (SafepointPosition* safepoint = range->first_safepoint();
          safepoint != NULL; safepoint = safepoint->next()) {
-#if !defined(TARGET_ARCH_DBC)
       if (!safepoint->locs()->always_calls()) {
         ASSERT(safepoint->locs()->can_call());
         safepoint->locs()->live_registers()->Add(loc, range->representation());
       }
-#else
-      if (range->representation() == kTagged) {
-        safepoint->locs()->SetStackBit(loc.reg());
-      }
-#endif  // !defined(TARGET_ARCH_DBC)
     }
   }
 }
@@ -2984,10 +2895,6 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   NumberInstructions();
 
-#if defined(TARGET_ARCH_DBC)
-  last_used_register_ = -1;
-#endif
-
   BuildLiveRanges();
 
   if (FLAG_print_ssa_liveranges) {
@@ -3011,16 +2918,6 @@ void FlowGraphAllocator::AllocateRegisters() {
   PrepareForAllocation(Location::kRegister, kNumberOfCpuRegisters,
                        unallocated_cpu_, cpu_regs_, blocked_cpu_registers_);
   AllocateUnallocatedRanges();
-#if defined(TARGET_ARCH_DBC)
-  const intptr_t last_used_cpu_register = last_used_register_;
-  last_used_register_ = -1;
-#endif
-
-#if defined(TARGET_ARCH_DBC)
-  // Spilling is unsupported on DBC.
-  ASSERT(spill_slots_.length() == 0);
-  cpu_spill_slot_count_ = 0;
-#else
   // GraphEntryInstr::fixed_slot_count() stack slots are reserved for catch
   // entries. When allocating a spill slot, AllocateSpillSlotFor() accounts for
   // these reserved slots and allocates spill slots on top of them.
@@ -3028,44 +2925,19 @@ void FlowGraphAllocator::AllocateRegisters() {
   // slots for catch entries in the spill area.
   cpu_spill_slot_count_ = Utils::Maximum(
       spill_slots_.length(), flow_graph_.graph_entry()->fixed_slot_count());
-#endif
   spill_slots_.Clear();
   quad_spill_slots_.Clear();
   untagged_spill_slots_.Clear();
 
   PrepareForAllocation(Location::kFpuRegister, kNumberOfFpuRegisters,
                        unallocated_xmm_, fpu_regs_, blocked_fpu_registers_);
-#if defined(TARGET_ARCH_DBC)
-  // For DBC all registers should have been allocated in the first pass.
-  ASSERT(unallocated_.is_empty());
-#endif
-
   AllocateUnallocatedRanges();
-#if defined(TARGET_ARCH_DBC)
-  const intptr_t last_used_fpu_register = last_used_register_;
-  ASSERT(last_used_fpu_register == -1);  // Not supported right now.
-#endif
-
   ResolveControlFlow();
 
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
   intptr_t double_spill_slot_count = spill_slots_.length() * kDoubleSpillFactor;
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
-
-#if defined(TARGET_ARCH_DBC)
-  // Spilling is unsupported on DBC.
-  if (entry->spill_slot_count() != 0) {
-    UNREACHABLE();
-  }
-
-  // We store number of used DBC registers in the spill slot count to avoid
-  // introducing a separate field. It has roughly the same meaning:
-  // number of used registers determines how big of a frame to reserve for
-  // this function on DBC stack.
-  entry->set_spill_slot_count((last_used_cpu_register + 1) +
-                              (last_used_fpu_register + 1));
-#endif
 
   if (FLAG_print_ssa_liveranges) {
     const Function& function = flow_graph_.function();

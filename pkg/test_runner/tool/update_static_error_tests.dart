@@ -142,7 +142,7 @@ Future<void> _processFile(File file,
     bool insertCfe}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
-  var testFile = TestFile.parse(Path("."), file.path, source);
+  var testFile = TestFile.parse(Path("."), file.absolute.path, source);
 
   var options = testFile.sharedOptions.toList();
   if (testFile.experiments.isNotEmpty) {
@@ -152,14 +152,14 @@ Future<void> _processFile(File file,
   var errors = <StaticError>[];
   if (insertAnalyzer) {
     stdout.write("\r${file.path} (Running analyzer...)");
-    errors.addAll(await _runAnalyzer(file.path, options));
+    errors.addAll(await _runAnalyzer(file.absolute.path, options));
   }
 
   if (insertCfe) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    errors.addAll(await _runCfe(file.path, options));
+    errors.addAll(await _runCfe(file.absolute.path, options));
   }
 
   errors = StaticError.simplify(errors);
@@ -182,11 +182,15 @@ Future<List<StaticError>> _runAnalyzer(
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
-  var result = await Process.run("sdk/bin/dartanalyzer$shellScriptExtension", [
-    ...options,
-    "--format=machine",
-    path,
-  ]);
+  var result = await Process.run(
+      Platform.isWindows
+          ? "sdk\\bin\\dartanalyzer.bat"
+          : "sdk/bin/dartanalyzer",
+      [
+        ...options,
+        "--format=machine",
+        path,
+      ]);
   var errors = <StaticError>[];
   AnalysisCommandOutput.parseErrors(result.stderr as String, errors);
   return errors;
@@ -197,19 +201,17 @@ Future<List<StaticError>> _runCfe(String path, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
-  var result = await Process.run("sdk/bin/dart", [
+  var result = await Process.run(
+      Platform.isWindows ? "sdk\\bin\\dart.bat" : "sdk/bin/dart", [
     "pkg/front_end/tool/_fasta/compile.dart",
     ...options,
     "--verify",
+    "-o",
+    "dev:null", // Output is only created for file URIs.
     path,
   ]);
 
   var errors = <StaticError>[];
   FastaCommandOutput.parseErrors(result.stdout as String, errors);
-
-  // Running the above command generates a dill file next to the test, which we
-  // don't want, so delete it.
-  await File("$path.dill").delete();
-
   return errors;
 }

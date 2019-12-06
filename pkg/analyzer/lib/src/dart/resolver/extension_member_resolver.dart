@@ -28,7 +28,7 @@ class ExtensionMemberResolver {
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
-  TypeSystem get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   /// Return the most specific extension in the current scope for this [type],
   /// that defines the member with the given [name].
@@ -95,10 +95,11 @@ class ExtensionMemberResolver {
       node.typeArgumentTypes,
     );
 
-    var getterMember =
-        getter != null ? ExecutableMember.from2(getter, substitution) : null;
-    var setterMember =
-        setter != null ? ExecutableMember.from2(setter, substitution) : null;
+    var getterMember = ExecutableMember.from2(getter, substitution);
+    var setterMember = ExecutableMember.from2(setter, substitution);
+
+    getterMember = _resolver.toLegacyElement(getterMember);
+    setterMember = _resolver.toLegacyElement(setterMember);
 
     return ResolutionResult(getter: getterMember, setter: setterMember);
   }
@@ -148,7 +149,10 @@ class ExtensionMemberResolver {
       substitution,
     );
 
-    if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
+    if (receiverType.isVoid) {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
+    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,

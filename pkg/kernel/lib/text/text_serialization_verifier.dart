@@ -474,6 +474,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitNeverType(NeverType node) {
+    storeLastSeenUriAndOffset(node);
+    makeDartTypeRoundTrip(node);
+  }
+
+  @override
   void visitVoidType(VoidType node) {
     storeLastSeenUriAndOffset(node);
     makeDartTypeRoundTrip(node);

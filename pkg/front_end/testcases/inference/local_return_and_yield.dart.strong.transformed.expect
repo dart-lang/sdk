@@ -24,7 +24,7 @@ static method main() → dynamic {
     dynamic :async_stack_trace;
     dynamic :async_op_then;
     dynamic :async_op_error;
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
@@ -49,7 +49,7 @@ static method main() → dynamic {
     return :async_completer.{asy::Completer::future};
   }
   function c() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :sync_op(core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
       {
@@ -63,7 +63,7 @@ static method main() → dynamic {
     return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op);
   }
   function d() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     function :sync_op(core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
       {
@@ -82,7 +82,7 @@ static method main() → dynamic {
     dynamic :async_stack_trace;
     dynamic :async_op_then;
     dynamic :async_op_error;
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
     dynamic :saved_try_context_var1;
@@ -117,7 +117,7 @@ static method main() → dynamic {
     dynamic :async_stack_trace;
     dynamic :async_op_then;
     dynamic :async_op_error;
-    dynamic :await_jump_var = 0;
+    core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
     dynamic :saved_try_context_var1;

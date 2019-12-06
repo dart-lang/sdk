@@ -36,17 +36,9 @@ void _printDartStackTrace() {
 // in the middle of a GC or interested in stub frames.
 DART_EXPORT
 void _printStackTrace() {
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
-                            Thread::Current(),
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  while (frame != nullptr) {
-    OS::PrintErr("%s\n", frame->ToCString());
-    frame = frames.NextFrame();
-  }
+  StackFrame::DumpCurrentTrace();
 }
 
-#if !defined(TARGET_ARCH_DBC)
 // Like _printDartStackTrace, but works when stopped in generated code.
 // Must be called with the current fp, sp, and pc.
 DART_EXPORT
@@ -80,7 +72,6 @@ void _printInterpreterStackTrace(RawObject** fp,
   thread->set_execution_state(Thread::kThreadInGenerated);
   thread->set_top_exit_frame_info(0);
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 class PrintObjectPointersVisitor : public ObjectPointerVisitor {
  public:

@@ -131,12 +131,6 @@ static int64_t GenKernelKernelBenchmark(const char* name,
   bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
   EXPECT(read_fully);
 
-  // Enable bytecode compiler in order to read bytecode.
-  // Enabling interpreter also does the trick, but it causes flaky crashes
-  // as unoptimized background compiler (which is required for interpreter)
-  // was not initialized when isolate was created.
-  SetFlagScope<bool> sfs(&FLAG_use_bytecode_compiler, true);
-
   Timer timer(true, name);
   if (benchmark_load) {
     timer.Start();

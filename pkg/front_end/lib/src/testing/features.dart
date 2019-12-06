@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'id_testing.dart';
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 /// Utility class for annotated testing representing a set of features.
 class Features {

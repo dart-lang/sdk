@@ -283,7 +283,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // The function will not be optimized any longer. This situation can occur
     // mostly with small optimization counter thresholds.
     function.SetIsOptimizable(false);
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -305,7 +305,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     }
     delete[] filter;
     if (!found) {
-      function.SetUsageCounter(INT_MIN);
+      function.SetUsageCounter(INT32_MIN);
       return false;
     }
   }
@@ -315,7 +315,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     if (FLAG_trace_failed_optimization_attempts) {
       THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
     return false;
   }
   return true;
@@ -381,7 +381,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.SetUsageCounter(INT_MIN);
+    function.SetUsageCounter(INT32_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -486,7 +486,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
     function.SetWasCompiled(true);
     if (function.IsOptimizable() && (function.usage_counter() < 0)) {
       // While doing compilation in background, usage counter is set
-      // to INT_MIN. Reset counter so that function can be optimized further.
+      // to INT32_MIN. Reset counter so that function can be optimized further.
       function.SetUsageCounter(0);
     }
   }
@@ -877,8 +877,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(
         /* precompiler = */ NULL, thread, thread->zone(), function);
@@ -1016,41 +1015,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
-}
-
-void Compiler::ComputeYieldPositions(const Function& function) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function.script());
-  Array& yield_position_map = Array::Handle(zone, script.yield_positions());
-  if (yield_position_map.IsNull()) {
-    yield_position_map = HashTables::New<UnorderedHashMap<SmiTraits>>(4);
-  }
-  UnorderedHashMap<SmiTraits> function_map(yield_position_map.raw());
-  Smi& key = Smi::Handle(zone, Smi::New(function.token_pos().value()));
-
-  if (function_map.ContainsKey(key)) {
-    ASSERT(function_map.Release().raw() == yield_position_map.raw());
-    return;
-  }
-
-  CompilerState state(thread);
-  LongJumpScope jump;
-  auto& array = GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  if (setjmp(*jump.Set()) == 0) {
-    ParsedFunction* parsed_function =
-        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
-    ZoneGrowableArray<const ICData*>* ic_data_array =
-        new ZoneGrowableArray<const ICData*>();
-    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
-                                     /* not inlining */ nullptr, false,
-                                     Compiler::kNoOSRDeoptId, 1, false, &array);
-    builder.BuildGraph();
-  }
-  function_map.UpdateOrInsert(key, array);
-  // Release and store back to script
-  yield_position_map = function_map.Release().raw();
-  script.set_yield_positions(yield_position_map);
 }
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
@@ -1450,10 +1414,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
-  UNREACHABLE();
-}
-
-void Compiler::ComputeYieldPositions(const Function& function) {
   UNREACHABLE();
 }
 

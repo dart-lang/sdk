@@ -166,8 +166,7 @@ function selectEntryGroup(pageStart) {
         var analysisStatus = entry.param('analysis');
         if (analysisStatus is Map) {
           if (analysisStatus['isAnalyzing']) {
-            description =
-                '$description <span class="gray">(analysis)</span> (<a href="${WebServer.taskPath}?analysisStart=${entry.index}">tasks</a>)';
+            description = '$description <span class="gray">(analyzing)</span>';
           } else {
             String duration = _getDuration(pairedEntry, entry);
             description =

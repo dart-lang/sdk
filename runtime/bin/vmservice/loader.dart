@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of vmservice_io;
 
 _sanitizeWindowsPath(path) {
@@ -952,9 +954,6 @@ void shutdownLoaders() {
 
 // See Dart_LibraryTag in dart_api.h
 const _Dart_kCanonicalizeUrl = 0; // Canonicalize the URL.
-const _Dart_kScriptTag = 1; // Load the root script.
-const _Dart_kSourceTag = 2; // Load a part source.
-const _Dart_kImportTag = 3; // Import a library.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
 const _Dart_kInitLoader = 4; // Initialize the loader.
@@ -965,7 +964,6 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Extra requests. Keep these in sync between loader.dart and loader.cc.
 const _Dart_kImportExtension = 9; // Import a dart-ext: file.
-const _Dart_kResolveAsFilePath = 10; // Resolve uri to file path.
 
 // External entry point for loader requests.
 _processLoadRequest(request) {
@@ -1093,38 +1091,6 @@ _processLoadRequest(request) {
           _sendExtensionImportResponse(sp, uri, libraryUri, null);
           break;
       }
-      break;
-    case _Dart_kResolveAsFilePath:
-      loaderState._triggerPackageResolution(() {
-        String uri = request[4];
-        Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
-        try {
-          if (resolvedUri.scheme == 'package') {
-            resolvedUri = loaderState._resolvePackageUri(resolvedUri);
-          }
-          if (resolvedUri.scheme == '' || resolvedUri.scheme == 'file') {
-            resolvedUri = loaderState._workingDirectory.resolveUri(resolvedUri);
-            var msg = new List(5);
-            msg[0] = tag;
-            msg[1] = uri;
-            msg[2] = resolvedUri.toString();
-            msg[3] = null;
-            msg[4] = resolvedUri.toFilePath();
-            sp.send(msg);
-          } else {
-            throw "Cannot resolve scheme (${resolvedUri.scheme}) to file path"
-                " for $resolvedUri";
-          }
-        } catch (e) {
-          var msg = new List(5);
-          msg[0] = -tag;
-          msg[1] = uri;
-          msg[2] = resolvedUri.toString();
-          msg[3] = null;
-          msg[4] = e.toString();
-          sp.send(msg);
-        }
-      });
       break;
     default:
       _log('Unknown loader request tag=$tag from $isolateId');

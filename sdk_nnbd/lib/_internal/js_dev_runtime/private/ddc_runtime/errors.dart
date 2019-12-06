@@ -34,8 +34,7 @@ throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  throw NoSuchMethodError(
-      null, Symbol('<Unexpected Null Value>'), null, null, null);
+  throw NoSuchMethodError(null, Symbol('<Unexpected Null Value>'), null, null);
 }
 
 castError(obj, expectedType, [@notNull bool isImplicit = false]) {

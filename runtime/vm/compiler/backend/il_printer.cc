@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/il_printer.h"
 
 #include "vm/compiler/backend/il.h"
@@ -15,17 +13,10 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-DEFINE_FLAG(bool,
-            display_sorted_ic_data,
-            false,
-            "Calls display a unary, sorted-by count form of ICData");
-DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp,
             print_flow_graph_filter,
             NULL,
             "Print only IR of functions with matching names");
-
-DECLARE_FLAG(bool, trace_inlining_intervals);
 
 // Checks whether function's name matches the given filter, which is
 // a comma-separated list of strings.
@@ -73,6 +64,16 @@ bool FlowGraphPrinter::PassesFilter(const char* filter,
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return PassesFilter(FLAG_print_flow_graph_filter, function);
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool,
+            display_sorted_ic_data,
+            false,
+            "Calls display a unary, sorted-by count form of ICData");
+DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+
+DECLARE_FLAG(bool, trace_inlining_intervals);
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
@@ -614,7 +615,13 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s = ", slot().Name());
   value()->PrintTo(f);
-  if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
+
+  // Here, we just print the value of the enum field. We would prefer to get
+  // the final decision on whether a store barrier will be emitted by calling
+  // ShouldEmitStoreBarrier(), but that can change parts of the flow graph.
+  if (emit_store_barrier_ == kNoStoreBarrier) {
+    f->Print(", NoStoreBarrier");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1054,6 +1061,13 @@ void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
+void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Instruction::PrintOperandsTo(f);
+  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+    f->Print(", yield_index = %" Pd "", yield_index());
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }
@@ -1175,7 +1189,11 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1213,8 +1231,8 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

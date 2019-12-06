@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -16,7 +16,17 @@ class AstResolver {
   final CompilationUnitElement _unitElement;
   final Scope _nameScope;
 
-  AstResolver(this._linker, this._unitElement, this._nameScope);
+  /// This field is set if the library is non-nullable by default.
+  FlowAnalysisHelper flowAnalysis;
+
+  AstResolver(this._linker, this._unitElement, this._nameScope) {
+    if (_unitElement.library.isNonNullableByDefault) {
+      flowAnalysis = FlowAnalysisHelper(
+        _unitElement.library.typeSystem,
+        false,
+      );
+    }
+  }
 
   void resolve(
     AstNode node,
@@ -44,7 +54,6 @@ class AstResolver {
       _linker.typeProvider,
       errorListener,
       nameScope: _nameScope,
-      localVariableInfo: LocalVariableInfo(),
     );
     node.accept(variableResolverVisitor);
 
@@ -58,6 +67,7 @@ class AstResolver {
       nameScope: _nameScope,
       propagateTypes: false,
       reportConstEvaluationErrors: false,
+      flowAnalysisHelper: flowAnalysis,
     );
     resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,

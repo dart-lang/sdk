@@ -53,10 +53,9 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
         bytecodeComponent.version,
         bytecodeComponent.stringTable,
         bytecodeComponent.objectTable,
-        linkWriter,
-        baseOffset: sink.getBufferOffset());
+        linkWriter);
     metadata.write(writer);
-    sink.writeBytes(writer.takeBytes());
+    writer.writeContentsToBinarySink(sink);
   }
 
   @override

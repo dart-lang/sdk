@@ -19,7 +19,7 @@ class Assembler;
 
 class StubCodeCompiler : public AllStatic {
  public:
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   static void GenerateBuildMethodExtractorStub(
       Assembler* assembler,
       const Object& closure_allocation_stub,
@@ -80,14 +80,12 @@ class StubCodeCompiler : public AllStatic {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 284;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #endif
 
-#if !defined(TARGET_ARCH_DBC)
   static void GenerateJITCallbackTrampolines(Assembler* assembler,
                                              intptr_t next_callback_id);
-#endif
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };

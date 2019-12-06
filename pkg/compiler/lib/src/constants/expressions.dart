@@ -847,7 +847,7 @@ class TypeConstantExpression extends ConstantExpression {
   final String name;
 
   TypeConstantExpression(this.type, this.name) {
-    assert(type.isInterfaceType || type.isTypedef || type.isDynamic,
+    assert(type is InterfaceType || type is TypedefType || type is DynamicType,
         "Unexpected type constant type: $type");
   }
 

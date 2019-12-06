@@ -8,15 +8,17 @@ library front_end.tool.fasta_perf;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:_fe_analyzer_shared/src/scanner/io.dart'
+    show readBytesFromFileSync;
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
@@ -217,10 +219,6 @@ parseFull(Uri uri, List<int> source) {
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
       : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
-
-  // Note: this method converts the body to kernel, so we skip that here.
-  @override
-  finishFunction(formals, asyncModifier, body) {}
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

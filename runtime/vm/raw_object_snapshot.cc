@@ -88,7 +88,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
-  type.set_type_state(reader->Read<int8_t>());
+  const uint8_t combined = reader->Read<uint8_t>();
+  type.set_type_state(combined >> 4);
+  type.set_nullability(static_cast<Nullability>(combined & 0xf));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type);
@@ -151,7 +153,10 @@ void RawType::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
-  writer->Write<int8_t>(ptr()->type_state_);
+  const uint8_t combined = (ptr()->type_state_ << 4) | ptr()->nullability_;
+  ASSERT(ptr()->type_state_ == (combined >> 4));
+  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
   ASSERT(ptr()->type_class_id_ != Object::null());
@@ -222,7 +227,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
-  type_parameter.set_flags(reader->Read<uint8_t>());
+  const uint8_t combined = reader->Read<uint8_t>();
+  type_parameter.set_flags(combined >> 4);
+  type_parameter.set_nullability(static_cast<Nullability>(combined & 0xf));
 
   // Read the code object for the type testing stub and set its entrypoint.
   reader->EnqueueTypePostprocessing(type_parameter);
@@ -263,7 +270,10 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
-  writer->Write<uint8_t>(ptr()->flags_);
+  const uint8_t combined = (ptr()->flags_ << 4) | ptr()->nullability_;
+  ASSERT(ptr()->flags_ == (combined >> 4));
+  ASSERT(ptr()->nullability_ == (combined & 0xf));
+  writer->Write<uint8_t>(combined);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

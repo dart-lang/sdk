@@ -150,7 +150,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       DartType type = element.type;
       return type != null ? type.displayName : 'dynamic';
     } else if (element is FunctionTypeAliasElement) {
-      return element.returnType.toString();
+      return element.function.returnType.toString();
     } else {
       return null;
     }

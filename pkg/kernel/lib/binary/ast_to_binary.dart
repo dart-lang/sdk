@@ -54,6 +54,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
   Set<CanonicalName> _reindexedCanonicalNames = new Set<CanonicalName>();
 
+  Library _currentLibrary;
+
   /// Create a printer that writes to the given [sink].
   ///
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
@@ -930,6 +932,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitLibrary(Library node) {
+    _currentLibrary = node;
+
+    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
@@ -991,6 +996,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeUInt32(offset);
     }
     writeUInt32(procedureOffsets.length - 1);
+
+    _currentLibrary = null;
   }
 
   void writeLibraryDependencies(Library library) {
@@ -1331,7 +1338,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitVariableGet(VariableGet node) {
     _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
-    assert(index != null);
+    assert(index != null, "No index found for ${node.variable}");
     if (index & Tag.SpecializedPayloadMask == index &&
         node.promotedType == null) {
       writeByte(Tag.SpecializedVariableGet + index);
@@ -1350,7 +1357,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitVariableSet(VariableSet node) {
     _variableIndexer ??= new VariableIndexer();
     int index = _variableIndexer[node.variable];
-    assert(index != null);
+    assert(index != null, "No index found for ${node.variable}");
     if (index & Tag.SpecializedPayloadMask == index) {
       writeByte(Tag.SpecializedVariableSet + index);
       writeOffset(node.fileOffset);
@@ -2025,6 +2032,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitNeverType(NeverType node) {
+    writeByte(Tag.NeverType);
+    writeByte(node.nullability.index);
+  }
+
+  @override
   void visitInvalidType(InvalidType node) {
     writeByte(Tag.InvalidType);
   }
@@ -2061,11 +2074,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // requires the nullability byte.
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
-      writeByte(Nullability.nonNullable.index);
+      writeByte(_currentLibrary.nonNullable.index);
       writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
-      writeByte(Nullability.nonNullable.index);
+      writeByte(_currentLibrary.nonNullable.index);
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
@@ -2125,7 +2138,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeByte(node.variance);
+    if (node.isLegacyCovariant) {
+      writeByte(TypeParameter.legacyCovariantSerializationMarker);
+    } else {
+      writeByte(node.variance);
+    }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
     writeOptionalNode(node.defaultType);
@@ -2163,57 +2180,68 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // during serialization is an error.
   @override
   void defaultNode(Node node) {
-    throw new UnsupportedError('serialization of generic Nodes');
+    throw new UnsupportedError(
+        'serialization of generic Node: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultConstant(Constant node) {
-    throw new UnsupportedError('serialization of generic Constants');
+    throw new UnsupportedError(
+        'serialization of generic Constant: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultBasicLiteral(BasicLiteral node) {
-    throw new UnsupportedError('serialization of generic BasicLiterals');
+    throw new UnsupportedError(
+        'serialization of generic BasicLiteral: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultConstantReference(Constant node) {
-    throw new UnsupportedError('serialization of generic Constant references');
+    throw new UnsupportedError('serialization of generic Constant reference: '
+        '${node} (${node.runtimeType})');
   }
 
   @override
   void defaultDartType(DartType node) {
-    throw new UnsupportedError('serialization of generic DartTypes');
+    throw new UnsupportedError(
+        'serialization of generic DartType: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultExpression(Expression node) {
-    throw new UnsupportedError('serialization of generic Expressions');
+    throw new UnsupportedError(
+        'serialization of generic Expression: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultInitializer(Initializer node) {
-    throw new UnsupportedError('serialization of generic Initializers');
+    throw new UnsupportedError(
+        'serialization of generic Initializer: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultMember(Member node) {
-    throw new UnsupportedError('serialization of generic Members');
+    throw new UnsupportedError(
+        'serialization of generic Member: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultMemberReference(Member node) {
-    throw new UnsupportedError('serialization of generic Member references');
+    throw new UnsupportedError('serialization of generic Member reference: '
+        '${node} (${node.runtimeType})');
   }
 
   @override
   void defaultStatement(Statement node) {
-    throw new UnsupportedError('serialization of generic Statements');
+    throw new UnsupportedError(
+        'serialization of generic Statement: ${node} (${node.runtimeType})');
   }
 
   @override
   void defaultTreeNode(TreeNode node) {
-    throw new UnsupportedError('serialization of generic TreeNodes');
+    throw new UnsupportedError(
+        'serialization of generic TreeNode: ${node} (${node.runtimeType})');
   }
 
   @override

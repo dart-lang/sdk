@@ -1,0 +1,10 @@
+main = <No Member>;
+library from "org-dartlang-test:///b.dart" as b {
+
+  static method asdf() → dynamic {}
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+}

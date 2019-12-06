@@ -290,14 +290,10 @@ class ProfileStackWalker {
       token_pos = token_pos.FromSynthetic();
     }
 
-    String& str = String::Handle(zone);
-    if (script.kind() == RawScript::kKernelTag) {
-      intptr_t line = 0, column = 0, token_len = 0;
-      script.GetTokenLocation(token_pos, &line, &column, &token_len);
-      str = script.GetSnippet(line, column, line, column + token_len);
-    } else {
-      UNREACHABLE();
-    }
+    intptr_t line = 0, column = 0, token_len = 0;
+    script.GetTokenLocation(token_pos, &line, &column, &token_len);
+    const auto& str = String::Handle(
+        zone, script.GetSnippet(line, column, line, column + token_len));
     return str.IsNull() ? NULL : str.ToCString();
   }
 

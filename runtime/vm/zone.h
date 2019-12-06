@@ -123,7 +123,8 @@ class Zone {
 #ifdef DEBUG
     if (len > 0) {
       ASSERT(old_array != nullptr);
-      memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
+      memset(static_cast<void*>(old_array), kZapUninitializedByte,
+             len * sizeof(ElementType));
     }
 #endif
   }

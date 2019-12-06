@@ -110,9 +110,9 @@ abstract class AbstractAnalysisServer {
           _analyzedFilesGlobs
               .add(new Glob(resourceProvider.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
+          AnalysisEngine.instance.instrumentationService.logException(
+              new CaughtException.withMessage(
+                  'Invalid glob pattern: "$pattern"', exception, stackTrace));
         }
       }
     }
@@ -282,7 +282,10 @@ abstract class AbstractAnalysisServer {
 
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
-        .catchError((_) => null);
+        .catchError((e, st) {
+      AnalysisEngine.instance.instrumentationService.logException(e, st);
+      return null;
+    });
   }
 
   /// Notify the declarations tracker that the file with the given [path] was
@@ -291,6 +294,14 @@ abstract class AbstractAnalysisServer {
     declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify(null);
   }
+
+  /// Sends an error notification to the user.
+  void sendServerErrorNotification(
+    String message,
+    dynamic exception,
+    /*StackTrace*/ stackTrace, {
+    bool fatal = false,
+  });
 
   void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
     declarationsTracker?.discardContext(driver.analysisContext);

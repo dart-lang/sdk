@@ -601,7 +601,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-#ifndef TARGET_ARCH_DBC
     if (FlowGraphCompiler::SupportsUnboxedInt64()) {
       if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
         left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
@@ -609,7 +608,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
       }
     }
-#endif
   }
 
   if (replacement != nullptr && !replacement->ComputeCanDeoptimize()) {
@@ -830,8 +828,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
     const Function& target = targets.FirstTarget();
-    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
-    has_one_target = !polymorphic_target;
+    has_one_target = !target.is_polymorphic_target();
   }
 
   if (has_one_target) {

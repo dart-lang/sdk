@@ -4,11 +4,9 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import '../../base/common.dart';
-
-import '../../scanner/token.dart' show Token;
+import 'package:kernel/ast.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -37,6 +35,7 @@ import 'class_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -65,10 +64,6 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   bool get isRedirectingGenerativeConstructor;
 
   bool get isEligibleForTopLevelInference;
-
-  Constructor build(SourceLibraryBuilder libraryBuilder);
-
-  FunctionNode buildFunction(LibraryBuilder library);
 
   /// The [Constructor] built by this builder.
   Constructor get constructor;
@@ -105,9 +100,6 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   ConstructorBuilder actualOrigin;
 
   @override
-  ConstructorBuilder patchForTesting;
-
-  @override
   Constructor get actualConstructor => _constructor;
 
   ConstructorBuilderImpl(
@@ -131,7 +123,19 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             compilationUnit, charOffset, nativeMethodName);
 
   @override
+  Member get readTarget => null;
+
+  @override
+  Member get writeTarget => null;
+
+  @override
+  Member get invokeTarget => constructor;
+
+  @override
   ConstructorBuilder get origin => actualOrigin ?? this;
+
+  @override
+  ConstructorBuilder get patchForTesting => dataForTesting?.patchForTesting;
 
   @override
   bool get isDeclarationInstanceMember => false;
@@ -161,6 +165,13 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       }
     }
     return false;
+  }
+
+  @override
+  void buildMembers(
+      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    Member member = build(library);
+    f(member, BuiltMemberKind.Constructor);
   }
 
   @override
@@ -215,10 +226,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     List<DartType> typeParameterTypes = new List<DartType>();
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(new TypeParameterType(typeParameter));
+      typeParameterTypes.add(
+          new TypeParameterType.withDefaultNullabilityForLibrary(
+              typeParameter, library.library));
     }
-    functionNode.returnType =
-        new InterfaceType(enclosingClass, typeParameterTypes);
+    functionNode.returnType = new InterfaceType(
+        enclosingClass, library.nonNullable, typeParameterTypes);
     return functionNode;
   }
 
@@ -309,9 +322,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (patch is ConstructorBuilderImpl) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
-        if (retainDataForTesting) {
-          patchForTesting = patch;
-        }
+        dataForTesting?.patchForTesting = patch;
       }
     } else {
       reportPatchMismatch(patch);
@@ -324,13 +335,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // stage, there is no easy way to make body building stage skip initializer
     // parsing, so we simply clear parsed initializers and rebuild them
     // again.
+    // For when doing an experimental incremental compilation they are also
+    // potentially done more than once (because it rebuilds the bodies of an old
+    // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    if (_constructor.isConst) {
-      _constructor.initializers.length = 0;
-      redirectingInitializer = null;
-      superInitializer = null;
-      hasMovedSuperInitializer = false;
-    }
+    _constructor.initializers.length = 0;
+    redirectingInitializer = null;
+    superInitializer = null;
+    hasMovedSuperInitializer = false;
   }
 }

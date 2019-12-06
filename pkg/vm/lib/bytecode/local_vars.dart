@@ -17,20 +17,15 @@ import 'options.dart' show BytecodeOptions;
 import '../metadata/direct_call.dart' show DirectCallMetadata;
 
 class LocalVariables {
-  final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
-  final Map<VariableDeclaration, VarDesc> _vars =
-      <VariableDeclaration, VarDesc>{};
-  final Map<TreeNode, List<int>> _temps = <TreeNode, List<int>>{};
-  final Map<TreeNode, VariableDeclaration> _capturedSavedContextVars =
-      <TreeNode, VariableDeclaration>{};
-  final Map<TreeNode, VariableDeclaration> _capturedExceptionVars =
-      <TreeNode, VariableDeclaration>{};
-  final Map<TreeNode, VariableDeclaration> _capturedStackTraceVars =
-      <TreeNode, VariableDeclaration>{};
-  final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
-      <ForInStatement, VariableDeclaration>{};
+  final _scopes = new Map<TreeNode, Scope>();
+  final _vars = new Map<VariableDeclaration, VarDesc>();
+  Map<TreeNode, List<int>> _temps;
+  Map<TreeNode, VariableDeclaration> _capturedSavedContextVars;
+  Map<TreeNode, VariableDeclaration> _capturedExceptionVars;
+  Map<TreeNode, VariableDeclaration> _capturedStackTraceVars;
+  Map<ForInStatement, VariableDeclaration> _capturedIteratorVars;
   final BytecodeOptions options;
-  final TypeEnvironment typeEnvironment;
+  final StaticTypeContext staticTypeContext;
   final Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   Scope _currentScope;
@@ -155,13 +150,15 @@ class LocalVariables {
   }
 
   VariableDeclaration capturedSavedContextVar(TreeNode node) =>
-      _capturedSavedContextVars[node];
+      _capturedSavedContextVars != null
+          ? _capturedSavedContextVars[node]
+          : null;
   VariableDeclaration capturedExceptionVar(TreeNode node) =>
-      _capturedExceptionVars[node];
+      _capturedExceptionVars != null ? _capturedExceptionVars[node] : null;
   VariableDeclaration capturedStackTraceVar(TreeNode node) =>
-      _capturedStackTraceVars[node];
+      _capturedStackTraceVars != null ? _capturedStackTraceVars[node] : null;
   VariableDeclaration capturedIteratorVar(ForInStatement node) =>
-      _capturedIteratorVars[node];
+      _capturedIteratorVars != null ? _capturedIteratorVars[node] : null;
 
   int get asyncExceptionParamIndexInFrame {
     assert(_currentFrame.isSyncYielding);
@@ -193,7 +190,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.typeEnvironment,
+  LocalVariables(Member node, this.options, this.staticTypeContext,
       this.directCallMetadata) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
@@ -210,6 +207,14 @@ class LocalVariables {
   void leaveScope() {
     _currentScope = _currentScope.parent;
     _currentFrame = _currentScope?.frame;
+  }
+
+  void withTemp(TreeNode node, int temp, void action()) {
+    final old = _temps[node];
+    assert(old == null || old.length == 1);
+    _temps[node] = [temp];
+    action();
+    _temps[node] = old;
   }
 }
 
@@ -521,12 +526,18 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   void _captureSyntheticVariables() {
     int depth = 0;
     for (TreeNode tryBlock in _enclosingTryBlocks) {
+      locals._capturedSavedContextVars ??=
+          new Map<TreeNode, VariableDeclaration>();
       _captureSyntheticVariable(ContinuationVariables.savedTryContextVar(depth),
           tryBlock, locals._capturedSavedContextVars);
       ++depth;
     }
     depth = 0;
     for (TreeNode tryBlock in _enclosingTryCatches) {
+      locals._capturedExceptionVars ??=
+          new Map<TreeNode, VariableDeclaration>();
+      locals._capturedStackTraceVars ??=
+          new Map<TreeNode, VariableDeclaration>();
       _captureSyntheticVariable(ContinuationVariables.exceptionVar(depth),
           tryBlock, locals._capturedExceptionVars);
       _captureSyntheticVariable(ContinuationVariables.stackTraceVar(depth),
@@ -592,6 +603,9 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitVariableGet(VariableGet node) {
     _useVariable(node.variable);
+    if (node.variable.isLate && node.variable.initializer != null) {
+      node.variable.initializer.accept(this);
+    }
   }
 
   @override
@@ -635,6 +649,14 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _useVariable(_currentFrame.factoryTypeArgsVar);
       }
     }
+
+    // Erase promoted bound in type parameter types as it makes no
+    // difference at run time, but types which are different only in
+    // promoted bounds are not equal when compared using DartType.operator==,
+    // which prevents reusing of type arguments.
+    // See dartbug.com/39240 for context.
+    node.promotedBound = null;
+
     node.visitChildren(this);
   }
 
@@ -685,6 +707,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       // Declare a variable to hold 'iterator' so it could be captured.
       iteratorVar = new VariableDeclaration(':iterator');
       _declareVariable(iteratorVar);
+      locals._capturedIteratorVars ??=
+          new Map<ForInStatement, VariableDeclaration>();
       locals._capturedIteratorVars[node] = iteratorVar;
     }
 
@@ -886,6 +910,7 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   void _allocateTemp(TreeNode node, {int count: 1}) {
+    locals._temps ??= new Map<TreeNode, List<int>>();
     assert(locals._temps[node] == null);
     if (_currentScope.tempsUsed + count > _currentFrame.temporaries.length) {
       // Allocate new local slots for temporary variables.
@@ -1143,7 +1168,9 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitForInStatement(ForInStatement node) {
     _allocateTemp(node);
-    _ensureVariableAllocated(locals._capturedIteratorVars[node]);
+    if (locals._capturedIteratorVars != null) {
+      _ensureVariableAllocated(locals._capturedIteratorVars[node]);
+    }
 
     node.iterable.accept(this);
 
@@ -1209,7 +1236,8 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     int numTemps = 0;
-    if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
+    if (isUncheckedClosureCall(
+        node, locals.staticTypeContext, locals.options)) {
       numTemps = 1;
     } else if (isCallThroughGetter(node.interfaceTarget)) {
       final args = node.arguments;
@@ -1266,8 +1294,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitVariableGet(VariableGet node) {
+    _visit(node, temps: node.variable.isLate ? 1 : 0);
+  }
+
+  @override
   visitVariableSet(VariableSet node) {
-    _visit(node, temps: locals.isCaptured(node.variable) ? 1 : 0);
+    final v = node.variable;
+    final bool needsTemp = locals.isCaptured(v) || v.isLate && v.isFinal;
+    _visit(node, temps: needsTemp ? 1 : 0);
   }
 
   @override
@@ -1288,6 +1323,11 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitInstantiation(Instantiation node) {
     _visit(node, temps: 3);
+  }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    _visit(node, temps: 1);
   }
 }
 

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_PROFILER_H_
 #define RUNTIME_VM_PROFILER_H_
 
+#include "platform/atomic.h"
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/code_observers.h"
@@ -63,6 +65,9 @@ class Profiler : public AllStatic {
   // Restarts sampling with a given profile period. This is called after the
   // profile period is changed via the service protocol.
   static void UpdateSamplePeriod();
+  // Starts or shuts down the profiler after --profiler is changed via the
+  // service protocol.
+  static void UpdateRunningState();
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
   static AllocationSampleBuffer* allocation_sample_buffer() {
@@ -104,7 +109,7 @@ class Profiler : public AllStatic {
 
   // Does not walk the thread's stack.
   static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
-  static bool initialized_;
+  static RelaxedAtomic<bool> initialized_;
 
   static SampleBuffer* sample_buffer_;
   static AllocationSampleBuffer* allocation_sample_buffer_;

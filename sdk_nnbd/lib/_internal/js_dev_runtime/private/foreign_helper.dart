@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._foreign_helper;
 
 /**
@@ -108,7 +106,7 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-T JS<T extends Object>(String typeDescription, String codeTemplate,
+T JS<T extends Object?>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,

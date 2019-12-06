@@ -186,13 +186,17 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       const Field& field,
-      bool is_initialization_store,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceFieldGuarded(const Field& field,
-                                     bool is_initialization_store);
+                                     StoreInstanceFieldInstr::Kind kind =
+                                         StoreInstanceFieldInstr::Kind::kOther);
   Fragment LoadStaticField();
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
@@ -263,7 +267,8 @@ class BaseFlowGraphBuilder {
                          bool negate = false);
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
-  Fragment Return(TokenPosition position);
+  Fragment Return(TokenPosition position,
+                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);

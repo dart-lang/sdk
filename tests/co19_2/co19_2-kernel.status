@@ -178,17 +178,6 @@ LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 
-[ $arch == simdbc64 && $compiler == dartk ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Issue http://dartbug.com/35242
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Issue http://dartbug.com/35242
-LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
-
-[ $arch == simdbc64 && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
-LanguageFeatures/Subtyping/static/generated/function_type_function_arguments_binding_A04_t02: Crash
-
-[ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash
-
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/isolate/Isolate/spawn_A06_t03: Crash
 
@@ -212,5 +201,5 @@ LibTest/isolate/SendPort/send_A01_t03: Crash
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
 LibTest/isolate/Isolate/spawnUri*: Skip

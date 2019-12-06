@@ -16,46 +16,65 @@ class NullabilityFixDescription {
   /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional then branch',
+    kind: NullabilityFixKind.discardThen,
   );
 
   /// An if-test or conditional expression needs to have its condition
   /// discarded.
   static const discardCondition = const NullabilityFixDescription._(
     appliedMessage: 'Discarded a condition which is always true',
+    kind: NullabilityFixKind.discardCondition,
   );
 
   /// An if-test or conditional expression needs to have its condition and
   /// "else" branch discarded.
   static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
+    kind: NullabilityFixKind.discardElse,
   );
 
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
+    kind: NullabilityFixKind.checkExpression,
   );
 
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
+  /// The kind of fix described.
+  final NullabilityFixKind kind;
+
   /// A formal parameter needs to have a required keyword added.
   factory NullabilityFixDescription.addRequired(
           String className, String functionName, String paramName) =>
       NullabilityFixDescription._(
-          appliedMessage:
-              "Add 'required' keyword to parameter '$paramName' in " +
-                  (className == null
-                      ? functionName
-                      : "'$className.$functionName'"));
+        appliedMessage: "Add 'required' keyword to parameter '$paramName' in " +
+            (className == null ? functionName : "'$className.$functionName'"),
+        kind: NullabilityFixKind.addRequired,
+      );
 
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
       NullabilityFixDescription._(
         appliedMessage: "Changed type '$type' to be nullable",
+        kind: NullabilityFixKind.makeTypeNullable,
       );
 
-  const NullabilityFixDescription._({@required this.appliedMessage});
+  const NullabilityFixDescription._(
+      {@required this.appliedMessage, @required this.kind});
+}
+
+/// An enumeration of the various kinds of nullability fixes.
+enum NullabilityFixKind {
+  addRequired,
+  checkExpression,
+  discardCondition,
+  discardElse,
+  discardThen,
+  makeTypeNullable,
+  noModification,
 }
 
 /// Provisional API for DartFix to perform nullability migration.
@@ -106,8 +125,8 @@ abstract class SingleNullabilityFix {
   /// What kind of fix this is.
   NullabilityFixDescription get description;
 
-  /// Location of the change, for reporting to the user.
-  Location get location;
+  /// Locations of the change, for reporting to the user.
+  List<Location> get locations;
 
   /// File to change.
   Source get source;

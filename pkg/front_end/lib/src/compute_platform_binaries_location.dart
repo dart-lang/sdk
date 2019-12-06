@@ -14,9 +14,11 @@ import 'fasta/compiler_context.dart' show CompilerContext;
 /// of the platform libraries that are used to avoid recompiling those
 /// libraries.
 Uri computePlatformBinariesLocation({bool forceBuildDir: false}) {
+  String resolvedExecutable = Platform.environment['resolvedExecutable'];
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base
-      .resolveUri(new Uri.file(Platform.resolvedExecutable))
+      .resolveUri(
+          new Uri.file(resolvedExecutable ?? Platform.resolvedExecutable))
       .resolve(".");
   if (vmDirectory.path.endsWith("/bin/")) {
     // Looks like the VM is in a `/bin/` directory, so this is running from a

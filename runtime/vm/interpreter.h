@@ -13,21 +13,23 @@
 
 namespace dart {
 
-class Isolate;
-class RawObject;
-class InterpreterSetjmpBuffer;
-class Thread;
-class Code;
 class Array;
+class Code;
+class InterpreterSetjmpBuffer;
+class Isolate;
+class ObjectPointerVisitor;
+class RawArray;
+class RawField;
+class RawFunction;
 class RawICData;
 class RawImmutableArray;
-class RawArray;
+class RawInstance;
+class RawObject;
 class RawObjectPool;
-class RawFunction;
 class RawString;
 class RawSubtypeTestCache;
 class RawTypeArguments;
-class ObjectPointerVisitor;
+class Thread;
 
 class LookupCache : public ValueObject {
  public:
@@ -198,6 +200,14 @@ class Interpreter {
                         RawObject** call_top,
                         RawObject** args,
                         RawSubtypeTestCache* cache);
+  template <bool is_getter>
+  bool AssertAssignableField(Thread* thread,
+                             const KBCInstr* pc,
+                             RawObject** FP,
+                             RawObject** SP,
+                             RawInstance* instance,
+                             RawField* field,
+                             RawInstance* value);
 
   bool AllocateMint(Thread* thread,
                     int64_t value,

@@ -73,10 +73,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
 
     var builtReturnType = _buildType(returnType);
-    _type = FunctionTypeImpl.synthetic(
-      builtReturnType,
-      typeFormals,
-      parameters,
+    _type = FunctionTypeImpl(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: builtReturnType,
       nullabilitySuffix: nullabilitySuffix,
     );
 
@@ -89,7 +89,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString() {
+  String toString({bool withNullability = false}) {
     var buffer = StringBuffer();
 
     if (typeFormals.isNotEmpty) {
@@ -106,6 +106,21 @@ class FunctionTypeBuilder extends TypeBuilder {
     buffer.write(returnType);
 
     return buffer.toString();
+  }
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    if (this.nullabilitySuffix == nullabilitySuffix) {
+      return this;
+    }
+
+    return FunctionTypeBuilder(
+      typeFormals,
+      parameters,
+      returnType,
+      nullabilitySuffix,
+      node: node,
+    );
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.

@@ -87,6 +87,11 @@ abstract class EdgeInfo implements FixReasonInfo {
   /// The [isHard] property is always true for union edges.
   bool get isUnion;
 
+  /// Indicates whether the downstream node of this edge is non-nullable and the
+  /// edge is hard (and thus upstream nullability propagation should try to make
+  /// the source node non-nullable, if possible).
+  bool get isUpstreamTriggered;
+
   /// Information about the graph node that this edge "points away from".
   NullabilityNodeInfo get sourceNode;
 }
@@ -94,38 +99,62 @@ abstract class EdgeInfo implements FixReasonInfo {
 /// Information exposed to the migration client about the location in source
 /// code that led an edge to be introduced into the nullability graph.
 abstract class EdgeOriginInfo {
+  /// If the proximate cause of the edge being introduced into the graph
+  /// corresponds to the type of an element in an already migrated-library, the
+  /// corresponding element; otherwise `null`.
+  ///
+  /// Note that either [node] or [element] will always be non-null.
+  Element get element;
+
   /// The kind of origin represented by this info.
   EdgeOriginKind get kind;
 
-  /// The AST node that led the edge to be introduced into the nullability
-  /// graph.
+  /// If the proximate cause of the edge being introduced into the graph
+  /// corresponds to an AST node in a source file that is being migrated, the
+  /// corresponding AST node; otherwise `null`.
+  ///
+  /// Note that either [node] or [element] will always be non-null.
   AstNode get node;
 
-  /// The source file that [node] appears in.
+  /// If [node] is non-null, the source file that it appears in.  Otherwise
+  /// `null`.
   Source get source;
 }
 
 /// An enumeration of the various kinds of edge origins created by the migration
 /// engine.
 enum EdgeOriginKind {
+  alreadyMigratedType,
   alwaysNullableType,
   compoundAssignment,
   defaultValue,
+  dynamicAssignment,
   expressionChecks,
   fieldFormalParameter,
+  fieldNotInitialized,
   forEachVariable,
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,
-  inheritance,
   initializerInference,
+  instanceCreation,
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
+  literal,
   namedParameterNotSupplied,
+  nonNullableBoolType,
+  nonNullableObjectSuperclass,
+  nonNullableUsage,
   nonNullAssertion,
   nullabilityComment,
   optionalFormalParameter,
+  parameterInheritance,
+  returnTypeInheritance,
+  stackTraceTypeOrigin,
+  thisOrSuper,
+  throw_,
+  uninitializedRead,
 }
 
 /// Interface used by the migration engine to expose information to its client
@@ -148,6 +177,12 @@ abstract class NullabilityMigrationInstrumentation {
   /// of the element.
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType);
 
+  /// Called whenever reference is made to an [typeParameter] outside of the
+  /// code being migrated, to report the nullability nodes associated with the
+  /// bound of the type parameter.
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType);
+
   /// Called whenever a fix is decided upon, to report the reasons for the fix.
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons);
 
@@ -156,8 +191,8 @@ abstract class NullabilityMigrationInstrumentation {
   /// and why it was created.
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo);
 
-  /// Called when the migration engine start up, to report information about the
-  /// immutable migration nodes [never] and [always] that are used as the
+  /// Called when the migration engine starts up, to report information about
+  /// the immutable migration nodes [never] and [always] that are used as the
   /// starting point for nullability propagation.
   void immutableNodes(NullabilityNodeInfo never, NullabilityNodeInfo always);
 
@@ -202,6 +237,17 @@ abstract class NullabilityMigrationInstrumentation {
 /// Information exposed to the migration client about a single node in the
 /// nullability graph.
 abstract class NullabilityNodeInfo implements FixReasonInfo {
+  /// List of compound nodes wrapping this node.
+  final List<NullabilityNodeInfo> outerCompoundNodes = <NullabilityNodeInfo>[];
+
+  /// Some nodes get nullability from downstream, so the downstream edges are
+  /// available to query as well.
+  Iterable<EdgeInfo> get downstreamEdges;
+
+  /// After migration is complete, this getter can be used to query whether
+  /// the type associated with this node was determined to be "exact nullable."
+  bool get isExactNullable;
+
   /// Indicates whether the node is immutable.  The only immutable nodes in the
   /// nullability graph are the nodes `never` and `always` that are used as the
   /// starting points for nullability propagation.

@@ -672,6 +672,33 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   return obj;
 }
 
+vms.IsolateGroupRef assertIsolateGroupRef(vms.IsolateGroupRef obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertString(obj.id);
+  assertString(obj.number);
+  assertString(obj.name);
+  return obj;
+}
+
+List<vms.IsolateGroupRef> assertListOfIsolateGroupRef(
+    List<vms.IsolateGroupRef> list) {
+  for (vms.IsolateGroupRef elem in list) {
+    assertIsolateGroupRef(elem);
+  }
+  return list;
+}
+
+vms.IsolateGroup assertIsolateGroup(vms.IsolateGroup obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertString(obj.id);
+  assertString(obj.number);
+  assertString(obj.name);
+  assertListOfIsolateRef(obj.isolates);
+  return obj;
+}
+
 vms.InboundReferences assertInboundReferences(vms.InboundReferences obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -1108,5 +1135,6 @@ vms.VM assertVM(vms.VM obj) {
   assertInt(obj.pid);
   assertInt(obj.startTime);
   assertListOfIsolateRef(obj.isolates);
+  assertListOfIsolateGroupRef(obj.isolateGroups);
   return obj;
 }

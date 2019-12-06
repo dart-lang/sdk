@@ -192,6 +192,18 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     } while (raw_obj != NULL);
   }
 
+  // Races: The concurrent marker is racing with the mutator, but this race is
+  // harmless. The concurrent marker will only visit objects that were created
+  // before the marker started. It will ignore all new-space objects based on
+  // pointer alignment, and it will ignore old-space objects created after the
+  // marker started because old-space objects allocated while marking is in
+  // progress are allocated black (mark bit set). When visiting object slots,
+  // the marker can see either the value it had when marking started (because
+  // spawning the marker task creates acq-rel ordering) or any value later
+  // stored into that slot. Because pointer slots always contain pointers (i.e.,
+  // we don't do any in-place unboxing like V8), any value we read from the slot
+  // is safe.
+  NO_SANITIZE_THREAD
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
       MarkObject(*current);
@@ -382,16 +394,6 @@ class MarkingWeakVisitor : public HandleVisitor {
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
       handle->UpdateUnreachable(thread()->isolate());
-    } else {
-#ifndef PRODUCT
-      intptr_t cid = raw_obj->GetClassIdMayBeSmi();
-      intptr_t size = handle->external_size();
-      if (raw_obj->IsSmiOrOldObject()) {
-        class_table_->UpdateLiveOldExternal(cid, size);
-      } else {
-        class_table_->UpdateLiveNewExternal(cid, size);
-      }
-#endif  // !PRODUCT
     }
   }
 
@@ -457,8 +459,7 @@ void GCMarker::ResetRootSlices() {
 
 void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
   for (;;) {
-    intptr_t task =
-        AtomicOperations::FetchAndDecrement(&root_slices_not_started_) - 1;
+    intptr_t task = root_slices_not_started_.fetch_sub(1) - 1;
     if (task < 0) {
       return;  // No more tasks.
     }
@@ -480,8 +481,7 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
         UNREACHABLE();
     }
 
-    intptr_t remaining =
-        AtomicOperations::FetchAndDecrement(&root_slices_not_finished_) - 1;
+    intptr_t remaining = root_slices_not_finished_.fetch_sub(1) - 1;
     if (remaining == 0) {
       MonitorLocker ml(&root_slices_monitor_);
       ml.Notify();
@@ -690,7 +690,6 @@ class ConcurrentMarkTask : public ThreadPool::Task {
       }
     }
 
-    isolate_->ScheduleInterrupts(Thread::kVMInterrupt);
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
     Thread::ExitIsolateAsHelper(true);
     // This marker task is done. Notify the original isolate.
@@ -722,18 +721,6 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
     marked_micros_ += visitor->marked_micros();
-#ifndef PRODUCT
-    // Class heap stats are not themselves thread-safe yet, so we update the
-    // stats while holding stats_mutex_.
-    auto table = heap_->isolate()->shared_class_table();
-    for (intptr_t i = 0; i < table->NumCids(); ++i) {
-      const intptr_t count = visitor->live_count(i);
-      if (count > 0) {
-        const intptr_t size = visitor->live_size(i);
-        table->UpdateLiveOld(i, size, count);
-      }
-    }
-#endif  // !PRODUCT
   }
   visitor->Finalize();
 }

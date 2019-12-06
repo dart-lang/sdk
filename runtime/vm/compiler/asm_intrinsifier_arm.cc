@@ -120,16 +120,12 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ cmp(R1, Operand(IP));                                                     \
   __ b(normal_ir_body, CS);                                                    \
                                                                                \
-  /* Successfully allocated the object(s), now update top to point to */       \
-  /* next object start and initialize the object. */                           \
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));                      \
   __ str(R1, Address(THR, target::Thread::top_offset()));                      \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
   /* Initialize the tags. */                                                   \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
-  /* R4: allocation stats address */                                           \
   {                                                                            \
     __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
     __ mov(R3,                                                                 \
@@ -150,7 +146,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
-  /* R4: allocation stats address. */                                          \
   __ ldr(R3, Address(SP, kArrayLengthStackOffset)); /* Array length. */        \
   __ StoreIntoObjectNoBarrier(                                                 \
       R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R3);       \
@@ -159,7 +154,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   /* R3: iterator which initially points to the start of the variable */       \
-  /* R4: allocation stats address */                                           \
   /* R8, R9: zero. */                                                          \
   /* data area to be initialized. */                                           \
   __ LoadImmediate(R8, 0);                                                     \
@@ -175,7 +169,6 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
   __ b(&init_loop, CC);                                                        \
   __ str(R8, Address(R3, -2 * target::kWordSize), HI);                         \
                                                                                \
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));                 \
   __ Ret();                                                                    \
   __ Bind(normal_ir_body);
 
@@ -1977,7 +1970,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R4, cid));
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
 
@@ -1985,7 +1977,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // R0: new object start as a tagged pointer.
   // R1: new object end address.
   // R2: allocation size.
-  // R4: allocation stats address.
   {
     const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
@@ -2011,7 +2002,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   __ StoreIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::String::hash_offset()), TMP);
 
-  NOT_IN_PRODUCT(__ IncrementAllocationStatsWithSize(R4, R2));
   __ b(ok);
 }
 

@@ -11,12 +11,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -426,8 +426,8 @@ class BuildMode with HasContextMixin {
         sdk = summarySdk;
         sdkBundle = summarySdk.bundle;
       } else {
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
-            resourceProvider.getFolder(options.dartSdkPath), true);
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(options.dartSdkPath));
         dartSdk.analysisOptions =
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
@@ -471,7 +471,7 @@ class BuildMode with HasContextMixin {
   }
 
   void _createLinkedElementFactory() {
-    var analysisContext = RestrictedAnalysisContext(
+    var analysisContext = AnalysisContextImpl(
       SynchronousSession(analysisOptions, declaredVariables),
       sourceFactory,
     );

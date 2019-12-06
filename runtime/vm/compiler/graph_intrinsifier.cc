@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-// DBC does not use graph intrinsics.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/graph_intrinsifier.h"
 #include "vm/compiler/backend/block_builder.h"
@@ -18,10 +17,10 @@
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
+#include "vm/flag_list.h"
 
 namespace dart {
 
-DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
@@ -300,8 +299,8 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       break;
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
-    // Use same truncating unbox-instruction for int32 and uint32.
-    FALL_THROUGH;
+      // Use same truncating unbox-instruction for int32 and uint32.
+      FALL_THROUGH;
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:
       // Supports smi and mint, slow-case for bigints.
@@ -989,4 +988,4 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

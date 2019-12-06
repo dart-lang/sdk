@@ -132,9 +132,16 @@ claim
 clarification
 clashes
 class's
+class3a
+class3b
+class4a
+class4b
+class4c
+class4d
 clazz
 cls
 cn
+cnt
 co
 codebase
 codec
@@ -246,6 +253,7 @@ dmitryas
 doc
 docs
 dom
+dont
 doubles
 downcasts
 downloaded
@@ -313,6 +321,8 @@ ffff
 fffff
 ffffffff
 ffi
+field1
+field2
 file's
 filenames
 finv
@@ -416,6 +426,7 @@ initializer's
 insertion
 inspector
 inspired
+inst
 instanceof
 instantiator
 intentionally
@@ -639,6 +650,7 @@ r'\t
 r'\u
 r'\v
 r'$creation
+ra
 radix
 raises
 ran
@@ -646,6 +658,8 @@ randomly
 ranges
 ranked
 ratio
+rb
+rc
 re
 reach
 react
@@ -653,6 +667,7 @@ realign
 reassigned
 rebind
 rebuild
+rebuilds
 recalculating
 recalculation
 recall
@@ -695,8 +710,10 @@ residue
 respond
 restriction
 resumed
+ret
 rewrites
 rewrote
+rf
 rhs
 ri
 rightmost
@@ -708,6 +725,7 @@ rooted
 roughly
 rounding
 rparen
+rs
 runnable
 s
 sb
@@ -839,6 +857,7 @@ terminator
 tester
 tex
 th
+thought
 ti
 tick
 ticker
@@ -1008,6 +1027,8 @@ xi
 xm
 xn
 xor
+xs
+xss
 xterm
 xx
 xxxx
@@ -1019,6 +1040,8 @@ yaml
 yet
 yielding
 yields
+ys
+yss
 z
 zi
 zip

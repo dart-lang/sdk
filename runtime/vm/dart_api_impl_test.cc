@@ -1543,26 +1543,6 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
   }
 }
 
-// Helper class to ensure new gen GC is triggered without any side effects.
-// The normal call to CollectGarbage(Heap::kNew) could potentially trigger
-// an old gen collection if there is a promotion failure and this could
-// perturb the test.
-class GCTestHelper : public AllStatic {
- public:
-  static void CollectNewSpace() {
-    Thread* thread = Thread::Current();
-    ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->new_space()->Scavenge();
-  }
-
-  static void WaitForGCTasks() {
-    Thread* thread = Thread::Current();
-    ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->WaitForMarkerTasks(thread);
-    thread->heap()->WaitForSweeperTasks(thread);
-  }
-};
-
 static void ExternalStringCallbackFinalizer(void* isolate_callback_data,
                                             Dart_WeakPersistentHandle handle,
                                             void* peer) {
@@ -1595,12 +1575,10 @@ TEST_CASE(DartAPI_ExternalStringCallback) {
     TransitionNativeToVM transition(thread);
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectNewSpace();
     EXPECT_EQ(80, peer8);
     EXPECT_EQ(82, peer16);
   }
@@ -2288,7 +2266,7 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
   {
     TransitionNativeToVM transition(Thread::Current());
-    Isolate::Current()->heap()->CollectAllGarbage();
+    GCTestHelper::CollectAllGarbage();
   }
 
   EXPECT(!byte_data_finalizer_run);
@@ -2298,7 +2276,7 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
 
   {
     TransitionNativeToVM transition(Thread::Current());
-    Isolate::Current()->heap()->CollectAllGarbage();
+    GCTestHelper::CollectAllGarbage();
   }
 
   EXPECT(byte_data_finalizer_run);
@@ -2481,7 +2459,7 @@ class BackgroundGCTask : public ThreadPool::Task {
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     for (intptr_t i = 0; i < 10; i++) {
-      Thread::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
+      GCTestHelper::CollectAllGarbage();
     }
     Thread::ExitIsolateAsHelper();
     {
@@ -2801,11 +2779,9 @@ TEST_CASE(DartAPI_ExternalTypedDataCallback) {
   {
     TransitionNativeToVM transition(thread);
     EXPECT(peer == 0);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectOldSpace();
     EXPECT(peer == 0);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
 }
@@ -2830,13 +2806,8 @@ TEST_CASE(DartAPI_SlowFinalizer) {
 
     {
       TransitionNativeToVM transition(thread);
-      Isolate::Current()->heap()->CollectAllGarbage();
+      GCTestHelper::CollectAllGarbage();
     }
-  }
-
-  {
-    TransitionNativeToVM transition(thread);
-    GCTestHelper::WaitForGCTasks();
   }
 
   EXPECT_EQ(20, count);
@@ -2890,8 +2861,7 @@ TEST_CASE(DartAPI_Float32x4List) {
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
 }
@@ -2953,7 +2923,6 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     for (int i = 1000; i < 1500; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
     }
-    VERIFY_ON_TRANSITION;
     Dart_ExitScope();
   }
   Dart_ExitScope();
@@ -3131,7 +3100,6 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
       TransitionNativeToVM transition(thread);
       // Garbage collect new space.
       GCTestHelper::CollectNewSpace();
-      GCTestHelper::WaitForGCTasks();
     }
 
     // Nothing should be invalidated or cleared.
@@ -3151,8 +3119,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     {
       TransitionNativeToVM transition(thread);
       // Garbage collect old space.
-      Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-      GCTestHelper::WaitForGCTasks();
+      GCTestHelper::CollectOldSpace();
     }
 
     // Nothing should be invalidated or cleared.
@@ -3177,7 +3144,6 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
     GCTestHelper::CollectNewSpace();
-    GCTestHelper::WaitForGCTasks();
   }
 
   {
@@ -3192,8 +3158,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     TransitionNativeToVM transition(thread);
     // Garbage collect old space again.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectOldSpace();
   }
 
   {
@@ -3207,9 +3172,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     TransitionNativeToVM transition(thread);
     // Garbage collect one last time to revisit deleted handles.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectAllGarbage();
   }
 }
 
@@ -3254,10 +3217,9 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
   }
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
-    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
 }
@@ -3280,10 +3242,9 @@ TEST_CASE(DartAPI_WeakPersistentHandleNoCallback) {
   EXPECT(peer == 0);
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
-    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
   }
 }
@@ -3330,13 +3291,12 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   }
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT(heap->ExternalInWords(Heap::kNew) ==
            (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
     // Collect weakly referenced string, and promote strongly referenced string.
     GCTestHelper::CollectNewSpace();
     GCTestHelper::CollectNewSpace();
-    GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
@@ -3346,8 +3306,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   Dart_DeletePersistentHandle(strong_ref);
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
+    GCTestHelper::CollectOldSpace();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
@@ -3390,8 +3349,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
 }
@@ -3467,8 +3425,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
 }
@@ -3601,7 +3558,7 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
 
   {
     TransitionNativeToVM transition(thread);
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
   }
 
   {
@@ -3674,7 +3631,6 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
           }
           EXPECT_EQ(300, thread->CountLocalHandles());
         }
-        VERIFY_ON_TRANSITION;
         Dart_ExitScope();
       }
       EXPECT_EQ(200, thread->CountLocalHandles());
@@ -7310,7 +7266,7 @@ TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
     EXPECT(out == reinterpret_cast<void*>(&peer));
     {
       TransitionNativeToVM transition(thread);
-      isolate->heap()->CollectGarbage(Heap::kNew);
+      GCTestHelper::CollectNewSpace();
       EXPECT_EQ(1, isolate->heap()->PeerCount());
     }
     out = &out;
@@ -7320,7 +7276,7 @@ TEST_CASE(DartAPI_CollectOneNewSpacePeer) {
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
     EXPECT_EQ(0, isolate->heap()->PeerCount());
   }
 }
@@ -7400,7 +7356,7 @@ TEST_CASE(DartAPI_CollectTwoNewSpacePeers) {
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
     EXPECT_EQ(0, isolate->heap()->PeerCount());
   }
 }
@@ -7431,9 +7387,9 @@ TEST_CASE(DartAPI_CopyNewSpacePeers) {
   EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
     EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
-    isolate->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
     EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
   }
 }
@@ -7458,8 +7414,8 @@ TEST_CASE(DartAPI_OnePromotedPeer) {
   EXPECT_EQ(1, isolate->heap()->PeerCount());
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kNew);
-    isolate->heap()->CollectGarbage(Heap::kNew);
+    GCTestHelper::CollectNewSpace();
+    GCTestHelper::CollectNewSpace();
   }
   {
     CHECK_API_SCOPE(thread);
@@ -7499,7 +7455,7 @@ TEST_CASE(DartAPI_OneOldSpacePeer) {
   EXPECT(out == reinterpret_cast<void*>(&peer));
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(1, isolate->heap()->PeerCount());
   }
   EXPECT_VALID(Dart_GetPeer(str, &out));
@@ -7535,7 +7491,7 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
     EXPECT(out == reinterpret_cast<void*>(&peer));
     {
       TransitionNativeToVM transition(thread);
-      isolate->heap()->CollectGarbage(Heap::kOld);
+      GCTestHelper::CollectOldSpace();
       EXPECT_EQ(1, isolate->heap()->PeerCount());
     }
     EXPECT_VALID(Dart_GetPeer(str, &out));
@@ -7544,7 +7500,7 @@ TEST_CASE(DartAPI_CollectOneOldSpacePeer) {
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(0, isolate->heap()->PeerCount());
   }
 }
@@ -7631,7 +7587,7 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
   Dart_ExitScope();
   {
     TransitionNativeToVM transition(thread);
-    isolate->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::CollectOldSpace();
     EXPECT_EQ(0, isolate->heap()->PeerCount());
   }
 }

@@ -12,15 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-
-ConstructorElementImpl getConstructorImpl(ConstructorElement constructor) {
-  while (constructor is ConstructorMember) {
-    constructor = (constructor as ConstructorMember).baseElement;
-  }
-  return constructor;
-}
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
@@ -304,7 +295,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor = getConstructorImpl(node.staticElement);
+      ConstructorElement constructor = node.staticElement?.declaration;
       if (constructor != null) {
         _callback(constructor);
       }
@@ -325,7 +316,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target = getConstructorImpl(node.staticElement);
+    ConstructorElement target = node.staticElement?.declaration;
     if (target != null) {
       _callback(target);
     }
@@ -345,7 +336,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor = getConstructorImpl(node.staticElement);
+    ConstructorElement constructor = node.staticElement?.declaration;
     if (constructor != null) {
       _callback(constructor);
     }

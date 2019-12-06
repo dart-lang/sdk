@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -21,12 +22,21 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   @override
   void explicitTypeNullability(
       Source source, TypeAnnotation typeAnnotation, NullabilityNodeInfo node) {
+    data.nodeInformation[node] =
+        NodeInformation(_filePathForSource(source), typeAnnotation, null);
     _sourceInfo(source).explicitTypeNullability[typeAnnotation] = node;
   }
 
   @override
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType) {
-    data.externalDecoratedType[element] = decoratedType;
+    _storeNodeInformation(decoratedType, element.source, null, element);
+  }
+
+  @override
+  void externalDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
+    _storeNodeInformation(
+        decoratedType, typeParameter.source, null, typeParameter);
   }
 
   @override
@@ -49,19 +59,21 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
   @override
   void implicitReturnType(
       Source source, AstNode node, DecoratedTypeInfo decoratedReturnType) {
-    _sourceInfo(source).implicitReturnType[node] = decoratedReturnType;
+    _storeNodeInformation(decoratedReturnType, source, node, null);
   }
 
   @override
   void implicitType(
       Source source, AstNode node, DecoratedTypeInfo decoratedType) {
-    _sourceInfo(source).implicitType[node] = decoratedType;
+    _storeNodeInformation(decoratedType, source, node, null);
   }
 
   @override
   void implicitTypeArguments(
       Source source, AstNode node, Iterable<DecoratedTypeInfo> types) {
-    _sourceInfo(source).implicitTypeArguments[node] = types.toList();
+    for (var type in types) {
+      _storeNodeInformation(type, source, node, null);
+    }
   }
 
   @override
@@ -69,8 +81,47 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
     data.propagationSteps.add(info);
   }
 
+  String _filePathForSource(Source source) {
+    return source.fullName;
+  }
+
   /// Return the source information associated with the given [source], creating
   /// it if there has been no previous information for that source.
   SourceInformation _sourceInfo(Source source) =>
       data.sourceInformation.putIfAbsent(source, () => SourceInformation());
+
+  // TODO(srawlins): This code is completely untested.
+  void _storeNodeInformation(DecoratedTypeInfo decoratedType, Source source,
+      AstNode astNode, Element element) {
+    // Make sure source info exists for the given source.
+    _sourceInfo(source);
+    data.nodeInformation[decoratedType.node] =
+        NodeInformation(_filePathForSource(source), astNode, element);
+    var dartType = decoratedType.type;
+    if (dartType is InterfaceType) {
+      for (int i = 0; i < dartType.typeArguments.length; i++) {
+        _storeNodeInformation(
+            decoratedType.typeArgument(i), source, astNode, element);
+      }
+    } else if (dartType is FunctionType) {
+      _storeNodeInformation(
+        decoratedType.returnType,
+        source,
+        astNode,
+        element,
+      );
+      int i = 0;
+      for (var parameter in dartType.parameters) {
+        if (parameter.isNamed) {
+          var name = parameter.name;
+          _storeNodeInformation(
+              decoratedType.namedParameter(name), source, astNode, element);
+        } else {
+          _storeNodeInformation(
+              decoratedType.positionalParameter(i), source, astNode, element);
+          i++;
+        }
+      }
+    }
+  }
 }

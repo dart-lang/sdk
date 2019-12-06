@@ -18,6 +18,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -380,6 +381,100 @@ class CompletionPage extends AbstractCompletionPage {
       completionDomain.performanceList.items.toList();
 }
 
+class MLCompletionPage extends DiagnosticPageWithNav {
+  final AbstractAnalysisServer server;
+
+  MLCompletionPage(DiagnosticsSite site, this.server)
+      : super(site, 'ml-completion', 'ML Completion',
+            description: 'Statistics for ML code completion.');
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    final bool hasMLComplete = CompletionRanking.instance != null;
+    if (!hasMLComplete) {
+      blankslate('''ML code completion is not enabled (see <a
+href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
+>previewing Dart ML completion</a> for how to enable it).''');
+      return;
+    }
+
+    buf.writeln('ML completion enabled.<br>');
+
+    final String isolateTimes = CompletionRanking
+        .instance.performanceMetrics.isolateInitTimes
+        .map((Duration time) {
+      return '${time.inMilliseconds}ms';
+    }).join(', ');
+    p('ML isolate init times: $isolateTimes');
+
+    final List<PredictionResult> predictions = CompletionRanking
+        .instance.performanceMetrics.predictionResults
+        .toList();
+
+    if (predictions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    p('${CompletionRanking.instance.performanceMetrics.predictionRequestCount} '
+        'requests');
+
+    // draw a chart
+    buf.writeln(
+        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
+    StringBuffer rowData = new StringBuffer();
+    for (PredictionResult prediction in predictions.reversed) {
+      // [' ', 101.5]
+      if (rowData.isNotEmpty) {
+        rowData.write(',');
+      }
+      rowData.write("[' ', ${prediction.elapsedTime.inMilliseconds}]");
+    }
+    buf.writeln('''
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Completions', 'Time'],
+          $rowData
+        ]);
+        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
+        var chart = new google.charts.Bar(document.getElementById('chart-div'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      }
+      </script>
+''');
+
+    String summarize(PredictionResult prediction) {
+      List<MapEntry<String, double>> entries =
+          prediction.results.entries.toList();
+      entries.sort((a, b) => b.value.compareTo(a.value));
+      String summary = entries
+          .take(3)
+          .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
+          .join('<br>');
+      return summary;
+    }
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
+    for (PredictionResult prediction in predictions) {
+      buf.writeln('<tr>'
+          '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
+          '<td class="right">${prediction.results.length}</td>'
+          '<td><code>${escape(prediction.snippet)}</code></td>'
+          '<td class="right">${summarize(prediction)}</td>'
+          '</tr>');
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class ContextsPage extends DiagnosticPageWithNav {
   ContextsPage(DiagnosticsSite site)
       : super(site, 'contexts', 'Contexts',
@@ -734,12 +829,14 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(new ContextsPage(this));
     pages.add(new EnvironmentVariablesPage(this));
     pages.add(new ExceptionsPage(this));
-    pages.add(new InstrumentationPage(this));
+    //pages.add(new InstrumentationPage(this));
     pages.add(new ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
-    final server = this.socketServer.analysisServer;
+    final AbstractAnalysisServer server = this.socketServer.analysisServer;
+    pages.add(new MLCompletionPage(this, server));
+
     if (server is AnalysisServer) {
       pages.add(new CompletionPage(this, server));
       pages.add(new PluginsPage(this, server));
@@ -919,41 +1016,41 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
-class InstrumentationPage extends DiagnosticPageWithNav {
-  InstrumentationPage(DiagnosticsSite site)
-      : super(site, 'instrumentation', 'Instrumentation',
-            description:
-                'Verbose instrumentation data from the analysis server.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    p(
-        'Instrumentation can be enabled by starting the analysis server with the '
-        '<code>--instrumentation-log-file=path/to/file</code> flag.',
-        raw: true);
-
-    if (!AnalysisEngine.instance.instrumentationService.isActive) {
-      blankslate('Instrumentation not active.');
-      return;
-    }
-
-    h3('Instrumentation');
-
-    p('Instrumentation active.');
-
-    InstrumentationServer instrumentation =
-        AnalysisEngine.instance.instrumentationService.instrumentationServer;
-    String description = instrumentation.describe;
-    HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.element);
-    description = htmlEscape.convert(description);
-    // Convert http(s): references to hyperlinks.
-    final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
-    description = description.replaceAllMapped(urlRegExp, (Match match) {
-      return '<a href="${match.group(0)}">${match.group(1)}</a>';
-    });
-    p(description.replaceAll('\n', '<br>'), raw: true);
-  }
-}
+// class InstrumentationPage extends DiagnosticPageWithNav {
+//   InstrumentationPage(DiagnosticsSite site)
+//       : super(site, 'instrumentation', 'Instrumentation',
+//             description:
+//                 'Verbose instrumentation data from the analysis server.');
+//
+//   @override
+//   Future generateContent(Map<String, String> params) async {
+//     p(
+//         'Instrumentation can be enabled by starting the analysis server with the '
+//         '<code>--instrumentation-log-file=path/to/file</code> flag.',
+//         raw: true);
+//
+//     if (!AnalysisEngine.instance.instrumentationService.isActive) {
+//       blankslate('Instrumentation not active.');
+//       return;
+//     }
+//
+//     h3('Instrumentation');
+//
+//     p('Instrumentation active.');
+//
+//     InstrumentationServer instrumentation =
+//         AnalysisEngine.instance.instrumentationService.instrumentationServer;
+//     String description = instrumentation.describe;
+//     HtmlEscape htmlEscape = new HtmlEscape(HtmlEscapeMode.element);
+//     description = htmlEscape.convert(description);
+//     // Convert http(s): references to hyperlinks.
+//     final RegExp urlRegExp = new RegExp(r'[http|https]+:\/*(\S+)');
+//     description = description.replaceAllMapped(urlRegExp, (Match match) {
+//       return '<a href="${match.group(0)}">${match.group(1)}</a>';
+//     });
+//     p(description.replaceAll('\n', '<br>'), raw: true);
+//   }
+// }
 
 class LspCapabilitiesPage extends DiagnosticPageWithNav {
   @override
@@ -1313,8 +1410,8 @@ class StatusPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="column one-half">');
     h3('Status');
     buf.writeln(writeOption('Server type', server.runtimeType));
-    buf.writeln(writeOption('Instrumentation enabled',
-        AnalysisEngine.instance.instrumentationService.isActive));
+    // buf.writeln(writeOption('Instrumentation enabled',
+    //     AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(writeOption('Server process ID', pid));
     buf.writeln('</div>');
 

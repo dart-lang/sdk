@@ -4,6 +4,9 @@
 
 /// Test of toString on generators.
 
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show Token, scanString;
+
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart'
@@ -35,7 +38,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show LoadLibraryBuilder, UnlinkedDeclaration;
+    show LoadLibraryBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -46,8 +49,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
@@ -99,7 +100,8 @@ main() {
         isDeclarationInstanceMember: false,
         uri: uri);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false, false);
+    Generator generator =
+        new ThisAccessGenerator(helper, token, false, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -116,45 +118,34 @@ main() {
         " assignmentOperator: +=)",
         new DelayedAssignment(
             helper, token, generator, expression, assignmentOperator));
-    check(
-        "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
-        " interfaceTarget: $uri::#class1::myInterfaceTarget)",
-        new DelayedPostfixIncrement(
-            helper, token, generator, binaryOperator, interfaceTarget));
+    check("DelayedPostfixIncrement(offset: 4, binaryOperator: +)",
+        new DelayedPostfixIncrement(helper, token, generator, binaryOperator));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",
         new VariableUseGenerator(helper, token, variable, type));
     check(
         "PropertyAccessGenerator(offset: 4,"
-        " receiver: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter)",
-        new PropertyAccessGenerator(
-            helper, token, expression, name, getter, setter));
-    check(
-        "ThisPropertyAccessGenerator(offset: 4, name: bar,"
-        " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new ThisPropertyAccessGenerator(helper, token, name, getter, setter));
+        " receiver: expression, name: bar)",
+        new PropertyAccessGenerator(helper, token, expression, name));
+    check("ThisPropertyAccessGenerator(offset: 4, name: bar)",
+        new ThisPropertyAccessGenerator(helper, token, name));
     check(
         "NullAwarePropertyAccessGenerator(offset: 4,"
         " receiver: final dynamic #t1 = expression;\n,"
-        " receiverExpression: expression, name: bar, getter: $uri::myGetter,"
-        " setter: $uri::mySetter, type: void)",
-        new NullAwarePropertyAccessGenerator(
-            helper, token, expression, name, getter, setter, type));
+        " receiverExpression: expression, name: bar)",
+        new NullAwarePropertyAccessGenerator(helper, token, expression, name));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
         new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new IndexedAccessGenerator(
-            helper, token, expression, index, getter, setter));
-    check(
-        "ThisIndexedAccessGenerator(offset: 4, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new ThisIndexedAccessGenerator(helper, token, index, getter, setter));
+        " isNullAware: false)",
+        new IndexedAccessGenerator(helper, token, expression, index,
+            isNullAware: false));
+    check("ThisIndexedAccessGenerator(offset: 4, index: index)",
+        new ThisIndexedAccessGenerator(helper, token, index));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
@@ -170,8 +161,9 @@ main() {
         new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, "
-        "inFieldInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false, false));
+        "inFieldInitializer: false, inLateFieldInitializer: false, "
+        "isSuper: false)",
+        new ThisAccessGenerator(helper, token, false, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -183,7 +175,8 @@ main() {
         " prefixGenerator: PrefixUseGenerator("
         "offset: 4, prefix: myPrefix, deferred: false),"
         " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false))",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false))",
         new DeferredAccessGenerator(
             helper, token, prefixUseGenerator, generator));
     check(
@@ -198,16 +191,13 @@ main() {
         new TypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator.internal(helper, token, name));
-    check(
-        "UnlinkedGenerator(offset: 4, name: foo)",
-        new UnlinkedGenerator(
-            helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
     check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
         prefixUseGenerator);
     check(
         "UnexpectedQualifiedUseGenerator("
         "offset: 4, prefixGenerator: , isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false)",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false)",
         new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
     return Future<void>.value();
   });

@@ -37,6 +37,8 @@ inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_accessors: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
+nnbd/inheritance_from_opt_out: TypeCheckError
+
 rasta/native_is_illegal: Pass # Issue 29763
 
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError

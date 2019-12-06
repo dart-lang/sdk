@@ -951,8 +951,6 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
       }
     }
 
-    const intptr_t var_length =
-        IsCompiledForOsr() ? osr_variable_count() : variable_count();
     while (!worklist.is_empty()) {
       BlockEntryInstr* current = worklist.RemoveLast();
       // Ensure a phi for each block in the dominance frontier of current.
@@ -960,10 +958,10 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
            !it.Done(); it.Advance()) {
         int index = it.Current();
         if (has_already[index] < var_index) {
-          BlockEntryInstr* block = preorder[index];
-          ASSERT(block->IsJoinEntry());
-          PhiInstr* phi =
-              block->AsJoinEntry()->InsertPhi(var_index, var_length);
+          JoinEntryInstr* join = preorder[index]->AsJoinEntry();
+          ASSERT(join != nullptr);
+          PhiInstr* phi = join->InsertPhi(
+              var_index, variable_count() + join->stack_depth());
           if (always_live) {
             phi->mark_alive();
             live_phis->Add(phi);
@@ -971,7 +969,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
           has_already[index] = var_index;
           if (work[index] < var_index) {
             work[index] = var_index;
-            worklist.Add(block);
+            worklist.Add(join);
           }
         }
       }
@@ -982,6 +980,18 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
 void FlowGraph::CreateCommonConstants() {
   constant_null_ = GetConstant(Object::ZoneHandle());
   constant_dead_ = GetConstant(Symbols::OptimizedOut());
+}
+
+void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {
+  ASSERT(IsCompiledForOsr());
+  if (auto join = block->AsJoinEntry()) {
+    const intptr_t local_phi_count = variable_count() + join->stack_depth();
+    for (intptr_t i = variable_count(); i < local_phi_count; ++i) {
+      if (join->phis() == nullptr || (*join->phis())[i] == nullptr) {
+        join->InsertPhi(i, local_phi_count)->mark_alive();
+      }
+    }
+  }
 }
 
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
@@ -1007,17 +1017,14 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                                                : entry->SuccessorCount() == 1);
   }
 
-  // For OSR on a non-empty stack, insert synthetic phis on the joining entry.
+  // For OSR on a non-empty stack, insert synthetic phis on every joining entry.
   // These phis are synthetic since they are not driven by live variable
   // analysis, but merely serve the purpose of merging stack slots from
   // parameters and other predecessors at the block in which OSR occurred.
   if (IsCompiledForOsr()) {
-    JoinEntryInstr* join =
-        entry->osr_entry()->last_instruction()->SuccessorAt(0)->AsJoinEntry();
-    ASSERT(join != nullptr);
-    const intptr_t parameter_count = osr_variable_count();
-    for (intptr_t i = variable_count(); i < parameter_count; i++) {
-      join->InsertPhi(i, parameter_count)->mark_alive();
+    AddSyntheticPhis(entry->osr_entry()->last_instruction()->SuccessorAt(0));
+    for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n; ++i) {
+      AddSyntheticPhis(entry->dominated_blocks()[i]);
     }
   }
 
@@ -1168,10 +1175,9 @@ void FlowGraph::RenameRecursive(
   // 1. Process phis first.
   if (auto join = block_entry->AsJoinEntry()) {
     if (join->phis() != nullptr) {
-      const intptr_t var_length =
-          IsCompiledForOsr() ? osr_variable_count() : variable_count();
-      ASSERT(join->phis()->length() == var_length);
-      for (intptr_t i = 0; i < var_length; ++i) {
+      const intptr_t local_phi_count = variable_count() + join->stack_depth();
+      ASSERT(join->phis()->length() == local_phi_count);
+      for (intptr_t i = 0; i < local_phi_count; ++i) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi != nullptr) {
           (*env)[i] = phi;
@@ -1216,28 +1222,6 @@ void FlowGraph::RenameRecursive(
   // Attach environment to the block entry.
   AttachEnvironment(block_entry, env);
 
-#if defined(TARGET_ARCH_DBC)
-  // On DBC the exception/stacktrace variables are in special registers when
-  // entering the catch block.  The only usage of those special registers is
-  // within the catch block.  A possible lazy-deopt at the beginning of the
-  // catch does not need to move those around, since the registers will be
-  // up-to-date when arriving in the unoptimized code and unoptimized code will
-  // take care of moving them to appropriate slots.
-  if (CatchBlockEntryInstr* catch_entry = block_entry->AsCatchBlockEntry()) {
-    Environment* deopt_env = catch_entry->env();
-    const LocalVariable* raw_exception_var = catch_entry->raw_exception_var();
-    const LocalVariable* raw_stacktrace_var = catch_entry->raw_stacktrace_var();
-    if (raw_exception_var != nullptr) {
-      Value* value = deopt_env->ValueAt(EnvIndex(raw_exception_var));
-      value->BindToEnvironment(constant_null());
-    }
-    if (raw_stacktrace_var != nullptr) {
-      Value* value = deopt_env->ValueAt(EnvIndex(raw_stacktrace_var));
-      value->BindToEnvironment(constant_null());
-    }
-  }
-#endif  // defined(TARGET_ARCH_DBC)
-
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
@@ -1249,8 +1233,8 @@ void FlowGraph::RenameRecursive(
 
     // 2a. Handle uses:
     // Update the expression stack renaming environment for each use by
-    // removing the renamed value.
-    // For each use of a LoadLocal, StoreLocal, MakeTemp, DropTemps or Constant:
+    // removing the renamed value. For each use of a LoadLocal, StoreLocal,
+    // MakeTemp, DropTemps or Constant (or any expression under OSR),
     // replace it with the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
@@ -1259,18 +1243,23 @@ void FlowGraph::RenameRecursive(
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
-        // Under OSR, constants can reside on the expression stack. Just
-        // generate the constant rather than going through a synthetic phi.
-        if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
-          ASSERT(IsCompiledForOsr() && env->length() < osr_variable_count());
-          reaching_defn = GetConstant(input_defn->AsConstant()->value());
+        // Inspect the replacing definition before making the change.
+        if (IsCompiledForOsr()) {
+          // Under OSR, constants can reside on the expression stack. Just
+          // generate the constant rather than going through a synthetic phi.
+          if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
+            ASSERT(env->length() < osr_variable_count());
+            reaching_defn = GetConstant(input_defn->AsConstant()->value());
+          }
+        } else {
+          // Note: constants can only be replaced with other constants.
+          ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
+                 input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
+                 (input_defn->IsConstant() && reaching_defn->IsConstant()));
         }
-        // Note: constants can only be replaced with other constants.
-        ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
-               input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
-               (input_defn->IsConstant() && reaching_defn->IsConstant()));
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
+        // Replace the definition.
         v->set_definition(reaching_defn);
         input_defn = reaching_defn;
       }

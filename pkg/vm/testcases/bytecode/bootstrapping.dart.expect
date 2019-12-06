@@ -9,13 +9,13 @@ Library '#lib'
 
 Class '', script = '#lib'
 
-Field '_stdinFD', type = dart:core::int, reflectable, static
+Field '_stdinFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 0
 
-Field '_stdoutFD', type = dart:core::int, reflectable, static
+Field '_stdoutFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 1
 
-Field '_stderrFD', type = dart:core::int, reflectable, static
+Field '_stderrFD', type = dart:core::int, reflectable, static, has-initializer
     value = const 2
 
 Field '_rawScript', type = dart:core::String, reflectable, static
@@ -238,7 +238,7 @@ ConstantPool {
 Class '_ScheduleImmediate', script = '#lib'
     extends dart:core::Object
 
-Field '_closure', type = FunctionType (FunctionType () -> void) -> void, reflectable, static
+Field '_closure', type = FunctionType (FunctionType () -> void) -> void, reflectable, static, has-initializer
     value = null
 
 Function '', constructor, reflectable
@@ -263,7 +263,7 @@ Class '_NamespaceImpl', script = '#lib'
     extends dart:core::Object
     implements [#lib::_Namespace]
 
-Field '_cachedNamespace', type = #lib::_NamespaceImpl, reflectable, static
+Field '_cachedNamespace', type = #lib::_NamespaceImpl, reflectable, static, has-initializer
     value = null
 
 Function '_', constructor, reflectable, debuggable
@@ -488,37 +488,37 @@ ConstantPool {
 Class 'VMLibraryHooks', script = '#lib'
     extends dart:core::Object
 
-Field 'timerFactory', type = dynamic, reflectable, static
+Field 'timerFactory', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'eventHandlerSendData', type = dynamic, reflectable, static
+Field 'eventHandlerSendData', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'timerMillisecondClock', type = dynamic, reflectable, static
+Field 'timerMillisecondClock', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'resourceReadAsBytes', type = dynamic, reflectable, static
+Field 'resourceReadAsBytes', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageRootString', type = dynamic, reflectable, static
+Field 'packageRootString', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageConfigString', type = dynamic, reflectable, static
+Field 'packageConfigString', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageRootUriFuture', type = dynamic, reflectable, static
+Field 'packageRootUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'packageConfigUriFuture', type = dynamic, reflectable, static
+Field 'packageConfigUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field 'resolvePackageUriFuture', type = dynamic, reflectable, static
+Field 'resolvePackageUriFuture', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field '_computeScriptUri', type = dynamic, reflectable, static
+Field '_computeScriptUri', type = dynamic, reflectable, static, has-initializer
     value = null
 
-Field '_cachedScript', type = dynamic, reflectable, static
+Field '_cachedScript', type = dynamic, reflectable, static, has-initializer
     value = null
 
 Function '', constructor, reflectable

@@ -12,7 +12,7 @@ library;
 //
 // class C extends Iterable<Object> {
 //       ^
-// sdk/lib/core/iterable.dart:154:19: Context: 'Iterable.iterator' is defined here.
+// sdk/lib/core/iterable.dart:156:19: Context: 'Iterable.iterator' is defined here.
 //   Iterator<E> get iterator;
 //                   ^^^^^^^^
 //

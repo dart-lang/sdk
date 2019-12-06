@@ -15,31 +15,16 @@ import 'dill_member_builder.dart';
 class DillExtensionMemberBuilder extends DillMemberBuilder {
   final ExtensionMemberDescriptor _descriptor;
 
-  @override
-  final Member extensionTearOff;
+  final Member _extensionTearOff;
 
   DillExtensionMemberBuilder(Member member, this._descriptor, Builder parent,
-      [this.extensionTearOff])
+      [this._extensionTearOff])
       : super(member, parent);
 
   @override
   bool get isStatic => _descriptor.isStatic;
 
   bool get isExternal => member.isExternal;
-
-  @override
-  Procedure get procedure {
-    switch (_descriptor.kind) {
-      case ExtensionMemberKind.Method:
-      case ExtensionMemberKind.Getter:
-      case ExtensionMemberKind.Operator:
-      case ExtensionMemberKind.Setter:
-        return member;
-      case ExtensionMemberKind.TearOff:
-      case ExtensionMemberKind.Field:
-    }
-    return unsupported("procedure", charOffset, fileUri);
-  }
 
   @override
   ProcedureKind get kind {
@@ -57,4 +42,59 @@ class DillExtensionMemberBuilder extends DillMemberBuilder {
     }
     return null;
   }
+
+  @override
+  Member get readTarget {
+    if (isField) {
+      return member;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+        return _extensionTearOff ?? member;
+      case ProcedureKind.Getter:
+        return member;
+      case ProcedureKind.Operator:
+      case ProcedureKind.Setter:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get writeTarget {
+    if (isField) {
+      return isAssignable ? member : null;
+    }
+    switch (kind) {
+      case ProcedureKind.Setter:
+        return member;
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  Member get invokeTarget {
+    if (isField) {
+      return member;
+    }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Getter:
+      case ProcedureKind.Operator:
+      case ProcedureKind.Factory:
+        return member;
+      case ProcedureKind.Setter:
+        return null;
+    }
+    throw unhandled('ProcedureKind', '$kind', charOffset, fileUri);
+  }
+
+  @override
+  bool get isAssignable => member is Field && member.hasSetter;
 }

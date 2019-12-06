@@ -1,0 +1,134 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::Class? field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  method method() → self::Class?
+    return this.{self::Class::field};
+  operator [](self::Class? key) → self::Class?
+    return this.{self::Class::field};
+  operator []=(self::Class? key, self::Class? value) → void {
+    this.{self::Class::field} = value;
+  }
+  operator +(core::int value) → self::Class?
+    return this.{self::Class::field};
+  operator unary-() → self::Class?
+    return this.{self::Class::field};
+}
+static method main() → dynamic {
+  self::propertyAccess(null);
+  self::indexAccess(null);
+  self::operatorAccess(null);
+  self::ifNull(null);
+}
+static method propertyAccess(self::Class? c) → void {
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : #t1.{self::Class::field};
+  let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::Class} null : #t2.{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class} null : #t3.{self::Class::field} = new self::Class::•();
+  let final self::Class? #t4 = c in #t4.{core::Object::==}(null) ?{self::Class?} null : #t4.{self::Class::method}();
+  let final self::Class? #t5 = c in #t5.{core::Object::==}(null) ?{self::Class?} null : #t5.{self::Class::field}.{self::Class::field};
+  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{self::Class} null : #t6.{self::Class::field}.{self::Class::field} = new self::Class::•();
+  self::throws(() → self::Class? => (let final self::Class? #t7 = c in #t7.{core::Object::==}(null) ?{self::Class?} null : #t7.{self::Class::field}).{self::Class::field});
+  self::throws(() → self::Class? => (let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{self::Class} null : #t8.{self::Class::field} = new self::Class::•()).{self::Class::field});
+  self::throws(() → self::Class? => (let final self::Class? #t9 = c in #t9.{core::Object::==}(null) ?{self::Class?} null : #t9.{self::Class::method}()).{self::Class::field});
+  c = let final self::Class? #t10 = c in #t10.{core::Object::==}(null) ?{self::Class} null : #t10.{self::Class::field}.{self::Class::field} = new self::Class::•();
+  let final self::Class? #t11 = c in #t11.{core::Object::==}(null) ?{self::Class?} null : #t11.{self::Class::field}.{self::Class::method}();
+  let final self::Class? #t12 = c in #t12.{core::Object::==}(null) ?{self::Class?} null : #t12.{self::Class::field} = new self::Class::•().{self::Class::field};
+  c = let final self::Class? #t13 = c in #t13.{core::Object::==}(null) ?{self::Class?} null : #t13.{self::Class::field} = new self::Class::•().{self::Class::field};
+  let final self::Class? #t14 = c in #t14.{core::Object::==}(null) ?{self::Class} null : #t14.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t15 = c in #t15.{core::Object::==}(null) ?{self::Class} null : #t15.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t16 = c in #t16.{core::Object::==}(null) ?{self::Class?} null : #t16.{self::Class::field} = new self::Class::•().{self::Class::method}();
+  c = let final self::Class? #t17 = c in #t17.{core::Object::==}(null) ?{self::Class?} null : #t17.{self::Class::field} = new self::Class::•().{self::Class::method}();
+  let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{self::Class?} null : #t18.{self::Class::method}().{self::Class::field};
+  let final self::Class? #t19 = c in #t19.{core::Object::==}(null) ?{self::Class} null : #t19.{self::Class::method}().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t20 = c in #t20.{core::Object::==}(null) ?{self::Class?} null : #t20.{self::Class::method}().{self::Class::method}();
+  let final self::Class? #t21 = c in #t21.{core::Object::==}(null) ?{self::Class?} null : #t21.{self::Class::field}.{self::Class::field}.{self::Class::field};
+  let final self::Class? #t22 = c in #t22.{core::Object::==}(null) ?{self::Class} null : #t22.{self::Class::field}.{self::Class::field}.{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t23 = c in #t23.{core::Object::==}(null) ?{self::Class} null : #t23.{self::Class::field}.{self::Class::field}.{self::Class::field} = new self::Class::•();
+  let final self::Class? #t24 = c in #t24.{core::Object::==}(null) ?{self::Class?} null : #t24.{self::Class::field}.{self::Class::field}.{self::Class::method}();
+  let final self::Class? #t25 = c in #t25.{core::Object::==}(null) ?{self::Class?} null : #t25.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field};
+  c = let final self::Class? #t26 = c in #t26.{core::Object::==}(null) ?{self::Class?} null : #t26.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field};
+  let final self::Class? #t27 = c in #t27.{core::Object::==}(null) ?{self::Class} null : #t27.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t28 = c in #t28.{core::Object::==}(null) ?{self::Class} null : #t28.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::field} = new self::Class::•();
+  let final self::Class? #t29 = c in #t29.{core::Object::==}(null) ?{self::Class?} null : #t29.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::method}();
+  c = let final self::Class? #t30 = c in #t30.{core::Object::==}(null) ?{self::Class?} null : #t30.{self::Class::field} = new self::Class::•().{self::Class::field}.{self::Class::method}();
+  let final self::Class? #t31 = c in #t31.{core::Object::==}(null) ?{self::Class?} null : #t31.{self::Class::method}().{self::Class::field}.{self::Class::field};
+  let final self::Class? #t32 = c in #t32.{core::Object::==}(null) ?{self::Class} null : #t32.{self::Class::method}().{self::Class::field}.{self::Class::field} = new self::Class::•();
+  let final self::Class? #t33 = c in #t33.{core::Object::==}(null) ?{self::Class?} null : #t33.{self::Class::method}().{self::Class::field}.{self::Class::method}();
+  let final self::Class? #t34 = c in #t34.{core::Object::==}(null) ?{self::Class?} null : #t34.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field};
+  c = let final self::Class? #t35 = c in #t35.{core::Object::==}(null) ?{self::Class?} null : #t35.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field};
+  let final self::Class? #t36 = c in #t36.{core::Object::==}(null) ?{self::Class} null : #t36.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t37 = c in #t37.{core::Object::==}(null) ?{self::Class} null : #t37.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t38 = c in #t38.{core::Object::==}(null) ?{self::Class?} null : #t38.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::method}();
+  c = let final self::Class? #t39 = c in #t39.{core::Object::==}(null) ?{self::Class?} null : #t39.{self::Class::field}.{self::Class::field} = new self::Class::•().{self::Class::method}();
+  let final self::Class? #t40 = c in #t40.{core::Object::==}(null) ?{self::Class?} null : #t40.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field};
+  c = let final self::Class? #t41 = c in #t41.{core::Object::==}(null) ?{self::Class?} null : #t41.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field};
+  let final self::Class? #t42 = c in #t42.{core::Object::==}(null) ?{self::Class} null : #t42.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t43 = c in #t43.{core::Object::==}(null) ?{self::Class} null : #t43.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t44 = c in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::method}();
+  c = let final self::Class? #t45 = c in #t45.{core::Object::==}(null) ?{self::Class?} null : #t45.{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•().{self::Class::method}();
+  let final self::Class? #t46 = c in #t46.{core::Object::==}(null) ?{self::Class?} null : #t46.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field};
+  c = let final self::Class? #t47 = c in #t47.{core::Object::==}(null) ?{self::Class?} null : #t47.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field};
+  let final self::Class? #t48 = c in #t48.{core::Object::==}(null) ?{self::Class} null : #t48.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t49 = c in #t49.{core::Object::==}(null) ?{self::Class} null : #t49.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t50 = c in #t50.{core::Object::==}(null) ?{self::Class?} null : #t50.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::method}();
+  c = let final self::Class? #t51 = c in #t51.{core::Object::==}(null) ?{self::Class?} null : #t51.{self::Class::method}().{self::Class::field} = new self::Class::•().{self::Class::method}();
+  let final self::Class? #t52 = c in #t52.{core::Object::==}(null) ?{self::Class?} null : #t52.{self::Class::field}.{self::Class::method}().{self::Class::field};
+  let final self::Class? #t53 = c in #t53.{core::Object::==}(null) ?{self::Class} null : #t53.{self::Class::field}.{self::Class::method}().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t54 = c in #t54.{core::Object::==}(null) ?{self::Class} null : #t54.{self::Class::field}.{self::Class::method}().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t55 = c in #t55.{core::Object::==}(null) ?{self::Class?} null : #t55.{self::Class::field}.{self::Class::method}().{self::Class::method}();
+  let final self::Class? #t56 = c in #t56.{core::Object::==}(null) ?{self::Class?} null : #t56.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field};
+  c = let final self::Class? #t57 = c in #t57.{core::Object::==}(null) ?{self::Class?} null : #t57.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field};
+  let final self::Class? #t58 = c in #t58.{core::Object::==}(null) ?{self::Class} null : #t58.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field} = new self::Class::•();
+  c = let final self::Class? #t59 = c in #t59.{core::Object::==}(null) ?{self::Class} null : #t59.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t60 = c in #t60.{core::Object::==}(null) ?{self::Class?} null : #t60.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::method}();
+  c = let final self::Class? #t61 = c in #t61.{core::Object::==}(null) ?{self::Class?} null : #t61.{self::Class::field} = new self::Class::•().{self::Class::method}().{self::Class::method}();
+  let final self::Class? #t62 = c in #t62.{core::Object::==}(null) ?{self::Class?} null : #t62.{self::Class::method}().{self::Class::method}().{self::Class::field};
+  let final self::Class? #t63 = c in #t63.{core::Object::==}(null) ?{self::Class} null : #t63.{self::Class::method}().{self::Class::method}().{self::Class::field} = new self::Class::•();
+  let final self::Class? #t64 = c in #t64.{core::Object::==}(null) ?{self::Class?} null : #t64.{self::Class::method}().{self::Class::method}().{self::Class::method}();
+}
+static method indexAccess(self::Class? c) → void {
+  let final self::Class? #t65 = c in #t65.{core::Object::==}(null) ?{self::Class?} null : #t65.{self::Class::[]}(c);
+  let final self::Class? #t66 = c in #t66.{core::Object::==}(null) ?{self::Class} null : #t66.{self::Class::[]=}(c, new self::Class::•());
+  let final self::Class? #t67 = c in #t67.{core::Object::==}(null) ?{self::Class?} null : #t67.{self::Class::[]}(c).{self::Class::method}();
+  let final self::Class? #t68 = c in #t68.{core::Object::==}(null) ?{self::Class?} null : #t68.{self::Class::field}.{self::Class::[]}(c);
+  let final self::Class? #t69 = c in #t69.{core::Object::==}(null) ?{self::Class} null : #t69.{self::Class::field}.{self::Class::[]=}(c, new self::Class::•());
+  c = let final self::Class? #t70 = c in #t70.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t71 = #t70.{self::Class::field} in let final self::Class? #t72 = c in let final self::Class #t73 = new self::Class::•() in let final void #t74 = #t71.{self::Class::[]=}(#t72, #t73) in #t73;
+  let final self::Class? #t75 = c in #t75.{core::Object::==}(null) ?{self::Class?} null : #t75.{self::Class::field}.{self::Class::[]}(c).{self::Class::method}();
+  let final self::Class? #t76 = c in #t76.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t77 = #t76.{self::Class::field} in let final self::Class? #t78 = c in #t77.{self::Class::[]=}(#t78, #t77.{self::Class::[]}(#t78).{self::Class::+}(0));
+  c = let final self::Class? #t79 = c in #t79.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t80 = #t79.{self::Class::field} in let final self::Class? #t81 = c in let final self::Class? #t82 = #t80.{self::Class::[]}(#t81).{self::Class::+}(0) in let final void #t83 = #t80.{self::Class::[]=}(#t81, #t82) in #t82;
+  let final self::Class? #t84 = c in #t84.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t85 = #t84.{self::Class::field} in let final self::Class? #t86 = c in #t85.{self::Class::[]=}(#t86, #t85.{self::Class::[]}(#t86).{self::Class::+}(1));
+  c = let final self::Class? #t87 = c in #t87.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t88 = #t87.{self::Class::field} in let final self::Class? #t89 = c in let final self::Class? #t90 = #t88.{self::Class::[]}(#t89) in let final void #t91 = #t88.{self::Class::[]=}(#t89, #t90.{self::Class::+}(1)) in #t90;
+  let final self::Class? #t92 = c in #t92.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t93 = #t92.{self::Class::field} in let final self::Class? #t94 = c in let final self::Class? #t95 = #t93.{self::Class::[]}(#t94).{self::Class::+}(1) in let final void #t96 = #t93.{self::Class::[]=}(#t94, #t95) in #t95;
+  c = let final self::Class? #t97 = c in #t97.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t98 = #t97.{self::Class::field} in let final self::Class? #t99 = c in let final self::Class? #t100 = #t98.{self::Class::[]}(#t99).{self::Class::+}(1) in let final void #t101 = #t98.{self::Class::[]=}(#t99, #t100) in #t100;
+}
+static method operatorAccess(self::Class? c) → void {
+  self::throws(() → self::Class? => (let final self::Class? #t102 = c in #t102.{core::Object::==}(null) ?{self::Class?} null : #t102.{self::Class::field}).{self::Class::+}(0));
+  self::throws(() → self::Class? => (let final self::Class? #t103 = c in #t103.{core::Object::==}(null) ?{self::Class?} null : #t103.{self::Class::field}).{self::Class::unary-}());
+  let final self::Class? #t104 = c in #t104.{core::Object::==}(null) ?{self::Class?} null : #t104.{self::Class::field} = #t104.{self::Class::field}.{self::Class::+}(0);
+  c = let final self::Class? #t105 = c in #t105.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t106 = #t105.{self::Class::field}.{self::Class::+}(0) in let final void #t107 = #t105.{self::Class::field} = #t106 in #t106;
+  let final self::Class? #t108 = c in #t108.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t109 = #t108.{self::Class::field} in #t109.{self::Class::field} = #t109.{self::Class::field}.{self::Class::+}(0);
+  c = let final self::Class? #t110 = c in #t110.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t111 = #t110.{self::Class::field} in #t111.{self::Class::field} = #t111.{self::Class::field}.{self::Class::+}(0);
+  let final self::Class? #t112 = c in #t112.{core::Object::==}(null) ?{self::Class?} null : #t112.{self::Class::field} = #t112.{self::Class::field}.{self::Class::+}(1);
+  c = let final self::Class? #t113 = c in #t113.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t114 = #t113.{self::Class::field} in let final void #t115 = #t113.{self::Class::field} = #t114.{self::Class::+}(1) in #t114;
+  let final self::Class? #t116 = c in #t116.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t117 = #t116.{self::Class::field}.{self::Class::+}(1) in let final void #t118 = #t116.{self::Class::field} = #t117 in #t117;
+  c = let final self::Class? #t119 = c in #t119.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t120 = #t119.{self::Class::field}.{self::Class::+}(1) in let final void #t121 = #t119.{self::Class::field} = #t120 in #t120;
+}
+static method ifNull(self::Class? c) → void {
+  let final self::Class? #t122 = c in #t122.{core::Object::==}(null) ?{self::Class?} null : #t122.{self::Class::field}.{core::Object::==}(null) ?{self::Class?} #t122.{self::Class::field} = c : null;
+  c = let final self::Class? #t123 = c in #t123.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t124 = #t123.{self::Class::field} in #t124.{core::Object::==}(null) ?{self::Class?} #t123.{self::Class::field} = c : #t124;
+  let final self::Class? #t125 = c in #t125.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t126 = #t125.{self::Class::field} in let final self::Class? #t127 = c in #t126.{self::Class::[]}(#t127).{core::Object::==}(null) ?{self::Class?} #t126.{self::Class::[]=}(#t127, c) : null;
+}
+static method throws(() → void f) → void {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  throw "Expected exception.";
+}

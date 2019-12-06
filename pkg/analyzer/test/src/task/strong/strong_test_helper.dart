@@ -279,8 +279,10 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.strictRawTypes = strictRawTypes;
     analysisOptions.enabledExperiments = enabledExperiments;
 
-    var mockSdk = new MockSdk(resourceProvider: resourceProvider);
-    mockSdk.context.analysisOptions = analysisOptions;
+    var mockSdk = new MockSdk(
+      resourceProvider: resourceProvider,
+      analysisOptions: analysisOptions,
+    );
 
     SourceFactory sourceFactory = new SourceFactory([
       new DartUriResolver(mockSdk),

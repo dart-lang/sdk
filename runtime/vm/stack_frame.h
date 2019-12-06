@@ -20,8 +20,6 @@
 #include "vm/stack_frame_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/stack_frame_arm64.h"
-#elif defined(TARGET_ARCH_DBC)
-#include "vm/stack_frame_dbc.h"
 #else
 #error Unknown architecture.
 #endif
@@ -131,6 +129,8 @@ class StackFrame : public ValueObject {
                             bool* is_optimized) const;
   // Returns token_pos of the pc(), or -1 if none exists.
   TokenPosition GetTokenPos() const;
+
+  static void DumpCurrentTrace();
 
  protected:
   explicit StackFrame(Thread* thread)
@@ -258,7 +258,6 @@ class StackFrameIterator : public ValueObject {
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
 
-#if !defined(TARGET_ARCH_DBC)
   // Iterator for iterating over all frames from the current frame (given by its
   // fp, sp, and pc) to the first EntryFrame.
   StackFrameIterator(uword fp,
@@ -267,7 +266,6 @@ class StackFrameIterator : public ValueObject {
                      ValidationPolicy validation_policy,
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
-#endif
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -371,7 +369,6 @@ class DartFrameIterator : public ValueObject {
                 thread,
                 cross_thread_policy) {}
 
-#if !defined(TARGET_ARCH_DBC)
   DartFrameIterator(uword fp,
                     uword sp,
                     uword pc,
@@ -383,7 +380,6 @@ class DartFrameIterator : public ValueObject {
                 ValidationPolicy::kDontValidateFrames,
                 thread,
                 cross_thread_policy) {}
-#endif
 
   // Get next dart frame.
   StackFrame* NextFrame() {
@@ -446,7 +442,6 @@ class InlinedFunctionsIterator : public ValueObject {
 void ValidateFrames();
 #endif
 
-#if !defined(TARGET_ARCH_DBC)
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
   return fp_offset + var_index;
@@ -457,7 +452,6 @@ DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
 }
 
 // Both fp and other_fp are compiled code frame pointers.
-// See stack_frame_dbc.h for the DBC version.
 DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
   return other_fp < fp;
 }
@@ -469,10 +463,7 @@ DART_FORCE_INLINE static bool IsBytecodeCalleeFrameOf(uword fp,
 }
 
 // Value for stack limit that is used to cause an interrupt.
-// Note that on DBC stack is growing upwards so interrupt limit is 0 unlike
-// on all other architectures.
 static const uword kInterruptStackLimit = ~static_cast<uword>(0);
-#endif
 
 DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;

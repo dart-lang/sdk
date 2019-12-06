@@ -786,8 +786,8 @@ class ContextManagerImpl implements ContextManager {
       bool isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
       if (!isManaged) {
         ContextInfo parent = _getParentForNewContext(includedPath);
-        changeSubscriptions[includedFolder] =
-            includedFolder.changes.listen(_handleWatchEvent);
+        changeSubscriptions[includedFolder] = includedFolder.changes
+            .listen(_handleWatchEvent, onError: _handleWatchInterruption);
         _createContexts(parent, includedFolder, excludedPaths, false);
       }
     }
@@ -1405,6 +1405,15 @@ class ContextManagerImpl implements ContextManager {
     callbacks.broadcastWatchEvent(event);
     _handleWatchEventImpl(event);
     callbacks.afterWatchEvent(event);
+  }
+
+  /// On windows, the directory watcher may overflow, and we must recover.
+  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+    // We've handled the error, so we only have to log it.
+    AnalysisEngine.instance.instrumentationService
+        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
+    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
+    refresh(null);
   }
 
   void _handleWatchEventImpl(WatchEvent event) {

@@ -5,16 +5,17 @@
 // VMOptions=--optimization-counter-threshold=5
 
 import "dart:ffi";
+import "dart:io";
+
 import "package:ffi/ffi.dart";
 import "package:test/test.dart";
 
 import '../lib/sqlite.dart';
 
 void main() {
+  final dbPath = Platform.script.resolve("test.db").path;
   test("sqlite integration test", () {
-    // TODO(dacoharkes): Put the database relative to this file,
-    // instead of where the script was invoked from.
-    Database d = Database("test.db");
+    Database d = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (
@@ -107,8 +108,8 @@ void main() {
   });
 
   test("concurrent db open and queries", () {
-    Database d = Database("test.db");
-    Database d2 = Database("test.db");
+    Database d = Database(dbPath);
+    Database d2 = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (
@@ -141,7 +142,7 @@ void main() {
   });
 
   test("stress test", () {
-    Database d = Database("test.db");
+    Database d = Database(dbPath);
     d.execute("drop table if exists Cookies;");
     d.execute("""
       create table Cookies (

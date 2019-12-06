@@ -95,7 +95,7 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
+    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
 
     var mRef = findNode.typeName('M {} // A');
     assertTypeName(mRef, mElement, 'M');
@@ -110,7 +110,7 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
+    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
 
     var mRef = findNode.typeName('M;');
     assertTypeName(mRef, mElement, 'M');
@@ -129,17 +129,6 @@ mixin M {}
     assertTypeNull(aRef);
   }
 
-  test_conflictingGenericInterfaces() async {
-    await assertErrorsInCode('''
-class I<T> {}
-class A implements I<int> {}
-class B implements I<String> {}
-mixin M on A implements B {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
-    ]);
-  }
-
   test_element() async {
     await assertNoErrorsInCode(r'''
 mixin M {}
@@ -156,7 +145,7 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(interfaceType(element).isObject, isFalse);
+    expect(interfaceTypeStar(element).isObject, isFalse);
     expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
@@ -178,11 +167,16 @@ mixin M2 on A implements B, C {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [interfaceType(a), interfaceType(b), objectType],
+      [interfaceTypeStar(a), interfaceTypeStar(b), objectType],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [interfaceType(a), objectType, interfaceType(b), interfaceType(c)],
+      [
+        interfaceTypeStar(a),
+        objectType,
+        interfaceTypeStar(b),
+        interfaceTypeStar(c)
+      ],
     );
   }
 
@@ -200,15 +194,15 @@ mixin M2 on B<String> {}
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
       [
-        interfaceType(a, typeArguments: [intType, doubleType]),
+        interfaceTypeStar(a, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        interfaceType(b, typeArguments: [stringType]),
-        interfaceType(a, typeArguments: [intType, stringType]),
+        interfaceTypeStar(b, typeArguments: [stringType]),
+        interfaceTypeStar(a, typeArguments: [intType, stringType]),
         objectType
       ],
     );
@@ -357,7 +351,7 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [interfaceType(randomElement)]);
+    assertElementTypes(element.interfaces, [interfaceTypeStar(randomElement)]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -920,7 +914,7 @@ mixin M on math.Random {}
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
-      interfaceType(randomElement),
+      interfaceTypeStar(randomElement),
     ]);
 
     var typeRef = findNode.typeName('Random {}');
@@ -999,7 +993,7 @@ mixin B on A {} // ref
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
     assertElementTypes(b.superclassConstraints, [
-      interfaceType(a),
+      interfaceTypeStar(a),
     ]);
   }
 
@@ -1263,17 +1257,6 @@ abstract class X extends A with U1, U2, M {}
           129,
           1),
     ]);
-  }
-
-  test_isMoreSpecificThan() async {
-    await assertNoErrorsInCode(r'''
-mixin M {}
-''');
-
-    var element = findElement.mixin('M');
-    var type = interfaceType(element);
-    // ignore: deprecated_member_use_from_same_package
-    expect(type.isMoreSpecificThan(intType), isFalse);
   }
 
   test_lookUpMemberInInterfaces_Object() async {

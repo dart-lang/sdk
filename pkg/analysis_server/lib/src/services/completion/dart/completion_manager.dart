@@ -39,6 +39,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -66,20 +67,24 @@ class DartCompletionManager implements CompletionContributor {
   final Set<protocol.ElementKind> includedElementKinds;
 
   /// If [includedElementKinds] is not null, must be also not `null`, and
+  /// will be filled with names of all top-level declarations from all
+  /// included suggestion sets.
+  final Set<String> includedElementNames;
+
+  /// If [includedElementKinds] is not null, must be also not `null`, and
   /// will be filled with tags for suggestions that should be given higher
   /// relevance than other included suggestions.
   final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
   DartCompletionManager({
     this.includedElementKinds,
+    this.includedElementNames,
     this.includedSuggestionRelevanceTags,
   });
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
       return const <CompletionSuggestion>[];
@@ -179,15 +184,30 @@ class DartCompletionManager implements CompletionContributor {
     List<CompletionSuggestion> suggestions = suggestionMap.values.toList();
     const SORT_TAG = 'DartCompletionManager - sort';
     performance.logStartTime(SORT_TAG);
-    await contributionSorter.sort(dartRequest, suggestions);
     if (ranking != null) {
       request.checkAborted();
-      suggestions = await ranking.rerank(
-          probabilityFuture,
-          suggestions,
-          includedSuggestionRelevanceTags,
-          dartRequest,
-          request.result.unit.featureSet);
+      try {
+        suggestions = await ranking.rerank(
+            probabilityFuture,
+            suggestions,
+            includedElementNames,
+            includedSuggestionRelevanceTags,
+            dartRequest,
+            request.result.unit.featureSet);
+      } catch (exception, stackTrace) {
+        // TODO(brianwilkerson) Shutdown the isolates that have already been
+        //  started.
+        // Disable smart ranking if prediction fails.
+        CompletionRanking.instance = null;
+        AnalysisEngine.instance.instrumentationService.logException(
+            CaughtException.withMessage(
+                'Failed to rerank completion suggestions',
+                exception,
+                stackTrace));
+        await contributionSorter.sort(dartRequest, suggestions);
+      }
+    } else {
+      await contributionSorter.sort(dartRequest, suggestions);
     }
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
@@ -443,8 +463,6 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * if the completion request has been aborted.
    */
   static Future<DartCompletionRequest> from(CompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     request.checkAborted();
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;

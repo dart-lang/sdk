@@ -48,6 +48,35 @@ class _MyWidgetState extends State<MyWidget> {
 ''');
   }
 
+  test_empty_typeParam() async {
+    addFlutterPackage();
+    await resolveTestUnit(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget<T> extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+    await assertHasAssist(r'''
+import 'package:flutter/material.dart';
+
+class MyWidget<T> extends StatefulWidget {
+  @override
+  _MyWidgetState createState() => _MyWidgetState();
+}
+
+class _MyWidgetState<T> extends State<MyWidget<T>> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+  }
+
   test_fields() async {
     addFlutterPackage();
     await resolveTestUnit(r'''

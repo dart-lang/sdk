@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:1:1: Error: The non-ASCII space character U+FEFF can only be used in strings and comments.
+// ﻿﻿// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// ^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:1:2: Error: The non-ASCII space character U+FEFF can only be used in strings and comments.
+// ﻿﻿// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+//  ^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:13:1: Error: Expected a declaration, but got '"﻿"'.
+// "﻿";
+// ^^^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:13:4: Error: Unexpected token ';'.
+// "﻿";
+//    ^
+//
+// pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Getter not found: 'hello'.
+// "﻿";/*æ*/ hello; /*æ*/
+//           ^^^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  "\u65279";
+  "\u65279";
+  "\u65279";
+  "\u65279";
+  "A";
+  "\u65279";
+  "\u65279";
+  invalid-expression "pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Getter not found: 'hello'.
+\"\u65279\";/*\u0230*/ hello; /*\u0230*/
+          ^^^^^";
+}

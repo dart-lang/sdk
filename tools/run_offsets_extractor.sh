@@ -31,8 +31,6 @@ run simarm ReleaseSIMARM
 run x64 ReleaseX64
 run ia32 ReleaseIA32
 run simarm64 ReleaseSIMARM64
-run simdbc64 ReleaseSIMDBC64
-run simdbc ReleaseSIMDBC
 
 # Cleanup.
 echo "" >>"$TEMP"

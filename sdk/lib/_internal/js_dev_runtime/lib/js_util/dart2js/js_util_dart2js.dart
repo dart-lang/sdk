@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 /// Utility methods to efficiently manipulate typed JSInterop objects in cases
 /// where the name to call is not known at runtime. You should only use these
 /// methods when the same effect cannot be achieved with @JS annotations.
@@ -11,6 +13,8 @@ library dart.js_util;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:collection' show HashMap;
+import 'dart:async' show Completer;
+import 'dart:_js_helper' show convertDartClosureToJS;
 
 /// WARNING: performance of this method is much worse than other uitil
 /// methods in this library. Only use this method as a last resort.
@@ -123,4 +127,24 @@ callConstructor(Function constr, List arguments) {
   //     JS('', '#.apply(#, #)', constr, jsObj,
   //         []..addAll(arguments.map(_convertToJS)));
   //     return _wrapToDart(jsObj);
+}
+
+/// Converts a JavaScript Promise to a Dart [Future].
+///
+/// ```dart
+/// @JS()
+/// external Promise<num> get threePromise; // Resolves to 3
+///
+/// final Future<num> threeFuture = promiseToFuture(threePromise);
+///
+/// final three = await threeFuture; // == 3
+/// ```
+Future<T> promiseToFuture<T>(jsPromise) {
+  final completer = Completer<T>();
+
+  final success = convertDartClosureToJS((r) => completer.complete(r), 1);
+  final error = convertDartClosureToJS((e) => completer.completeError(e), 1);
+
+  JS('', '#.then(#, #)', jsPromise, success, error);
+  return completer.future;
 }

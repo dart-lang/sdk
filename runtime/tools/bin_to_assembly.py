@@ -83,11 +83,11 @@ def Main():
         with open(options.input, "rb") as input_file:
             if options.target_os in ["win"]:
                 for byte in input_file.read():
-                    output_file.write("byte %d\n" % ord(byte))
+                    output_file.write("byte %d\n" % (byte if isinstance(byte, int) else ord(byte)))
                     size += 1
             else:
                 for byte in input_file.read():
-                    output_file.write(".byte %d\n" % ord(byte))
+                    output_file.write(".byte %d\n" % (byte if isinstance(byte, int) else ord(byte)))
                     size += 1
 
         if options.target_os not in ["mac", "ios", "win"]:

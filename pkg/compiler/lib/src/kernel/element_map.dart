@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -29,6 +30,9 @@ abstract class KernelToElementMap {
 
   /// Access to the [DartTypes] object.
   DartTypes get types;
+
+  /// Returns the core types for the underlying kernel model.
+  ir.CoreTypes get coreTypes;
 
   /// Returns the type environment for the underlying kernel model.
   ir.TypeEnvironment get typeEnvironment;
@@ -108,7 +112,8 @@ abstract class KernelToElementMap {
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  ConstantValue getConstantValue(ir.Expression expression,
+  ConstantValue getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
   /// Return the [ImportEntity] corresponding to [node].
@@ -174,6 +179,8 @@ abstract class KernelToElementMap {
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);
+
+  ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
 }
 
 /// Kinds of foreign functions.

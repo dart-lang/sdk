@@ -19,6 +19,10 @@ class A<inout T> {
     Expect.equals(2, val);
   };
   A<T> get e => this;
+  covariant T f;
+  T get g => null;
+  void set h(T value) => value;
+  void set i(covariant T value) => value;
 }
 
 mixin BMixin<inout T> {
@@ -29,6 +33,10 @@ mixin BMixin<inout T> {
     Expect.equals(2, val);
   };
   BMixin<T> get e => this;
+  covariant T f;
+  T get g => null;
+  void set h(T value) => value;
+  void set i(covariant T value) => value;
 }
 
 class B with BMixin<int> {}
@@ -48,6 +56,15 @@ void testClass() {
   a.d(2);
 
   a.e.a = 3;
+
+  a.f = 2;
+  Expect.equals(2, a.f);
+
+  Expect.isNull(a.g);
+
+  a.h = 2;
+
+  a.i = 2;
 }
 
 void testMixin() {
@@ -65,6 +82,15 @@ void testMixin() {
   b.d(2);
 
   b.e.a = 3;
+
+  b.f = 2;
+  Expect.equals(2, b.f);
+
+  Expect.isNull(b.g);
+
+  b.h = 2;
+
+  b.i = 2;
 }
 
 main() {

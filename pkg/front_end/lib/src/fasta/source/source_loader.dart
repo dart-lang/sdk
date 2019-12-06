@@ -10,6 +10,21 @@ import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
+    show ClassMemberParser;
+
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show Parser, lengthForToken;
+
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
+    show
+        ErrorToken,
+        LanguageVersionToken,
+        ScannerConfiguration,
+        ScannerResult,
+        Token,
+        scan;
+
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -22,6 +37,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         LibraryDependency,
+        Nullability,
         ProcedureKind,
         Supertype,
         TreeNode;
@@ -32,6 +48,8 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../api_prototype/file_system.dart';
+
+import '../../base/common.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
@@ -80,8 +98,6 @@ import '../fasta_codes.dart'
         templateSourceOutlineSummary,
         templateUntranslatableUri;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
-
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
 
@@ -97,20 +113,11 @@ import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
 
-import '../parser/class_member_parser.dart' show ClassMemberParser;
-
-import '../parser.dart' show Parser, lengthForToken, offsetForToken;
-
 import '../problems.dart' show internalProblem;
 
-import '../scanner.dart'
-    show
-        ErrorToken,
-        LanguageVersionToken,
-        ScannerConfiguration,
-        ScannerResult,
-        Token,
-        scan;
+import '../source/stack_listener_impl.dart' show offsetForToken;
+
+import '../type_inference/type_inference_engine.dart';
 
 import '../type_inference/type_inferrer.dart';
 
@@ -143,7 +150,7 @@ class SourceLoader extends Loader {
   DartType iterableOfBottom;
   DartType streamOfBottom;
 
-  ShadowTypeInferenceEngine typeInferenceEngine;
+  TypeInferenceEngineImpl typeInferenceEngine;
 
   Instrumentation instrumentation;
 
@@ -151,8 +158,12 @@ class SourceLoader extends Loader {
 
   SetLiteralTransformer setLiteralTransformer;
 
+  final SourceLoaderDataForTesting dataForTesting;
+
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
-      : super(target);
+      : dataForTesting =
+            retainDataForTesting ? new SourceLoaderDataForTesting() : null,
+        super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -291,7 +302,10 @@ class SourceLoader extends Loader {
       // We tokenize source files twice to keep memory usage low. This is the
       // second time, and the first time was in [buildOutline] above. So this
       // time we suppress lexical errors.
-      Token tokens = await tokenize(library, suppressLexicalErrors: true);
+      bool suppressLexicalErrors = true;
+      if (library.issueLexicalErrorsOnBodyBuild) suppressLexicalErrors = false;
+      Token tokens =
+          await tokenize(library, suppressLexicalErrors: suppressLexicalErrors);
       if (tokens == null) return;
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
@@ -511,6 +525,16 @@ class SourceLoader extends Loader {
       }
     });
     ticker.logMs("Resolved $count type-variable bounds");
+  }
+
+  void computeVariances() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count += library.computeVariances();
+      }
+    });
+    ticker.logMs("Computed variances of $count type variables");
   }
 
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
@@ -858,12 +882,12 @@ class SourceLoader extends Loader {
   void computeCoreTypes(Component component) {
     coreTypes = new CoreTypes(component);
 
-    futureOfBottom = new InterfaceType(
-        coreTypes.futureClass, <DartType>[const BottomType()]);
-    iterableOfBottom = new InterfaceType(
-        coreTypes.iterableClass, <DartType>[const BottomType()]);
-    streamOfBottom = new InterfaceType(
-        coreTypes.streamClass, <DartType>[const BottomType()]);
+    futureOfBottom = new InterfaceType(coreTypes.futureClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
+    iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
+    streamOfBottom = new InterfaceType(coreTypes.streamClass,
+        Nullability.legacy, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }
@@ -986,7 +1010,7 @@ class SourceLoader extends Loader {
   }
 
   void createTypeInferenceEngine() {
-    typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
+    typeInferenceEngine = new TypeInferenceEngineImpl(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
@@ -1022,31 +1046,44 @@ class SourceLoader extends Loader {
     ticker.logMs("Performed top level inference");
   }
 
-  void transformPostInference(
-      TreeNode node, bool transformSetLiterals, bool transformCollections) {
+  void transformPostInference(TreeNode node, bool transformSetLiterals,
+      bool transformCollections, Library clientLibrary) {
     if (transformCollections) {
-      node.accept(collectionTransformer ??= new CollectionTransformer(this));
+      collectionTransformer ??= new CollectionTransformer(this);
+      collectionTransformer.enterLibrary(clientLibrary);
+      node.accept(collectionTransformer);
+      collectionTransformer.exitLibrary();
     }
     if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
+      setLiteralTransformer ??= new SetLiteralTransformer(this);
+      setLiteralTransformer.enterLibrary(clientLibrary);
+      node.accept(setLiteralTransformer);
+      setLiteralTransformer.exitLibrary();
     }
   }
 
-  void transformListPostInference(List<TreeNode> list,
-      bool transformSetLiterals, bool transformCollections) {
+  void transformListPostInference(
+      List<TreeNode> list,
+      bool transformSetLiterals,
+      bool transformCollections,
+      Library clientLibrary) {
     if (transformCollections) {
       CollectionTransformer transformer =
           collectionTransformer ??= new CollectionTransformer(this);
+      transformer.enterLibrary(clientLibrary);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
+      transformer.exitLibrary();
     }
     if (transformSetLiterals) {
       SetLiteralTransformer transformer =
           setLiteralTransformer ??= new SetLiteralTransformer(this);
+      transformer.enterLibrary(clientLibrary);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
+      transformer.exitLibrary();
     }
   }
 
@@ -1084,7 +1121,17 @@ class SourceLoader extends Loader {
 
   void releaseAncillaryResources() {
     hierarchy = null;
+    builderHierarchy = null;
     typeInferenceEngine = null;
+    builders?.clear();
+    libraries?.clear();
+    first = null;
+    sourceBytes?.clear();
+    target?.releaseAncillaryResources();
+    coreTypes = null;
+    instrumentation = null;
+    collectionTransformer = null;
+    setLiteralTransformer = null;
   }
 
   @override
@@ -1265,4 +1312,20 @@ class AmbiguousTypesRecord {
   final Supertype b;
 
   const AmbiguousTypesRecord(this.cls, this.a, this.b);
+}
+
+class SourceLoaderDataForTesting {
+  final Map<TreeNode, TreeNode> _aliasMap = {};
+
+  /// Registers that [original] has been replaced by [alias] in the generated
+  /// AST.
+  void registerAlias(TreeNode original, TreeNode alias) {
+    _aliasMap[alias] = original;
+  }
+
+  /// Returns the original node for [alias] or [alias] if it was not registered
+  /// as an alias.
+  TreeNode toOriginal(TreeNode alias) {
+    return _aliasMap[alias] ?? alias;
+  }
 }

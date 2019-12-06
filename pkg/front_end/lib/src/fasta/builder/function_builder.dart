@@ -7,14 +7,15 @@ library fasta.procedure_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
-import 'package:kernel/ast.dart' hide Variance;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../identifiers.dart';
 import '../scope.dart';
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
-
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -34,7 +35,7 @@ import '../problems.dart' show unexpected;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, Variance;
+    show IncludesTypeParametersNonCovariantly;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -87,7 +88,7 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent);
 
-  FormalParameterBuilder getFormal(String name);
+  FormalParameterBuilder getFormal(Identifier identifier);
 
   String get nativeMethodName;
 
@@ -102,8 +103,6 @@ abstract class FunctionBuilder implements MemberBuilder {
   void setRedirectingFactoryBody(Member target, List<DartType> typeArguments);
 
   bool get isNative;
-
-  FunctionNode buildFunction(LibraryBuilder library);
 
   /// Returns the [index]th parameter of this function.
   ///
@@ -127,8 +126,6 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// Returns a list of synthetic type parameters added to extension instance
   /// members.
   List<TypeParameter> get extensionTypeParameters;
-
-  Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader);
 
@@ -216,6 +213,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
+  bool get isAssignable => false;
+
+  @override
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
@@ -275,11 +275,16 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  FormalParameterBuilder getFormal(String name) {
+  FormalParameterBuilder getFormal(Identifier identifier) {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
-        if (formal.name == name) return formal;
+        if (formal.name == identifier.name &&
+            formal.charOffset == identifier.charOffset) {
+          return formal;
+        }
       }
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in $formals");
     }
     return null;
   }
@@ -336,7 +341,6 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  @override
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
@@ -494,6 +498,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     }
   }
 
+  Member build(SourceLibraryBuilder library);
+
   @override
   void becomeNative(Loader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
@@ -531,4 +537,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+
+  @override
+  List<ClassMember> get localSetters =>
+      isSetter ? <ClassMember>[this] : const <ClassMember>[];
 }

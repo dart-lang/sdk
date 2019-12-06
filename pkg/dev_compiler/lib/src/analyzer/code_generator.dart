@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
-import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as p;
@@ -74,7 +74,7 @@ class CodeGenerator extends Object
   final SummaryDataStore summaryData;
 
   final CompilerOptions options;
-  final Dart2TypeSystem rules;
+  final TypeSystemImpl rules;
 
   /// Errors that were produced during compilation, if any.
   final ErrorCollector errors;
@@ -133,12 +133,12 @@ class CodeGenerator extends Object
   final ClassElement functionClass;
   final ClassElement internalSymbolClass;
   final ClassElement privateSymbolClass;
-  final InterfaceType linkedHashMapImplType;
-  final InterfaceType identityHashMapImplType;
-  final InterfaceType linkedHashSetImplType;
-  final InterfaceType identityHashSetImplType;
-  final InterfaceType syncIterableType;
-  final InterfaceType asyncStarImplType;
+  final ClassElement linkedHashMapImplElement;
+  final ClassElement identityHashMapImplElement;
+  final ClassElement linkedHashSetImplElement;
+  final ClassElement identityHashSetImplElement;
+  final ClassElement syncIterableElement;
+  final ClassElement asyncStarImplElement;
 
   ConstFieldVisitor _constants;
 
@@ -196,7 +196,12 @@ class CodeGenerator extends Object
 
   CodeGenerator(LinkedAnalysisDriver driver, this.types, this.summaryData,
       this.options, this._extensionTypes, this.errors)
-      : rules = Dart2TypeSystem(types),
+      : rules = TypeSystemImpl(
+          implicitCasts: true,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: types,
+        ),
         declaredVariables = driver.declaredVariables,
         _asyncStreamIterator = getLegacyRawClassType(
             driver.getClass('dart:async', 'StreamIterator')),
@@ -218,18 +223,17 @@ class CodeGenerator extends Object
         internalSymbolClass = driver.getClass('dart:_internal', 'Symbol'),
         privateSymbolClass =
             driver.getClass('dart:_js_helper', 'PrivateSymbol'),
-        linkedHashMapImplType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'LinkedMap')),
-        identityHashMapImplType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'IdentityMap')),
-        linkedHashSetImplType = getLegacyRawClassType(
-            driver.getClass('dart:collection', '_HashSet')),
-        identityHashSetImplType = getLegacyRawClassType(
-            driver.getClass('dart:collection', '_IdentityHashSet')),
-        syncIterableType = getLegacyRawClassType(
-            driver.getClass('dart:_js_helper', 'SyncIterable')),
-        asyncStarImplType = getLegacyRawClassType(
-            driver.getClass('dart:async', '_AsyncStarImpl')),
+        linkedHashMapImplElement =
+            driver.getClass('dart:_js_helper', 'LinkedMap'),
+        identityHashMapImplElement =
+            driver.getClass('dart:_js_helper', 'IdentityMap'),
+        linkedHashSetImplElement =
+            driver.getClass('dart:collection', '_HashSet'),
+        identityHashSetImplElement =
+            driver.getClass('dart:collection', '_IdentityHashSet'),
+        syncIterableElement =
+            driver.getClass('dart:_js_helper', 'SyncIterable'),
+        asyncStarImplElement = driver.getClass('dart:async', '_AsyncStarImpl'),
         dartJSLibrary = driver.getLibrary('dart:js') {
     jsTypeRep = JSTypeRep(rules, driver);
   }
@@ -881,131 +885,53 @@ class CodeGenerator extends Object
       if (prop != null) markSubtypeOf(prop);
     }
 
-    if (classElem.library.isDartCore) {
-      if (classElem == objectClass) {
-        // Everything is an Object.
-        body.add(js.statement(
-            '#.is = function is_Object(o) { return true; }', [className]));
-        body.add(js.statement(
-            '#.as = function as_Object(o) { return o; }', [className]));
-        body.add(js.statement(
-            '#._check = function check_Object(o) { return o; }', [className]));
-        return null;
-      }
-      if (classElem == stringClass) {
-        body.add(js.statement(
-            '#.is = function is_String(o) { return typeof o == "string"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_String(o) {'
-            '  if (typeof o == "string" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == functionClass) {
-        body.add(js.statement(
-            '#.is = function is_Function(o) { return typeof o == "function"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_Function(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_Function(o) {'
-            '  if (typeof o == "function" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == intClass) {
-        body.add(js.statement(
-            '#.is = function is_int(o) {'
-            '  return typeof o == "number" && Math.floor(o) == o;'
-            '}',
-            className));
-        body.add(js.statement(
-            '#.as = function as_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_int(o) {'
-            '  if ((typeof o == "number" && Math.floor(o) == o) || o == null)'
-            '    return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == nullClass) {
-        body.add(js.statement(
-            '#.is = function is_Null(o) { return o == null; }', className));
-        body.add(js.statement(
-            '#.as = function as_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_Null(o) {'
-            '  if (o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == numClass || classElem == doubleClass) {
-        body.add(js.statement(
-            '#.is = function is_num(o) { return typeof o == "number"; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_num(o) {'
-            '  if (typeof o == "number" || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
-      if (classElem == boolClass) {
-        body.add(js.statement(
-            '#.is = function is_bool(o) { return o === true || o === false; }',
-            className));
-        body.add(js.statement(
-            '#.as = function as_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, false);'
-            '}',
-            [className, runtimeModule, className]));
-        body.add(js.statement(
-            '#._check = function check_bool(o) {'
-            '  if (o === true || o === false || o == null) return o;'
-            '  return #.as(o, #, true);'
-            '}',
-            [className, runtimeModule, className]));
-        return null;
-      }
+    if (classElem.library.isDartCore &&
+        (classElem == objectClass ||
+            classElem == stringClass ||
+            classElem == functionClass ||
+            classElem == intClass ||
+            classElem == nullClass ||
+            classElem == numClass ||
+            classElem == doubleClass ||
+            classElem == boolClass)) {
+      // Custom type tests for these types are in the patch files.
+      return null;
     }
-    if (classElem.library.isDartAsync) {
-      if (classElem == types.futureOrElement) {
+    if (classElem.library.isDartAsync && classElem == types.futureOrElement) {
+      // These methods are difficult to place in the runtime or patch files.
+      // * They need to be callable from the class but they can't be static
+      //   methods on the FutureOr class in Dart because they reference the
+      //   generic type parameter.
+      // * There isn't an obvious place in dart:_runtime were we could place a
+      //   method that adds these type tests (similar to addTypeTests()) because
+      //   in the bootstrap ordering the Future class hasn't been defined yet.
+      if (options.nonNullableEnabled) {
+        // TODO(nshahan) Update FutureOr type tests for NNBD.
+        var typeParamT =
+            getLegacyTypeParameterType(classElem.typeParameters[0]);
+        var typeT = _emitType(typeParamT);
+        var futureOfT = _emitType(types.futureType2(typeParamT));
+        body.add(js.statement('''
+            #.is = function is_FutureOr(o) {
+              return #.is(o) || #.is(o);
+            }
+            ''', [className, typeT, futureOfT]));
+        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
+        // _ignoreTypeFailure logic.
+        body.add(js.statement('''
+            #.as = function as_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        body.add(js.statement('''
+            #._check = function check_FutureOr(o) {
+              if (o == null || #.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
+            }
+            ''', [className, typeT, futureOfT, runtimeModule]));
+        return null;
+      } else {
         var typeParamT =
             getLegacyTypeParameterType(classElem.typeParameters[0]);
         var typeT = _emitType(typeParamT);
@@ -2272,6 +2198,7 @@ class CodeGenerator extends Object
       element.returnType,
       element.typeParameters,
       parameters,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -2942,7 +2869,12 @@ class CodeGenerator extends Object
       var gen = emitGeneratorFn(jsParams);
       if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
 
-      var syncIterable = _emitType(syncIterableType.instantiate([returnType]));
+      var syncIterable = _emitType(
+        syncIterableElement.instantiate(
+          typeArguments: [returnType],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+      );
       return js.call('new #.new(#)', [syncIterable, gen]);
     }
 
@@ -2957,7 +2889,10 @@ class CodeGenerator extends Object
       var asyncStarParam = js_ast.TemporaryId('stream');
       var gen = emitGeneratorFn([asyncStarParam], asyncStarParam);
 
-      var asyncStarImpl = asyncStarImplType.instantiate([returnType]);
+      var asyncStarImpl = asyncStarImplElement.instantiate(
+        typeArguments: [returnType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
       return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
     }
 
@@ -4949,7 +4884,7 @@ class CodeGenerator extends Object
     variable ??= js_ast.TemporaryId(name);
 
     var idElement =
-        TemporaryVariableElement.forNode(id, variable, _currentElement);
+        TemporaryVariableElement(name, -1, variable, _currentElement);
     id.staticElement = idElement;
     id.staticType = type;
     setIsDynamicInvoke(id, dynamicInvoke ?? type.isDynamic);
@@ -5735,7 +5670,10 @@ class CodeGenerator extends Object
     if (itemType.isDynamic) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = getLegacyRawClassType(_jsArray).instantiate([itemType]);
+    var arrayType = _jsArray.instantiate(
+      typeArguments: [itemType],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
@@ -5764,8 +5702,14 @@ class CodeGenerator extends Object
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
-    type = identity ? identityHashMapImplType : linkedHashMapImplType;
-    return _emitType(type.instantiate(typeArgs));
+    var element =
+        identity ? identityHashMapImplElement : linkedHashMapImplElement;
+    return _emitType(
+      element.instantiate(
+        typeArguments: typeArgs,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
   }
 
   js_ast.Expression _emitConstSet(
@@ -5778,8 +5722,14 @@ class CodeGenerator extends Object
     var typeArgs = type.typeArguments;
     if (typeArgs.isEmpty) return _emitType(type);
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
-    type = identity ? identityHashSetImplType : linkedHashSetImplType;
-    return _emitType(type.instantiate(typeArgs));
+    var element =
+        identity ? identityHashSetImplElement : linkedHashSetImplElement;
+    return _emitType(
+      element.instantiate(
+        typeArguments: typeArgs,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
   }
 
   @override
@@ -5879,7 +5829,8 @@ class CodeGenerator extends Object
       var finder = YieldFinder();
       body.accept(finder);
       if (finder.hasYield) {
-        var genFn = js_ast.Fun([], body, isGenerator: true);
+        js_ast.Expression genFn = js_ast.Fun([], body, isGenerator: true);
+        if (usesThisOrSuper(genFn)) genFn = js.call('#.bind(this)', genFn);
         var asyncLibrary = emitLibraryName(types.futureElement.library);
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
@@ -5892,8 +5843,10 @@ class CodeGenerator extends Object
       if (_isUiAsCodeElement(node)) {
         // Create a temporary variable to build a new collection from.
         var previousCollectionVariable = _currentCollectionVariable;
-        var arrayType =
-            getLegacyRawClassType(_jsArray).instantiate([elementType]);
+        var arrayType = _jsArray.instantiate(
+          typeArguments: [elementType],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
         var temporaryIdentifier = _createTemporary('items', arrayType);
         _currentCollectionVariable = _emitSimpleIdentifier(temporaryIdentifier);
         var items = js.statement('let # = #',
@@ -6159,10 +6112,16 @@ class CodeGenerator extends Object
   /// available. If the element is `external`, the element is used to statically
   /// resolve the JS interop/dart:html static member. Otherwise it is ignored.
   js_ast.Expression _emitStaticMemberName(String name, [Element element]) {
-    if (element != null && _isExternal(element)) {
-      var newName = getAnnotationName(element, isJSName) ??
-          _getJSInteropStaticMemberName(element);
-      if (newName != null) return js.escapedString(newName, "'");
+    if (element != null) {
+      if (_isExternal(element)) {
+        var newName = getAnnotationName(element, isJSName) ??
+            _getJSInteropStaticMemberName(element);
+        if (newName != null) return js.escapedString(newName, "'");
+      }
+      // Allow the Dart SDK to assign names to statics with the @JSExportName
+      // annotation.
+      var exportName = getJSExportName(element);
+      if (exportName != null) return propertyName(exportName);
     }
 
     switch (name) {
@@ -6733,9 +6692,9 @@ class CodeGenerator extends Object
 class TemporaryVariableElement extends LocalVariableElementImpl {
   final js_ast.Expression jsVariable;
 
-  TemporaryVariableElement.forNode(
-      Identifier name, this.jsVariable, Element enclosingElement)
-      : super.forNode(name) {
+  TemporaryVariableElement(
+      String name, int offset, this.jsVariable, Element enclosingElement)
+      : super(name, offset) {
     this.enclosingElement = enclosingElement;
   }
 

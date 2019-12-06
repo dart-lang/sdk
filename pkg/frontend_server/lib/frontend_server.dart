@@ -35,25 +35,10 @@ import 'package:vm/bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
-import 'package:vm/kernel_front_end.dart'
-    show
-        KernelCompilationResults,
-        asFileUri,
-        compileToKernel,
-        convertFileOrUriArgumentToUri,
-        createFrontEndFileSystem,
-        createFrontEndTarget,
-        forEachPackage,
-        packageFor,
-        parseCommandLineDefines,
-        runWithFrontEndCompilerContext,
-        setVMEnvironmentDefines,
-        sortComponent,
-        writeDepfile;
-import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
-import 'package:vm/target/flutter.dart' show FlutterTarget;
-import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
-import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/kernel_front_end.dart';
+
+import 'src/javascript_bundle.dart';
+import 'src/strong_components.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -68,8 +53,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
-// TODO(alexmarkov): Cleanup uses in Flutter and remove these obsolete flags.
-  ..addFlag('strong', help: 'Obsolete', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -160,7 +143,15 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
-      hide: true);
+      hide: true)
+  ..addFlag('split-output-by-packages',
+      help:
+          'Split resulting kernel file into multiple files (one per package).',
+      defaultsTo: false)
+  ..addOption('component-name', help: 'Name of the Fuchsia component')
+  ..addOption('data-dir',
+      help: 'Name of the subdirectory of //data for output files')
+  ..addOption('far-manifest', help: 'Path to output Fuchsia package manifest');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -273,14 +264,7 @@ class FrontendCompiler implements CompilerInterface {
       this.unsafePackageSerialization,
       this.incrementalSerialization: true}) {
     _outputStream ??= stdout;
-    printerFactory ??= BinaryPrinterFactory();
-    // Initialize supported kernel targets.
-    targets['dart_runner'] = (TargetFlags flags) => DartRunnerTarget(flags);
-    targets['flutter'] = (TargetFlags flags) => FlutterTarget(flags);
-    targets['flutter_runner'] =
-        (TargetFlags flags) => FlutterRunnerTarget(flags);
-    targets['vm'] = (TargetFlags flags) => VmTarget(flags);
-    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
+    printerFactory ??= new BinaryPrinterFactory();
   }
 
   StringSink _outputStream;
@@ -374,13 +358,36 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
+    if (options['aot']) {
+      if (!options['link-platform']) {
+        print('Error: --no-link-platform option cannot be used with --aot');
+        return false;
+      }
+      if (options['split-output-by-packages']) {
+        print(
+            'Error: --split-output-by-packages option cannot be used with --aot');
+        return false;
+      }
+      if (options['incremental']) {
+        print('Error: --incremental option cannot be used with --aot');
+        return false;
+      }
+      if (options['import-dill'] != null) {
+        print('Error: --import-dill option cannot be used with --aot');
+        return false;
+      }
+    }
+
     compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
-        enableAsserts: options['enable-asserts'],
-        emitSourceFiles: options['embed-source-text'],
-        environmentDefines: environmentDefines)
-      ..parseCommandLineFlags(options['bytecode-options']);
+      enableAsserts: options['enable-asserts'],
+      emitSourceFiles: options['embed-source-text'],
+      environmentDefines: environmentDefines,
+      aot: options['aot'],
+    )..parseCommandLineFlags(options['bytecode-options']);
 
+    // Initialize additional supported kernel targets.
+    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
@@ -421,6 +428,7 @@ class FrontendCompiler implements CompilerInterface {
           await _runWithPrintRedirection(() => _generator.compile());
       results = KernelCompilationResults(
           component,
+          const {},
           _generator.getClassHierarchy(),
           _generator.getCoreTypes(),
           component.uriToSource.keys);
@@ -437,19 +445,23 @@ class FrontendCompiler implements CompilerInterface {
       // No bytecode at this step. Bytecode is generated later in _writePackage.
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
+          includePlatform: options['link-platform'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
+          enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
     }
     if (results.component != null) {
-      if (transformer != null) {
-        transformer.transform(results.component);
-      }
+      transformer?.transform(results.component);
 
-      await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null,
-          incrementalSerializer: incrementalSerializer);
+      if (_compilerOptions.target.name == 'dartdevc') {
+        await writeJavascriptBundle(results, _kernelBinaryFilename);
+      } else {
+        await writeDillFile(results, _kernelBinaryFilename,
+            filterExternal: importDill != null,
+            incrementalSerializer: incrementalSerializer);
+      }
 
       _outputStream.writeln(boundaryKey);
       await _outputDependenciesDelta(results.compiledSources);
@@ -513,6 +525,44 @@ class FrontendCompiler implements CompilerInterface {
     previouslyReportedDependencies = uris;
   }
 
+  /// Write a JavaScript bundle containg the provided component.
+  Future<void> writeJavascriptBundle(
+      KernelCompilationResults results, String filename) async {
+    final Component component = results.component;
+    // Compute strongly connected components.
+    final strongComponents = StrongComponents(
+        component,
+        results.loadedLibraries,
+        _mainSource,
+        _compilerOptions.packagesFileUri,
+        _compilerOptions.fileSystem);
+    await strongComponents.computeModules();
+
+    // Create JavaScript bundler.
+    final File sourceFile = File('$filename.sources');
+    final File manifestFile = File('$filename.json');
+    final File sourceMapsFile = File('$filename.map');
+    if (!sourceFile.parent.existsSync()) {
+      sourceFile.parent.createSync(recursive: true);
+    }
+    final bundler = JavaScriptBundler(component, strongComponents);
+    final sourceFileSink = sourceFile.openWrite();
+    final manifestFileSink = manifestFile.openWrite();
+    final sourceMapsFileSink = sourceMapsFile.openWrite();
+    bundler.compile(
+        results.classHierarchy,
+        results.coreTypes,
+        results.loadedLibraries,
+        sourceFileSink,
+        manifestFileSink,
+        sourceMapsFileSink);
+    await Future.wait([
+      sourceFileSink.close(),
+      manifestFileSink.close(),
+      sourceMapsFileSink.close()
+    ]);
+  }
+
   writeDillFile(KernelCompilationResults results, String filename,
       {bool filterExternal: false,
       IncrementalSerializer incrementalSerializer}) async {
@@ -528,10 +578,12 @@ class FrontendCompiler implements CompilerInterface {
         await runWithFrontEndCompilerContext(
             _mainSource, _compilerOptions, component, () async {
           if (_options['incremental']) {
-            await forEachPackage(component,
+            // When loading a single kernel buffer with multiple sub-components,
+            // the VM expects 'main' to be the first sub-component.
+            await forEachPackage(results,
                 (String package, List<Library> libraries) async {
               _writePackage(results, package, libraries, sink);
-            });
+            }, mainFirst: true);
           } else {
             _writePackage(results, 'main', component.libraries, sink);
           }
@@ -553,10 +605,15 @@ class FrontendCompiler implements CompilerInterface {
           }
         }
 
-        final IOSink sink = File(_initializeFromDill).openWrite();
+        final file = new File(_initializeFromDill);
+        await file.create(recursive: true);
+        final IOSink sink = file.openWrite();
+        final Set<Library> loadedLibraries = results.loadedLibraries;
         final BinaryPrinter printer = filterExternal
             ? LimitedBinaryPrinter(
-                sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+                sink,
+                (lib) => !loadedLibraries.contains(lib),
+                true /* excludeUriToSource */)
             : printerFactory.newBinaryPrinter(sink);
 
         sortComponent(component);
@@ -567,9 +624,10 @@ class FrontendCompiler implements CompilerInterface {
     } else {
       // Generate AST as the output proper.
       final IOSink sink = File(filename).openWrite();
+      final Set<Library> loadedLibraries = results.loadedLibraries;
       final BinaryPrinter printer = filterExternal
-          ? LimitedBinaryPrinter(
-              sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+          ? LimitedBinaryPrinter(sink, (lib) => !loadedLibraries.contains(lib),
+              true /* excludeUriToSource */)
           : printerFactory.newBinaryPrinter(sink);
 
       sortComponent(component);
@@ -583,6 +641,23 @@ class FrontendCompiler implements CompilerInterface {
 
       printer.writeComponentFile(component);
       await sink.close();
+    }
+
+    if (_options['split-output-by-packages']) {
+      await writeOutputSplitByPackages(
+          _mainSource, _compilerOptions, results, filename,
+          genBytecode: _compilerOptions.bytecode,
+          bytecodeOptions: _bytecodeOptions,
+          dropAST: _options['drop-ast']);
+    }
+
+    final String manifestFilename = _options['far-manifest'];
+    if (manifestFilename != null) {
+      final String output = _options['output-dill'];
+      final String dataDir = _options.options.contains('component-name')
+          ? _options['component-name']
+          : _options['data-dir'];
+      await createFarManifest(output, dataDir, manifestFilename);
     }
   }
 
@@ -660,9 +735,16 @@ class FrontendCompiler implements CompilerInterface {
 
     Component partComponent = result.component;
     if (_compilerOptions.bytecode && errors.isEmpty) {
+      final List<Library> librariesFiltered = new List<Library>();
+      final Set<Library> loadedLibraries = result.loadedLibraries;
+      for (Library library in libraries) {
+        if (loadedLibraries.contains(library)) continue;
+        librariesFiltered.add(library);
+      }
+
       generateBytecode(partComponent,
           options: _bytecodeOptions,
-          libraries: libraries,
+          libraries: librariesFiltered,
           coreTypes: _generator?.getCoreTypes(),
           hierarchy: _generator?.getClassHierarchy());
 
@@ -672,8 +754,10 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     final byteSink = ByteSink();
-    final BinaryPrinter printer = LimitedBinaryPrinter(byteSink,
-        (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
+    final BinaryPrinter printer = LimitedBinaryPrinter(
+        byteSink,
+        (lib) => packageFor(lib, result.loadedLibraries) == package,
+        false /* excludeUriToSource */);
     printer.writeComponentFile(partComponent);
 
     final bytes = byteSink.builder.takeBytes();
@@ -700,12 +784,17 @@ class FrontendCompiler implements CompilerInterface {
 
     KernelCompilationResults results = KernelCompilationResults(
         deltaProgram,
+        const {},
         _generator.getClassHierarchy(),
         _generator.getCoreTypes(),
         deltaProgram.uriToSource.keys);
 
-    await writeDillFile(results, _kernelBinaryFilename,
-        incrementalSerializer: _generator.incrementalSerializer);
+    if (_compilerOptions.target.name == 'dartdevc') {
+      await writeJavascriptBundle(results, _kernelBinaryFilename);
+    } else {
+      await writeDillFile(results, _kernelBinaryFilename,
+          incrementalSerializer: _generator.incrementalSerializer);
+    }
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources);
@@ -848,9 +937,9 @@ class FrontendCompiler implements CompilerInterface {
 
   @override
   Future<void> rejectLastDelta() async {
-    await _generator.reject();
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
+    await _generator.reject();
     _outputStream.writeln(boundaryKey);
   }
 

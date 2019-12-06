@@ -20,9 +20,12 @@ declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
   dart_platform_sdk = true
 
+  # Whether to include dart2native in the "create_sdk" target.
+  include_dart2native = false
+
   # Path to stripped dart binaries relative to build output directory.
   dart_stripped_binary = "dart"
-  dartaotruntime_stripped_binary = "dartaotruntime"
+  dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime"
   gen_snapshot_stripped_binary = "gen_snapshot"
 }
 
@@ -35,11 +38,11 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2native
+# ......dart2native (if `include_dart2native` and not on ia32)
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
-# ......utils/gen_snapshot or utils/gen_snapshot.exe (executable)
+# ......utils/gen_snapshot or utils/gen_snapshot.exe (if `include_dart2native` and not on ia32)
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -48,7 +51,8 @@ declare_args() {
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
-# ........gen_kernel.dart.snapshot
+# ........gen_kernel.dart.snapshot (if `include_dart2native` and not on ia32)
+# ........dart2native.dart.snapshot (if `include_dart2native` and not on ia32)
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
 # ......resources/
@@ -117,10 +121,6 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
-    "dart2native",
-    "../utils/dart2native:generate_dart2native_snapshot",
-  ],
-  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -133,6 +133,12 @@ _platform_sdk_snapshots = [
     "../utils/pub",
   ],
 ]
+if (include_dart2native && dart_target_arch != "ia32") {
+  _platform_sdk_snapshots += [ [
+        "dart2native",
+        "../utils/dart2native:generate_dart2native_snapshot",
+      ] ]
+}
 if (create_kernel_service_snapshot) {
   _platform_sdk_snapshots += [ [
         "kernel-service",
@@ -156,10 +162,6 @@ _full_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
-    "dart2native",
-    "../utils/dart2native:generate_dart2native_snapshot",
-  ],
-  [
     "dartdevc",
     "../utils/dartdevc",
   ],
@@ -180,6 +182,12 @@ _full_sdk_snapshots = [
     "../utils/pub",
   ],
 ]
+if (include_dart2native && dart_target_arch != "ia32") {
+  _full_sdk_snapshots += [ [
+        "dart2native",
+        "../utils/dart2native:generate_dart2native_snapshot",
+      ] ]
+}
 if (create_kernel_service_snapshot) {
   _full_sdk_snapshots += [ [
         "kernel-service",
@@ -314,17 +322,49 @@ if (target_cpu == "x64") {
       dest = "$root_out_dir/dart-sdk/bin/model"
       ignore_patterns = "{}"
     },
-    {
-      target = "copy_libtensorflowlite_c"
-      visibility = [ ":create_common_sdk" ]
-      deps = [
-        ":copy_libraries",
-      ]
-      source = "../third_party/pkg/tflite_native/lib/src/blobs"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots"
-      ignore_patterns = "{}"
-    },
   ]
+  if (is_linux) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.dll,*mac64.so"
+      },
+    ]
+  }
+  if (is_mac) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.dll,*linux64.so"
+      },
+    ]
+  }
+  if (is_win) {
+    copy_tree_specs += [
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "*.so"
+      },
+    ]
+  }
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
@@ -394,25 +434,25 @@ if (target_os != current_os && target_os == "fuchsia") {
 
 copy("copy_dartaotruntime") {
   deps = [
-    "../runtime/bin:dartaotruntime",
+    "../runtime/bin:dart_precompiled_runtime",
   ]
   dartaotruntime_out =
-      get_label_info("../runtime/bin:dartaotruntime", "root_out_dir")
+      get_label_info("../runtime/bin:dart_precompiled_runtime", "root_out_dir")
   if (is_win) {
     sources = [
-      "$dartaotruntime_out/dartaotruntime.exe",
+      "$dartaotruntime_out/dart_precompiled_runtime.exe",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/dartaotruntime.exe",
     ]
   } else {
     sources = [
-      "$dartaotruntime_out/$dartaotruntime_stripped_binary",
+      "$dartaotruntime_out/$dart_precompiled_runtime_stripped_binary",
+    ]
+    outputs = [
+      "$root_out_dir/dart-sdk/bin/dartaotruntime",
     ]
   }
-  if (is_win) {
-    sources += [ "$dartaotruntime_out/dartaotruntime.lib" ]
-  }
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
-  ]
 }
 
 copy("copy_gen_snapshot") {
@@ -437,6 +477,7 @@ copy("copy_gen_snapshot") {
 
 copy("copy_dart2native") {
   deps = [
+    ":copy_dartaotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
   ]
@@ -649,14 +690,14 @@ copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_kernel_sdk_outline",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_sdk",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
     # TODO(vsm): Remove post CFE.
     "$gen_dir/ddc_sdk.sum",
-    "$gen_dir/kernel/ddc_sdk.dill",
+    "$root_out_dir/ddc_sdk.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -987,7 +1028,6 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
-    ":copy_dart2native",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
@@ -999,6 +1039,13 @@ group("create_common_sdk") {
     ":write_revision_file",
     ":write_version_file",
   ]
+
+  # We do not support AOT on ia32 and should therefore not add the
+  # dart2native script (since there is no AOT compiler/runtime available)
+  if (include_dart2native && dart_target_arch != "ia32") {
+    public_deps += [ ":copy_dart2native" ]
+  }
+
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
   }

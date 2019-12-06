@@ -36,7 +36,8 @@ runTestCase(Uri source) async {
 
   for (Class messageClass in messageClasses) {
     expect(messageClass.enclosingLibrary.classes.contains(messageClass),
-        messageClass.name.endsWith('Keep'));
+        messageClass.name.endsWith('Keep'),
+        reason: '$messageClass');
   }
 
   final systemTempDir = Directory.systemTemp;
@@ -50,8 +51,8 @@ runTestCase(Uri source) async {
     printer.writeComponentFile(component);
     await sink.close();
 
-    ProcessResult result =
-        Process.runSync(Platform.resolvedExecutable, [file.path]);
+    final result = Process.runSync(
+        Platform.resolvedExecutable, ['--enable-asserts', file.path]);
     expect(result.exitCode, 0, reason: '${result.stderr}\n${result.stdout}');
   } finally {
     if (file.existsSync()) {

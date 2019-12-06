@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart._http;
 
 class _HttpHeaders implements HttpHeaders {
@@ -104,6 +106,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void noFolding(String name) {
+    name = _validateField(name);
     if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
     _noFoldingHeaders.add(name);
   }

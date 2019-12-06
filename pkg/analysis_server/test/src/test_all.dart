@@ -13,7 +13,6 @@ import 'lsp/test_all.dart' as lsp;
 import 'plugin/test_all.dart' as plugin;
 import 'services/test_all.dart' as services;
 import 'utilities/test_all.dart' as utilities;
-import 'watch_manager_test.dart' as watch_manager;
 
 /**
  * Utility for manually running all tests.
@@ -29,6 +28,5 @@ main() {
     plugin.main();
     services.main();
     utilities.main();
-    watch_manager.main();
   }, name: 'src');
 }

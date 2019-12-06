@@ -7,6 +7,9 @@
 
 import 'dart:async' show Future;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessageHandler;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:kernel/kernel.dart' show Component, Library;
@@ -15,8 +18,6 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
-
-import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -33,10 +34,13 @@ import 'compiler_state.dart' show InitializedCompilerState;
 import 'modular_incremental_compilation.dart' as modular
     show initializeIncrementalCompiler;
 
+export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage;
+
+export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 export '../api_prototype/compiler_options.dart'
     show parseExperimentalFlags, parseExperimentalArguments;
-
-export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
@@ -47,8 +51,6 @@ export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
 export '../fasta/kernel/utils.dart' show serializeComponent;
-
-export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
@@ -68,6 +70,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     FileSystem fileSystem,
     Iterable<String> experiments,
     bool outlineOnly,
+    Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false}) async {
   List<Component> outputLoadedInputSummaries =
       new List<Component>(summaryInputs.length);
@@ -88,7 +91,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       experimentalFlags: experimentalFlags,
       outlineOnly: outlineOnly,
       omitPlatform: true,
-      trackNeededDillLibraries: trackNeededDillLibraries);
+      trackNeededDillLibraries: trackNeededDillLibraries,
+      environmentDefines: environmentDefines);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -100,7 +104,8 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> linkedInputs,
     Target target,
     FileSystem fileSystem,
-    Iterable<String> experiments) async {
+    Iterable<String> experiments,
+    Map<String, String> environmentDefines) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -114,7 +119,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..linkedDependencies = linkedInputs
     ..target = target
     ..fileSystem = fileSystem
-    ..environmentDefines = const {}
+    ..environmentDefines = environmentDefines
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e);

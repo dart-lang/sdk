@@ -59,9 +59,9 @@ void test() {
               type: const DynamicType(), initializer: new IntLiteral(42));
           return new ExpressionStatement(new Let(x, new VariableGet(x)));
         }(),
-        expectation: ""
-            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
-            " (get-var \"x^0\" _)))"),
+        expectation: ''
+            '(expr (let (var "x^0" (dynamic) (int 42) ())'
+            ' (get-var "x^0" _)))'),
     new TestCase(
         name: "let dynamic x = 42 in let Bottom x^0 = null in x;",
         node: () {
@@ -72,10 +72,10 @@ void test() {
           return new ExpressionStatement(new Let(outterLetVar,
               new Let(innerLetVar, new VariableGet(outterLetVar))));
         }(),
-        expectation: ""
-            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
-            " (let (var \"x^1\" (bottom) (null) ())"
-            " (get-var \"x^0\" _))))"),
+        expectation: ''
+            '(expr (let (var "x^0" (dynamic) (int 42) ())'
+            ' (let (var "x^1" (bottom) (null) ())'
+            ' (get-var "x^0" _))))'),
     new TestCase(
         name: "let dynamic x = 42 in let Bottom x^0 = null in x^0;",
         node: () {
@@ -86,17 +86,17 @@ void test() {
           return new ExpressionStatement(new Let(outterLetVar,
               new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
-        expectation: ""
-            "(expr (let (var \"x^0\" (dynamic) (int 42) ())"
-            " (let (var \"x^1\" (bottom) (null) ())"
-            " (get-var \"x^1\" _))))"),
+        expectation: ''
+            '(expr (let (var "x^0" (dynamic) (int 42) ())'
+            ' (let (var "x^1" (bottom) (null) ())'
+            ' (get-var "x^1" _))))'),
     () {
       VariableDeclaration x =
           new VariableDeclaration("x", type: const DynamicType());
       return new TestCase(
           name: "/* suppose: dynamic x; */ x = 42;",
           node: new ExpressionStatement(new VariableSet(x, new IntLiteral(42))),
-          expectation: "(expr (set-var \"x^0\" (int 42)))",
+          expectation: '(expr (set-var "x^0" (int 42)))',
           serializationState: new SerializationState(
             new SerializationEnvironment(null)
               ..addBinder(x, "x^0")
@@ -118,8 +118,8 @@ void test() {
       return new TestCase(
           name: "/* suppose top-level: dynamic field; */ field;",
           node: new ExpressionStatement(new StaticGet(field)),
-          expectation: ""
-              "(expr (get-static \"package:foo/bar.dart::@fields::field\"))",
+          expectation: ''
+              '(expr (get-static "package:foo/bar.dart::@fields::field"))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -134,9 +134,9 @@ void test() {
           name: "/* suppose top-level: dynamic field; */ field = 1;",
           node:
               new ExpressionStatement(new StaticSet(field, new IntLiteral(1))),
-          expectation: ""
-              "(expr"
-              " (set-static \"package:foo/bar.dart::@fields::field\" (int 1)))",
+          expectation: ''
+              '(expr'
+              ' (set-static "package:foo/bar.dart::@fields::field" (int 1)))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -159,9 +159,9 @@ void test() {
               topLevelProcedure.reference,
               new Arguments(<Expression>[new IntLiteral(42)]),
               isConst: false)),
-          expectation: ""
-              "(expr (invoke-static \"package:foo/bar.dart::@methods::foo\""
-              " () ((int 42)) ()))",
+          expectation: ''
+              '(expr (invoke-static "package:foo/bar.dart::@methods::foo"'
+              ' () ((int 42)) ()))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -183,10 +183,10 @@ void test() {
           node: new ExpressionStatement(new StaticInvocation.byReference(
               factoryConstructor.reference, new Arguments([]),
               isConst: true)),
-          expectation: ""
-              "(expr (invoke-const-static"
-              " \"package:foo/bar.dart::A::@factories::foo\""
-              " () () ()))",
+          expectation: ''
+              '(expr (invoke-const-static'
+              ' "package:foo/bar.dart::A::@factories::foo"'
+              ' () () ()))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -205,9 +205,9 @@ void test() {
           name: "/* suppose A {dynamic field;} A x; */ x.{A::field};",
           node: new ExpressionStatement(new DirectPropertyGet.byReference(
               new VariableGet(x), field.reference)),
-          expectation: ""
-              "(expr (get-direct-prop (get-var \"x^0\" _)"
-              " \"package:foo/bar.dart::A::@fields::field\"))",
+          expectation: ''
+              '(expr (get-direct-prop (get-var "x^0" _)'
+              ' "package:foo/bar.dart::A::@fields::field"))',
           serializationState:
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, "x^0")
@@ -233,9 +233,9 @@ void test() {
           name: "/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;",
           node: new ExpressionStatement(new DirectPropertySet.byReference(
               new VariableGet(x), field.reference, new IntLiteral(42))),
-          expectation: ""
-              "(expr (set-direct-prop (get-var \"x^0\" _)"
-              " \"package:foo/bar.dart::A::@fields::field\" (int 42)))",
+          expectation: ''
+              '(expr (set-direct-prop (get-var "x^0" _)'
+              ' "package:foo/bar.dart::A::@fields::field" (int 42)))',
           serializationState:
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, "x^0")
@@ -263,10 +263,10 @@ void test() {
           name: "/* suppose A {foo() {...}} A x; */ x.{A::foo}();",
           node: new ExpressionStatement(new DirectMethodInvocation.byReference(
               new VariableGet(x), method.reference, new Arguments([]))),
-          expectation: ""
-              "(expr (invoke-direct-method (get-var \"x^0\" _)"
-              " \"package:foo/bar.dart::A::@methods::foo\""
-              " () () ()))",
+          expectation: ''
+              '(expr (invoke-direct-method (get-var "x^0" _)'
+              ' "package:foo/bar.dart::A::@methods::foo"'
+              ' () () ()))',
           serializationState:
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, "x^0")
@@ -291,10 +291,10 @@ void test() {
           name: "/* suppose A {A.foo();} */ new A();",
           node: new ExpressionStatement(new ConstructorInvocation.byReference(
               constructor.reference, new Arguments([]))),
-          expectation: ""
-              "(expr (invoke-constructor"
-              " \"package:foo/bar.dart::A::@constructors::foo\""
-              " () () ()))",
+          expectation: ''
+              '(expr (invoke-constructor'
+              ' "package:foo/bar.dart::A::@constructors::foo"'
+              ' () () ()))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -313,10 +313,10 @@ void test() {
           node: new ExpressionStatement(new ConstructorInvocation.byReference(
               constructor.reference, new Arguments([]),
               isConst: true)),
-          expectation: ""
-              "(expr (invoke-const-constructor"
-              " \"package:foo/bar.dart::A::@constructors::foo\""
-              " () () ()))",
+          expectation: ''
+              '(expr (invoke-const-constructor'
+              ' "package:foo/bar.dart::A::@constructors::foo"'
+              ' () () ()))',
           serializationState: new SerializationState(null),
           deserializationState: new DeserializationState(null, component.root));
     }(),
@@ -329,15 +329,45 @@ void test() {
           name: "/* T Function<T>(T Function<T>()); */",
           node: new ExpressionStatement(new TypeLiteral(new FunctionType(
               [
-                new FunctionType([], new TypeParameterType(innerParam),
+                new FunctionType(
+                    [],
+                    new TypeParameterType(innerParam, Nullability.legacy),
+                    Nullability.legacy,
                     typeParameters: [innerParam])
               ],
-              new TypeParameterType(outterParam),
+              new TypeParameterType(outterParam, Nullability.legacy),
+              Nullability.legacy,
               typeParameters: [outterParam]))),
-          expectation: ""
-              "(expr (type (-> (\"T^0\") ((dynamic)) ((dynamic)) "
-              "((-> (\"T^1\") ((dynamic)) ((dynamic)) () () () "
-              "(par \"T^1\" _))) () () (par \"T^0\" _))))",
+          expectation: ''
+              '(expr (type (-> ("T^0") ((dynamic)) ((dynamic)) '
+              '((-> ("T^1") ((dynamic)) ((dynamic)) () () () '
+              '(par "T^1" _))) () () (par "T^0" _))))',
+          serializationState:
+              new SerializationState(new SerializationEnvironment(null)),
+          deserializationState: new DeserializationState(
+              new DeserializationEnvironment(null), null));
+    }(),
+    () {
+      TypeParameter t =
+          new TypeParameter("T", const DynamicType(), const DynamicType());
+      VariableDeclaration t1 = new VariableDeclaration("t1",
+          type: new TypeParameterType(t, Nullability.legacy));
+      VariableDeclaration t2 = new VariableDeclaration("t2",
+          type: new TypeParameterType(t, Nullability.legacy));
+      return new TestCase(
+          name: "/* <T>(T t1, [T t2]) => t1; */",
+          node: new ExpressionStatement(new FunctionExpression(new FunctionNode(
+              new ReturnStatement(new VariableGet(t1)),
+              typeParameters: [t],
+              positionalParameters: [t1, t2],
+              requiredParameterCount: 1,
+              namedParameters: [],
+              returnType: new TypeParameterType(t, Nullability.legacy),
+              asyncMarker: AsyncMarker.Sync))),
+          expectation: ''
+              '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ((var '
+              '"t1^1" (par "T^0" _) _ ())) ((var "t2^2" (par "T^0" _) '
+              '_ ())) () (par "T^0" _) (ret (get-var "t1^1" _)))))',
           serializationState:
               new SerializationState(new SerializationEnvironment(null)),
           deserializationState: new DeserializationState(

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -32,7 +33,7 @@ class SubstituteEmptyTest extends _Base {
     var T = typeParameter('T');
     var A = class_(name: 'A', typeParameters: [T]);
 
-    var type = interfaceType(A, typeArguments: [intType]);
+    var type = interfaceTypeStar(A, typeArguments: [intType]);
 
     var result = Substitution.empty.substituteType(type);
     expect(result, same(type));
@@ -50,11 +51,11 @@ class SubstituteFromInterfaceTypeTest extends _Base {
     var U = typeParameter('U');
     var B = class_(name: 'B', typeParameters: [U]);
 
-    var BofInt = interfaceType(B, typeArguments: [intType]);
+    var BofInt = interfaceTypeStar(B, typeArguments: [intType]);
     var substitution = Substitution.fromInterfaceType(BofInt);
 
     // A<U>
-    var type = interfaceType(A, typeArguments: [typeParameterType(U)]);
+    var type = interfaceTypeStar(A, typeArguments: [typeParameterType(U)]);
     assertElementTypeString(type, 'A<U>');
 
     var result = substitution.substituteType(type);
@@ -70,7 +71,7 @@ class SubstituteFromPairsTest extends _Base {
     var U = typeParameter('U');
     var A = class_(name: 'A', typeParameters: [T, U]);
 
-    var type = interfaceType(
+    var type = interfaceTypeStar(
       A,
       typeArguments: [
         typeParameterType(T),
@@ -91,14 +92,16 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
   test_function() async {
     // T Function(T)
     var T = typeParameter('T');
-    var type = functionType(
-      required: [typeParameterType(T)],
-      returns: typeParameterType(T),
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: typeParameterType(T)),
+      ],
+      returnType: typeParameterType(T),
     );
 
     var result = Substitution.fromUpperAndLowerBounds(
       {T: typeProvider.intType},
-      {T: BottomTypeImpl.instance},
+      {T: NeverTypeImpl.instance},
     ).substituteType(type);
     expect(result.toString(), 'int Function(Never)');
   }
@@ -117,7 +120,12 @@ class SubstituteTest extends _Base {
   }
 
   test_function_noSubstitutions() async {
-    var type = functionType(required: [intType], returns: boolType);
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: intType),
+      ],
+      returnType: boolType,
+    );
 
     var T = typeParameter('T');
     _assertIdenticalType(type, {T: intType});
@@ -127,12 +135,12 @@ class SubstituteTest extends _Base {
     // typedef F<T, U> = T Function(U u, bool);
     var T = typeParameter('T');
     var U = typeParameter('U');
-    var type = functionType(
-      required: [
-        typeParameterType(U),
-        boolType,
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: typeParameterType(U)),
+        requiredParameter(type: boolType),
       ],
-      returns: typeParameterType(T),
+      returnType: typeParameterType(T),
     );
 
     assertElementTypeString(type, 'T Function(U, bool)');
@@ -152,12 +160,12 @@ class SubstituteTest extends _Base {
     // typedef F<T> = T Function<U extends T>(U);
     var T = typeParameter('T');
     var U = typeParameter('U', bound: typeParameterType(T));
-    var type = functionType(
+    var type = functionTypeStar(
       typeFormals: [U],
-      required: [
-        typeParameterType(U),
+      parameters: [
+        requiredParameter(type: typeParameterType(U)),
       ],
-      returns: typeParameterType(T),
+      returnType: typeParameterType(T),
     );
 
     assertElementTypeString(type, 'T Function<U extends T>(U)');
@@ -180,25 +188,25 @@ class SubstituteTest extends _Base {
     var T = typeParameter('T');
     var U = typeParameter('U');
     var V = typeParameter('V');
-    T.bound = interfaceType(classTriplet, typeArguments: [
+    T.bound = interfaceTypeStar(classTriplet, typeArguments: [
       typeParameterType(T),
       typeParameterType(U),
       typeParameterType(V),
     ]);
-    var type = functionType(
+    var type = functionTypeStar(
       typeFormals: [T, U],
-      returns: boolType,
+      returnType: boolType,
     );
 
     assertElementTypeString(
       type,
-      'bool Function<T extends Triple<T, U, V>,U>()',
+      'bool Function<T extends Triple<T, U, V>, U>()',
     );
 
     var result = substitute(type, {V: intType}) as FunctionType;
     assertElementTypeString(
       result,
-      'bool Function<T extends Triple<T, U, int>,U>()',
+      'bool Function<T extends Triple<T, U, int>, U>()',
     );
     var T2 = result.typeFormals[0];
     var U2 = result.typeFormals[1];
@@ -213,7 +221,7 @@ class SubstituteTest extends _Base {
     var A = class_(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceType(A, typeArguments: [
+    var type = interfaceTypeStar(A, typeArguments: [
       typeParameterType(U),
     ]);
 
@@ -226,8 +234,8 @@ class SubstituteTest extends _Base {
     var A = class_(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceType(A, typeArguments: [
-      interfaceType(
+    var type = interfaceTypeStar(A, typeArguments: [
+      interfaceTypeStar(
         typeProvider.listElement,
         typeArguments: [
           typeParameterType(U),
@@ -243,7 +251,7 @@ class SubstituteTest extends _Base {
     // class A {}
     var A = class_(name: 'A');
 
-    var type = interfaceType(A);
+    var type = interfaceTypeStar(A);
     var T = typeParameter('T');
     _assertIdenticalType(type, {T: intType});
   }
@@ -253,10 +261,53 @@ class SubstituteTest extends _Base {
     var T = typeParameter('T');
     var A = class_(name: 'A', typeParameters: [T]);
 
-    var type = interfaceType(A, typeArguments: [intType]);
+    var type = interfaceTypeStar(A, typeArguments: [intType]);
 
     var U = typeParameter('U');
     _assertIdenticalType(type, {U: doubleType});
+  }
+
+  test_typeParameter_nullability() async {
+    var typeProvider = TestTypeProvider();
+
+    var intElement = typeProvider.intType.element;
+
+    var intQuestion = InterfaceTypeImpl.explicit(intElement, [],
+        nullabilitySuffix: NullabilitySuffix.question);
+    var intStar = InterfaceTypeImpl.explicit(intElement, [],
+        nullabilitySuffix: NullabilitySuffix.star);
+    var intNone = InterfaceTypeImpl.explicit(intElement, [],
+        nullabilitySuffix: NullabilitySuffix.star);
+
+    var tElement = TypeParameterElementImpl('T', -1);
+
+    void check(
+      NullabilitySuffix typeParameterNullability,
+      InterfaceTypeImpl typeArgument,
+      InterfaceTypeImpl expectedType,
+    ) {
+      var result = Substitution.fromMap(
+        {tElement: typeArgument},
+      ).substituteType(
+        TypeParameterTypeImpl(
+          tElement,
+          nullabilitySuffix: typeParameterNullability,
+        ),
+      );
+      expect(result, expectedType);
+    }
+
+    check(NullabilitySuffix.none, intNone, intNone);
+    check(NullabilitySuffix.none, intStar, intStar);
+    check(NullabilitySuffix.none, intQuestion, intQuestion);
+
+    check(NullabilitySuffix.star, intNone, intStar);
+    check(NullabilitySuffix.star, intStar, intStar);
+    check(NullabilitySuffix.star, intQuestion, intQuestion);
+
+    check(NullabilitySuffix.question, intNone, intQuestion);
+    check(NullabilitySuffix.question, intStar, intQuestion);
+    check(NullabilitySuffix.question, intQuestion, intQuestion);
   }
 
   test_unknownInferredType() async {
@@ -290,9 +341,12 @@ class SubstituteWithNullabilityTest extends _Base {
     var A = class_(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceType(A,
-        typeArguments: [typeParameterType(U)],
-        nullabilitySuffix: NullabilitySuffix.none);
+    var type = A.instantiate(
+      typeArguments: [
+        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
+      ],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
     _assertSubstitution(type, {U: intType}, 'A<int>');
   }
 
@@ -302,9 +356,12 @@ class SubstituteWithNullabilityTest extends _Base {
     var A = class_(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceType(A,
-        typeArguments: [typeParameterType(U)],
-        nullabilitySuffix: NullabilitySuffix.question);
+    var type = A.instantiate(
+      typeArguments: [
+        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
+      ],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
     _assertSubstitution(type, {U: intType}, 'A<int>?');
   }
 
@@ -314,9 +371,12 @@ class SubstituteWithNullabilityTest extends _Base {
     var A = class_(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = interfaceType(A,
-        typeArguments: [typeParameterType(U)],
-        nullabilitySuffix: NullabilitySuffix.star);
+    var type = A.instantiate(
+      typeArguments: [
+        U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
+      ],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     _assertSubstitution(type, {U: intType}, 'A<int>*');
   }
 }
@@ -327,8 +387,7 @@ class _Base with ElementsTypesMixin {
   final bool useNnbd;
 
   _Base({this.useNnbd = false})
-      : typeProvider = TestTypeProvider(null, null,
-            useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
+      : typeProvider = TestTypeProvider(isNonNullableByDefault: useNnbd);
 
   InterfaceType get boolType => typeProvider.boolType;
 

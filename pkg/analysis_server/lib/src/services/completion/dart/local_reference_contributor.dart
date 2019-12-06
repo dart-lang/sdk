@@ -10,7 +10,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -609,7 +609,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
 
-    return element.instantiate2(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );

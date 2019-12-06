@@ -5,6 +5,7 @@
 // dart2jsOptions=--strong --omit-implicit-checks --lax-runtime-type-to-string
 
 import 'package:expect/expect.dart';
+import 'dart:_foreign_helper' show JS_GET_FLAG;
 
 class Class<T> {
   Class();
@@ -17,7 +18,11 @@ main() {
   var toString = '${local1.runtimeType}';
   if ('$Object' == 'Object') {
     // `true` if non-minified.
-    Expect.equals("main_local1", toString);
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      Expect.equals("Closure", toString);
+    } else {
+      Expect.equals("main_local1", toString);
+    }
   }
   print(toString);
   local2(0);

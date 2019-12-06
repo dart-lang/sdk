@@ -291,6 +291,30 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
   return range;
 }
 
+const char* RangeBoundary::KindToCString(Kind kind) {
+  switch (kind) {
+#define KIND_CASE(name)                                                        \
+  case Kind::k##name:                                                          \
+    return #name;
+    FOR_EACH_RANGE_BOUNDARY_KIND(KIND_CASE)
+#undef KIND_CASE
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool RangeBoundary::ParseKind(const char* str, Kind* out) {
+#define KIND_CASE(name)                                                        \
+  if (strcmp(str, #name) == 0) {                                               \
+    *out = Kind::k##name;                                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_RANGE_BOUNDARY_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
@@ -946,14 +970,22 @@ class BoundsCheckGeneralizer {
     return nullptr;
   }
 
-  // Reconstruct invariant (phi-init is always already in the graph).
+  // Reconstruct invariant.
   Definition* GenerateInvariant(InductionVar* induc) {
+    Definition* res = nullptr;
     if (induc->mult() == 0) {
-      return flow_graph_->GetConstant(
-          Smi::ZoneHandle(Smi::New(induc->offset())));
+      res =
+          flow_graph_->GetConstant(Smi::ZoneHandle(Smi::New(induc->offset())));
+    } else {
+      res = induc->def();
+      if (induc->mult() != 1) {
+        res = MakeBinaryOp(Token::kMUL, res, induc->mult());
+      }
+      if (induc->offset() != 0) {
+        res = MakeBinaryOp(Token::kADD, res, induc->offset());
+      }
     }
-    ASSERT(induc->offset() == 0 && induc->mult() == 1);
-    return induc->def();
+    return res;
   }
 
   // Construct symbolic bound for a value at the given point:
@@ -1313,7 +1345,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
     for (CheckBoundBase* check : bounds_checks_) {
-      if (check->IsRedundant()) {
+      if (check->IsRedundant(/*use_loops=*/true)) {
         check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
       } else if (try_generalization) {
@@ -2191,14 +2223,6 @@ void Range::BitwiseOp(const Range* left_range,
       RangeBoundary::FromConstant((static_cast<uint64_t>(1) << bitsize) - 1);
 }
 
-static bool IsArrayLength(Definition* defn) {
-  if (defn == NULL) {
-    return false;
-  }
-  LoadFieldInstr* load = UnwrapConstraint(defn)->AsLoadField();
-  return (load != NULL) && load->IsImmutableLengthLoad();
-}
-
 void Range::Add(const Range* left_range,
                 const Range* right_range,
                 RangeBoundary* result_min,
@@ -2209,11 +2233,11 @@ void Range::Add(const Range* left_range,
   ASSERT(result_min != NULL);
   ASSERT(result_max != NULL);
 
-  RangeBoundary left_min = IsArrayLength(left_defn)
+  RangeBoundary left_min = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->min();
 
-  RangeBoundary left_max = IsArrayLength(left_defn)
+  RangeBoundary left_max = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->max();
 
@@ -2239,11 +2263,11 @@ void Range::Sub(const Range* left_range,
   ASSERT(result_min != NULL);
   ASSERT(result_max != NULL);
 
-  RangeBoundary left_min = IsArrayLength(left_defn)
+  RangeBoundary left_min = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->min();
 
-  RangeBoundary left_max = IsArrayLength(left_defn)
+  RangeBoundary left_max = Definition::IsArrayLength(left_defn)
                                ? RangeBoundary::FromDefinition(left_defn)
                                : left_range->max();
 
@@ -2991,59 +3015,17 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   return false;
 }
 
-// Check if range boundary and invariant limit are the same boundary.
-static bool IsSameBound(const RangeBoundary& a, InductionVar* b) {
-  ASSERT(InductionVar::IsInvariant(b));
-  if (a.IsSymbol()) {
-    // Check for exactly the same symbol as length.
-    return a.symbol() == b->def() && b->mult() == 1 &&
-           a.offset() == b->offset();
-  } else if (a.IsConstant()) {
-    // Check for constant in right range 0 < c <= length.
-    int64_t c = 0;
-    return InductionVar::IsConstant(b, &c) && 0 < c && c <= a.ConstantValue();
-  }
-  return false;
-}
-
-bool CheckBoundBase::IsRedundant() {
+bool CheckBoundBase::IsRedundant(bool use_loops) {
   // First, try to prove redundancy with the results of range analysis.
   if (IsRedundantBasedOnRangeInformation(index(), length())) {
     return true;
-  } else if (previous() == nullptr) {
-    return false;  // check is not in flow graph yet
+  } else if (!use_loops) {
+    return false;
   }
   // Next, try to prove redundancy with the results of induction analysis.
-  // Under 64-bit wrap-around arithmetic, it is always safe to remove the
-  // bounds check from the following loop, if initial >= 0 and the loop
-  // exit branch dominates the bounds check:
-  //
-  //   for (int i = initial; i < length; i++)
-  //     .... a[i] ....
-  //
   LoopInfo* loop = GetBlock()->loop_info();
   if (loop != nullptr) {
-    InductionVar* induc = loop->LookupInduction(index()->definition());
-    if (induc != nullptr) {
-      int64_t stride = 0;
-      int64_t initial = 0;
-      if (InductionVar::IsLinear(induc, &stride) &&
-          InductionVar::IsConstant(induc->initial(), &initial)) {
-        if (stride == 1 && initial >= 0) {
-          // Deeply trace back the range of the array length.
-          RangeBoundary deep_length = RangeBoundary::FromDefinition(
-              length()
-                  ->definition()
-                  ->OriginalDefinitionIgnoreBoxingAndConstraints());
-          for (auto bound : induc->bounds()) {
-            if (IsSameBound(deep_length, bound.limit_) &&
-                this->IsDominatedBy(bound.branch_)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
+    return loop->IsInRange(this, index(), length());
   }
   return false;
 }

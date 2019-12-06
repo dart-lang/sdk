@@ -12,8 +12,10 @@ import 'package:tflite_native/tflite.dart' as tfl;
 
 /// Interface to TensorFlow-based Dart language model for next-token prediction.
 class LanguageModel {
-  static const _defaultCompletions = 100;
-  static final _numeric = RegExp(r'^\d+(.\d+)?$');
+  static const _probabilityThreshold = 0.0001;
+  static final _numeric = RegExp(r'^\d+(\.\d+)?$');
+  static final _alphanumeric = RegExp(r"^['\w]+$");
+  static final _doubleQuote = '"'.codeUnitAt(0);
 
   final tfl.Interpreter _interpreter;
   final Map<String, int> _word2idx;
@@ -25,9 +27,6 @@ class LanguageModel {
 
   /// Number of previous tokens to look at during predictions.
   int get lookback => _lookback;
-
-  /// Number of completion results to return during predictions.
-  int get completions => _defaultCompletions;
 
   /// Load model from directory.
   factory LanguageModel.load(String directory) {
@@ -85,7 +84,7 @@ class LanguageModel {
       if (_word2idx.containsKey(token)) {
         return token;
       }
-      if (_numeric.hasMatch(token)) {
+      if (isNumber(token)) {
         return '<num>';
       }
       if (_isString(token)) {
@@ -110,6 +109,7 @@ class LanguageModel {
     final probabilities = Float32List.view(bytes.buffer);
 
     final scores = Map<String, double>();
+    final scoresAboveThreshold = Map<String, double>();
     probabilities.asMap().forEach((k, v) {
       // x in 0, 1, ..., |V| - 1 correspond to specific members of the vocabulary.
       // x in |V|, |V| + 1, ..., |V| + 49 are pointers to reference positions along the
@@ -117,18 +117,39 @@ class LanguageModel {
       if (k >= _idx2word.length + tokens.length) {
         return;
       }
+      // Find the name corresponding to this position along the network output.
       final lexeme =
           k < _idx2word.length ? _idx2word[k] : tokens[k - _idx2word.length];
-      final sanitized = lexeme.replaceAll('"', '\'');
-      scores[sanitized] = (scores[sanitized] ?? 0.0) + v;
+      // Normalize double to single quotes.
+      final sanitized = lexeme.codeUnitAt(0) != _doubleQuote
+          ? lexeme
+          : lexeme.replaceAll('"', '\'');
+      final score = (scores[sanitized] ?? 0.0) + v;
+      scores[sanitized] = score;
+      if (score < _probabilityThreshold ||
+          k >= _idx2word.length && !_isAlphanumeric(sanitized)) {
+        // Discard names below a fixed likelihood, and
+        // don't assign probability to punctuation by reference.
+        return;
+      }
+      scoresAboveThreshold[sanitized] = score;
     });
 
-    final entries = scores.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return Map.fromEntries(entries.sublist(0, completions));
+    return Map.fromEntries(scoresAboveThreshold.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value)));
+  }
+
+  bool _isAlphanumeric(String token) {
+    // Note that _numeric covers integral and decimal values whereas
+    // _alphanumeric only matches integral values. Check both.
+    return _alphanumeric.hasMatch(token) || _numeric.hasMatch(token);
   }
 
   bool _isString(String token) {
     return token.indexOf('"') != -1 || token.indexOf("'") != -1;
+  }
+
+  bool isNumber(String token) {
+    return _numeric.hasMatch(token) || token.startsWith('0x');
   }
 }

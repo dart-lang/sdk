@@ -28,7 +28,6 @@
               'tests/lib_2/',
               'tests/light_unittest.dart',
               'tests/search/',
-              'tests/standalone/',
               'tests/standalone_2/',
               'pkg/async_helper/',
               'pkg/compiler/',

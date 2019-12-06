@@ -11,10 +11,9 @@ import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 
@@ -97,55 +96,56 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
             unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is FieldBuilder) {
-          Field field = declaration.build(libraryBuilder);
-          if (addMembersToLibrary && declaration.next == null) {
-            libraryBuilder.library.addMember(field);
-            extension.members.add(new ExtensionMemberDescriptor(
-                name: new Name(declaration.name, libraryBuilder.library),
-                member: field.reference,
-                isStatic: declaration.isStatic,
-                kind: ExtensionMemberKind.Field));
-          }
-        } else if (declaration is ProcedureBuilder) {
-          Member function = declaration.build(libraryBuilder);
-          if (addMembersToLibrary &&
-              !declaration.isPatch &&
-              declaration.next == null) {
-            libraryBuilder.library.addMember(function);
-            ExtensionMemberKind kind;
-            switch (declaration.kind) {
-              case ProcedureKind.Method:
-                kind = ExtensionMemberKind.Method;
-                break;
-              case ProcedureKind.Getter:
-                kind = ExtensionMemberKind.Getter;
-                break;
-              case ProcedureKind.Setter:
-                kind = ExtensionMemberKind.Setter;
-                break;
-              case ProcedureKind.Operator:
-                kind = ExtensionMemberKind.Operator;
-                break;
-              case ProcedureKind.Factory:
-                unsupported("Extension method kind: ${declaration.kind}",
-                    declaration.charOffset, declaration.fileUri);
+        } else if (declaration is MemberBuilderImpl) {
+          MemberBuilderImpl memberBuilder = declaration;
+          memberBuilder.buildMembers(libraryBuilder,
+              (Member member, BuiltMemberKind memberKind) {
+            if (addMembersToLibrary &&
+                !memberBuilder.isPatch &&
+                !memberBuilder.isDuplicate) {
+              ExtensionMemberKind kind;
+              switch (memberKind) {
+                case BuiltMemberKind.Constructor:
+                case BuiltMemberKind.RedirectingFactory:
+                case BuiltMemberKind.Field:
+                case BuiltMemberKind.Method:
+                  unhandled(
+                      "${member.runtimeType}:${memberKind}",
+                      "buildMembers",
+                      declaration.charOffset,
+                      declaration.fileUri);
+                  break;
+                case BuiltMemberKind.ExtensionField:
+                case BuiltMemberKind.LateIsSetField:
+                  kind = ExtensionMemberKind.Field;
+                  break;
+                case BuiltMemberKind.ExtensionMethod:
+                  kind = ExtensionMemberKind.Method;
+                  break;
+                case BuiltMemberKind.ExtensionGetter:
+                case BuiltMemberKind.LateGetter:
+                  kind = ExtensionMemberKind.Getter;
+                  break;
+                case BuiltMemberKind.ExtensionSetter:
+                case BuiltMemberKind.LateSetter:
+                  kind = ExtensionMemberKind.Setter;
+                  break;
+                case BuiltMemberKind.ExtensionOperator:
+                  kind = ExtensionMemberKind.Operator;
+                  break;
+                case BuiltMemberKind.ExtensionTearOff:
+                  kind = ExtensionMemberKind.TearOff;
+                  break;
+              }
+              assert(kind != null);
+              libraryBuilder.library.addMember(member);
+              extension.members.add(new ExtensionMemberDescriptor(
+                  name: new Name(memberBuilder.name, libraryBuilder.library),
+                  member: member.reference,
+                  isStatic: declaration.isStatic,
+                  kind: kind));
             }
-            extension.members.add(new ExtensionMemberDescriptor(
-                name: new Name(declaration.name, libraryBuilder.library),
-                member: function.reference,
-                isStatic: declaration.isStatic,
-                kind: kind));
-            Procedure tearOff = declaration.extensionTearOff;
-            if (tearOff != null) {
-              libraryBuilder.library.addMember(tearOff);
-              _extension.members.add(new ExtensionMemberDescriptor(
-                  name: new Name(declaration.name, libraryBuilder.library),
-                  member: tearOff.reference,
-                  isStatic: false,
-                  kind: ExtensionMemberKind.TearOff));
-            }
-          }
+          });
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
               declaration.charOffset, declaration.fileUri);
@@ -156,7 +156,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     scope.forEach(buildBuilders);
 
-    scope.setters.forEach((String name, Builder setter) {
+    scope.forEachLocalSetter((String name, MemberBuilder setter) {
       Builder member = scopeBuilder[name];
       if (member == null) {
         // Setter without getter.
@@ -194,14 +194,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       if (retainDataForTesting) {
         patchForTesting = patch;
       }
-      scope.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.local[name];
+      scope.forEachLocalMember((String name, Builder member) {
+        Builder memberPatch =
+            patch.scope.lookupLocalMember(name, setter: false);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      scope.setters.forEach((String name, Builder member) {
-        Builder memberPatch = patch.scope.setters[name];
+      scope.forEachLocalSetter((String name, Builder member) {
+        Builder memberPatch = patch.scope.lookupLocalMember(name, setter: true);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }

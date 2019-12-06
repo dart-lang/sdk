@@ -625,6 +625,328 @@ ASSEMBLER_TEST_RUN(AndRegs, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+constexpr uint64_t kU64MinusOne = 0xffffffffffffffffull;
+constexpr uint64_t kU64MinInt32 = 0xffffffff80000000ull;
+constexpr uint64_t kU64MaxInt32 = 0x000000007fffffffull;
+constexpr uint64_t kU64MinInt64 = 0x8000000000000000ull;
+constexpr uint64_t kU64MaxInt64 = 0x7fffffffffffffffull;
+
+#define FOR_EACH_ASR_64_TEST_CONFIG(M)                                         \
+  M(0ull, 0, 0ull)                                                             \
+  M(1ull, 0, 1ull)                                                             \
+  M(kU64MaxInt32, 0, kU64MaxInt32)                                             \
+  M(kU64MaxInt64, 0, kU64MaxInt64)                                             \
+  M(kU64MinInt32, 0, kU64MinInt32)                                             \
+  M(kU64MinInt64, 0, kU64MinInt64)                                             \
+  M(0ull, 1, 0ull)                                                             \
+  M(1ull, 1, 0ull)                                                             \
+  M(4ull, 1, 2ull)                                                             \
+  M(0xffffull, 1, 0x7fffull)                                                   \
+  M(0xffffffffull, 1, 0x7fffffffull)                                           \
+  M(kU64MaxInt32, 1, 0x3fffffffull)                                            \
+  M(kU64MaxInt64, 1, 0x3fffffffffffffffull)                                    \
+  M(kU64MinInt32, 1, 0xffffffffc0000000ull)                                    \
+  M(kU64MinInt64, 1, 0xc000000000000000ull)                                    \
+  M(kU64MinusOne, 1, kU64MinusOne)                                             \
+  M(1ull, 2, 0ull)                                                             \
+  M(4ull, 2, 1ull)                                                             \
+  M(0xffffull, 2, 0x3fffull)                                                   \
+  M(0xffffffffull, 2, 0x3fffffffull)                                           \
+  M(kU64MaxInt32, 2, 0x1fffffffull)                                            \
+  M(kU64MaxInt64, 2, 0x1fffffffffffffffull)                                    \
+  M(kU64MinInt32, 2, 0xffffffffe0000000ull)                                    \
+  M(kU64MinInt64, 2, 0xe000000000000000ull)                                    \
+  M(kU64MinusOne, 2, kU64MinusOne)                                             \
+  M(0ull, 31, 0ull)                                                            \
+  M(1ull, 31, 0ull)                                                            \
+  M(4ull, 31, 0ull)                                                            \
+  M(0xffffull, 31, 0ull)                                                       \
+  M(0xffffffffull, 31, 1ull)                                                   \
+  M(kU64MaxInt32, 31, 0ull)                                                    \
+  M(kU64MaxInt64, 31, 0xffffffffull)                                           \
+  M(kU64MinInt32, 31, kU64MinusOne)                                            \
+  M(kU64MinInt64, 31, 0xffffffff00000000ull)                                   \
+  M(kU64MinusOne, 31, kU64MinusOne)                                            \
+  M(0ull, 32, 0ull)                                                            \
+  M(1ull, 32, 0ull)                                                            \
+  M(4ull, 32, 0ull)                                                            \
+  M(0xffffull, 32, 0ull)                                                       \
+  M(0xffffffffull, 32, 0ull)                                                   \
+  M(kU64MaxInt64, 32, 0x7fffffffull)                                           \
+  M(kU64MinInt32, 32, kU64MinusOne)                                            \
+  M(kU64MinInt64, 32, 0xffffffff80000000ull)                                   \
+  M(kU64MinusOne, 32, kU64MinusOne)                                            \
+  M(0ull, 62, 0ull)                                                            \
+  M(1ull, 62, 0ull)                                                            \
+  M(4ull, 62, 0ull)                                                            \
+  M(0xffffull, 62, 0ull)                                                       \
+  M(0xffffffffull, 62, 0ull)                                                   \
+  M(kU64MaxInt64, 62, 1ull)                                                    \
+  M(kU64MinInt32, 62, kU64MinusOne)                                            \
+  M(kU64MinInt64, 62, 0xfffffffffffffffeull)                                   \
+  M(kU64MinusOne, 62, kU64MinusOne)                                            \
+  M(0ull, 63, 0ull)                                                            \
+  M(1ull, 63, 0ull)                                                            \
+  M(4ull, 63, 0ull)                                                            \
+  M(0xffffull, 63, 0ull)                                                       \
+  M(0xffffffffull, 63, 0ull)                                                   \
+  M(kU64MaxInt64, 63, 0ull)                                                    \
+  M(kU64MinInt32, 63, kU64MinusOne)                                            \
+  M(kU64MinInt64, 63, kU64MinusOne)                                            \
+  M(kU64MinusOne, 63, kU64MinusOne)
+
+#define FOR_EACH_LSR_64_TEST_CONFIG(M)                                         \
+  M(0ull, 0, 0ull)                                                             \
+  M(1ull, 0, 1ull)                                                             \
+  M(kU64MaxInt32, 0, kU64MaxInt32)                                             \
+  M(kU64MaxInt64, 0, kU64MaxInt64)                                             \
+  M(kU64MinInt32, 0, kU64MinInt32)                                             \
+  M(kU64MinInt64, 0, kU64MinInt64)                                             \
+  M(0ull, 1, 0ull)                                                             \
+  M(1ull, 1, 0ull)                                                             \
+  M(4ull, 1, 2ull)                                                             \
+  M(0xffffull, 1, 0x7fffull)                                                   \
+  M(0xffffffffull, 1, 0x7fffffffull)                                           \
+  M(kU64MaxInt32, 1, 0x3fffffffull)                                            \
+  M(kU64MaxInt64, 1, 0x3fffffffffffffffull)                                    \
+  M(kU64MinInt32, 1, 0x7fffffffc0000000ull)                                    \
+  M(kU64MinInt64, 1, 0x4000000000000000ull)                                    \
+  M(kU64MinusOne, 1, 0x7fffffffffffffffull)                                    \
+  M(1ull, 2, 0ull)                                                             \
+  M(4ull, 2, 1ull)                                                             \
+  M(0xffffull, 2, 0x3fffull)                                                   \
+  M(0xffffffffull, 2, 0x3fffffffull)                                           \
+  M(kU64MaxInt32, 2, 0x1fffffffull)                                            \
+  M(kU64MaxInt64, 2, 0x1fffffffffffffffull)                                    \
+  M(kU64MinInt32, 2, 0x3fffffffe0000000ull)                                    \
+  M(kU64MinInt64, 2, 0x2000000000000000ull)                                    \
+  M(kU64MinusOne, 2, 0x3fffffffffffffffull)                                    \
+  M(0ull, 31, 0ull)                                                            \
+  M(1ull, 31, 0ull)                                                            \
+  M(4ull, 31, 0ull)                                                            \
+  M(0xffffull, 31, 0ull)                                                       \
+  M(0xffffffffull, 31, 1ull)                                                   \
+  M(kU64MaxInt32, 31, 0ull)                                                    \
+  M(kU64MaxInt64, 31, 0xffffffffull)                                           \
+  M(kU64MinInt32, 31, 0x1ffffffffull)                                          \
+  M(kU64MinInt64, 31, 0x100000000ull)                                          \
+  M(kU64MinusOne, 31, 0x1ffffffffull)                                          \
+  M(0ull, 32, 0ull)                                                            \
+  M(1ull, 32, 0ull)                                                            \
+  M(4ull, 32, 0ull)                                                            \
+  M(0xffffull, 32, 0ull)                                                       \
+  M(0xffffffffull, 32, 0ull)                                                   \
+  M(kU64MaxInt64, 32, 0x7fffffffull)                                           \
+  M(kU64MinInt32, 32, 0xffffffffull)                                           \
+  M(kU64MinInt64, 32, 0x80000000ull)                                           \
+  M(kU64MinusOne, 32, 0xffffffffull)                                           \
+  M(0ull, 62, 0ull)                                                            \
+  M(1ull, 62, 0ull)                                                            \
+  M(4ull, 62, 0ull)                                                            \
+  M(0xffffull, 62, 0ull)                                                       \
+  M(0xffffffffull, 62, 0ull)                                                   \
+  M(kU64MaxInt64, 62, 1ull)                                                    \
+  M(kU64MinInt32, 62, 3ull)                                                    \
+  M(kU64MinInt64, 62, 2ull)                                                    \
+  M(kU64MinusOne, 62, 3ull)                                                    \
+  M(0ull, 63, 0ull)                                                            \
+  M(1ull, 63, 0ull)                                                            \
+  M(4ull, 63, 0ull)                                                            \
+  M(0xffffull, 63, 0ull)                                                       \
+  M(0xffffffffull, 63, 0ull)                                                   \
+  M(kU64MaxInt64, 63, 0ull)                                                    \
+  M(kU64MinInt32, 63, 1ull)                                                    \
+  M(kU64MinInt64, 63, 1ull)                                                    \
+  M(kU64MinusOne, 63, 1ull)
+
+#define FOR_EACH_LSL_64_TEST_CONFIG(M)                                         \
+  M(0ull, 0, 0ull)                                                             \
+  M(1ull, 0, 1ull)                                                             \
+  M(kU64MaxInt32, 0, kU64MaxInt32)                                             \
+  M(kU64MaxInt64, 0, kU64MaxInt64)                                             \
+  M(kU64MinInt32, 0, kU64MinInt32)                                             \
+  M(kU64MinInt64, 0, kU64MinInt64)                                             \
+  M(0ull, 1, 0ull)                                                             \
+  M(1ull, 1, 2ull)                                                             \
+  M(4ull, 1, 8ull)                                                             \
+  M(0xffffull, 1, 0x1fffeull)                                                  \
+  M(0xffffffffull, 1, 0x1fffffffeull)                                          \
+  M(kU64MaxInt32, 1, 0xfffffffeull)                                            \
+  M(kU64MaxInt64, 1, 0xfffffffffffffffeull)                                    \
+  M(kU64MinInt32, 1, 0xffffffff00000000ull)                                    \
+  M(kU64MinInt64, 1, 0ull)                                                     \
+  M(kU64MinusOne, 1, 0xfffffffffffffffeull)                                    \
+  M(1ull, 2, 4ull)                                                             \
+  M(4ull, 2, 16ull)                                                            \
+  M(0xffffull, 2, 0x3fffcull)                                                  \
+  M(0xffffffffull, 2, 0x3fffffffcull)                                          \
+  M(kU64MaxInt32, 2, 0x1fffffffcull)                                           \
+  M(kU64MaxInt64, 2, 0xfffffffffffffffcull)                                    \
+  M(kU64MinInt32, 2, 0xfffffffe00000000ull)                                    \
+  M(kU64MinInt64, 2, 0ull)                                                     \
+  M(kU64MinusOne, 2, 0xfffffffffffffffcull)                                    \
+  M(0ull, 31, 0ull)                                                            \
+  M(1ull, 31, 0x0000000080000000ull)                                           \
+  M(4ull, 31, 0x0000000200000000ull)                                           \
+  M(0xffffull, 31, 0x00007fff80000000ull)                                      \
+  M(0xffffffffull, 31, 0x7fffffff80000000ull)                                  \
+  M(kU64MaxInt32, 31, 0x3fffffff80000000ull)                                   \
+  M(kU64MaxInt64, 31, 0xffffffff80000000ull)                                   \
+  M(kU64MinInt32, 31, 0xc000000000000000ull)                                   \
+  M(kU64MinInt64, 31, 0ull)                                                    \
+  M(kU64MinusOne, 31, 0xffffffff80000000ull)                                   \
+  M(0ull, 32, 0ull)                                                            \
+  M(1ull, 32, 0x0000000100000000ull)                                           \
+  M(4ull, 32, 0x0000000400000000ull)                                           \
+  M(0xffffull, 32, 0x0000ffff00000000ull)                                      \
+  M(0xffffffffull, 32, 0xffffffff00000000ull)                                  \
+  M(kU64MaxInt64, 32, 0xffffffff00000000ull)                                   \
+  M(kU64MinInt32, 32, 0x8000000000000000ull)                                   \
+  M(kU64MinInt64, 32, 0ull)                                                    \
+  M(kU64MinusOne, 32, 0xffffffff00000000ull)                                   \
+  M(0ull, 62, 0ull)                                                            \
+  M(1ull, 62, 0x4000000000000000ull)                                           \
+  M(4ull, 62, 0ull)                                                            \
+  M(0xffffull, 62, 0xc000000000000000ull)                                      \
+  M(0xffffffffull, 62, 0xc000000000000000ull)                                  \
+  M(kU64MaxInt64, 62, 0xc000000000000000ull)                                   \
+  M(kU64MinInt32, 62, 0ull)                                                    \
+  M(kU64MinInt64, 62, 0ull)                                                    \
+  M(kU64MinusOne, 62, 0xc000000000000000ull)                                   \
+  M(0ull, 63, 0ull)                                                            \
+  M(1ull, 63, 0x8000000000000000ull)                                           \
+  M(4ull, 63, 0ull)                                                            \
+  M(0xffffull, 63, 0x8000000000000000ull)                                      \
+  M(0xffffffffull, 63, 0x8000000000000000ull)                                  \
+  M(kU64MaxInt64, 63, 0x8000000000000000ull)                                   \
+  M(kU64MinInt32, 63, 0ull)                                                    \
+  M(kU64MinInt64, 63, 0ull)                                                    \
+  M(kU64MinusOne, 63, 0x8000000000000000ull)
+
+#define SHIFT_64_IMMEDIATE_TEST(macro_op, val, shift, expected)                \
+  ASSEMBLER_TEST_GENERATE(macro_op##_##val##_##shift, assembler) {             \
+    __ LoadImmediate(R1, bit_cast<int64_t>(val));                              \
+    __ macro_op(R0, R1, (shift));                                              \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(macro_op##_##val##_##shift, test) {                       \
+    typedef int64_t (*Int64Return)() DART_UNUSED;                              \
+    EXPECT_EQ((expected), bit_cast<uint64_t>(EXECUTE_TEST_CODE_INT64(          \
+                              Int64Return, test->entry())));                   \
+  }
+
+#define ASR_64_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_64_IMMEDIATE_TEST(AsrImmediate, val, shift, expected)
+
+#define LSR_64_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_64_IMMEDIATE_TEST(LsrImmediate, val, shift, expected)
+
+#define LSL_64_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_64_IMMEDIATE_TEST(LslImmediate, val, shift, expected)
+
+FOR_EACH_ASR_64_TEST_CONFIG(ASR_64_IMMEDIATE_TEST)
+FOR_EACH_LSR_64_TEST_CONFIG(LSR_64_IMMEDIATE_TEST)
+FOR_EACH_LSL_64_TEST_CONFIG(LSL_64_IMMEDIATE_TEST)
+
+#undef LSL_64_IMMEDIATE_TEST
+#undef LSR_64_IMMEDIATE_TEST
+#undef ASR_64_IMMEDIATE_TEST
+#undef SHIFT_64_IMMEDIATE_TEST
+#undef FOR_EACH_LSL_64_TESTS_LIST
+#undef FOR_EACH_LSR_64_TESTS_LIST
+#undef FOR_EACH_ASR_64_TESTS_LIST
+
+constexpr uint32_t kU32MinusOne = 0xffffffffu;
+constexpr uint32_t kU32MinInt32 = 0x80000000u;
+constexpr uint32_t kU32MaxInt32 = 0x7fffffffu;
+
+#define FOR_EACH_LSR_32_TEST_CONFIG(M)                                         \
+  M(0u, 0, 0u)                                                                 \
+  M(1u, 0, 1u)                                                                 \
+  M(kU32MaxInt32, 0, kU32MaxInt32)                                             \
+  M(kU32MinInt32, 0, kU32MinInt32)                                             \
+  M(0u, 1, 0u)                                                                 \
+  M(1u, 1, 0u)                                                                 \
+  M(4u, 1, 2u)                                                                 \
+  M(0xffffu, 1, 0x7fffu)                                                       \
+  M(0xffffffffu, 1, 0x7fffffffu)                                               \
+  M(kU32MaxInt32, 1, 0x3fffffffu)                                              \
+  M(kU32MinInt32, 1, 0x40000000u)                                              \
+  M(kU32MinusOne, 1, 0x7fffffffu)                                              \
+  M(1u, 2, 0u)                                                                 \
+  M(4u, 2, 1u)                                                                 \
+  M(0xffffu, 2, 0x3fffu)                                                       \
+  M(0xffffffffu, 2, 0x3fffffffu)                                               \
+  M(kU32MaxInt32, 2, 0x1fffffffu)                                              \
+  M(kU32MinInt32, 2, 0x20000000u)                                              \
+  M(kU32MinusOne, 2, 0x3fffffffu)                                              \
+  M(0u, 31, 0u)                                                                \
+  M(1u, 31, 0u)                                                                \
+  M(4u, 31, 0u)                                                                \
+  M(0xffffu, 31, 0u)                                                           \
+  M(0xffffffffu, 31, 1u)                                                       \
+  M(kU32MaxInt32, 31, 0u)                                                      \
+  M(kU32MinInt32, 31, 1u)                                                      \
+  M(kU32MinusOne, 31, 1u)
+
+#define FOR_EACH_LSL_32_TEST_CONFIG(M)                                         \
+  M(0u, 0, 0u)                                                                 \
+  M(1u, 0, 1u)                                                                 \
+  M(kU32MaxInt32, 0, kU32MaxInt32)                                             \
+  M(kU32MinInt32, 0, kU32MinInt32)                                             \
+  M(0u, 1, 0u)                                                                 \
+  M(1u, 1, 2u)                                                                 \
+  M(4u, 1, 8u)                                                                 \
+  M(0xffffu, 1, 0x1fffeu)                                                      \
+  M(0xffffffffu, 1, 0xfffffffeu)                                               \
+  M(kU32MaxInt32, 1, 0xfffffffeu)                                              \
+  M(kU32MinInt32, 1, 0x00000000u)                                              \
+  M(kU32MinusOne, 1, 0xfffffffeu)                                              \
+  M(1u, 2, 4u)                                                                 \
+  M(4u, 2, 16u)                                                                \
+  M(0xffffu, 2, 0x3fffcu)                                                      \
+  M(0xffffffffu, 2, 0xfffffffcu)                                               \
+  M(kU32MaxInt32, 2, 0xfffffffcu)                                              \
+  M(kU32MinInt32, 2, 0x00000000u)                                              \
+  M(kU32MinusOne, 2, 0xfffffffcu)                                              \
+  M(0u, 31, 0u)                                                                \
+  M(1u, 31, 0x80000000u)                                                       \
+  M(4u, 31, 0x00000000u)                                                       \
+  M(0xffffu, 31, 0x80000000u)                                                  \
+  M(0xffffffffu, 31, 0x80000000u)                                              \
+  M(kU32MaxInt32, 31, 0x80000000u)                                             \
+  M(kU32MinInt32, 31, 0x00000000u)                                             \
+  M(kU32MinusOne, 31, 0x80000000u)
+
+#define SHIFT_32_IMMEDIATE_TEST(macro_op, val, shift, expected)                \
+  ASSEMBLER_TEST_GENERATE(macro_op##a_##val##_##shift, assembler) {            \
+    __ LoadImmediate(R1, bit_cast<int32_t>(val));                              \
+    __ macro_op(R0, R1, (shift), kWord);                                       \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(macro_op##a_##val##_##shift, test) {                      \
+    typedef int32_t (*Int32Return)() DART_UNUSED;                              \
+    EXPECT_EQ((expected), bit_cast<uint32_t>((int32_t)EXECUTE_TEST_CODE_INT64( \
+                              Int32Return, test->entry())));                   \
+  }
+
+#define LSR_32_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_32_IMMEDIATE_TEST(LsrImmediate, val, shift, expected)
+
+#define LSL_32_IMMEDIATE_TEST(val, shift, expected)                            \
+  SHIFT_32_IMMEDIATE_TEST(LslImmediate, val, shift, expected)
+
+FOR_EACH_LSR_32_TEST_CONFIG(LSR_32_IMMEDIATE_TEST)
+FOR_EACH_LSL_32_TEST_CONFIG(LSL_32_IMMEDIATE_TEST)
+
+#undef LSL_32_IMMEDIATE_TEST
+#undef LSR_32_IMMEDIATE_TEST
+#undef SHIFT_32_IMMEDIATE_TEST
+#undef FOR_EACH_LSL_32_TESTS_LIST
+#undef FOR_EACH_LSR_32_TESTS_LIST
+
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);
   __ movz(R2, Immediate(21), 0);
@@ -2076,15 +2398,18 @@ static void EnterTestFrame(Assembler* assembler) {
   __ Push(CODE_REG);
   __ Push(THR);
   __ Push(BARRIER_MASK);
+  __ Push(NULL_REG);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
   __ mov(THR, R1);
   __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+  __ ldr(NULL_REG, Address(THR, Thread::object_null_offset()));
   __ LoadPoolPointer(PP);
 }
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(NULL_REG);
   __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);
@@ -2157,6 +2482,39 @@ ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
 
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
   EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+}
+
+// PushObject null.
+ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
+  __ SetupDartSP();
+  EnterTestFrame(assembler);
+  __ PushObject(Object::null_object());
+  __ Pop(R0);
+  LeaveTestFrame(assembler);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PushObjectNull, test) {
+  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+}
+
+// CompareObject null.
+ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
+  __ SetupDartSP();
+  EnterTestFrame(assembler);
+  __ LoadObject(R0, Object::bool_true());
+  __ LoadObject(R1, Object::bool_false());
+  __ ldr(R2, Address(THR, Thread::object_null_offset()));
+  __ CompareObject(R2, Object::null_object());
+  __ csel(R0, R0, R1, EQ);
+  LeaveTestFrame(assembler);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
+  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {

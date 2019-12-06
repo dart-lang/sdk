@@ -123,9 +123,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;
     }
-    if (element is LocalElement) {
-      properties['visibleRange'] = element.visibleRange;
-    }
     if (element is ParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
       properties['isInitializingFormal'] = element.isInitializingFormal;

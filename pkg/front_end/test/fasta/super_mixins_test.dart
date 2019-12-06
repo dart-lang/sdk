@@ -4,6 +4,15 @@
 
 library fasta.test.incremental_dynamic_test;
 
+import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
+    show
+        DiagnosticMessage,
+        DiagnosticMessageHandler,
+        getMessageCodeObject,
+        getMessageArguments;
+
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
@@ -13,19 +22,10 @@ import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
-import "package:front_end/src/api_prototype/diagnostic_message.dart"
-    show
-        DiagnosticMessage,
-        DiagnosticMessageHandler,
-        getMessageCodeObject,
-        getMessageArguments;
-
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show codeSuperclassHasNoMethod;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 /// A subclass of NoneTarget that enables Flutter style super-mixin semantics.
 ///

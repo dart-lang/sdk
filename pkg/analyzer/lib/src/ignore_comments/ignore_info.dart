@@ -36,26 +36,15 @@ class IgnoreInfo {
   final Set<String> _ignoreForFileSet = new HashSet<String>();
 
   /// Whether this info object defines any ignores.
-  bool get hasIgnores => ignores.isNotEmpty || _ignoreForFileSet.isNotEmpty;
-
-  /// Iterable of error codes ignored for the whole file.
-  Iterable<String> get ignoreForFiles => _ignoreForFileSet;
-
-  /// Map of line numbers to associated ignored error codes.
-  Map<int, Iterable<String>> get ignores => _ignoreMap;
-
-  /// Ignore this [errorCode] at [line].
-  void add(int line, String errorCode) {
-    _ignoreMap.putIfAbsent(line, () => new List<String>()).add(errorCode);
-  }
+  bool get hasIgnores => _ignoreMap.isNotEmpty || _ignoreForFileSet.isNotEmpty;
 
   /// Ignore these [errorCodes] at [line].
-  void addAll(int line, Iterable<String> errorCodes) {
+  void _addAll(int line, Iterable<String> errorCodes) {
     _ignoreMap.putIfAbsent(line, () => new List<String>()).addAll(errorCodes);
   }
 
   /// Ignore these [errorCodes] in the whole file.
-  void addAllForFile(Iterable<String> errorCodes) {
+  void _addAllForFile(Iterable<String> errorCodes) {
     _ignoreForFileSet.addAll(errorCodes);
   }
 
@@ -87,10 +76,10 @@ class IgnoreInfo {
 
       if (beforeMatch.trim().isEmpty) {
         // The comment is on its own line, so it refers to the next line.
-        ignoreInfo.addAll(lineNumber + 1, codes);
+        ignoreInfo._addAll(lineNumber + 1, codes);
       } else {
         // The comment sits next to code, so it refers to its own line.
-        ignoreInfo.addAll(lineNumber, codes);
+        ignoreInfo._addAll(lineNumber, codes);
       }
     }
     for (Match match in fileMatches) {
@@ -98,7 +87,7 @@ class IgnoreInfo {
           .group(1)
           .split(',')
           .map((String code) => code.trim().toLowerCase());
-      ignoreInfo.addAllForFile(codes);
+      ignoreInfo._addAllForFile(codes);
     }
     return ignoreInfo;
   }

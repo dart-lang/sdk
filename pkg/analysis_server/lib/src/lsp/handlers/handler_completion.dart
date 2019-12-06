@@ -136,15 +136,18 @@ class CompletionHandler
         new CompletionRequestImpl(unit, offset, performance);
 
     Set<ElementKind> includedElementKinds;
+    Set<String> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (includeSuggestionSets) {
       includedElementKinds = Set<ElementKind>();
+      includedElementNames = Set<String>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
     try {
       CompletionContributor contributor = new DartCompletionManager(
         includedElementKinds: includedElementKinds,
+        includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
       final suggestions =
@@ -166,13 +169,15 @@ class CompletionHandler
           .toList();
 
       // Now compute items in suggestion sets.
-      List<IncludedSuggestionSet> includedSuggestionSets =
-          includedElementKinds == null || unit == null
-              ? const []
-              : computeIncludedSetList(
-                  server.declarationsTracker,
-                  unit,
-                );
+      List<IncludedSuggestionSet> includedSuggestionSets = [];
+      if (includedElementKinds != null && unit != null) {
+        computeIncludedSetList(
+          server.declarationsTracker,
+          unit,
+          includedSuggestionSets,
+          includedElementNames,
+        );
+      }
 
       // Build a fast lookup for imported symbols so that we can filter out
       // duplicates.

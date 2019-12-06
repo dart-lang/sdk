@@ -64,8 +64,12 @@ class SExpression : public ZoneAllocated {
   intptr_t start() const { return start_; }
 
 #define S_EXPRESSION_TYPE_CHECK(name, value_type)                              \
-  bool Is##name() { return (As##name() != nullptr); }                          \
-  virtual SExp##name* As##name() { return nullptr; }
+  bool Is##name() const { return (As##name() != nullptr); }                    \
+  SExp##name* As##name() {                                                     \
+    auto const const_this = const_cast<const SExpression*>(this);              \
+    return const_cast<SExp##name*>(const_this->As##name());                    \
+  }                                                                            \
+  virtual const SExp##name* As##name() const { return nullptr; }
 
   FOR_EACH_S_EXPRESSION(S_EXPRESSION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_S_EXPRESSION(S_EXPRESSION_TYPE_CHECK)
@@ -89,7 +93,7 @@ class SExpAtom : public SExpression {
  public:
   explicit SExpAtom(intptr_t start = kInvalidPos) : SExpression(start) {}
 
-  virtual SExpAtom* AsAtom() { return this; }
+  virtual const SExpAtom* AsAtom() const { return this; }
   // No atoms have sub-elements, so they always print to a single line.
   virtual void SerializeTo(Zone* zone,
                            TextBuffer* buffer,
@@ -103,7 +107,7 @@ class SExpAtom : public SExpression {
 };
 
 #define DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                   \
-  virtual SExp##name* As##name() { return this; }                              \
+  virtual const SExp##name* As##name() const { return this; }                  \
   virtual const char* DebugName() const { return #name; }
 
 // The various concrete S-expression atom classes are thin wrappers around

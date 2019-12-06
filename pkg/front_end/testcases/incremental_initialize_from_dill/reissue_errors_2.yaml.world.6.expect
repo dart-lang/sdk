@@ -1,0 +1,19 @@
+main = <No Member>;
+library from "org-dartlang-test:///b.dart" as b {
+
+  class B extends dart.core::Object {
+    synthetic constructor •() → b::B*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+  class A extends b::B {
+    synthetic constructor •() → main::A*
+      : super b::B::•()
+      ;
+  }
+}

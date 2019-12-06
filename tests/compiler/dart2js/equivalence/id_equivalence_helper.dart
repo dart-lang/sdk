@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -14,13 +15,12 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 
-export 'package:front_end/src/testing/id_testing.dart'
+export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
 export '../helpers/memory_compiler.dart' show CollectedMessage;
 

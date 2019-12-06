@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -11,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart' show Message;
 import 'package:source_span/source_span.dart';
 
 /**
@@ -202,7 +202,7 @@ class ErrorReporter {
         if (name != null && name.isNotEmpty) {
           StringBuffer buffer = new StringBuffer();
           buffer.write(name);
-          (type as TypeImpl).appendTo(buffer, new Set.identity());
+          (type as TypeImpl).appendTo(buffer);
           return buffer.toString();
         }
       }

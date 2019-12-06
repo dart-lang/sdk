@@ -101,11 +101,11 @@ class FunctionTypeBuilder extends TypeBuilder {
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,
+        nullabilityBuilder.build(library),
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
         requiredParameterCount: requiredParameterCount,
-        typedefType: origin,
-        nullability: nullabilityBuilder.build(library));
+        typedefType: origin);
   }
 
   Supertype buildSupertype(

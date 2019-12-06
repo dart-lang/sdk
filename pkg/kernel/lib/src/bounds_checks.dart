@@ -12,8 +12,10 @@ import '../ast.dart'
         InterfaceType,
         InvalidType,
         NamedType,
+        NeverType,
         TypeParameter,
         TypeParameterType,
+        Typedef,
         TypedefType,
         Variance,
         VoidType;
@@ -24,7 +26,7 @@ import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
 
 import '../util/graph.dart' show Graph, computeStrongComponents;
 
-import '../visitor.dart' show DartTypeVisitor;
+import '../visitor.dart' show DartTypeVisitor, DartTypeVisitor1;
 
 class TypeVariableGraph extends Graph<int> {
   List<int> vertices;
@@ -122,10 +124,8 @@ DartType instantiateToBounds(DartType type, Class objectClass) {
         return type;
       }
     }
-    return new InterfaceType.byReference(
-        type.className,
-        calculateBounds(type.classNode.typeParameters, objectClass),
-        type.nullability);
+    return new InterfaceType.byReference(type.className, type.nullability,
+        calculateBounds(type.classNode.typeParameters, objectClass));
   }
   if (type is TypedefType) {
     if (type.typeArguments.isEmpty) return type;
@@ -134,10 +134,8 @@ DartType instantiateToBounds(DartType type, Class objectClass) {
         return type;
       }
     }
-    return new TypedefType.byReference(
-        type.typedefReference,
-        calculateBounds(type.typedefNode.typeParameters, objectClass),
-        type.nullability);
+    return new TypedefType.byReference(type.typedefReference, type.nullability,
+        calculateBounds(type.typedefNode.typeParameters, objectClass));
   }
   return type;
 }
@@ -229,8 +227,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     // definition in that case.  For details, see [link]
     // (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).
     FunctionType functionType = type;
-    FunctionType cloned = new FunctionType(
-        functionType.positionalParameters, functionType.returnType,
+    FunctionType cloned = new FunctionType(functionType.positionalParameters,
+        functionType.returnType, functionType.nullability,
         namedParameters: functionType.namedParameters,
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
@@ -424,7 +422,8 @@ DartType convertSuperBoundedToRegularBounded(
           typeEnvironment, type.typeArguments[i],
           isCovariant: isCovariant);
     }
-    return new InterfaceType(type.classNode, replacedTypeArguments);
+    return new InterfaceType(
+        type.classNode, type.nullability, replacedTypeArguments);
   } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
         new List<DartType>(type.typeArguments.length);
@@ -433,7 +432,8 @@ DartType convertSuperBoundedToRegularBounded(
           typeEnvironment, type.typeArguments[i],
           isCovariant: isCovariant);
     }
-    return new TypedefType(type.typedefNode, replacedTypeArguments);
+    return new TypedefType(
+        type.typedefNode, type.nullability, replacedTypeArguments);
   } else if (type is FunctionType) {
     var replacedReturnType = convertSuperBoundedToRegularBounded(
         typeEnvironment, type.returnType,
@@ -454,7 +454,8 @@ DartType convertSuperBoundedToRegularBounded(
               typeEnvironment, type.namedParameters[i].type,
               isCovariant: !isCovariant));
     }
-    return new FunctionType(replacedPositionalParameters, replacedReturnType,
+    return new FunctionType(
+        replacedPositionalParameters, replacedReturnType, type.nullability,
         namedParameters: replacedNamedParameters,
         typeParameters: type.typeParameters,
         requiredParameterCount: type.requiredParameterCount,
@@ -473,57 +474,97 @@ bool isNull(TypeEnvironment typeEnvironment, DartType type) {
       type.classNode == typeEnvironment.nullType.classNode;
 }
 
-int computeVariance(TypeParameter typeParameter, DartType type) {
-  return type.accept(new VarianceCalculator(typeParameter));
+int computeVariance(TypeParameter typeParameter, DartType type,
+    {Map<TypeParameter, Map<DartType, int>> computedVariances}) {
+  computedVariances ??= new Map<TypeParameter, Map<DartType, int>>.identity();
+  computedVariances[typeParameter] ??= new Map<DartType, int>.identity();
+
+  int variance = computedVariances[typeParameter][type];
+  if (variance != null) return variance;
+  computedVariances[typeParameter][type] = VarianceCalculator._visitMarker;
+
+  return computedVariances[typeParameter][type] =
+      type.accept1(new VarianceCalculator(typeParameter), computedVariances);
 }
 
-class VarianceCalculator implements DartTypeVisitor<int> {
+class VarianceCalculator
+    implements DartTypeVisitor1<int, Map<TypeParameter, Map<DartType, int>>> {
   final TypeParameter typeParameter;
+
+  static const int _visitMarker = -2;
 
   VarianceCalculator(this.typeParameter);
 
   @override
-  int defaultDartType(DartType node) => Variance.unrelated;
+  int defaultDartType(
+      DartType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    throw new StateError("Unhandled ${node.runtimeType} "
+        "when computing variance of a type parameter.");
+  }
 
   @override
-  int visitTypeParameterType(TypeParameterType node) {
+  int visitTypeParameterType(TypeParameterType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     if (node.parameter == typeParameter) return Variance.covariant;
     return Variance.unrelated;
   }
 
   @override
-  int visitInterfaceType(InterfaceType node) {
-    int result = Variance.unrelated;
-    for (DartType argument in node.typeArguments) {
-      result = Variance.meet(result, argument.accept(this));
-    }
-    return result;
-  }
-
-  @override
-  int visitTypedefType(TypedefType node) {
+  int visitInterfaceType(InterfaceType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
     for (int i = 0; i < node.typeArguments.length; ++i) {
       result = Variance.meet(
           result,
           Variance.combine(
-              node.typeArguments[i].accept(this),
-              node.typedefNode.type.accept(
-                  new VarianceCalculator(node.typedefNode.typeParameters[i]))));
+              node.classNode.typeParameters[i].variance,
+              computeVariance(typeParameter, node.typeArguments[i],
+                  computedVariances: computedVariances)));
     }
     return result;
   }
 
   @override
-  int visitFunctionType(FunctionType node) {
+  int visitTypedefType(TypedefType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
-    result = Variance.meet(result, node.returnType.accept(this));
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      Typedef typedefNode = node.typedefNode;
+      TypeParameter typedefTypeParameter = typedefNode.typeParameters[i];
+      if (computedVariances.containsKey(typedefTypeParameter) &&
+          computedVariances[typedefTypeParameter][typedefNode.type] ==
+              _visitMarker) {
+        throw new StateError("The typedef '${node.typedefNode.name}' "
+            "has a reference to itself.");
+      }
+
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              computeVariance(typeParameter, node.typeArguments[i],
+                  computedVariances: computedVariances),
+              computeVariance(typedefTypeParameter, typedefNode.type,
+                  computedVariances: computedVariances)));
+    }
+    return result;
+  }
+
+  @override
+  int visitFunctionType(FunctionType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    result = Variance.meet(
+        result,
+        computeVariance(typeParameter, node.returnType,
+            computedVariances: computedVariances));
     for (TypeParameter functionTypeParameter in node.typeParameters) {
       // If [typeParameter] is referenced in the bound at all, it makes the
       // variance of [typeParameter] in the entire type invariant.  The
       // invocation of the visitor below is made to simply figure out if
       // [typeParameter] occurs in the bound.
-      if (functionTypeParameter.bound.accept(this) != Variance.unrelated) {
+      if (computeVariance(typeParameter, functionTypeParameter.bound,
+              computedVariances: computedVariances) !=
+          Variance.unrelated) {
         result = Variance.invariant;
       }
     }
@@ -531,26 +572,48 @@ class VarianceCalculator implements DartTypeVisitor<int> {
       result = Variance.meet(
           result,
           Variance.combine(
-              Variance.contravariant, positionalType.accept(this)));
+              Variance.contravariant,
+              computeVariance(typeParameter, positionalType,
+                  computedVariances: computedVariances)));
     }
     for (NamedType namedType in node.namedParameters) {
       result = Variance.meet(
           result,
           Variance.combine(
-              Variance.contravariant, namedType.type.accept(this)));
+              Variance.contravariant,
+              computeVariance(typeParameter, namedType.type,
+                  computedVariances: computedVariances)));
     }
     return result;
   }
 
   @override
-  int visitBottomType(BottomType node) => defaultDartType(node);
+  int visitBottomType(BottomType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
 
   @override
-  int visitVoidType(VoidType node) => defaultDartType(node);
+  int visitNeverType(NeverType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
 
   @override
-  int visitDynamicType(DynamicType node) => defaultDartType(node);
+  int visitVoidType(
+      VoidType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
 
   @override
-  int visitInvalidType(InvalidType node) => defaultDartType(node);
+  int visitDynamicType(DynamicType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
+
+  @override
+  int visitInvalidType(InvalidType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
 }

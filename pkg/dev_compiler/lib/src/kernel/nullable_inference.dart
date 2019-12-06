@@ -14,7 +14,7 @@ import 'kernel_helpers.dart';
 /// This class can also analyze the nullability of local variables, if
 /// [enterFunction] and [exitFunction] are used.
 class NullableInference extends ExpressionVisitor<bool> {
-  final TypeEnvironment types;
+  final StaticTypeContext _staticTypeContext;
   final JSTypeRep jsTypeRep;
   final CoreTypes coreTypes;
 
@@ -38,19 +38,22 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   final _variableInference = _NullableVariableInference();
 
-  NullableInference(this.jsTypeRep)
-      : types = jsTypeRep.types,
-        coreTypes = jsTypeRep.coreTypes {
+  NullableInference(this.jsTypeRep, this._staticTypeContext)
+      : coreTypes = jsTypeRep.coreTypes {
     _variableInference._nullInference = this;
   }
 
   /// Call when entering a function to enable [isNullable] to recognize local
   /// variables that cannot be null.
-  void enterFunction(FunctionNode fn) => _variableInference.enterFunction(fn);
+  void enterFunction(FunctionNode fn) {
+    _variableInference.enterFunction(fn);
+  }
 
   /// Call when exiting a function to clear out the information recorded by
   /// [enterFunction].
-  void exitFunction(FunctionNode fn) => _variableInference.exitFunction(fn);
+  void exitFunction(FunctionNode fn) {
+    _variableInference.exitFunction(fn);
+  }
 
   /// Returns true if [expr] can be null.
   bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
@@ -119,7 +122,8 @@ class NullableInference extends ExpressionVisitor<bool> {
     if (target == null) return true; // dynamic call
     if (target.name.name == 'toString' &&
         receiver != null &&
-        receiver.getStaticType(types) == coreTypes.stringLegacyRawType) {
+        receiver.getStaticType(_staticTypeContext) ==
+            coreTypes.stringLegacyRawType) {
       // TODO(jmesserly): `class String` in dart:core does not explicitly
       // declare `toString`, which results in a target of `Object.toString` even
       // when the reciever type is known to be `String`. So we work around it.
@@ -164,7 +168,9 @@ class NullableInference extends ExpressionVisitor<bool> {
   @override
   visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
-    if (target == types.coreTypes.identicalProcedure) return false;
+    if (target == coreTypes.identicalProcedure) {
+      return false;
+    }
     if (isInlineJS(target)) {
       var args = node.arguments.positional;
       var first = args.isNotEmpty ? args.first : null;

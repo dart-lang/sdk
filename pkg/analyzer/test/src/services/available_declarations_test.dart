@@ -2962,6 +2962,42 @@ class C {}
     }
   }
 
+  test_simple_dependenciesFromKnownFiles() async {
+    var a = convertPath('/home/test/bin/a.dart');
+    var b = convertPath('/home/test/bin/b.dart');
+    var c = convertPath('/home/test/bin/c.dart');
+
+    newFile(a, content: 'class A {}');
+    newFile(b, content: 'class B {}');
+    newFile(c, content: 'class C {}');
+    testAnalysisContext.currentSession.getFile(a);
+    testAnalysisContext.currentSession.getFile(b);
+    testAnalysisContext.currentSession.getFile(c);
+
+    var context = tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+    tracker.pullKnownFiles();
+
+    var libraries = context.getLibraries(b);
+    _assertHasLibraries(
+      libraries.sdk,
+      uriList: ['dart:core', 'dart:async'],
+    );
+    _assertHasLibraries(
+      libraries.dependencies,
+      uriList: [],
+      only: true,
+    );
+    _assertHasLibraries(
+      libraries.context,
+      uriList: [
+        toUriStr(a),
+        toUriStr(c),
+      ],
+      only: true,
+    );
+  }
+
   static void _assertHasLibraries(List<Library> libraries,
       {@required List<String> uriList, bool only = false}) {
     var actualUriList = libraries.map((lib) => lib.uriStr).toList();

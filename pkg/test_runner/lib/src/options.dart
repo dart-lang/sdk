@@ -14,7 +14,6 @@ import 'utils.dart';
 
 const _defaultTestSelectors = [
   'samples',
-  'standalone',
   'standalone_2',
   'corelib_2',
   'language_2',
@@ -142,9 +141,8 @@ none:             No runtime, compile only.''',
 Allowed values are:
 all
 ia32, x64
-arm, armv6, armv5te, arm64,
-simarm, simarmv6, simarmv5te, simarm64,
-simdbc, simdbc64, arm_x64''',
+arm, armv6, arm64,
+simarm, simarmv6, simarm64, arm_x64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),
         defaultsTo: Architecture.x64.name,
@@ -332,7 +330,7 @@ has been specified on the command line.''',
         '''
 Skip the compilation step, using the compilation artifacts left in
 the output folder from a previous run. This flag will often cause
-false positves and negatives, but can be useful for quick and
+false positives and negatives, but can be useful for quick and
 dirty offline testing when not making changes that affect the
 compiler.''',
         hide: true),
@@ -681,14 +679,91 @@ compiler.''',
     var progress = Progress.find(data["progress"] as String);
     var nnbdMode = NnbdMode.find(data["nnbd"] as String);
 
+    void addConfiguration(Configuration innerConfiguration,
+        [String namedConfiguration]) {
+      var configuration = TestConfiguration(
+          configuration: innerConfiguration,
+          progress: progress,
+          selectors: selectors,
+          testList: data["test_list_contents"] as List<String>,
+          repeat: data["repeat"] as int,
+          batch: !(data["noBatch"] as bool),
+          batchDart2JS: data["dart2js_batch"] as bool,
+          copyCoreDumps: data["copy_coredumps"] as bool,
+          isVerbose: data["verbose"] as bool,
+          listTests: data["list"] as bool,
+          listStatusFiles: data["list_status_files"] as bool,
+          cleanExit: data["clean_exit"] as bool,
+          silentFailures: data["silent_failures"] as bool,
+          printTiming: data["time"] as bool,
+          printReport: data["report"] as bool,
+          reportInJson: data["report_in_json"] as bool,
+          resetBrowser: data["reset_browser_configuration"] as bool,
+          skipCompilation: data["skip_compilation"] as bool,
+          writeDebugLog: data["write_debug_log"] as bool,
+          writeResults: data["write_results"] as bool,
+          writeLogs: data["write_logs"] as bool,
+          drtPath: data["drt"] as String,
+          chromePath: data["chrome"] as String,
+          safariPath: data["safari"] as String,
+          firefoxPath: data["firefox"] as String,
+          dartPath: data["dart"] as String,
+          dartPrecompiledPath: data["dart_precompiled"] as String,
+          genSnapshotPath: data["gen-snapshot"] as String,
+          keepGeneratedFiles: data["keep_generated_files"] as bool,
+          taskCount: data["tasks"] as int,
+          shardCount: data["shards"] as int,
+          shard: data["shard"] as int,
+          stepName: data["step_name"] as String,
+          testServerPort: data["test_server_port"] as int,
+          testServerCrossOriginPort:
+              data['test_server_cross_origin_port'] as int,
+          testDriverErrorPort: data["test_driver_error_port"] as int,
+          localIP: data["local_ip"] as String,
+          sharedOptions: sharedOptions,
+          packages: data["packages"] as String,
+          packageRoot: data["package_root"] as String,
+          suiteDirectory: data["suite_dir"] as String,
+          outputDirectory: data["output_directory"] as String,
+          reproducingArguments:
+              _reproducingCommand(data, namedConfiguration != null),
+          fastTestsOnly: data["fast_tests"] as bool,
+          printPassingStdout: data["print_passing_stdout"] as bool);
+
+      if (configuration.validate()) {
+        result.add(configuration);
+      }
+    }
+
+    String namedConfigurationOption = data["named_configuration"] as String;
+    if (namedConfigurationOption != null) {
+      List<String> namedConfigurations = namedConfigurationOption.split(',');
+      var testMatrixFile = "tools/bots/test_matrix.json";
+      var testMatrix = TestMatrix.fromPath(testMatrixFile);
+      for (String namedConfiguration in namedConfigurations) {
+        var configuration = testMatrix.configurations.singleWhere(
+            (c) => c.name == namedConfiguration,
+            orElse: () => null);
+        if (configuration == null) {
+          var names = testMatrix.configurations
+              .map((configuration) => configuration.name)
+              .toList();
+          names.sort();
+          _fail('The named configuration "$namedConfiguration" does not exist.'
+              ' The following configurations are available:\n'
+              '  * ${names.join('\n  * ')}');
+        }
+        addConfiguration(configuration);
+      }
+      return result;
+    }
+
     // Expand runtimes.
     for (var runtime in runtimes) {
-      // Start installing the runtime if needed.
-
       // Expand architectures.
       var architectures = data["arch"] as String;
       if (architectures == "all") {
-        architectures = "ia32,x64,simarm,simarm64,simdbc64";
+        architectures = "ia32,x64,simarm,simarm64";
       }
 
       for (var architectureName in architectures.split(",")) {
@@ -702,84 +777,28 @@ compiler.''',
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
             var system = System.find(data["system"] as String);
-            var namedConfiguration =
-                _namedConfiguration(data["named_configuration"] as String);
-            var innerConfiguration = namedConfiguration ??
-                Configuration("custom configuration", architecture, compiler,
-                    mode, runtime, system,
-                    nnbdMode: nnbdMode,
-                    timeout: data["timeout"] as int,
-                    enableAsserts: data["enable_asserts"] as bool,
-                    useAnalyzerCfe: data["use_cfe"] as bool,
-                    useAnalyzerFastaParser:
-                        data["analyzer_use_fasta_parser"] as bool,
-                    useBlobs: data["use_blobs"] as bool,
-                    useElf: data["use_elf"] as bool,
-                    useSdk: data["use_sdk"] as bool,
-                    useHotReload: data["hot_reload"] as bool,
-                    useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                    isHostChecked: data["host_checked"] as bool,
-                    isCsp: data["csp"] as bool,
-                    isMinified: data["minified"] as bool,
-                    vmOptions: vmOptions,
-                    dart2jsOptions: dart2jsOptions,
-                    experiments: experiments,
-                    babel: data['babel'] as String,
-                    builderTag: data["builder_tag"] as String);
-            var configuration = TestConfiguration(
-                configuration: innerConfiguration,
-                progress: progress,
-                selectors: selectors,
-                testList: data["test_list_contents"] as List<String>,
-                repeat: data["repeat"] as int,
-                batch: !(data["noBatch"] as bool),
-                batchDart2JS: data["dart2js_batch"] as bool,
-                copyCoreDumps: data["copy_coredumps"] as bool,
-                isVerbose: data["verbose"] as bool,
-                listTests: data["list"] as bool,
-                listStatusFiles: data["list_status_files"] as bool,
-                cleanExit: data["clean_exit"] as bool,
-                silentFailures: data["silent_failures"] as bool,
-                printTiming: data["time"] as bool,
-                printReport: data["report"] as bool,
-                reportInJson: data["report_in_json"] as bool,
-                resetBrowser: data["reset_browser_configuration"] as bool,
-                skipCompilation: data["skip_compilation"] as bool,
-                useKernelBytecode:
-                    innerConfiguration.compiler == Compiler.dartkb,
-                writeDebugLog: data["write_debug_log"] as bool,
-                writeResults: data["write_results"] as bool,
-                writeLogs: data["write_logs"] as bool,
-                drtPath: data["drt"] as String,
-                chromePath: data["chrome"] as String,
-                safariPath: data["safari"] as String,
-                firefoxPath: data["firefox"] as String,
-                dartPath: data["dart"] as String,
-                dartPrecompiledPath: data["dart_precompiled"] as String,
-                genSnapshotPath: data["gen-snapshot"] as String,
-                keepGeneratedFiles: data["keep_generated_files"] as bool,
-                taskCount: data["tasks"] as int,
-                shardCount: data["shards"] as int,
-                shard: data["shard"] as int,
-                stepName: data["step_name"] as String,
-                testServerPort: data["test_server_port"] as int,
-                testServerCrossOriginPort:
-                    data['test_server_cross_origin_port'] as int,
-                testDriverErrorPort: data["test_driver_error_port"] as int,
-                localIP: data["local_ip"] as String,
-                sharedOptions: sharedOptions,
-                packages: data["packages"] as String,
-                packageRoot: data["package_root"] as String,
-                suiteDirectory: data["suite_dir"] as String,
-                outputDirectory: data["output_directory"] as String,
-                reproducingArguments:
-                    _reproducingCommand(data, namedConfiguration != null),
-                fastTestsOnly: data["fast_tests"] as bool,
-                printPassingStdout: data["print_passing_stdout"] as bool);
-
-            if (configuration.validate()) {
-              result.add(configuration);
-            }
+            var configuration = Configuration("custom configuration",
+                architecture, compiler, mode, runtime, system,
+                nnbdMode: nnbdMode,
+                timeout: data["timeout"] as int,
+                enableAsserts: data["enable_asserts"] as bool,
+                useAnalyzerCfe: data["use_cfe"] as bool,
+                useAnalyzerFastaParser:
+                    data["analyzer_use_fasta_parser"] as bool,
+                useBlobs: data["use_blobs"] as bool,
+                useElf: data["use_elf"] as bool,
+                useSdk: data["use_sdk"] as bool,
+                useHotReload: data["hot_reload"] as bool,
+                useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                isHostChecked: data["host_checked"] as bool,
+                isCsp: data["csp"] as bool,
+                isMinified: data["minified"] as bool,
+                vmOptions: vmOptions,
+                dart2jsOptions: dart2jsOptions,
+                experiments: experiments,
+                babel: data['babel'] as String,
+                builderTag: data["builder_tag"] as String);
+            addConfiguration(configuration);
           }
         }
       }
@@ -936,25 +955,6 @@ class OptionParseException implements Exception {
   final String message;
 
   OptionParseException(this.message);
-}
-
-Configuration _namedConfiguration(String template) {
-  if (template == null) return null;
-
-  var testMatrixFile = "tools/bots/test_matrix.json";
-  var testMatrix = TestMatrix.fromPath(testMatrixFile);
-  var configuration = testMatrix.configurations
-      .singleWhere((c) => c.name == template, orElse: () => null);
-  if (configuration == null) {
-    var names = testMatrix.configurations
-        .map((configuration) => configuration.name)
-        .toList();
-    names.sort();
-    _fail('The named configuration "$template" does not exist. The following '
-        'configurations are available:\n  * ${names.join('\n  * ')}');
-  }
-
-  return configuration;
 }
 
 /// Throws an [OptionParseException] with [message].

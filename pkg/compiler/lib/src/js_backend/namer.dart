@@ -1513,7 +1513,7 @@ class Namer extends ModularNamer {
 
   @override
   jsAst.Name operatorIsType(DartType type) {
-    if (type.isFunctionType) {
+    if (type is FunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return new CompoundName([
         new StringBackedName(fixedNames.operatorIsPrefix),
@@ -1617,7 +1617,7 @@ class Namer extends ModularNamer {
   }
 
   String getTypeRepresentationForTypeConstant(DartType type) {
-    if (type.isDynamic) return "dynamic";
+    if (type is DynamicType) return "dynamic";
     if (type is TypedefType) {
       return uniqueNameForTypeConstantElement(
           type.element.library, type.element);
@@ -2178,11 +2178,11 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
   }
 
   bool _isSimpleFunctionType(FunctionType type) {
-    if (!type.returnType.isDynamic) return false;
+    if (type.returnType is! DynamicType) return false;
     if (!type.optionalParameterTypes.isEmpty) return false;
     if (!type.namedParameterTypes.isEmpty) return false;
     for (DartType parameter in type.parameterTypes) {
-      if (!parameter.isDynamic) return false;
+      if (parameter is! DynamicType) return false;
     }
     return true;
   }
@@ -2571,6 +2571,8 @@ abstract class ModularNamer {
         return asName(fixedNames.deferredAction);
       case JsGetName.OPERATOR_AS_PREFIX:
         return asName(fixedNames.operatorAsPrefix);
+      case JsGetName.OPERATOR_IS_PREFIX:
+        return asName(fixedNames.operatorIsPrefix);
       case JsGetName.SIGNATURE_NAME:
         return asName(fixedNames.operatorSignature);
       case JsGetName.RTI_NAME:

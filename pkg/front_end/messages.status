@@ -25,7 +25,6 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
-BadTypeVariableInSupertype/analyzerCode: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
@@ -76,6 +75,7 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
+ConstEvalExtension/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
@@ -130,6 +130,8 @@ CyclicClassHierarchy/script1: Fail # We report an error for each class involved 
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
+DeferredExtensionImport/analyzerCode: Fail
+DeferredExtensionImport/part_wrapped_script: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
 DillOutlineSummary/analyzerCode: Fail
@@ -325,7 +327,6 @@ IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
-IntersectionTypeAsTypeArgument/analyzerCode: Fail # Analyzer doesn't catch this error.
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
@@ -344,6 +345,16 @@ InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail
+InvalidTypeVariableInSupertype/analyzerCode: Fail
+InvalidTypeVariableInSupertypeWithVariance/analyzerCode: Fail
+InvalidTypeVariableInSupertypeWithVariance/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableInSupertypeWithVariance/script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePosition/analyzerCode: Fail
+InvalidTypeVariableVariancePosition/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePosition/script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePositionInReturnType/analyzerCode: Fail
+InvalidTypeVariableVariancePositionInReturnType/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableVariancePositionInReturnType/script: Fail # Triggers multiple errors
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail
@@ -525,6 +536,7 @@ TypeVariableInStaticContext/part_wrapped_declaration3: Fail
 TypeVariableInStaticContext/part_wrapped_declaration4: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
+TypedefNotType/example: Fail # Feature not yet enabled by default.
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

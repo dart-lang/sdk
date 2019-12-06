@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Base implementations of [Set].
 part of dart.collection;
 
@@ -29,11 +27,11 @@ abstract class SetMixin<E> implements Set<E> {
 
   bool add(E value);
 
-  bool contains(Object element);
+  bool contains(Object? element);
 
-  E lookup(Object element);
+  E? lookup(Object? element);
 
-  bool remove(Object value);
+  bool remove(Object? value);
 
   Iterator<E> get iterator;
 
@@ -59,22 +57,22 @@ abstract class SetMixin<E> implements Set<E> {
     for (E element in elements) add(element);
   }
 
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) remove(element);
+  void removeAll(Iterable<Object?> elements) {
+    for (Object? element in elements) remove(element);
   }
 
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     // Create a copy of the set, remove all of elements from the copy,
     // then remove all remaining elements in copy from this.
     Set<E> toRemove = toSet();
-    for (Object o in elements) {
+    for (Object? o in elements) {
       toRemove.remove(o);
     }
     removeAll(toRemove);
   }
 
   void removeWhere(bool test(E element)) {
-    List toRemove = [];
+    List<Object?> toRemove = [];
     for (E element in this) {
       if (test(element)) toRemove.add(element);
     }
@@ -82,7 +80,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   void retainWhere(bool test(E element)) {
-    List toRemove = [];
+    List<Object?> toRemove = [];
     for (E element in this) {
       if (!test(element)) toRemove.add(element);
     }
@@ -116,12 +114,8 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  List<E> toList({bool growable = true}) {
-    List<E> result = growable ? (<E>[]..length = length) : List<E>(length);
-    int i = 0;
-    for (E element in this) result[i++] = element;
-    return result;
-  }
+  List<E> toList({bool growable = true}) =>
+      List<E>.of(this, growable: growable);
 
   Iterable<T> map<T>(T f(E element)) =>
       EfficientLengthMappedIterable<E, T>(this, f);
@@ -234,7 +228,7 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), {E orElse()}) {
+  E firstWhere(bool test(E value), {E Function()? orElse}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -242,8 +236,8 @@ abstract class SetMixin<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E value), {E orElse()}) {
-    E result;
+  E lastWhere(bool test(E value), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -256,8 +250,8 @@ abstract class SetMixin<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E value), {E orElse()}) {
-    E result;
+  E singleWhere(bool test(E value), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -301,7 +295,11 @@ abstract class SetMixin<E> implements Set<E> {
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
 abstract class SetBase<E> extends Object with SetMixin<E> {
-  /// Convert a `Set` to a string as `{each, element, as, string}`.
+  /// Converts a [Set] to a [String].
+  ///
+  /// Converts [set] to a string by converting each element to a string (by
+  /// calling [Object.toString]), joining them with ", ", and wrapping the
+  /// result in "{" and "}".
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [set] to a string again.
@@ -364,22 +362,22 @@ abstract class _SetBase<E> implements Set<E> {
     for (E element in elements) add(element);
   }
 
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) remove(element);
+  void removeAll(Iterable<Object?> elements) {
+    for (Object? element in elements) remove(element);
   }
 
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     // Create a copy of the set, remove all of elements from the copy,
     // then remove all remaining elements in copy from this.
     Set<E> toRemove = toSet();
-    for (Object o in elements) {
+    for (Object? o in elements) {
       toRemove.remove(o);
     }
     removeAll(toRemove);
   }
 
   void removeWhere(bool test(E element)) {
-    List toRemove = [];
+    List<Object?> toRemove = [];
     for (E element in this) {
       if (test(element)) toRemove.add(element);
     }
@@ -387,15 +385,15 @@ abstract class _SetBase<E> implements Set<E> {
   }
 
   void retainWhere(bool test(E element)) {
-    List toRemove = [];
+    List<Object?> toRemove = [];
     for (E element in this) {
       if (!test(element)) toRemove.add(element);
     }
     removeAll(toRemove);
   }
 
-  bool containsAll(Iterable<Object> other) {
-    for (Object o in other) {
+  bool containsAll(Iterable<Object?> other) {
+    for (Object? o in other) {
       if (!contains(o)) return false;
     }
     return true;
@@ -405,12 +403,8 @@ abstract class _SetBase<E> implements Set<E> {
     return toSet()..addAll(other);
   }
 
-  List<E> toList({bool growable = true}) {
-    List<E> result = growable ? (<E>[]..length = length) : List<E>(length);
-    int i = 0;
-    for (E element in this) result[i++] = element;
-    return result;
-  }
+  List<E> toList({bool growable = true}) =>
+      List<E>.of(this, growable: growable);
 
   Iterable<T> map<T>(T f(E element)) =>
       EfficientLengthMappedIterable<E, T>(this, f);
@@ -520,7 +514,7 @@ abstract class _SetBase<E> implements Set<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), {E orElse()}) {
+  E firstWhere(bool test(E value), {E Function()? orElse}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -528,8 +522,8 @@ abstract class _SetBase<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E value), {E orElse()}) {
-    E result;
+  E lastWhere(bool test(E value), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -542,8 +536,8 @@ abstract class _SetBase<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E value), {E orElse()}) {
-    E result;
+  E singleWhere(bool test(E value), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -583,13 +577,13 @@ class _UnmodifiableSet<E> extends _SetBase<E> {
 
   // Lookups use map methods.
 
-  bool contains(Object element) => _map.containsKey(element);
+  bool contains(Object? element) => _map.containsKey(element);
 
   Iterator<E> get iterator => _map.keys.iterator;
 
   int get length => _map.length;
 
-  E lookup(Object element) {
+  E? lookup(Object? element) {
     for (var key in _map.keys) {
       if (key == element) return key;
     }
@@ -610,11 +604,11 @@ class _UnmodifiableSet<E> extends _SetBase<E> {
     throw UnsupportedError("Cannot change unmodifiable set");
   }
 
-  void removeAll(Iterable<Object> elements) {
+  void removeAll(Iterable<Object?> elements) {
     throw UnsupportedError("Cannot change unmodifiable set");
   }
 
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     throw UnsupportedError("Cannot change unmodifiable set");
   }
 
@@ -626,7 +620,7 @@ class _UnmodifiableSet<E> extends _SetBase<E> {
     throw UnsupportedError("Cannot change unmodifiable set");
   }
 
-  bool remove(Object value) {
+  bool remove(Object? value) {
     throw UnsupportedError("Cannot change unmodifiable set");
   }
 }

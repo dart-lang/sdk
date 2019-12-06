@@ -441,8 +441,30 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
+  visitLegacyType(LegacyType type, _) {
+    visit(type.baseType);
+    sb.write('*');
+  }
+
+  @override
+  visitNullableType(NullableType type, _) {
+    visit(type.baseType);
+    sb.write('?');
+  }
+
+  @override
+  visitNeverType(NeverType type, _) {
+    sb.write('Never');
+  }
+
+  @override
   visitDynamicType(DynamicType type, _) {
     sb.write('dynamic');
+  }
+
+  @override
+  visitErasedType(ErasedType type, _) {
+    sb.write('erased');
   }
 
   @override
@@ -453,7 +475,7 @@ class DartTypePrinter implements DartTypeVisitor {
   @override
   visitTypedefType(TypedefType type, _) {
     sb.write(type.element.name);
-    if (type.typeArguments.any((type) => !type.isDynamic)) {
+    if (type.typeArguments.any((type) => type is! DynamicType)) {
       sb.write('<');
       visitTypes(type.typeArguments);
       sb.write('>');
@@ -463,7 +485,7 @@ class DartTypePrinter implements DartTypeVisitor {
   @override
   visitInterfaceType(InterfaceType type, _) {
     sb.write(type.element.name);
-    if (type.typeArguments.any((type) => !type.isDynamic)) {
+    if (type.typeArguments.any((type) => type is! DynamicType)) {
       sb.write('<');
       visitTypes(type.typeArguments);
       sb.write('>');

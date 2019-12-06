@@ -107,7 +107,7 @@ class InterfaceFinder {
         cids_(cids) {}
 
   void FindAllInterfaces(const Class& klass) {
-    // The class is implementing it's own interface.
+    // The class is implementing its own interface.
     cids_->Add(klass.id());
 
     ScopedHandle<Array> array(&array_handles_);
@@ -123,8 +123,7 @@ class InterfaceFinder {
         break;
       }
 
-      // The class is implementing it's directly declared implemented
-      // interfaces.
+      // The class is implementing its directly declared implemented interfaces.
       *array = klass.interfaces();
       if (!array->IsNull()) {
         for (intptr_t i = 0; i < array->Length(); ++i) {
@@ -134,7 +133,7 @@ class InterfaceFinder {
         }
       }
 
-      // The class is implementing it's super type's interfaces.
+      // The class is implementing its super type's interfaces.
       *type = current_class->super_type();
       if (type->IsNull()) break;
       *current_class = class_table_->At(type->type_class_id());
@@ -384,14 +383,16 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(Object::null_type_arguments(),
+            zone, arguments.InstantiateFrom(NNBDMode::kLegacy,
+                                            Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
-                                            Object::null_type_arguments(),
-                                            Object::null_type_arguments(),
-                                            kNoneFree, NULL, Heap::kNew));
+            TypeArguments::Handle(
+                zone, pending_arguments.InstantiateFrom(
+                          NNBDMode::kLegacy, Object::null_type_arguments(),
+                          Object::null_type_arguments(), kNoneFree, NULL,
+                          Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params)) {
           const String& type_name = String::Handle(zone, type.Name());
@@ -620,9 +621,13 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             arguments.SetTypeAt(i, super_type_arg);
             continue;
           }
+          // The nullability of the supertype should never be relevant.
+          // TODO(regis): Should we introduce a kIgnore mode in addition to
+          // the kLegacy mode of instantiation so that unnecessary cloning
+          // never occurs?
           super_type_arg = super_type_arg.InstantiateFrom(
-              arguments, Object::null_type_arguments(), kNoneFree,
-              instantiation_trail, Heap::kOld);
+              NNBDMode::kLegacy, arguments, Object::null_type_arguments(),
+              kNoneFree, instantiation_trail, Heap::kOld);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
@@ -779,8 +784,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
           signature = signature.InstantiateSignatureFrom(
-              instantiator_type_arguments, Object::null_type_arguments(),
-              kNoneFree, Heap::kOld);
+              NNBDMode::kLegacy, instantiator_type_arguments,
+              Object::null_type_arguments(), kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type
           // parameters were substituted in the signature with typedef type
@@ -1253,7 +1258,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     // performing a reload.
     if (!FLAG_precompiled_mode) {
       if (field.IsUninitialized()) {
-        error = field.Initialize();
+        error = field.InitializeStatic();
         if (!error.IsNull()) {
           ReportError(error);
         }
@@ -1632,6 +1637,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || type.IsRecursive());
   }
   object_store->set_canonical_types(types_table.Release());
@@ -1663,6 +1669,7 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
+    // Two recursive types with different topology (and hashes) may be equal.
     ASSERT(!present || typearg.IsRecursive());
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());

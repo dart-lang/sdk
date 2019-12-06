@@ -15,10 +15,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -341,19 +340,6 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addAll(_arguments)
     ..add(rightParenthesis);
 
-  @deprecated
-  List<ParameterElement> get correspondingPropagatedParameters => null;
-
-  @deprecated
-  @override
-  void set correspondingPropagatedParameters(
-      List<ParameterElement> parameters) {
-    if (parameters != null && parameters.length != _arguments.length) {
-      throw new ArgumentError(
-          "Expected ${_arguments.length} parameters, not ${parameters.length}");
-    }
-  }
-
   List<ParameterElement> get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
@@ -629,6 +615,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
 class AssignmentExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
     implements AssignmentExpression {
   /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
@@ -661,8 +648,10 @@ class AssignmentExpressionImpl extends ExpressionImpl
       } else {
         message = "The right-hand size is null";
       }
-      AnalysisEngine.instance.logger.logError(
-          message, new CaughtException(new AnalysisException(message), null));
+      // TODO(39284): should this exception be silent?
+      AnalysisEngine.instance.instrumentationService.logException(
+          new SilentException(message, new AnalysisException(message), null),
+          StackTrace.current);
     }
     _leftHandSide = _becomeParentOf(leftHandSide);
     _rightHandSide = _becomeParentOf(rightHandSide);
@@ -670,10 +659,6 @@ class AssignmentExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => _leftHandSide.beginToken;
-
-  @override
-  @deprecated
-  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
@@ -695,14 +680,6 @@ class AssignmentExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.assignment;
 
-  @deprecated
-  @override
-  MethodElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(MethodElement element) {}
-
   @override
   Expression get rightHandSide => _rightHandSide;
 
@@ -710,6 +687,9 @@ class AssignmentExpressionImpl extends ExpressionImpl
   void set rightHandSide(Expression expression) {
     _rightHandSide = _becomeParentOf(expression as ExpressionImpl);
   }
+
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
 
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
@@ -751,6 +731,10 @@ class AssignmentExpressionImpl extends ExpressionImpl
     _leftHandSide?.accept(visitor);
     _rightHandSide?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) =>
+      identical(child, _leftHandSide);
 }
 
 /// A node in the AST structure for a Dart program.
@@ -852,7 +836,7 @@ abstract class AstNodeImpl implements AstNode {
   @override
   String toSource() {
     StringBuffer buffer = new StringBuffer();
-    accept(new ToSourceVisitor2(buffer));
+    accept(new ToSourceVisitor(buffer));
     return buffer.toString();
   }
 
@@ -956,10 +940,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Token get beginToken => _leftOperand.beginToken;
 
   @override
-  @deprecated
-  MethodElement get bestElement => staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(_leftOperand)..add(operator)..add(_rightOperand);
 
@@ -976,14 +956,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 
   @override
   Precedence get precedence => Precedence.forTokenType(operator.type);
-
-  @deprecated
-  @override
-  MethodElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(MethodElement element) {}
 
   @override
   Expression get rightOperand => _rightOperand;
@@ -1511,10 +1483,6 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   ClassElement get declaredElement => _name?.staticElement as ClassElement;
 
-  @deprecated
-  @override
-  ClassElement get element => declaredElement;
-
   @override
   ExtendsClause get extendsClause => _extendsClause;
 
@@ -1753,10 +1721,6 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @override
   ClassElement get declaredElement => _name?.staticElement as ClassElement;
-
-  @deprecated
-  @override
-  ClassElement get element => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -2042,15 +2006,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
-  /// ?
-  // TODO(brianwilkerson) Remove this field. It is never read, only written.
-  Map<int, AstNode> localDeclarations;
-
-  /// Additional information about local variables that are declared within this
-  /// compilation unit but outside any function body, or `null` if resolution
-  /// has not yet been performed.
-  LocalVariableInfo localVariableInfo = new LocalVariableInfo();
-
   @override
   final FeatureSet featureSet;
 
@@ -2087,10 +2042,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   NodeList<Directive> get directives => _directives;
-
-  @deprecated
-  @override
-  CompilationUnitElement get element => declaredElement;
 
   @override
   set element(CompilationUnitElement element) {
@@ -2138,20 +2089,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
-
-  bool isPotentiallyMutatedInClosure(VariableElement variable) {
-    if (localVariableInfo == null) {
-      throw new StateError('Resolution has not yet been performed');
-    }
-    return localVariableInfo.potentiallyMutatedInClosure.contains(variable);
-  }
-
-  bool isPotentiallyMutatedInScope(VariableElement variable) {
-    if (localVariableInfo == null) {
-      throw new StateError('Resolution has not yet been performed');
-    }
-    return localVariableInfo.potentiallyMutatedInScope.contains(variable);
-  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2557,10 +2494,6 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @deprecated
   @override
-  ConstructorElement get element => declaredElement;
-
-  @deprecated
-  @override
   set element(ConstructorElement element) {
     declaredElement = element;
   }
@@ -2907,9 +2840,6 @@ class DeclaredIdentifierImpl extends DeclarationImpl
     }
     return _identifier.staticElement as LocalVariableElement;
   }
-
-  @override
-  LocalVariableElement get element => declaredElement;
 
   @override
   Token get endToken => _identifier.endToken;
@@ -3349,10 +3279,6 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   FieldElement get declaredElement => _name?.staticElement as FieldElement;
 
-  @deprecated
-  @override
-  FieldElement get element => declaredElement;
-
   @override
   Token get endToken => _name.endToken;
 
@@ -3430,10 +3356,6 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ClassElement get declaredElement => _name?.staticElement as ClassElement;
-
-  @deprecated
-  @override
-  ClassElement get element => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -3601,18 +3523,6 @@ abstract class ExpressionImpl extends AstNodeImpl
   @override
   DartType staticType;
 
-  /// Return the best parameter element information available for this
-  /// expression. If type propagation was able to find a better parameter
-  /// element than static analysis, that type will be returned. Otherwise, the
-  /// result of static analysis will be returned.
-  @override
-  @deprecated
-  ParameterElement get bestParameterElement => staticParameterElement;
-
-  @override
-  @deprecated
-  DartType get bestType => staticType ?? DynamicTypeImpl.instance;
-
   /// An expression _e_ is said to _occur in a constant context_,
   /// * if _e_ is an element of a constant list literal, or a key or value of an
   ///   entry of a constant map literal.
@@ -3669,22 +3579,6 @@ abstract class ExpressionImpl extends AstNodeImpl
 
   @override
   bool get isAssignable => false;
-
-  @Deprecated('Use precedence')
-  @override
-  Precedence get precedence2 => precedence;
-
-  @deprecated
-  @override
-  ParameterElement get propagatedParameterElement => null;
-
-  @deprecated
-  @override
-  DartType get propagatedType => null;
-
-  @deprecated
-  @override
-  set propagatedType(DartType type) {}
 
   @override
   ParameterElement get staticParameterElement {
@@ -3892,9 +3786,6 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  ExtensionElement get element => declaredElement;
-
-  @override
   Token get endToken => rightBracket;
 
   @override
@@ -4063,10 +3954,6 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   Element get declaredElement => null;
 
-  @deprecated
-  @override
-  Element get element => null;
-
   @override
   Token get endToken => semicolon;
 
@@ -4134,6 +4021,9 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /// function-typed field formal parameter.
   FormalParameterListImpl _parameters;
 
+  @override
+  Token question;
+
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [keyword] can be `null` if there is a type.
@@ -4152,7 +4042,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       this.period,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(
             comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);
@@ -4415,10 +4306,6 @@ abstract class FormalParameterImpl extends AstNodeImpl
     }
     return identifier.staticElement as ParameterElement;
   }
-
-  @deprecated
-  @override
-  ParameterElement get element => declaredElement;
 
   @override
   bool get isNamed =>
@@ -4707,6 +4594,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @override
   Token get beginToken => initialization?.beginToken ?? super.beginToken;
+
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_initialization)
@@ -4886,10 +4774,6 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   ExecutableElement get declaredElement =>
       _name?.staticElement as ExecutableElement;
 
-  @deprecated
-  @override
-  ExecutableElement get element => declaredElement;
-
   @override
   Token get endToken => _functionExpression.endToken;
 
@@ -5039,10 +4923,6 @@ class FunctionExpressionImpl extends ExpressionImpl
 
   @deprecated
   @override
-  ExecutableElement get element => declaredElement;
-
-  @deprecated
-  @override
   set element(ExecutableElement element) {
     declaredElement = element;
   }
@@ -5118,10 +4998,6 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get beginToken => _function.beginToken;
 
   @override
-  @deprecated
-  ExecutableElement get bestElement => staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(_function)..add(_argumentList);
 
@@ -5138,14 +5014,6 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @deprecated
-  @override
-  ExecutableElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(ExecutableElement element) {}
 
   @override
   E accept<E>(AstVisitor<E> visitor) =>
@@ -5210,10 +5078,6 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   @override
   FunctionTypeAliasElement get declaredElement =>
       _name?.staticElement as FunctionTypeAliasElement;
-
-  @deprecated
-  @override
-  FunctionTypeAliasElement get element => declaredElement;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -5515,10 +5379,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   @override
   Element get declaredElement => name.staticElement;
 
-  @deprecated
-  @override
-  Element get element => declaredElement;
-
   @override
   GenericFunctionType get functionType => _functionType;
 
@@ -5590,15 +5450,6 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
 abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
-  /// Return the best element available for this operator. If resolution was
-  /// able to find a better element based on type propagation, that element will
-  /// be returned. Otherwise, the element found using the result of static
-  /// analysis will be returned. If resolution has not been performed, then `null` will
-  /// be returned.
-  @override
-  @deprecated
-  Element get bestElement;
-
   @override
   bool get isAssignable => true;
 }
@@ -5908,7 +5759,9 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 ///
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
-class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
+class IndexExpressionImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements IndexExpression {
   /// The expression used to compute the object being indexed, or `null` if this
   /// index expression is part of a cascade expression.
   ExpressionImpl _target;
@@ -5962,10 +5815,6 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   }
 
   @override
-  @deprecated
-  MethodElement get bestElement => staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_target)
     ..add(period)
@@ -5992,18 +5841,13 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 
   @override
   bool get isNullAware =>
-      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
+      (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
+          period != null &&
+          period.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @deprecated
-  @override
-  MethodElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(MethodElement element) {}
 
   @override
   Expression get realTarget {
@@ -6027,6 +5871,9 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   void set target(Expression expression) {
     _target = _becomeParentOf(expression as ExpressionImpl);
   }
+
+  @override
+  AstNode get _nullShortingExtensionCandidate => parent;
 
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
@@ -6067,7 +5914,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
-      return true;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, this);
     }
@@ -6079,6 +5926,9 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     _target?.accept(visitor);
     _index?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _target);
 }
 
 /// An instance creation expression.
@@ -6451,14 +6301,6 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
     _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
   }
 
-  @deprecated
-  @override
-  DartType get propagatedInvokeType => null;
-
-  @deprecated
-  @override
-  set propagatedInvokeType(DartType type) {}
-
   @override
   TypeArgumentList get typeArguments => _typeArguments;
 
@@ -6711,10 +6553,6 @@ class LibraryIdentifierImpl extends IdentifierImpl
   Token get beginToken => _components.beginToken;
 
   @override
-  @deprecated
-  Element get bestElement => staticElement;
-
-  @override
   // TODO(paulberry): add "." tokens.
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..addAll(_components);
@@ -6744,10 +6582,6 @@ class LibraryIdentifierImpl extends IdentifierImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @deprecated
-  @override
-  Element get propagatedElement => null;
 
   @override
   Element get staticElement => null;
@@ -7030,10 +6864,6 @@ class MethodDeclarationImpl extends ClassMemberImpl
   ExecutableElement get declaredElement =>
       _name?.staticElement as ExecutableElement;
 
-  @deprecated
-  @override
-  ExecutableElement get element => declaredElement;
-
   @override
   Token get endToken => _body.endToken;
 
@@ -7189,7 +7019,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
-  bool get isNullAware => operator?.type == TokenType.QUESTION_PERIOD;
+  bool get isNullAware =>
+      operator != null &&
+      (operator.type == TokenType.QUESTION_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -7303,10 +7136,6 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
 
   @override
   ClassElement get declaredElement => _name?.staticElement as ClassElement;
-
-  @deprecated
-  @override
-  Element get element => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -7906,6 +7735,33 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
+/// Mixin that can be used to implement [NullShortableExpression].
+mixin NullShortableExpressionImpl implements NullShortableExpression {
+  @override
+  Expression get nullShortingTermination {
+    var result = this;
+    while (true) {
+      var parent = result._nullShortingExtensionCandidate;
+      if (parent is NullShortableExpressionImpl &&
+          parent._extendsNullShorting(result)) {
+        result = parent;
+      } else {
+        return result;
+      }
+    }
+  }
+
+  /// Gets the ancestor of this node to which null-shorting might be extended.
+  /// Usually this is just the node's parent, however if `this` is the base of
+  /// a cascade section, it will be the cascade expression itself, which may be
+  /// a more distant ancestor.
+  AstNode get _nullShortingExtensionCandidate;
+
+  /// Indicates whether the effect of any null-shorting within [descendant]
+  /// (which should be a descendant of `this`) should extend to include `this`.
+  bool _extendsNullShorting(Expression descendant);
+}
+
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
@@ -8165,10 +8021,6 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token get beginToken => _operand.beginToken;
 
   @override
-  @deprecated
-  MethodElement get bestElement => staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(_operand)..add(operator);
 
@@ -8185,14 +8037,6 @@ class PostfixExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @deprecated
-  @override
-  MethodElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(MethodElement element) {}
 
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
@@ -8250,15 +8094,6 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
-  @deprecated
-  Element get bestElement {
-    if (_identifier == null) {
-      return null;
-    }
-    return _identifier.staticElement;
-  }
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(_prefix)..add(period)..add(_identifier);
 
@@ -8300,10 +8135,6 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   void set prefix(SimpleIdentifier identifier) {
     _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
-
-  @deprecated
-  @override
-  Element get propagatedElement => null;
 
   @override
   Element get staticElement {
@@ -8348,10 +8179,6 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   Token get beginToken => operator;
 
   @override
-  @deprecated
-  MethodElement get bestElement => staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(operator)..add(_operand);
 
@@ -8368,14 +8195,6 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
 
   @override
   Precedence get precedence => Precedence.prefix;
-
-  @deprecated
-  @override
-  MethodElement get propagatedElement => null;
-
-  @deprecated
-  @override
-  set propagatedElement(MethodElement element) {}
 
   /// If the AST structure has been resolved, and the function being invoked is
   /// known based on static type information, then return the parameter element
@@ -8409,7 +8228,9 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
 ///
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
-class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
+class PropertyAccessImpl extends ExpressionImpl
+    with NullShortableExpressionImpl
+    implements PropertyAccess {
   /// The expression computing the object defining the property being accessed.
   ExpressionImpl _target;
 
@@ -8452,7 +8273,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   bool get isNullAware =>
-      operator != null && operator.type == TokenType.QUESTION_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.QUESTION_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -8489,6 +8312,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   }
 
   @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
@@ -8496,6 +8322,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
     _target?.accept(visitor);
     _propertyName?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _target);
 }
 
 /// The invocation of a constructor in the same class from within a
@@ -8933,10 +8762,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   Token get beginToken => token;
 
   @override
-  @deprecated
-  Element get bestElement => _staticElement;
-
-  @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(token);
 
@@ -8966,14 +8791,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  @deprecated
-  @override
-  Element get propagatedElement => null;
-
-  @deprecated
-  @override
-  void set propagatedElement(Element element) {}
 
   @override
   Element get staticElement => _staticElement;
@@ -9067,7 +8884,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
-      return true;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
     } else if (parent is ForEachPartsWithIdentifier) {
@@ -9883,10 +9700,6 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Element get declaredElement => null;
 
-  @deprecated
-  @override
-  Element get element => null;
-
   @override
   Token get endToken => semicolon;
 
@@ -10208,10 +10021,16 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 /// A type parameter.
 ///
 ///    typeParameter ::=
-///        [SimpleIdentifier] ('extends' [TypeName])?
+///        typeParameterVariance? [SimpleIdentifier] ('extends' [TypeName])?
+///
+///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /// The name of the type parameter.
   SimpleIdentifierImpl _name;
+
+  /// The token representing the variance modifier keyword, or `null` if
+  /// there is no explicit variance modifier, meaning legacy covariance.
+  Token varianceKeyword;
 
   /// The token representing the 'extends' keyword, or `null` if there is no
   /// explicit upper bound.
@@ -10247,10 +10066,6 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   TypeParameterElement get declaredElement =>
       _name?.staticElement as TypeParameterElement;
-
-  @deprecated
-  @override
-  TypeParameterElement get element => declaredElement;
 
   @override
   Token get endToken {
@@ -10485,10 +10300,6 @@ class VariableDeclarationImpl extends DeclarationImpl
     }
     return comment;
   }
-
-  @deprecated
-  @override
-  VariableElement get element => declaredElement;
 
   @override
   Token get endToken {

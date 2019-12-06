@@ -26,8 +26,7 @@ class ObjectSet;
 class ForwardingPage;
 class GCMarker;
 
-// TODO(iposva): Determine heap sizes and tune the page size accordingly.
-static const intptr_t kPageSize = 256 * KB;
+static const intptr_t kPageSize = 512 * KB;
 static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
 static const intptr_t kPageMask = ~(kPageSize - 1);
 
@@ -65,7 +64,7 @@ class HeapPage {
   void WriteProtect(bool read_only);
 
   static intptr_t ObjectStartOffset() {
-    return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
+    return Utils::RoundUp(sizeof(HeapPage), kMaxObjectAlignment);
   }
 
   // Warning: This does not work for objects on image pages because image pages
@@ -359,7 +358,7 @@ class PageSpace {
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
-  bool ShouldPerformIdleMarkSweep(int64_t deadline);
+  bool ShouldStartIdleMarkSweep(int64_t deadline);
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }

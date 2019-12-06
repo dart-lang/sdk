@@ -1,0 +1,27 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Create part URI that is invalid. This has previously caused a crash.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        // The space makes the scheme invalid -- this causes Uri.parse to throw.
+        part ' package:foo/bar.dart';
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        main() {}
+    expectInitializeFromDill: false
+    expectedLibraryCount: 1
+    uriToSourcesOnlyIncludes:
+      - main.dart

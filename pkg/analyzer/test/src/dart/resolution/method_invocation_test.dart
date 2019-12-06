@@ -1160,7 +1160,7 @@ main() {
 
     var foo = invocation.function as PrefixedIdentifier;
     assertType(foo, 'T Function<T>(T, T)');
-    assertElement(foo.identifier, import.topGetter('foo'));
+    assertElement(foo.identifier, import.topGet('foo'));
     assertType(foo.identifier, 'T Function<T>(T, T)');
 
     assertImportPrefix(foo.prefix, import.prefix);

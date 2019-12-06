@@ -137,28 +137,8 @@ static_assert(offsetof(AbiAlignmentUint64, i) == 8,
 #error "Unknown platform. Please add alignment requirements for ABI."
 #endif
 
-#if defined(TARGET_ARCH_DBC)
-static Abi HostAbi() {
-#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
-  return Abi::kWordSize64;
-#elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
-       (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
-        defined(HOST_OS_ANDROID))) ||                                          \
-    (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
-  return Abi::kWordSize32Align32;
-#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
-    defined(HOST_ARCH_ARM)
-  return Abi::kWordSize32Align64;
-#else
-#error "Unknown platform. Please add alignment requirements for ABI."
-#endif
-}
-#endif  // defined(TARGET_ARCH_DBC)
-
 Abi TargetAbi() {
-#if defined(TARGET_ARCH_DBC)
-  return HostAbi();
-#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
   return Abi::kWordSize64;
 #elif (defined(TARGET_ARCH_IA32) && /* NOLINT(whitespace/parens) */            \
        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
@@ -260,8 +240,6 @@ Representation ResultRepresentationBase(const Function& signature) {
   return rep;
 }
 
-#if !defined(TARGET_ARCH_DBC)
-
 RawFunction* NativeCallbackFunction(const Function& c_signature,
                                     const Function& dart_target,
                                     const Instance& exceptional_return) {
@@ -322,8 +300,6 @@ ZoneGrowableArray<Representation>* ArgumentRepresentations(
 Representation ResultRepresentation(const Function& signature) {
   return ResultRepresentationBase<CallingConventions>(signature);
 }
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 #if defined(USING_SIMULATOR)
 
@@ -459,7 +435,6 @@ class ArgumentAllocator : public ValueObject {
   intptr_t stack_height_in_slots = 0;
 };
 
-#if !defined(TARGET_ARCH_DBC)
 ZoneGrowableArray<Location>*
 CallbackArgumentTranslator::TranslateArgumentLocations(
     const ZoneGrowableArray<Location>& arg_locs) {
@@ -528,7 +503,6 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.
@@ -553,33 +527,11 @@ ZoneGrowableArray<Location>* ArgumentLocationsBase(
 
 ZoneGrowableArray<Location>* ArgumentLocations(
     const ZoneGrowableArray<Representation>& arg_reps) {
-#if !defined(TARGET_ARCH_DBC)
   return ArgumentLocationsBase<dart::CallingConventions, Location,
                                dart::Register, dart::FpuRegister>(arg_reps);
-#else
-  intptr_t next_free_register = ffi::kFirstArgumentRegister;
-  intptr_t num_arguments = arg_reps.length();
-  auto result = new ZoneGrowableArray<Location>(num_arguments);
-  for (intptr_t i = 0; i < num_arguments; i++) {
-    // TODO(dacoharkes): In 32 bits, use pair locations.
-    result->Add(Location::RegisterLocation(next_free_register));
-    next_free_register++;
-  }
-  return result;
-#endif
 }
-
-#if defined(TARGET_ARCH_DBC)
-ZoneGrowableArray<HostLocation>* HostArgumentLocations(
-    const ZoneGrowableArray<Representation>& arg_reps) {
-  return ArgumentLocationsBase<dart::host::CallingConventions, HostLocation,
-                               dart::host::Register, dart::host::FpuRegister>(
-      arg_reps);
-}
-#endif
 
 Location ResultLocation(Representation result_rep) {
-#ifndef TARGET_ARCH_DBC
   switch (result_rep) {
     case kUnboxedFloat:
     case kUnboxedDouble:
@@ -604,10 +556,6 @@ Location ResultLocation(Representation result_rep) {
     default:
       UNREACHABLE();
   }
-#else
-  // TODO(dacoharkes): Support 64 bit result values on 32 bit DBC.
-  return Location::RegisterLocation(0);
-#endif
 }
 
 // TODO(36607): Cache the trampolines.
@@ -674,85 +622,6 @@ intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
 intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
   return TemplateNumStackSlots(locations);
 }
-
-#if defined(TARGET_ARCH_DBC)
-
-static RawTypedData* typed_data_new_uintptr(intptr_t length) {
-#if defined(ARCH_IS_32_BIT)
-  return TypedData::New(kTypedDataUint32ArrayCid, length);
-#else
-  return TypedData::New(kTypedDataUint64ArrayCid, length);
-#endif
-}
-
-static void typed_data_set_uintptr(const TypedData& typed_data,
-                                   intptr_t index,
-                                   uintptr_t value) {
-#if defined(ARCH_IS_32_BIT)
-  typed_data.SetUint32(target::kWordSize * index, value);
-#else
-  typed_data.SetUint64(target::kWordSize * index, value);
-#endif
-}
-
-static uintptr_t typed_data_get_uintptr(const TypedData& typed_data,
-                                        intptr_t index) {
-#if defined(ARCH_IS_32_BIT)
-  return typed_data.GetUint32(target::kWordSize * index);
-#else
-  return typed_data.GetUint64(target::kWordSize * index);
-#endif
-}
-
-// Number of host stack slots used in 'locations'.
-static intptr_t HostNumStackSlots(
-    const ZoneGrowableArray<HostLocation>& locations) {
-  return TemplateNumStackSlots(locations);
-}
-
-RawTypedData* FfiSignatureDescriptor::New(
-    const ZoneGrowableArray<HostLocation>& arg_host_locations,
-    const Representation result_representation) {
-  const uintptr_t num_arguments = arg_host_locations.length();
-  const uintptr_t num_stack_slots = HostNumStackSlots(arg_host_locations);
-
-  const TypedData& result = TypedData::Handle(
-      typed_data_new_uintptr(kOffsetArgumentLocations + num_arguments));
-
-  typed_data_set_uintptr(result, kOffsetNumArguments, num_arguments);
-  typed_data_set_uintptr(result, kOffsetNumStackSlots, num_stack_slots);
-  typed_data_set_uintptr(result, kOffsetResultRepresentation,
-                         result_representation);
-
-  for (uintptr_t i = 0; i < num_arguments; i++) {
-    typed_data_set_uintptr(result, kOffsetArgumentLocations + i,
-                           arg_host_locations.At(i).write());
-  }
-
-  return result.raw();
-}
-
-intptr_t FfiSignatureDescriptor::length() const {
-  return typed_data_get_uintptr(typed_data_, kOffsetNumArguments);
-}
-
-intptr_t FfiSignatureDescriptor::num_stack_slots() const {
-  return typed_data_get_uintptr(typed_data_, kOffsetNumStackSlots);
-}
-
-HostLocation FfiSignatureDescriptor::LocationAt(intptr_t index) const {
-  return HostLocation::read(
-      typed_data_get_uintptr(typed_data_, kOffsetArgumentLocations + index));
-}
-
-Representation FfiSignatureDescriptor::ResultRepresentation() const {
-  uintptr_t result_int =
-      typed_data_get_uintptr(typed_data_, kOffsetResultRepresentation);
-  ASSERT(result_int < kNumRepresentations);
-  return static_cast<Representation>(result_int);
-}
-
-#endif  // defined(TARGET_ARCH_DBC)
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

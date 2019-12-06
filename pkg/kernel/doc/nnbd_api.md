@@ -2,16 +2,23 @@
 
 Author: The Dart CFE team.
 
-Status: Draft
+Status: Living document.
 
 
 
 ## CHANGELOG
 
-2019.10.15:
-- Added information about implementing the subtype relation.
+2019.11.06:
+- Described required nullability parameter.
+
+2019.10.18:
+- Added information about `NeverType`.
+
+2019.10.17:
+- Renamed `Nullability.neither` to `Nullability.undetermined`.
 
 2019.10.15:
+- Added information about implementing the subtype relation.
 - Added description of `DartType.withNullability`.
 
 2019.09.26:
@@ -21,7 +28,7 @@ Status: Draft
 
 ## Summary
 
-The sections below describe the encoding of the nullability property on types in the Kernel ASTs produced by the CFE.  Details are discussed, such as the use of `Nullability.neither`, and computation of the nullability property for the results of type substitution and type intersection is described.  The encoding for late fields and variables and required named parameters is described.  Finally, the list of the updates to the public interface of the CFE is given along with some recommendations on updating the client code.
+The sections below describe the encoding of the nullability property on types in the Kernel ASTs produced by the CFE.  Details are discussed, such as the use of `Nullability.undetermined`, and computation of the nullability property for the results of type substitution and type intersection is described.  The encoding for late fields and variables and required named parameters is described.  Finally, the list of the updates to the public interface of the CFE is given along with some recommendations on updating the client code.
 
 This is a living document describing the changes in the output and in the public interface of the CFE related to the NNBD Dart language feature.  It is being updated as more changes are made.
 
@@ -73,7 +80,7 @@ The CFE combines various bits of information available at compile time, such as 
 
 - **Nullable** types.  Mainly, these are the types that are marked with `?` by the programmer.  They can also be inferred from other nullable types or synthesized according to the language specification.  For example, if the programmer omits the type bound on a type variable in an opted-in library, the CFE should synthesize `Object?` for the bound.
 - **Non-nullable** types.  This is the default category of types.  If a type is declared without any modifiers in an opted-in library, in most cases it would be non-nullable.
-- Types in opted-in libraries that are potentially nullable or potentially non-nullable, but **neither** can be said about them at compile time.  An example of such type is a type-parameter type with the nullable bound.  At run time both nullable and non-nullable types can be passed for that type parameter, so it's impossible to say anything about the nullability of such type at compile time.
+- Types in opted-in libraries that are potentially nullable or potentially non-nullable, but neither can be said about them at compile time are of **undetermined** nullability.  An example of such type is a type-parameter type with the nullable bound.  At run time both nullable and non-nullable types can be passed for that type parameter, so it's impossible to say anything about the nullability of such type at compile time.
 - **Legacy** types.  These are the types originating from the opted-out libraries.
 
 Every `DartType` subclass implements the `nullability` getter.  The return value of the getter is described by the following [`enum`](https://github.com/dart-lang/sdk/blob/0a4d47de3cb8cd398c5a2c669953129cdb11ec9a/pkg/kernel/lib/ast.dart#L4803):
@@ -82,19 +89,19 @@ Every `DartType` subclass implements the `nullability` getter.  The return value
 enum Nullability {
   nullable,
   nonNullable,
-  neither,
+  undetermined,
   legacy
 }
 ```
 
-In the textual representation of Kernel that is commonly used in `.expect` files `Nullability.nullable` is printed out as `?`, `Nullability.nonNullable` is printed as an empty sequence of characters, `Nullability.neither` is printed as `%`, and `Nullability.legacy` is printed as `*`.
+In the textual representation of Kernel that is commonly used in `.expect` files `Nullability.nullable` is printed out as `?`, `Nullability.nonNullable` is printed as an empty sequence of characters, `Nullability.undetermined` is printed as `%`, and `Nullability.legacy` is printed as `*`.
 
 *TODO: Add an example of a .expect file.*
 
 
-####The 'neither' Nullability
+#### The 'undetermined' Nullability
 
-`Nullability.neither` marks all types that can't be put into any other three categories at compile time and that should be categorized at run time.  The primary use case for `Nullability.neither` are type-parameter types with nullable bounds.  Consider the following Dart program:
+`Nullability.undetermined` marks all types that can't be put into any other three categories at compile time and that should be categorized at run time.  The primary use case for `Nullability.undetermined` are type-parameter types with nullable bounds.  Consider the following Dart program:
 
 ```dart
 // The enclosing library is opted in.
@@ -113,7 +120,7 @@ class A<T extends Object?> {
 
 At compile time nothing can be said about the nullability of `T` because it is possible that at run time either a nullable or non-nullable type will be passed for it.  We have to be restrictive and prohibit both assignments of `null` to variables of type `T` and assignments of expression values of type `T` to variables of non-nullable types.  However, there are cases when the error can be caught only at run time when the nullability of the type passed for `T` is known.  An example of that is an invocation of a function stored in a variable of type `dynamic`.
 
-A type-parameter type also has `Nullability.neither` if its bound have `Nullability.neither`.  In the following example types `T`, `S`, and `V` are of `neither` nullability:
+A type-parameter type also has `Nullability.undetermined` if its bound have `Nullability.undetermined`.  In the following example types `T`, `S`, and `V` are of `undetermined` nullability:
 
 ```dart
 class B<T extends S, S extends V, V extends Object?> {
@@ -123,7 +130,7 @@ class B<T extends S, S extends V, V extends Object?> {
 }
 ```
 
-Additionally, if the nullability of a type depends on the nullability of an `InvalidType`, the former is set to `Nullability.neither` for recovery purposes.  An example of such dependency is the nullability of a type-parameter type with an `InvalidType` as the bound of its type parameter.  Note that the `.nullability` getter of `InvalidType` throws when accessed in order to make sure all such dependencies are treated explicitly.
+Additionally, if the nullability of a type depends on the nullability of an `InvalidType`, the former is set to `Nullability.undetermined` for recovery purposes.  An example of such dependency is the nullability of a type-parameter type with an `InvalidType` as the bound of its type parameter.  Note that the `.nullability` getter of `InvalidType` throws when accessed in order to make sure all such dependencies are treated explicitly.
 
 
 #### Type Substitution and Nullability
@@ -139,7 +146,7 @@ In the following table the rows correspond to the possible nullability attribute
 | * | * | ? | * | * |
 | % | N/A | ? | * | % |
 
-In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.neither`.
+In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.undetermined`.
 
 Type-parameter types are assigned their nullabilities as follows:
 
@@ -165,7 +172,7 @@ class A<X extends Object, Y extends Object?, Z extends Y> {
 class A<X extends int, Y extends dynamic> { foo(X x, Y y) {} }
 ```
 
-- If a type parameter has a nullable bound or a bound that has `Nullability.neither`, and a type-parameter type referring that type parameter isn't marked with `?`, then that type-parameter type has `Nullability.neither`.  In the following example `X`, `Y`, and `Z` have `Nullability.neither` when used as types:
+- If a type parameter has a nullable bound or a bound that has `Nullability.undetermined`, and a type-parameter type referring that type parameter isn't marked with `?`, then that type-parameter type has `Nullability.undetermined`.  In the following example `X`, `Y`, and `Z` have `Nullability.undetermined` when used as types:
 
 ```dart
 // Note that 'Object?' is provided for the omitted bounds in opted-in libraries.
@@ -186,7 +193,7 @@ static method foo() → (core::String?) → core::int?
   return null;
 ```
 
-Note that `X` has `Nullability.neither` when used as a type in the right-hand side of the `typedef` declaration.  The return type of `foo` is `int? Function(String?)`, which is the result of substituting `X` with `int?` and `Y` with `String` in `X% Function(Y?)`.
+Note that `X` has `Nullability.undetermined` when used as a type in the right-hand side of the `typedef` declaration.  The return type of `foo` is `int? Function(String?)`, which is the result of substituting `X` with `int?` and `Y` with `String` in `X% Function(Y?)`.
 
 Obtaining the type for a type check, such as the is-check in the body of `foo` in the program fragment below, is an example where type substitution is needed at run time. 
 
@@ -196,7 +203,7 @@ class A<X> {
 }
 ```
 
-The elements of the table that are marked with N/A correspond to cases that should be rejected by a type check.  The case for type argument having `Nullability.nullable` and the type parameter having `Nullability.nonNullable` should result in a type error because a nullable type can't be a subtype of a non-nullable type.  Similar is true for the argument that have `Nullability.neither` and the type parameter that have `Nullability.nonNullable` because at run time `Nullability.neither` can be replaced with `Nullability.nullable`.
+The elements of the table that are marked with N/A correspond to cases that should be rejected by a type check.  The case for type argument having `Nullability.nullable` and the type parameter having `Nullability.nonNullable` should result in a type error because a nullable type can't be a subtype of a non-nullable type.  Similar is true for the argument that have `Nullability.undetermined` and the type parameter that have `Nullability.nonNullable` because at run time `Nullability.undetermined` can be replaced with `Nullability.nullable`.
 
 The substitution routines in `pkg/kernel/lib/type_algebra.dart` follow the nullability computation rules described above.
 
@@ -214,7 +221,7 @@ In the following table the rows correspond to the possible nullability attribute
 | * | N/A | N/A | * | N/A |
 | % | ! | % | N/A | % |
 
-In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.neither`.
+In the table `!` denotes `Nullability.nonNullable`, `?` denotes `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes `Nullability.undetermined`.
 
 The table elements marked with N/A represent combinations that can't be a part of a well-formed CFE output.  Some of them are due to the restriction on the intersection type that the RHS of the intersection should be a subtype of the bound of the type variable, and some others are due to the restriction that a nullable type is never promoted to an intersection type.
 
@@ -230,7 +237,7 @@ class A<T extends num?> {
 }
 ```
 
-The type of the variable `t` in the example is promoted from `T` to `T & int?` because the RHS of the intersection, namely `int?`, is a subtype of the bound of `T`, which is `num?`.  In Kernel `T` has `Nullability.neither` because the bound of `T` is nullable, and the intersection type with the nullabilities of all its parts looks like `T% & int?`.  The following is the textual representation of the program from the example above compiled by the CFE.
+The type of the variable `t` in the example is promoted from `T` to `T & int?` because the RHS of the intersection, namely `int?`, is a subtype of the bound of `T`, which is `num?`.  In Kernel `T` has `Nullability.undetermined` because the bound of `T` is nullable, and the intersection type with the nullabilities of all its parts looks like `T% & int?`.  The following is the textual representation of the program from the example above compiled by the CFE.
 
 ```kernel
 library;
@@ -267,9 +274,212 @@ The use of the `required` keyword affects the override rules and the subtyping r
 
 Fields and variables can be declared using the `late` keyword.  To reflect the use of the keyword the CFE sets the `isLate` flag on `Field` and `VariableDeclaration` nodes.
 
-The plan is to provide an optional desugaring of `late` fields and variables to aid the initial implementation of the feature.  The desugaring could be turned on by back ends via a compilation-target flag.
+#### Late field encoding
+An optional desugaring of `late` fields and variables is provided to aid the initial implementation of the feature.  The desugaring is enabled if `Target.supportsLateFields` returns `false`.
 
-*TODO: Expand the section on desugaring.*
+There are 8 variants of the encoding based on whether type of the field is potentially nullable, whether the field is final and whether the field has an initializer.
+
+If a late field is non-nullable, its value is stored in a private nullable field and a field value of `null` signals that the field is uninitialized. Otherwise if a late field is potentially nullable, an additional boolean `_#isSet#` field is generated to tracking whether the field has been initialized.
+
+##### 1) Potentially nullable late field without initializer
+A potentially nullable late non-final field:
+```
+late T? x;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x => _#x#isSet ? _#x : throw new StateError("Field 'x' has not been initialized.");
+void set x(T? value) {
+  _#x#isSet = true;
+  _#x = value;
+}
+```
+
+##### 2) Potentially nullable late final field without initializer
+A potentially nullable late final field _without_ an initializer
+```
+late final T? x;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x => _#x#isSet ? _#x : throw new StateError("Field 'x' has not been initialized.");
+void set x(T? value) {
+  if (_#x#isSet) {
+    throw new StateError('Field x has already been initialized.');
+  } else {
+    _#x#isSet = true;
+    _#x = value;
+  }
+}
+```
+
+##### 3) Potentially nullable late field with initializer
+A potentially nullable late field _with_ initializer `<exp>`
+```
+late T? x = <exp>;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x {
+  if (!_#x#isSet) {
+    _#x#isSet = true;
+    _#x = <exp>;
+  }
+return _#x
+}
+void set x(T? value) {
+  _#x#isSet = true
+  _#x = value;
+}
+```
+
+##### 4) Potentially nullable late final field with initializer
+A potentially nullable late final field _with_ initializer `<exp>`
+```
+late final T? x = <exp>;
+```
+is encoded as
+```
+bool _#x#isSet = false;
+T? _#x;
+T? get x {
+  if (!_#x#isSet) {
+    _#x#isSet = true;
+    _#x = <exp>;
+  }
+  return _#x;
+}
+```
+
+##### 5) Non-nullable late field without initializer
+A non-nullable late non-final field:
+```
+late T x;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? throw new StateError("Field 'x' has not been initialized.") : #;
+void set x(T value) {
+  _#x = value;
+}
+```
+The reason for using a `let` expression here, is that while the private field is nullable, the temporary variable in the `let` expression will be promoted to a non-nullable type when checking against `null`, thus ensuring that the returned value is soundly non-nullable, also when analyzing the kernel ast itself.
+
+##### 6) Non-nullable late final field without initializer
+A non-nullable late final field _without_ an initializer
+```
+late final T x;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? throw new StateError("Field 'x' has not been initialized.") : #;
+void set x(T value) {
+  if (_#x == null) {
+    _#x = value;
+  } else {
+    throw new StateError("Field 'x' has already been initialized.");
+  }
+}
+```
+
+##### 7) Non-nullable late field with initializer
+A non-nullable late field _with_ initializer `<exp>`
+```
+late T x = <exp>;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? _#x = <exp> : #;
+void set x(T value) {
+  _#x = value;
+}
+```
+
+##### 8) Non-nullable late final field with initializer
+A non-nullable late final field _with_ initializer `<exp>`
+```
+late final T x = <exp>;
+```
+is encoded as
+```
+T? _#x;
+T get x => let T? # = _#x in # == null ? _#x = <exp> : _#x;
+```
+
+##### Local variables
+A late local variable is encoded similarly to a late field. Local functions are created which correspond to the getters and setters for late fields.
+
+For instance, a nullable late local _without_ initializer
+```
+method() {
+  late T? x;
+  <lhs> = x;
+  variable = <rhs>;
+}
+```
+is encoded as
+```
+method() {
+  bool #x#isSet = false;
+  T? #x;
+  T? #x#get() => #x#isSet ? #x : throw new StateError("Local 'x' has not been initialized.")
+  T? #x#set(T? value)  {
+    _#x#isSet = true;
+    return _#x = value;
+  }
+  <lhs> = #x#get.call();
+  #x#set.call(<rhs>);
+}
+```
+
+##### Instance field initialization
+A field initialization of late _nullable_ instance field
+```
+class Class {
+  late T? x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  bool _#x#isSet = false;
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x#isSet true, _#x = x;
+  Class.c() : _#x#isSet = true, _#x = <exp>;
+}
+```
+
+A field initialization of late _non-nullable_ instance field
+```
+class Class {
+  late T x;
+  Class.a();
+  Class.b(this.x);
+  Class.c() : x = <exp>;
+}
+```
+is encoded as
+```
+class Class {
+  T? _#x;
+  Class.a();
+  Class.b(T x) : _#x = x;
+  Class.b() : _#x = <exp>;
+}
+```
 
 
 ### The Null Check Operator
@@ -284,7 +494,7 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 #### Nullability attribute on types
 
 - `DartType.nullability` is added to `DartType` and the implementations are added to the subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
-- Nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.
+- The required nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.  All of the call sites were modified so that `Nullability.legacy` is passed for the parameter.
 - `TypeParameterType.typeParameterTypeNullability` is added.  For details see section **Nullability of Intersection Types** of this document.
 - `TypeParameterType.computeNullabilityFromBound` is added.
 - `DartType.withNullability` method is added to `DartType` and is implemented in its subclasses.  The method takes a single parameter, the desired nullability, and returns the type that is the receiver with the given nullability.  If the receiver already has the nullability that is passed in as the parameter, the receiver object itself is returned, and a copy isn't created.  If the types that are represented by a particular `DartType` subclass always have a certain nullability, like `dynamic` or `void`, invocations of `withNullability` on them always return the receiver.
@@ -295,6 +505,11 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 - `SubtypeTester.isSubtypeOf` is updated to receive additional parameter, a `SubtypeCheckMode`.
 - `IsSubtypeOf` class is added.  It represents a result of a nullability-aware type check.  Objects of `IsSubtypeOf` can further be queried for whether the checked types are in the subtype relation when the nullability modifiers are taken into account (using `IsSubtypeOf.isSubtypeWhenUsingNullabilities`) or when the modifiers are ignored (using `IsSubtypeOf.isSubtypeWhenIgnoringNullabilities`).
 - `SubtypeTester.performNullabilityAwareSubtypeCheck` method is added.  It takes two types as input and produces a result of type `IsSubtypeOf`.  Using `SubtypeTester.performNullabilityAwareSubtypeCheck` is recommended for performance considerations if a call site needs to differentiate between NNBD and pre-NNBD cases.
+
+#### Type Never
+
+* A new subclass of `DartType` called `NeverType` is added to represent type `Never`.  It is a subtype of all Dart types.  It's different from `BottomType` already present in Kernel; the latter is reserved for other purposes with the addition to the subtyping rules that `BottomType` is a subtype of `NeverType`.
+* `DartTypeVisitor` and `DartTypeVisitor1` visitors are updated to include `visitNeverType` methods.  All implementations of the interfaces of `DartTypeVisitor` and `DartTypeVisitor1` are updated to include implementations of `visitNeverType`.
 
 #### isRequired and isLate flags
 
@@ -333,7 +548,7 @@ This set of members makes it possible to avoid the explicit use of `Nullability.
 
 #### Avoiding explicit legacy
 
-As described in section **Changes in caching of raw types**, all previously existing invocations of `Class.rawType` and of the related getters of `TypeEnvironment` were replaced with invocations of nullability-aware members of `CoreTypes`.  To keep the observable behavior of the client code, legacy types were used wherever before a raw type was used.  For example, `intClass.rawType` was replaced with `coreTypes.intLegacyRawType` and `cls.rawType` was replaced with `coreTypes.legacyRawType(cls)`.  All of those call sites should be updated as a part of the NNBD feature implementation because they are the source of legacy types regardless of the opted-in status of the library they are generated for.  Section **Library status and library-specific nullability treatment** describes the changes in the CFE public interface that are supposed to help with the process.
+As described in section **Nullability attribute on types**, all previously existing invocations of the constructors of `InterfaceType`, `TypedefType`, `TypeParameterType`, and `FunctionType` were given additional argument that specifies the nullability of the created type; `Nullability.legacy` was used in the cases that weren't migrated to the NNBD semantics yet.  Additionally, as described in section **Changes in caching of raw types**, all previously existing invocations of `Class.rawType` and of the related getters of `TypeEnvironment` were replaced with invocations of nullability-aware members of `CoreTypes`.  To keep the observable behavior of the client code, legacy types were used wherever before a raw type was used.  For example, `intClass.rawType` was replaced with `coreTypes.intLegacyRawType` and `cls.rawType` was replaced with `coreTypes.legacyRawType(cls)`.  All of those call sites should be updated as a part of the NNBD feature implementation because they are the source of legacy types regardless of the opted-in status of the library they are generated for.  Section **Library status and library-specific nullability treatment** describes the changes in the CFE public interface that are supposed to help with the process.
 
 The easiest way to avoid using explicitly legacy types is to do the following:
 
@@ -345,13 +560,13 @@ Quick recommendations for updating the described code are listed below.  The exa
 - Replace `coreTypes.intLegacyRawType` with `coreTypes.intRawType(library.nonNullable)`.  Similarly for other built-in types.
 - Replace `coreTypes.legacyRawType(cls)` with `coreTypes.rawType(cls, library.nonNullable)`.
 - Replace `coreTypes.rawType(cls, Nullability.legacy)` with `coreTypes.rawType(cls, library.nonNullable)`.
-- Replace `new InterfaceType(cls, typeArgs)` with `new InterfaceType(cls, typeArgs, library.nonNullable)`.
-- Replace `new InterfaceType(cls)` with `new InterfaceType(cls, const <DartType>[], library.nonNullable)`.
-- Replace `new InterfaceType.byReference(clsRef, typeArgs)` with `new InterfaceType.byReference(clsRef, typeArgs, library.nonNullable)`.
-- Replace `new FunctionType(positional, retType, <NAMED>)` with `new FunctionType(positional, retType, nullability: library.nonNullable, <NAMED>)` where `<NAMED>` are the named arguments passed in.
-- Replace `new TypedefType(tdef, typeArgs)` with `new TypedefType(tdef, typeArgs, library.nonNullable)`.
-- Replace `new TypedefType(tdef)` with `new TypedefType(tdef, const <DartType>[], library.nonNullable)`.
-- Replace `new TypedefType.byReference(tdefRef, typeArgs)` with `new TypedefType.byReference(tdefRef, typeArgs, library.nonNullable)`.
+- Replace `new InterfaceType(cls, Nullability.legacy, typeArgs)` with `new InterfaceType(cls, library.nonNullable, typeArgs)`.
+- Replace `new InterfaceType(cls, Nullability.legacy)` with `new InterfaceType(cls, library.nonNullable)`.
+- Replace `new InterfaceType.byReference(clsRef, Nullability.legacy, typeArgs)` with `new InterfaceType.byReference(clsRef, library.nonNullable, typeArgs)`.
+- Replace `new FunctionType(positional, retType, Nullability.legacy, <NAMED>)` with `new FunctionType(positional, retType, library.nonNullable, <NAMED>)` where `<NAMED>` are the named arguments passed in.
+- Replace `new TypedefType(tdef, Nullability.legacy, typeArgs)` with `new TypedefType(tdef, library.nonNullable, typeArgs)`.
+- Replace `new TypedefType(tdef, Nullability.legacy)` with `new TypedefType(tdef, library.nonNullable)`.
+- Replace `new TypedefType.byReference(tdefRef, Nullability.legacy, typeArgs)` with `new TypedefType.byReference(tdefRef, library.nonNullable, typeArgs)`.
 
 The code updated this way will generate nullable and non-nullable types as desired for the opted-in libraries and will generate legacy types for the opted-out libraries.  It should also be easy to deprecate the weak-NNBD mode for such code: `Library.nonNullable` and `Library.nullable` will start returning the corresponding nullability constants.
 
@@ -370,6 +585,10 @@ To save some computations, a single invocation of `performNullabilityAwareSubtyp
 #### Computing TypeParameterType.nullability
 
 As described in section **Nullability of Intersection Types**, objects of `TypeParameterType` implement `.nullability` as a getter, not a field, and the overall nullability value for the type is not serialized in the binary format.  The back ends that implement their own deserialization may need to compute the nullability for `TypeParameterType`s.
+
+#### Implementing visitNeverType
+
+Following the introduction of `NeverType`, all implementors of `DartTypeVisitor` and `DartTypeVisitor1` should implement their new methods, `visitNeverType`.  Reasonable implementations are provided in the CL adding `NeverType`, and they might need to be revisited.
 
 #### Type equality
 

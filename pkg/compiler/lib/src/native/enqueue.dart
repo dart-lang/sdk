@@ -132,7 +132,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           InterfaceType specType = _elementEnvironment.getRawType(type.element);
           return _dartTypes.isSubtype(nativeType, specType);
         }));
-      } else if (type.isDynamic) {
+      } else if (type is DynamicType) {
         matchingClasses.addAll(_unusedClasses);
       } else {
         assert(type is VoidType, '$type was ${type.runtimeType}');

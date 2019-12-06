@@ -560,7 +560,7 @@ class DescriptorInfoMultipleMixin : public DI {
       pentry->token_count += count;
     }
     ASSERT(pentry->token_count <= kTokenCount);
-    bool is_ready = pentry->token_count > 0 && pentry->IsReady();
+    bool is_ready = pentry->IsReady();
     if (!was_ready && is_ready) {
       active_readers_.Add(pentry);
     }

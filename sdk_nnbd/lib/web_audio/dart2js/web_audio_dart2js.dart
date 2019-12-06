@@ -1,5 +1,4 @@
 // @dart = 2.5
-
 /**
  * High-fidelity audio programming in the browser.
  *

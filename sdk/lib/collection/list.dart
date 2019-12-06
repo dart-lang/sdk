@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.collection;
 
 /// Abstract implementation of a list.
@@ -21,7 +23,11 @@ part of dart.collection;
 /// to the growable list, or, preferably, use `DelegatingList` from
 /// "package:collection/wrappers.dart" instead.
 abstract class ListBase<E> extends Object with ListMixin<E> {
-  /// Convert a `List` to a string as `[each, element, as, string]`.
+  /// Converts a [List] to a [String].
+  ///
+  /// Converts [list] to a string by converting each element to a string (by
+  /// calling [Object.toString]), joining them with ", ", and wrapping the
+  /// result in "[" and "]".
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [list] to a string again.

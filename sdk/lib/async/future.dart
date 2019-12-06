@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.6
+
 part of dart.async;
 
 /// A type representing values that are either `Future<T>` or `T`.
@@ -12,8 +14,6 @@ part of dart.async;
 ///
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
-///
-/// Note: the `FutureOr<T>` type is interpreted as `dynamic` in non strong-mode.
 ///
 /// # Examples
 /// ``` dart
@@ -637,8 +637,6 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
-  // a breaking change.
   Future<T> catchError(Function onError, {bool test(Object error)});
 
   /**

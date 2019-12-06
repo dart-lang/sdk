@@ -13,6 +13,8 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+import 'package:crypto/crypto.dart';
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -59,6 +61,8 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
+import 'transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -109,7 +113,7 @@ void declareCompilerOptions(ArgParser args) {
       allowed: BytecodeOptions.commandLineFlags.keys,
       allowedHelp: BytecodeOptions.commandLineFlags);
   args.addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: false);
+      help: 'Include only bytecode into the output file', defaultsTo: true);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
@@ -165,11 +169,24 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return badUsageExitCode;
   }
 
+  if (aot) {
+    if (!linkPlatform) {
+      print('Error: --no-link-platform option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (splitOutputByPackages) {
+      print(
+          'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+  }
+
   final BytecodeOptions bytecodeOptions = new BytecodeOptions(
-      enableAsserts: enableAsserts,
-      emitSourceFiles: embedSources,
-      environmentDefines: environmentDefines)
-    ..parseCommandLineFlags(options['bytecode-options']);
+    enableAsserts: enableAsserts,
+    emitSourceFiles: embedSources,
+    environmentDefines: environmentDefines,
+    aot: aot,
+  )..parseCommandLineFlags(options['bytecode-options']);
 
   final target = createFrontEndTarget(targetName);
   if (target == null) {
@@ -213,9 +230,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   final results = await compileToKernel(mainUri, compilerOptions,
+      includePlatform: linkedDependencies.isNotEmpty,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
+      enableAsserts: enableAsserts,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
@@ -249,9 +268,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await writeOutputSplitByPackages(
       mainUri,
       compilerOptions,
-      results.component,
-      results.coreTypes,
-      results.classHierarchy,
+      results,
       outputFileName,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
@@ -266,12 +283,16 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 /// collection of compiled sources.
 class KernelCompilationResults {
   final Component component;
+
+  /// Set of libraries loaded from .dill, with or without the SDK depending on
+  /// the compilation settings.
+  final Set<Library> loadedLibraries;
   final ClassHierarchy classHierarchy;
   final CoreTypes coreTypes;
   final Iterable<Uri> compiledSources;
 
-  KernelCompilationResults(this.component, this.classHierarchy, this.coreTypes,
-      this.compiledSources);
+  KernelCompilationResults(this.component, this.loadedLibraries,
+      this.classHierarchy, this.coreTypes, this.compiledSources);
 }
 
 /// Generates a kernel representation of the program whose main library is in
@@ -281,9 +302,11 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {bool aot: false,
+    {bool includePlatform: false,
+    bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
+    bool enableAsserts: true,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
@@ -295,25 +318,34 @@ Future<KernelCompilationResults> compileToKernel(
 
   setVMEnvironmentDefines(environmentDefines, options);
   CompilerResult compilerResult = await kernelForProgram(source, options);
-
   Component component = compilerResult?.component;
   final compiledSources = component?.uriToSource?.keys;
 
+  Set<Library> loadedLibraries = createLoadedLibrariesSet(
+      compilerResult?.loadedComponents, compilerResult?.sdkComponent,
+      includePlatform: includePlatform);
+
   // Run global transformations only if component is correct.
   if (aot && component != null) {
-    await _runGlobalTransformations(
-        source,
-        options,
+    await runGlobalTransformations(
+        options.target,
         component,
         useGlobalTypeFlowAnalysis,
-        environmentDefines,
+        enableAsserts,
         useProtobufTreeShaker,
         errorDetector);
   }
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
+    List<Library> libraries = new List<Library>();
+    for (Library library in component.libraries) {
+      if (loadedLibraries.contains(library)) continue;
+      libraries.add(library);
+    }
+
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
+          libraries: libraries,
           hierarchy: compilerResult.classHierarchy,
           coreTypes: compilerResult.coreTypes,
           options: bytecodeOptions);
@@ -327,8 +359,37 @@ Future<KernelCompilationResults> compileToKernel(
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return new KernelCompilationResults(component, compilerResult?.classHierarchy,
-      compilerResult?.coreTypes, compiledSources);
+  return new KernelCompilationResults(
+      component,
+      loadedLibraries,
+      compilerResult?.classHierarchy,
+      compilerResult?.coreTypes,
+      compiledSources);
+}
+
+Set<Library> createLoadedLibrariesSet(
+    List<Component> loadedComponents, Component sdkComponent,
+    {bool includePlatform: false}) {
+  final Set<Library> loadedLibraries = {};
+  if (loadedComponents != null) {
+    for (Component c in loadedComponents) {
+      for (Library lib in c.libraries) {
+        loadedLibraries.add(lib);
+      }
+    }
+  }
+  if (sdkComponent != null) {
+    if (includePlatform) {
+      for (Library lib in sdkComponent.libraries) {
+        loadedLibraries.remove(lib);
+      }
+    } else {
+      for (Library lib in sdkComponent.libraries) {
+        loadedLibraries.add(lib);
+      }
+    }
+  }
+  return loadedLibraries;
 }
 
 void setVMEnvironmentDefines(
@@ -355,12 +416,11 @@ void setVMEnvironmentDefines(
   options.environmentDefines = environmentDefines;
 }
 
-Future _runGlobalTransformations(
-    Uri source,
-    CompilerOptions compilerOptions,
+Future runGlobalTransformations(
+    Target target,
     Component component,
     bool useGlobalTypeFlowAnalysis,
-    Map<String, String> environmentDefines,
+    bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
@@ -375,9 +435,12 @@ Future _runGlobalTransformations(
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
 
+  // Unreachable code elimination transformation should be performed
+  // before type flow analysis so TFA won't take unreachable code into account.
+  unreachable_code_elimination.transformComponent(component, enableAsserts);
+
   if (useGlobalTypeFlowAnalysis) {
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -391,8 +454,7 @@ Future _runGlobalTransformations(
     protobuf_tree_shaker.removeUnusedProtoReferences(
         component, coreTypes, null);
 
-    globalTypeFlow.transformComponent(
-        compilerOptions.target, coreTypes, component);
+    globalTypeFlow.transformComponent(target, coreTypes, component);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -599,9 +661,7 @@ Future<Uri> convertToPackageUri(
 Future writeOutputSplitByPackages(
   Uri source,
   CompilerOptions compilerOptions,
-  Component component,
-  CoreTypes coreTypes,
-  ClassHierarchy hierarchy,
+  KernelCompilationResults compilationResults,
   String outputFileName, {
   bool genBytecode: false,
   BytecodeOptions bytecodeOptions,
@@ -612,33 +672,38 @@ Future writeOutputSplitByPackages(
   }
 
   final packages = new List<String>();
-  await runWithFrontEndCompilerContext(source, compilerOptions, component,
-      () async {
-    await forEachPackage(component,
+  await runWithFrontEndCompilerContext(
+      source, compilerOptions, compilationResults.component, () async {
+    // When loading a kernel file list, flutter_runner and dart_runner expect
+    // 'main' to be last.
+    await forEachPackage(compilationResults,
         (String package, List<Library> libraries) async {
       packages.add(package);
       final String filename = '$outputFileName-$package.dilp';
       final IOSink sink = new File(filename).openWrite();
 
-      Component partComponent = component;
+      Component partComponent = compilationResults.component;
       if (genBytecode) {
         generateBytecode(partComponent,
             options: bytecodeOptions,
             libraries: libraries,
-            hierarchy: hierarchy,
-            coreTypes: coreTypes);
+            hierarchy: compilationResults.classHierarchy,
+            coreTypes: compilationResults.coreTypes);
 
         if (dropAST) {
           partComponent = createFreshComponentWithBytecode(partComponent);
         }
       }
 
-      final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
-          (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
+      final BinaryPrinter printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) =>
+              packageFor(lib, compilationResults.loadedLibraries) == package,
+          false /* excludeUriToSource */);
       printer.writeComponentFile(partComponent);
 
       await sink.close();
-    });
+    }, mainFirst: false);
   });
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
@@ -652,9 +717,9 @@ Future writeOutputSplitByPackages(
   await packagesList.close();
 }
 
-String packageFor(Library lib) {
+String packageFor(Library lib, Set<Library> loadedLibraries) {
   // Core libraries are not written into any package kernel binaries.
-  if (lib.isExternal) return null;
+  if (loadedLibraries.contains(lib)) return null;
 
   // Packages are written into their own kernel binaries.
   Uri uri = lib.importUri;
@@ -680,32 +745,40 @@ void sortComponent(Component component) {
   }
 }
 
-Future<Null> forEachPackage<T>(Component component,
-    T action(String package, List<Library> libraries)) async {
+Future<Null> forEachPackage<T>(KernelCompilationResults results,
+    T action(String package, List<Library> libraries),
+    {bool mainFirst}) async {
+  final Component component = results.component;
+  final Set<Library> loadedLibraries = results.loadedLibraries;
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
+  packages['main'] = new List<Library>(); // Always create 'main'.
   for (Library lib in component.libraries) {
-    packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
+    packages
+        .putIfAbsent(
+            packageFor(lib, loadedLibraries), () => new List<Library>())
+        .add(lib);
   }
-  if (packages.containsKey(null)) {
-    packages.remove(null);
-  }
-  // Make sure main package is last.
-  packages['main'] = packages.remove('main') ?? const <Library>[];
+  packages.remove(null); // Ignore external libraries.
 
+  final mainLibraries = packages.remove('main');
+  if (mainFirst) {
+    await action('main', mainLibraries);
+  }
+
+  final mainMethod = component.mainMethod;
+  final problemsAsJson = component.problemsAsJson;
+  component.mainMethod = null;
+  component.problemsAsJson = null;
   for (String package in packages.keys) {
-    final main = component.mainMethod;
-    final problems = component.problemsAsJson;
-    if (package != 'main') {
-      component.mainMethod = null;
-      component.problemsAsJson = null;
-    }
-
     await action(package, packages[package]);
+  }
+  component.mainMethod = mainMethod;
+  component.problemsAsJson = problemsAsJson;
 
-    component.mainMethod = main;
-    component.problemsAsJson = problems;
+  if (!mainFirst) {
+    await action('main', mainLibraries);
   }
 }
 
@@ -729,6 +802,53 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
   }
   file.write('\n');
   await file.close();
+}
+
+Future<void> createFarManifest(
+    String output, String dataDir, String packageManifestFilename) async {
+  List<String> packages = await File('$output-packages').readAsLines();
+
+  // Make sure the 'main' package is the last (convention with package loader).
+  packages.remove('main');
+  packages.add('main');
+
+  final IOSink packageManifest = File(packageManifestFilename).openWrite();
+
+  final String kernelListFilename = '$packageManifestFilename.dilplist';
+  final IOSink kernelList = File(kernelListFilename).openWrite();
+  for (String package in packages) {
+    final String filenameInPackage = '$package.dilp';
+    final String filenameInBuild = '$output-$package.dilp';
+    packageManifest
+        .write('data/$dataDir/$filenameInPackage=$filenameInBuild\n');
+    kernelList.write('$filenameInPackage\n');
+  }
+  await kernelList.close();
+
+  final String frameworkVersionFilename =
+      '$packageManifestFilename.frameworkversion';
+  final IOSink frameworkVersion = File(frameworkVersionFilename).openWrite();
+  for (String package in [
+    'collection',
+    'flutter',
+    'meta',
+    'typed_data',
+    'vector_math'
+  ]) {
+    Digest digest;
+    if (packages.contains(package)) {
+      final filenameInBuild = '$output-$package.dilp';
+      final bytes = await File(filenameInBuild).readAsBytes();
+      digest = sha256.convert(bytes);
+    }
+    frameworkVersion.write('$package=$digest\n');
+  }
+  await frameworkVersion.close();
+
+  packageManifest.write('data/$dataDir/app.dilplist=$kernelListFilename\n');
+  packageManifest
+      .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
+  await packageManifest.close();
 }
 
 // Used by kernel_front_end_test.dart

@@ -6,15 +6,14 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -54,7 +53,7 @@ class LibraryContext {
   /// We use it as an approximation for the heap size of elements.
   int _linkedDataInBytes = 0;
 
-  RestrictedAnalysisContext analysisContext;
+  AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
   InheritanceManager3 inheritanceManager;
 
@@ -75,15 +74,12 @@ class LibraryContext {
         this.analysisSession = session {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
-    analysisContext = new RestrictedAnalysisContext(
-      synchronousSession,
-      sourceFactory,
-    );
+    analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
 
     _createElementFactory();
     load2(targetLibrary);
 
-    inheritanceManager = new InheritanceManager3(analysisContext.typeSystem);
+    inheritanceManager = new InheritanceManager3();
   }
 
   /**
@@ -281,10 +277,6 @@ class LibraryContext {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = TypeProviderImpl(dartCore, dartAsync);
-    analysisContext.typeProvider = typeProvider;
-
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+    elementFactory.createTypeProviders(dartCore, dartAsync);
   }
 }

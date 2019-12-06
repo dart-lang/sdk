@@ -99,7 +99,7 @@ static field core::List<dynamic>* c1 = <dynamic>[invalid-expression "pkg/front_e
                                  ^"];
 static field core::List<dynamic>* c2 = #C1;
 static field core::Map<dynamic, dynamic>* d = <dynamic, dynamic>{"a": "b"};
-static field self::A* e = let final self::A* #t1 = new self::A::•() in let final core::int* #t2 = #t1.{self::A::x} = 3 in #t1;
+static field self::A* e = let final self::A* #t1 = new self::A::•() in let final void #t2 = #t1.{self::A::x} = 3 in #t1;
 static field core::int* f = 2.{core::num::+}(3);
 static field core::int* g = 3.{core::int::unary-}();
 static field self::B* h = new self::A::•().{self::A::+}(3);

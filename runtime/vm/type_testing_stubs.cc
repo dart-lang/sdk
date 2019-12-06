@@ -96,17 +96,23 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   // During bootstrapping we have no access to stubs yet, so we'll just return
-  // `null` and patch these later in `Object::FinishInitOnce()`.
+  // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
     const intptr_t cid = Type::Cast(type).type_class_id();
-    ASSERT(cid == kDynamicCid || cid == kVoidCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid | cid == kNeverCid);
     return Code::null();
   }
 
+  // TODO(regis): Revisit when type checking mode is not kLegacy anymore.
   if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
       type.raw() == Type::VoidType()) {
     return StubCode::TopTypeTypeTest().raw();
+  }
+
+  if (type.raw() == Type::NeverType()) {
+    // TODO(regis): Revisit.
+    return StubCode::StubCode::DefaultTypeTest().raw();
   }
 
   if (type.IsTypeRef()) {
@@ -138,7 +144,7 @@ TypeTestingStubGenerator::TypeTestingStubGenerator()
 
 RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
@@ -168,11 +174,11 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     }
   }
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
   return TypeTestingStubGenerator::DefaultCodeForType(type, false);
 }
 
-#if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
@@ -268,7 +274,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
                                   /*exclude_null=*/false);
 
     const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
+    const bool smi_is_ok =
+        int_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);
@@ -546,7 +553,7 @@ void RegisterTypeArgumentsUse(const Function& function,
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#else  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#else  // !defined(TARGET_ARCH_IA32)
 
 void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
@@ -556,7 +563,7 @@ void RegisterTypeArgumentsUse(const Function& function,
   UNREACHABLE();
 }
 
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
+#endif  // !defined(TARGET_ARCH_IA32)
 
 #undef __
 

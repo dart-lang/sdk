@@ -8,11 +8,12 @@ import 'dart:io';
 
 import 'dart:isolate';
 
-import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
+    show $A, $MINUS, $a, $z;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import '../../lib/src/fasta/scanner/characters.dart' show $A, $MINUS, $a, $z;
+import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 main(List<String> arguments) async {
   var port = new ReceivePort();

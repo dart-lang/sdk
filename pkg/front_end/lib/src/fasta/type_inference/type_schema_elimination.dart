@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'replacement_visitor.dart';
 import 'type_schema.dart' show UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
@@ -45,7 +46,7 @@ DartType leastClosure(CoreTypes coreTypes, DartType schema) =>
 /// Each visitor method returns `null` if there are no `?`s contained in the
 /// type, otherwise it returns the result of substituting `?` with `Null` or
 /// `Object`, as appropriate.
-class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
+class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   final DartType nullType;
 
   bool isLeastClosure;
@@ -53,109 +54,8 @@ class _TypeSchemaEliminationVisitor implements DartTypeVisitor<DartType> {
   _TypeSchemaEliminationVisitor(CoreTypes coreTypes, this.isLeastClosure)
       : nullType = coreTypes.nullType;
 
-  @override
-  DartType visitFunctionType(FunctionType node) {
-    DartType newReturnType = node.returnType.accept(this);
+  void changeVariance() {
     isLeastClosure = !isLeastClosure;
-    List<DartType> newPositionalParameters = null;
-    for (int i = 0; i < node.positionalParameters.length; i++) {
-      DartType substitution = node.positionalParameters[i].accept(this);
-      if (substitution != null) {
-        newPositionalParameters ??=
-            node.positionalParameters.toList(growable: false);
-        newPositionalParameters[i] = substitution;
-      }
-    }
-    List<NamedType> newNamedParameters = null;
-    for (int i = 0; i < node.namedParameters.length; i++) {
-      DartType substitution = node.namedParameters[i].type.accept(this);
-      if (substitution != null) {
-        newNamedParameters ??= node.namedParameters.toList(growable: false);
-        newNamedParameters[i] = new NamedType(
-            node.namedParameters[i].name, substitution,
-            isRequired: node.namedParameters[i].isRequired);
-      }
-    }
-    isLeastClosure = !isLeastClosure;
-    DartType typedefType = node.typedefType?.accept(this);
-    if (newReturnType == null &&
-        newPositionalParameters == null &&
-        newNamedParameters == null &&
-        typedefType == null) {
-      // No types had to be substituted.
-      return null;
-    } else {
-      return new FunctionType(
-          newPositionalParameters ?? node.positionalParameters,
-          newReturnType ?? node.returnType,
-          namedParameters: newNamedParameters ?? node.namedParameters,
-          typeParameters: node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount,
-          typedefType: typedefType,
-          nullability: node.nullability);
-    }
-  }
-
-  @override
-  DartType visitInterfaceType(InterfaceType node) {
-    List<DartType> newTypeArguments = null;
-    for (int i = 0; i < node.typeArguments.length; i++) {
-      DartType substitution = node.typeArguments[i].accept(this);
-      if (substitution != null) {
-        newTypeArguments ??= node.typeArguments.toList(growable: false);
-        newTypeArguments[i] = substitution;
-      }
-    }
-    if (newTypeArguments == null) {
-      // No type arguments needed to be substituted.
-      return null;
-    } else {
-      return new InterfaceType(
-          node.classNode, newTypeArguments, node.nullability);
-    }
-  }
-
-  @override
-  DartType visitDynamicType(DynamicType node) => null;
-
-  @override
-  DartType visitInvalidType(InvalidType node) => null;
-
-  @override
-  DartType visitBottomType(BottomType node) => null;
-
-  @override
-  DartType visitVoidType(VoidType node) => null;
-
-  @override
-  DartType visitTypeParameterType(TypeParameterType node) {
-    if (node.promotedBound != null) {
-      DartType newPromotedBound = node.promotedBound.accept(this);
-      if (newPromotedBound != null) {
-        return new TypeParameterType(node.parameter, newPromotedBound,
-            node.typeParameterTypeNullability);
-      }
-    }
-    return null;
-  }
-
-  @override
-  DartType visitTypedefType(TypedefType node) {
-    List<DartType> newTypeArguments = null;
-    for (int i = 0; i < node.typeArguments.length; i++) {
-      DartType substitution = node.typeArguments[i].accept(this);
-      if (substitution != null) {
-        newTypeArguments ??= node.typeArguments.toList(growable: false);
-        newTypeArguments[i] = substitution;
-      }
-    }
-    if (newTypeArguments == null) {
-      // No type arguments needed to be substituted.
-      return null;
-    } else {
-      return new TypedefType(
-          node.typedefNode, newTypeArguments, node.nullability);
-    }
   }
 
   @override

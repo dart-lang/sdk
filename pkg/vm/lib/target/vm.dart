@@ -14,11 +14,14 @@ import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
 import '../metadata/binary_cache.dart' show BinaryCacheMetadataRepository;
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+import '../transformations/late_var_init_transformer.dart'
+    as lateVarInitTransformer;
 import '../transformations/list_factory_specializer.dart'
     as listFactorySpecializer;
 import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
@@ -46,6 +49,9 @@ class VmTarget extends Target {
 
   @override
   bool get supportsSetLiterals => false;
+
+  @override
+  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
 
   @override
   String get name => 'vm';
@@ -145,12 +151,16 @@ class VmTarget extends Target {
 
     // TODO(kmillikin): Make this run on a per-method basis.
     bool productMode = environmentDefines["dart.vm.product"] == "true";
-    transformAsync.transformLibraries(coreTypes, libraries,
+    transformAsync.transformLibraries(
+        new TypeEnvironment(coreTypes, hierarchy), libraries,
         productMode: productMode);
     logger?.call("Transformed async methods");
 
     listFactorySpecializer.transformLibraries(libraries, coreTypes);
     logger?.call("Specialized list factories");
+
+    lateVarInitTransformer.transformLibraries(libraries);
+    logger?.call("Transformed late variable initializers");
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);
@@ -161,7 +171,8 @@ class VmTarget extends Target {
   void performTransformationsOnProcedure(
       CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
       {void logger(String msg)}) {
-    transformAsync.transformProcedure(coreTypes, procedure);
+    transformAsync.transformProcedure(
+        new TypeEnvironment(coreTypes, hierarchy), procedure);
     logger?.call("Transformed async functions");
   }
 
@@ -348,7 +359,7 @@ class VmTarget extends Target {
           new ListLiteral(elements, typeArgument: typeArgument)
             ..fileOffset = offset
         ], types: [
-          new DynamicType()
+          typeArgument,
         ]));
   }
 

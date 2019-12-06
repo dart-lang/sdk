@@ -128,8 +128,8 @@ part 'websocket_impl.dart';
  * about the streaming qualities of an HttpServer.
  * Pausing the subscription of the stream, pauses at the OS level.
  *
- * * The [shelf](https://pub.dartlang.org/packages/shelf)
- * package on pub.dartlang.org contains a set of high-level classes that,
+ * * The [shelf](https://pub.dev/packages/shelf)
+ * package on pub.dev contains a set of high-level classes that,
  * together with this class, makes it easy to provide content through HTTP
  * servers.
  */
@@ -1008,7 +1008,7 @@ abstract class Cookie {
  * that contains the content of and information about an HTTP request.
  *
  * __Note__: Check out the
- * [http_server](https://pub.dartlang.org/packages/http_server)
+ * [http_server](https://pub.dev/packages/http_server)
  * package, which makes working with the low-level
  * dart:io HTTP server subsystem easier.
  *
@@ -1403,6 +1403,22 @@ abstract class HttpClient {
   static const int defaultHttpsPort = 443;
   @Deprecated("Use defaultHttpsPort instead")
   static const int DEFAULT_HTTPS_PORT = defaultHttpsPort;
+
+  /// Enable logging of HTTP requests from all [HttpClient]s to the developer
+  /// timeline.
+  ///
+  /// Default is `false`.
+  static set enableTimelineLogging(bool value) {
+    _enableTimelineLogging = value ?? false;
+  }
+
+  /// Current state of HTTP request logging from all [HttpClient]s to the
+  /// developer timeline.
+  ///
+  /// Default is `false`.
+  static bool get enableTimelineLogging => _enableTimelineLogging;
+
+  static bool _enableTimelineLogging = false;
 
   /// Gets and sets the idle timeout of non-active persistent (keep-alive)
   /// connections.

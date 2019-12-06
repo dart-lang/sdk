@@ -6,11 +6,11 @@
 /// import, part, and export directives.
 library front_end.src.fasta.source.directive_listener;
 
-import '../../scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
+import 'package:_fe_analyzer_shared/src/parser/listener.dart';
+import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import '../fasta_codes.dart' show messageExpectedBlockToSkip;
-import '../parser/identifier_context.dart';
-import '../parser/listener.dart';
-import '../quote.dart';
 
 /// Listener that records imports, exports, and part directives.
 ///

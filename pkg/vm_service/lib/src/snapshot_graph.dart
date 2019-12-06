@@ -346,7 +346,6 @@ dynamic _getNonReferenceData(_ReadStream reader) {
       final len = reader.readUnsigned();
       final str = reader.readUtf16();
       return (str.length < len) ? '$str...' : str;
-      return reader.readUtf16();
     case _kLengthData:
       return HeapSnapshotObjectLengthData(reader.readUnsigned());
     case _kNameData:

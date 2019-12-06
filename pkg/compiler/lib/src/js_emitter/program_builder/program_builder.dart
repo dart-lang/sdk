@@ -137,12 +137,10 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
-            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
             _codegenWorld,
-            _namer,
             _task.emitter,
             _nativeData,
             _interceptorData,
@@ -987,6 +985,23 @@ class ProgramBuilder {
   }
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
+          FunctionType type, OutputUnit outputUnit) =>
+      _options.experimentNewRti
+          ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
+          : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
+
+  js.Expression _generateFunctionTypeLegacy(ClassEntity /*?*/ enclosingClass,
+      FunctionType type, OutputUnit outputUnit) {
+    if (type.containsTypeVariables) {
+      js.Expression thisAccess = js.js(r'this.$receiver');
+      return _rtiEncoder.getSignatureEncoding(
+          _namer, _task.emitter, type, thisAccess);
+    } else {
+      return _task.metadataCollector.reifyType(type, outputUnit);
+    }
+  }
+
+  js.Expression _generateFunctionTypeNewRti(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
     InterfaceType enclosingType;
     if (enclosingClass != null && type.containsTypeVariables) {
@@ -995,24 +1010,18 @@ class ProgramBuilder {
         // Erase type arguments.
         List<DartType> typeArguments = enclosingType.typeArguments;
         type = type.subst(
-            List<DartType>.filled(typeArguments.length, const DynamicType()),
+            List<DartType>.filled(typeArguments.length, ErasedType()),
             typeArguments);
       }
     }
 
     if (type.containsTypeVariables) {
-      if (_options.experimentNewRti) {
-        RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
-            _task.emitter,
-            FullTypeEnvironmentStructure(classType: enclosingType),
-            TypeExpressionRecipe(type));
-        _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
-        return encoding.recipe;
-      } else {
-        js.Expression thisAccess = js.js(r'this.$receiver');
-        return _rtiEncoder.getSignatureEncoding(
-            _namer, _task.emitter, type, thisAccess);
-      }
+      RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
+          _task.emitter,
+          FullTypeEnvironmentStructure(classType: enclosingType),
+          TypeExpressionRecipe(type));
+      _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
+      return encoding.recipe;
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -1162,7 +1171,7 @@ class ProgramBuilder {
           fieldData.isElided));
     }
 
-    FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
+    FieldVisitor visitor = new FieldVisitor(_elementEnvironment,
         _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);

@@ -4,10 +4,10 @@
 
 import 'dart:io' show File, Platform;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show DiagnosticMessage;
-
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart'
     show Class, Component, ConstantExpression, Field, IntConstant, Library;
@@ -16,7 +16,7 @@ import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
 import 'binary_md_dill_reader.dart' show BinaryMdDillReader;
 
-import 'incremental_load_from_dill_test.dart'
+import 'incremental_load_from_dill_suite.dart'
     show getOptions, normalCompileToComponent;
 
 import 'utils/io_utils.dart' show computeRepoDir;
