@@ -5253,7 +5253,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 context: context),
             type: const BottomType())
           ..fileOffset = offset,
-        expression);
+        expression)
+      ..fileOffset = offset;
   }
 
   Expression buildFallThroughError(int charOffset) {

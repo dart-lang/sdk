@@ -96,9 +96,8 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       }
     } else if (node is ForInStatement) {
       if (id.kind == IdKind.current) {
-        DartType type = _staticTypeContext.typeEnvironment
-            .forInElementType(
-                node, node.iterable.getStaticType(_staticTypeContext));
+        DartType type = _staticTypeContext.typeEnvironment.forInElementType(
+            node, node.iterable.getStaticType(_staticTypeContext));
         return typeToText(type);
       }
     }
@@ -114,6 +113,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       // Skip `null` literals from null-aware operations.
       return value1;
     }
-    return null;
+    return new ActualData<String>(value1.id, '${value1.value}|${value2.value}',
+        value1.uri, value1.offset, value1.object);
   }
 }

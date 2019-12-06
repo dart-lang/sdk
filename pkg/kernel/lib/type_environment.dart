@@ -38,32 +38,43 @@ abstract class TypeEnvironment extends SubtypeTester {
   InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
-  InterfaceType literalListType(DartType elementType, Nullability nullability) {
+  /// Returns the type `List<E>` with the given [nullability] and [elementType]
+  /// as `E`.
+  InterfaceType listType(DartType elementType, Nullability nullability) {
     return new InterfaceType(
         coreTypes.listClass, nullability, <DartType>[elementType]);
   }
 
-  InterfaceType literalSetType(DartType elementType, Nullability nullability) {
+  /// Returns the type `Set<E>` with the given [nullability] and [elementType]
+  /// as `E`.
+  InterfaceType setType(DartType elementType, Nullability nullability) {
     return new InterfaceType(
         coreTypes.setClass, nullability, <DartType>[elementType]);
   }
 
-  InterfaceType literalMapType(
-      DartType key, DartType value, Nullability nullability) {
+  /// Returns the type `Map<K,V>` with the given [nullability], [key] as `K`
+  /// and [value] is `V`.
+  InterfaceType mapType(DartType key, DartType value, Nullability nullability) {
     return new InterfaceType(
         coreTypes.mapClass, nullability, <DartType>[key, value]);
   }
 
+  /// Returns the type `Iterable<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType iterableType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.iterableClass, nullability, <DartType>[type]);
   }
 
+  /// Returns the type `Stream<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType streamType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.streamClass, nullability, <DartType>[type]);
   }
 
+  /// Returns the type `Future<E>` with the given [nullability] and [type]
+  /// as `E`.
   InterfaceType futureType(DartType type, Nullability nullability) {
     return new InterfaceType(
         coreTypes.futureClass, nullability, <DartType>[type]);

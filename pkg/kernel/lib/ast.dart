@@ -3734,8 +3734,7 @@ class ListConcatenation extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalListType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListConcatenation(this);
@@ -3772,8 +3771,7 @@ class SetConcatenation extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalSetType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetConcatenation(this);
@@ -3814,7 +3812,7 @@ class MapConcatenation extends Expression {
 
   DartType getStaticType(StaticTypeContext context) {
     return context.typeEnvironment
-        .literalMapType(keyType, valueType, context.nonNullable);
+        .mapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapConcatenation(this);
@@ -4204,8 +4202,7 @@ class ListLiteral extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalListType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListLiteral(this);
@@ -4235,8 +4232,7 @@ class SetLiteral extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalSetType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetLiteral(this);
@@ -4271,7 +4267,7 @@ class MapLiteral extends Expression {
 
   DartType getStaticType(StaticTypeContext context) {
     return context.typeEnvironment
-        .literalMapType(keyType, valueType, context.nonNullable);
+        .mapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapLiteral(this);
@@ -6633,8 +6629,8 @@ class MapConstant extends Constant {
           other.valueType == valueType &&
           listEquals(other.entries, entries));
 
-  DartType getType(StaticTypeContext context) => context.typeEnvironment
-      .literalMapType(keyType, valueType, context.nonNullable);
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.mapType(keyType, valueType, context.nonNullable);
 }
 
 class ConstantMapEntry {
@@ -6680,8 +6676,8 @@ class ListConstant extends Constant {
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
-  DartType getType(StaticTypeContext context) => context.typeEnvironment
-      .literalListType(typeArgument, context.nonNullable);
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.listType(typeArgument, context.nonNullable);
 }
 
 class SetConstant extends Constant {
@@ -6715,7 +6711,7 @@ class SetConstant extends Constant {
           listEquals(other.entries, entries));
 
   DartType getType(StaticTypeContext context) =>
-      context.typeEnvironment.literalSetType(typeArgument, context.nonNullable);
+      context.typeEnvironment.setType(typeArgument, context.nonNullable);
 }
 
 class InstanceConstant extends Constant {

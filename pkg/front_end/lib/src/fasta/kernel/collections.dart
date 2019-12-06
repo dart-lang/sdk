@@ -29,7 +29,7 @@ import 'package:kernel/visitor.dart'
         Visitor;
 
 import '../messages.dart'
-    show templateExpectedAfterButGot, templateExpectedButGot;
+    show noLength, templateExpectedAfterButGot, templateExpectedButGot;
 
 import '../problems.dart' show getFileUri, unsupported;
 
@@ -566,7 +566,8 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
         templateExpectedAfterButGot.withArguments(':'),
         element.fileOffset,
         // TODO(danrubel): what is the length of the expression?
-        1,
+        noLength,
       ),
-      new NullLiteral());
+      new NullLiteral()..fileOffset = element.fileOffset)
+    ..fileOffset = element.fileOffset;
 }

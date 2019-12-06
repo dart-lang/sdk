@@ -252,6 +252,7 @@ general/non_covariant_checks: TextSerializationFailure
 general/null_aware: TextSerializationFailure # Was: Pass
 general/null_aware_for_in: TextSerializationFailure
 general/null_aware_postfix: TextSerializationFailure
+general/null_aware_spread: TextSerializationFailure
 general/operator_method_not_found: TextSerializationFailure
 general/operators: TextSerializationFailure # Was: Pass
 general/optional: TypeCheckError

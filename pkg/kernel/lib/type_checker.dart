@@ -529,8 +529,7 @@ class TypeCheckingVisitor
       node.expressions[i] =
           checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
-    return environment.literalListType(
-        node.typeArgument, currentLibrary.nonNullable);
+    return environment.listType(node.typeArgument, currentLibrary.nonNullable);
   }
 
   @override
@@ -539,8 +538,7 @@ class TypeCheckingVisitor
       node.expressions[i] =
           checkAndDowncastExpression(node.expressions[i], node.typeArgument);
     }
-    return environment.literalSetType(
-        node.typeArgument, currentLibrary.nonNullable);
+    return environment.setType(node.typeArgument, currentLibrary.nonNullable);
   }
 
   @override
@@ -558,7 +556,7 @@ class TypeCheckingVisitor
       entry.key = checkAndDowncastExpression(entry.key, node.keyType);
       entry.value = checkAndDowncastExpression(entry.value, node.valueType);
     }
-    return environment.literalMapType(
+    return environment.mapType(
         node.keyType, node.valueType, currentLibrary.nonNullable);
   }
 
@@ -709,8 +707,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitListConcatenation(ListConcatenation node) {
-    DartType type = environment.literalListType(
-        node.typeArgument, currentLibrary.nonNullable);
+    DartType type =
+        environment.listType(node.typeArgument, currentLibrary.nonNullable);
     for (Expression part in node.lists) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -720,8 +718,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitSetConcatenation(SetConcatenation node) {
-    DartType type = environment.literalSetType(
-        node.typeArgument, currentLibrary.nonNullable);
+    DartType type =
+        environment.setType(node.typeArgument, currentLibrary.nonNullable);
     for (Expression part in node.sets) {
       DartType partType = visitExpression(part);
       checkAssignable(node, type, partType);
@@ -731,7 +729,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitMapConcatenation(MapConcatenation node) {
-    DartType type = environment.literalMapType(
+    DartType type = environment.mapType(
         node.keyType, node.valueType, currentLibrary.nonNullable);
     for (Expression part in node.maps) {
       DartType partType = visitExpression(part);
