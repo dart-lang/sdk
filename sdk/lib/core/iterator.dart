@@ -39,6 +39,9 @@ abstract class Iterator<E> {
    * Returns true if [current] contains the next element.
    * Returns false if no elements are left.
    *
+   * Invoke [moveNext] to move to the first element and to each
+   * subsequent element.
+   *
    * It is safe to invoke [moveNext] even when the iterator is already
    * positioned after the last element.
    * In this case [moveNext] returns false again and has no effect.
