@@ -1933,13 +1933,13 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 /// The possible types of comments that are recognized by the parser.
 class CommentType {
   /// A block comment.
-  static const CommentType BLOCK = const CommentType('BLOCK');
+  static const CommentType BLOCK = CommentType('BLOCK');
 
   /// A documentation comment.
-  static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION');
+  static const CommentType DOCUMENTATION = CommentType('DOCUMENTATION');
 
   /// An end-of-line comment.
-  static const CommentType END_OF_LINE = const CommentType('END_OF_LINE');
+  static const CommentType END_OF_LINE = CommentType('END_OF_LINE');
 
   /// The name of the comment type.
   final String name;
@@ -10211,14 +10211,13 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
 /// Validation codes returned by [UriBasedDirective.validate].
 class UriValidationCode {
-  static const UriValidationCode INVALID_URI =
-      const UriValidationCode('INVALID_URI');
+  static const UriValidationCode INVALID_URI = UriValidationCode('INVALID_URI');
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
-      const UriValidationCode('URI_WITH_INTERPOLATION');
+      UriValidationCode('URI_WITH_INTERPOLATION');
 
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
+      UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /// The name of the validation code.
   final String name;

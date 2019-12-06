@@ -295,7 +295,7 @@ class _MapSubstitution extends MapSubstitution {
 }
 
 class _NullSubstitution extends MapSubstitution {
-  static const _NullSubstitution instance = const _NullSubstitution();
+  static const _NullSubstitution instance = _NullSubstitution();
 
   const _NullSubstitution();
 

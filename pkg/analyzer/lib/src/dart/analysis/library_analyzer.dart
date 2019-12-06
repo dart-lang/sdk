@@ -842,7 +842,7 @@ class LibraryAnalyzer {
       return false;
     }
     // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = const <String>[
+    const List<String> suffixes = <String>[
       '.g.dart',
       '.pb.dart',
       '.pbenum.dart',

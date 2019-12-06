@@ -233,7 +233,7 @@ class FileByteStore implements ByteStore {
  * version and the checksum to data.
  */
 class FileByteStoreValidator {
-  static const List<int> _VERSION = const [0x01, 0x00];
+  static const List<int> _VERSION = [0x01, 0x00];
 
   /**
    * If the [rawBytes] have the valid version and checksum, extract and

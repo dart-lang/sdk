@@ -27,7 +27,7 @@ class FileNameUtilities {
 
 class StringUtilities {
   static const String EMPTY = '';
-  static const List<String> EMPTY_ARRAY = const <String>[];
+  static const List<String> EMPTY_ARRAY = <String>[];
 
   static Interner INTERNER = NullInterner();
 

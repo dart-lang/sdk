@@ -5997,74 +5997,72 @@ class MixinElementImpl extends ClassElementImpl {
 /// Clients may not extend, implement or mix-in this class.
 class Modifier implements Comparable<Modifier> {
   /// Indicates that the modifier 'abstract' was applied to the element.
-  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+  static const Modifier ABSTRACT = Modifier('ABSTRACT', 0);
 
   /// Indicates that an executable element has a body marked as being
   /// asynchronous.
-  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
+  static const Modifier ASYNCHRONOUS = Modifier('ASYNCHRONOUS', 1);
 
   /// Indicates that the modifier 'const' was applied to the element.
-  static const Modifier CONST = const Modifier('CONST', 2);
+  static const Modifier CONST = Modifier('CONST', 2);
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  static const Modifier COVARIANT = const Modifier('COVARIANT', 3);
+  static const Modifier COVARIANT = Modifier('COVARIANT', 3);
 
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 4);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 4);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = const Modifier('ENUM', 5);
+  static const Modifier ENUM = Modifier('ENUM', 5);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 6);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 6);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = const Modifier('FACTORY', 7);
+  static const Modifier FACTORY = Modifier('FACTORY', 7);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = const Modifier('FINAL', 8);
+  static const Modifier FINAL = Modifier('FINAL', 8);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 9);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 9);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = const Modifier('GETTER', 10);
+  static const Modifier GETTER = Modifier('GETTER', 10);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// contains at least one import directive whose URI uses the "dart-ext"
   /// scheme.
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 11);
+  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 11);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 12);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = const Modifier('LATE', 13);
+  static const Modifier LATE = Modifier('LATE', 13);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 14);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 14);
 
   /// Indicates that a class contains an explicit reference to 'super'.
-  static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+  static const Modifier REFERENCES_SUPER = Modifier('REFERENCES_SUPER', 15);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = Modifier('SETTER', 16);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = Modifier('STATIC', 17);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
 
-  static const List<Modifier> values = const [
+  static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,

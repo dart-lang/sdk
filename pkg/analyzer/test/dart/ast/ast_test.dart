@@ -1472,38 +1472,32 @@ class VariableDeclarationTest extends ParserTestCase {
 }
 
 class _AssignmentKind {
-  static const _AssignmentKind BINARY = const _AssignmentKind('BINARY', 0);
+  static const _AssignmentKind BINARY = _AssignmentKind('BINARY', 0);
 
   static const _AssignmentKind COMPOUND_LEFT =
-      const _AssignmentKind('COMPOUND_LEFT', 1);
+      _AssignmentKind('COMPOUND_LEFT', 1);
 
   static const _AssignmentKind COMPOUND_RIGHT =
-      const _AssignmentKind('COMPOUND_RIGHT', 2);
+      _AssignmentKind('COMPOUND_RIGHT', 2);
 
-  static const _AssignmentKind POSTFIX_BANG =
-      const _AssignmentKind('POSTFIX_INC', 3);
+  static const _AssignmentKind POSTFIX_BANG = _AssignmentKind('POSTFIX_INC', 3);
 
-  static const _AssignmentKind POSTFIX_INC =
-      const _AssignmentKind('POSTFIX_INC', 4);
+  static const _AssignmentKind POSTFIX_INC = _AssignmentKind('POSTFIX_INC', 4);
 
-  static const _AssignmentKind PREFIX_DEC =
-      const _AssignmentKind('PREFIX_DEC', 5);
+  static const _AssignmentKind PREFIX_DEC = _AssignmentKind('PREFIX_DEC', 5);
 
-  static const _AssignmentKind PREFIX_INC =
-      const _AssignmentKind('PREFIX_INC', 6);
+  static const _AssignmentKind PREFIX_INC = _AssignmentKind('PREFIX_INC', 6);
 
-  static const _AssignmentKind PREFIX_NOT =
-      const _AssignmentKind('PREFIX_NOT', 7);
+  static const _AssignmentKind PREFIX_NOT = _AssignmentKind('PREFIX_NOT', 7);
 
-  static const _AssignmentKind SIMPLE_LEFT =
-      const _AssignmentKind('SIMPLE_LEFT', 8);
+  static const _AssignmentKind SIMPLE_LEFT = _AssignmentKind('SIMPLE_LEFT', 8);
 
   static const _AssignmentKind SIMPLE_RIGHT =
-      const _AssignmentKind('SIMPLE_RIGHT', 9);
+      _AssignmentKind('SIMPLE_RIGHT', 9);
 
-  static const _AssignmentKind NONE = const _AssignmentKind('NONE', 10);
+  static const _AssignmentKind NONE = _AssignmentKind('NONE', 10);
 
-  static const List<_AssignmentKind> values = const [
+  static const List<_AssignmentKind> values = [
     BINARY,
     COMPOUND_LEFT,
     COMPOUND_RIGHT,
@@ -1531,21 +1525,17 @@ class _AssignmentKind {
 }
 
 class _WrapperKind {
-  static const _WrapperKind PREFIXED_LEFT =
-      const _WrapperKind('PREFIXED_LEFT', 0);
+  static const _WrapperKind PREFIXED_LEFT = _WrapperKind('PREFIXED_LEFT', 0);
 
-  static const _WrapperKind PREFIXED_RIGHT =
-      const _WrapperKind('PREFIXED_RIGHT', 1);
+  static const _WrapperKind PREFIXED_RIGHT = _WrapperKind('PREFIXED_RIGHT', 1);
 
-  static const _WrapperKind PROPERTY_LEFT =
-      const _WrapperKind('PROPERTY_LEFT', 2);
+  static const _WrapperKind PROPERTY_LEFT = _WrapperKind('PROPERTY_LEFT', 2);
 
-  static const _WrapperKind PROPERTY_RIGHT =
-      const _WrapperKind('PROPERTY_RIGHT', 3);
+  static const _WrapperKind PROPERTY_RIGHT = _WrapperKind('PROPERTY_RIGHT', 3);
 
-  static const _WrapperKind NONE = const _WrapperKind('NONE', 4);
+  static const _WrapperKind NONE = _WrapperKind('NONE', 4);
 
-  static const List<_WrapperKind> values = const [
+  static const List<_WrapperKind> values = [
     PREFIXED_LEFT,
     PREFIXED_RIGHT,
     PROPERTY_LEFT,

@@ -62,7 +62,7 @@ main() {
   });
 }
 
-const LintCode customCode = const LintCode(
+const LintCode customCode = LintCode(
     'hash_and_equals', 'Override `==` if overriding `hashCode`.',
     correction: 'Implement `==`.');
 

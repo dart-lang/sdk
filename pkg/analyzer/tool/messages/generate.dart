@@ -174,7 +174,7 @@ part of 'syntactic_errors.dart';
       final className = nameForEntry(entry)[0];
       out.writeln();
       out.writeln('const $className _$errorCode =');
-      out.writeln('const $className(');
+      out.writeln('$className(');
       out.writeln("'$errorCode',");
       out.writeln('r"${entry['template']}"');
       final tip = entry['tip'];

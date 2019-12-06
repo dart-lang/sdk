@@ -522,19 +522,19 @@ class SourceKind implements Comparable<SourceKind> {
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
-  static const SourceKind HTML = const SourceKind('HTML', 0);
+  static const SourceKind HTML = SourceKind('HTML', 0);
 
   /**
    * A Dart compilation unit that is not a part of another library. Libraries
    * might or might not contain any directives, including a library directive.
    */
-  static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
+  static const SourceKind LIBRARY = SourceKind('LIBRARY', 1);
 
   /**
    * A Dart compilation unit that is part of another library. Parts contain a
    * part-of directive.
    */
-  static const SourceKind PART = const SourceKind('PART', 2);
+  static const SourceKind PART = SourceKind('PART', 2);
 
   /**
    * An unknown kind of source. Used both when it is not possible to identify
@@ -542,9 +542,9 @@ class SourceKind implements Comparable<SourceKind> {
    * without performing a computation and the client does not want to spend the
    * time to identify the kind.
    */
-  static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
+  static const SourceKind UNKNOWN = SourceKind('UNKNOWN', 3);
 
-  static const List<SourceKind> values = const [HTML, LIBRARY, PART, UNKNOWN];
+  static const List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
 
   /**
    * The name of this source kind.
@@ -577,19 +577,19 @@ class UriKind implements Comparable<UriKind> {
   /**
    * A 'dart:' URI.
    */
-  static const UriKind DART_URI = const UriKind('DART_URI', 0, 0x64);
+  static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);
 
   /**
    * A 'file:' URI.
    */
-  static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
+  static const UriKind FILE_URI = UriKind('FILE_URI', 1, 0x66);
 
   /**
    * A 'package:' URI.
    */
-  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 2, 0x70);
+  static const UriKind PACKAGE_URI = UriKind('PACKAGE_URI', 2, 0x70);
 
-  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
+  static const List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
 
   /**
    * The name of this URI kind.

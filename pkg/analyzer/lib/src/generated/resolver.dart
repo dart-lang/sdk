@@ -209,18 +209,18 @@ class InferenceContext {
 /// initialized in the field formal, and finally, initialized in the
 /// initializers list.
 class INIT_STATE implements Comparable<INIT_STATE> {
-  static const INIT_STATE NOT_INIT = const INIT_STATE('NOT_INIT', 0);
+  static const INIT_STATE NOT_INIT = INIT_STATE('NOT_INIT', 0);
 
   static const INIT_STATE INIT_IN_DECLARATION =
-      const INIT_STATE('INIT_IN_DECLARATION', 1);
+      INIT_STATE('INIT_IN_DECLARATION', 1);
 
   static const INIT_STATE INIT_IN_FIELD_FORMAL =
-      const INIT_STATE('INIT_IN_FIELD_FORMAL', 2);
+      INIT_STATE('INIT_IN_FIELD_FORMAL', 2);
 
   static const INIT_STATE INIT_IN_INITIALIZERS =
-      const INIT_STATE('INIT_IN_INITIALIZERS', 3);
+      INIT_STATE('INIT_IN_INITIALIZERS', 3);
 
-  static const List<INIT_STATE> values = const [
+  static const List<INIT_STATE> values = [
     NOT_INIT,
     INIT_IN_DECLARATION,
     INIT_IN_FIELD_FORMAL,
@@ -437,12 +437,12 @@ class PartialResolverVisitor extends ResolverVisitor {
 /// how the problem can be corrected.
 class ResolverErrorCode extends ErrorCode {
   static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
-      const ResolverErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
+      ResolverErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
           "Break label resolves to case or default statement");
 
-  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH =
-      const ResolverErrorCode('CONTINUE_LABEL_ON_SWITCH',
-          "A continue label resolves to switch, must be loop or switch member");
+  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = ResolverErrorCode(
+      'CONTINUE_LABEL_ON_SWITCH',
+      "A continue label resolves to switch, must be loop or switch member");
 
   /// Parts: It is a static warning if the referenced part declaration
   /// <i>p</i> names a library that does not have a library tag.
@@ -450,14 +450,13 @@ class ResolverErrorCode extends ErrorCode {
   /// Parameters:
   /// 0: the URI of the expected library
   /// 1: the non-matching actual library name from the "part of" declaration
-  static const ResolverErrorCode PART_OF_UNNAMED_LIBRARY =
-      const ResolverErrorCode(
-          'PART_OF_UNNAMED_LIBRARY',
-          "Library is unnamed. Expected a URI not a library name '{0}' in the "
-              "part-of directive.",
-          correction:
-              "Try changing the part-of directive to a URI, or try including a"
-              " different part.");
+  static const ResolverErrorCode PART_OF_UNNAMED_LIBRARY = ResolverErrorCode(
+      'PART_OF_UNNAMED_LIBRARY',
+      "Library is unnamed. Expected a URI not a library name '{0}' in the "
+          "part-of directive.",
+      correction:
+          "Try changing the part-of directive to a URI, or try including a"
+          " different part.");
 
   /// Initialize a newly created error code to have the given [name]. The
   /// message associated with the error will be created from the given [message]

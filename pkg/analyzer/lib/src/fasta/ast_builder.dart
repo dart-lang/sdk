@@ -63,7 +63,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-const _invalidCollectionElement = const _InvalidCollectionElement._();
+const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {

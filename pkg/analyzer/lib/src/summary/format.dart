@@ -321,7 +321,7 @@ class _AnalysisDriverExceptionContextImpl extends Object
   @override
   List<idl.AnalysisDriverExceptionFile> get files {
     _files ??= const fb.ListReader<idl.AnalysisDriverExceptionFile>(
-            const _AnalysisDriverExceptionFileReader())
+            _AnalysisDriverExceptionFileReader())
         .vTableGet(
             _bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
     return _files;
@@ -590,7 +590,7 @@ class _AnalysisDriverResolvedUnitImpl extends Object
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(
-            const _AnalysisDriverUnitErrorReader())
+            _AnalysisDriverUnitErrorReader())
         .vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
     return _errors;
   }
@@ -912,9 +912,9 @@ class _AnalysisDriverUnitErrorImpl extends Object
 
   @override
   List<idl.DiagnosticMessage> get contextMessages {
-    _contextMessages ??= const fb.ListReader<idl.DiagnosticMessage>(
-            const _DiagnosticMessageReader())
-        .vTableGet(_bc, _bcOffset, 5, const <idl.DiagnosticMessage>[]);
+    _contextMessages ??=
+        const fb.ListReader<idl.DiagnosticMessage>(_DiagnosticMessageReader())
+            .vTableGet(_bc, _bcOffset, 5, const <idl.DiagnosticMessage>[]);
     return _contextMessages;
   }
 
@@ -1640,7 +1640,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
     _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(
-            const _IndexSyntheticElementKindReader())
+            _IndexSyntheticElementKindReader())
         .vTableGet(_bc, _bcOffset, 4, const <idl.IndexSyntheticElementKind>[]);
     return _elementKinds;
   }
@@ -1681,7 +1681,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader())
+    _strings ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _strings;
   }
@@ -1689,7 +1689,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
   @override
   List<idl.AnalysisDriverSubtype> get subtypes {
     _subtypes ??= const fb.ListReader<idl.AnalysisDriverSubtype>(
-            const _AnalysisDriverSubtypeReader())
+            _AnalysisDriverSubtypeReader())
         .vTableGet(_bc, _bcOffset, 19, const <idl.AnalysisDriverSubtype>[]);
     return _subtypes;
   }
@@ -1724,9 +1724,9 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   @override
   List<idl.IndexRelationKind> get usedElementKinds {
-    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(
-            const _IndexRelationKindReader())
-        .vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
+    _usedElementKinds ??=
+        const fb.ListReader<idl.IndexRelationKind>(_IndexRelationKindReader())
+            .vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
     return _usedElementKinds;
   }
 
@@ -1760,9 +1760,9 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   @override
   List<idl.IndexRelationKind> get usedNameKinds {
-    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(
-            const _IndexRelationKindReader())
-        .vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
+    _usedNameKinds ??=
+        const fb.ListReader<idl.IndexRelationKind>(_IndexRelationKindReader())
+            .vTableGet(_bc, _bcOffset, 15, const <idl.IndexRelationKind>[]);
     return _usedNameKinds;
   }
 
@@ -2074,30 +2074,28 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object
 
   @override
   List<String> get definedClassMemberNames {
-    _definedClassMemberNames ??=
-        const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    _definedClassMemberNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _definedClassMemberNames;
   }
 
   @override
   List<String> get definedTopLevelNames {
-    _definedTopLevelNames ??=
-        const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+    _definedTopLevelNames ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _definedTopLevelNames;
   }
 
   @override
   List<String> get referencedNames {
-    _referencedNames ??= const fb.ListReader<String>(const fb.StringReader())
+    _referencedNames ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _referencedNames;
   }
 
   @override
   List<String> get subtypedNames {
-    _subtypedNames ??= const fb.ListReader<String>(const fb.StringReader())
+    _subtypedNames ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _subtypedNames;
   }
@@ -2655,7 +2653,7 @@ class _AvailableDeclarationImpl extends Object
   @override
   List<idl.AvailableDeclaration> get children {
     _children ??= const fb.ListReader<idl.AvailableDeclaration>(
-            const _AvailableDeclarationReader())
+            _AvailableDeclarationReader())
         .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
     return _children;
   }
@@ -2765,7 +2763,7 @@ class _AvailableDeclarationImpl extends Object
 
   @override
   List<String> get parameterNames {
-    _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
+    _parameterNames ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 17, const <String>[]);
     return _parameterNames;
   }
@@ -2778,14 +2776,14 @@ class _AvailableDeclarationImpl extends Object
 
   @override
   List<String> get parameterTypes {
-    _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
+    _parameterTypes ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 19, const <String>[]);
     return _parameterTypes;
   }
 
   @override
   List<String> get relevanceTags {
-    _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
+    _relevanceTags ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 20, const <String>[]);
     return _relevanceTags;
   }
@@ -3135,7 +3133,7 @@ class _AvailableFileImpl extends Object
   @override
   List<idl.AvailableDeclaration> get declarations {
     _declarations ??= const fb.ListReader<idl.AvailableDeclaration>(
-            const _AvailableDeclarationReader())
+            _AvailableDeclarationReader())
         .vTableGet(_bc, _bcOffset, 0, const <idl.AvailableDeclaration>[]);
     return _declarations;
   }
@@ -3150,7 +3148,7 @@ class _AvailableFileImpl extends Object
   @override
   List<idl.AvailableFileExport> get exports {
     _exports ??= const fb.ListReader<idl.AvailableFileExport>(
-            const _AvailableFileExportReader())
+            _AvailableFileExportReader())
         .vTableGet(_bc, _bcOffset, 2, const <idl.AvailableFileExport>[]);
     return _exports;
   }
@@ -3177,7 +3175,7 @@ class _AvailableFileImpl extends Object
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+    _parts ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 6, const <String>[]);
     return _parts;
   }
@@ -3317,7 +3315,7 @@ class _AvailableFileExportImpl extends Object
   @override
   List<idl.AvailableFileExportCombinator> get combinators {
     _combinators ??= const fb.ListReader<idl.AvailableFileExportCombinator>(
-            const _AvailableFileExportCombinatorReader())
+            _AvailableFileExportCombinatorReader())
         .vTableGet(
             _bc, _bcOffset, 1, const <idl.AvailableFileExportCombinator>[]);
     return _combinators;
@@ -3448,14 +3446,14 @@ class _AvailableFileExportCombinatorImpl extends Object
 
   @override
   List<String> get hides {
-    _hides ??= const fb.ListReader<String>(const fb.StringReader())
+    _hides ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _hides;
   }
 
   @override
   List<String> get shows {
-    _shows ??= const fb.ListReader<String>(const fb.StringReader())
+    _shows ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _shows;
   }
@@ -3742,14 +3740,14 @@ class _DirectiveInfoImpl extends Object
 
   @override
   List<String> get templateNames {
-    _templateNames ??= const fb.ListReader<String>(const fb.StringReader())
+    _templateNames ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _templateNames;
   }
 
   @override
   List<String> get templateValues {
-    _templateValues ??= const fb.ListReader<String>(const fb.StringReader())
+    _templateValues ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _templateValues;
   }
@@ -10403,135 +10401,120 @@ class _LinkedNodeImpl extends Object
   @override
   List<idl.LinkedNode> get adjacentStrings_strings {
     assert(kind == idl.LinkedNodeKind.adjacentStrings);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get argumentList_arguments {
     assert(kind == idl.LinkedNodeKind.argumentList);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get block_statements {
     assert(kind == idl.LinkedNodeKind.block);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get cascadeExpression_sections {
     assert(kind == idl.LinkedNodeKind.cascadeExpression);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get comment_references {
     assert(kind == idl.LinkedNodeKind.comment);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get compilationUnit_declarations {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get constructorDeclaration_initializers {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get dottedName_components {
     assert(kind == idl.LinkedNodeKind.dottedName);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get enumDeclaration_constants {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get extensionOverride_arguments {
     assert(kind == idl.LinkedNodeKind.extensionOverride);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get formalParameterList_parameters {
     assert(kind == idl.LinkedNodeKind.formalParameterList);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get implementsClause_interfaces {
     assert(kind == idl.LinkedNodeKind.implementsClause);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get instanceCreationExpression_arguments {
     assert(kind == idl.LinkedNodeKind.instanceCreationExpression);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get labeledStatement_labels {
     assert(kind == idl.LinkedNodeKind.labeledStatement);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get libraryIdentifier_components {
     assert(kind == idl.LinkedNodeKind.libraryIdentifier);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
@@ -10539,54 +10522,48 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get namespaceDirective_combinators {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get onClause_superclassConstraints {
     assert(kind == idl.LinkedNodeKind.onClause);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get stringInterpolation_elements {
     assert(kind == idl.LinkedNodeKind.stringInterpolation);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get switchStatement_members {
     assert(kind == idl.LinkedNodeKind.switchStatement);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get tryStatement_catchClauses {
     assert(kind == idl.LinkedNodeKind.tryStatement);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get typeArgumentList_arguments {
     assert(kind == idl.LinkedNodeKind.typeArgumentList);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
@@ -10594,45 +10571,40 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get typedLiteral_typeArguments {
     assert(kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.setOrMapLiteral);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get typeName_typeArguments {
     assert(kind == idl.LinkedNodeKind.typeName);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get typeParameterList_typeParameters {
     assert(kind == idl.LinkedNodeKind.typeParameterList);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get variableDeclarationList_variables {
     assert(kind == idl.LinkedNodeKind.variableDeclarationList);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
   @override
   List<idl.LinkedNode> get withClause_mixinTypes {
     assert(kind == idl.LinkedNodeKind.withClause);
-    _variantField_2 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    _variantField_2 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
     return _variantField_2;
   }
 
@@ -10660,9 +10632,8 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.typeParameter ||
         kind == idl.LinkedNodeKind.variableDeclaration ||
         kind == idl.LinkedNodeKind.variableDeclarationList);
-    _variantField_4 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
+    _variantField_4 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
     return _variantField_4;
   }
 
@@ -10671,9 +10642,8 @@ class _LinkedNodeImpl extends Object
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.simpleFormalParameter);
-    _variantField_4 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
+    _variantField_4 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
     return _variantField_4;
   }
 
@@ -10681,9 +10651,8 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get switchMember_statements {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
-    _variantField_4 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
+    _variantField_4 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNode>[]);
     return _variantField_4;
   }
 
@@ -12158,18 +12127,16 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get classOrMixinDeclaration_members {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
-    _variantField_5 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
+    _variantField_5 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
     return _variantField_5;
   }
 
   @override
   List<idl.LinkedNode> get extensionDeclaration_members {
     assert(kind == idl.LinkedNodeKind.extensionDeclaration);
-    _variantField_5 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
+    _variantField_5 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
     return _variantField_5;
   }
 
@@ -12177,9 +12144,8 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get forParts_updaters {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
-    _variantField_5 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
+    _variantField_5 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
     return _variantField_5;
   }
 
@@ -12195,7 +12161,7 @@ class _LinkedNodeImpl extends Object
   @override
   List<String> get comment_tokens {
     assert(kind == idl.LinkedNodeKind.comment);
-    _variantField_33 ??= const fb.ListReader<String>(const fb.StringReader())
+    _variantField_33 ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 33, const <String>[]);
     return _variantField_33;
   }
@@ -12211,18 +12177,16 @@ class _LinkedNodeImpl extends Object
   @override
   List<idl.LinkedNode> get compilationUnit_directives {
     assert(kind == idl.LinkedNodeKind.compilationUnit);
-    _variantField_3 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
+    _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
   }
 
   @override
   List<idl.LinkedNode> get listLiteral_elements {
     assert(kind == idl.LinkedNodeKind.listLiteral);
-    _variantField_3 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
+    _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
   }
 
@@ -12230,18 +12194,16 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get namespaceDirective_configurations {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective);
-    _variantField_3 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
+    _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
   }
 
   @override
   List<idl.LinkedNode> get setOrMapLiteral_elements {
     assert(kind == idl.LinkedNodeKind.setOrMapLiteral);
-    _variantField_3 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
+    _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
   }
 
@@ -12249,9 +12211,8 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNode> get switchMember_labels {
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
-    _variantField_3 ??=
-        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
-            .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
+    _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
+        .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
   }
 
@@ -12351,7 +12312,7 @@ class _LinkedNodeImpl extends Object
   List<idl.LinkedNodeType> get extensionOverride_typeArgumentTypes {
     assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_39 ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+        const fb.ListReader<idl.LinkedNodeType>(_LinkedNodeTypeReader())
             .vTableGet(_bc, _bcOffset, 39, const <idl.LinkedNodeType>[]);
     return _variantField_39;
   }
@@ -12471,7 +12432,7 @@ class _LinkedNodeImpl extends Object
   @override
   List<String> get mixinDeclaration_superInvokedNames {
     assert(kind == idl.LinkedNodeKind.mixinDeclaration);
-    _variantField_34 ??= const fb.ListReader<String>(const fb.StringReader())
+    _variantField_34 ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 34, const <String>[]);
     return _variantField_34;
   }
@@ -12481,7 +12442,7 @@ class _LinkedNodeImpl extends Object
     assert(kind == idl.LinkedNodeKind.hideCombinator ||
         kind == idl.LinkedNodeKind.showCombinator ||
         kind == idl.LinkedNodeKind.symbolLiteral);
-    _variantField_34 ??= const fb.ListReader<String>(const fb.StringReader())
+    _variantField_34 ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 34, const <String>[]);
     return _variantField_34;
   }
@@ -15536,9 +15497,9 @@ class _LinkedNodeBundleImpl extends Object
 
   @override
   List<idl.LinkedNodeLibrary> get libraries {
-    _libraries ??= const fb.ListReader<idl.LinkedNodeLibrary>(
-            const _LinkedNodeLibraryReader())
-        .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeLibrary>[]);
+    _libraries ??=
+        const fb.ListReader<idl.LinkedNodeLibrary>(_LinkedNodeLibraryReader())
+            .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeLibrary>[]);
     return _libraries;
   }
 
@@ -15763,9 +15724,8 @@ class _LinkedNodeLibraryImpl extends Object
 
   @override
   List<idl.LinkedNodeUnit> get units {
-    _units ??=
-        const fb.ListReader<idl.LinkedNodeUnit>(const _LinkedNodeUnitReader())
-            .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeUnit>[]);
+    _units ??= const fb.ListReader<idl.LinkedNodeUnit>(_LinkedNodeUnitReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeUnit>[]);
     return _units;
   }
 
@@ -15906,7 +15866,7 @@ class _LinkedNodeReferencesImpl extends Object
 
   @override
   List<String> get name {
-    _name ??= const fb.ListReader<String>(const fb.StringReader())
+    _name ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _name;
   }
@@ -16224,7 +16184,7 @@ class _LinkedNodeTypeImpl extends Object
   List<idl.LinkedNodeTypeFormalParameter> get functionFormalParameters {
     _functionFormalParameters ??=
         const fb.ListReader<idl.LinkedNodeTypeFormalParameter>(
-                const _LinkedNodeTypeFormalParameterReader())
+                _LinkedNodeTypeFormalParameterReader())
             .vTableGet(
                 _bc, _bcOffset, 0, const <idl.LinkedNodeTypeFormalParameter>[]);
     return _functionFormalParameters;
@@ -16247,7 +16207,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   List<idl.LinkedNodeType> get functionTypedefTypeArguments {
     _functionTypedefTypeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+        const fb.ListReader<idl.LinkedNodeType>(_LinkedNodeTypeReader())
             .vTableGet(_bc, _bcOffset, 10, const <idl.LinkedNodeType>[]);
     return _functionTypedefTypeArguments;
   }
@@ -16256,7 +16216,7 @@ class _LinkedNodeTypeImpl extends Object
   List<idl.LinkedNodeTypeTypeParameter> get functionTypeParameters {
     _functionTypeParameters ??=
         const fb.ListReader<idl.LinkedNodeTypeTypeParameter>(
-                const _LinkedNodeTypeTypeParameterReader())
+                _LinkedNodeTypeTypeParameterReader())
             .vTableGet(
                 _bc, _bcOffset, 2, const <idl.LinkedNodeTypeTypeParameter>[]);
     return _functionTypeParameters;
@@ -16271,7 +16231,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   List<idl.LinkedNodeType> get interfaceTypeArguments {
     _interfaceTypeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+        const fb.ListReader<idl.LinkedNodeType>(_LinkedNodeTypeReader())
             .vTableGet(_bc, _bcOffset, 4, const <idl.LinkedNodeType>[]);
     return _interfaceTypeArguments;
   }
@@ -16610,7 +16570,7 @@ class _LinkedNodeTypeSubstitutionImpl extends Object
   @override
   List<idl.LinkedNodeType> get typeArguments {
     _typeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+        const fb.ListReader<idl.LinkedNodeType>(_LinkedNodeTypeReader())
             .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeType>[]);
     return _typeArguments;
   }
@@ -17152,7 +17112,7 @@ class _TopLevelInferenceErrorImpl extends Object
 
   @override
   List<String> get arguments {
-    _arguments ??= const fb.ListReader<String>(const fb.StringReader())
+    _arguments ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _arguments;
   }
@@ -18250,7 +18210,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.methodDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration ||
         kind == idl.LinkedNodeKind.topLevelVariableDeclaration);
-    _variantField_4 ??= const fb.ListReader<String>(const fb.StringReader())
+    _variantField_4 ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _variantField_4;
   }
@@ -18893,7 +18853,7 @@ class _UnlinkedNamespaceDirectiveImpl extends Object
   List<idl.UnlinkedNamespaceDirectiveConfiguration> get configurations {
     _configurations ??=
         const fb.ListReader<idl.UnlinkedNamespaceDirectiveConfiguration>(
-                const _UnlinkedNamespaceDirectiveConfigurationReader())
+                _UnlinkedNamespaceDirectiveConfigurationReader())
             .vTableGet(_bc, _bcOffset, 0,
                 const <idl.UnlinkedNamespaceDirectiveConfiguration>[]);
     return _configurations;
@@ -19331,7 +19291,7 @@ class _UnlinkedUnit2Impl extends Object
   @override
   List<idl.UnlinkedNamespaceDirective> get exports {
     _exports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
-            const _UnlinkedNamespaceDirectiveReader())
+            _UnlinkedNamespaceDirectiveReader())
         .vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedNamespaceDirective>[]);
     return _exports;
   }
@@ -19353,7 +19313,7 @@ class _UnlinkedUnit2Impl extends Object
   @override
   List<idl.UnlinkedNamespaceDirective> get imports {
     _imports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
-            const _UnlinkedNamespaceDirectiveReader())
+            _UnlinkedNamespaceDirectiveReader())
         .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedNamespaceDirective>[]);
     return _imports;
   }
@@ -19361,7 +19321,7 @@ class _UnlinkedUnit2Impl extends Object
   @override
   List<idl.UnlinkedInformativeData> get informativeData {
     _informativeData ??= const fb.ListReader<idl.UnlinkedInformativeData>(
-            const _UnlinkedInformativeDataReader())
+            _UnlinkedInformativeDataReader())
         .vTableGet(_bc, _bcOffset, 7, const <idl.UnlinkedInformativeData>[]);
     return _informativeData;
   }
@@ -19375,7 +19335,7 @@ class _UnlinkedUnit2Impl extends Object
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader())
+    _parts ??= const fb.ListReader<String>(fb.StringReader())
         .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _parts;
   }

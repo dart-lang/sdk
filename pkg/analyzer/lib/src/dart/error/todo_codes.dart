@@ -12,7 +12,7 @@ class TodoCode extends ErrorCode {
   /**
    * The single enum of TodoCode.
    */
-  static const TodoCode TODO = const TodoCode('TODO');
+  static const TodoCode TODO = TodoCode('TODO');
 
   /**
    * This matches the two common Dart task styles

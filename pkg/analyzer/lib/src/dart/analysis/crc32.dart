@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const List<int> _CRC32_TABLE = const [
+const List<int> _CRC32_TABLE = [
   0x00000000,
   0x77073096,
   0xEE0E612C,

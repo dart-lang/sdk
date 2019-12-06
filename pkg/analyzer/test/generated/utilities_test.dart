@@ -2606,7 +2606,7 @@ class NodeReplacerTest {
   /**
    * An empty list of tokens.
    */
-  static const List<Token> EMPTY_TOKEN_LIST = const <Token>[];
+  static const List<Token> EMPTY_TOKEN_LIST = <Token>[];
 
   void test_adjacentStrings() {
     AdjacentStrings node = AstTestFactory.adjacentStrings(

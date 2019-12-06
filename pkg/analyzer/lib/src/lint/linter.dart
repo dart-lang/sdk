@@ -161,19 +161,19 @@ class FileGlobFilter extends LintFilter {
 class Group implements Comparable<Group> {
   /// Defined rule groups.
   static const Group errors =
-      const Group._('errors', description: 'Possible coding errors.');
-  static const Group pub = const Group._('pub',
+      Group._('errors', description: 'Possible coding errors.');
+  static const Group pub = Group._('pub',
       description: 'Pub-related rules.',
-      link: const Hyperlink('See the <strong>Pubspec Format</strong>',
+      link: Hyperlink('See the <strong>Pubspec Format</strong>',
           'https://www.dartlang.org/tools/pub/pubspec.html'));
-  static const Group style = const Group._('style',
+  static const Group style = Group._('style',
       description:
           'Matters of style, largely derived from the official Dart Style Guide.',
-      link: const Hyperlink('See the <strong>Style Guide</strong>',
+      link: Hyperlink('See the <strong>Style Guide</strong>',
           'https://www.dartlang.org/articles/style-guide/'));
 
   /// List of builtin groups in presentation order.
-  static const Iterable<Group> builtin = const [errors, style, pub];
+  static const Iterable<Group> builtin = [errors, style, pub];
 
   final String name;
   final bool custom;
@@ -512,10 +512,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 }
 
 class Maturity implements Comparable<Maturity> {
-  static const Maturity stable = const Maturity._('stable', ordinal: 0);
-  static const Maturity experimental =
-      const Maturity._('experimental', ordinal: 1);
-  static const Maturity deprecated = const Maturity._('deprecated', ordinal: 2);
+  static const Maturity stable = Maturity._('stable', ordinal: 0);
+  static const Maturity experimental = Maturity._('experimental', ordinal: 1);
+  static const Maturity deprecated = Maturity._('deprecated', ordinal: 2);
 
   final String name;
   final int ordinal;

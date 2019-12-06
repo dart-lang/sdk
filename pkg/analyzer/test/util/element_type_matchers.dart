@@ -5,70 +5,67 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 
-const isClassElement = const TypeMatcher<ClassElement>();
+const isClassElement = TypeMatcher<ClassElement>();
 
-const isCompilationUnitElement = const TypeMatcher<CompilationUnitElement>();
+const isCompilationUnitElement = TypeMatcher<CompilationUnitElement>();
 
-const isConstructorElement = const TypeMatcher<ConstructorElement>();
+const isConstructorElement = TypeMatcher<ConstructorElement>();
 
-const isElementAnnotation = const TypeMatcher<ElementAnnotation>();
+const isElementAnnotation = TypeMatcher<ElementAnnotation>();
 
-const isExecutableElement = const TypeMatcher<ExecutableElement>();
+const isExecutableElement = TypeMatcher<ExecutableElement>();
 
-const isExportElement = const TypeMatcher<ExportElement>();
+const isExportElement = TypeMatcher<ExportElement>();
 
-const isFieldElement = const TypeMatcher<FieldElement>();
+const isFieldElement = TypeMatcher<FieldElement>();
 
 const isFieldFormalParameterElement =
-    const TypeMatcher<FieldFormalParameterElement>();
+    TypeMatcher<FieldFormalParameterElement>();
 
-const isFunctionElement = const TypeMatcher<FunctionElement>();
+const isFunctionElement = TypeMatcher<FunctionElement>();
 
-const isFunctionTypeAliasElement =
-    const TypeMatcher<FunctionTypeAliasElement>();
+const isFunctionTypeAliasElement = TypeMatcher<FunctionTypeAliasElement>();
 
-const isFunctionTypedElement = const TypeMatcher<FunctionTypedElement>();
+const isFunctionTypedElement = TypeMatcher<FunctionTypedElement>();
 
-const isGenericFunctionTypeElement =
-    const TypeMatcher<GenericFunctionTypeElement>();
+const isGenericFunctionTypeElement = TypeMatcher<GenericFunctionTypeElement>();
 
-const isGenericTypeAliasElement = const TypeMatcher<GenericTypeAliasElement>();
+const isGenericTypeAliasElement = TypeMatcher<GenericTypeAliasElement>();
 
-const isHideElementCombinator = const TypeMatcher<HideElementCombinator>();
+const isHideElementCombinator = TypeMatcher<HideElementCombinator>();
 
-const isImportElement = const TypeMatcher<ImportElement>();
+const isImportElement = TypeMatcher<ImportElement>();
 
-const isLabelElement = const TypeMatcher<LabelElement>();
+const isLabelElement = TypeMatcher<LabelElement>();
 
-const isLibraryElement = const TypeMatcher<LibraryElement>();
+const isLibraryElement = TypeMatcher<LibraryElement>();
 
-const isLocalElement = const TypeMatcher<LocalElement>();
+const isLocalElement = TypeMatcher<LocalElement>();
 
-const isLocalVariableElement = const TypeMatcher<LocalVariableElement>();
+const isLocalVariableElement = TypeMatcher<LocalVariableElement>();
 
-const isMethodElement = const TypeMatcher<MethodElement>();
+const isMethodElement = TypeMatcher<MethodElement>();
 
-const isNamespaceCombinator = const TypeMatcher<NamespaceCombinator>();
+const isNamespaceCombinator = TypeMatcher<NamespaceCombinator>();
 
-const isParameterElement = const TypeMatcher<ParameterElement>();
+const isParameterElement = TypeMatcher<ParameterElement>();
 
-const isPrefixElement = const TypeMatcher<PrefixElement>();
+const isPrefixElement = TypeMatcher<PrefixElement>();
 
-const isPropertyAccessorElement = const TypeMatcher<PropertyAccessorElement>();
+const isPropertyAccessorElement = TypeMatcher<PropertyAccessorElement>();
 
-const isPropertyInducingElement = const TypeMatcher<PropertyInducingElement>();
+const isPropertyInducingElement = TypeMatcher<PropertyInducingElement>();
 
-const isShowElementCombinator = const TypeMatcher<ShowElementCombinator>();
+const isShowElementCombinator = TypeMatcher<ShowElementCombinator>();
 
-const isTopLevelVariableElement = const TypeMatcher<TopLevelVariableElement>();
+const isTopLevelVariableElement = TypeMatcher<TopLevelVariableElement>();
 
-const isTypeDefiningElement = const TypeMatcher<TypeDefiningElement>();
+const isTypeDefiningElement = TypeMatcher<TypeDefiningElement>();
 
-const isTypeParameterElement = const TypeMatcher<TypeParameterElement>();
+const isTypeParameterElement = TypeMatcher<TypeParameterElement>();
 
-const isTypeParameterizedElement =
-    const TypeMatcher<TypeParameterizedElement>();
+const isTypeParameterizedElement = TypeMatcher<TypeParameterizedElement>();
 
-const isUriReferencedElement = const TypeMatcher<UriReferencedElement>();
+const isUriReferencedElement = TypeMatcher<UriReferencedElement>();
 
-const isVariableElement = const TypeMatcher<VariableElement>();
+const isVariableElement = TypeMatcher<VariableElement>();

@@ -773,73 +773,68 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Comparable<ElementKind> {
-  static const ElementKind CLASS = const ElementKind('CLASS', 0, "class");
+  static const ElementKind CLASS = ElementKind('CLASS', 0, "class");
 
   static const ElementKind COMPILATION_UNIT =
-      const ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+      ElementKind('COMPILATION_UNIT', 1, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      const ElementKind('CONSTRUCTOR', 2, "constructor");
+      ElementKind('CONSTRUCTOR', 2, "constructor");
 
-  static const ElementKind DYNAMIC =
-      const ElementKind('DYNAMIC', 3, "<dynamic>");
+  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
 
-  static const ElementKind ERROR = const ElementKind('ERROR', 4, "<error>");
+  static const ElementKind ERROR = ElementKind('ERROR', 4, "<error>");
 
   static const ElementKind EXPORT =
-      const ElementKind('EXPORT', 5, "export directive");
+      ElementKind('EXPORT', 5, "export directive");
 
   static const ElementKind EXTENSION =
-      const ElementKind('EXTENSION', 24, "extension");
+      ElementKind('EXTENSION', 24, "extension");
 
-  static const ElementKind FIELD = const ElementKind('FIELD', 6, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 6, "field");
 
-  static const ElementKind FUNCTION =
-      const ElementKind('FUNCTION', 7, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 7, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      const ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
 
-  static const ElementKind GETTER = const ElementKind('GETTER', 9, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 9, "getter");
 
   static const ElementKind IMPORT =
-      const ElementKind('IMPORT', 10, "import directive");
+      ElementKind('IMPORT', 10, "import directive");
 
-  static const ElementKind LABEL = const ElementKind('LABEL', 11, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 11, "label");
 
-  static const ElementKind LIBRARY =
-      const ElementKind('LIBRARY', 12, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 12, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      const ElementKind('LOCAL_VARIABLE', 13, "local variable");
+      ElementKind('LOCAL_VARIABLE', 13, "local variable");
 
-  static const ElementKind METHOD = const ElementKind('METHOD', 14, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 14, "method");
 
-  static const ElementKind NAME = const ElementKind('NAME', 15, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 15, "<name>");
 
-  static const ElementKind NEVER = const ElementKind('NEVER', 16, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 16, "<never>");
 
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 17, "parameter");
+      ElementKind('PARAMETER', 17, "parameter");
 
-  static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 18, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 18, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 19, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 19, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 22, "type parameter");
+      ElementKind('TYPE_PARAMETER', 22, "type parameter");
 
-  static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 23, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 23, "<universe>");
 
-  static const List<ElementKind> values = const [
+  static const List<ElementKind> values = [
     CLASS,
     COMPILATION_UNIT,
     CONSTRUCTOR,

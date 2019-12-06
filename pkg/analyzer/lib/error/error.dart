@@ -21,7 +21,7 @@ import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
 
-const List<ErrorCode> errorCodeValues = const [
+const List<ErrorCode> errorCodeValues = [
   //
   // Manually generated. You can mostly reproduce this list by running the
   // following command from the root of the analyzer package:
@@ -861,7 +861,7 @@ class AnalysisError implements Diagnostic {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static const List<AnalysisError> NO_ERRORS = const <AnalysisError>[];
+  static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
   /**
    * A [Comparator] that sorts by the name of the file that the [AnalysisError]

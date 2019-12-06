@@ -282,7 +282,7 @@ class ImplicitLabelScope {
   /**
    * The implicit label scope associated with the top level of a function.
    */
-  static const ImplicitLabelScope ROOT = const ImplicitLabelScope._(null, null);
+  static const ImplicitLabelScope ROOT = ImplicitLabelScope._(null, null);
 
   /**
    * The implicit label scope enclosing this implicit label scope.
