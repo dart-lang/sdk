@@ -450,6 +450,7 @@ abstract class TypePromoterImpl extends TypePromoter {
 
   /// For internal debugging use, prints the current state followed by the event
   /// name.
+  // ignore: unused_element
   void _printEvent(String name) {
     Iterable<TypePromotionFact> factChain(TypePromotionFact fact) sync* {
       while (fact != null) {
