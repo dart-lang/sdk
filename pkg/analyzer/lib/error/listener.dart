@@ -92,7 +92,7 @@ class ErrorReporter {
    * Set the source to be used when reporting errors to the given [source].
    * Setting the source to `null` will cause the default source to be used.
    */
-  void set source(Source source) {
+  set source(Source source) {
     this._source = source ?? _defaultSource;
   }
 

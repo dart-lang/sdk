@@ -226,7 +226,7 @@ class Parser {
   Token get currentToken => _currentToken;
 
   /// Set the token with which the parse is to begin to the given [token].
-  void set currentToken(Token token) {
+  set currentToken(Token token) {
     this._currentToken = token;
   }
 
@@ -238,7 +238,7 @@ class Parser {
   /// Set whether the parser is to parse asserts in the initializer list of a
   /// constructor to match the given [enable] flag.
   @deprecated
-  void set enableAssertInitializer(bool enable) {}
+  set enableAssertInitializer(bool enable) {}
 
   /// Return `true` if the parser should parse instance creation expressions
   /// that lack either the `new` or `const` keyword.
@@ -246,12 +246,12 @@ class Parser {
 
   /// Set whether the parser should parse instance creation expressions that
   /// lack either the `new` or `const` keyword.
-  void set enableOptionalNewAndConst(bool enable) {
+  set enableOptionalNewAndConst(bool enable) {
     _enableOptionalNewAndConst = enable;
   }
 
   /// Enables or disables parsing of set literals.
-  void set enableSetLiterals(bool value) {
+  set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
     // has been removed from dartfmt.
   }
@@ -263,7 +263,7 @@ class Parser {
   /// Set whether the parser is to allow URI's in part-of directives to the
   /// given [enable] flag.
   @deprecated
-  void set enableUriInPartOf(bool enable) {}
+  set enableUriInPartOf(bool enable) {}
 
   /// Return `true` if the current token is the first token of a return type
   /// that is followed by an identifier, possibly followed by a list of type
@@ -283,16 +283,16 @@ class Parser {
   ///
   /// Support for removing the 'async' library has been removed.
   @deprecated
-  void set parseAsync(bool parseAsync) {}
+  set parseAsync(bool parseAsync) {}
 
   @deprecated
   bool get parseConditionalDirectives => true;
 
   @deprecated
-  void set parseConditionalDirectives(bool value) {}
+  set parseConditionalDirectives(bool value) {}
 
   /// Set whether parser is to parse function bodies.
-  void set parseFunctionBodies(bool parseFunctionBodies) {
+  set parseFunctionBodies(bool parseFunctionBodies) {
     this._parseFunctionBodies = parseFunctionBodies;
   }
 

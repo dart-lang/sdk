@@ -28,7 +28,7 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  void set analysisOptions(AnalysisOptions options) {
+  set analysisOptions(AnalysisOptions options) {
     throw StateError('Cannot be changed.');
   }
 
@@ -38,7 +38,7 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  void set sourceFactory(SourceFactory factory) {
+  set sourceFactory(SourceFactory factory) {
     throw StateError('Cannot be changed.');
   }
 

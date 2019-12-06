@@ -811,8 +811,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
   }
 
   @override
-  void set length(int i) =>
-      throw StateError('Attempt to modify immutable list');
+  set length(int i) => throw StateError('Attempt to modify immutable list');
 
   @override
   bool operator [](int i) {
@@ -880,8 +879,7 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
   }
 
   @override
-  void set length(int i) =>
-      throw StateError('Attempt to modify immutable list');
+  set length(int i) => throw StateError('Attempt to modify immutable list');
 
   @override
   void operator []=(int i, E e) =>

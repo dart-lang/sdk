@@ -339,7 +339,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
 
   @override
-  void set priorityFiles(List<String> priorityPaths) {
+  set priorityFiles(List<String> priorityPaths) {
     _priorityResults.keys
         .toSet()
         .difference(priorityPaths.toSet())
@@ -1778,7 +1778,7 @@ abstract class AnalysisDriverGeneric {
   /// The driver will produce the results through the [results] stream. The
   /// exact order in which results are produced is not defined, neither
   /// between priority files, nor between priority and non-priority files.
-  void set priorityFiles(List<String> priorityPaths);
+  set priorityFiles(List<String> priorityPaths);
 
   /// Return the priority of work that the driver needs to perform.
   AnalysisDriverPriority get workPriority;

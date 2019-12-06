@@ -104,7 +104,7 @@ class DriverOptions {
   /// Set whether the parser is able to parse asserts in the initializer list of
   /// a constructor to match [enable].
   @deprecated
-  void set enableAssertInitializer(bool enable) {
+  set enableAssertInitializer(bool enable) {
     // Ignored because the option is now always enabled.
   }
 
@@ -113,7 +113,7 @@ class DriverOptions {
   bool get previewDart2 => true;
 
   @deprecated
-  void set previewDart2(bool value) {}
+  set previewDart2(bool value) {}
 }
 
 class LintDriver {

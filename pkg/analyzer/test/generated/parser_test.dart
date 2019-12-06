@@ -56,19 +56,19 @@ main() {
 abstract class AbstractParserTestCase implements ParserTestHelpers {
   bool get allowNativeClause;
 
-  void set allowNativeClause(bool value);
+  set allowNativeClause(bool value);
 
   /**
    * Set a flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
-  void set enableOptionalNewAndConst(bool value);
+  set enableOptionalNewAndConst(bool value);
 
   /**
    * Set a flag indicating whether the parser is to parse part-of directives
    * that specify a URI rather than a library name.
    */
-  void set enableUriInPartOf(bool value);
+  set enableUriInPartOf(bool value);
 
   /**
    * The error listener to which scanner and parser errors will be reported.

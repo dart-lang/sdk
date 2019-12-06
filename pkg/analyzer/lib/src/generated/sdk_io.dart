@@ -52,7 +52,7 @@ abstract class AbstractDartSdk implements DartSdk {
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
    */
-  void set analysisOptions(AnalysisOptions options) {
+  set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
       throw StateError(
           'Analysis options cannot be changed after context creation.');
@@ -83,7 +83,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /**
    * Specify whether SDK summary should be used.
    */
-  void set useSummary(bool use) {
+  set useSummary(bool use) {
     if (_analysisContext != null) {
       throw StateError(
           'The "useSummary" flag cannot be changed after context creation.');

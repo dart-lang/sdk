@@ -46,13 +46,13 @@ abstract class ResynthesizeTestStrategy {
   /// The set of features enabled in this test.
   FeatureSet featureSet;
 
-  void set allowMissingFiles(bool value);
+  set allowMissingFiles(bool value);
 
   set declaredVariables(DeclaredVariables declaredVariables);
 
   MemoryResourceProvider get resourceProvider;
 
-  void set testFile(String value);
+  set testFile(String value);
 
   Source get testSource;
 

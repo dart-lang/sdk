@@ -42,16 +42,16 @@ abstract class ParserAdapter implements Parser {
   bool get enableOptionalNewAndConst => false;
 
   @override
-  void set enableOptionalNewAndConst(bool enable) {}
+  set enableOptionalNewAndConst(bool enable) {}
 
   @override
-  void set enableSetLiterals(bool value) {
+  set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
     // has been removed from dartfmt.
   }
 
   @override
-  void set parseFunctionBodies(bool parseFunctionBodies) {
+  set parseFunctionBodies(bool parseFunctionBodies) {
     astBuilder.parseFunctionBodies = parseFunctionBodies;
   }
 
