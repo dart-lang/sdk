@@ -150,6 +150,7 @@ _callback_list_generics_mapping = monitored.Set(
         'List<IntersectionObserverEntry>',
         'List<MutationRecord>',
         'List<_Report>',
+        'List<ResizeObserverEntry>',
     ])
 
 
