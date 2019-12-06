@@ -1744,7 +1744,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
             redirectedConstructor,
-            [constructorStrName, redirectedType.displayName]);
+            [constructorStrName, redirectedType]);
       }
       return;
     }
@@ -2393,7 +2393,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
         constructor.returnType,
-        [supertype.displayName]);
+        [supertype]);
   }
 
   /**
@@ -3879,9 +3879,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           mixinName.name,
           [
-            mixinName.type.displayName,
+            mixinName.type,
             superType,
-            constraint.displayName,
+            constraint,
           ],
         );
         return true;
@@ -3927,7 +3927,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
             mixinName.name,
-            [name, mixinMember.type.displayName, superMember.type.displayName]);
+            [name, mixinMember.type, superMember.type]);
         return true;
       }
     }
@@ -4133,7 +4133,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
-        [superType.displayName, _enclosingClass.displayName]);
+        [superType, _enclosingClass.displayName]);
   }
 
   /**
@@ -4945,7 +4945,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             _errorReporter.reportErrorForNode(
               StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter,
-              [element.displayName, element.bound.displayName],
+              [element.displayName, element.bound],
             );
             break;
           }
@@ -5022,7 +5022,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
             offset,
             length,
-            [superType.displayName]);
+            [superType]);
       }
     } else {
       _errorReporter.reportErrorForNode(
@@ -5504,7 +5504,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
             interfaceNode,
-            [superType.displayName]);
+            [superType]);
       }
     }
   }

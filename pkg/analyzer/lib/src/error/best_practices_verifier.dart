@@ -725,11 +725,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       } else if (element is LibraryElement) {
         displayName = element.definingCompilationUnit.source.uri.toString();
-      } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
-          node is MethodInvocation &&
-          node.staticInvokeType is InterfaceType) {
-        DartType staticInvokeType = node.staticInvokeType;
-        displayName = "${staticInvokeType.displayName}.${element.displayName}";
+      } else if (node is MethodInvocation &&
+          displayName == FunctionElement.CALL_METHOD_NAME) {
+        var invokeType = node.staticInvokeType as InterfaceType;
+        if (invokeType is InterfaceType) {
+          var invokeClass = invokeType.element;
+          displayName = "${invokeClass.name}.${element.displayName}";
+        }
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
@@ -1076,7 +1078,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
                 ? functionNode.name
                 : functionNode;
         _errorReporter.reportErrorForNode(
-            HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
+            HintCode.MISSING_RETURN, errorNode, [returnType]);
       }
     }
   }

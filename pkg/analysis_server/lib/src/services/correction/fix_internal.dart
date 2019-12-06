@@ -1325,8 +1325,13 @@ class FixProcessor extends BaseProcessor {
               });
             });
             _addFixFromBuilder(
-                changeBuilder, DartFixKind.CHANGE_TYPE_ANNOTATION,
-                args: [typeNode.type, newType.displayName]);
+              changeBuilder,
+              DartFixKind.CHANGE_TYPE_ANNOTATION,
+              args: [
+                typeNode.type,
+                newType.getDisplayString(withNullability: false),
+              ],
+            );
           }
         }
       }

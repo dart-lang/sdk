@@ -171,7 +171,7 @@ class ArgListContributor extends DartCompletionContributor {
   void _addNamedParameterSuggestion(List<String> namedArgs,
       ParameterElement parameter, bool appendColon, bool appendComma) {
     String name = parameter.name;
-    String type = parameter.type?.displayName;
+    String type = parameter.type?.getDisplayString(withNullability: false);
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       String completion = name;
       if (appendColon) {

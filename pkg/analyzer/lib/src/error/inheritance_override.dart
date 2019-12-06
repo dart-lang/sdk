@@ -234,9 +234,9 @@ class _ClassVerifier {
             [
               name.name,
               interfaceElement.enclosingElement.name,
-              interfaceElement.type.displayName,
+              interfaceElement.type,
               concreteElement.enclosingElement.name,
-              concreteElement.type.displayName,
+              concreteElement.type,
             ],
           );
         }
@@ -287,9 +287,9 @@ class _ClassVerifier {
             [
               name.name,
               member.enclosingElement.name,
-              member.type.displayName,
+              member.type,
               superMember.enclosingElement.name,
-              superMember.type.displayName
+              superMember.type,
             ],
           );
         }
@@ -332,7 +332,7 @@ class _ClassVerifier {
     DartType type = typeName.type;
     if (type is InterfaceType &&
         typeProvider.nonSubtypableClasses.contains(type.element)) {
-      reporter.reportErrorForNode(errorCode, typeName, [type.displayName]);
+      reporter.reportErrorForNode(errorCode, typeName, [type]);
       return true;
     }
 

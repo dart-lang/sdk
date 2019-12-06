@@ -161,7 +161,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
-    expect(types.map((t) => t.displayName).toList(), expected);
+    expect(types.map(typeString).toList(), expected);
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
@@ -573,8 +573,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Return a textual representation of the [type] that is appropriate for
   /// tests.
-  String typeString(DartType type) => (type as TypeImpl)
-      ?.toString(withNullability: typeToStringWithNullability);
+  String typeString(DartType type) =>
+      type.getDisplayString(withNullability: typeToStringWithNullability);
 
   static String _extractReturnType(String invokeType) {
     int functionIndex = invokeType.indexOf(' Function');

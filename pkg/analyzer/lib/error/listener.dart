@@ -206,7 +206,7 @@ class ErrorReporter {
           return buffer.toString();
         }
       }
-      return type.displayName;
+      return type.getDisplayString(withNullability: false);
     }
 
     Map<String, List<_TypeToConvert>> typeGroups = {};

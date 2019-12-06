@@ -321,7 +321,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
                   HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
                   offset,
                   length,
-                  [currentType.displayName, type.displayName]);
+                  [currentType, type]);
               return;
             }
           }

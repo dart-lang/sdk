@@ -920,15 +920,15 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     if (supertype != null && !supertype.isObject) {
       buffer.write(' extends ');
-      buffer.write(supertype.displayName);
+      buffer.write(_typeToString(supertype));
     }
     if (mixins.isNotEmpty) {
       buffer.write(' with ');
-      buffer.write(mixins.map((t) => t.displayName).join(', '));
+      buffer.write(mixins.map(_typeToString).join(', '));
     }
     if (interfaces.isNotEmpty) {
       buffer.write(' implements ');
-      buffer.write(interfaces.map((t) => t.displayName).join(', '));
+      buffer.write(interfaces.map(_typeToString).join(', '));
     }
   }
 
@@ -1182,6 +1182,12 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return false;
+  }
+
+  String _typeToString(DartType type) {
+    return type.getDisplayString(
+      withNullability: library.isNonNullableByDefault,
+    );
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
@@ -4153,7 +4159,11 @@ class ExtensionElementImpl extends ElementImpl
     }
     if (extendedType != null && !extendedType.isObject) {
       buffer.write(' on ');
-      buffer.write(extendedType.displayName);
+      buffer.write(
+        extendedType.getDisplayString(
+          withNullability: library.isNonNullableByDefault,
+        ),
+      );
     }
   }
 
@@ -5998,13 +6008,14 @@ class MixinElementImpl extends ClassElementImpl {
       }
       buffer.write(">");
     }
+
     if (superclassConstraints.isNotEmpty) {
       buffer.write(' on ');
-      buffer.write(superclassConstraints.map((t) => t.displayName).join(', '));
+      buffer.write(superclassConstraints.map(_typeToString).join(', '));
     }
     if (interfaces.isNotEmpty) {
       buffer.write(' implements ');
-      buffer.write(interfaces.map((t) => t.displayName).join(', '));
+      buffer.write(interfaces.map(_typeToString).join(', '));
     }
   }
 }

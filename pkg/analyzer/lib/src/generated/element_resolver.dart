@@ -174,7 +174,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               staticType.element,
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
-              [methodName, staticType.displayName]);
+              [methodName, staticType]);
         }
       }
     }
@@ -558,13 +558,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
             staticType.element,
             StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
             node.operator,
-            [methodName, staticType.displayName]);
+            [methodName, staticType]);
       } else {
         _recordUndefinedToken(
             staticType.element,
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             node.operator,
-            [methodName, staticType.displayName]);
+            [methodName, staticType]);
       }
     }
   }
@@ -677,13 +677,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
               staticType.element,
               StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
               operator,
-              [methodName, staticType.displayName]);
+              [methodName, staticType]);
         } else {
           _recordUndefinedToken(
               staticType.element,
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
-              [methodName, staticType.displayName]);
+              [methodName, staticType]);
         }
       }
     }
@@ -900,12 +900,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
-            [superType.displayName, name]);
+            [superType, name]);
       } else {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
             node,
-            [superType.displayName]);
+            [superType]);
       }
       return;
     } else {
@@ -1013,7 +1013,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
         offset,
         length,
-        [methodName, staticType.displayName],
+        [methodName, staticType],
       );
     } else if (staticType.isVoid) {
       _resolver.errorReporter.reportErrorForOffset(
@@ -1026,7 +1026,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         StaticTypeWarningCode.UNDEFINED_OPERATOR,
         offset,
         length,
-        [methodName, staticType.displayName],
+        [methodName, staticType],
       );
     }
   }
@@ -1473,13 +1473,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
               leftType.element,
               StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
               node.operator,
-              [methodName, leftType.displayName]);
+              [methodName, leftType]);
         } else {
           _recordUndefinedToken(
               leftType.element,
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               node.operator,
-              [methodName, leftType.displayName]);
+              [methodName, leftType]);
         }
       }
     }
@@ -1769,7 +1769,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _resolver.errorReporter.reportErrorForNode(
           StaticTypeWarningCode.UNDEFINED_GETTER,
           propertyName,
-          [propertyName.name, staticType.displayName],
+          [propertyName.name, staticType],
         );
       }
     }
@@ -1789,7 +1789,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _resolver.errorReporter.reportErrorForNode(
           StaticTypeWarningCode.UNDEFINED_SETTER,
           propertyName,
-          [propertyName.name, staticType.displayName],
+          [propertyName.name, staticType],
         );
       }
     }

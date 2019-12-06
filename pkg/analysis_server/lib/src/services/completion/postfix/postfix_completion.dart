@@ -505,7 +505,7 @@ class PostfixCompletionProcessor {
     if (astNode is ThrowExpression) {
       ThrowExpression expr = astNode;
       var type = expr.expression.staticType;
-      return type.displayName;
+      return type.getDisplayString(withNullability: false);
     }
     return 'Exception';
   }

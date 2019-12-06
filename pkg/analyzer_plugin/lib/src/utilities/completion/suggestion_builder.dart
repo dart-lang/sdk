@@ -121,7 +121,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
           element.parameters.map((ParameterElement parameter) {
         DartType paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
-        return paramType != null ? paramType.displayName : 'var';
+        return paramType != null
+            ? paramType.getDisplayString(withNullability: false)
+            : 'var';
       }).toList();
 
       Iterable<ParameterElement> requiredParameters = element.parameters
@@ -148,7 +150,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       }
     } else if (element is VariableElement) {
       DartType type = element.type;
-      return type != null ? type.displayName : 'dynamic';
+      return type != null
+          ? type.getDisplayString(withNullability: false)
+          : 'dynamic';
     } else if (element is FunctionTypeAliasElement) {
       return element.function.returnType.toString();
     } else {

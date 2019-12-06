@@ -63,7 +63,9 @@ CompletionSuggestion createSuggestion(Element element,
         element.parameters.map((ParameterElement parameter) {
       DartType paramType = parameter.type;
       // Gracefully degrade if type not resolved yet
-      return paramType != null ? paramType.displayName : 'var';
+      return paramType != null
+          ? paramType.getDisplayString(withNullability: false)
+          : 'var';
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = element.parameters

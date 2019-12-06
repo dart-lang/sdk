@@ -281,7 +281,9 @@ class AnalyzerConverter {
       return element.returnType?.toString();
     } else if (element is analyzer.VariableElement) {
       analyzer.DartType type = element.type;
-      return type != null ? type.displayName : 'dynamic';
+      return type != null
+          ? type.getDisplayString(withNullability: false)
+          : 'dynamic';
     } else if (element is analyzer.FunctionTypeAliasElement) {
       return element.function.returnType.toString();
     }

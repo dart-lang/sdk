@@ -252,7 +252,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
                   expression,
-                  [expression.toSource(), firstType.displayName]);
+                  [expression.toSource(), firstType]);
               foundError = true;
             }
           }
@@ -310,7 +310,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
         node.switchKeyword,
-        [type.displayName]);
+        [type]);
     return true;
   }
 

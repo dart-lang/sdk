@@ -184,17 +184,16 @@ CompilationUnitElement getCompilationUnitElement(Element element) {
 
 String getDefaultValueCode(DartType type) {
   if (type != null) {
-    String typeName = type.displayName;
-    if (typeName == "bool") {
+    if (type.isDartCoreBool) {
       return "false";
     }
-    if (typeName == "int") {
+    if (type.isDartCoreInt) {
       return "0";
     }
-    if (typeName == "double") {
+    if (type.isDartCoreDouble) {
       return "0.0";
     }
-    if (typeName == "String") {
+    if (type.isDartCoreString) {
       return "''";
     }
   }
@@ -1327,7 +1326,7 @@ class CorrectionUtils {
       return _invertCondition0(expression.unParenthesized);
     }
     DartType type = expression.staticType;
-    if (type.displayName == "bool") {
+    if (type.isDartCoreBool) {
       return _InvertedCondition._simple("!${getNodeText(expression)}");
     }
     return _InvertedCondition._simple(getNodeText(expression));

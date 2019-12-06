@@ -830,7 +830,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _addSuperTypeProposals(
       LinkedEditBuilder builder, DartType type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
-      builder.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      builder.addSuggestion(
+        LinkedEditSuggestionKind.TYPE,
+        type.getDisplayString(withNullability: false),
+      );
       _addSuperTypeProposals(builder, type.superclass, alreadyAdded);
       for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypeProposals(builder, interfaceType, alreadyAdded);
@@ -1095,7 +1098,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // The type `void` does not have an element.
     if (type is VoidType) {
-      write(type.displayName);
+      write('void');
       return true;
     }
 
@@ -1631,7 +1634,10 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
    */
   void _addSuperTypesAsSuggestions(DartType type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
-      addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      addSuggestion(
+        LinkedEditSuggestionKind.TYPE,
+        type.getDisplayString(withNullability: false),
+      );
       _addSuperTypesAsSuggestions(type.superclass, alreadyAdded);
       for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypesAsSuggestions(interfaceType, alreadyAdded);

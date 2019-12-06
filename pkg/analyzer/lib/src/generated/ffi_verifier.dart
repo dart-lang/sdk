@@ -364,15 +364,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportTypeErrorForNode(
             FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
             errorNode,
-            [T.displayName]);
+            [T]);
         return;
       }
 
       final DartType TPrime = (T as InterfaceType).typeArguments[0];
       final DartType F = node.typeArgumentTypes[0];
       if (!_validateCompatibleFunctionTypes(F, TPrime)) {
-        _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, node,
-            [TPrime.displayName, F.displayName, 'asFunction']);
+        _errorReporter.reportTypeErrorForNode(
+            FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
     }
   }
@@ -496,9 +496,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType T = node.typeArgumentTypes[0];
     if (!_isValidFfiNativeFunctionType(T)) {
       _errorReporter.reportTypeErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-          node,
-          [T.displayName, 'fromFunction']);
+          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
       return;
     }
 
@@ -549,13 +547,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportTypeErrorForNode(
           FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
           errorNode,
-          [S.displayName, 'lookupFunction']);
+          [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
       final AstNode errorNode = typeArguments[1];
-      _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE,
-          errorNode, [S.displayName, F.displayName, 'lookupFunction']);
+      _errorReporter.reportTypeErrorForNode(
+          FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
   }
 

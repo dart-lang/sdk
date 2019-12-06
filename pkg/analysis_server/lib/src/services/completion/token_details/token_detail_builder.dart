@@ -116,7 +116,7 @@ class TokenDetailBuilder {
     } else if (type is InterfaceType) {
       Element element = type.element;
       if (element == null || element.isSynthetic) {
-        buffer.write(type.displayName);
+        buffer.write(type.getDisplayString(withNullability: false));
       } else {
 //        String uri = element.library.source.uri.toString();
         String name = element.name;
@@ -134,7 +134,7 @@ class TokenDetailBuilder {
       }
     } else {
       // Handle `void` and `dynamic`.
-      buffer.write(type.displayName);
+      buffer.write(type.getDisplayString(withNullability: false));
     }
   }
 }

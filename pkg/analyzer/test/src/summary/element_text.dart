@@ -214,7 +214,7 @@ class _ElementWriter {
     writeCodeRange(e);
     writeTypeParameterElements(e.typeParameters);
 
-    if (e.supertype != null && e.supertype.displayName != 'Object' ||
+    if (e.supertype != null && e.supertype.element.name != 'Object' ||
         e.mixins.isNotEmpty) {
       buffer.write(' extends ');
       writeType(e.supertype);

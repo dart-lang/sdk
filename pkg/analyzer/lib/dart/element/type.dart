@@ -32,6 +32,7 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
+  @deprecated
   String get displayName;
 
   /// Return the element representing the declaration of this type, or `null` if
