@@ -888,7 +888,7 @@ class MockSdk implements DartSdk {
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
-    bool generateSummaryFiles: false,
+    bool generateSummaryFiles = false,
     @required this.resourceProvider,
     AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],

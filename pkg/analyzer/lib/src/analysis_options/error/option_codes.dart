@@ -60,7 +60,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
       const AnalysisOptionsHintCode(
           'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
           "The name of the analysis options file {0} is deprecated;"
-          " consider renaming it to analysis_options.yaml.");
+              " consider renaming it to analysis_options.yaml.");
 
   /**
    * An error code indicating that the enablePreviewDart2 setting is deprecated.
@@ -192,7 +192,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       const AnalysisOptionsWarningCode(
           'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
           "The option '{1}' isn't supported by '{0}'. "
-          "Try using the only supported option: '{2}'.");
+              "Try using the only supported option: '{2}'.");
 
   /**
    * An error code indicating that a plugin is being configured with an

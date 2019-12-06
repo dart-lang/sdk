@@ -122,7 +122,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseAssignableExpression(String code, bool primaryAllowed);
 
   Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional: true});
+      {bool allowConditional = true});
 
   AwaitExpression parseAwaitExpression(String code);
 
@@ -170,11 +170,11 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseExpressionWithoutCascade(String code);
 
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes: const <ErrorCode>[]});
+      {List<ErrorCode> errorCodes = const <ErrorCode>[]});
 
   FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[],
       List<ExpectedError> errors});
 
   /**
@@ -213,8 +213,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   InstanceCreationExpression parseNewExpression(String code);
 
   NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]});
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[]});
 
   Expression parsePostfixExpression(String code);
 
@@ -9508,7 +9508,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional: true}) {
+      {bool allowConditional = true}) {
     if (usingFastaParser) {
       if (optional) {
         if (code.isEmpty) {
@@ -9720,7 +9720,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     if (usingFastaParser) {
       String parametersCode;
       if (kind == ParameterKind.REQUIRED) {
@@ -9745,8 +9745,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[],
       List<ExpectedError> errors}) {
     createParser(code);
     FormalParameterList list =
@@ -9890,8 +9890,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     if (usingFastaParser) {
       FormalParameterList list = parseFormalParameterList('($code)',
           inFunctionType: inFunctionType, errorCodes: errorCodes);
@@ -15945,7 +15945,7 @@ main() {
     expect(statement.semicolon, isNotNull);
   }
 
-  Statement _parseAsyncStatement(String code, {bool isGenerator: false}) {
+  Statement _parseAsyncStatement(String code, {bool isGenerator = false}) {
     var star = isGenerator ? '*' : '';
     var localFunction = parseStatement('wrapper() async$star { $code }')
         as FunctionDeclarationStatement;

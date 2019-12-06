@@ -5380,7 +5380,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   const CompileTimeErrorCode(String name, String message,
       {String correction,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
@@ -6323,7 +6323,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   const StaticTypeWarningCode(String name, String message,
       {String correction,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
@@ -7801,7 +7801,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       {String correction,
       this.errorSeverity = ErrorSeverity.ERROR,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,

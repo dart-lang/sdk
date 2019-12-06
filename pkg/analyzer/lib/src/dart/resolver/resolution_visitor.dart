@@ -1170,7 +1170,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// declarations are not valid (they declare interfaces and mixins, but not
   /// classes).
   void _resolveType(TypeName typeName, ErrorCode errorCode,
-      {bool asClass: false}) {
+      {bool asClass = false}) {
     visitTypeName(typeName);
 
     DartType type = typeName.type;

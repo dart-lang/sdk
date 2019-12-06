@@ -420,7 +420,7 @@ class ResolverTestCase with ResourceProviderMixin {
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
-      {bool verify: true, String sourceName: _defaultSourceName}) async {
+      {bool verify = true, String sourceName = _defaultSourceName}) async {
     Source source = addNamedSource(sourceName, code);
     await computeAnalysisResult(source);
     assertErrors(source, errors);
@@ -715,10 +715,10 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    * output.
    */
   FunctionTypeImpl expectFunctionType(String name, String type,
-      {String elementTypeParams: '[]',
-      String typeParams: '[]',
-      String typeArgs: '[]',
-      String typeFormals: '[]',
+      {String elementTypeParams = '[]',
+      String typeParams = '[]',
+      String typeArgs = '[]',
+      String typeFormals = '[]',
       String identifierType}) {
     identifierType ??= type;
 

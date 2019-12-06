@@ -49,8 +49,8 @@ export 'package:analyzer/src/generated/utilities_dart.dart';
 @Deprecated('Please use parseString instead')
 CompilationUnit parseCompilationUnit(String contents,
     {String name,
-    bool suppressErrors: false,
-    bool parseFunctionBodies: true,
+    bool suppressErrors = false,
+    bool parseFunctionBodies = true,
     FeatureSet featureSet}) {
   // TODO(paulberry): make featureSet a required parameter
   featureSet ??= FeatureSet.fromEnableFlags([]);
@@ -74,8 +74,8 @@ CompilationUnit parseCompilationUnit(String contents,
 /// callers that don't require function bodies should simply ignore them.
 @Deprecated('Please use parseFile2 instead')
 CompilationUnit parseDartFile(String path,
-    {bool suppressErrors: false,
-    bool parseFunctionBodies: true,
+    {bool suppressErrors = false,
+    bool parseFunctionBodies = true,
     FeatureSet featureSet}) {
   // TODO(paulberry): Make featureSet a required parameter
   featureSet ??= FeatureSet.fromEnableFlags([]);
@@ -115,7 +115,7 @@ CompilationUnit parseDartFile(String path,
 /// directives should simply ignore the rest of the parse result.
 @Deprecated('Please use parseString instead')
 CompilationUnit parseDirectives(String contents,
-    {String name, bool suppressErrors: false, FeatureSet featureSet}) {
+    {String name, bool suppressErrors = false, FeatureSet featureSet}) {
   // TODO(paulberry): make featureSet a required parameter.
   featureSet ??= FeatureSet.fromEnableFlags([]);
   var source = new StringSource(contents, name);
@@ -141,7 +141,7 @@ String stringLiteralToString(StringLiteral literal) {
 
 CompilationUnit _parseSource(
     String contents, Source source, FeatureSet featureSet,
-    {bool suppressErrors: false, bool parseFunctionBodies: true}) {
+    {bool suppressErrors = false, bool parseFunctionBodies = true}) {
   var reader = new CharSequenceReader(contents);
   var errorCollector = new _ErrorCollector();
   var scanner = new Scanner(source, reader, errorCollector)

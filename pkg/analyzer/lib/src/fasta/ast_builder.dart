@@ -167,7 +167,7 @@ class AstBuilder extends StackListener {
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
+      {bool wasHandled = false, List<LocatedMessage> context}) {
     if (directives.isEmpty &&
         (message.code.analyzerCodes
                 ?.contains('NON_PART_OF_DIRECTIVE_IN_PART') ??

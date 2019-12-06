@@ -3168,7 +3168,7 @@ class _ExpectedDeclaration {
   final String name;
   final List<_ExpectedDeclaration> children;
 
-  _ExpectedDeclaration(this.kind, this.name, {this.children: const []});
+  _ExpectedDeclaration(this.kind, this.name, {this.children = const []});
 
   _ExpectedDeclaration.class_(String name, List<_ExpectedDeclaration> children)
       : this(DeclarationKind.CLASS, name, children: children);

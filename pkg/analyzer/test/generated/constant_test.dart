@@ -481,7 +481,7 @@ class C {
   }
 
   Future<EvaluationResult> _getExpressionValue(String expressionCode,
-      {String context: ''}) async {
+      {String context = ''}) async {
     await resolveTestCode('''
 var x = $expressionCode;
 

@@ -62,7 +62,7 @@ class IndexTest extends BaseAnalysisDriverTest {
     return findChildElement(testUnitElement, name, kind);
   }
 
-  CompilationUnitElement importedUnit({int index: 0}) {
+  CompilationUnitElement importedUnit({int index = 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;
   }

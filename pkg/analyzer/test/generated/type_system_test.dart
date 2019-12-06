@@ -1438,7 +1438,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
-      {DartType returnType, bool expectError: false}) {
+      {DartType returnType, bool expectError = false}) {
     var listener = new RecordingErrorListener();
 
     var reporter = new ErrorReporter(
@@ -1468,7 +1468,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
-      {DartType returnType, bool expectError: false}) {
+      {DartType returnType, bool expectError = false}) {
     var typeArguments = _inferCall(
       ft,
       arguments,

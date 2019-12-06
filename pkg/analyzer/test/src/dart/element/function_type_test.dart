@@ -38,18 +38,18 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   void basicChecks(FunctionType f,
       {element,
-      displayName: 'dynamic Function()',
+      displayName = 'dynamic Function()',
       returnType,
-      namedParameterTypes: isEmpty,
-      normalParameterNames: isEmpty,
-      normalParameterTypes: isEmpty,
-      optionalParameterNames: isEmpty,
-      optionalParameterTypes: isEmpty,
-      parameters: isEmpty,
-      typeFormals: isEmpty,
-      typeArguments: isEmpty,
-      typeParameters: isEmpty,
-      name: isNull}) {
+      namedParameterTypes = isEmpty,
+      normalParameterNames = isEmpty,
+      normalParameterTypes = isEmpty,
+      optionalParameterNames = isEmpty,
+      optionalParameterTypes = isEmpty,
+      parameters = isEmpty,
+      typeFormals = isEmpty,
+      typeArguments = isEmpty,
+      typeParameters = isEmpty,
+      name = isNull}) {
     // DartType properties
     expect(f.displayName, displayName, reason: 'displayName');
     expect(f.element, element, reason: 'element');
@@ -74,10 +74,10 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   GenericTypeAliasElementImpl genericTypeAliasElement(
     String name, {
-    List<ParameterElement> parameters: const [],
+    List<ParameterElement> parameters = const [],
     DartType returnType,
-    List<TypeParameterElement> typeParameters: const [],
-    List<TypeParameterElement> innerTypeParameters: const [],
+    List<TypeParameterElement> typeParameters = const [],
+    List<TypeParameterElement> innerTypeParameters = const [],
   }) {
     var aliasElement = GenericTypeAliasElementImpl(name, 0);
     aliasElement.typeParameters = typeParameters;
@@ -515,16 +515,16 @@ class MockFunctionTypedElement implements FunctionTypedElement {
   final Element enclosingElement;
 
   MockFunctionTypedElement(
-      {this.parameters: const [],
+      {this.parameters = const [],
       DartType returnType,
-      this.typeParameters: const [],
-      this.enclosingElement: const MockCompilationUnitElement()})
+      this.typeParameters = const [],
+      this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = returnType ?? dynamicType;
 
   MockFunctionTypedElement.withNullReturn(
-      {this.parameters: const [],
-      this.typeParameters: const [],
-      this.enclosingElement: const MockCompilationUnitElement()})
+      {this.parameters = const [],
+      this.typeParameters = const [],
+      this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = null;
 
   noSuchMethod(Invocation invocation) {

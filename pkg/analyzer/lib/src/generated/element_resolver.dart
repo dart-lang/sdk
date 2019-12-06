@@ -120,7 +120,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
-  ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
+  ElementResolver(this._resolver, {this.reportConstEvaluationErrors = true})
       : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
         _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
@@ -1097,7 +1097,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * Return the static type of the given [expression] that is to be used for
    * type analysis.
    */
-  DartType _getStaticType(Expression expression, {bool read: false}) {
+  DartType _getStaticType(Expression expression, {bool read = false}) {
     if (expression is NullLiteral) {
       return _resolver.typeProvider.nullType;
     }

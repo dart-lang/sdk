@@ -111,7 +111,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       List<TestSuffix> suffixes,
       {FeatureSet featureSet,
       String head,
-      bool includeEof: true,
+      bool includeEof = true,
       String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
@@ -284,7 +284,7 @@ class TestDescriptor {
    * Initialize a newly created test descriptor.
    */
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
-      {this.allFailing: false,
+      {this.allFailing = false,
       this.failing,
       this.expectedErrorsInValidCode,
       this.adjustValidUnitBeforeComparison});

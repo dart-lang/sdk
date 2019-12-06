@@ -1775,8 +1775,8 @@ main() {
   void _assertInvalidInvocation(String search, Element expectedElement,
       {String expectedMethodNameType,
       String expectedNameType,
-      List<String> expectedTypeArguments: const <String>[],
-      bool dynamicNameType: false}) {
+      List<String> expectedTypeArguments = const <String>[],
+      bool dynamicNameType = false}) {
     var invocation = findNode.methodInvocation(search);
     if (dynamicNameType) {
       assertTypeDynamic(invocation.methodName);
@@ -1796,7 +1796,7 @@ main() {
 
   void _assertUnresolvedMethodInvocation(
     String search, {
-    List<String> expectedTypeArguments: const <String>[],
+    List<String> expectedTypeArguments = const <String>[],
   }) {
     // TODO(scheglov) clean up
     _assertInvalidInvocation(

@@ -1992,7 +1992,7 @@ class FastaParserTestCase
 
   @override
   Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional: true}) {
+      {bool allowConditional = true}) {
     if (optional) {
       if (code.isEmpty) {
         return _parseExpression('foo');
@@ -2173,7 +2173,7 @@ class FastaParserTestCase
 
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -2191,8 +2191,8 @@ class FastaParserTestCase
 
   @override
   FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[],
       List<ExpectedError> errors}) {
     createParser(code);
     FormalParameterList result =
@@ -2284,8 +2284,8 @@ class FastaParserTestCase
 
   @override
   NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     FormalParameterList list = parseFormalParameterList('($code)',
         inFunctionType: inFunctionType, errorCodes: errorCodes);
     return list.parameters.single;
@@ -3243,7 +3243,7 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
-      {bool allowNativeClause: false, int expectedEndOffset}) {
+      {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
@@ -3255,7 +3255,7 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener, FeatureSet featureSet,
-      {bool allowNativeClause: false, this.expectedEndOffset})
+      {bool allowNativeClause = false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause) {
     _eventListener = new ForwardingTestListener(astBuilder);
@@ -3329,7 +3329,7 @@ class ParserProxy extends analyzer.ParserAdapter {
   }
 
   @override
-  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
     return _run('unspecified',
         () => super.parseFormalParameterList(inFunctionType: inFunctionType));
   }

@@ -85,7 +85,7 @@ class Scanner {
           contents: reader.getContents(), offset: reader.offset);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: -1}) {
+      {String contents, int offset = -1}) {
     return new Scanner._(
         source, contents ?? source.contents.data, offset, errorListener);
   }

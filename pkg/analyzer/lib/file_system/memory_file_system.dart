@@ -29,7 +29,7 @@ class MemoryResourceProvider implements ResourceProvider {
   final pathos.Context _pathContext;
 
   MemoryResourceProvider(
-      {pathos.Context context, @deprecated bool isWindows: false})
+      {pathos.Context context, @deprecated bool isWindows = false})
       : _pathContext = (context ??= pathos.style == pathos.Style.windows
             // On Windows, ensure that the current drive matches
             // the drive inserted by MemoryResourceProvider.convertPath

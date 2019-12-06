@@ -314,7 +314,7 @@ class ReferenceCollector {
     _visitConstructor(node.type, node.name);
   }
 
-  void _visitExpression(Expression node, {bool get: true, bool set: false}) {
+  void _visitExpression(Expression node, {bool get = true, bool set = false}) {
     if (node == null) return;
 
     if (node is AdjacentStrings) {

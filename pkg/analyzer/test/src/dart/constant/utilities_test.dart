@@ -206,9 +206,9 @@ class ConstantFinderTest {
 
   VariableDeclaration _setupFieldDeclaration(
       String className, String fieldName, Keyword keyword,
-      {bool isInitialized: true,
-      bool isStatic: false,
-      bool hasConstConstructor: false}) {
+      {bool isInitialized = true,
+      bool isStatic = false,
+      bool hasConstConstructor = false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(
             fieldName, AstTestFactory.integer(0))
@@ -252,7 +252,7 @@ class ConstantFinderTest {
 
   VariableElement _setupVariableDeclaration(
       String name, bool isConst, bool isInitialized,
-      {isFinal: false}) {
+      {isFinal = false}) {
     VariableDeclaration variableDeclaration = isInitialized
         ? AstTestFactory.variableDeclaration2(name, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(name);

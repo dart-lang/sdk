@@ -294,7 +294,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
       this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false})
+      {this.disableConflictingGenericsCheck = false})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter),

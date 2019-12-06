@@ -241,7 +241,7 @@ analyzer:
     }
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp: false}) {
+  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
     Resource resource = pathTranslator.getResource(posixPath);
     return provider.getOptions(resource, crawlUp: crawlUp);
   }

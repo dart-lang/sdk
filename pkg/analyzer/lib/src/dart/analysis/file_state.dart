@@ -384,7 +384,7 @@ class FileState {
    *
    * Return `true` if the API signature changed since the last refresh.
    */
-  bool refresh({bool allowCached: false}) {
+  bool refresh({bool allowCached = false}) {
     counterFileStateRefresh++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;

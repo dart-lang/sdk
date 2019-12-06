@@ -54,7 +54,7 @@ class ContextBuilderImpl implements ContextBuilder {
   AnalysisContext createContext(
       {@required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
-      bool enableIndex: false,
+      bool enableIndex = false,
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
       @deprecated AnalysisDriverScheduler scheduler,

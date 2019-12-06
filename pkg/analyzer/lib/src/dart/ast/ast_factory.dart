@@ -929,7 +929,7 @@ class AstFactoryImpl extends AstFactory {
           requiredKeyword, keyword, type, identifier);
 
   @override
-  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false}) {
+  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration = false}) {
     if (isDeclaration) {
       return new DeclaredSimpleIdentifier(token);
     }

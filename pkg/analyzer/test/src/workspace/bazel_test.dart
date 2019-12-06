@@ -451,7 +451,8 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         'package:third_party.something/foo.dart');
   }
 
-  void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
+  void _addResources(List<String> paths,
+      {String workspacePath = '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
@@ -465,7 +466,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
   }
 
   void _assertResolve(String uriStr, String posixPath,
-      {bool exists: true, bool restore: true}) {
+      {bool exists = true, bool restore = true}) {
     Uri uri = Uri.parse(uriStr);
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);

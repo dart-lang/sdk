@@ -404,7 +404,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// continue, return, or throw statement at the end of a switch case, that are
   /// mandated by the language spec.
   void _checkForDeadStatementsInNodeList(NodeList<Statement> statements,
-      {bool allowMandated: false}) {
+      {bool allowMandated = false}) {
     bool statementExits(Statement statement) {
       if (statement is BreakStatement) {
         return statement.label == null;

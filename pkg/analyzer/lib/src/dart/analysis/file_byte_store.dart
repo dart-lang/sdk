@@ -160,7 +160,7 @@ class FileByteStore implements ByteStore {
    * If the same cache path is used from more than one isolate of the same
    * process, then a unique [tempNameSuffix] must be provided for each isolate.
    */
-  FileByteStore(this._cachePath, {String tempNameSuffix: ''})
+  FileByteStore(this._cachePath, {String tempNameSuffix = ''})
       : _tempSuffix =
             '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 

@@ -353,7 +353,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
   PropertyAccessorElement lookUpInheritedGetter(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Look up the member with the given [name] in this type and all extended
   /// and mixed in classes, starting from this type. If the search fails,
@@ -377,7 +377,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
   MethodElement lookUpInheritedMethod(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Look up the member with the given [name] in this type and all extended
   /// and mixed in classes, and by default including [thisType]. If the search
@@ -389,7 +389,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
   PropertyAccessorElement lookUpInheritedSetter(String name,
-      {LibraryElement library, bool thisType: true});
+      {LibraryElement library, bool thisType = true});
 
   /// Return the element representing the method that results from looking up
   /// the method with the given [name] in this class with respect to the given

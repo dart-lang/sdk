@@ -132,7 +132,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
   PackageBuildPackageUriResolver resolver;
   MockUriResolver packageUriResolver;
 
-  Uri addPackageSource(String path, String uriStr, {bool create: true}) {
+  Uri addPackageSource(String path, String uriStr, {bool create = true}) {
     Uri uri = Uri.parse(uriStr);
     final File file = create
         ? newFile(path)
@@ -196,7 +196,8 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
         exists: false);
   }
 
-  void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
+  void _addResources(List<String> paths,
+      {String workspacePath = '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
@@ -216,7 +217,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
   }
 
   Source _assertResolveUri(Uri uri, String posixPath,
-      {bool exists: true, bool restore: true}) {
+      {bool exists = true, bool restore = true}) {
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.fullName, convertPath(posixPath));

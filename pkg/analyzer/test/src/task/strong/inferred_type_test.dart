@@ -32,14 +32,14 @@ mixin InferredTypeMixin {
   /**
    * Add a new file with the given [name] and [content].
    */
-  void addFile(String content, {String name: '/main.dart'});
+  void addFile(String content, {String name = '/main.dart'});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
    * unit.
    */
   Future<CompilationUnit> checkFile(String content,
-      {bool implicitCasts: true, bool implicitDynamic: true});
+      {bool implicitCasts = true, bool implicitDynamic = true});
 
   /**
    * Add the file, process it (resolve, validate, etc) and return the resolved
@@ -1701,7 +1701,7 @@ main() {
             {String declared,
             String downwards,
             String upwards,
-            String expectedInfo: ''}) =>
+            String expectedInfo = ''}) =>
         '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
@@ -1732,7 +1732,7 @@ $downwards<int> g3(bool x) async {
         {String declared,
         String downwards,
         String upwards,
-        String expectedError: ''}) {
+        String expectedError = ''}) {
       return '''
 import 'dart:async';
 class MyFuture<T> implements Future<T> {

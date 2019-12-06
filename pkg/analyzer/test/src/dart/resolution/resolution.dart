@@ -250,7 +250,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertInstanceCreation(InstanceCreationExpression creation,
       ClassElement expectedClassElement, String expectedType,
       {String constructorName,
-      bool expectedConstructorMember: false,
+      bool expectedConstructorMember = false,
       Map<String, String> expectedSubstitution,
       PrefixElement expectedPrefix}) {
     String expectedClassName = expectedClassElement.name;
@@ -344,7 +344,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String expectedMethodNameType,
     String expectedNameType,
     String expectedType,
-    List<String> expectedTypeArguments: const <String>[],
+    List<String> expectedTypeArguments = const <String>[],
   }) {
     MethodInvocationImpl invocationImpl = invocation;
 

@@ -45,7 +45,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// enabled features is used as the starting point.
   @visibleForTesting
   ExperimentStatus.forTesting(
-      {String sdkVersion, List<Feature> additionalFeatures: const []})
+      {String sdkVersion, List<Feature> additionalFeatures = const []})
       : this._(enableFlagsForTesting(
             sdkVersion: sdkVersion, additionalFeatures: additionalFeatures));
 

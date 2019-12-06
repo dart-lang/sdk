@@ -35,7 +35,7 @@ List<bool> decodeFlags(List<String> flags) {
 /// If [sdkVersion] is not supplied (or is `null`), then the current set of
 /// enabled features is used as the starting point.
 List<bool> enableFlagsForTesting(
-    {String sdkVersion, List<Feature> additionalFeatures: const []}) {
+    {String sdkVersion, List<Feature> additionalFeatures = const []}) {
   var flags = decodeFlags([]);
   if (sdkVersion != null) {
     flags = restrictEnableFlagsToVersion(flags, Version.parse(sdkVersion));

@@ -80,7 +80,7 @@ class DartLinter implements AnalysisErrorListener {
   int numSourcesAnalyzed;
 
   /// Creates a new linter.
-  DartLinter(this.options, {this.reporter: const PrintingReporter()});
+  DartLinter(this.options, {this.reporter = const PrintingReporter()});
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -180,14 +180,14 @@ class Group implements Comparable<Group> {
   final String description;
   final Hyperlink link;
 
-  factory Group(String name, {String description: '', Hyperlink link}) {
+  factory Group(String name, {String description = '', Hyperlink link}) {
     var n = name.toLowerCase();
     return builtin.firstWhere((g) => g.name == n,
         orElse: () => new Group._(name,
             custom: true, description: description, link: link));
   }
 
-  const Group._(this.name, {this.custom: false, this.description, this.link});
+  const Group._(this.name, {this.custom = false, this.description, this.link});
 
   @override
   int compareTo(Group other) => name.compareTo(other.name);
@@ -198,7 +198,7 @@ class Hyperlink {
   final String href;
   final bool bold;
 
-  const Hyperlink(this.label, this.href, {this.bold: false});
+  const Hyperlink(this.label, this.href, {this.bold = false});
 
   String get html => '<a href="$href">${_emph(label)}</a>';
 
@@ -453,7 +453,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       this.group,
       this.description,
       this.details,
-      this.maturity: Maturity.stable});
+      this.maturity = Maturity.stable});
 
   LintCode get lintCode => new _LintCode(name, description);
 
@@ -479,18 +479,18 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   AstVisitor getVisitor() => null;
 
   void reportLint(AstNode node,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
-      bool ignoreSyntheticNodes: true}) {
+      bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
       reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
     }
   }
 
   void reportLintForToken(Token token,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
-      bool ignoreSyntheticTokens: true}) {
+      bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
       reporter.reportErrorForToken(errorCode ?? lintCode, token, arguments);
     }
@@ -593,7 +593,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   int numSourcesAnalyzed;
 
-  SourceLinter(this.options, {this.reporter: const PrintingReporter()});
+  SourceLinter(this.options, {this.reporter = const PrintingReporter()});
 
   @override
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {

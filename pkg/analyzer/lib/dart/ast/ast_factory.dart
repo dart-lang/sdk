@@ -826,7 +826,7 @@ abstract class AstFactory {
       @required SimpleIdentifier identifier});
 
   /// Returns a newly created identifier.
-  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false});
+  SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration = false});
 
   /// Returns a newly created simple string literal.
   SimpleStringLiteral simpleStringLiteral(Token literal, String value);

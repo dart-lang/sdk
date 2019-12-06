@@ -77,8 +77,8 @@ void onFailure(String message) {
 Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
     List<TestConfig> testedConfigs,
     {bool testAfterFailures,
-    bool forUserLibrariesOnly: true,
-    Iterable<Id> globalIds: const <Id>[],
+    bool forUserLibrariesOnly = true,
+    Iterable<Id> globalIds = const <Id>[],
     void onFailure(String message)}) async {
   bool hasFailures = false;
   for (TestConfig config in testedConfigs) {
@@ -238,7 +238,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
 
   @override
   void reportError(Uri uri, int offset, String message,
-      {bool succinct: false}) {
+      {bool succinct = false}) {
     print('$offset: $message');
   }
 }

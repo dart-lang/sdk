@@ -284,10 +284,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.disableChangesAndCacheAllResults: false,
-      this.enableIndex: false,
+      {this.disableChangesAndCacheAllResults = false,
+      this.enableIndex = false,
       SummaryDataStore externalSummaries,
-      bool retainDataForTesting: false})
+      bool retainDataForTesting = false})
       : _logger = logger,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
@@ -783,7 +783,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
   Future<ResolvedUnitResult> getResult(String path,
-      {bool sendCachedToStream: false}) {
+      {bool sendCachedToStream = false}) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
       return new Future.value();
@@ -1212,9 +1212,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the resolved signature of the file in its library is the same as the one
   /// that was the most recently produced to the client.
   AnalysisResult _computeAnalysisResult(String path,
-      {bool withUnit: false,
-      bool asIsIfPartWithoutLibrary: false,
-      bool skipIfSameSignature: false}) {
+      {bool withUnit = false,
+      bool asIsIfPartWithoutLibrary = false,
+      bool skipIfSameSignature = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1392,7 +1392,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   UnitElementResult _computeUnitElement(String path,
-      {bool asIsIfPartWithoutLibrary: false}) {
+      {bool asIsIfPartWithoutLibrary = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1420,7 +1420,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   String _computeUnitElementSignature(String path,
-      {bool asIsIfPartWithoutLibrary: false}) {
+      {bool asIsIfPartWithoutLibrary = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.

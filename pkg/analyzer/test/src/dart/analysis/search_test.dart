@@ -35,7 +35,7 @@ class ExpectedResult {
   final bool isQualified;
 
   ExpectedResult(this.enclosingElement, this.kind, this.offset, this.length,
-      {this.isResolved: true, this.isQualified: false});
+      {this.isResolved = true, this.isQualified = false});
 
   bool operator ==(Object result) {
     return result is SearchResult &&
@@ -1430,7 +1430,7 @@ class A {
     var searchedFiles = new SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
 
-    void assertHasResult(String path, String name, {bool not: false}) {
+    void assertHasResult(String path, String name, {bool not = false}) {
       var matcher = contains(predicate((SearchResult r) {
         var element = r.enclosingElement;
         return element.name == name && element.source.fullName == path;
@@ -1557,7 +1557,7 @@ class NoMatchABCDEF {}
 
   ExpectedResult _expectId(
       Element enclosingElement, SearchResultKind kind, String search,
-      {int length, bool isResolved: true, bool isQualified: false}) {
+      {int length, bool isResolved = true, bool isQualified = false}) {
     int offset = findOffset(search);
     if (length == null) {
       length = getLeadingIdentifierLength(search);
@@ -1571,7 +1571,7 @@ class NoMatchABCDEF {}
    */
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length, bool isResolved: true}) {
+      {int length, bool isResolved = true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
@@ -1605,7 +1605,7 @@ class NoMatchABCDEF {}
     return ElementLocator.locate(node);
   }
 
-  Future<void> _resolveTestUnit(String code, {bool addToDriver: true}) async {
+  Future<void> _resolveTestUnit(String code, {bool addToDriver = true}) async {
     if (addToDriver) {
       addTestFile(code);
     } else {

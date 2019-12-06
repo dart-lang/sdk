@@ -148,7 +148,7 @@ abstract class Substitution {
 
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound);
 
-  DartType substituteType(DartType type, {bool contravariant: false}) {
+  DartType substituteType(DartType type, {bool contravariant = false}) {
     return new _TopSubstitutor(this, contravariant).visit(type);
   }
 
@@ -307,7 +307,7 @@ class _NullSubstitution extends MapSubstitution {
   }
 
   @override
-  DartType substituteType(DartType type, {bool contravariant: false}) => type;
+  DartType substituteType(DartType type, {bool contravariant = false}) => type;
 
   @override
   String toString() => "Substitution.empty";

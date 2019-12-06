@@ -132,7 +132,7 @@ class Builder {
    */
   Map<String, Offset<String>> _strings = <String, Offset<String>>{};
 
-  Builder({this.initialSize: 1024}) {
+  Builder({this.initialSize = 1024}) {
     reset();
   }
 
@@ -512,7 +512,7 @@ class Builder {
    * Additionally allocate the specified [additionalBytes]. Update the current
    * tail pointer to point at the allocated space.
    */
-  void _prepare(int size, int count, {int additionalBytes: 0}) {
+  void _prepare(int size, int count, {int additionalBytes = 0}) {
     // Update the alignment.
     if (_maxAlign < size) {
       _maxAlign = size;

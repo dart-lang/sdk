@@ -27,7 +27,7 @@ class AnalysisOptionsProvider {
   /// Recursively merge options referenced by an include directive
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
-  YamlMap getOptions(Folder root, {bool crawlUp: false}) {
+  YamlMap getOptions(Folder root, {bool crawlUp = false}) {
     File optionsFile = getOptionsFile(root, crawlUp: crawlUp);
     if (optionsFile == null) {
       return new YamlMap();
@@ -40,7 +40,7 @@ class AnalysisOptionsProvider {
   ///
   /// The given [root] directory will be searched first. If no file is found and
   /// if [crawlUp] is `true`, then enclosing directories will be searched.
-  File getOptionsFile(Folder root, {bool crawlUp: false}) {
+  File getOptionsFile(Folder root, {bool crawlUp = false}) {
     Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);

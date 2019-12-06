@@ -193,7 +193,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
+      {bool wasHandled = false, List<LocatedMessage> context}) {
     internalProblem(message, charOffset, uri);
   }
 

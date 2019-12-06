@@ -230,9 +230,9 @@ class InheritanceManager3 {
   ExecutableElement getMember(
     InterfaceType type,
     Name name, {
-    bool concrete: false,
-    int forMixinIndex: -1,
-    bool forSuper: false,
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
   }) {
     var interface = getInterface(type);
     if (forSuper) {

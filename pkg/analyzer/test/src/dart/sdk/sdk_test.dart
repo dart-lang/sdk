@@ -274,7 +274,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
   }
 
   void _createFile(Folder directory, List<String> segments,
-      {String content: ''}) {
+      {String content = ''}) {
     Folder parent = directory;
     int last = segments.length - 1;
     for (int i = 0; i < last; i++) {

@@ -43,7 +43,7 @@ ParseStringResult parseFile(
     {@required String path,
     ResourceProvider resourceProvider,
     @required FeatureSet featureSet,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   if (featureSet == null) {
     throw ArgumentError('A non-null feature set must be provided.');
   }
@@ -81,7 +81,7 @@ ParseStringResult parseFile2(
     {@required String path,
     ResourceProvider resourceProvider,
     @required FeatureSet featureSet,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   return parseFile(
       path: path,
       resourceProvider: resourceProvider,
@@ -110,7 +110,7 @@ ParseStringResult parseString(
     {@required String content,
     FeatureSet featureSet,
     String path,
-    bool throwIfDiagnostics: true}) {
+    bool throwIfDiagnostics = true}) {
   featureSet ??= FeatureSet.fromEnableFlags([]);
   var source = StringSource(content, path);
   var reader = CharSequenceReader(content);

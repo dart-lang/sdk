@@ -20,7 +20,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
 
   /// Initialize a newly created analysis context manager.
   AnalysisContextCollectionImpl(
-      {bool enableIndex: false,
+      {bool enableIndex = false,
       @required List<String> includedPaths,
       List<String> excludedPaths,
       ResourceProvider resourceProvider,

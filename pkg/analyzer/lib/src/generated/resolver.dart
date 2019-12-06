@@ -570,8 +570,8 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       {FeatureSet featureSet,
       Scope nameScope,
-      bool propagateTypes: true,
-      reportConstEvaluationErrors: true,
+      bool propagateTypes = true,
+      reportConstEvaluationErrors = true,
       FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -2394,7 +2394,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   FunctionType _inferArgumentTypesForGeneric(AstNode inferenceNode,
       DartType uninstantiatedType, TypeArgumentList typeArguments,
-      {AstNode errorNode, bool isConst: false}) {
+      {AstNode errorNode, bool isConst = false}) {
     errorNode ??= inferenceNode;
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
@@ -3428,7 +3428,7 @@ class TypeNameResolver {
       this.definingLibrary,
       this.source,
       this.errorListener,
-      {this.shouldUseWithClauseInferredTypes: true})
+      {this.shouldUseWithClauseInferredTypes = true})
       : dynamicType = typeProvider.dynamicType,
         analysisOptions = definingLibrary.context.analysisOptions;
 

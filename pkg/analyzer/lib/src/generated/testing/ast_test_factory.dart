@@ -560,7 +560,7 @@ class AstTestFactory {
 
   static ForElement forElement(
           ForLoopParts forLoopParts, CollectionElement body,
-          {bool hasAwait: false}) =>
+          {bool hasAwait = false}) =>
       astFactory.forElement(
           awaitKeyword:
               hasAwait ? TokenFactory.tokenFromKeyword(Keyword.AWAIT) : null,
@@ -666,7 +666,7 @@ class AstTestFactory {
 
   static GenericFunctionType genericFunctionType(TypeAnnotation returnType,
           TypeParameterList typeParameters, FormalParameterList parameters,
-          {bool question: false}) =>
+          {bool question = false}) =>
       astFactory.genericFunctionType(returnType,
           TokenFactory.tokenFromString("Function"), typeParameters, parameters,
           question:
@@ -975,11 +975,11 @@ class AstTestFactory {
           body);
 
   static MethodDeclaration methodDeclaration4(
-          {bool external: false,
+          {bool external = false,
           Keyword modifier,
           TypeAnnotation returnType,
           Keyword property,
-          bool operator: false,
+          bool operator = false,
           String name,
           FormalParameterList parameters,
           FunctionBody body}) =>

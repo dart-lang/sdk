@@ -70,7 +70,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   bool get disableChangesAndCacheAllResults => false;
 
-  void addTestFile(String content, {bool priority: false}) {
+  void addTestFile(String content, {bool priority = false}) {
     testCode = content;
     newFile(testFile, content: content);
     driver.addFile(testFile);

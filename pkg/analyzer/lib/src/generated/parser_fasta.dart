@@ -25,7 +25,7 @@ abstract class ParserAdapter implements Parser {
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
       FeatureSet featureSet,
-      {bool allowNativeClause: false})
+      {bool allowNativeClause = false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true, featureSet) {
     fastaParser.listener = astBuilder;
@@ -215,7 +215,7 @@ abstract class ParserAdapter implements Parser {
   Expression parseExpressionWithoutCascade() => parseExpression2();
 
   @override
-  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
     currentToken = fastaParser
         .parseFormalParametersRequiredOpt(
             fastaParser.syntheticPreviousToken(currentToken),
@@ -277,7 +277,7 @@ abstract class ParserAdapter implements Parser {
 
   @override
   SimpleIdentifier parseSimpleIdentifier(
-          {bool allowKeyword: false, bool isDeclaration: false}) =>
+          {bool allowKeyword = false, bool isDeclaration = false}) =>
       parseExpression2();
 
   @override
@@ -380,14 +380,14 @@ class _Parser2 extends ParserAdapter {
 
   factory _Parser2(
       Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
-      {bool allowNativeClause: false}) {
+      {bool allowNativeClause = false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
     return new _Parser2._(source, errorReporter, source.uri, featureSet,
         allowNativeClause: allowNativeClause);
   }
 
   _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
-      FeatureSet featureSet, {bool allowNativeClause: false})
+      FeatureSet featureSet, {bool allowNativeClause = false})
       : super(null, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause);
 

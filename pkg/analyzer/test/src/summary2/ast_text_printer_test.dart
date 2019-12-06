@@ -22,7 +22,7 @@ main() {
 ///
 /// Whitespaces and newlines are normalized and ignored.
 void assertParseCodeAndPrintAst(ParseBase base, String code,
-    {bool mightHasParseErrors: false}) {
+    {bool mightHasParseErrors = false}) {
   code = code.trimRight();
   code = code.replaceAll('\t', ' ');
   code = code.replaceAll('\r\n', '\n');

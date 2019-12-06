@@ -184,7 +184,8 @@ void _reportFailure(
         span.message(error.message);
   }
 
-  String formatExpectedError(_ErrorExpectation error, {bool showSource: true}) {
+  String formatExpectedError(_ErrorExpectation error,
+      {bool showSource = true}) {
     int offset = error.offset;
     var severity = error.severity.displayName;
     var result = '@$offset $severity:${error.typeName}';
@@ -248,7 +249,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///     check();
   ///
   /// For a single file, you may also use [checkFile].
-  void addFile(String content, {String name: '/main.dart'}) {
+  void addFile(String content, {String name = '/main.dart'}) {
     name = name.replaceFirst(RegExp('^package:'), '/packages/');
     newFile(name, content: content);
     _checkCalled = false;
@@ -262,10 +263,10 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true,
-      bool implicitDynamic: true,
-      bool strictInference: false,
-      bool strictRawTypes: false}) async {
+      {bool implicitCasts = true,
+      bool implicitDynamic = true,
+      bool strictInference = false,
+      bool strictRawTypes = false}) async {
     _checkCalled = true;
 
     File mainFile = getFile('/main.dart');
@@ -356,7 +357,7 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Also returns the resolved compilation unit.
   Future<CompilationUnit> checkFile(String content,
-      {bool implicitCasts: true, bool implicitDynamic: true}) async {
+      {bool implicitCasts = true, bool implicitDynamic = true}) async {
     addFile(content);
     return await check(
       implicitCasts: implicitCasts,

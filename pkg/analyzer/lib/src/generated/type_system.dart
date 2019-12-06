@@ -653,8 +653,8 @@ class Dart2TypeSystem extends TypeSystem {
     @required bool isNonNullableByDefault,
     ErrorReporter errorReporter,
     AstNode errorNode,
-    bool downwards: false,
-    bool isConst: false,
+    bool downwards = false,
+    bool isConst = false,
   }) {
     if (typeParameters.isEmpty) {
       return null;
@@ -2097,7 +2097,7 @@ class Dart2TypeSystem extends TypeSystem {
    * If [lowerBound] is true, this will return the "least closure", otherwise
    * it returns the "greatest closure".
    */
-  DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {
+  DartType _substituteForUnknownType(DartType type, {bool lowerBound = false}) {
     return _substituteType(type, lowerBound, (type, lowerBound) {
       if (identical(type, UnknownInferredType.instance)) {
         return lowerBound ? typeProvider.nullType : typeProvider.dynamicType;
@@ -2268,11 +2268,11 @@ class GenericInferrer {
   /// false, we are on our final inference pass, have all available information
   /// including argument types, and must not conclude `?` for any type formal.
   List<DartType> infer(List<TypeParameterElement> typeFormals,
-      {bool considerExtendsClause: true,
+      {bool considerExtendsClause = true,
       ErrorReporter errorReporter,
       AstNode errorNode,
-      bool failAtError: false,
-      bool downwardsInferPhase: false}) {
+      bool failAtError = false,
+      bool downwardsInferPhase = false}) {
     // Initialize the inferred type array.
     //
     // In the downwards phase, they all start as `?` to offer reasonable
@@ -2443,7 +2443,7 @@ class GenericInferrer {
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
   DartType _chooseTypeFromConstraints(Iterable<_TypeConstraint> constraints,
-      {bool toKnownType: false, @required bool isContravariant}) {
+      {bool toKnownType = false, @required bool isContravariant}) {
     DartType lower = UnknownInferredType.instance;
     DartType upper = UnknownInferredType.instance;
     for (var constraint in constraints) {

@@ -46,7 +46,7 @@ Source createSource(Uri sourceUri) {
 }
 
 /// Print the given message and exit with the given [exitCode]
-void printAndFail(String message, {int exitCode: 15}) {
+void printAndFail(String message, {int exitCode = 15}) {
   print(message);
   io.exit(exitCode);
 }

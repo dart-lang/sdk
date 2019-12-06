@@ -36,7 +36,7 @@ import 'ast_properties.dart';
 /// gets the known static type of the expression.
 DartType getExpressionType(
     Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
-    {bool read: false}) {
+    {bool read = false}) {
   DartType type;
   if (read) {
     type = getReadType(expression);
@@ -829,10 +829,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// [to] or is already a subtype of it, does nothing.
   void _checkImplicitCast(Expression expr, DartType to,
       {DartType from,
-      bool opAssign: false,
-      bool forSpread: false,
-      bool forSpreadKey: false,
-      bool forSpreadValue: false}) {
+      bool opAssign = false,
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     from ??= _getExpressionType(expr);
 
     if (_needsImplicitCast(expr, to, from: from) == true) {
@@ -943,7 +943,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,
-      {bool yieldStar: false}) {
+      {bool yieldStar = false}) {
     FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     var type = _getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
@@ -1004,7 +1004,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
-  DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar: false}) {
+  DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar = false}) {
     FunctionType functionType;
     var parent = body.parent;
     if (parent is Declaration) {
@@ -1101,10 +1101,10 @@ class CodeChecker extends RecursiveAstVisitor {
           e is PropertyAccessorElement && e.variable is FieldElement);
 
   void _markImplicitCast(Expression expr, DartType to,
-      {bool opAssign: false,
-      bool forSpread: false,
-      bool forSpreadKey: false,
-      bool forSpreadValue: false}) {
+      {bool opAssign = false,
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     if (opAssign) {
       setImplicitOperationCast(expr, to);
     } else if (forSpread) {
@@ -1176,10 +1176,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// the AST node.
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from,
-      bool opAssign: false,
-      forSpread: false,
-      forSpreadKey: false,
-      forSpreadValue: false}) {
+      bool opAssign = false,
+      forSpread = false,
+      forSpreadKey = false,
+      forSpreadValue = false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
@@ -1799,7 +1799,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   }
 
   void validateIdentifierElement(AstNode n, Element e,
-      {bool isMethodCall: false}) {
+      {bool isMethodCall = false}) {
     if (e == null) {
       return;
     }

@@ -353,7 +353,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant: true}) {
+      {bool isCovariant = true}) {
     var returnType = (this.returnType as TypeImpl)
         .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
     ParameterElement transformParameter(ParameterElement p) {
@@ -1224,7 +1224,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   PropertyAccessorElement lookUpInheritedGetter(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     PropertyAccessorElement result;
     if (thisType) {
       result = lookUpGetter(name, library);
@@ -1256,19 +1256,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false,
-      bool forSuperInvocation: false,
+      {bool concrete = false,
+      bool forSuperInvocation = false,
       int startMixinIndex,
-      bool setter: false,
-      bool thisType: false}) {
+      bool setter = false,
+      bool thisType = false}) {
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
 
     /// TODO(scheglov) Remove [includeSupers]. It is used only to work around
     /// the problem with Flutter code base (using old super-mixins).
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
-        {bool acceptAbstract: false,
-        bool includeType: true,
-        bool inMixin: false,
+        {bool acceptAbstract = false,
+        bool includeType = true,
+        bool inMixin = false,
         int startMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
@@ -1344,7 +1344,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   MethodElement lookUpInheritedMethod(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     MethodElement result;
     if (thisType) {
       result = lookUpMethod(name, library);
@@ -1360,7 +1360,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   PropertyAccessorElement lookUpInheritedSetter(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     PropertyAccessorElement result;
     if (thisType) {
       result = lookUpSetter(name, library);
@@ -1467,7 +1467,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant: true}) {
+      {bool isCovariant = true}) {
     // First check if this is actually an instance of Bottom
     if (this.isDartCoreNull) {
       if (isCovariant) {

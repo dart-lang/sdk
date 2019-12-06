@@ -117,7 +117,7 @@ class _ClassVerifier {
     this.library,
     this.classNameNode,
     this.implementsClause,
-    this.members: const [],
+    this.members = const [],
     this.onClause,
     this.superclass,
     this.withClause,

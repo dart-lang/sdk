@@ -57,15 +57,15 @@ void applyCheckElementTextReplacements() {
 void checkElementText(
   LibraryElement library,
   String expected, {
-  bool withCodeRanges: false,
-  bool withConstElements: true,
-  bool withExportScope: false,
-  bool withFullyResolvedAst: false,
-  bool withOffsets: false,
-  bool withSyntheticAccessors: false,
-  bool withSyntheticFields: false,
-  bool withTypes: false,
-  bool annotateNullability: false,
+  bool withCodeRanges = false,
+  bool withConstElements = true,
+  bool withExportScope = false,
+  bool withFullyResolvedAst = false,
+  bool withOffsets = false,
+  bool withSyntheticAccessors = false,
+  bool withSyntheticFields = false,
+  bool withTypes = false,
+  bool annotateNullability = false,
 }) {
   var writer = new _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -156,14 +156,14 @@ class _ElementWriter {
   _ElementWriter({
     this.selfUriStr,
     this.withCodeRanges,
-    this.withConstElements: true,
-    this.withExportScope: false,
-    this.withFullyResolvedAst: false,
-    this.withOffsets: false,
-    this.withSyntheticAccessors: false,
-    this.withSyntheticFields: false,
-    this.withTypes: false,
-    this.annotateNullability: false,
+    this.withConstElements = true,
+    this.withExportScope = false,
+    this.withFullyResolvedAst = false,
+    this.withOffsets = false,
+    this.withSyntheticAccessors = false,
+    this.withSyntheticFields = false,
+    this.withTypes = false,
+    this.annotateNullability = false,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -503,7 +503,7 @@ class _ElementWriter {
 
   void writeList<T>(String open, String close, List<T> items, String separator,
       writeItem(T item),
-      {bool includeEmpty: false}) {
+      {bool includeEmpty = false}) {
     if (!includeEmpty && items.isEmpty) {
       return;
     }

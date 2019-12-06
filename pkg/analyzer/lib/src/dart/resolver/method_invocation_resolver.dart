@@ -840,7 +840,7 @@ class MethodInvocationResolver {
   }
 
   void _setDynamicResolution(MethodInvocation node,
-      {bool setNameTypeToDynamic: true}) {
+      {bool setNameTypeToDynamic = true}) {
     if (setNameTypeToDynamic) {
       node.methodName.staticType = _dynamicType;
     }

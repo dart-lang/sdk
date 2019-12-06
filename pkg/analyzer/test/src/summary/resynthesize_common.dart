@@ -11428,7 +11428,7 @@ int j;
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
 mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   Future<LibraryElementImpl> checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false}) async {
+      {bool allowErrors = false, bool dumpSummaries = false}) async {
     throw 42;
 //    Source source = addTestSource(text);
 //    SummaryResynthesizer resynthesizer = encodeLibrary(source);

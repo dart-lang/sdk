@@ -405,7 +405,7 @@ class ElementFactory {
   }
 
   static GenericTypeAliasElementImpl genericTypeAliasElement(String name,
-      {List<ParameterElement> parameters: const [], DartType returnType}) {
+      {List<ParameterElement> parameters = const [], DartType returnType}) {
     var element = new GenericTypeAliasElementImpl(name, -1);
     element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
       ..parameters = parameters
@@ -442,7 +442,7 @@ class ElementFactory {
   }
 
   static LibraryElementImpl library(AnalysisContext context, String libraryName,
-      {bool isNonNullableByDefault: true}) {
+      {bool isNonNullableByDefault = true}) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, null,

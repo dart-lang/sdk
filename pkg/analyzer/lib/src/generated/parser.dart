@@ -324,7 +324,7 @@ class Parser {
   }
 
   /// Return a synthetic identifier.
-  SimpleIdentifier createSyntheticIdentifier({bool isDeclaration: false}) {
+  SimpleIdentifier createSyntheticIdentifier({bool isDeclaration = false}) {
     Token syntheticToken;
     if (_currentToken.type.isKeyword) {
       // Consider current keyword token as an identifier.
@@ -778,7 +778,7 @@ class Parser {
   ///         unconditionalAssignableSelector
   ///       | '?.' identifier
   Expression parseAssignableSelector(Expression prefix, bool optional,
-      {bool allowConditional: true}) {
+      {bool allowConditional = true}) {
     TokenType type = _currentToken.type;
     if (type == TokenType.OPEN_SQUARE_BRACKET) {
       Token leftBracket = getAndAdvance();
@@ -2720,7 +2720,7 @@ class Parser {
   ///       | 'var'
   ///       | type
   FinalConstVarOrType parseFinalConstVarOrType(bool optional,
-      {bool inFunctionType: false}) {
+      {bool inFunctionType = false}) {
     Token keywordToken;
     TypeAnnotation type;
     Keyword keyword = _currentToken.keyword;
@@ -2773,7 +2773,7 @@ class Parser {
   ///         normalFormalParameter ('=' expression)?
   ///         normalFormalParameter (':' expression)?
   FormalParameter parseFormalParameter(ParameterKind kind,
-      {bool inFunctionType: false}) {
+      {bool inFunctionType = false}) {
     NormalFormalParameter parameter =
         parseNormalFormalParameter(inFunctionType: inFunctionType);
     TokenType type = _currentToken.type;
@@ -2854,7 +2854,7 @@ class Parser {
   ///
   ///     namedFormalParameters ::=
   ///         '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
-  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
     if (_matches(TokenType.OPEN_PAREN)) {
       return _parseFormalParameterListUnchecked(inFunctionType: inFunctionType);
     }
@@ -3542,7 +3542,7 @@ class Parser {
   ///
   ///     label ::=
   ///         identifier ':'
-  Label parseLabel({bool isDeclaration: false}) {
+  Label parseLabel({bool isDeclaration = false}) {
     SimpleIdentifier label =
         _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
     Token colon = getAndAdvance();
@@ -4086,7 +4086,7 @@ class Parser {
   ///         declaredIdentifier
   ///       | metadata identifier
   NormalFormalParameter parseNormalFormalParameter(
-      {bool inFunctionType: false}) {
+      {bool inFunctionType = false}) {
     Token covariantKeyword;
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     if (_matchesKeyword(Keyword.COVARIANT)) {
@@ -4588,7 +4588,7 @@ class Parser {
   ///     identifier ::=
   ///         IDENTIFIER
   SimpleIdentifier parseSimpleIdentifier(
-      {bool allowKeyword: false, bool isDeclaration: false}) {
+      {bool allowKeyword = false, bool isDeclaration = false}) {
     if (_matchesIdentifier() ||
         (allowKeyword && _tokenMatchesIdentifierOrKeyword(_currentToken))) {
       return _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
@@ -5645,7 +5645,7 @@ class Parser {
   /// Create and return a new token with the given [type]. The token will
   /// replace the first portion of the given [token], so it will have the same
   /// offset and will have any comments that might have preceded the token.
-  Token _createToken(Token token, TokenType type, {bool isBegin: false}) {
+  Token _createToken(Token token, TokenType type, {bool isBegin = false}) {
     CommentToken comments = token.precedingComments;
     if (comments == null) {
       if (isBegin) {
@@ -6322,7 +6322,7 @@ class Parser {
   /// Parse a list of formal parameters given that the list starts with the
   /// given [leftParenthesis]. Return the formal parameters that were parsed.
   FormalParameterList _parseFormalParameterListAfterParen(Token leftParenthesis,
-      {bool inFunctionType: false}) {
+      {bool inFunctionType = false}) {
     if (_matches(TokenType.CLOSE_PAREN)) {
       return astFactory.formalParameterList(
           leftParenthesis, null, null, null, getAndAdvance());
@@ -6496,7 +6496,7 @@ class Parser {
   ///
   /// This method assumes that the current token matches `TokenType.OPEN_PAREN`.
   FormalParameterList _parseFormalParameterListUnchecked(
-      {bool inFunctionType: false}) {
+      {bool inFunctionType = false}) {
     return _parseFormalParameterListAfterParen(getAndAdvance(),
         inFunctionType: inFunctionType);
   }
@@ -6928,7 +6928,7 @@ class Parser {
   ///     identifier ::=
   ///         IDENTIFIER
   SimpleIdentifier _parseSimpleIdentifierUnchecked(
-      {bool isDeclaration: false}) {
+      {bool isDeclaration = false}) {
     String lexeme = _currentToken.lexeme;
     if ((_inAsync || _inGenerator) && (lexeme == _AWAIT || lexeme == _YIELD)) {
       _reportErrorForCurrentToken(
