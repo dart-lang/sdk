@@ -1161,6 +1161,10 @@ TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   delete memory_;
 }
 
+intptr_t TimelineEventFixedBufferRecorder::Size() {
+  return memory_->size();
+}
+
 #ifndef PRODUCT
 void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,

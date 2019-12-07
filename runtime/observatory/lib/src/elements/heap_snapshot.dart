@@ -41,6 +41,7 @@ enum HeapSnapshotTreeMode {
   classesTreeMap,
   successors,
   predecessors,
+  process,
 }
 
 class DominatorTreeMap extends TreeMap<SnapshotObject> {
@@ -114,6 +115,30 @@ class ClassesShallowTreeMap extends TreeMap<SnapshotClass> {
     element._mode = HeapSnapshotTreeMode.successors;
     element._r.dirty();
   }
+}
+
+class ProcessTreeMap extends TreeMap<String> {
+  static const String root = "RSS";
+  HeapSnapshotElement element;
+  M.HeapSnapshot snapshot;
+
+  ProcessTreeMap(this.element, this.snapshot);
+
+  int getSize(String node) => snapshot.processPartitions[node];
+  String getType(String node) => node;
+  String getLabel(String node) => node;
+  String getParent(String node) => node == root ? null : root;
+  Iterable<String> getChildren(String node) {
+    if (node == root) {
+      var children = snapshot.processPartitions.keys.toList();
+      children.remove(root);
+      return children;
+    }
+    return <String>[];
+  }
+
+  void onSelect(String node) {}
+  void onDetails(String node) {}
 }
 
 // Using `null` to represent the root.
@@ -578,6 +603,27 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             ..children = [content]
         ]);
         break;
+      case HeapSnapshotTreeMode.process:
+        final content = new DivElement();
+        content.style.border = '1px solid black';
+        content.style.width = '100%';
+        content.style.height = '100%';
+        content.text = 'Performing layout...';
+        Timer.run(() {
+          // Generate the treemap after the content div has been added to the
+          // document so that we can ask the browser how much space is
+          // available for treemap layout.
+          new ProcessTreeMap(this, _snapshot)
+              .showIn(ProcessTreeMap.root, content);
+        });
+        report.addAll([
+          new DivElement()
+            ..classes = ['content-centered-big']
+            ..style.width = '100%'
+            ..style.height = '100%'
+            ..children = [content]
+        ]);
+        break;
       default:
         break;
     }
@@ -910,6 +956,8 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         return 'Successors / outgoing references';
       case HeapSnapshotTreeMode.predecessors:
         return 'Predecessors / incoming references';
+      case HeapSnapshotTreeMode.process:
+        return 'Process memory usage';
     }
     throw new Exception('Unknown HeapSnapshotTreeMode: $mode');
   }

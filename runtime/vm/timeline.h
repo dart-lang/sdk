@@ -719,6 +719,8 @@ class TimelineEventRecorder {
 
   void FinishBlock(TimelineEventBlock* block);
 
+  virtual intptr_t Size() = 0;
+
  protected:
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -770,6 +772,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 #endif
+
+  intptr_t Size();
 
  protected:
   TimelineEvent* StartEvent();
@@ -857,6 +861,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
+  intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
 
  protected:
   TimelineEvent* StartEvent();
@@ -929,6 +934,7 @@ class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
   virtual ~TimelineEventFuchsiaRecorder() {}
 
   const char* name() const { return FUCHSIA_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -949,6 +955,7 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
                                 intptr_t buffer_size);
 
   const char* name() const { return SYSTRACE_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);

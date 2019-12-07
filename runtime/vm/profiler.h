@@ -96,6 +96,7 @@ class Profiler : public AllStatic {
     // Copies the counter values.
     return counters_;
   }
+  inline static intptr_t Size();
 
  private:
   static void DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash);
@@ -674,6 +675,8 @@ class SampleBuffer {
 
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
 
+  intptr_t Size() { return memory_->size(); }
+
  protected:
   ProcessedSample* BuildProcessedSample(Sample* sample,
                                         const CodeLookupTable& clt);
@@ -704,6 +707,17 @@ class AllocationSampleBuffer : public SampleBuffer {
 
   DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);
 };
+
+intptr_t Profiler::Size() {
+  intptr_t size = 0;
+  if (sample_buffer_ != nullptr) {
+    size += sample_buffer_->Size();
+  }
+  if (allocation_sample_buffer_ != nullptr) {
+    size += allocation_sample_buffer_->Size();
+  }
+  return size;
+}
 
 // A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
 // been merged into a logical sample. The raw data may have been processed to

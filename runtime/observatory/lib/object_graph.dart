@@ -17,6 +17,8 @@ class _ReadStream {
 
   _ReadStream(this._buffer);
 
+  bool atEnd() => _position >= _buffer.length;
+
   int readByte() => _buffer[_position++];
 
   /// Read one ULEB128 number.
@@ -419,6 +421,8 @@ abstract class SnapshotGraph {
   Iterable<SnapshotClass> get classes;
   Iterable<SnapshotObject> get objects;
 
+  Map<String, int> get processPartitions;
+
   factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
   Stream<String> process();
 }
@@ -496,6 +500,8 @@ class _SnapshotGraph implements SnapshotGraph {
     return result;
   }
 
+  final processPartitions = new Map<String, int>();
+
   Stream<String> process() {
     final controller = new StreamController<String>.broadcast();
     (() async {
@@ -512,6 +518,9 @@ class _SnapshotGraph implements SnapshotGraph {
 
       controller.add("Loading external properties...");
       await new Future(() => _readExternalProperties(stream));
+
+      controller.add("Loading process partitions...");
+      await new Future(() => _readProcessPartitions(stream));
       stream = null;
 
       controller.add("Compute class table...");
@@ -728,6 +737,17 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     _externalSizes = externalSizes;
+  }
+
+  void _readProcessPartitions(_ReadStream stream) {
+    // So it isn't null when loading older saved snapshots.
+    processPartitions["RSS"] = 0;
+
+    while (!stream.atEnd()) {
+      var name = stream.readUtf8();
+      var size = stream.readUnsigned();
+      processPartitions[name] = size;
+    }
   }
 
   void _computeClassTable() {

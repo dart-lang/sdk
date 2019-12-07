@@ -10,6 +10,7 @@ abstract class HeapSnapshot {
   SnapshotObject get root;
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<SnapshotClass> get classes;
+  Map<String, int> get processPartitions;
   Uint8List get encoded;
 }
 

@@ -11,6 +11,7 @@
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/profiler.h"
 #include "vm/raw_object.h"
 #include "vm/raw_object_fields.h"
 #include "vm/reusable_handles.h"
@@ -1005,6 +1006,35 @@ void HeapSnapshotWriter::Write() {
     // External properties.
     WriteUnsigned(external_property_count_);
     isolate()->VisitWeakPersistentHandles(&visitor);
+  }
+
+  {
+    WriteUtf8("RSS");
+    WriteUnsigned(Service::CurrentRSS());
+
+    WriteUtf8("Dart Profiler Samples");
+    WriteUnsigned(Profiler::Size());
+
+    WriteUtf8("Dart Timeline Events");
+    WriteUnsigned(Timeline::recorder()->Size());
+
+    class WriteIsolateHeaps : public IsolateVisitor {
+     public:
+      explicit WriteIsolateHeaps(HeapSnapshotWriter* writer)
+          : writer_(writer) {}
+
+      virtual void VisitIsolate(Isolate* isolate) {
+        writer_->WriteUtf8(isolate->name());
+        writer_->WriteUnsigned((isolate->heap()->TotalCapacityInWords() +
+                                isolate->heap()->TotalExternalInWords()) *
+                               kWordSize);
+      }
+
+     private:
+      HeapSnapshotWriter* const writer_;
+    };
+    WriteIsolateHeaps visitor(this);
+    Isolate::VisitIsolates(&visitor);
   }
 
   ClearObjectIds();

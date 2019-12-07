@@ -15,6 +15,7 @@ class HeapSnapshot implements M.HeapSnapshot {
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<SnapshotClass> classes;
   SnapshotObject get root => graph.root;
+  Map<String, int> get processPartitions => graph.processPartitions;
   Uint8List encoded;
 
   Stream<String> loadProgress(S.Isolate isolate, Uint8List encoded) {
