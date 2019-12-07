@@ -369,12 +369,11 @@ Fragment FlowGraphBuilder::InstanceCall(
 Fragment FlowGraphBuilder::FfiCall(
     const Function& signature,
     const ZoneGrowableArray<Representation>& arg_reps,
-    const ZoneGrowableArray<Location>& arg_locs,
-    const ZoneGrowableArray<HostLocation>* arg_host_locs) {
+    const ZoneGrowableArray<Location>& arg_locs) {
   Fragment body;
 
-  FfiCallInstr* const call = new (Z) FfiCallInstr(
-      Z, GetNextDeoptId(), signature, arg_reps, arg_locs, arg_host_locs);
+  FfiCallInstr* const call =
+      new (Z) FfiCallInstr(Z, GetNextDeoptId(), signature, arg_reps, arg_locs);
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());
@@ -2977,7 +2976,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
-  const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr;
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
 
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
@@ -3000,7 +2998,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                     Z, Class::Handle(I->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
   body += UnboxTruncate(kUnboxedFfiIntPtr);
-  body += FfiCall(signature, arg_reps, arg_locs, arg_host_locs);
+  body += FfiCall(signature, arg_reps, arg_locs);
 
   ffi_type = signature.result_type();
   const Representation from_rep =

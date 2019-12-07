@@ -4562,15 +4562,13 @@ class FfiCallInstr : public Definition {
                intptr_t deopt_id,
                const Function& signature,
                const ZoneGrowableArray<Representation>& arg_reps,
-               const ZoneGrowableArray<Location>& arg_locs,
-               const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr)
+               const ZoneGrowableArray<Location>& arg_locs)
       : Definition(deopt_id),
         zone_(zone),
         signature_(signature),
         inputs_(arg_reps.length() + 1),
         arg_representations_(arg_reps),
-        arg_locations_(arg_locs),
-        arg_host_locations_(arg_host_locs) {
+        arg_locations_(arg_locs) {
     inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
     ASSERT(signature.IsZoneHandle());
   }
@@ -4619,7 +4617,6 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
   const ZoneGrowableArray<Representation>& arg_representations_;
   const ZoneGrowableArray<Location>& arg_locations_;
-  const ZoneGrowableArray<HostLocation>* arg_host_locations_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };

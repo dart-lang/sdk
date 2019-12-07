@@ -207,8 +207,7 @@ bool NativeTypeIsPointer(const AbstractType& result_type) {
 
 // Converts a Ffi [signature] to a list of Representations.
 // Note that this ignores first argument (receiver) which is dynamic.
-template <class CallingConventions>
-ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
+ZoneGrowableArray<Representation>* ArgumentRepresentations(
     const Function& signature) {
   intptr_t num_arguments = signature.num_fixed_parameters() - 1;
   auto result = new ZoneGrowableArray<Representation>(num_arguments);
@@ -228,8 +227,7 @@ ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
   return result;
 }
 
-template <class CallingConventions>
-Representation ResultRepresentationBase(const Function& signature) {
+Representation ResultRepresentation(const Function& signature) {
   AbstractType& arg_type = AbstractType::Handle(signature.result_type());
   Representation rep = TypeRepresentation(arg_type.type_class_id());
   if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
@@ -292,35 +290,9 @@ RawFunction* NativeCallbackFunction(const Function& c_signature,
   return function.raw();
 }
 
-ZoneGrowableArray<Representation>* ArgumentRepresentations(
-    const Function& signature) {
-  return ArgumentRepresentationsBase<CallingConventions>(signature);
-}
-
-Representation ResultRepresentation(const Function& signature) {
-  return ResultRepresentationBase<CallingConventions>(signature);
-}
-
-#if defined(USING_SIMULATOR)
-
-ZoneGrowableArray<Representation>* ArgumentHostRepresentations(
-    const Function& signature) {
-  return ArgumentRepresentationsBase<host::CallingConventions>(signature);
-}
-
-Representation ResultHostRepresentation(const Function& signature) {
-  return ResultRepresentationBase<host::CallingConventions>(signature);
-}
-
-#endif  // defined(USING_SIMULATOR)
-
 // Represents the state of a stack frame going into a call, between allocations
 // of argument locations. Acts like a register allocator but for arguments in
 // the native ABI.
-template <class CallingConventions,
-          class Location,
-          class Register,
-          class FpuRegister>
 class ArgumentAllocator : public ValueObject {
  public:
   Location AllocateArgument(Representation rep) {
@@ -506,29 +478,19 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.
-template <class CallingConventions,
-          class Location,
-          class Register,
-          class FpuRegister>
-ZoneGrowableArray<Location>* ArgumentLocationsBase(
+
+ZoneGrowableArray<Location>* ArgumentLocations(
     const ZoneGrowableArray<Representation>& arg_reps) {
   intptr_t num_arguments = arg_reps.length();
   auto result = new ZoneGrowableArray<Location>(num_arguments);
 
   // Loop through all arguments and assign a register or a stack location.
-  ArgumentAllocator<CallingConventions, Location, Register, FpuRegister>
-      frame_state;
+  ArgumentAllocator frame_state;
   for (intptr_t i = 0; i < num_arguments; i++) {
     Representation rep = arg_reps[i];
     result->Add(frame_state.AllocateArgument(rep));
   }
   return result;
-}
-
-ZoneGrowableArray<Location>* ArgumentLocations(
-    const ZoneGrowableArray<Representation>& arg_reps) {
-  return ArgumentLocationsBase<dart::CallingConventions, Location,
-                               dart::Register, dart::FpuRegister>(arg_reps);
 }
 
 Location ResultLocation(Representation result_rep) {
@@ -598,8 +560,7 @@ RawFunction* TrampolineFunction(const Function& dart_signature,
 }
 
 // Accounts for alignment, where some stack slots are used as padding.
-template <class Location>
-intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
+intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
   intptr_t num_arguments = locations.length();
   intptr_t max_height_in_slots = 0;
   for (intptr_t i = 0; i < num_arguments; i++) {
@@ -617,10 +578,6 @@ intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
     max_height_in_slots = std::max(height, max_height_in_slots);
   }
   return max_height_in_slots;
-}
-
-intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
-  return TemplateNumStackSlots(locations);
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
