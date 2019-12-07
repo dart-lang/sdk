@@ -65,7 +65,11 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write('dynamic');
   }
 
@@ -255,7 +259,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     if (typeFormals.isNotEmpty) {
       StringBuffer typeParametersBuffer = StringBuffer();
       // To print a type with type variables, first make sure we have unique
@@ -296,7 +304,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         TypeParameterTypeImpl t = TypeParameterTypeImpl(
             TypeParameterElementImpl(name, -1),
             nullabilitySuffix: NullabilitySuffix.none);
-        t.appendTo(typeParametersBuffer, withNullability: withNullability);
+        t.appendTo(
+          typeParametersBuffer,
+          withNullability: withNullability,
+          skipAllDynamicArguments: skipAllDynamicArguments,
+        );
         instantiateTypeArgs.add(t);
         variables.add(e);
         if (e.bound != null) {
@@ -304,17 +316,29 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           TypeImpl renamed =
               Substitution.fromPairs(variables, instantiateTypeArgs)
                   .substituteType(e.bound);
-          renamed.appendTo(typeParametersBuffer,
-              withNullability: withNullability);
+          renamed.appendTo(
+            typeParametersBuffer,
+            withNullability: withNullability,
+            skipAllDynamicArguments: skipAllDynamicArguments,
+          );
         }
       }
       typeParametersBuffer.write('>');
 
       // Instantiate it and print the resulting type.
       this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
-          buffer, withNullability, typeParametersBuffer.toString());
+            buffer,
+            typeParametersBuffer.toString(),
+            withNullability: withNullability,
+            skipAllDynamicArguments: skipAllDynamicArguments,
+          );
     } else {
-      _appendToWithTypeParameters(buffer, withNullability, '');
+      _appendToWithTypeParameters(
+        buffer,
+        '',
+        withNullability: withNullability,
+        skipAllDynamicArguments: skipAllDynamicArguments,
+      );
     }
   }
 
@@ -415,7 +439,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   void _appendToWithTypeParameters(
-      StringBuffer buffer, bool withNullability, String typeParameters) {
+    StringBuffer buffer,
+    String typeParameters, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     DartType returnType = this.returnType;
@@ -423,8 +451,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (returnType == null) {
       buffer.write('null');
     } else {
-      (returnType as TypeImpl)
-          .appendTo(buffer, withNullability: withNullability);
+      (returnType as TypeImpl).appendTo(
+        buffer,
+        withNullability: withNullability,
+        skipAllDynamicArguments: skipAllDynamicArguments,
+      );
     }
     buffer.write(' Function');
     buffer.write(typeParameters);
@@ -449,7 +480,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (normalParameterTypes.isNotEmpty) {
       for (DartType type in normalParameterTypes) {
         writeSeparator();
-        (type as TypeImpl).appendTo(buffer, withNullability: withNullability);
+        (type as TypeImpl).appendTo(
+          buffer,
+          withNullability: withNullability,
+          skipAllDynamicArguments: skipAllDynamicArguments,
+        );
       }
     }
     if (optionalParameterTypes.isNotEmpty) {
@@ -457,7 +492,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       buffer.write('[');
       for (DartType type in optionalParameterTypes) {
         writeSeparator();
-        (type as TypeImpl).appendTo(buffer, withNullability: withNullability);
+        (type as TypeImpl).appendTo(
+          buffer,
+          withNullability: withNullability,
+          skipAllDynamicArguments: skipAllDynamicArguments,
+        );
       }
       buffer.write(']');
       needsComma = true;
@@ -474,8 +513,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
         buffer.write(parameter.name);
         buffer.write(': ');
-        (parameter.type as TypeImpl)
-            .appendTo(buffer, withNullability: withNullability);
+        (parameter.type as TypeImpl).appendTo(
+          buffer,
+          withNullability: withNullability,
+          skipAllDynamicArguments: skipAllDynamicArguments,
+        );
       }
       buffer.write('}');
       needsComma = true;
@@ -1099,17 +1141,33 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write(element.name);
+
     int argumentCount = typeArguments.length;
-    if (argumentCount > 0) {
+
+    bool includeTypeArguments;
+    if (skipAllDynamicArguments) {
+      includeTypeArguments = typeArguments.any((t) => !t.isDynamic);
+    } else {
+      includeTypeArguments = argumentCount > 0;
+    }
+
+    if (includeTypeArguments) {
       buffer.write("<");
       for (int i = 0; i < argumentCount; i++) {
         if (i > 0) {
           buffer.write(", ");
         }
-        (typeArguments[i] as TypeImpl)
-            .appendTo(buffer, withNullability: withNullability);
+        (typeArguments[i] as TypeImpl).appendTo(
+          buffer,
+          withNullability: withNullability,
+          skipAllDynamicArguments: skipAllDynamicArguments,
+        );
       }
       buffer.write(">");
     }
@@ -1825,7 +1883,11 @@ class NeverTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write('Never');
     if (withNullability) {
       _appendNullability(buffer);
@@ -1892,9 +1954,13 @@ abstract class TypeImpl implements DartType {
    */
   TypeImpl(this._element, this.name);
 
+  @deprecated
   @override
   String get displayName {
-    return getDisplayString(withNullability: false);
+    return getDisplayString(
+      withNullability: false,
+      skipAllDynamicArguments: true,
+    );
   }
 
   @override
@@ -1960,12 +2026,23 @@ abstract class TypeImpl implements DartType {
   /**
    * Append a textual representation of this type to the given [buffer].
    */
-  void appendTo(StringBuffer buffer, {@required bool withNullability});
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  });
 
   @override
-  String getDisplayString({bool withNullability = false}) {
+  String getDisplayString({
+    bool withNullability = false,
+    bool skipAllDynamicArguments = false,
+  }) {
     var buffer = StringBuffer();
-    appendTo(buffer, withNullability: withNullability);
+    appendTo(
+      buffer,
+      withNullability: withNullability,
+      skipAllDynamicArguments: skipAllDynamicArguments,
+    );
     return buffer.toString();
   }
 
@@ -2105,7 +2182,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write(element.name);
     if (withNullability) {
       _appendNullability(buffer);
@@ -2251,7 +2332,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+  void appendTo(
+    StringBuffer buffer, {
+    @required bool withNullability,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write('void');
   }
 

@@ -1683,7 +1683,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               _resolver.errorReporter.reportErrorForNode(
                 StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
                 propertyName,
-                [propertyName.name, staticType.displayName],
+                [propertyName.name, staticType],
               );
             }
           }
@@ -1719,7 +1719,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               _resolver.errorReporter.reportErrorForNode(
                 StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
                 propertyName,
-                [propertyName.name, staticType.displayName],
+                [propertyName.name, staticType],
               );
             }
           }

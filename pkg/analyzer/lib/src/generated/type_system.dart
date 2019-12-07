@@ -3798,7 +3798,11 @@ class UnknownInferredType extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
+  void appendTo(
+    StringBuffer buffer, {
+    bool withNullability = false,
+    @required bool skipAllDynamicArguments,
+  }) {
     buffer.write('?');
   }
 
