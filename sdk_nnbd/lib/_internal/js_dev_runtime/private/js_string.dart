@@ -495,7 +495,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   Type get runtimeType => String;
 
   @notNull
-  late int length;
+  final int length;
 
   @notNull
   String operator [](@nullCheck int index) {

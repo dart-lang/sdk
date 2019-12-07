@@ -99,7 +99,9 @@ class _ReceivePort extends Stream implements ReceivePort {
 
   get sendPort => _unsupported();
 
-  listen(onData, {onError, onDone, cancelOnError}) => _unsupported();
+  StreamSubscription listen(void Function(dynamic) onData,
+          {Function onError, void Function() onDone, bool cancelOnError}) =>
+      _unsupported();
 }
 
 @patch

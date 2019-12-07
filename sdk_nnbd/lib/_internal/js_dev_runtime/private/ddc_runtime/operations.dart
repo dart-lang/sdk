@@ -19,7 +19,7 @@ class InvocationImpl extends Invocation {
 
   InvocationImpl(memberName, List<Object?> positionalArguments,
       {namedArguments,
-      List typeArguments = [],
+      List typeArguments = const [],
       this.isMethod = false,
       this.isGetter = false,
       this.isSetter = false,
@@ -185,8 +185,8 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
     for (var name in names!) {
-      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named, name,
-          requiredNamed, name)) {
+      if (!JS<bool>('!', '(#.hasOwnProperty(#) || #.hasOwnProperty(#))', named,
+          name, requiredNamed, name)) {
         return "Dynamic call with unexpected named argument '$name'.";
       }
     }

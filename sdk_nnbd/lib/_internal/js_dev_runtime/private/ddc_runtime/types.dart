@@ -649,7 +649,7 @@ class GenericFunctionType extends AbstractFunctionType {
   GenericFunctionType(instantiateTypeParts, this._instantiateTypeBounds)
       : _instantiateTypeParts = instantiateTypeParts,
         formalCount = JS('!', '#.length', instantiateTypeParts),
-        _typeFormals = _typeFormalsFromFunction(_instantiateTypeParts);
+        _typeFormals = _typeFormalsFromFunction(instantiateTypeParts);
 
   List<TypeVariable> get typeFormals => _typeFormals;
 
