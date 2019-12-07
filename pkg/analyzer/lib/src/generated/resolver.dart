@@ -1625,15 +1625,28 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+
     CollectionElement thenElement = node.thenElement;
-    _promoteManager.visitIfElement_thenElement(
-      condition,
-      thenElement,
-      () {
-        thenElement.accept(this);
-      },
-    );
-    node.elseElement?.accept(this);
+    if (_flowAnalysis != null) {
+      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      thenElement.accept(this);
+    } else {
+      _promoteManager.visitIfElement_thenElement(
+        condition,
+        thenElement,
+        () {
+          thenElement.accept(this);
+        },
+      );
+    }
+
+    var elseElement = node.elseElement;
+    if (elseElement != null) {
+      _flowAnalysis?.flow?.ifStatement_elseBegin();
+      elseElement.accept(this);
+    }
+
+    _flowAnalysis?.flow?.ifStatement_end(elseElement != null);
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
