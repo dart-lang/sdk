@@ -347,6 +347,7 @@ import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
 import 'unchecked_use_of_nullable_value_test.dart'
     as unchecked_use_of_nullable_value;
+import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
@@ -382,10 +383,18 @@ import 'unused_import_test.dart' as unused_import;
 import 'unused_label_test.dart' as unused_label;
 import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
+import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
+import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
+import 'wrong_number_of_parameters_for_operator_test.dart'
+    as wrong_number_of_parameters_for_operator;
+import 'wrong_number_of_parameters_for_setter_test.dart'
+    as wrong_number_of_parameters_for_setter;
 import 'wrong_type_parameter_variance_in_superinterface_test.dart'
     as wrong_type_parameter_variance_in_superinterface;
+import 'yield_each_in_non_generator_test.dart' as yield_each_in_non_generator;
+import 'yield_in_non_generator_test.dart' as yield_in_non_generator;
 
 main() {
   defineReflectiveSuite(() {
@@ -620,6 +629,7 @@ main() {
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
     unchecked_use_of_nullable_value.main();
+    undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
     undefined_extension_getter.main();
@@ -652,8 +662,14 @@ main() {
     unused_label.main();
     unused_local_variable.main();
     unused_shown_name.main();
+    uri_does_not_exist.main();
+    uri_with_interpolation.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
+    wrong_number_of_parameters_for_operator.main();
+    wrong_number_of_parameters_for_setter.main();
     wrong_type_parameter_variance_in_superinterface.main();
+    yield_each_in_non_generator.main();
+    yield_in_non_generator.main();
   }, name: 'diagnostics');
 }

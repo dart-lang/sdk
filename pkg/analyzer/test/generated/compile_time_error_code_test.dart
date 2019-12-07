@@ -49,30 +49,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   test_superInitializerInObject() {
     return super.test_superInitializerInObject();
   }
-
-  @override
-  @failingTest
-  test_yieldEachInNonGenerator_async() {
-    return super.test_yieldEachInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  test_yieldEachInNonGenerator_sync() {
-    return super.test_yieldEachInNonGenerator_sync();
-  }
-
-  @override
-  @failingTest
-  test_yieldInNonGenerator_async() {
-    return super.test_yieldInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  test_yieldInNonGenerator_sync() {
-    return super.test_yieldInNonGenerator_sync();
-  }
 }
 
 @reflectiveTest
