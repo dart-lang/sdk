@@ -19,8 +19,12 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
-  test_constructor_argumentGiven() async {
+  setUp() {
+    super.setUp();
     addMetaPackage();
+  }
+
+  test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -35,7 +39,6 @@ main() {
   }
 
   test_constructor_hasReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
@@ -49,8 +52,24 @@ main() {
     ]);
   }
 
+  test_constructor_fieldFormalParameter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  final int a;
+  C({@required this.a});
+}
+
+main() {
+  new C();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 102, 1),
+    ]);
+  }
+
   test_constructor_noReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -67,7 +86,6 @@ main() {
   }
 
   test_constructor_noReason_generic() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -84,7 +102,6 @@ main() {
   }
 
   test_constructor_nullReason() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -101,7 +118,6 @@ main() {
   }
 
   test_constructor_redirectingConstructorCall() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
@@ -114,7 +130,6 @@ class C {
   }
 
   test_constructor_superCall() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -131,7 +146,6 @@ class D extends C {
   }
 
   test_function() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -146,7 +160,6 @@ main() {
   }
 
   test_method() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -161,7 +174,6 @@ f() {
   }
 
   test_method_generic() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -177,7 +189,6 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    addMetaPackage();
     newFile('/a_lib.dart', content: r'''
 library a_lib;
 import 'package:meta/meta.dart';
@@ -204,7 +215,6 @@ not know its elements, and does not know that there was a parameter
 marked `@required`. There is exactly one such typedef in Flutter.
 ''')
   test_typedef_function() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
