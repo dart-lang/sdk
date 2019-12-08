@@ -192,7 +192,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
   // identity hash is not stored in the header of the object.  We
   // therefore don't intrinsify them, falling back on the native C++
   // implementations.
-  if (function.recognized_kind() == MethodRecognizer::kObject_getHash ||
+  if (//function.recognized_kind() == MethodRecognizer::kObject_getHash ||
       function.recognized_kind() == MethodRecognizer::kObject_setHash) {
     return false;
   }

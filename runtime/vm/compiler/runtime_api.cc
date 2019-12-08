@@ -285,6 +285,12 @@ const word RawAbstractType::kTypeStateFinalizedInstantiated =
 const word RawObject::kBarrierOverlapShift =
     dart::RawObject::kBarrierOverlapShift;
 
+const word RawObject::kHashCodeRetrievedBit =
+    dart::RawObject::kHashCodeRetrievedBit;
+
+const word RawObject::kTrailingHashCodeBit =
+    dart::RawObject::kTrailingHashCodeBit;
+
 bool RawObject::IsTypedDataClassId(intptr_t cid) {
   return dart::RawObject::IsTypedDataClassId(cid);
 }
