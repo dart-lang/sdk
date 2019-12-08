@@ -121,8 +121,8 @@ class RawObject {
     // kReservedTagPos = 6,
     // kReservedTagSize = 2,
     // Headers used to check status of the hashCode in 32bit platforms.
-    kHashCodeRetrievedBit = 6,  // only used in 32bit
-    kTrailingHashCodeBit = 7,   // only used in 32bit
+    kHashWasRetrievedBit = 6,  // only used in 32bit
+    kHasAppendedHashBit = 7,   // only used in 32bit
 
     kSizeTagPos = 8,  // = 8
     kSizeTagSize = 8,
@@ -738,8 +738,6 @@ class RawObject {
   friend class ForwardPointersVisitor;  // StorePointer
   friend class FreeListElement;
   friend class Function;
-  friend class GCMarker;
-  friend class CompactorTask;
   friend class ExternalTypedData;
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer

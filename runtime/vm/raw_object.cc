@@ -209,6 +209,12 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = element->HeapSize();
       break;
     }
+#if defined(FAST_HASH_FOR_32_BIT)
+    case kAppendedObjectCid: {
+      instance_size = kObjectAlignment;
+      break;
+    }
+#endif
     default: {
       // Get the (constant) instance size out of the class object.
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
@@ -235,15 +241,6 @@ intptr_t RawObject::HeapSizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
-//#if defined(FAST_HASH_FOR_32_BIT)
-//  intptr_t t_size = SizeTag::decode(ptr()->tags_);
-//  // Special case when the trailing size couldn't be added to the size tag.
-//  if (HasAppendedHashObject() && (t_size == 0 || HashCodeWasRetrieved())) {
-//    instance_size += AppendedSize();
-//  } else if (t_size > instance_size) {
-//    instance_size = t_size;
-//  }
-//#endif
 #if defined(DEBUG)
   uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
@@ -349,6 +346,12 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = forwarder->HeapSize();
       break;
     }
+#if defined(FAST_HASH_FOR_32_BIT)
+    case kAppendedObjectCid: {
+      size = HeapSize();
+      break;
+    }
+#endif
     case kNullCid:
       size = HeapSize();
       break;
@@ -371,17 +374,7 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
          (class_id == kArrayCid && size > expected_size));
   return size;  // Prefer larger size.
 #else
-//#if defined(FAST_HASH_FOR_32_BIT)
-//  intptr_t tags_size = SizeTag::decode(ptr()->tags_);
-//  // Special case when the trailing size couldn't be added to the size tag.
-//  if (HasTrailingHashCode() && (tags_size > size || tags_size == 0 && HashCodeRetrievedBit())) {
-//    size += TrailingExtraSize();
-//  } else if (tags_size > size) {
-//    size = tags_size;
-//  }
-//#endif
   return size;
-  //return HeapSize();
 #endif
 }
 

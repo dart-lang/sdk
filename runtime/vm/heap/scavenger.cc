@@ -43,8 +43,6 @@ enum {
   kForwarded = kForwardingMask,
 };
 
-const uint32_t kHashObjectCid = 1 << 14;
-
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
   ASSERT((bits == kNotForwarded) || (bits == kForwarded));
@@ -283,71 +281,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
 #if defined(FAST_HASH_FOR_32_BIT)
-      //if (extra_size > 0) {
-      //  InitializeObject(new_addr, kMintCid, extra_size); 
-      //  RawObject* extra_obj = RawObject::FromAddr(new_addr);
-      //  //OS::Print(
-      //  //    "Scavenger added extra object 0x%X using extra size: %d , class id: %d, size: %d, size from class: %d\n",
-      //  //    new_addr, extra_size, extra_obj->GetClassId(),
-      //  //    extra_obj->HeapSize(), extra_obj->HeapSizeFromClass()
-      //  //    );
-      //  new_addr += extra_size;
-      //  size -= extra_size;
-      //  extra_size = 0;
-      //}
-      if (extra_size > 0) {
-		  bool hash_was_retrieved = raw_obj->HashCodeWasRetrieved();
-		  raw_obj->Reallocate(new_addr, size - extra_size);
-		  //memmove(reinterpret_cast<void*>(new_addr),
-		  //        reinterpret_cast<void*>(raw_addr), size);
-		  if (extra_size > 0) {
-			RawObject* hash_obj = RawObject::FromAddr(new_addr);
-			uint32_t tags = RawObject::ClassIdTag::update(
-                            kHashObjectCid, hash_obj->ptr()->tags_);
-            tags = RawObject::SizeTag::update(kObjectAlignment, tags);
-            hash_obj->ptr()->tags_ = tags;
-			//if (hash_obj->IsOldObject()) {
-			//  UpdateOldObjectTags(hash_obj);
-			//}
-            //InitializeObject(new_addr, kHashObjectCid, kObjectAlignment);
-			new_addr += extra_size;
-			RawObject* new_obj = RawObject::FromAddr(new_addr);
-   //         if (true || cid == kInstanceCid) {
-   //                       RawClass* clazz_ptr
-   //                       = Isolate::Current()->class_table()->At(
-   //                           new_obj->GetClassId());
-   //           Class& clazz = Class::Handle(clazz_ptr);
-			//	OS::Print(
-			//		"Scavenger added extra object %p using extra size: %d , class id: %d, size: %d\n",
-			//		new_addr-extra_size, extra_size, hash_obj->GetClassId(),
-			//					  hash_obj->HeapSize()
-			//					  //hash_obj->HeapSizeFromClass()
-			//		);
-
-			//  OS::Print("class %s, class id: %d\n",
-   //                                       clazz.ToCString(), cid);
-			//  OS::Print(
-			//	  "Scavenger moved object of size %d from old space: %d %p to old space: %d %p with hash: "
-			//	  "0x%X storing appended hash: 0x%X, appended hash cid: %d, size: "
-			//	  "%d, appended hash by address: %p\n",
-   //                           raw_obj->HeapSize(), raw_obj->IsOldObject(), raw_obj->ptr(),
-   //                                 new_obj->IsOldObject(), new_addr,
-			//	  raw_obj->GetHash(), new_obj->GetHash(), hash_obj->GetClassId(),
-			//	  hash_obj->HeapSize(), *reinterpret_cast<intptr_t*>(new_addr - kWordSize) >> 1);
-			//  //*reinterpret_cast<intptr_t*>(RawObject::FromAddr(new_addr-kWordSize))>>1
-			//  //ValueFromRawSmi(*reinterpret_cast<RawSmi**>(new_addr - kWordSize))
-			//}
-
-		  }
-      } else {
-        memmove(reinterpret_cast<void*>(new_addr),
-                reinterpret_cast<void*>(raw_addr), size);
-  //      RawObject* new_obj = RawObject::FromAddr(new_addr);
-  //      if (new_obj->HasAppendedHashObject()) {
-  //        new_obj->ptr()->tags_ = RawObject::AppendedHashCodeBit::update(
-  //            false, new_obj->ptr()->tags_);
-		//}
-      }
+      raw_obj->Reallocate(new_addr, size - extra_size);
+      new_addr += extra_size;
 #else
       raw_obj->Reallocate(new_addr, size);
 #endif
@@ -823,18 +758,12 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
       intptr_t size;
-      //if (true || class_id == kHashObjectCid) {
-      //  OS::Print("Visiting object %p with class id: %d\n", resolved_top_, class_id);
-      //}
       if (class_id != kWeakPropertyCid) {
         size = raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
         size = ProcessWeakProperty(raw_weak, visitor);
       }
-      //if (class_id == kHashObjectCid) {
-      //  OS::Print("Finish visiting Hash object\n");
-      //}
       resolved_top_ += size;
     }
     {

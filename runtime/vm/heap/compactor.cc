@@ -582,15 +582,9 @@ uword CompactorTask::PlanBlock(uword first_object,
   // planned again when the block size increases. This way it is ensured that
   // the heap never increases in size during compaction.
   RawObject* raw_first = RawObject::FromAddr(first_object);
-  if (UNLIKELY(free_current_ == next_page_start &&
-               (block_live_size > kBlockSize ||
-           raw_first
-               ->HasAppendedHashObject()))) {  ////&& free_current_==first_object
+  if (UNLIKELY(free_current_ == next_page_start && free_current_ == first_object &&
+               (block_live_size > kBlockSize))) {  //  || raw_first->HasAppendedHashObject())
 	forwarding_block->Clear();
-    //if (raw_first->HasAppendedHashObject()) {
-    //  intptr_t size = raw_first->ReallocationHeapSize();
-    //  forwarding_block->RecordLive(current, size);
-    //}
     return PlanBlock(first_object, forwarding_page);
   }
 #endif
@@ -631,49 +625,30 @@ uword CompactorTask::SlideBlock(uword first_object,
         ASSERT(free_current_ == new_addr);
       }
 
-//#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-      //intptr_t extra_size = 0;
-//#endif
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
         // Slide the object down.
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-        intptr_t extra_size =
-            old_obj->ReallocationExtraSize();
+        // Check if the the object requires extra space for the hash object
+        intptr_t extra_size = old_obj->ReallocationExtraSize();
+
+        // The object does not move if addr is the preceding hash object addr.
+        if (new_addr + extra_size != old_addr) {
+          old_obj->Reallocate(new_addr, size);
+        } else if (extra_size>0 && !old_obj->HasAppendedHashObject()) {
+          // If the addresses match the object most likely already has an
+		  // appended hash object. Otherwise the hash object is created.
+          old_obj->CreateAppendedHashObject(new_addr, old_obj->GetHash());
+        }
+
         // The initial space in the new address is used to store the hash object.
-  //      if (new_addr != old_addr) {
-  //        
-		//}
-        //new_obj = RawObject::FromAddr(new_addr);
-        old_obj->Reallocate(new_addr, size);
-        if (extra_size > 0) {
-          //old_obj->Reallocate(new_addr, size);
-          new_addr += extra_size;
-          free_current_ += extra_size;
-          RawObject* hash_obj = RawObject::FromAddr(new_addr);
-          uint32_t tags = RawObject::ClassIdTag::update(kHashObjectCid,
-                                                        hash_obj->ptr()->tags_);
-          tags = RawObject::SizeTag::update(kObjectAlignment, tags);
-          hash_obj->ptr()->tags_ = tags;
-          new_obj = RawObject::FromAddr(new_addr);
-          //if (true || old_obj->HashCodeWasRetrieved()) {
-          //OS::Print(
-          //    "Compactor moved object from %p to %p with class id %d and hash: "
-          //    "0x%X storing appended hash: 0x%X, old obj HashCodeWasRetrieved: %d\n",
-          //    old_obj->ptr(), new_addr, old_obj->GetClassId(),
-          //    old_obj->GetHash(), new_obj->GetHash(),
-          //    old_obj->HashCodeWasRetrieved());
-          //}
-        }/* else {
-          memmove(reinterpret_cast<void*>(new_addr),
-                  reinterpret_cast<void*>(old_addr), size);
-        }*/
+        new_addr += extra_size;
+        new_obj = RawObject::FromAddr(new_addr);
+        free_current_ += extra_size;
 #else
-        //old_obj->Reallocate(new_addr, size);
-        memmove(reinterpret_cast<void*>(new_addr),
-                reinterpret_cast<void*>(old_addr), size);
+        old_obj->Reallocate(new_addr, size);
 #endif
 		// What does this do?
         if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {

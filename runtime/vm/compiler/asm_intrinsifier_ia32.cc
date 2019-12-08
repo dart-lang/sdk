@@ -1894,7 +1894,7 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   __ movl(ECX, Address(ESP, +1 * target::kWordSize));
   __ movl(EAX, FieldAddress(
                    ECX, 1 * target::Object::tags_offset()));  // Load the tags
-  __ testl(EAX, Immediate(1 << target::RawObject::kTrailingHashCodeBit));
+  __ testl(EAX, Immediate(1 << target::RawObject::kHasAppendedHashBit));
   __ j(ZERO, &check_hash_was_retrieved, Assembler::kNearJump);
   
   // Return the appended hashcode (one word before the object).
@@ -1903,11 +1903,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
   // Check if the HashRetrievedBit is set
   __ Bind(&check_hash_was_retrieved);
-  __ testl(EAX, Immediate(1 << target::RawObject::kHashCodeRetrievedBit));
+  __ testl(EAX, Immediate(1 << target::RawObject::kHashWasRetrievedBit));
   __ j(NOT_ZERO, &use_address_as_hash, Assembler::kNearJump);
 
   // Set the HashCodeRetrievedBit
-  __ orl(EAX, Immediate(1 << target::RawObject::kHashCodeRetrievedBit));
+  __ orl(EAX, Immediate(1 << target::RawObject::kHashWasRetrievedBit));
   __ movl(FieldAddress(ECX, +1 * target::Object::tags_offset()), EAX);
 
   // Use the address value as the hash
@@ -1923,6 +1923,7 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
 }
 
 void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
+
                                        Label* normal_ir_body) {
   Label try_two_byte_string;
   __ movl(EBX, Address(ESP, +1 * target::kWordSize));  // Index.

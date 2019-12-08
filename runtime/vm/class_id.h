@@ -214,6 +214,11 @@ enum ClassId {
   kVoidCid,
   kNeverCid,
 
+  // Used for objects that are an extension of another object. There should
+  // be no pointers referencing them.
+  // FAST_HAST_FOR_32_BIT uses this id for appended hash objects.
+  kAppendedObjectCid,
+
   kNumPredefinedCids,
 };
 
