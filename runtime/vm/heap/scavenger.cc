@@ -232,16 +232,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     } else {
       intptr_t size = raw_obj->HeapSize();
 #if defined(FAST_HASH_FOR_32_BIT)
-      intptr_t extra_size =
-          raw_obj
-              ->ReallocationExtraSize();  // - raw_obj->AppendedSize();  // TODO: testing *0
-      int cid_limit = 0; // 75 works, cids 119 and 104 cause failure (I suspect that because too many of those objects are moved)
-      int cid = raw_obj->GetClassId();
-      //if (cid < cid_limit || cid == kTypedDataUint32ArrayCid ||
-      //    cid == kTypedDataUint8ArrayCid) {
-	  if (cid < cid_limit) {
-        extra_size = 0;
-      }
+      intptr_t extra_size = raw_obj->ReallocationExtraSize();
       size += extra_size;
 #endif
       // Check whether object should be promoted.
@@ -259,11 +250,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         new_addr = page_space_->TryAllocatePromoLocked(size);
         if (new_addr != 0) {
 #if defined(FAST_HASH_FOR_32_BIT)
-          if (extra_size > 0) {
-            scavenger_->PushToPromotedStack(new_addr + extra_size);
-          } else {
-            scavenger_->PushToPromotedStack(new_addr);
-          }
+          scavenger_->PushToPromotedStack(new_addr + extra_size);
 #else
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.

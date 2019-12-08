@@ -24,20 +24,15 @@ typedef uint64_t bitset;
 
 #if defined(FAST_HASH_FOR_32_BIT)
 #define REALLOCATION_EXTRA_SIZE_ENABLED 1
-const uint32_t kHashObjectCid = 1 << 14;
 #endif
 
 static const intptr_t kBitVectorWordsPerBlock = 1;
-// The block size in bytes. One uword is used as a bit vector to keep track
-// of the sections-buckets in the block that are used. In 64 bit architectures,
-// buckets are of size 16 bytes ("alignment"), or in other words objects
-// are placed at addresses multiples of 16 bytes. A bit vector of 64
-// bits represents up to 64 buckets and that's why block size
-// is defined to be 64*16 bytes (1024 bytes). In 32 bit architectures,
-// aligments are of size 8 bytes and the bit vector is of size 32, therefore
-// the block size is 32*8 (256 byes).
- /*static const intptr_t kBlockSize =
-      kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;*/
+// The block size in bytes. One int64 is used as a bit vector to keep track
+// of the buckets in the block that are used. In 64 bit architectures buckets
+// are of size 16 bytes (kObjecetAlignment), or in other words objects are
+// placed at addresses multiples of 16 bytes. A vector of 64 bits represents
+// up to 64 buckets and that's why block size is defined to be 64*16 (1024) in
+// 64 bit architecture, and 64*8 (512) in 32 bit architecture.
 #if defined(HASH_IN_OBJECT_HEADER) && defined(REALLOCATION_EXTRA_SIZE_ENABLED)
 static const intptr_t kBlockSize =
     kWordSize * kBitsPerWord * kBitVectorWordsPerBlock;
@@ -62,16 +57,16 @@ class ForwardingBlock {
   void Clear() {
     new_address_ = 0;
     // live_bitvector is used to track the used byte buckets in the block.
-    // Each bucket represents a size 16 or 8 bytes depending on the architecture.
+    // Each bucket represents a size of kObjectAlighment (16 or 8 bytes
+	// depending on the architecture).
     // Only live objects use buckets, so the live_bitvector can be a vector
     // like 111000110011, where the 0s represent "dead" (garbage) space.
     // It's used to count the number of used ("live") buckets up to a any bucket
     // index, which in turn is used to calculate the forwarding address of a
-    // an old address in Lookup. As an example if an object is stored from
-    // bucket 16 (deduced from the address) and only 8 buckets are used up to
-    // index 16 (vector has only 8 bits set in the first 15 bits), the object's
-    // new address will represent bucket 9 of the forwarding block (the object
-    // is "slided" down).
+    // an address in Lookup. As an example if an object is stored starting from
+    // bucket 16 and only 8 buckets are used up to index 16 (vector has only 8
+	// bits set in the first 15 bits), the object's new address will represent
+	// bucket 9 of the forwarding block (the object is "slided" down).
     live_bitvector_ = 0;
   }
 
@@ -505,62 +500,31 @@ uword CompactorTask::PlanBlock(uword first_object,
   intptr_t block_dead_size = 0;
   uword current = first_object;
 
-  //intptr_t extra_size = obj->AppendedSize();
-  //if (extra_size > 0) {
-  //  // Mark live the appended hash object.
-  //  forwarding_block->RecordLive(current, size + extra_size);
-  //  block_live_size += extra_size;
-  //}
-  //extra_size = obj->ReallocationExtraSize() - extra_size;
-  //// The first reallocated object that were to take more space (because
-  //// they can grow to store the hashCode) than the currently available
-  //// would be "reallocated" to the same address. So if free_current_ +
-  //// block_live_size matches the current address the object is not going
-  //// to be reallocated and it will not use extra memory. This way it
-  //// is ensured that sliding will never take more memory than the currently
-  //// available or that the reallocated object overlaps the memory of the
-  //// next live object.
-  ////intptr_t reallocation_address = free_current_ + block_live_size;
-  //if (free_current_ + block_live_size != current) {
-  //  // If the adresses match, the object will not be reallocated and it
-  //  // doesn't take extra space.
-  //  extra_size = obj->ReallocationExtraSize();
-  //  if (free_current_ + block_live_size + extra_size != current) {
-  //  }
-  //}
-
   while (current < block_end) {
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
-    if (obj->IsMarked()) {
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-      intptr_t extra_size = 0;
-      // The first reallocated object that were to take more space (because
-      // they can grow to store the hashCode) than the currently available
-      // would be "reallocated" to the same address. So if free_current_ +
-      // block_live_size matches the current address the object is not going
-      // to be reallocated and it will not use extra memory. This way it
-      // is ensured that sliding will never take more memory than the currently
-      // available or that the reallocated object overlaps the memory of the
-      // next live object.
+    if (obj->GetClassId() == kAppendedObjectCid) {
+      // Marked appended objects are moved by their parent object.
+      obj->ClearMarkBit();
+    } else if (obj->IsMarked()) {
+	  intptr_t extra_size = 0;
+	  // If the addresses match the object is not going to be reallocated and
+	  // it will not use extra memory.
       if (free_current_ + block_live_size != current) {
-        // In 32 bit platforms if the adresses don't match, the object will be
-        // reallocated and it might require extra space to store the hashCode.
+        // Extra space might be required to store the hashCode.
         extra_size = obj->ReallocationExtraSize();
         size += extra_size;
-        if (obj->GetClassId() == kHashObjectCid) {
-          ASSERT(extra_size == 0);
-          size = 0;
-          obj->ClearMarkBit();
-        }
       }
+#else
+    if (obj->IsMarked()) {
 #endif
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-      // Restore size to the object's size.
+      // Restore size to the object's HeapSize.
       size -= extra_size;
 #endif
     } else {
@@ -579,11 +543,14 @@ uword CompactorTask::PlanBlock(uword first_object,
 
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
   // If the block is reallocated to a new page, the block needs to be
-  // planned again when the block size increases. This way it is ensured that
-  // the heap never increases in size during compaction.
+  // planned again when the block size increases, because some reallocation
+  // addresses could match. This check ensures that the heap does not increase
+  // it's used space during compaction and that the reallocated object doesn't
+  // overlap the next object.
   RawObject* raw_first = RawObject::FromAddr(first_object);
-  if (UNLIKELY(free_current_ == next_page_start && free_current_ == first_object &&
-               (block_live_size > kBlockSize))) {  //  || raw_first->HasAppendedHashObject())
+  if (UNLIKELY(free_current_ == next_page_start &&
+	  free_current_ == first_object &&
+      block_live_size > kBlockSize)) {
 	forwarding_block->Clear();
     return PlanBlock(first_object, forwarding_page);
   }
@@ -634,12 +601,12 @@ uword CompactorTask::SlideBlock(uword first_object,
         // Check if the the object requires extra space for the hash object
         intptr_t extra_size = old_obj->ReallocationExtraSize();
 
-        // The object does not move if addr is the preceding hash object addr.
+        // Check if address is the same as the appended hash object.
         if (new_addr + extra_size != old_addr) {
           old_obj->Reallocate(new_addr, size);
         } else if (extra_size>0 && !old_obj->HasAppendedHashObject()) {
           // If the addresses match the object most likely already has an
-		  // appended hash object. Otherwise the hash object is created.
+		  // appended hash object. Otherwise the hash object must be created.
           old_obj->CreateAppendedHashObject(new_addr, old_obj->GetHash());
         }
 
