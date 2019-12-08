@@ -1888,7 +1888,47 @@ void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
 
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
+  //__ movq(EAX, Address(ESP, +1 * target::kWordSize));  // Object.
+  ////__ movl(EAX, FieldAddress(EAX, target::String::hash_offset()));
+  //__ SmiTag(EAX);
+  //__ ret();
+
+	 //Write the object address in the registry Check if the HasHashCode bit tag is
+  //    set If it is
+  //    : Substract kWordSize to the register value(
+  //          and replace) return the value where the register points to If
+  //          is not jump Set the value HashCodeRetrieved tag bit Shift
+  //              the register value 1 bit to the left return the register value
+  Label use_address_as_hash;
+  //, compute_address_hash;
+ 
   UNREACHABLE();
+  
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &compute_hash, Assembler::kNearJump);
+  __ ret();
+  //__ movl(EAX, FieldAddress(EAX, target::Type::hash_offset()));
+
+	
+  //__ movl(EBX, Address(ESP, +1 * target::kWordSize));
+  //__ movl(EBX, FieldAddress(EBX, +1 * target::kWordSize));
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize))
+  __ movl(EDI, FieldAddress(EAX, target::Object::tags_offset()));
+  __ testl(EDI, Immediate(1 << kTrailingHashCodeBit));
+  __ j(NOT_EQUAL, &use_address_as_hash, Assembler::kNearJump);
+  //__ movl(EAX, FieldAddress(ESP, -1 * target::kWordSize));
+  __ movl(EAX, FieldAddress(EBX, -1 * target::kWordSize));
+  __ ret();
+
+
+  __ Bind(&use_address_as_hash);
+  // Set the the HashCodeRetrievedBit
+  __ orl(EDI, Immediate(1 << kHashCodeRetrievedBit));
+  __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);
+
+  __ sarl(EAX, Immediate(1));  // shift address 1 bit to the left to convert to RawSmi
+  //__ movl(EAX, FieldAddress(EAX, -1 * target::kWordSize));
+  __ ret();
 }
 
 void AsmIntrinsifier::Object_setHash(Assembler* assembler,

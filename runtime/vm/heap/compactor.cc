@@ -11,6 +11,7 @@
 #include "vm/heap/pages.h"
 #include "vm/thread_barrier.h"
 #include "vm/timeline.h"
+//#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -23,6 +24,7 @@ typedef uint64_t bitset;
 
 #if defined(FAST_HASH_FOR_32_BIT)
 #define REALLOCATION_EXTRA_SIZE_ENABLED 1
+const uint32_t kHashObjectCid = 1 << 14;
 #endif
 
 static const intptr_t kBitVectorWordsPerBlock = 1;
@@ -183,6 +185,8 @@ class CompactorTask : public ThreadPool::Task {
         free_end_(0) {}
 
  private:
+  //friend RawObject* class RawObject::ptr();
+
   void Run();
   void PlanPage(HeapPage* page);
   void SlidePage(HeapPage* page);
@@ -501,6 +505,30 @@ uword CompactorTask::PlanBlock(uword first_object,
   intptr_t block_dead_size = 0;
   uword current = first_object;
 
+  //intptr_t extra_size = obj->AppendedSize();
+  //if (extra_size > 0) {
+  //  // Mark live the appended hash object.
+  //  forwarding_block->RecordLive(current, size + extra_size);
+  //  block_live_size += extra_size;
+  //}
+  //extra_size = obj->ReallocationExtraSize() - extra_size;
+  //// The first reallocated object that were to take more space (because
+  //// they can grow to store the hashCode) than the currently available
+  //// would be "reallocated" to the same address. So if free_current_ +
+  //// block_live_size matches the current address the object is not going
+  //// to be reallocated and it will not use extra memory. This way it
+  //// is ensured that sliding will never take more memory than the currently
+  //// available or that the reallocated object overlaps the memory of the
+  //// next live object.
+  ////intptr_t reallocation_address = free_current_ + block_live_size;
+  //if (free_current_ + block_live_size != current) {
+  //  // If the adresses match, the object will not be reallocated and it
+  //  // doesn't take extra space.
+  //  extra_size = obj->ReallocationExtraSize();
+  //  if (free_current_ + block_live_size + extra_size != current) {
+  //  }
+  //}
+
   while (current < block_end) {
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
@@ -520,6 +548,11 @@ uword CompactorTask::PlanBlock(uword first_object,
         // reallocated and it might require extra space to store the hashCode.
         extra_size = obj->ReallocationExtraSize();
         size += extra_size;
+        if (obj->GetClassId() == kHashObjectCid) {
+          ASSERT(extra_size == 0);
+          size = 0;
+          obj->ClearMarkBit();
+        }
       }
 #endif
       forwarding_block->RecordLive(current, size);
@@ -546,10 +579,18 @@ uword CompactorTask::PlanBlock(uword first_object,
 
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
   // If the block is reallocated to a new page, the block needs to be
-  // planned again if the block size increases. This way it is ensured that
+  // planned again when the block size increases. This way it is ensured that
   // the heap never increases in size during compaction.
-  if (block_live_size > kBlockSize && free_current_ == next_page_start && free_current_==first_object) {
-    forwarding_block->Clear();
+  RawObject* raw_first = RawObject::FromAddr(first_object);
+  if (UNLIKELY(free_current_ == next_page_start &&
+               (block_live_size > kBlockSize ||
+           raw_first
+               ->HasAppendedHashObject()))) {  ////&& free_current_==first_object
+	forwarding_block->Clear();
+    //if (raw_first->HasAppendedHashObject()) {
+    //  intptr_t size = raw_first->ReallocationHeapSize();
+    //  forwarding_block->RecordLive(current, size);
+    //}
     return PlanBlock(first_object, forwarding_page);
   }
 #endif
@@ -589,20 +630,52 @@ uword CompactorTask::SlideBlock(uword first_object,
         free_end_ = free_page_->object_end();
         ASSERT(free_current_ == new_addr);
       }
-      RawObject* new_obj = RawObject::FromAddr(new_addr);
 
-#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-      intptr_t extra_size = 0;
-#endif
+//#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
+      //intptr_t extra_size = 0;
+//#endif
+      RawObject* new_obj = RawObject::FromAddr(new_addr);
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
         // Slide the object down.
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-        extra_size = old_obj->ReallocationExtraSize();
-#endif
+        intptr_t extra_size =
+            old_obj->ReallocationExtraSize();
+        // The initial space in the new address is used to store the hash object.
+  //      if (new_addr != old_addr) {
+  //        
+		//}
+        //new_obj = RawObject::FromAddr(new_addr);
         old_obj->Reallocate(new_addr, size);
-
+        if (extra_size > 0) {
+          //old_obj->Reallocate(new_addr, size);
+          new_addr += extra_size;
+          free_current_ += extra_size;
+          RawObject* hash_obj = RawObject::FromAddr(new_addr);
+          uint32_t tags = RawObject::ClassIdTag::update(kHashObjectCid,
+                                                        hash_obj->ptr()->tags_);
+          tags = RawObject::SizeTag::update(kObjectAlignment, tags);
+          hash_obj->ptr()->tags_ = tags;
+          new_obj = RawObject::FromAddr(new_addr);
+          //if (true || old_obj->HashCodeWasRetrieved()) {
+          //OS::Print(
+          //    "Compactor moved object from %p to %p with class id %d and hash: "
+          //    "0x%X storing appended hash: 0x%X, old obj HashCodeWasRetrieved: %d\n",
+          //    old_obj->ptr(), new_addr, old_obj->GetClassId(),
+          //    old_obj->GetHash(), new_obj->GetHash(),
+          //    old_obj->HashCodeWasRetrieved());
+          //}
+        }/* else {
+          memmove(reinterpret_cast<void*>(new_addr),
+                  reinterpret_cast<void*>(old_addr), size);
+        }*/
+#else
+        //old_obj->Reallocate(new_addr, size);
+        memmove(reinterpret_cast<void*>(new_addr),
+                reinterpret_cast<void*>(old_addr), size);
+#endif
+		// What does this do?
         if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
           reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
         }
@@ -612,9 +685,6 @@ uword CompactorTask::SlideBlock(uword first_object,
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
-#if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-      free_current_ += extra_size;
-#endif
     } else {
       ASSERT(!forwarding_block->IsLive(old_addr));
     }

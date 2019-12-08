@@ -378,12 +378,13 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
+#if defined(FAST_HASH_FOR_32_BIT)
+    obj->GetHash();
+#endif
     return obj->ptr()->hash_;
   }
 #elif defined(FAST_HASH_FOR_32_BIT)
-  static uint32_t GetCachedHash(const RawObject* obj) {
-    return obj->GetHash();
-  }
+  static uint32_t GetCachedHash(const RawObject* obj) { return obj->GetHash(); }
 #endif
 
 #if defined(HASH_IN_OBJECT_HEADER)

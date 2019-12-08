@@ -739,6 +739,7 @@ class RawObject {
   friend class FreeListElement;
   friend class Function;
   friend class GCMarker;
+  friend class CompactorTask;
   friend class ExternalTypedData;
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer

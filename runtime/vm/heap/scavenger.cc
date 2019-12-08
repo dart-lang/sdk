@@ -43,6 +43,8 @@ enum {
   kForwarded = kForwardingMask,
 };
 
+const uint32_t kHashObjectCid = 1 << 14;
+
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;
   ASSERT((bits == kNotForwarded) || (bits == kForwarded));
@@ -60,32 +62,32 @@ static inline void ForwardTo(uword original, uword target) {
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
-static inline void objcpy(void* dst, void* src, size_t size) {
-  // A memcopy specialized for objects. We can assume:
-  //  - dst and src do not overlap
-  ASSERT(
-      (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||
-      (reinterpret_cast<uword>(src) + size <= reinterpret_cast<uword>(dst)));
-  //  - dst and src are word aligned
-  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(dst), sizeof(uword)));
-  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(src), sizeof(uword)));
-  //  - size is strictly positive
-  ASSERT(size > 0);
-  //  - size is a multiple of double words
-  ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
-
-  /*uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
-  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
-  do {
-    uword a = *src_cursor++;
-    uword b = *src_cursor++;
-    *dst_cursor++ = a;
-    *dst_cursor++ = b;
-    size -= (2 * sizeof(uword));
-  } while (size > 0);*/
-  RawObject::FromAddr(reinterpret_cast<uword>(src))
-      ->Reallocate(reinterpret_cast<uword>(dst), size);
-}
+//static inline void objcpy(void* dst, void* src, size_t size) {
+//  // A memcopy specialized for objects. We can assume:
+//  //  - dst and src do not overlap
+//  ASSERT(
+//      (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||
+//      (reinterpret_cast<uword>(src) + size <= reinterpret_cast<uword>(dst)));
+//  //  - dst and src are word aligned
+//  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(dst), sizeof(uword)));
+//  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(src), sizeof(uword)));
+//  //  - size is strictly positive
+//  ASSERT(size > 0);
+//  //  - size is a multiple of double words
+//  ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
+//
+//  /*uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+//  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+//  do {
+//    uword a = *src_cursor++;
+//    uword b = *src_cursor++;
+//    *dst_cursor++ = a;
+//    *dst_cursor++ = b;
+//    size -= (2 * sizeof(uword));
+//  } while (size > 0);*/
+//  RawObject::FromAddr(reinterpret_cast<uword>(src))
+//      ->Reallocate(reinterpret_cast<uword>(dst), size);
+//}
 
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
@@ -169,6 +171,47 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 
+  void UpdateOldObjectTags(RawObject* obj) {
+    // Promoted: update age/barrier tags.
+    uint32_t tags = obj->ptr()->tags_;
+    tags = RawObject::OldBit::update(true, tags);
+    tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+    tags = RawObject::NewBit::update(false, tags);
+    // Setting the forwarding pointer below will make this tenured object
+    // visible to the concurrent marker, but we haven't visited its slots
+    // yet. We mark the object here to prevent the concurrent marker from
+    // adding it to the mark stack and visiting its unprocessed slots. We
+    // push it to the mark stack after forwarding its slots.
+    tags = RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
+    //tags = RawObject::AppendedHashCodeBit::update(false, tags);
+    obj->ptr()->tags_ = tags;
+  }
+
+  void InitializeObject(uword address,
+                                intptr_t class_id,
+                                intptr_t size) {
+    uint32_t tags = 0;
+    ASSERT(class_id != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(class_id, tags);
+    tags = RawObject::SizeTag::update(size, tags);
+    const bool is_old =
+        (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+    tags = RawObject::OldBit::update(is_old, tags);
+    tags = RawObject::OldAndNotMarkedBit::update(false, tags);
+    tags = RawObject::OldAndNotRememberedBit::update(is_old, tags);
+    tags = RawObject::NewBit::update(!is_old, tags);
+    reinterpret_cast<RawObject*>(address)->tags_ = tags;
+    Thread* thread = Thread::Current();
+    Heap* heap = thread->heap();
+    RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
+    //ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+    if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
+      raw_obj->SetMarkBitUnsynchronized();
+      std::atomic_thread_fence(std::memory_order_release);
+      heap->old_space()->AllocateBlack(size);
+    }
+  }
+
   DART_FORCE_INLINE
   void ScavengePointer(RawObject** p) {
     // ScavengePointer cannot be called recursively.
@@ -191,7 +234,16 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     } else {
       intptr_t size = raw_obj->HeapSize();
 #if defined(FAST_HASH_FOR_32_BIT)
-      intptr_t extra_size = raw_obj->ReallocationExtraSize();
+      intptr_t extra_size =
+          raw_obj
+              ->ReallocationExtraSize();  // - raw_obj->AppendedSize();  // TODO: testing *0
+      int cid_limit = 0; // 75 works, cids 119 and 104 cause failure (I suspect that because too many of those objects are moved)
+      int cid = raw_obj->GetClassId();
+      //if (cid < cid_limit || cid == kTypedDataUint32ArrayCid ||
+      //    cid == kTypedDataUint8ArrayCid) {
+	  if (cid < cid_limit) {
+        extra_size = 0;
+      }
       size += extra_size;
 #endif
       // Check whether object should be promoted.
@@ -208,11 +260,17 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         // the object.
         new_addr = page_space_->TryAllocatePromoLocked(size);
         if (new_addr != 0) {
+#if defined(FAST_HASH_FOR_32_BIT)
+          if (extra_size > 0) {
+            scavenger_->PushToPromotedStack(new_addr + extra_size);
+          } else {
+            scavenger_->PushToPromotedStack(new_addr);
+          }
+#else
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
-          // Question: Is there is an inconsistency consquence if bytes_promoted
-          // does not match expected promoted bytes?
+#endif
           bytes_promoted_ += size;
         } else {
           // Promotion did not succeed. Copy into the to space instead.
@@ -225,26 +283,78 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
 #if defined(FAST_HASH_FOR_32_BIT)
-        raw_obj->Reallocate(new_addr, size - extra_size);
+      //if (extra_size > 0) {
+      //  InitializeObject(new_addr, kMintCid, extra_size); 
+      //  RawObject* extra_obj = RawObject::FromAddr(new_addr);
+      //  //OS::Print(
+      //  //    "Scavenger added extra object 0x%X using extra size: %d , class id: %d, size: %d, size from class: %d\n",
+      //  //    new_addr, extra_size, extra_obj->GetClassId(),
+      //  //    extra_obj->HeapSize(), extra_obj->HeapSizeFromClass()
+      //  //    );
+      //  new_addr += extra_size;
+      //  size -= extra_size;
+      //  extra_size = 0;
+      //}
+      if (extra_size > 0) {
+		  bool hash_was_retrieved = raw_obj->HashCodeWasRetrieved();
+		  raw_obj->Reallocate(new_addr, size - extra_size);
+		  //memmove(reinterpret_cast<void*>(new_addr),
+		  //        reinterpret_cast<void*>(raw_addr), size);
+		  if (extra_size > 0) {
+			RawObject* hash_obj = RawObject::FromAddr(new_addr);
+			uint32_t tags = RawObject::ClassIdTag::update(
+                            kHashObjectCid, hash_obj->ptr()->tags_);
+            tags = RawObject::SizeTag::update(kObjectAlignment, tags);
+            hash_obj->ptr()->tags_ = tags;
+			//if (hash_obj->IsOldObject()) {
+			//  UpdateOldObjectTags(hash_obj);
+			//}
+            //InitializeObject(new_addr, kHashObjectCid, kObjectAlignment);
+			new_addr += extra_size;
+			RawObject* new_obj = RawObject::FromAddr(new_addr);
+   //         if (true || cid == kInstanceCid) {
+   //                       RawClass* clazz_ptr
+   //                       = Isolate::Current()->class_table()->At(
+   //                           new_obj->GetClassId());
+   //           Class& clazz = Class::Handle(clazz_ptr);
+			//	OS::Print(
+			//		"Scavenger added extra object %p using extra size: %d , class id: %d, size: %d\n",
+			//		new_addr-extra_size, extra_size, hash_obj->GetClassId(),
+			//					  hash_obj->HeapSize()
+			//					  //hash_obj->HeapSizeFromClass()
+			//		);
+
+			//  OS::Print("class %s, class id: %d\n",
+   //                                       clazz.ToCString(), cid);
+			//  OS::Print(
+			//	  "Scavenger moved object of size %d from old space: %d %p to old space: %d %p with hash: "
+			//	  "0x%X storing appended hash: 0x%X, appended hash cid: %d, size: "
+			//	  "%d, appended hash by address: %p\n",
+   //                           raw_obj->HeapSize(), raw_obj->IsOldObject(), raw_obj->ptr(),
+   //                                 new_obj->IsOldObject(), new_addr,
+			//	  raw_obj->GetHash(), new_obj->GetHash(), hash_obj->GetClassId(),
+			//	  hash_obj->HeapSize(), *reinterpret_cast<intptr_t*>(new_addr - kWordSize) >> 1);
+			//  //*reinterpret_cast<intptr_t*>(RawObject::FromAddr(new_addr-kWordSize))>>1
+			//  //ValueFromRawSmi(*reinterpret_cast<RawSmi**>(new_addr - kWordSize))
+			//}
+
+		  }
+      } else {
+        memmove(reinterpret_cast<void*>(new_addr),
+                reinterpret_cast<void*>(raw_addr), size);
+  //      RawObject* new_obj = RawObject::FromAddr(new_addr);
+  //      if (new_obj->HasAppendedHashObject()) {
+  //        new_obj->ptr()->tags_ = RawObject::AppendedHashCodeBit::update(
+  //            false, new_obj->ptr()->tags_);
+		//}
+      }
 #else
-        raw_obj->Reallocate(new_addr, size);
+      raw_obj->Reallocate(new_addr, size);
 #endif
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
-        // Promoted: update age/barrier tags.
-        uint32_t tags = new_obj->ptr()->tags_;
-        tags = RawObject::OldBit::update(true, tags);
-        tags = RawObject::OldAndNotRememberedBit::update(true, tags);
-        tags = RawObject::NewBit::update(false, tags);
-        // Setting the forwarding pointer below will make this tenured object
-        // visible to the concurrent marker, but we haven't visited its slots
-        // yet. We mark the object here to prevent the concurrent marker from
-        // adding it to the mark stack and visiting its unprocessed slots. We
-        // push it to the mark stack after forwarding its slots.
-        tags =
-            RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
-        new_obj->ptr()->tags_ = tags;
+        UpdateOldObjectTags(new_obj);
       }
 
       if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
@@ -713,12 +823,18 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
       intptr_t size;
+      //if (true || class_id == kHashObjectCid) {
+      //  OS::Print("Visiting object %p with class id: %d\n", resolved_top_, class_id);
+      //}
       if (class_id != kWeakPropertyCid) {
         size = raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
         size = ProcessWeakProperty(raw_weak, visitor);
       }
+      //if (class_id == kHashObjectCid) {
+      //  OS::Print("Finish visiting Hash object\n");
+      //}
       resolved_top_ += size;
     }
     {

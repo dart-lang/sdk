@@ -235,15 +235,15 @@ intptr_t RawObject::HeapSizeFromClass() const {
     }
   }
   ASSERT(instance_size != 0);
-#if defined(FAST_HASH_FOR_32_BIT)
-  intptr_t t_size = SizeTag::decode(ptr()->tags_);
-  // Special case when the trailing size couldn't be added to the size tag.
-  if (HasTrailingHashCode() && (t_size == 0 || HashCodeWasRetrieved())) {
-    instance_size += ExtraSize();
-  } else if (t_size > instance_size) {
-    instance_size = t_size;
-  }
-#endif
+//#if defined(FAST_HASH_FOR_32_BIT)
+//  intptr_t t_size = SizeTag::decode(ptr()->tags_);
+//  // Special case when the trailing size couldn't be added to the size tag.
+//  if (HasAppendedHashObject() && (t_size == 0 || HashCodeWasRetrieved())) {
+//    instance_size += AppendedSize();
+//  } else if (t_size > instance_size) {
+//    instance_size = t_size;
+//  }
+//#endif
 #if defined(DEBUG)
   uint32_t tags = ptr()->tags_;
   intptr_t tags_size = SizeTag::decode(tags);
@@ -380,8 +380,8 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 //    size = tags_size;
 //  }
 //#endif
-  //return size;
-  return HeapSize();
+  return size;
+  //return HeapSize();
 #endif
 }
 

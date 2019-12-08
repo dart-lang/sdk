@@ -40,16 +40,32 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
 #if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
 #elif defined(FAST_HASH_FOR_32_BIT)
-  RawObject* raw = arguments->NativeArgAt(0);
-  if (raw->HasTrailingHashCode()) {
-    return *reinterpret_cast<RawSmi**>(RawObject::LastPointerAddr(raw));
+ /* RawObject* raw = arguments->NativeArgAt(0);
+  if (raw->HasAppendedHashObject()) {
+    return *reinterpret_cast<RawSmi**>(RawObject::AppendedHashAddress(raw));
   }
   uintptr_t value = (reinterpret_cast<uintptr_t>(raw) << 1) >> 1;
   if (!raw->HashCodeWasRetrieved()) {
     raw->SetHashCodeRetrievedBit();
   }
-  return Smi::New(static_cast<uint32_t>(value));
-  //return Smi::New(arguments->NativeArgAt(0)->GetHash());
+  return Smi::New(static_cast<uint32_t>(value));*/
+  RawObject* raw = arguments->NativeArgAt(0);
+  intptr_t cid = raw->GetClassId();
+  if (true || cid > kInstanceCid || cid < kInstanceCid || cid==kInstanceCid ) { // kContextCid, kContextScopeCid
+    if (cid == kInstanceCid) {
+      RawClass* clazz_ptr = Isolate::Current()->class_table()->At(cid);
+      Class& clazz = Class::Handle(clazz_ptr);
+      //OS::Print("Object_getHash for object %p of class %s, class id: %d, HasAppendedHashCode: %d, hash value: 0x%X\n",
+      //          RawObject::ToAddr(raw), clazz.ToCString(), cid, raw->HasAppendedHashObject(), raw->GetHash());
+    }
+    //OS::Print("Getting hash for class %d\n", raw->GetClassId());
+    return Smi::New(arguments->NativeArgAt(0)->GetHash());
+  } else {
+    Heap* heap = isolate->heap();
+    ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
+    return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+  }
+  
 #else
   Heap* heap = isolate->heap();
   ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
