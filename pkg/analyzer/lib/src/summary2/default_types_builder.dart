@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
-import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
+import 'package:analyzer/src/util/graph.dart';
 
 class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {

@@ -1,3 +1,6 @@
+## 0.39.2+1
+* Fixed bug #39702.
+
 ## 0.39.2
 * Deprecated `AnalysisSession.typeProvider` and `AnalysisSession.typeSystem`.
   Please use the corresponding getters in `LibraryElement` instead.
