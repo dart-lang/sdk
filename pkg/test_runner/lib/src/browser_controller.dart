@@ -515,18 +515,15 @@ class IE extends Browser {
   // resetBrowserConfiguration flag is set.
   Future<bool> resetConfiguration() async {
     if (!Browser.resetBrowserConfiguration) return true;
-    // todo(athom) Move this into the puppet configuration
-    var args = [
-      "add",
-      r"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\New Windows\Allow",
-      "/v",
-      "127.0.0.1",
-      "/f"
-    ];
-    var result = await Process.run("reg", args);
-    if (result.exitCode != 0) {
-      _logEvent("Failed to override user popup blocker settings");
-    }
+    const ieKey = r"HKCU\Software\Microsoft\Internet Explorer";
+    // Turn off popup blocker
+    await _setRegistryKey("$ieKey\\New Windows", "PopupMgr",
+        data: "0", type: "REG_DWORD");
+    // Allow popups from localhost
+    await _setRegistryKey("$ieKey\\New Windows\\Allow", "127.0.0.1");
+    // Disable IE first run wizard
+    await _setRegistryKey("$ieKey\Main", "DisableFirstRunCustomize",
+        data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];
     Directory dir = Directory("$localAppData\\Microsoft\\"
@@ -548,6 +545,22 @@ class IE extends Browser {
   }
 
   String toString() => "IE";
+
+  Future<void> _setRegistryKey(String key, String value,
+      {String data, String type}) async {
+    var args = <String>[
+      "add",
+      key,
+      "/v",
+      value,
+      "/f",
+      if (type != null) ...["/t", type]
+    ];
+    var result = await Process.run("reg", args);
+    if (result.exitCode != 0) {
+      _logEvent("Failed to set '$key' to '$value'");
+    }
+  }
 }
 
 class AndroidChrome extends Browser {
