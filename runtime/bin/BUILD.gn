@@ -124,20 +124,32 @@ static_library("crashpad") {
   }
 }
 
-static_library("elf_loader") {
-  configs += [
-    "..:dart_arch_config",
-    "..:dart_config",
-    "..:dart_product_config",
-    "..:dart_os_fuchsia_config",
-  ]
-  include_dirs = [ ".." ]
-  sources = [
-    "elf_loader.cc",
-    "elf_loader.h",
-  ]
+template("build_elf_loader") {
+  source_set(target_name) {
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_product_config",
+      "..:dart_os_fuchsia_config",
+    ]
+    include_dirs = [ ".." ]
+    sources = [
+      "elf_loader.cc",
+      "elf_loader.h",
+    ]
+    deps = invoker.deps
+  }
+}
+
+build_elf_loader("elf_loader") {
   deps = [
     ":libdart_builtin",
+  ]
+}
+
+build_elf_loader("elf_loader_product") {
+  deps = [
+    ":libdart_builtin_product",
   ]
 }
 

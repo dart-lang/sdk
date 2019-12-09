@@ -9,6 +9,10 @@
 #include <vm/cpu.h>
 #include <vm/virtual_memory.h>
 
+#if defined(HOST_OS_FUCHSIA)
+#include <sys/mman.h>
+#endif
+
 #include <memory>
 
 namespace dart {
@@ -20,9 +24,15 @@ namespace elf {
 /// Dart_CreateAppAOTSnapshotAsElf.
 class LoadedElf {
  public:
+#if defined(HOST_OS_FUCHSIA)
+  explicit LoadedElf(int fd, uint64_t elf_data_offset)
+      : fd_(fd), elf_data_offset_(elf_data_offset) {}
+#else
   explicit LoadedElf(const char* filename, uint64_t elf_data_offset)
       : filename_(strdup(filename), std::free),
         elf_data_offset_(elf_data_offset) {}
+#endif
+
   ~LoadedElf();
 
   /// Loads the ELF object into memory. Returns whether the load was successful.
@@ -61,7 +71,11 @@ class LoadedElf {
                              uword length,
                              const void** mapping_start);
 
+#if defined(HOST_OS_FUCHSIA)
+  int fd_ = -1;
+#else
   std::unique_ptr<char, decltype(std::free)*> filename_;
+#endif
   const uint64_t elf_data_offset_;
 
   // Initialized on a successful Load().
@@ -124,8 +138,12 @@ bool LoadedElf::Load() {
   CHECK_ERROR(Utils::IsAligned(elf_data_offset_, PageSize()),
               "File offset must be page-aligned.");
 
+#if defined(HOST_OS_FUCHSIA)
+  file_ = File::OpenFD(fd_);
+#else
   file_ = File::Open(/*namespc=*/nullptr, filename_.get(),
                      bin::File::FileOpenMode::kRead);
+#endif
   CHECK_ERROR(file_ != nullptr, "Cannot open ELF object file.");
   CHECK_ERROR(file_->SetPosition(elf_data_offset_), "Invalid file offset.");
 
@@ -249,7 +267,7 @@ bool LoadedElf::LoadSegments() {
 
   base_.reset(VirtualMemory::AllocateAligned(
       total_memory, /*alignment=*/maximum_alignment,
-      /*is_executable=*/false, /*mapping name=*/filename_.get()));
+      /*is_executable=*/false, /*mapping name=*/nullptr));
   CHECK_ERROR(base_ != nullptr, "Could not reserve virtual memory.");
 
   for (uword i = 0; i < header_.num_program_headers; ++i) {
@@ -281,6 +299,27 @@ bool LoadedElf::LoadSegments() {
     } else {
       ERROR("Unsupported segment flag set.");
     }
+
+#if defined(HOST_OS_FUCHSIA)
+    // mmap is less flexible on Fuchsia than on Linux and Darwin, in (at least)
+    // two important ways:
+    //
+    // 1. We cannot map a file opened as RX into an RW mapping, even if the
+    //    mode is MAP_PRIVATE (which implies copy-on-write).
+    // 2. We cannot atomically replace an existing anonymous mapping with a
+    //    file mapping: we must first unmap the existing mapping.
+
+    if (map_type == File::kReadWrite) {
+      CHECK_ERROR(file_->SetPosition(file_start),
+                  "Could not advance file position.");
+      CHECK_ERROR(file_->ReadFully(memory_start, length),
+                  "Could not read file.");
+      continue;
+    }
+
+    CHECK_ERROR(munmap(memory_start, length) == 0,
+                "Could not unmap reservation.");
+#endif
 
     std::unique_ptr<MappedMemory> memory(
         file_->Map(map_type, file_start, length, memory_start));
@@ -376,6 +415,27 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 }  // namespace bin
 }  // namespace dart
 
+#if defined(HOST_OS_FUCHSIA)
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
+                                            uint64_t file_offset,
+                                            const char** error,
+                                            const uint8_t** vm_snapshot_data,
+                                            const uint8_t** vm_snapshot_instrs,
+                                            const uint8_t** vm_isolate_data,
+                                            const uint8_t** vm_isolate_instrs) {
+  std::unique_ptr<dart::bin::elf::LoadedElf> elf(
+      new dart::bin::elf::LoadedElf(fd, file_offset));
+
+  if (!elf->Load() ||
+      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
+                           vm_isolate_data, vm_isolate_instrs)) {
+    *error = elf->error();
+    return nullptr;
+  }
+
+  return reinterpret_cast<Dart_LoadedElf*>(elf.release());
+}
+#else
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,
@@ -395,6 +455,8 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
 
   return reinterpret_cast<Dart_LoadedElf*>(elf.release());
 }
+
+#endif
 
 DART_EXPORT void Dart_UnloadELF(Dart_LoadedElf* loaded) {
   delete reinterpret_cast<dart::bin::elf::LoadedElf*>(loaded);

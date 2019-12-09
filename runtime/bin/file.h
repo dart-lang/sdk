@@ -213,6 +213,10 @@ class File : public ReferenceCounted<File> {
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
 
+#if defined(HOST_OS_FUCHSIA)
+  static File* OpenFD(int fd);
+#endif
+
   static bool Exists(Namespace* namespc, const char* path);
   static bool Create(Namespace* namespc, const char* path);
   static bool CreateLink(Namespace* namespc,
