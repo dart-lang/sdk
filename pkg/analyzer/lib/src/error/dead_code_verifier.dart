@@ -17,6 +17,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /// A visitor that finds dead code and unused labels.
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
@@ -51,7 +52,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     TokenType operatorType = node.operator.type;
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForDeadNullCoalesce(
-          node.leftHandSide.staticType, node.rightHandSide);
+          getReadType(node.leftHandSide), node.rightHandSide);
     }
     super.visitAssignmentExpression(node);
   }
@@ -104,8 +105,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
-    } else if (isQuestionQuestion && _isNonNullableUnit) {
-      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
+    } else if (isQuestionQuestion) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftOperand), node.rightOperand);
     }
     super.visitBinaryExpression(node);
   }

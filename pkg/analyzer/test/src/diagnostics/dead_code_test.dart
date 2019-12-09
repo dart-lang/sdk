@@ -13,8 +13,114 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(UncheckedUseOfNullableValueTest);
+    defineReflectiveTests(DeadCodeNullCoalesceTest);
   });
+}
+
+@reflectiveTest
+class DeadCodeNullCoalesceTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  test_assignCompound_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ??= 1;
+}
+''');
+  }
+
+  test_assignCompound_map() async {
+    await assertNoErrorsInCode(r'''
+class MyMap<K, V> {
+  V? operator[](K key) => null;
+  void operator[]=(K key, V value) {}
+}
+
+f(MyMap<int, int> map) {
+  map[0] ??= 0;
+}
+''');
+  }
+
+  test_assignCompound_nonNullable() async {
+    await assertErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m(int x) {
+  x ??= 1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 66, 1),
+    ]);
+  }
+
+  test_assignCompound_nullable() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  int? x;
+  x ??= 1;
+}
+''');
+  }
+
+  test_binary_dynamic() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  dynamic x;
+  x ?? 1;
+}
+''');
+  }
+
+  test_binary_nonNullable() async {
+    await assertErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m(int x) {
+  x ?? 1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 65, 1),
+    ]);
+  }
+
+  test_binary_nullable() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  int? x;
+  x ?? 1;
+}
+''');
+  }
+
+  test_binary_nullType() async {
+    await assertNoErrorsInCode(r'''
+@pragma('analyzer:non-nullable')
+library foo;
+
+m() {
+  Null x;
+  x ?? 1;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -698,98 +804,5 @@ f() {
 }''', [
       error(HintCode.DEAD_CODE, 41, 9),
     ]);
-  }
-}
-
-@reflectiveTest
-class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
-
-  test_nullCoalesce_dynamic() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  dynamic x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesce_nonNullable() async {
-    await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m(int x) {
-  x ?? 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 65, 1),
-    ]);
-  }
-
-  test_nullCoalesce_nullable() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  int? x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesce_nullType() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  Null x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_nullCoalesceAssign_dynamic() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  dynamic x;
-  x ??= 1;
-}
-''');
-  }
-
-  test_nullCoalesceAssign_nonNullable() async {
-    await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m(int x) {
-  x ??= 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 66, 1),
-    ]);
-  }
-
-  test_nullCoalesceAssign_nullable() async {
-    await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
-m() {
-  int? x;
-  x ??= 1;
-}
-''');
   }
 }
