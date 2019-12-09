@@ -18,17 +18,20 @@ import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'analyzer.dart';
 import 'version.dart';
 
+export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart'
     show ConstantEvaluationEngine, ConstantVisitor;
 export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
+export 'package:analyzer/src/dart/element/type_provider.dart'
+    show TypeProviderImpl;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisErrorInfo;
 export 'package:analyzer/src/generated/resolver.dart'
-    show ExitDetector, TypeProvider, TypeSystem;
+    show ExitDetector, TypeProvider;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show

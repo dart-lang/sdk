@@ -32,7 +32,7 @@ class DartTypeUtilities {
         // bug in the analyzer causes FieldElements to not evaluate as
         // equivalent to equivalent FieldMembers. See
         // https://github.com/dart-lang/sdk/issues/35343.
-        return variable.baseElement;
+        return variable.declaration;
       } else {
         return variable;
       }

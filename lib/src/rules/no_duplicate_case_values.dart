@@ -94,6 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return equals.isBool && equals.toBoolValue();
     });
 
+    // todo (pq): replace w/ calls to API provided by LinterContext
     final constantVisitor = ConstantVisitor(
         ConstantEvaluationEngine(typeProvider, declaredVariables,
             typeSystem: typeSystem),
