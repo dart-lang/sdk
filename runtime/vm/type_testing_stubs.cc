@@ -95,28 +95,27 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
+  if (type.IsTypeRef()) {
+    return StubCode::TypeRefTypeTest().raw();
+  }
+
+  const intptr_t cid = type.type_class_id();
   // During bootstrapping we have no access to stubs yet, so we'll just return
   // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
-    const intptr_t cid = Type::Cast(type).type_class_id();
     ASSERT(cid == kDynamicCid || cid == kVoidCid | cid == kNeverCid);
     return Code::null();
   }
 
   // TODO(regis): Revisit when type checking mode is not kLegacy anymore.
-  if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType() ||
-      type.raw() == Type::VoidType()) {
+  if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
-  if (type.raw() == Type::NeverType()) {
+  if (cid == kNeverCid) {
     // TODO(regis): Revisit.
     return StubCode::StubCode::DefaultTypeTest().raw();
-  }
-
-  if (type.IsTypeRef()) {
-    return StubCode::TypeRefTypeTest().raw();
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
@@ -151,7 +150,8 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
     return StubCode::TypeRefTypeTest().raw();
   }
 
-  if (type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType()) {
+  const intptr_t cid = type.type_class_id();
+  if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
     return StubCode::TopTypeTypeTest().raw();
   }
 
@@ -245,11 +245,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     Register instance_reg,
     Register class_id_reg) {
   // These are handled via the TopTypeTypeTestStub!
-  ASSERT(
-      !(type.raw() == Type::ObjectType() || type.raw() == Type::DynamicType()));
+  ASSERT(!(type.IsDynamicType() || type.IsVoidType() || type.IsObjectType()));
 
   // Fast case for 'int'.
-  if (type.raw() == Type::IntType()) {
+  if (type.IsIntType()) {
     compiler::Label non_smi_value;
     __ BranchIfNotSmi(instance_reg, &non_smi_value);
     __ Ret();
@@ -411,8 +410,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     const Register function_type_args_reg,
     const Register own_type_arg_reg,
     compiler::Label* check_failed) {
-  if (type_arg.raw() != Type::ObjectType() &&
-      type_arg.raw() != Type::DynamicType()) {
+  const intptr_t cid = type_arg.type_class_id();
+  if (!(cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid)) {
     // TODO(kustermann): Even though it should be safe to use TMP here, we
     // should avoid using TMP outside the assembler.  Try to find a free
     // register to use here!

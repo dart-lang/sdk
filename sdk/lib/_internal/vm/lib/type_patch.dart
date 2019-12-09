@@ -22,6 +22,9 @@ class _Type extends _AbstractType {
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "Type_getHashCode";
+
+  @pragma("vm:exact-result-type", bool)
+  bool operator ==(other) native "Type_equality";
 }
 
 // Equivalent of RawTypeRef.

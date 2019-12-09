@@ -1758,6 +1758,22 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  // TODO(regis): Add more fast cases. See ObjectHaveSameRuntimeType.
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));
+  __ ldr(R1, Address(SP, 1 * target::kWordSize));
+  __ cmp(R0, Operand(R1));
+  __ b(normal_ir_body, NE);
+
+  // Types are strictly equal.
+  __ LoadObject(R0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // Check if types are syntactically equal.
+  __ Bind(normal_ir_body);
+}
+
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));

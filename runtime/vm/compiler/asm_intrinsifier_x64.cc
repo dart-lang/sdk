@@ -1723,6 +1723,22 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  // TODO(regis): Add more fast cases. See ObjectHaveSameRuntimeType.
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
+  __ movq(RCX, Address(RSP, +2 * target::kWordSize));
+  __ cmpq(RAX, RCX);
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  // Types are strictly equal.
+  __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // Check if types are syntactically equal.
+  __ Bind(normal_ir_body);
+}
+
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Object.

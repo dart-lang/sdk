@@ -222,6 +222,7 @@ namespace dart {
   V(_OneByteString, ==, OneByteString_equality, 0xe1ea0c11)                    \
   V(_TwoByteString, ==, TwoByteString_equality, 0xe1ea0c11)                    \
   V(_Type, get:hashCode, Type_getHashCode, 0x22a75237)                         \
+  V(_Type, ==, Type_equality, 0x91ead098)                                      \
   V(::, _getHash, Object_getHash, 0xb05aa13f)                                  \
   V(::, _setHash, Object_setHash, 0xcb404dd2)                                  \
 

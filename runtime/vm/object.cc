@@ -5252,6 +5252,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
                                           intptr_t from_index,
                                           intptr_t len,
+                                          bool syntactically,
                                           TrailPtr trail) const {
   if (this->raw() == other.raw()) {
     return true;
@@ -5269,7 +5270,7 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
     type = TypeAt(i);
     other_type = other.TypeAt(i);
     // Still unfinalized vectors should not be considered equivalent.
-    if (type.IsNull() || !type.IsEquivalent(other_type, trail)) {
+    if (type.IsNull() || !type.IsEquivalent(other_type, syntactically, trail)) {
       return false;
     }
   }
@@ -17202,7 +17203,9 @@ void AbstractType::SetIsBeingFinalized() const {
   UNREACHABLE();
 }
 
-bool AbstractType::IsEquivalent(const Instance& other, TrailPtr trail) const {
+bool AbstractType::IsEquivalent(const Instance& other,
+                                bool syntactically,
+                                TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -17983,7 +17986,9 @@ RawAbstractType* Type::InstantiateFrom(
   return instantiated_type.raw();
 }
 
-bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
+bool Type::IsEquivalent(const Instance& other,
+                        bool syntactically,
+                        TrailPtr trail) const {
   ASSERT(!IsNull());
   if (raw() == other.raw()) {
     return true;
@@ -17993,7 +17998,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, trail);
+    return IsEquivalent(other_ref_type, syntactically, trail);
   }
   if (!other.IsType()) {
     return false;
@@ -18005,7 +18010,17 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
-  if (nullability() != other_type.nullability()) {
+  Nullability this_type_nullability = nullability();
+  Nullability other_type_nullability = other_type.nullability();
+  if (syntactically) {
+    if (this_type_nullability == Nullability::kLegacy) {
+      this_type_nullability = Nullability::kNonNullable;
+    }
+    if (other_type_nullability == Nullability::kLegacy) {
+      other_type_nullability = Nullability::kNonNullable;
+    }
+  }
+  if (this_type_nullability != other_type_nullability) {
     return false;
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
@@ -18038,7 +18053,8 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
           return false;
         }
       } else if (!type_args.IsSubvectorEquivalent(other_type_args, from_index,
-                                                  num_type_params, trail)) {
+                                                  num_type_params,
+                                                  syntactically, trail)) {
         return false;
       }
 #ifdef DEBUG
@@ -18054,7 +18070,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
         for (intptr_t i = 0; i < from_index; i++) {
           type_arg = type_args.TypeAt(i);
           other_type_arg = other_type_args.TypeAt(i);
-          ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
+          ASSERT(type_arg.IsEquivalent(other_type_arg, syntactically, trail));
         }
       }
 #endif
@@ -18117,7 +18133,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   for (intptr_t i = 0; i < num_params; i++) {
     param_type = sig_fun.ParameterTypeAt(i);
     other_param_type = other_sig_fun.ParameterTypeAt(i);
-    if (!param_type.Equals(other_param_type)) {
+    if (!param_type.IsEquivalent(other_param_type, syntactically)) {
       return false;
     }
   }
@@ -18129,6 +18145,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
     if (sig_fun.ParameterNameAt(i) != other_sig_fun.ParameterNameAt(i)) {
       return false;
     }
+    // TODO(regis): Check 'required' annotation.
   }
   return true;
 }
@@ -18354,7 +18371,13 @@ intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
   result = CombineHashes(result, type_class_id());
-  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
+  // A legacy type should have the same hash as its non-nullable version to be
+  // consistent with the definition of type equality in Dart code.
+  Nullability type_nullability = nullability();
+  if (type_nullability == Nullability::kLegacy) {
+    type_nullability = Nullability::kNonNullable;
+  }
+  result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
   result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(signature());
@@ -18469,7 +18492,9 @@ bool TypeRef::IsInstantiated(Genericity genericity,
          ref_type.IsInstantiated(genericity, num_free_fun_type_params, trail);
 }
 
-bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
+bool TypeRef::IsEquivalent(const Instance& other,
+                           bool syntactically,
+                           TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -18480,7 +18505,8 @@ bool TypeRef::IsEquivalent(const Instance& other, TrailPtr trail) const {
     return true;
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
-  return !ref_type.IsNull() && ref_type.IsEquivalent(other, trail);
+  return !ref_type.IsNull() &&
+         ref_type.IsEquivalent(other, syntactically, trail);
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
@@ -18644,7 +18670,9 @@ bool TypeParameter::IsInstantiated(Genericity genericity,
   return (genericity == kCurrentClass) || (index() >= num_free_fun_type_params);
 }
 
-bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
+bool TypeParameter::IsEquivalent(const Instance& other,
+                                 bool syntactically,
+                                 TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -18653,7 +18681,7 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, trail);
+    return IsEquivalent(other_ref_type, syntactically, trail);
   }
   if (!other.IsTypeParameter()) {
     return false;
@@ -18666,7 +18694,17 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
   if (parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
-  if (nullability() != other_type_param.nullability()) {
+  Nullability this_type_param_nullability = nullability();
+  Nullability other_type_param_nullability = other_type_param.nullability();
+  if (syntactically) {
+    if (this_type_param_nullability == Nullability::kLegacy) {
+      this_type_param_nullability = Nullability::kNonNullable;
+    }
+    if (other_type_param_nullability == Nullability::kLegacy) {
+      other_type_param_nullability = Nullability::kNonNullable;
+    }
+  }
+  if (this_type_param_nullability != other_type_param_nullability) {
     return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
@@ -18792,7 +18830,13 @@ intptr_t TypeParameter::ComputeHash() const {
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());
-  result = CombineHashes(result, static_cast<uint32_t>(nullability()));
+  // A legacy type should have the same hash as its non-nullable version to be
+  // consistent with the definition of type equality in Dart code.
+  Nullability type_param_nullability = nullability();
+  if (type_param_nullability == Nullability::kLegacy) {
+    type_param_nullability = Nullability::kNonNullable;
+  }
+  result = CombineHashes(result, static_cast<uint32_t>(type_param_nullability));
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;

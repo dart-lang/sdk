@@ -1807,6 +1807,22 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
+void AsmIntrinsifier::Type_equality(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  // TODO(regis): Add more fast cases. See ObjectHaveSameRuntimeType.
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
+  __ cmpl(EAX, EBX);
+  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+
+  // Types are strictly equal.
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // Check if types are syntactically equal.
+  __ Bind(normal_ir_body);
+}
+
 // bool _substringMatches(int start, String other)
 void AsmIntrinsifier::StringBaseSubstringMatches(Assembler* assembler,
                                                  Label* normal_ir_body) {

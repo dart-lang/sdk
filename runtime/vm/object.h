@@ -6763,15 +6763,20 @@ class TypeArguments : public Instance {
 
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
+                                 /* syntactically = */ false);
   }
 
-  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
+  bool IsEquivalent(const TypeArguments& other,
+                    bool syntactically,
+                    TrailPtr trail = NULL) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
+                                 syntactically, trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
+                             bool syntactically,
                              TrailPtr trail = NULL) const;
 
   // Check if the vector is instantiated (it must not be null).
@@ -6943,9 +6948,11 @@ class AbstractType : public Instance {
   }
   virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
-    return IsEquivalent(other);
+    return IsEquivalent(other, /* syntactically = */ false);
   }
-  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            bool syntactically,
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
   // Check if this type represents a function type.
@@ -7179,7 +7186,9 @@ class Type : public AbstractType {
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
-  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            bool syntactically,
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
@@ -7334,7 +7343,9 @@ class TypeRef : public AbstractType {
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
-  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            bool syntactically,
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
   virtual bool IsFunctionType() const {
     const AbstractType& ref_type = AbstractType::Handle(type());
@@ -7417,7 +7428,9 @@ class TypeParameter : public AbstractType {
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
-  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            bool syntactically,
+                            TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
       NNBDMode mode,
