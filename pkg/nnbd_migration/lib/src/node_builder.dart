@@ -253,7 +253,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      // Node: we don't pass _typeFormalBounds into DecoratedType because we're
+      // Note: we don't pass _typeFormalBounds into DecoratedType because we're
       // not defining a generic function type, we're defining a generic typedef
       // of an ordinary (non-generic) function type.
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
@@ -398,6 +398,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     DecoratedType decoratedType;
     if (type is FunctionType && node is! GenericFunctionType) {
+      (node as TypeName).typeArguments?.accept(this);
       // node is a reference to a typedef.  Treat it like an inferred type (we
       // synthesize new nodes for it).  These nodes will be unioned with the
       // typedef nodes by the edge builder.

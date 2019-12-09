@@ -2332,6 +2332,15 @@ int/*2*/ g() {
             hard: false));
   }
 
+  test_functionTypeAlias_inExpression() async {
+    await analyze('''
+typedef bool _P<T>(T value);
+bool f(Object x) => x is _P<Object>;
+''');
+    // No assertions here; just don't crash. This test can be repurposed for
+    // a more specific test with assertions.
+  }
+
   test_genericMethodInvocation() async {
     await analyze('''
 class Base {
@@ -2398,6 +2407,15 @@ int bar(Derived<String> d, int i, List<String> j) => d.foo(i, j);
             decoratedTypeAnnotation('U foo').node),
         decoratedTypeAnnotation('int bar').node,
         hard: false);
+  }
+
+  test_genericTypeAlias_inExpression() async {
+    await analyze('''
+typedef _P<T> = bool Function(T value);
+bool f(Object x) => x is _P<Object>;
+''');
+    // No assertions here; just don't crash. This test can be repurposed for
+    // a more specific test with assertions.
   }
 
   test_if_condition() async {
