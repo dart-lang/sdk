@@ -862,7 +862,9 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // A call method tearoff
-    if (fromType is InterfaceType && acceptsFunctionType(toType)) {
+    if (fromType is InterfaceType &&
+        !isNullable(fromType) &&
+        acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
       if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
         return true;
