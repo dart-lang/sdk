@@ -9,6 +9,24 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+/// Return a resolved path including the home directory in place of tilde
+/// references.
+String resolveTildePath(String originalPath) {
+  if (originalPath == null || !originalPath.startsWith('~/')) {
+    return originalPath;
+  }
+
+  String homeDir;
+
+  if (Platform.isWindows) {
+    homeDir = path.absolute(Platform.environment['USERPROFILE']);
+  } else {
+    homeDir = path.absolute(Platform.environment['HOME']);
+  }
+
+  return path.join(homeDir, originalPath.substring(2));
+}
+
 /// Returns the path to the SDK repository this script is a part of.
 final String thisSdkRepo = () {
   var maybeSdkRepoDir = Platform.script.toFilePath();
@@ -23,6 +41,14 @@ final String thisSdkRepo = () {
 }();
 
 Uri get thisSdkUri => Uri.file(thisSdkRepo);
+
+/// Abstraction for an unmanaged package.
+class ManualPackage extends Package {
+  ManualPackage(this.packagePath) : super(packagePath);
+
+  @override
+  final String packagePath;
+}
 
 /// Abstraction for a package fetched via Github.
 class GitHubPackage extends Package {

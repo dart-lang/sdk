@@ -33,6 +33,15 @@ main(List<String> args) async {
           '(compiled with --nnbd).  For example: ../../xcodebuild/DebugX64NNBD/dart-sdk');
 
   argParser.addMultiOption(
+    'manual_packages',
+    abbr: 'm',
+    defaultsTo: [],
+    help: 'Run migration against packages in these directories.  Does not '
+        'run pub get, any git commands, or any other preparation.',
+    splitCommas: true,
+  );
+
+  argParser.addMultiOption(
     'packages',
     abbr: 'p',
     defaultsTo: [
@@ -75,9 +84,12 @@ main(List<String> args) async {
   warnOnNoAssertions();
   warnOnNoSdkNnbd(sdk);
 
-  List<Package> packages = (parsedArgs['packages'] as Iterable<String>)
-      .map((n) => SdkPackage(n))
-      .toList(growable: false);
+  List<Package> packages = [
+    for (String package in parsedArgs['packages'] as Iterable<String>)
+      SdkPackage(package),
+    for (String package in parsedArgs['manual_packages'] as Iterable<String>)
+      ManualPackage(package),
+  ];
 
   String categoryOfInterest =
       parsedArgs.rest.isEmpty ? null : parsedArgs.rest.single;
