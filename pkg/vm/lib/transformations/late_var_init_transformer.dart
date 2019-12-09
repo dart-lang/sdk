@@ -39,8 +39,6 @@ class _LateVarInitTransformer extends Transformer {
   }
 
   List<Statement> _transformVariableDeclaration(VariableDeclaration node) {
-    super.visitVariableDeclaration(node);
-
     final fnNode =
         FunctionNode(ReturnStatement(node.initializer), returnType: node.type);
     final fn = FunctionDeclaration(

@@ -2194,15 +2194,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSet(TokenPosition* p) {
   if (p != NULL) *p = position;
 
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
-  ReadUInt();                                 // read relative variable index.
-  Fragment instructions = BuildExpression();  // read expression.
-
-  if (NeedsDebugStepCheck(stack(), position)) {
-    instructions = DebugStepCheck(position) + instructions;
-  }
-  instructions +=
-      StoreLocal(position, LookupVariable(variable_kernel_position));
-  return instructions;
+  ReadUInt();  // read relative variable index.
+  return BuildVariableSetImpl(position, variable_kernel_position);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildVariableSet(uint8_t payload,
@@ -2211,13 +2204,49 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSet(uint8_t payload,
   if (p != NULL) *p = position;
 
   intptr_t variable_kernel_position = ReadUInt();  // read kernel position.
-  Fragment instructions = BuildExpression();       // read expression.
+  return BuildVariableSetImpl(position, variable_kernel_position);
+}
 
+Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
+    TokenPosition position,
+    intptr_t variable_kernel_position) {
+  Fragment instructions = BuildExpression();  // read expression.
   if (NeedsDebugStepCheck(stack(), position)) {
     instructions = DebugStepCheck(position) + instructions;
   }
-  instructions +=
-      StoreLocal(position, LookupVariable(variable_kernel_position));
+
+  LocalVariable* variable = LookupVariable(variable_kernel_position);
+  if (variable->is_late() && variable->is_final()) {
+    // Late final variable, so check whether it has been initialized.
+    LocalVariable* expr_temp = MakeTemporary();
+    instructions += LoadLocal(variable);
+    TargetEntryInstr *is_uninitialized, *is_initialized;
+    instructions += Constant(Object::sentinel());
+    instructions += flow_graph_builder_->BranchIfStrictEqual(&is_uninitialized,
+                                                             &is_initialized);
+    JoinEntryInstr* join = BuildJoinEntry();
+
+    {
+      // The variable is uninitialized, so store the expression value.
+      Fragment initialize(is_uninitialized);
+      initialize += LoadLocal(expr_temp);
+      initialize += StoreLocal(position, variable);
+      initialize += Drop();
+      initialize += Goto(join);
+    }
+
+    {
+      // Already initialized, so throw a LateInitializationError.
+      Fragment already_initialized(is_initialized);
+      already_initialized += flow_graph_builder_->ThrowLateInitializationError(
+          position, variable->name());
+      already_initialized += Goto(join);
+    }
+
+    instructions = Fragment(instructions.entry, join);
+  } else {
+    instructions += StoreLocal(position, variable);
+  }
 
   return instructions;
 }

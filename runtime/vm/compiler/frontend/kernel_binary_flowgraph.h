@@ -282,6 +282,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                 TokenPosition position);
   Fragment BuildVariableSet(TokenPosition* position);
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
+  Fragment BuildVariableSetImpl(TokenPosition position,
+                                intptr_t variable_kernel_position);
   Fragment BuildPropertyGet(TokenPosition* position);
   Fragment BuildPropertySet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,
