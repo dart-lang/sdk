@@ -22,6 +22,9 @@ _Flutter get _flutter => _flutterInstance;
 bool isExactWidgetTypeContainer(DartType type) =>
     _flutter.isExactWidgetTypeContainer(type);
 
+bool isStatefulWidget(ClassElement element) =>
+    _flutter.isStatefulWidget(element);
+
 bool isWidgetProperty(DartType type) {
   if (isWidgetType(type)) {
     return true;
@@ -38,6 +41,7 @@ bool isWidgetType(DartType type) => _flutter.isWidgetType(type);
 
 /// See: analysis_server/lib/src/utilities/flutter.dart
 class _Flutter {
+  static const _nameStatefulWidget = 'StatefulWidget';
   static const _nameWidget = 'Widget';
   static const _nameContainer = 'Container';
 
@@ -55,6 +59,21 @@ class _Flutter {
   bool isExactWidgetTypeContainer(DartType type) =>
       type is InterfaceType &&
       _isExactWidget(type.element, _nameContainer, _uriContainer);
+
+  bool isStatefulWidget(ClassElement element) {
+    if (element == null) {
+      return false;
+    }
+    if (_isExactWidget(element, _nameStatefulWidget, _uriFramework)) {
+      return true;
+    }
+    for (var type in element.allSupertypes) {
+      if (_isExactWidget(type.element, _nameStatefulWidget, _uriFramework)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   bool isWidget(ClassElement element) {
     if (element == null) {

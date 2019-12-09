@@ -72,6 +72,7 @@ linter:
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values
+    - no_logic_in_create_state
     - non_constant_identifier_names
     - null_closures
     - omit_local_variable_types

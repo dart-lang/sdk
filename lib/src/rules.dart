@@ -73,6 +73,7 @@ import 'rules/list_remove_unrelated_type.dart';
 import 'rules/literal_only_boolean_expressions.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
 import 'rules/no_duplicate_case_values.dart';
+import 'rules/no_logic_in_create_state.dart';
 import 'rules/non_constant_identifier_names.dart';
 import 'rules/null_closures.dart';
 import 'rules/omit_local_variable_types.dart';
@@ -234,6 +235,7 @@ void registerLintRules() {
     ..register(NoAdjacentStringsInList())
     ..register(NoDuplicateCaseValues())
     ..register(NonConstantIdentifierNames())
+    ..register(NoLogicInCreateState())
     ..register(NullClosures())
     ..register(OmitLocalVariableTypes())
     ..register(OneMemberAbstracts())
