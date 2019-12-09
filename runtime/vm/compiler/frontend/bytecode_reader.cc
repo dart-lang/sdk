@@ -1674,7 +1674,8 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
       if (!cls.is_declaration_loaded()) {
         LoadReferencedClass(cls);
       }
-      return cls.DeclarationType(nullability);
+      const Type& type = Type::Handle(Z, cls.DeclarationType());
+      return type.ToNullability(nullability, Heap::kOld);
     }
     case kTypeParameter: {
       Object& parent = Object::Handle(Z, ReadObject());

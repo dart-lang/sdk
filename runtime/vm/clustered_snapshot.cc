@@ -5572,6 +5572,13 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
 
+  // These type arguments must always be retained.
+  ASSERT(object_store->type_argument_int()->IsCanonical());
+  ASSERT(object_store->type_argument_double()->IsCanonical());
+  ASSERT(object_store->type_argument_string()->IsCanonical());
+  ASSERT(object_store->type_argument_string_dynamic()->IsCanonical());
+  ASSERT(object_store->type_argument_string_string()->IsCanonical());
+
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
   // Isolate snapshot roots are:

@@ -322,6 +322,20 @@ void Precompiler::DoCompileAll() {
       AddRoots();
       AddAnnotatedRoots();
 
+      // With the nnbd experiment enabled, these non-nullable type arguments may
+      // not be retained, although they will be used and expected to be
+      // canonical.
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_int()));
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_double()));
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_string()));
+      AddTypeArguments(TypeArguments::Handle(
+          Z, I->object_store()->type_argument_string_dynamic()));
+      AddTypeArguments(TypeArguments::Handle(
+          Z, I->object_store()->type_argument_string_string()));
+
       // Compile newly found targets and add their callees until we reach a
       // fixed point.
       Iterate();

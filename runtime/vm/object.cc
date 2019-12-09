@@ -1585,7 +1585,9 @@ RawError* Object::Init(Isolate* isolate,
     // patching. The array type allocated below represents the raw type _List
     // and not _List<E> as we could expect. Use with caution.
     type = Type::New(Class::Handle(zone, cls.raw()),
-                     TypeArguments::Handle(zone), TokenPosition::kNoSource);
+                     TypeArguments::Handle(zone), TokenPosition::kNoSource,
+                     Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                               : Nullability::kLegacy);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     object_store->set_array_type(type);
@@ -2456,8 +2458,10 @@ RawAbstractType* Class::RareType() const {
     return DeclarationType();
   }
   ASSERT(is_declaration_loaded());
-  const Type& type = Type::Handle(Type::New(
-      *this, Object::null_type_arguments(), TokenPosition::kNoSource));
+  const Type& type = Type::Handle(
+      Type::New(*this, Object::null_type_arguments(), TokenPosition::kNoSource,
+                Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                          : Nullability::kLegacy));
   return ClassFinalizer::FinalizeType(*this, type);
 }
 
@@ -4354,19 +4358,19 @@ void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
-  // TODO(regis): Since declaration type is used as the runtime type of
-  // instances of a non-generic class, the nullability should be set to
-  // kNonNullable instead of kLegacy.
-  // For now, we accept any except for Null (kNullable).
+  // Since declaration type is used as the runtime type of  instances of a
+  // non-generic class, the nullability is set to kNonNullable instead of
+  // kLegacy when the non-nullable experiment is enabled.
   ASSERT(!value.IsNullType() || value.IsNullable());
-  ASSERT(value.IsNullType() || value.IsLegacy());
+  ASSERT(
+      value.IsNullType() ||
+      (Dart::non_nullable_flag() ? value.IsNonNullable() : value.IsLegacy()));
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
 
-RawType* Class::DeclarationType(Nullability nullability) const {
+RawType* Class::DeclarationType() const {
   ASSERT(is_declaration_loaded());
   if (IsNullClass()) {
-    // Ignore requested nullability (e.g. by mirrors).
     return Type::NullType();
   }
   if (IsDynamicClass()) {
@@ -4378,23 +4382,21 @@ RawType* Class::DeclarationType(Nullability nullability) const {
   if (IsNeverClass()) {
     return Type::NeverType();
   }
-  Type& type = Type::Handle(declaration_type());
-  if (!type.IsNull()) {
-    return type.ToNullability(nullability, Heap::kOld);
+  if (declaration_type() != Type::null()) {
+    return declaration_type();
   }
-  // TODO(regis): We should pass nullabiity to Type::New to avoid having to
-  // clone the type to the desired nullability. This however causes issues with
-  // the runtimeType intrinsic grabbing DeclarationType without checking its
-  // nullability. Indeed, when the CFE provides a non-nullable version of the
-  // type first, this non-nullable version gets cached as the declaration type.
-  // We consistenly cache the kLegacy version of a type, unless the non-nullable
+  // For efficiency, the runtimeType intrinsic returns the type cached by
+  // DeclarationType without checking its nullability. Therefore, we
+  // consistently cache the kLegacy version of a type, unless the non-nullable
   // experiment is enabled, in which case we store the kNonNullable version.
   // In either cases, the exception is type Null which is stored as kNullable.
-  type = Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos(),
-                   Nullability::kLegacy);
+  Type& type = Type::Handle(
+      Type::New(*this, TypeArguments::Handle(type_parameters()), token_pos(),
+                Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                          : Nullability::kLegacy));
   type ^= ClassFinalizer::FinalizeType(*this, type);
   set_declaration_type(type);
-  return type.ToNullability(nullability, Heap::kOld);
+  return type.raw();
 }
 
 void Class::set_allocation_stub(const Code& value) const {
@@ -16745,10 +16747,10 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    // TODO(regis): The runtime type of a non-null instance should be
-    // non-nullable instead of legacy. Revisit.
     type = Type::New(cls, type_arguments, TokenPosition::kNoSource,
-                     Nullability::kLegacy, space);
+                     Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                               : Nullability::kLegacy,
+                     space);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -17783,11 +17785,9 @@ RawType* Type::DartTypeType() {
   return Isolate::Current()->object_store()->type_type();
 }
 
-RawType* Type::NewNonParameterizedType(const Class& type_class,
-                                       Nullability nullability) {
+RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
   if (type_class.IsNullClass()) {
-    // Ignore requested nullability (e.g. by mirrors).
     return Type::NullType();
   }
   if (type_class.IsDynamicClass()) {
@@ -17805,13 +17805,14 @@ RawType* Type::NewNonParameterizedType(const Class& type_class,
   if (type.IsNull()) {
     type = Type::New(Class::Handle(type_class.raw()),
                      Object::null_type_arguments(), TokenPosition::kNoSource,
-                     Nullability::kLegacy);
+                     Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                               : Nullability::kLegacy);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     type_class.set_declaration_type(type);
   }
   ASSERT(type.IsFinalized());
-  return type.ToNullability(nullability, Heap::kOld);
+  return type.raw();
 }
 
 void Type::SetIsFinalized() const {
@@ -17840,6 +17841,7 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   }
   // Clone type and set new nullability.
   Type& type = Type::Handle();
+  // TODO(regis): Should we always clone in old space and remove space param?
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
@@ -18154,6 +18156,20 @@ bool Type::IsRecursive() const {
   return TypeArguments::Handle(arguments()).IsRecursive();
 }
 
+bool Type::IsDeclarationTypeOf(const Class& cls) const {
+  ASSERT(type_class() == cls.raw());
+  if (IsNullType()) {
+    return true;
+  }
+  if (cls.IsGeneric() || cls.IsClosureClass() || cls.IsTypedefClass()) {
+    return false;
+  }
+  const Nullability declaration_nullability = Dart::non_nullable_flag()
+                                                  ? Nullability::kNonNullable
+                                                  : Nullability::kLegacy;
+  return nullability() == declaration_nullability;
+}
+
 RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical()) {
@@ -18183,8 +18199,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if ((IsNullType() || IsLegacy()) && !cls.IsGeneric() &&
-      !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsDeclarationTypeOf(cls)) {
     ASSERT(!IsFunctionType());
     ASSERT(!IsNullType() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
@@ -18317,8 +18332,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
-  if ((IsNullType() || IsLegacy()) && !cls.IsGeneric() &&
-      !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+  if (IsDeclarationTypeOf(cls)) {
     ASSERT(!IsFunctionType());
     type = cls.declaration_type();
     ASSERT(type.IsCanonical());
@@ -18652,6 +18666,7 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   }
   // Clone type and set new nullability.
   TypeParameter& type_parameter = TypeParameter::Handle();
+  // TODO(regis): Should we always clone in old space and remove space param?
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
   type_parameter.SetHash(0);

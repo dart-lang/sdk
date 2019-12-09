@@ -951,12 +951,9 @@ class Class : public Object {
   // class B<T, S>
   // class C<R> extends B<R, int>
   // C.DeclarationType() --> C [R, int, R]
-  // The declaration type is legacy by default, but another nullability
-  // variant may be requested. The first requested type gets cached in the class
-  // and subsequent nullability variants get cached in the object store.
-  // TODO(regis): Is this caching still useful or should we eliminate it?
-  RawType* DeclarationType(
-      Nullability nullability = Nullability::kLegacy) const;
+  // The declaration type's nullability is either legacy or non-nullable when
+  // the non-nullable experiment is enabled.
+  RawType* DeclarationType() const;
 
   static intptr_t declaration_type_offset() {
     return OFFSET_OF(RawClass, declaration_type_);
@@ -7190,6 +7187,11 @@ class Type : public AbstractType {
                             bool syntactically,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+
+  // Return true if this type can be used as the declaration type of cls after
+  // canonicalization (passed-in cls must match type_class()).
+  bool IsDeclarationTypeOf(const Class& cls) const;
+
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
   // However, in case of a generic typedef, they document how the typedef class
@@ -7277,9 +7279,7 @@ class Type : public AbstractType {
   static RawType* DartTypeType();
 
   // The finalized type of the given non-parameterized class.
-  static RawType* NewNonParameterizedType(
-      const Class& type_class,
-      Nullability nullability = Nullability::kLegacy);
+  static RawType* NewNonParameterizedType(const Class& type_class);
 
   static RawType* New(const Class& clazz,
                       const TypeArguments& arguments,
