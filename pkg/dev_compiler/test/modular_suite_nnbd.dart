@@ -21,7 +21,7 @@ main(List<String> args) async {
   await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/compiler/dartdevc/modular/'),
-      'tests/compiler/dartdevc/modular/',
+      'tests/compiler/dartdevc/modular',
       _options,
       IOPipeline([
         SourceToSummaryDillStep(),
