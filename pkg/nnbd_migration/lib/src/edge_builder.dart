@@ -799,11 +799,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       InstanceCreationExpression node) {
     var callee = node.staticElement;
     var typeParameters = callee.enclosingElement.typeParameters;
-    List<DartType> typeArgumentTypes;
+    Iterable<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
     if (typeArguments != null) {
-      typeArgumentTypes = typeArguments.arguments.map((t) => t.type).toList();
+      typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))
           .toList();
@@ -1267,15 +1267,28 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       SuperConstructorInvocation node) {
     var callee = node.staticElement;
     var nullabilityNode = NullabilityNode.forInferredType();
-    var createdType = DecoratedType(callee.returnType, nullabilityNode);
+    var class_ = node.thisOrAncestorOfType<ClassDeclaration>();
+    var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
+        class_.declaredElement, callee.enclosingElement);
+    var typeArguments = decoratedSupertype.typeArguments;
+    Iterable<DartType> typeArgumentTypes;
+    if (typeArguments != null) {
+      typeArgumentTypes = typeArguments.map((t) => t.type);
+    } else {
+      typeArgumentTypes = [];
+    }
+    var createdType = DecoratedType(callee.returnType, nullabilityNode,
+        typeArguments: typeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    var constructorTypeParameters = callee.enclosingElement.typeParameters;
+
     _handleInvocationArguments(
         node,
         node.argumentList.arguments,
-        null /* typeArguments */,
-        [] /* typeArgumentTypes */,
+        null /*typeArguments*/,
+        typeArgumentTypes,
         calleeType,
-        [] /* constructorTypeParameters */);
+        constructorTypeParameters);
     return null;
   }
 
@@ -1954,15 +1967,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
+  /// Only pass [typeArguments] or [typeArgumentTypes] depending on the use
+  /// case; only one will be used.
+  ///
   /// Returns the decorated return type of the invocation, after any necessary
   /// substitutions.
   DecoratedType _handleInvocationArguments(
       AstNode node,
       Iterable<AstNode> arguments,
       TypeArgumentList typeArguments,
-      List<DartType> typeArgumentTypes,
+      Iterable<DartType> typeArgumentTypes,
       DecoratedType calleeType,
-      List<TypeParameterElement> constructorTypeParameters,
+      Iterable<TypeParameterElement> constructorTypeParameters,
       {DartType invokeType}) {
     var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
     if (typeFormals.isNotEmpty) {
