@@ -131,7 +131,7 @@ class InstrumentationRenderer {
       'root': migrationInfo.includedRoot,
       'units': <Map<String, dynamic>>[],
       'dartPageStyle': dartPageStyle,
-      'thisUnit': migrationInfo._computeName(unitInfo),
+      'thisUnit': migrationInfo.computeName(unitInfo),
       'links': migrationInfo.unitLinks(unitInfo),
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),
@@ -393,7 +393,7 @@ class MigrationInfo {
           count == 1 ? '(1 modification)' : '($count modifications)';
       bool isNotCurrent = unit != currentUnit;
       links.add({
-        'name': _computeName(unit),
+        'name': computeName(unit),
         'modificationCount': modificationCount,
         'isLink': isNotCurrent,
         if (isNotCurrent) 'href': _pathTo(target: unit, source: currentUnit)
@@ -404,7 +404,7 @@ class MigrationInfo {
 
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
-  String _computeName(UnitInfo unit) =>
+  String computeName(UnitInfo unit) =>
       pathContext.relative(unit.path, from: includedRoot);
 
   /// The path to [target], relative to [from].
