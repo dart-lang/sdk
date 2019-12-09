@@ -4,13 +4,11 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 import 'module_builder.dart';
-import '../analyzer/command.dart' as analyzer_compiler;
 import '../analyzer/driver.dart' show CompilerAnalysisDriver;
 import '../kernel/command.dart' as kernel_compiler;
 
@@ -400,33 +398,31 @@ Future<CompilerResult> compile(ParsedArguments args,
     throw ArgumentError(
         'previousResult requires --batch or --bazel_worker mode/');
   }
-  if (args.isKernel) {
-    return kernel_compiler.compile(args.rest,
-        compilerState: previousResult?.kernelState,
-        isWorker: args.isWorker,
-        useIncrementalCompiler: args.useIncrementalCompiler,
-        inputDigests: inputDigests);
-  } else {
-    var result = analyzer_compiler.compile(args.rest,
-        compilerState: previousResult?.analyzerState);
-    if (args.isBatchOrWorker) {
-      AnalysisEngine.instance.clearCaches();
-    }
-    return Future.value(result);
+
+  // TODO(38777) Cleanup when we delete all the DDC code.
+  if (!args.isKernel) {
+    throw ArgumentError(
+        'Compiling with analyzer based DDC is no longer supported.');
   }
+
+  return kernel_compiler.compile(args.rest,
+      compilerState: previousResult?.kernelState,
+      isWorker: args.isWorker,
+      useIncrementalCompiler: args.useIncrementalCompiler,
+      inputDigests: inputDigests);
 }
 
 /// The result of a single `dartdevc` compilation.
 ///
-/// Typically used for exiting the proceess with [exitCode] or checking the
+/// Typically used for exiting the process with [exitCode] or checking the
 /// [success] of the compilation.
 ///
-/// For batch/worker compilations, the [compilerState] provides an opprotunity
+/// For batch/worker compilations, the [compilerState] provides an opportunity
 /// to reuse state from the previous run, if the options/input summaries are
-/// equiavlent. Otherwise it will be discarded.
+/// equivalent. Otherwise it will be discarded.
 class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
+  /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
   ///
   /// This field is unused when using the Analyzer-backend for DDC.
@@ -437,6 +433,7 @@ class CompilerResult {
   /// compilation.
   ///
   /// This field is unused when using the Kernel-backend for DDC.
+  // TODO(38777) Cleanup when we delete all the DDC code.
   final CompilerAnalysisDriver analyzerState;
 
   /// The process exit code of the compiler.
@@ -454,7 +451,7 @@ class CompilerResult {
   /// [exitCode] == 0).
   bool get success => exitCode == 0;
 
-  /// Whether the compiler crashed (i.e. threw an unhandled exeception,
+  /// Whether the compiler crashed (i.e. threw an unhandled exception,
   /// typically indicating an internal error in DDC itself or its front end).
   bool get crashed => exitCode == 70;
 }
@@ -506,7 +503,7 @@ class ParsedArguments {
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
-      this.isKernel = false,
+      this.isKernel = true,
       this.reuseResult = false,
       this.useIncrementalCompiler = false});
 
@@ -525,7 +522,7 @@ class ParsedArguments {
     var newArgs = <String>[];
     bool isWorker = false;
     bool isBatch = false;
-    bool isKernel = false;
+    bool isKernel = true;
     bool reuseResult = false;
     bool useIncrementalCompiler = false;
 

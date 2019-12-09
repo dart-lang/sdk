@@ -167,87 +167,12 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   }
 }
 
-# Compiles the Dart core libraries and DDC runtime to an analyzer summary and
-# JS.
-prebuilt_dart_action("dartdevc_sdk") {
-  deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_patch_sdk",
-    "../../pkg:pkg_files_stamp",
-  ]
-
-  script = "../../pkg/dev_compiler/tool/build_sdk.dart"
-
-  inputs = [
-    "../../pkg/dev_compiler/tool/build_sdk.dart",
-
-    # Since the entire patched SDK is built in one step, if any file changes,
-    # they all will. Instead of listing them all as outputs of
-    # dartdevc_patch_sdk (which would require something like a depfile), just
-    # use version as the token file whose timestamp we track.
-    # TODO(rnystrom): Do something better?
-    "$patched_sdk_dir/version",
-
-    # If dev_compiler itself changes, it can affect the generated SDK.
-    "$target_gen_dir/dartdevc_files.stamp",
-
-    # Likewise, the packages dev_compiler depends on may affect its output.
-    "$root_gen_dir/pkg_files.stamp",
-  ]
-
-  outputs = [
-    sdk_summary,
-    "$target_gen_dir/js/amd/dart_sdk.js",
-    "$target_gen_dir/js/amd/dart_sdk.js.map",
-    "$target_gen_dir/js/common/dart_sdk.js",
-    "$target_gen_dir/js/common/dart_sdk.js.map",
-    "$target_gen_dir/js/es6/dart_sdk.js",
-    "$target_gen_dir/js/es6/dart_sdk.js.map",
-    "$target_gen_dir/js/legacy/dart_sdk.js",
-    "$target_gen_dir/js/legacy/dart_sdk.js.map",
-  ]
-
-  args = [
-    "--dart-sdk",
-    rebase_path(patched_sdk_dir),
-    "--dart-sdk-summary=build",
-    "--summary-out",
-    rebase_path(sdk_summary),
-    "--source-map",
-    "--source-map-comment",
-    "--modules=amd",
-    "-o",
-    rebase_path("$target_gen_dir/js/amd/dart_sdk.js"),
-    "--modules=es6",
-    "-o",
-    rebase_path("$target_gen_dir/js/es6/dart_sdk.js"),
-    "--modules=common",
-    "-o",
-    rebase_path("$target_gen_dir/js/common/dart_sdk.js"),
-    "--modules=legacy",
-    "-o",
-    rebase_path("$target_gen_dir/js/legacy/dart_sdk.js"),
-  ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
-    args += [
-      "--enable-experiment=non-nullable",
-
-      # TODO(38813): Ignore incorrect analyzer errors.
-      "--unsafe-force-compile",
-    ]
-  }
-}
-
 # Builds everything needed to run dartdevc tests using test.dart.
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
     ":dartdevc_kernel_sdk",
-    ":dartdevc_sdk",
     ":dartdevc_test_kernel_pkg",
-    ":dartdevc_test_legacy_pkg",
     "../..:create_sdk",
   ]
 }
@@ -258,9 +183,7 @@ group("dartdevc_test") {
 group("dartdevc_test_local") {
   deps = [
     ":dartdevc_kernel_sdk",
-    ":dartdevc_sdk",
     ":dartdevc_test_kernel_pkg",
-    ":dartdevc_test_legacy_pkg",
   ]
 }
 
@@ -279,72 +202,6 @@ create_timestamp_file("dartdevc_files_stamp") {
 create_timestamp_file("dartdevc_sdk_patch_stamp") {
   path = rebase_path("$sdk_root/lib/_internal/js_dev_runtime")
   output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
-}
-
-# Compiles the packages used by the tests to JS with dartdevc so that they are
-# available for loading by the tests.
-prebuilt_dart_action("dartdevc_test_legacy_pkg") {
-  deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_sdk",
-    "../../pkg:pkg_files_stamp",
-  ]
-
-  inputs = [
-    sdk_summary,
-    "$target_gen_dir/dartdevc_files.stamp",
-    "$root_gen_dir/pkg_files.stamp",
-  ]
-
-  outputs = [
-    "$target_gen_dir/pkg/async_helper.js",
-    "$target_gen_dir/pkg/async_helper.sum",
-    "$target_gen_dir/pkg/collection.js",
-    "$target_gen_dir/pkg/collection.sum",
-    "$target_gen_dir/pkg/expect.js",
-    "$target_gen_dir/pkg/expect.sum",
-    "$target_gen_dir/pkg/js.js",
-    "$target_gen_dir/pkg/js.sum",
-    "$target_gen_dir/pkg/matcher.js",
-    "$target_gen_dir/pkg/matcher.sum",
-    "$target_gen_dir/pkg/meta.js",
-    "$target_gen_dir/pkg/meta.sum",
-    "$target_gen_dir/pkg/path.js",
-    "$target_gen_dir/pkg/path.sum",
-    "$target_gen_dir/pkg/stack_trace.js",
-    "$target_gen_dir/pkg/stack_trace.sum",
-
-    # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
-    # any of the above packages that are only here because unittest uses them.
-    "$target_gen_dir/pkg/unittest.js",
-    "$target_gen_dir/pkg/unittest.sum",
-  ]
-
-  script = "../../pkg/dev_compiler/tool/build_pkgs.dart"
-
-  args = [
-    "--analyzer-sdk",
-    rebase_path(sdk_summary),
-    "--output",
-    rebase_path("$target_gen_dir"),
-  ]
-
-  # TODO(38701): Cleanup after merging the forked SDK into mainline.
-  if (use_nnbd) {
-    args += [
-      # TODO(sigmund): reenable. We turned this off temporarily while the
-      # migration of libraries is in flux, this step otherwise fails
-      # with many nnbd-related compile-time errors because the packages are
-      # assumed to be nnbd compilant.
-      #  "--enable-experiment=non-nullable",
-
-      # TODO(rnystrom): Most of the packages used by tests can be cleanly
-      # compiled as opted-in libraries, but js.dart has an optional parameter
-      # of type String with no default value. Changing that would be a breaking
-      # API change. For now, ignore the error.
-      "--unsafe-force-compile",
-    ]
-  }
 }
 
 # Compiles to JavaScript any package used from tests.

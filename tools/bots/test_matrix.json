@@ -530,7 +530,7 @@
         ],
         "vm-options": ["--enable_interpreter"]
     }},
-    "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
+    "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
         "use-sdk": true
@@ -1313,33 +1313,12 @@
           "arguments": ["dart2js_bot", "dartdevc_test"]
         },
         {
-          "name": "ddc co19_2 tests",
-          "arguments": [
-            "-ndartdevc-checked-${system}-release-chrome",
-            "co19_2"
-          ],
-          "shards": 6,
-          "fileset": "dart2js"
-        },
-        {
           "name": "ddk co19_2 tests",
           "arguments": [
             "-ndartdevk-checked-${system}-release-chrome",
             "co19_2"
           ],
           "shards": 6,
-          "fileset": "dart2js"
-        },
-        {
-          "name": "ddc tests",
-          "arguments": [
-            "-ndartdevc-checked-${system}-release-chrome",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "dartdevc_native"
-          ],
-          "shards": 1,
           "fileset": "dart2js"
         },
         {
@@ -1350,17 +1329,6 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
-          ]
-        },
-        {
-          "name": "ddc analyzer modular tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/modular_ddc_suite.dart",
-            "-ndartdevc-${system}-release",
-            "--verbose",
-            "--use-sdk"
           ]
         },
         {
@@ -1386,26 +1354,10 @@
           ]
         },
         {
-          "name": "ddc sourcemap tests",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
-            "-rnone"
-          ]
-        },
-        {
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
             "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
-            "-rnone"
-          ]
-        },
-        {
-          "name": "ddc sourcemap stacktrace tests",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
             "-rnone"
           ]
         },
@@ -1423,16 +1375,6 @@
           "arguments": [
             "pkg/dev_compiler/test/worker/worker_test.dart",
             "-rnone"
-          ]
-        },
-        {
-          "name": "ddc self host test",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "--enable-asserts",
-            "pkg/dev_compiler/bin/dartdevc.dart",
-            "-o=out/ReleaseX64/dartdevc.js",
-            "pkg/dev_compiler/bin/dartdevc.dart"
           ]
         },
         {

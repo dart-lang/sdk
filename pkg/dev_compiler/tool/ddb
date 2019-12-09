@@ -28,7 +28,7 @@ void main(List<String> args) async {
   var parser = ArgParser()
     ..addFlag('help', abbr: 'h', help: 'Display this message.')
     ..addFlag('kernel',
-        abbr: 'k', help: 'Compile with the new kernel-based front end.')
+        abbr: 'k', help: 'Ignored. The kernel based DDC is always used.')
     ..addMultiOption('summary',
         abbr: 's',
         help: 'summary file(s) of imported libraries, optionally\n'
@@ -44,9 +44,7 @@ void main(List<String> args) async {
     ..addOption('vm-service-port',
         help: 'Specify the observatory port. Implied --observe.')
     ..addFlag('summarize-text',
-        help: 'Emit API summary in a .js.txt file.\n'
-            'Ignored when not passed with --kernel.',
-        defaultsTo: false)
+        help: 'Emit API summary in a .js.txt file.', defaultsTo: false)
     ..addOption('runtime',
         abbr: 'r',
         help: 'Platform to run on (node|d8|chrome).  Default is node.',
@@ -65,10 +63,8 @@ void main(List<String> args) async {
         defaultsTo: 'all')
     ..addOption('compile-vm-options',
         help: 'DART_VM_OPTIONS for the compilation VM.')
-    ..addOption('packages',
-        help: 'Where to find a package spec file.')
-    ..addOption('out',
-        help: 'Output file.');
+    ..addOption('packages', help: 'Where to find a package spec file.')
+    ..addOption('out', help: 'Output file.');
 
   var options = parser.parse(args);
   if (options['help'] as bool) {
@@ -85,7 +81,6 @@ void main(List<String> args) async {
   var debug = options['debug'] as bool ||
       options['observe'] as bool ||
       options.wasParsed('vm-service-port');
-  var kernel = options['kernel'] as bool;
   var summarizeText = options['summarize-text'] as bool;
   var binary = options['binary'] as String;
   var experiments = options['enable-experiment'] as List;
@@ -99,9 +94,7 @@ void main(List<String> args) async {
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
-  var libname = kernel
-      ? p.relative(p.withoutExtension(entry)).replaceAll('/', '__')
-      : basename;
+  var libname = p.relative(p.withoutExtension(entry)).replaceAll('/', '__');
   libname = libname.replaceAll('-', '_');
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
@@ -178,22 +171,17 @@ void main(List<String> args) async {
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
   }
-  var suffix = kernel ? p.join('kernel', mod) : mod;
+  var suffix = p.join('kernel', mod);
   sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
   requirePath = sdkJsPath;
-  ddcSdk = p.join(
-      dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
+  ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
 
   if (compile) {
     var ddcArgs = [
-      if (kernel) '--kernel',
-      if (kernel && summarizeText)
-        '--summarize-text',
+      '--kernel',
+      if (summarizeText) '--summarize-text',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
-      // TODO(nshahan) Cleanup when we settle on using or removing library-root.
-      if (!kernel)
-        '--library-root=$libRoot',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
       if (options['packages'] != null) '--packages=${options['packages']}',
