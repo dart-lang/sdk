@@ -1436,36 +1436,6 @@ class _OverrideChecker {
     _checkForCovariantGenerics(node, element);
   }
 
-  /// Visits each member on the class [node] and calls [checkMember] with the
-  /// corresponding instance element and AST node (for error reporting).
-  ///
-  /// See also [_checkTypeMembers], which is used when the class AST node is not
-  /// available.
-  void _checkClassMembers(Declaration node,
-      void checkMember(ExecutableElement member, ClassMember location)) {
-    for (var member in _classMembers(node)) {
-      if (member is FieldDeclaration) {
-        if (member.isStatic) {
-          continue;
-        }
-        for (var variable in member.fields.variables) {
-          var element = variable.declaredElement as PropertyInducingElement;
-          checkMember(element.getter, member);
-          if (!variable.isFinal && !variable.isConst) {
-            checkMember(element.setter, member);
-          }
-        }
-      } else if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          continue;
-        }
-        checkMember(member.declaredElement, member);
-      } else {
-        assert(member is ConstructorDeclaration);
-      }
-    }
-  }
-
   /// Finds implicit casts that we need on parameters and type formals to
   /// ensure soundness of covariant generics, and records them on the [node].
   ///
@@ -1508,26 +1478,6 @@ class _OverrideChecker {
     // Store the checks on the class declaration, it will need to ensure the
     // inherited members are appropriately guarded to ensure soundness.
     setSuperclassCovariantParameters(node, checks);
-  }
-
-  /// Visits the [type] and calls [checkMember] for each instance member.
-  ///
-  /// See also [_checkClassMembers], which should be used when the class AST
-  /// node is available to allow for better error locations
-  void _checkTypeMembers(
-      InterfaceType type, void checkMember(ExecutableElement member)) {
-    void checkHelper(ExecutableElement e) {
-      if (!e.isStatic) checkMember(e);
-    }
-
-    type.methods.forEach(checkHelper);
-    type.accessors.forEach(checkHelper);
-  }
-
-  /// If node is a [ClassDeclaration] returns its members, otherwise if node is
-  /// a [ClassTypeAlias] this returns an empty list.
-  Iterable<ClassMember> _classMembers(Declaration node) {
-    return node is ClassDeclaration ? node.members : [];
   }
 
   /// Find all covariance checks on parameters/type parameters needed for

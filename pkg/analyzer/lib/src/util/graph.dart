@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-abstract class Graph<T> {
-  Iterable<T> get vertices;
-
-  Iterable<T> neighborsOf(T vertex);
-}
-
 /// Computes the strongly connected components of [graph].
 ///
 /// This implementation is based on [Dijkstra's path-based strong component
@@ -19,7 +13,7 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
   Map<T, int> preorderNumbers = <T, int>{};
   List<T> unassigned = <T>[];
   List<T> candidates = <T>[];
-  Set<T> assigned = new Set<T>();
+  Set<T> assigned = Set<T>();
 
   void recursivelySearch(T vertex) {
     // Step 1: Set the preorder number of [vertex] to [count], and increment
@@ -74,4 +68,10 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
   }
 
   return result;
+}
+
+abstract class Graph<T> {
+  Iterable<T> get vertices;
+
+  Iterable<T> neighborsOf(T vertex);
 }
