@@ -17,7 +17,8 @@ cleanup() {
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 pushd "$tmpdir"
 
-git clone -vv https://chromium.googlesource.com/external/github.com/flutter/flutter
+git clone --single-branch -vv \
+  https://dart.googlesource.com/external/github.com/flutter/flutter
 
 pushd flutter
 bin/flutter config --no-analytics
@@ -26,13 +27,15 @@ patch=$checkout/tools/patches/flutter-engine/${pinned_dart_sdk}.flutter.patch
 if [ -e "$patch" ]; then
   git apply $patch
 fi
+
 bin/flutter update-packages
 popd
 
 # Directly in temp directory again.
 mkdir src
 pushd src
-git clone -vv --depth 1 https://chromium.googlesource.com/external/github.com/flutter/engine flutter
+git clone --single-branch --depth=1 -vv \
+  https://dart.googlesource.com/external/github.com/flutter/engine flutter
 mkdir third_party
 pushd third_party
 ln -s $checkout dart
