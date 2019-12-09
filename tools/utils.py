@@ -749,7 +749,6 @@ def CheckLinuxCoreDumpPattern(fatal=False):
             raise Exception(message)
         else:
             print(message)
-            return True  # TODO(39662): Remove once the core_pattern is fixed
             return False
     return True
 
