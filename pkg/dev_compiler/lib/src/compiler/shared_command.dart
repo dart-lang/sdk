@@ -196,7 +196,7 @@ class SharedCompilerOptions {
   }
 
   // TODO(nshahan) Cleanup when NNBD graduates experimental status.
-  bool get nonNullableEnabled => experiments['non-nullable'] ?? false;
+  bool get enableNullSafety => experiments['non-nullable'] ?? false;
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],

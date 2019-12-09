@@ -37,7 +37,8 @@ class NativeTypeSet {
   final _nativeTypes = HashSet<Class>.identity();
   final _pendingLibraries = HashSet<Library>.identity();
 
-  NativeTypeSet(this.coreTypes, this.constants) {
+  NativeTypeSet(this.coreTypes, this.constants,
+      {bool enableNullSafety = false}) {
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
@@ -61,12 +62,16 @@ class NativeTypeSet {
     // listed below).
 
     // Second, html types - these are only searched if we use dart:html, etc.:
-    _addPendingExtensionTypes(sdk.getLibrary('dart:html'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:indexed_db'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:svg'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:web_audio'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:web_gl'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
+    // TODO(39698) Remove this check and the named parameter once we don't have
+    // to exclude libraries from the forked NNBD sdk.
+    if (!enableNullSafety) {
+      _addPendingExtensionTypes(sdk.getLibrary('dart:html'));
+      _addPendingExtensionTypes(sdk.getLibrary('dart:indexed_db'));
+      _addPendingExtensionTypes(sdk.getLibrary('dart:svg'));
+      _addPendingExtensionTypes(sdk.getLibrary('dart:web_audio'));
+      _addPendingExtensionTypes(sdk.getLibrary('dart:web_gl'));
+      _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
+    }
   }
 
   void _addExtensionType(Class c, [bool mustBeNative = false]) {

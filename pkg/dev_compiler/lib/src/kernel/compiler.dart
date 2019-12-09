@@ -222,7 +222,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
-    var nativeTypes = NativeTypeSet(coreTypes, constants);
+    var nativeTypes = NativeTypeSet(coreTypes, constants,
+        enableNullSafety: options.enableNullSafety);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
@@ -1003,7 +1004,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // * There isn't an obvious place in dart:_runtime were we could place a
       //   method that adds these type tests (similar to addTypeTests()) because
       //   in the bootstrap ordering the Future class hasn't been defined yet.
-      if (_options.nonNullableEnabled) {
+      if (_options.enableNullSafety) {
         // TODO(nshahan) Update FutureOr type tests for NNBD
         var typeParam =
             TypeParameterType(c.typeParameters[0], Nullability.legacy);

@@ -14,7 +14,62 @@ import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
-  DevCompilerTarget(this.flags);
+  // TODO(39698) Turn these back into const lists returned from the getters
+  // once we don't have to exclude libraries from the forked NNBD sdk.
+  List<String> _extraRequiredLibraries;
+  List<String> _extraIndexedLibraries;
+
+  DevCompilerTarget(this.flags)
+      : _extraRequiredLibraries = [
+          'dart:_runtime',
+          'dart:_debugger',
+          'dart:_foreign_helper',
+          'dart:_interceptors',
+          'dart:_internal',
+          'dart:_isolate_helper',
+          'dart:_js_helper',
+          'dart:_js_mirrors',
+          'dart:_js_primitives',
+          'dart:_metadata',
+          'dart:_native_typed_data',
+          'dart:async',
+          'dart:collection',
+          'dart:convert',
+          if (!flags.enableNullSafety) ...[
+            'dart:developer',
+            'dart:io',
+            'dart:isolate'
+          ],
+          'dart:js',
+          'dart:js_util',
+          'dart:math',
+          'dart:mirrors',
+          'dart:typed_data',
+          if (!flags.enableNullSafety) ...[
+            'dart:indexed_db',
+            'dart:html',
+            'dart:html_common',
+            'dart:svg',
+            'dart:web_audio',
+            'dart:web_gl',
+            'dart:web_sql'
+          ]
+        ],
+        _extraIndexedLibraries = [
+          'dart:async',
+          'dart:collection',
+          if (!flags.enableNullSafety) ...['dart:html', 'dart:indexed_db'],
+          'dart:math',
+          if (!flags.enableNullSafety) ...[
+            'dart:svg',
+            'dart:web_audio',
+            'dart:web_gl',
+            'dart:web_sql'
+          ],
+          'dart:_interceptors',
+          'dart:_js_helper',
+          'dart:_native_typed_data',
+        ];
 
   final TargetFlags flags;
 
@@ -30,54 +85,11 @@ class DevCompilerTarget extends Target {
   String get name => 'dartdevc';
 
   @override
-  List<String> get extraRequiredLibraries => const [
-        'dart:_runtime',
-        'dart:_debugger',
-        'dart:_foreign_helper',
-        'dart:_interceptors',
-        'dart:_internal',
-        'dart:_isolate_helper',
-        'dart:_js_helper',
-        'dart:_js_mirrors',
-        'dart:_js_primitives',
-        'dart:_metadata',
-        'dart:_native_typed_data',
-        'dart:async',
-        'dart:collection',
-        'dart:convert',
-        'dart:developer',
-        'dart:io',
-        'dart:isolate',
-        'dart:js',
-        'dart:js_util',
-        'dart:math',
-        'dart:mirrors',
-        'dart:typed_data',
-        'dart:indexed_db',
-        'dart:html',
-        'dart:html_common',
-        'dart:svg',
-        'dart:web_audio',
-        'dart:web_gl',
-        'dart:web_sql'
-      ];
+  List<String> get extraRequiredLibraries => _extraRequiredLibraries;
 
   // The libraries required to be indexed via CoreTypes.
   @override
-  List<String> get extraIndexedLibraries => const [
-        'dart:async',
-        'dart:collection',
-        'dart:html',
-        'dart:indexed_db',
-        'dart:math',
-        'dart:svg',
-        'dart:web_audio',
-        'dart:web_gl',
-        'dart:web_sql',
-        'dart:_interceptors',
-        'dart:_js_helper',
-        'dart:_native_typed_data',
-      ];
+  List<String> get extraIndexedLibraries => _extraIndexedLibraries;
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>

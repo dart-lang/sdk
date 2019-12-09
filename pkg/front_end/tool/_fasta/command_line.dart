@@ -305,8 +305,16 @@ ProcessedOptions analyzeCommandLine(
 
   final String targetName = options["--target"] ?? "vm";
 
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(options["--enable-experiment"]),
+      onError: throwCommandLineProblem,
+      onWarning: print);
+
   final TargetFlags flags = new TargetFlags(
-      forceLateLoweringForTesting: options["--force-late-lowering"]);
+      forceLateLoweringForTesting: options["--force-late-lowering"],
+      enableNullSafety:
+          experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
+              experimentalFlags[ExperimentalFlag.nonNullable]);
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -355,11 +363,6 @@ ProcessedOptions analyzeCommandLine(
           singleRootScheme, singleRootBase, fileSystem),
     });
   }
-
-  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options["--enable-experiment"]),
-      onError: throwCommandLineProblem,
-      onWarning: print);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

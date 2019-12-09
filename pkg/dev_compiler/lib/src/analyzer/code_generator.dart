@@ -905,7 +905,7 @@ class CodeGenerator extends Object
       // * There isn't an obvious place in dart:_runtime were we could place a
       //   method that adds these type tests (similar to addTypeTests()) because
       //   in the bootstrap ordering the Future class hasn't been defined yet.
-      if (options.nonNullableEnabled) {
+      if (options.enableNullSafety) {
         // TODO(nshahan) Update FutureOr type tests for NNBD.
         var typeParamT =
             getLegacyTypeParameterType(classElem.typeParameters[0]);

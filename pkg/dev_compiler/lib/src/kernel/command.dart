@@ -266,8 +266,9 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         inputSummaries,
-        DevCompilerTarget(
-            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+        DevCompilerTarget(TargetFlags(
+            trackWidgetCreation: trackWidgetCreation,
+            enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
         experiments: experiments,
         environmentDefines: declaredVariables);
@@ -302,8 +303,9 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(librarySpecPath),
         inputSummaries,
         inputDigests,
-        DevCompilerTarget(
-            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+        DevCompilerTarget(TargetFlags(
+            trackWidgetCreation: trackWidgetCreation,
+            enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
         experiments: experiments,
         environmentDefines: declaredVariables,
