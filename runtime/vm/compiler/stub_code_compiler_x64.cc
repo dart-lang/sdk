@@ -2927,16 +2927,6 @@ void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateTypeRefTypeTestStub(Assembler* assembler) {
-  const Register kTypeRefReg = RBX;
-
-  // We dereference the TypeRef and tail-call to it's type testing stub.
-  __ movq(kTypeRefReg,
-          FieldAddress(kTypeRefReg, target::TypeRef::type_offset()));
-  __ jmp(FieldAddress(
-      kTypeRefReg, target::AbstractType::type_test_stub_entry_point_offset()));
-}
-
 void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
 }

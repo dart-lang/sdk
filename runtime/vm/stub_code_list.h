@@ -62,7 +62,6 @@ namespace dart {
   V(Subtype6TestCache)                                                         \
   V(DefaultTypeTest)                                                           \
   V(TopTypeTypeTest)                                                           \
-  V(TypeRefTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
