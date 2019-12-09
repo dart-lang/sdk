@@ -2006,7 +2006,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
-  GenerateRecordEntryPoint(assembler);
+  const bool save_entry_point = kind == Token::kILLEGAL;
+  if (save_entry_point) {
+    GenerateRecordEntryPoint(assembler);
+  }
 
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement(assembler);
@@ -2141,8 +2144,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ LoadImmediate(R0, 0);
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
-  __ SmiTag(R3);
-  __ PushList((1 << R0) | (1 << R4) | (1 << R9) | (1 << R3));
+  RegList regs = (1 << R0) | (1 << R4) | (1 << R9);
+  if (save_entry_point) {
+    __ SmiTag(R3);
+    regs |= 1 << R3;
+  }
+  __ PushList(regs);
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ LoadFromOffset(kWord, IP, NOTFP, -i * target::kWordSize);
@@ -2155,8 +2162,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Drop(num_args + 1);
   // Pop returned function object into R0.
   // Restore arguments descriptor array and IC data array.
-  __ PopList((1 << R0) | (1 << R4) | (1 << R9) | (1 << R3));
-  __ SmiUntag(R3);
+  __ PopList(regs);
+  if (save_entry_point) {
+    __ SmiUntag(R3);
+  }
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
@@ -2187,7 +2196,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // R0: target function.
   __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
 
-  __ Branch(Address(R0, R3));
+  if (save_entry_point) {
+    __ Branch(Address(R0, R3));
+  } else {
+    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2196,11 +2209,17 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     if (type == kInstanceCall) {
       __ Push(R0);  // Preserve receiver.
     }
-    __ SmiTag(R3);                       // Entry-point is not Smi.
-    __ PushList((1 << R3) | (1 << R9));  // Preserve IC data and entry-point.
+    RegList regs = 1 << R9;
+    if (save_entry_point) {
+      regs |= 1 << R3;
+      __ SmiTag(R3);  // Entry-point is not Smi.
+    }
+    __ PushList(regs);  // Preserve IC data and entry-point.
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ PopList((1 << R3) | (1 << R9));  // Restore IC data and entry-point
-    __ SmiUntag(R3);
+    __ PopList(regs);  // Restore IC data and entry-point
+    if (save_entry_point) {
+      __ SmiUntag(R3);
+    }
     if (type == kInstanceCall) {
       __ Pop(R0);
     }

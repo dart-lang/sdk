@@ -2083,7 +2083,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
-  GenerateRecordEntryPoint(assembler);
+  const bool save_entry_point = kind == Token::kILLEGAL;
+  if (save_entry_point) {
+    GenerateRecordEntryPoint(assembler);
+  }
 
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement(assembler);
@@ -2205,8 +2208,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterStubFrame();
-  __ SmiTag(R8);           // Entry-point offset is not Smi.
-  __ pushq(R8);            // Preserve entry point.
+  if (save_entry_point) {
+    __ SmiTag(R8);  // Entry-point offset is not Smi.
+    __ pushq(R8);   // Preserve entry point.
+  }
   __ pushq(R10);           // Preserve arguments descriptor array.
   __ pushq(RBX);           // Preserve IC data object.
   __ pushq(Immediate(0));  // Result slot.
@@ -2221,11 +2226,13 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popq(RAX);
   }
-  __ popq(RAX);     // Pop returned function object into RAX.
-  __ popq(RBX);     // Restore IC data array.
-  __ popq(R10);     // Restore arguments descriptor array.
-  __ popq(R8);      // Restore entry point.
-  __ SmiUntag(R8);  // Entry-point offset is not Smi.
+  __ popq(RAX);  // Pop returned function object into RAX.
+  __ popq(RBX);  // Restore IC data array.
+  __ popq(R10);  // Restore arguments descriptor array.
+  if (save_entry_point) {
+    __ popq(R8);      // Restore entry point.
+    __ SmiUntag(R8);  // Entry-point offset is not Smi.
+  }
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
@@ -2277,8 +2284,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ addq(R8, RAX);
-  __ jmp(Address(R8, 0));
+  if (save_entry_point) {
+    __ addq(R8, RAX);
+    __ jmp(Address(R8, 0));
+  } else {
+    __ jmp(FieldAddress(RAX, target::Function::entry_point_offset()));
+  }
 
   if (exactness == kCheckExactness) {
     __ Bind(&call_target_function_through_unchecked_entry);
@@ -2301,11 +2312,15 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ pushq(RDX);  // Preserve receiver.
     }
     __ pushq(RBX);  // Preserve ICData.
-    __ SmiTag(R8);  // Entry-point offset is not Smi.
-    __ pushq(R8);   // Preserve entry point.
+    if (save_entry_point) {
+      __ SmiTag(R8);  // Entry-point offset is not Smi.
+      __ pushq(R8);   // Preserve entry point.
+    }
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popq(R8);  // Restore entry point.
-    __ SmiUntag(R8);
+    if (save_entry_point) {
+      __ popq(R8);  // Restore entry point.
+      __ SmiUntag(R8);
+    }
     __ popq(RBX);  // Restore ICData.
     if (type == kInstanceCall) {
       __ popq(RDX);  // Restore receiver.
