@@ -227,33 +227,6 @@ void g() {
     assertDetail(detail: regions[0].details[0], offset: 104, length: 1);
   }
 
-  test_exactNullable_exactNullable() async {
-    UnitInfo unit = await buildInfoForSingleTestFile('''
-void g(List<int> list1, List<int> list2) {
-  list1[0] = null;
-  list2[0] = list1[0];
-}
-''', migratedContent: '''
-void g(List<int?> list1, List<int?> list2) {
-  list1[0] = null;
-  list2[0] = list1[0];
-}
-''');
-    List<RegionInfo> regions = unit.regions;
-    expect(regions, hasLength(4));
-    // regions[0] is the hard edge that list1 is unconditionally indexed
-    assertRegion(region: regions[1], offset: 15, details: [
-      "An explicit 'null' is assigned",
-      // TODO(mfairhurst): Fix this bug.
-      'exact nullable node with no info (Substituted(type(32), migrated))'
-    ]);
-    // regions[2] is the hard edge that list2 is unconditionally indexed
-    assertRegion(
-        region: regions[3],
-        offset: 33,
-        details: ["A nullable value is assigned"]);
-  }
-
   test_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(List<int> list) {
@@ -282,6 +255,33 @@ void g() {
         region: regions[2],
         offset: 66,
         details: ["This is later required to accept null."]);
+  }
+
+  test_exactNullable_exactNullable() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(List<int> list1, List<int> list2) {
+  list1[0] = null;
+  list2[0] = list1[0];
+}
+''', migratedContent: '''
+void g(List<int?> list1, List<int?> list2) {
+  list1[0] = null;
+  list2[0] = list1[0];
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(4));
+    // regions[0] is the hard edge that list1 is unconditionally indexed
+    assertRegion(region: regions[1], offset: 15, details: [
+      "An explicit 'null' is assigned",
+      // TODO(mfairhurst): Fix this bug.
+      'exact nullable node with no info (Substituted(type(32), migrated))'
+    ]);
+    // regions[2] is the hard edge that list2 is unconditionally indexed
+    assertRegion(
+        region: regions[3],
+        offset: 33,
+        details: ["A nullable value is assigned"]);
   }
 
   test_expressionFunctionReturnTarget() async {
@@ -318,6 +318,26 @@ class A {
     assertRegion(region: regions[0], offset: 15, details: [
       "This field is initialized by an optional field formal parameter that "
           "has an implicit default value of 'null'"
+    ]);
+  }
+
+  test_field_fieldFormalInitializer_optional_defaultNull() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class A {
+  int _f;
+  A([this._f = null]);
+}
+''', migratedContent: '''
+class A {
+  int? _f;
+  A([this._f = null]);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 15, details: [
+      "This field is initialized by an optional field formal parameter that "
+          "has an explicit default value of 'null'"
     ]);
   }
 
@@ -679,28 +699,25 @@ void g() {
         details: ["An explicit 'null' is passed as an argument"]);
   }
 
-  @failingTest
   test_parameter_fromInvocation_implicit() async {
-    // Failing because the upstream edge ("always -(hard)-> type(13)")
-    // associated with the reason (a _NullabilityNodeSimple) had a `null` origin
-    // when the listener's `graphEdge` method was called.
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g(p) {
   f(p);
 }
+void h() => g(null);
 ''', migratedContent: '''
 void f(String? s) {}
 void g(p) {
   f(p);
 }
+void h() => g(null);
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(1));
-    assertRegion(
-        region: regions[0],
-        offset: 13,
-        details: ["A nullable value is explicitly passed as an argument"]);
+    assertRegion(region: regions[0], offset: 13, details: [
+      "A dynamic value, which is nullable is passed as an argument"
+    ]);
   }
 
   test_parameter_fromMultipleOverridden_explicit() async {
@@ -857,10 +874,7 @@ void g({int? i}) {}
     assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
   }
 
-  @failingTest
   test_parameter_optional_explicitDefault_null() async {
-    // Failing because we appear to never get an origin when the upstream node
-    // for an edge is 'always'.
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s = null}) {}
 ''', migratedContent: '''
@@ -874,23 +888,20 @@ void f({String? s = null}) {}
         details: ["This parameter has an explicit default value of 'null'"]);
   }
 
-  @failingTest
   test_parameter_optional_explicitDefault_nullable() async {
-    // Failing because we appear to never get an origin when the upstream node
-    // for an edge is 'always'.
     UnitInfo unit = await buildInfoForSingleTestFile('''
-const sd = null;
+String sd = null;
 void f({String s = sd}) {}
 ''', migratedContent: '''
-const sd = null;
+String? sd = null;
 void f({String? s = sd}) {}
 ''');
     List<RegionInfo> regions = unit.fixRegions;
-    expect(regions, hasLength(1));
+    expect(regions, hasLength(2));
     assertRegion(
-        region: regions[0],
-        offset: 31,
-        details: ["This parameter has an explicit default value of 'null'"]);
+        region: regions[1],
+        offset: 33,
+        details: ["This parameter has a nullable default value"]);
   }
 
   test_parameter_optional_implicitDefault_named() async {

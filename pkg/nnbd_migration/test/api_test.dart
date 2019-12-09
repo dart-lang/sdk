@@ -1060,6 +1060,17 @@ C<int, num?> f(List<int> a) => a;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
+  test_dynamic_dispatch_to_object_method() async {
+    var content = '''
+String f(dynamic x) => x.toString();
+''';
+    var expected = '''
+String f(dynamic x) => x.toString();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_dynamic_method_call() async {
     var content = '''
 class C {
@@ -1922,6 +1933,30 @@ int? g(C c) => c.f();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38469')
+  test_inserted_nodes_properly_wrapped() async {
+    addMetaPackage();
+    var content = '''
+class C {
+  C operator+(C other) => null;
+}
+void f(C x, C y) {
+  C z = x + y;
+  assert(z != null);
+}
+''';
+    var expected = '''
+class C {
+  C operator+(C other) => null;
+}
+void f(C x, C y) {
+  C z = (x + y)!;
+  assert(z != null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_instance_creation_generic() async {
     var content = '''
 class C<T> {
@@ -2537,6 +2572,21 @@ class _C {
 _C g(int/*!*/ i) => _C();
 test(int?/*?*/ j) {
   g(j!)..f();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39269')
+  test_null_in_conditional_expression() async {
+    var content = '''
+void f() {
+  List<int> x = false ? [] : null;
+}
+''';
+    var expected = '''
+void f() {
+  List<int>? x = false ? [] : null;
 }
 ''';
     await _checkSingleFileChanges(content, expected);

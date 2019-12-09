@@ -152,6 +152,8 @@ class InfoBuilder {
       }
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
+    } else if (parent is DefaultFormalParameter) {
+      return "This parameter has ${aNullableDefault(parent)}";
     } else if (parent is AsExpression) {
       return "The value of the expression is nullable";
     }
