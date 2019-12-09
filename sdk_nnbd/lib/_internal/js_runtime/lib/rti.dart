@@ -1443,6 +1443,9 @@ class _Universe {
     Object rule = _Universe.findRule(universe, interfaceName);
     assert(rule != null);
     String recipe = TypeRule.lookupTypeVariable(rule, name);
+    if (recipe == null) {
+      throw 'No "$name" in "${Rti._getCanonicalRecipe(environment)}"';
+    }
     return _Universe.evalInEnvironment(universe, environment, recipe);
   }
 
