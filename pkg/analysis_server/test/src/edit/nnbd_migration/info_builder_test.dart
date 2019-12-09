@@ -227,6 +227,33 @@ void g() {
     assertDetail(detail: regions[0].details[0], offset: 104, length: 1);
   }
 
+  test_exactNullable_exactNullable() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void g(List<int> list1, List<int> list2) {
+  list1[0] = null;
+  list2[0] = list1[0];
+}
+''', migratedContent: '''
+void g(List<int?> list1, List<int?> list2) {
+  list1[0] = null;
+  list2[0] = list1[0];
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(4));
+    // regions[0] is the hard edge that list1 is unconditionally indexed
+    assertRegion(region: regions[1], offset: 15, details: [
+      "An explicit 'null' is assigned",
+      // TODO(mfairhurst): Fix this bug.
+      'exact nullable node with no info (Substituted(type(32), migrated))'
+    ]);
+    // regions[2] is the hard edge that list2 is unconditionally indexed
+    assertRegion(
+        region: regions[3],
+        offset: 33,
+        details: ["A nullable value is assigned"]);
+  }
+
   test_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(List<int> list) {

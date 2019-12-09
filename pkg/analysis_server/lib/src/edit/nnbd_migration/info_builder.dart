@@ -92,10 +92,12 @@ class InfoBuilder {
   }
 
   Iterable<EdgeInfo> upstreamTriggeredEdges(NullabilityNodeInfo node,
-      [List<RegionDetail> details]) {
+      {bool skipExactNullable = true}) {
     var edges = <EdgeInfo>[];
     for (EdgeInfo edge in node.upstreamEdges) {
-      if (node.isExactNullable && edge.sourceNode.isExactNullable) {
+      if (skipExactNullable &&
+          node.isExactNullable &&
+          edge.sourceNode.isExactNullable) {
         // When an exact nullable points here, the nullability propagated
         // in the other direction.
         continue;
@@ -105,7 +107,14 @@ class InfoBuilder {
       }
     }
     for (final containerNode in node.outerCompoundNodes) {
-      edges.addAll(upstreamTriggeredEdges(containerNode, details));
+      // We must include the exact nullable edges in the upstream triggered
+      // edges of the container node. If this node is in a substitution node,
+      // then it's possible it was marked exact nullable because it's container
+      // was marked nullable. It's container could have been marked nullable by
+      // another exact nullable node. We cannot tell. Err on the side of
+      // surfacing too many reasons.
+      edges.addAll(
+          upstreamTriggeredEdges(containerNode, skipExactNullable: false));
     }
 
     return edges;
