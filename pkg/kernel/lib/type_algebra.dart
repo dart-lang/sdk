@@ -679,7 +679,10 @@ class _TypeUnification {
     if (type1 is InvalidType && type2 is InvalidType) return true;
     if (type1 is BottomType && type2 is BottomType) return true;
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode != type2.classNode) return _fail();
+      if (type1.classNode != type2.classNode ||
+          type1.nullability != type2.nullability) {
+        return _fail();
+      }
       assert(type1.typeArguments.length == type2.typeArguments.length);
       for (int i = 0; i < type1.typeArguments.length; ++i) {
         if (!_unify(type1.typeArguments[i], type2.typeArguments[i])) {
@@ -693,7 +696,8 @@ class _TypeUnification {
           type1.positionalParameters.length !=
               type2.positionalParameters.length ||
           type1.namedParameters.length != type2.namedParameters.length ||
-          type1.requiredParameterCount != type2.requiredParameterCount) {
+          type1.requiredParameterCount != type2.requiredParameterCount ||
+          type1.nullability != type2.nullability) {
         return _fail();
       }
       // When unifying two generic functions, transform the equation like this:
@@ -741,7 +745,9 @@ class _TypeUnification {
     }
     if (type1 is TypeParameterType &&
         type2 is TypeParameterType &&
-        type1.parameter == type2.parameter) {
+        type1.parameter == type2.parameter &&
+        type1.typeParameterTypeNullability ==
+            type2.typeParameterTypeNullability) {
       return true;
     }
     if (type1 is TypeParameterType &&

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/type_algebra.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
@@ -13,33 +14,92 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
 
   @override
   DartType visitFunctionType(FunctionType node) {
-    DartType newReturnType = node.returnType.accept(this);
+    List<TypeParameter> newTypeParameters;
+    for (int i = 0; i < node.typeParameters.length; i++) {
+      TypeParameter typeParameter = node.typeParameters[i];
+      DartType newBound = typeParameter.bound.accept(this);
+      DartType newDefaultType = typeParameter.defaultType.accept(this);
+      if (newBound != null || newDefaultType != null) {
+        newTypeParameters ??= node.typeParameters.toList(growable: false);
+        newTypeParameters[i] = new TypeParameter(
+            typeParameter.name,
+            newBound ?? typeParameter.bound,
+            newDefaultType ?? typeParameter.defaultType);
+      }
+    }
+
+    Substitution substitution;
+    if (newTypeParameters != null) {
+      List<TypeParameterType> typeParameterTypes =
+          new List<TypeParameterType>(newTypeParameters.length);
+      for (int i = 0; i < newTypeParameters.length; i++) {
+        typeParameterTypes[i] = new TypeParameterType.forAlphaRenaming(
+            node.typeParameters[i], newTypeParameters[i]);
+      }
+      substitution =
+          Substitution.fromPairs(node.typeParameters, typeParameterTypes);
+      for (int i = 0; i < newTypeParameters.length; i++) {
+        newTypeParameters[i].bound =
+            substitution.substituteType(newTypeParameters[i].bound);
+      }
+    }
+
+    DartType visitType(DartType type) {
+      if (type == null) return null;
+      DartType result = type.accept(this);
+      if (substitution != null) {
+        result = substitution.substituteType(result ?? type);
+      }
+      return result;
+    }
+
+    DartType newReturnType = visitType(node.returnType);
     changeVariance();
     List<DartType> newPositionalParameters = null;
     for (int i = 0; i < node.positionalParameters.length; i++) {
-      DartType substitution = node.positionalParameters[i].accept(this);
-      if (substitution != null) {
+      DartType newType = visitType(node.positionalParameters[i]);
+      if (newType != null) {
         newPositionalParameters ??=
             node.positionalParameters.toList(growable: false);
-        newPositionalParameters[i] = substitution;
+        newPositionalParameters[i] = newType;
       }
     }
     List<NamedType> newNamedParameters = null;
     for (int i = 0; i < node.namedParameters.length; i++) {
-      DartType substitution = node.namedParameters[i].type.accept(this);
-      if (substitution != null) {
+      DartType newType = visitType(node.namedParameters[i].type);
+      NamedType newNamedType =
+          createNamedType(node.namedParameters[i], newType);
+      if (newNamedType != null) {
         newNamedParameters ??= node.namedParameters.toList(growable: false);
-        newNamedParameters[i] = new NamedType(
-            node.namedParameters[i].name, substitution,
-            isRequired: node.namedParameters[i].isRequired);
+        newNamedParameters[i] = newNamedType;
       }
     }
     changeVariance();
-    DartType typedefType = node.typedefType?.accept(this);
+    DartType newTypedefType = visitType(node.typedefType);
+
+    return createFunctionType(node, newTypeParameters, newReturnType,
+        newPositionalParameters, newNamedParameters, newTypedefType);
+  }
+
+  NamedType createNamedType(NamedType node, DartType newType) {
+    if (newType == null) {
+      return null;
+    } else {
+      return new NamedType(node.name, newType, isRequired: node.isRequired);
+    }
+  }
+
+  DartType createFunctionType(
+      FunctionType node,
+      List<TypeParameter> newTypeParameters,
+      DartType newReturnType,
+      List<DartType> newPositionalParameters,
+      List<NamedType> newNamedParameters,
+      TypedefType newTypedefType) {
     if (newReturnType == null &&
         newPositionalParameters == null &&
         newNamedParameters == null &&
-        typedefType == null) {
+        newTypedefType == null) {
       // No types had to be substituted.
       return null;
     } else {
@@ -48,9 +108,9 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
           newReturnType ?? node.returnType,
           node.nullability,
           namedParameters: newNamedParameters ?? node.namedParameters,
-          typeParameters: node.typeParameters,
+          typeParameters: newTypeParameters ?? node.typeParameters,
           requiredParameterCount: node.requiredParameterCount,
-          typedefType: typedefType);
+          typedefType: newTypedefType ?? node.typedefType);
     }
   }
 
@@ -64,6 +124,11 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
         newTypeArguments[i] = substitution;
       }
     }
+    return createInterfaceType(node, newTypeArguments);
+  }
+
+  DartType createInterfaceType(
+      InterfaceType node, List<DartType> newTypeArguments) {
     if (newTypeArguments == null) {
       // No type arguments needed to be substituted.
       return null;
@@ -92,10 +157,20 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
   DartType visitTypeParameterType(TypeParameterType node) {
     if (node.promotedBound != null) {
       DartType newPromotedBound = node.promotedBound.accept(this);
-      if (newPromotedBound != null) {
-        return new TypeParameterType(node.parameter,
-            node.typeParameterTypeNullability, newPromotedBound);
-      }
+      return createPromotedTypeParameterType(node, newPromotedBound);
+    }
+    return createTypeParameterType(node);
+  }
+
+  DartType createTypeParameterType(TypeParameterType node) {
+    return null;
+  }
+
+  DartType createPromotedTypeParameterType(
+      TypeParameterType node, DartType newPromotedBound) {
+    if (newPromotedBound != null) {
+      return new TypeParameterType(
+          node.parameter, node.typeParameterTypeNullability, newPromotedBound);
     }
     return null;
   }

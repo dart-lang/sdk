@@ -6,7 +6,7 @@ import "package:_fe_analyzer_shared/src/parser/type_info_impl.dart"
     show splitCloser;
 
 import "package:_fe_analyzer_shared/src/scanner/scanner.dart"
-    show scanString, Token;
+    show scanString, ScannerConfiguration, Token;
 
 import "package:front_end/src/fasta/problems.dart";
 
@@ -42,6 +42,19 @@ Nullability interpretParsedNullability(ParsedNullability parsedNullability,
       "$parsedNullability", "interpretParsedNullability", noOffset, noUri);
 }
 
+String parsedNullabilityToString(ParsedNullability parsedNullability) {
+  switch (parsedNullability) {
+    case ParsedNullability.nullable:
+      return '?';
+    case ParsedNullability.legacy:
+      return '*';
+    case ParsedNullability.omitted:
+      return '';
+  }
+  return unhandled(
+      "$parsedNullability", "interpretParsedNullability", noOffset, noUri);
+}
+
 class ParsedInterfaceType extends ParsedType {
   final String name;
 
@@ -59,6 +72,7 @@ class ParsedInterfaceType extends ParsedType {
       sb.writeAll(arguments, ", ");
       sb.write(">");
     }
+    sb.write(parsedNullabilityToString(parsedNullability));
     return "$sb";
   }
 
@@ -162,7 +176,9 @@ class ParsedFunctionType extends ParsedType {
       sb.write(">");
     }
     sb.write(arguments);
-    sb.write(" -> ");
+    sb.write(" ->");
+    sb.write(parsedNullabilityToString(parsedNullability));
+    sb.write(" ");
     sb.write(returnType);
     return "$sb";
   }
@@ -223,38 +239,54 @@ class ParsedIntersectionType extends ParsedType {
 
 class ParsedArguments {
   final List<ParsedType> required;
-  final List optional;
-  final bool optionalAreNamed;
+  final List<ParsedType> positional;
+  final List<ParsedNamedArgument> named;
 
-  ParsedArguments(this.required, this.optional, this.optionalAreNamed);
+  ParsedArguments(this.required, this.positional, this.named)
+      : assert(positional.isEmpty || named.isEmpty);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("(");
     sb.writeAll(required, ", ");
-    if (optional.isNotEmpty) {
+    if (positional.isNotEmpty) {
       if (required.isNotEmpty) {
         sb.write(", ");
       }
-      if (optionalAreNamed) {
+      sb.write("[");
+      sb.writeAll(positional, ", ");
+      sb.write("]");
+    } else if (named.isNotEmpty) {
+      if (required.isNotEmpty) {
+        sb.write(", ");
+      }
+      if (named.isNotEmpty) {
         sb.write("{");
-        for (int i = 0; i < optional.length; i += 2) {
-          if (i != 0) {
-            sb.write(", ");
-          }
-          sb.write(optional[i]);
-          sb.write(" ");
-          sb.write(optional[i + 1]);
-        }
+        sb.writeAll(named, ", ");
         sb.write("}");
-      } else {
-        sb.write("[");
-        sb.writeAll(optional, ", ");
-        sb.write("]");
       }
     }
     sb.write(")");
     return "$sb";
+  }
+}
+
+class ParsedNamedArgument {
+  final bool isRequired;
+  final ParsedType type;
+  final String name;
+
+  ParsedNamedArgument(this.isRequired, this.type, this.name);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    if (isRequired) {
+      sb.write('required ');
+    }
+    sb.write(type);
+    sb.write(' ');
+    sb.write(name);
+    return sb.toString();
   }
 }
 
@@ -372,22 +404,23 @@ class Parser {
 
   ParsedArguments parseArguments() {
     List<ParsedType> requiredArguments = <ParsedType>[];
-    List optionalArguments = [];
-    bool optionalAreNamed = false;
+    List<ParsedType> positionalArguments = <ParsedType>[];
+    List<ParsedNamedArgument> namedArguments = <ParsedNamedArgument>[];
     expect("(");
     do {
       if (optional(")")) break;
       if (optionalAdvance("[")) {
         do {
-          optionalArguments.add(parseType());
+          positionalArguments.add(parseType());
         } while (optionalAdvance(","));
         expect("]");
         break;
       } else if (optionalAdvance("{")) {
-        optionalAreNamed = true;
         do {
-          optionalArguments.add(parseType());
-          optionalArguments.add(parseName());
+          bool isRequired = optionalAdvance("required");
+          ParsedType type = parseType();
+          String name = parseName();
+          namedArguments.add(new ParsedNamedArgument(isRequired, type, name));
         } while (optionalAdvance(","));
         expect("}");
         break;
@@ -397,7 +430,7 @@ class Parser {
     } while (optionalAdvance(","));
     expect(")");
     return new ParsedArguments(
-        requiredArguments, optionalArguments, optionalAreNamed);
+        requiredArguments, positionalArguments, namedArguments);
   }
 
   List<ParsedTypeVariable> parseTypeVariablesOpt() {
@@ -466,7 +499,9 @@ class Parser {
 }
 
 List<ParsedType> parse(String text) {
-  Parser parser = new Parser(scanString(text).tokens, text);
+  Parser parser = new Parser(
+      scanString(text, configuration: ScannerConfiguration.nonNullable).tokens,
+      text);
   List<ParsedType> types = <ParsedType>[];
   while (!parser.atEof) {
     types.add(parser.parseType());

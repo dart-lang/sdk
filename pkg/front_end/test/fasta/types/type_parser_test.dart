@@ -12,12 +12,15 @@ testParse(String text) {
 
 main() {
   testParse("""
+() ->* void
+() ->? void
 () -> void
 (int) -> dynamic
 ([int]) -> int
 ({double parameter}) -> int
 (num, [int]) -> int
 (num, {double parameter}) -> int
+(num, {required double parameter}) -> int
 class Object;
 class Comparable<T>;
 class num implements Comparable<num>;
@@ -41,5 +44,15 @@ class B<T extends List<List<Object>>>;
 S & T
 class C;
 <E>(E) -> int & <E>(E) -> void
+C*
+C?
+C
+A<C>*
+A<C>?
+A<C>
+A<C*>
+A<C?>
+A<C>
+<T extends bool>(T) -> void
 """);
 }
