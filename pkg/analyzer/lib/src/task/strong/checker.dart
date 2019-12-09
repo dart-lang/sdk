@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
@@ -36,10 +37,11 @@ import 'ast_properties.dart';
 /// gets the known static type of the expression.
 DartType getExpressionType(
     Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
-    {bool read = false}) {
+    {bool read = false,
+    ElementTypeProvider elementTypeProvider = const ElementTypeProvider()}) {
   DartType type;
   if (read) {
-    type = getReadType(expression);
+    type = getReadType(expression, elementTypeProvider: elementTypeProvider);
   } else {
     type = expression.staticType;
   }
@@ -47,9 +49,13 @@ DartType getExpressionType(
   return type;
 }
 
-DartType getReadType(Expression expression) {
+DartType getReadType(Expression expression,
+    {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()}) {
   if (expression is IndexExpression) {
-    return expression.auxiliaryElements?.staticElement?.returnType;
+    var staticElement = expression.auxiliaryElements?.staticElement;
+    return staticElement == null
+        ? null
+        : elementTypeProvider.getExecutableReturnType(staticElement);
   }
   {
     Element setter;
@@ -63,14 +69,17 @@ DartType getReadType(Expression expression) {
     if (setter is PropertyAccessorElement && setter.isSetter) {
       var getter = setter.variable.getter;
       if (getter != null) {
-        return getter.returnType;
+        return elementTypeProvider.getExecutableReturnType(getter);
       }
     }
   }
   if (expression is SimpleIdentifier) {
     var aux = expression.auxiliaryElements;
     if (aux != null) {
-      return aux.staticElement?.returnType;
+      var staticElement = aux.staticElement;
+      return staticElement == null
+          ? null
+          : elementTypeProvider.getExecutableReturnType(staticElement);
     }
   }
   return expression.staticType;
