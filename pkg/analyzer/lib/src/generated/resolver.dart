@@ -123,7 +123,7 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       // If NNBD, and the function body end is reachable, infer nullable.
       // If legacy, we consider the end as always reachable, and return Null.
-      if (_resolver._nonNullableEnabled) {
+      if (_resolver._isNonNullableByDefault) {
         var flow = _resolver._flowAnalysis?.flow;
         if (flow != null && flow.isReachable) {
           addReturnOrYieldType(_typeProvider.nullType);
@@ -633,7 +633,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   NullabilitySuffix get noneOrStarSuffix {
-    return _nonNullableEnabled
+    return _isNonNullableByDefault
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
   }
@@ -641,7 +641,8 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * Return `true` if NNBD is enabled for this compilation unit.
    */
-  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
+  bool get _isNonNullableByDefault =>
+      _featureSet.isEnabled(Feature.non_nullable);
 
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
@@ -754,14 +755,14 @@ class ResolverVisitor extends ScopedVisitor {
   /// If in a legacy library, return the legacy view on the [element].
   /// Otherwise, return the original element.
   T toLegacyElement<T extends Element>(T element) {
-    if (_nonNullableEnabled) return element;
+    if (_isNonNullableByDefault) return element;
     return Member.legacy(element);
   }
 
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type) {
-    if (_nonNullableEnabled) return type;
+    if (_isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
   }
 
@@ -1690,7 +1691,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
-    if (node.isNullAware && _nonNullableEnabled) {
+    if (node.isNullAware && _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
       unfinishedNullShorts.add(node.nullShortingTermination);
     }
@@ -1888,7 +1889,7 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the property access node.
     //
     node.target?.accept(this);
-    if (node.isNullAware && _nonNullableEnabled) {
+    if (node.isNullAware && _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
       unfinishedNullShorts.add(node.nullShortingTermination);
     }
@@ -2421,7 +2422,7 @@ class ResolverVisitor extends ScopedVisitor {
         isConst: isConst,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        isNonNullableByDefault: _nonNullableEnabled,
+        isNonNullableByDefault: _isNonNullableByDefault,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
@@ -3410,7 +3411,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 class TypeNameResolver {
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
-  final bool isNonNullableUnit;
+  final bool isNonNullableByDefault;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final Source source;
@@ -3435,7 +3436,7 @@ class TypeNameResolver {
   TypeNameResolver(
       this.typeSystem,
       TypeProvider typeProvider,
-      this.isNonNullableUnit,
+      this.isNonNullableByDefault,
       this.definingLibrary,
       this.source,
       this.errorListener,
@@ -3444,7 +3445,9 @@ class TypeNameResolver {
         analysisOptions = definingLibrary.context.analysisOptions;
 
   NullabilitySuffix get _noneOrStarSuffix {
-    return isNonNullableUnit ? NullabilitySuffix.none : NullabilitySuffix.star;
+    return isNonNullableByDefault
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
   }
 
   /// Report an error with the given error code and arguments.
@@ -3830,7 +3833,7 @@ class TypeNameResolver {
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
     NullabilitySuffix nullability;
-    if (isNonNullableUnit) {
+    if (isNonNullableByDefault) {
       if (hasQuestion) {
         nullability = NullabilitySuffix.question;
       } else {
@@ -3894,7 +3897,7 @@ class TypeNameResolver {
           declaredReturnType: typeElement.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClassElement.thisType,
-          isNonNullableByDefault: isNonNullableUnit,
+          isNonNullableByDefault: isNonNullableByDefault,
         );
       }
     }
@@ -4023,7 +4026,7 @@ class TypeNameResolver {
       if (node.question != null) {
         _reportInvalidNullableType(node);
       }
-      if (isNonNullableUnit) {
+      if (isNonNullableByDefault) {
         nullabilitySuffix = NullabilitySuffix.none;
       } else {
         nullabilitySuffix = NullabilitySuffix.star;

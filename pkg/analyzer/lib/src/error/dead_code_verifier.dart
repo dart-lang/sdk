@@ -30,8 +30,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
-  /// Is `true` if this unit has been parsed as non-nullable.
-  final bool _isNonNullableUnit;
+  /// Is `true` if the library being analyzed is non-nullable by default.
+  final bool _isNonNullableByDefault;
 
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
@@ -45,7 +45,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
               strictInference: false,
               typeProvider: null,
             ),
-        _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
+        _isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -395,7 +395,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (_isNonNullableUnit && _typeSystem.isNonNullable(lhsType)) {
+    if (_isNonNullableByDefault && _typeSystem.isNonNullable(lhsType)) {
       _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
     }
   }

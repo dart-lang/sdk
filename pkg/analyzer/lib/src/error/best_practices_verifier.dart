@@ -68,8 +68,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
 
-  /// Is `true` if NNBD is enabled for the library being analyzed.
-  final bool _isNonNullable;
+  /// Is `true` if the library being analyzed is non-nullable by default.
+  final bool _isNonNullableByDefault;
 
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
@@ -96,7 +96,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               strictInference: false,
               typeProvider: typeProvider,
             ),
-        _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
+        _isNonNullableByDefault =
+            unit.featureSet.isEnabled(Feature.non_nullable),
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -1085,7 +1086,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Produce several null-aware related hints.
   void _checkForNullAwareHints(Expression node, Token operator) {
-    if (_isNonNullable) {
+    if (_isNonNullableByDefault) {
       return;
     }
 

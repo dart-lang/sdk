@@ -94,16 +94,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _strictInference = analysisOptions.strictInference;
   }
 
+  /// Is `true` if the library being analyzed is non-nullable by default.
+  bool get _isNonNullableByDefault =>
+      _featureSet.isEnabled(Feature.non_nullable);
+
   NullabilitySuffix get _noneOrStarSuffix {
-    return _nonNullableEnabled
+    return _isNonNullableByDefault
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
   }
-
-  /**
-   * Return `true` if NNBD is enabled for this compilation unit.
-   */
-  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
 
   /**
    * Given an iterable expression from a foreach loop, attempt to infer
@@ -250,7 +249,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _nonNullableEnabled,
+      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -275,7 +274,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _nonNullableEnabled,
+      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -299,7 +298,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       isConst: node.isConst,
       errorReporter: _resolver.errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _nonNullableEnabled,
+      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -376,7 +375,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType staticType = _getStaticType(rightHandSide);
       _recordStaticType(node, staticType);
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      if (_nonNullableEnabled) {
+      if (_isNonNullableByDefault) {
         // The static type of a compound assignment using ??= with NNBD is the
         // least upper bound of the static types of the LHS and RHS after
         // promoting the LHS/ to non-null (as we know its value will not be used
@@ -480,7 +479,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION) {
-      if (_nonNullableEnabled) {
+      if (_isNonNullableByDefault) {
         // The static type of a compound assignment using ??= with NNBD is the
         // least upper bound of the static types of the LHS and RHS after
         // promoting the LHS/ to non-null (as we know its value will not be used
@@ -1350,7 +1349,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       returnType = _dynamicType;
     }
 
-    if (isNullAware && _nonNullableEnabled) {
+    if (isNullAware && _isNonNullableByDefault) {
       returnType = _typeSystem.makeNullable(returnType);
     }
 
@@ -1679,7 +1678,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         isConst: isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: errorNode,
-        isNonNullableByDefault: _nonNullableEnabled,
+        isNonNullableByDefault: _isNonNullableByDefault,
       );
       if (node is InvocationExpressionImpl) {
         node.typeArgumentTypes = typeArgs;
@@ -2024,7 +2023,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * return the type itself.
    */
   DartType _nonNullable(DartType type) {
-    if (_nonNullableEnabled) {
+    if (_isNonNullableByDefault) {
       return _typeSystem.promoteToNonNull(type);
     }
     return type;
@@ -2033,7 +2032,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
   void _nullShortingTermination(Expression node) {
-    if (!_nonNullableEnabled) return;
+    if (!_isNonNullableByDefault) return;
 
     if (identical(_resolver.unfinishedNullShorts.last, node)) {
       do {
@@ -2125,7 +2124,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
-      isNonNullableByDefault: _nonNullableEnabled,
+      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -2157,7 +2156,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
-      isNonNullableByDefault: _nonNullableEnabled,
+      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,

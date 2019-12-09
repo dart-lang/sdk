@@ -150,13 +150,14 @@ class CodeChecker extends RecursiveAstVisitor {
 
   bool get failure => _failure;
 
+  bool get _isNonNullableByDefault =>
+      _featureSet.isEnabled(Feature.non_nullable);
+
   NullabilitySuffix get _noneOrStarSuffix {
-    return _nonNullableEnabled
+    return _isNonNullableByDefault
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
   }
-
-  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
 
   void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the

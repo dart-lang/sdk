@@ -22,7 +22,7 @@ class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
 
-  bool isNonNullableLibrary;
+  bool isNonNullableByDefault;
   InterfaceType interfaceType;
 
   /**
@@ -37,7 +37,7 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    isNonNullableLibrary = unit.library.isNonNullableByDefault;
+    isNonNullableByDefault = unit.library.isNonNullableByDefault;
     _inferClasses(unit.mixins);
     _inferClasses(unit.types);
   }
@@ -490,7 +490,7 @@ class InstanceMemberInferrer {
     }
 
     // Reset the type.
-    if (!isNonNullableLibrary) {
+    if (!isNonNullableByDefault) {
       parameter.type = _dynamicType;
     }
     element.isOperatorEqualWithParameterTypeFromObject = true;

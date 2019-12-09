@@ -341,7 +341,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = classElement;
   }
 
-  bool get _isNonNullable =>
+  bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
   @override
@@ -1608,7 +1608,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       if (field.isFinal) {
         notInitFinalFields.add(field);
-      } else if (_isNonNullable &&
+      } else if (_isNonNullableByDefault &&
           _typeSystem.isPotentiallyNonNullable(field.type)) {
         notInitNonNullableFields.add(field);
       }
@@ -3039,7 +3039,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               variable.name,
               [variable.name.name]);
-        } else if (!_isNonNullable || !variable.isLate) {
+        } else if (!_isNonNullableByDefault || !variable.isLate) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.FINAL_NOT_INITIALIZED,
               variable.name,
@@ -3541,7 +3541,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForListConstructor(
       InstanceCreationExpression node, InterfaceType type) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
     if (node.constructorName.name == null &&
         node.argumentList.arguments.length == 1 &&
@@ -4246,7 +4246,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForNotInitializedNonNullableInstanceFields(
     FieldDeclaration fieldDeclaration,
   ) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
     if (fieldDeclaration.isStatic) return;
     var fields = fieldDeclaration.fields;
@@ -4278,7 +4278,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForNotInitializedNonNullableVariable(
     VariableDeclarationList node,
   ) {
-    if (!_isNonNullable) {
+    if (!_isNonNullableByDefault) {
       return;
     }
 
@@ -4318,7 +4318,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||
-        !_isNonNullable ||
+        !_isNonNullableByDefault ||
         expression.staticType == null ||
         expression.staticType.isDynamic ||
         !_typeSystem.isPotentiallyNullable(expression.staticType)) {
@@ -5033,7 +5033,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator) {
-    if (!_isNonNullable) {
+    if (!_isNonNullableByDefault) {
       return;
     }
 
@@ -5613,7 +5613,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullableByDefault) return;
 
     AstNode parent = node.parent;
     var defaultValuesAreAllowed = parent is ConstructorDeclaration ||
@@ -5983,7 +5983,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType _toLegacyType(DartType type) {
-    if (_isNonNullable) return type;
+    if (_isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(_typeProvider, type);
   }
 

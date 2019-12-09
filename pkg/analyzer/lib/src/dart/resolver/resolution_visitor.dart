@@ -55,7 +55,7 @@ class ElementHolder {
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
-  final bool _nonNullableEnabled;
+  final bool _isNonNullableByDefault;
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final TypeNameResolver _typeNameResolver;
@@ -96,13 +96,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var libraryElement = unitElement.library;
     var typeProvider = libraryElement.typeProvider;
     var unitSource = unitElement.source;
-    var nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
+    var isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
     var errorReporter = ErrorReporter(errorListener, unitSource);
 
     var typeNameResolver = TypeNameResolver(
       libraryElement.typeSystem,
       typeProvider,
-      nonNullableEnabled,
+      isNonNullableByDefault,
       libraryElement,
       unitSource,
       errorListener,
@@ -111,7 +111,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     return ResolutionVisitor._(
       typeProvider,
       unitElement,
-      nonNullableEnabled,
+      isNonNullableByDefault,
       errorReporter,
       AstRewriter(libraryElement, errorReporter),
       typeNameResolver,
@@ -124,7 +124,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ResolutionVisitor._(
     this._typeProvider,
     this._unitElement,
-    this._nonNullableEnabled,
+    this._isNonNullableByDefault,
     this._errorReporter,
     this._astRewriter,
     this._typeNameResolver,
@@ -1132,7 +1132,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
     NullabilitySuffix nullability;
-    if (_nonNullableEnabled) {
+    if (_isNonNullableByDefault) {
       if (hasQuestion) {
         nullability = NullabilitySuffix.question;
       } else {
