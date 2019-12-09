@@ -18,7 +18,6 @@ import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
-import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart';
@@ -103,10 +102,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
           component, backend, defines, const constants.SimpleErrorReporter());
-      break;
-    case 'methodcall':
-      component =
-          method_call.transformComponent(coreTypes, hierarchy, component);
       break;
     case 'empty':
       component = empty.transformComponent(component);
