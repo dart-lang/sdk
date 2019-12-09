@@ -586,7 +586,9 @@ class AstBuilder extends StackListener {
         optional('.', operatorToken) ||
         optional('?.', operatorToken) ||
         optional('..', operatorToken) ||
-        optional('?..', operatorToken));
+        optional('?..', operatorToken) ||
+        optional('===', operatorToken) ||
+        optional('!==', operatorToken));
     debugEvent("BinaryExpression");
 
     if (identical(".", operatorToken.stringValue) ||
