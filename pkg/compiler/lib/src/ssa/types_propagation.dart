@@ -502,9 +502,19 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   @override
   AbstractValue visitAsCheck(HAsCheck instruction) {
-    HInstruction input = instruction.checkedInput;
+    return _narrowAsCheck(instruction, instruction.checkedInput,
+        instruction.checkedType.abstractValue);
+  }
+
+  @override
+  AbstractValue visitAsCheckSimple(HAsCheckSimple instruction) {
+    return _narrowAsCheck(instruction, instruction.checkedInput,
+        instruction.checkedType.abstractValue);
+  }
+
+  AbstractValue _narrowAsCheck(
+      HInstruction instruction, HInstruction input, AbstractValue checkedType) {
     AbstractValue inputType = input.instructionType;
-    AbstractValue checkedType = instruction.checkedType.abstractValue;
     AbstractValue outputType =
         abstractValueDomain.intersection(checkedType, inputType);
     outputType = _numericFixup(outputType, inputType, checkedType);
