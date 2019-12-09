@@ -4065,7 +4065,7 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
       __ vdups(result, VTMP, 0);
       __ vmuls(result, result, right);
       break;
-    case SimdOpInstr::kFloat64x2Constructor:
+    case SimdOpInstr::kFloat64x2FromDoubles:
       __ vinsd(result, 0, left, 0);
       __ vinsd(result, 1, right, 0);
       break;
@@ -4189,7 +4189,7 @@ DEFINE_EMIT(Simd32x4GetSignMask,
 }
 
 DEFINE_EMIT(
-    Float32x4Constructor,
+    Float32x4FromDoubles,
     (VRegister r, VRegister v0, VRegister v1, VRegister v2, VRegister v3)) {
   __ fcvtsd(VTMP, v0);
   __ vinss(r, 0, VTMP, 0);
@@ -4265,7 +4265,7 @@ DEFINE_EMIT(Float64x2With,
 }
 
 DEFINE_EMIT(
-    Int32x4Constructor,
+    Int32x4FromInts,
     (VRegister result, Register v0, Register v1, Register v2, Register v3)) {
   __ veor(result, result, result);
   __ vinsw(result, 0, v0);
@@ -4274,7 +4274,7 @@ DEFINE_EMIT(
   __ vinsw(result, 3, v3);
 }
 
-DEFINE_EMIT(Int32x4BoolConstructor,
+DEFINE_EMIT(Int32x4FromBools,
             (VRegister result,
              Register v0,
              Register v1,
@@ -4373,7 +4373,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4LessThan)                                                      \
   CASE(Float32x4LessThanOrEqual)                                               \
   CASE(Float32x4Scale)                                                         \
-  CASE(Float64x2Constructor)                                                   \
+  CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
@@ -4393,8 +4393,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4GetSignMask)                                                   \
   CASE(Int32x4GetSignMask)                                                     \
   ____(Simd32x4GetSignMask)                                                    \
-  CASE(Float32x4Constructor)                                                   \
-  ____(Float32x4Constructor)                                                   \
+  CASE(Float32x4FromDoubles)                                                   \
+  ____(Float32x4FromDoubles)                                                   \
   CASE(Float32x4Zero)                                                          \
   CASE(Float64x2Zero)                                                          \
   ____(SimdZero)                                                               \
@@ -4413,10 +4413,10 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
   ____(Float64x2With)                                                          \
-  CASE(Int32x4Constructor)                                                     \
-  ____(Int32x4Constructor)                                                     \
-  CASE(Int32x4BoolConstructor)                                                 \
-  ____(Int32x4BoolConstructor)                                                 \
+  CASE(Int32x4FromInts)                                                        \
+  ____(Int32x4FromInts)                                                        \
+  CASE(Int32x4FromBools)                                                       \
+  ____(Int32x4FromBools)                                                       \
   CASE(Int32x4GetFlagX)                                                        \
   CASE(Int32x4GetFlagY)                                                        \
   CASE(Int32x4GetFlagZ)                                                        \

@@ -3527,20 +3527,13 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     }
 
     case MethodRecognizer::kFloat32x4Zero:
-    case MethodRecognizer::kFloat32x4Splat:
-    case MethodRecognizer::kFloat32x4Constructor:
     case MethodRecognizer::kFloat32x4ToFloat64x2:
     case MethodRecognizer::kFloat64x2ToFloat32x4:
     case MethodRecognizer::kFloat32x4ToInt32x4:
     case MethodRecognizer::kInt32x4ToFloat32x4:
-    case MethodRecognizer::kFloat64x2Constructor:
     case MethodRecognizer::kFloat64x2Zero:
-    case MethodRecognizer::kFloat64x2Splat:
-    case MethodRecognizer::kInt32x4BoolConstructor:
-    case MethodRecognizer::kInt32x4Constructor:
       *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
       break;
-
     default:
       *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
       break;
@@ -3991,7 +3984,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
     case MethodRecognizer::kFloat32x4Abs:
     case MethodRecognizer::kFloat32x4Clamp:
-    case MethodRecognizer::kFloat32x4Constructor:
+    case MethodRecognizer::kFloat32x4FromDoubles:
     case MethodRecognizer::kFloat32x4Equal:
     case MethodRecognizer::kFloat32x4GetSignMask:
     case MethodRecognizer::kFloat32x4GreaterThan:
@@ -4019,7 +4012,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat32x4WithZ:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat64x2Abs:
-    case MethodRecognizer::kFloat64x2Constructor:
+    case MethodRecognizer::kFloat64x2FromDoubles:
     case MethodRecognizer::kFloat64x2GetSignMask:
     case MethodRecognizer::kFloat64x2GetX:
     case MethodRecognizer::kFloat64x2GetY:
@@ -4033,8 +4026,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2WithX:
     case MethodRecognizer::kFloat64x2WithY:
     case MethodRecognizer::kFloat64x2Zero:
-    case MethodRecognizer::kInt32x4BoolConstructor:
-    case MethodRecognizer::kInt32x4Constructor:
+    case MethodRecognizer::kInt32x4FromBools:
+    case MethodRecognizer::kInt32x4FromInts:
     case MethodRecognizer::kInt32x4GetFlagW:
     case MethodRecognizer::kInt32x4GetFlagX:
     case MethodRecognizer::kInt32x4GetFlagY:

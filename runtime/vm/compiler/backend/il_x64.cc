@@ -4360,7 +4360,7 @@ DEFINE_EMIT(SimdBinaryOp,
     case SimdOpInstr::kInt32x4ShuffleMix:
       __ shufps(left, right, compiler::Immediate(instr->mask()));
       break;
-    case SimdOpInstr::kFloat64x2Constructor:
+    case SimdOpInstr::kFloat64x2FromDoubles:
       // shufpd mask 0x0 results in:
       // Lower 64-bits of left = Lower 64-bits of left.
       // Upper 64-bits of left = Lower 64-bits of right.
@@ -4498,7 +4498,7 @@ DEFINE_EMIT(SimdGetSignMask, (Register out, XmmRegister value)) {
 }
 
 DEFINE_EMIT(
-    Float32x4Constructor,
+    Float32x4FromDoubles,
     (SameAsFirstInput, XmmRegister v0, XmmRegister, XmmRegister, XmmRegister)) {
   // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has
   // insertps, with SSE2 this instruction can be implemented through unpcklps.
@@ -4529,7 +4529,7 @@ DEFINE_EMIT(Float32x4Clamp,
   __ maxps(value, lower);
 }
 
-DEFINE_EMIT(Int32x4Constructor,
+DEFINE_EMIT(Int32x4FromInts,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory.
   __ SubImmediate(RSP, compiler::Immediate(kSimd128Size));
@@ -4540,7 +4540,7 @@ DEFINE_EMIT(Int32x4Constructor,
   __ AddImmediate(RSP, compiler::Immediate(kSimd128Size));
 }
 
-DEFINE_EMIT(Int32x4BoolConstructor,
+DEFINE_EMIT(Int32x4FromBools,
             (XmmRegister result,
              Register,
              Register,
@@ -4641,7 +4641,7 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \
-  CASE(Float64x2Constructor)                                                   \
+  CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
@@ -4670,9 +4670,9 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Int32x4GetSignMask)                                                     \
   CASE(Float64x2GetSignMask)                                                   \
   ____(SimdGetSignMask)                                                        \
-  SIMPLE(Float32x4Constructor)                                                 \
-  SIMPLE(Int32x4Constructor)                                                   \
-  SIMPLE(Int32x4BoolConstructor)                                               \
+  SIMPLE(Float32x4FromDoubles)                                                 \
+  SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
   SIMPLE(Float32x4Clamp)                                                       \

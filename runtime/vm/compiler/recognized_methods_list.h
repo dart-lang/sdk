@@ -73,9 +73,9 @@ namespace dart {
   V(::, max, MathMax, 0xe152dd1c)                                              \
   V(::, _doublePow, MathDoublePow, 0x5ae04e61)                                 \
   V(::, _intPow, MathIntPow, 0x569ffd3f)                                       \
-  V(Float32x4, Float32x4., Float32x4Constructor, 0xdf9f0693)                   \
+  V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0xbe902b89)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0x9b875c7f)                      \
-  V(Float32x4, Float32x4.splat, Float32x4Splat, 0xf584a639)                    \
+  V(Float32x4, _Float32x4Splat, Float32x4Splat, 0xd0cf3e6c)                    \
   V(Float32x4, Float32x4.fromInt32x4Bits, Int32x4ToFloat32x4, 0x7339b2bd)      \
   V(Float32x4, Float32x4.fromFloat64x2, Float64x2ToFloat32x4, 0x5de0e788)      \
   V(_Float32x4, shuffle, Float32x4Shuffle, 0x5bc2446e)                         \
@@ -100,9 +100,9 @@ namespace dart {
   V(_Float32x4, withY, Float32x4WithY, 0xff17a63f)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 0x0e7144f2)                             \
   V(_Float32x4, withW, Float32x4WithW, 0x0802b80f)                             \
-  V(Float64x2, Float64x2., Float64x2Constructor, 0xb0bb0109)                   \
+  V(Float64x2, _Float64x2FromDoubles, Float64x2FromDoubles, 0x1ca49394)        \
   V(Float64x2, Float64x2.zero, Float64x2Zero, 0x5e70f315)                      \
-  V(Float64x2, Float64x2.splat, Float64x2Splat, 0xb86e3ccf)                    \
+  V(Float64x2, _Float64x2Splat, Float64x2Splat, 0x05711520)                    \
   V(Float64x2, Float64x2.fromFloat32x4, Float32x4ToFloat64x2, 0x956c2161)      \
   V(_Float64x2, get:x, Float64x2GetX, 0x00b83193)                              \
   V(_Float64x2, get:y, Float64x2GetY, 0xee498cb6)                              \
@@ -115,8 +115,8 @@ namespace dart {
   V(_Float64x2, withY, Float64x2WithY, 0xc2013cd5)                             \
   V(_Float64x2, min, Float64x2Min,  0x57938495)                                \
   V(_Float64x2, max, Float64x2Max,  0x39c30666)                                \
-  V(Int32x4, Int32x4., Int32x4Constructor, 0xa77aeafb)                         \
-  V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 0x51ae2c0c)                 \
+  V(Int32x4, _Int32x4FromInts, Int32x4FromInts, 0xbce3fab8)                    \
+  V(Int32x4, _Int32x4FromBools, Int32x4FromBools, 0x45ef1b0f)                  \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4, 0x64c906dc)        \
   V(_Int32x4, get:flagX, Int32x4GetFlagX, 0x9f8da5bb)                          \
   V(_Int32x4, get:flagY, Int32x4GetFlagY, 0xbafddc9b)                          \

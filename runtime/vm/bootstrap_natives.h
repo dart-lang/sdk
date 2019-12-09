@@ -233,8 +233,8 @@ namespace dart {
   V(TypedDataView_length, 1)                                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
-  V(Float32x4_fromDoubles, 5)                                                  \
-  V(Float32x4_splat, 2)                                                        \
+  V(Float32x4_fromDoubles, 4)                                                  \
+  V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
   V(Float32x4_fromFloat64x2, 2)                                                \
   V(Float32x4_zero, 1)                                                         \
@@ -268,8 +268,8 @@ namespace dart {
   V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
-  V(Float64x2_fromDoubles, 3)                                                  \
-  V(Float64x2_splat, 2)                                                        \
+  V(Float64x2_fromDoubles, 2)                                                  \
+  V(Float64x2_splat, 1)                                                        \
   V(Float64x2_zero, 1)                                                         \
   V(Float64x2_fromFloat32x4, 2)                                                \
   V(Float64x2_add, 2)                                                          \
@@ -288,8 +288,8 @@ namespace dart {
   V(Float64x2_min, 2)                                                          \
   V(Float64x2_max, 2)                                                          \
   V(Float64x2_sqrt, 1)                                                         \
-  V(Int32x4_fromInts, 5)                                                       \
-  V(Int32x4_fromBools, 5)                                                      \
+  V(Int32x4_fromInts, 4)                                                       \
+  V(Int32x4_fromBools, 4)                                                      \
   V(Int32x4_fromFloat32x4Bits, 2)                                              \
   V(Int32x4_or, 2)                                                             \
   V(Int32x4_and, 2)                                                            \

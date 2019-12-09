@@ -5465,9 +5465,10 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
                                          intptr_t mask /* = 0 */) {
   SimdOpInstr* op =
       new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
-  op->SetInputAt(0, new (zone) Value(receiver));
-  // Note: we are skipping receiver.
-  for (intptr_t i = 1; i < op->InputCount(); i++) {
+  if (receiver != nullptr) {
+    op->SetInputAt(0, new (zone) Value(receiver));
+  }
+  for (intptr_t i = (receiver != nullptr ? 1 : 0); i < op->InputCount(); i++) {
     op->SetInputAt(i, call->PushArgumentAt(i)->value()->CopyWithType(zone));
   }
   if (op->HasMask()) {

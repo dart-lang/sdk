@@ -8305,10 +8305,10 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
   M(2, _, Float32x4LessThanOrEqual, (Float32x4, Float32x4), Int32x4)           \
   M(2, _, Float32x4NotEqual, (Float32x4, Float32x4), Int32x4)                  \
-  M(4, _, Int32x4Constructor, (Int32, Int32, Int32, Int32), Int32x4)           \
-  M(4, _, Int32x4BoolConstructor, (Bool, Bool, Bool, Bool), Int32x4)           \
-  M(4, _, Float32x4Constructor, (Double, Double, Double, Double), Float32x4)   \
-  M(2, _, Float64x2Constructor, (Double, Double), Float64x2)                   \
+  M(4, _, Int32x4FromInts, (Int32, Int32, Int32, Int32), Int32x4)              \
+  M(4, _, Int32x4FromBools, (Bool, Bool, Bool, Bool), Int32x4)                 \
+  M(4, _, Float32x4FromDoubles, (Double, Double, Double, Double), Float32x4)   \
+  M(2, _, Float64x2FromDoubles, (Double, Double), Float64x2)                   \
   M(0, _, Float32x4Zero, (), Float32x4)                                        \
   M(0, _, Float64x2Zero, (), Float64x2)                                        \
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
