@@ -2944,16 +2944,14 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddExceptionHandler(
       catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
       is_generated(), catch_handler_types_, needs_stacktrace());
-  if (!FLAG_precompiled_mode) {
-    // On lazy deoptimization we patch the optimized code here to enter the
-    // deoptimization stub.
-    const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
-    if (compiler->is_optimizing()) {
-      compiler->AddDeoptIndexAtCall(deopt_id);
-    } else {
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id,
-                                     TokenPosition::kNoSource);
-    }
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id,
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

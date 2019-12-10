@@ -110,8 +110,8 @@ static bool IsControlFlow(Instruction* instruction) {
 static void AssertPushArgsInEnv(FlowGraph* flow_graph, Definition* call) {
   Environment* env = call->env();
   if (env == nullptr) {
-    // Environments can be removed by EliminateEnvironments pass and
-    // are not present before SSA.
+    // An empty environment should only happen pre-SSA.
+    ASSERT(flow_graph->current_ssa_temp_index() == 0);
   } else if (flow_graph->function().IsIrregexpFunction()) {
     // TODO(dartbug.com/38577): cleanup regexp pipeline too....
   } else {

@@ -22,9 +22,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
       R"(
       import 'dart:typed_data';
 
-      foo(Uint8List list, int from) {
+      void foo(Uint8List list, int from) {
         if (from >= list.length) {
-          return list[from];
+          list[from];
         }
       }
       )";

@@ -385,31 +385,19 @@ Fragment FlowGraphBuilder::FfiCall(
   return body;
 }
 
-Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
-  Fragment instructions;
-  const intptr_t kNumArguments = 1;
-  ArgumentArray arguments = GetArguments(kNumArguments);
-  instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), arguments))
-          .closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
-  // the graph).
-  NullConstant();
-
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;
-  const intptr_t kNumArguments = 2;
-  ArgumentArray arguments = GetArguments(kNumArguments);
+  instructions += Drop();
+  instructions += Drop();
   instructions += Fragment(new (Z) ReThrowInstr(position, catch_try_index,
-                                                GetNextDeoptId(), arguments))
+                                                GetNextDeoptId()))
                       .closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
+
+  pending_argument_count_ -= 2;
 
   return instructions;
 }
