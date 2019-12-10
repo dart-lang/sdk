@@ -2778,14 +2778,18 @@ void TypeTranslator::BuildTypeInternal() {
     case kVoidType:
       result_ = Object::void_type().raw();
       break;
+    case kNeverType: {
+      const Nullability nullability = helper_->ReadNullability();
+      if (nullability != Nullability::kNullable) {
+        result_ = Object::never_type().raw();
+        break;
+      }
+    }
+      FALL_THROUGH;  // Map nullable Never type to Null type.
     case kBottomType:
+      // Map Bottom type to Null type until not emitted by CFE anymore.
       result_ = I->object_store()->null_type();
       ASSERT(result_.IsNullable());
-      break;
-    case kNeverType:
-      helper_->ReadNullability();
-      // Ignore nullability, as Never type is non-nullable.
-      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);

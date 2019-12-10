@@ -2129,10 +2129,17 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   ObjectHandle visitVoidType(VoidType node) => objectTable._voidType;
 
   @override
-  ObjectHandle visitNeverType(NeverType node) => objectTable._neverType;
+  ObjectHandle visitNeverType(NeverType node) {
+    if (node.nullability == Nullability.nullable) {
+      // Map nullable Never type to Null type.
+      return objectTable.getHandle(coreTypes.nullType);
+    }
+    return objectTable._neverType;
+  }
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
+      // Map Bottom type to Null type until not emitted by CFE anymore.
       objectTable.getHandle(coreTypes.nullType);
 
   @override

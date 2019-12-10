@@ -17839,9 +17839,24 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   if (nullability() == value) {
     return raw();
   }
+  // Type parameter instantiation may request a nullability change, which should
+  // be ignored for types dynamic and void. Type Null cannot be the result of
+  // instantiating a non-nullable type parameter (TypeError thrown).
+  const classid_t cid = type_class_id();
+  if (cid == kDynamicCid || cid == kVoidCid || cid == kNullCid) {
+    return raw();
+  }
+  if (cid == kNeverCid) {
+    if (value == Nullability::kNullable) {
+      // Map nullable Never type to Null type.
+      return Type::NullType();
+    }
+    return raw();
+  }
   // Clone type and set new nullability.
   Type& type = Type::Handle();
-  // TODO(regis): Should we always clone in old space and remove space param?
+  // Always cloning in old space and removing space parameter would not satisfy
+  // currently existing requests for type instantiation in new space.
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
@@ -18666,7 +18681,6 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   }
   // Clone type and set new nullability.
   TypeParameter& type_parameter = TypeParameter::Handle();
-  // TODO(regis): Should we always clone in old space and remove space param?
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
   type_parameter.SetHash(0);
