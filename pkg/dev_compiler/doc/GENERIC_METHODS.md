@@ -1,6 +1,9 @@
 # Using Generic Methods
 
-**Note: For historical reasons, this feature is called "generic methods", but it
+**Note: This document is out of date.  Please see [Sound Dart](https://dart.dev/guides/language/sound-dart) for up-to-date
+documentation on Dart's type system.  The work below was a precursor towards Dart's current type system.
+
+For historical reasons, this feature is called "generic methods", but it
 applies equally well to instance methods, static methods, top-level functions,
 local functions, and even lambda expressions.**
 

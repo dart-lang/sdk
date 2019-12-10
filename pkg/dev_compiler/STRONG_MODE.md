@@ -1,5 +1,9 @@
 # Strong Mode
 
+**Note: This document is out of date.  Please see [Sound Dart](https://dart.dev/guides/language/sound-dart) for up-to-date
+documentation on Dart's type system.  The work below was a precursor towards Dart's current type system.**
+
+
 Strong mode applies a more restrictive type system to Dart to address its unsound, surprising behavior in certain cases.
 
 Strong mode helps with:
