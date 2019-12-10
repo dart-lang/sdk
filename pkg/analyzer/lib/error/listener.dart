@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
 
@@ -202,28 +201,13 @@ class ErrorReporter {
    * clarify the message.
    */
   void _convertTypeNames(List<Object> arguments) {
-    String computeDisplayName(DartType type) {
-      if (type is FunctionType) {
-        String name = type.name;
-        if (name != null && name.isNotEmpty) {
-          StringBuffer buffer = StringBuffer();
-          buffer.write(name);
-          (type as TypeImpl).appendTo(
-            buffer,
-            withNullability: isNonNullableByDefault,
-            skipAllDynamicArguments: false,
-          );
-          return buffer.toString();
-        }
-      }
-      return type.getDisplayString(withNullability: isNonNullableByDefault);
-    }
-
     Map<String, List<_TypeToConvert>> typeGroups = {};
     for (int i = 0; i < arguments.length; i++) {
       Object argument = arguments[i];
       if (argument is DartType) {
-        String displayName = computeDisplayName(argument);
+        String displayName = argument.getDisplayString(
+          withNullability: isNonNullableByDefault,
+        );
         List<_TypeToConvert> types =
             typeGroups.putIfAbsent(displayName, () => <_TypeToConvert>[]);
         types.add(_TypeToConvert(i, argument, displayName));
