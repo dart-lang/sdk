@@ -122,20 +122,20 @@ class GitPackage extends Package {
     if (_keepUpdated || !await Directory(packagePath).exists()) {
       // Clone or update.
       if (await Directory(packagePath).exists()) {
-        await launcher.runStreamed('git', ['pull']);
+        await launcher.runStreamed('git', ['pull'],
+            workingDirectory: packagePath);
       } else {
         await launcher.runStreamed('git',
-            ['clone', '--branch=$label', '--depth=1', _clonePath, _packagePath],
+            ['clone', '--branch=$label', '--depth=1', _clonePath, packagePath],
             workingDirectory: _playground.playgroundPath);
         await launcher.runStreamed('git', ['checkout', '-b', '_test_migration'],
-            workingDirectory: _packagePath);
+            workingDirectory: packagePath);
         await launcher.runStreamed(
             'git', ['branch', '--set-upstream-to', 'origin/$label'],
-            workingDirectory: _packagePath);
+            workingDirectory: packagePath);
         // TODO(jcollins-g): allow for migrating dependencies?
       }
-      await launcher.runStreamed('pub', ['get'],
-          workingDirectory: _packagePath);
+      await launcher.runStreamed('pub', ['get'], workingDirectory: packagePath);
     }
   }
 
