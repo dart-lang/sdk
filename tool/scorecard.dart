@@ -57,11 +57,15 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var flutterUserLintCount = 0;
   var flutterRepoLintCount = 0;
   var fixCount = 0;
+  var pedanticFixCount = 0;
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
       if (ruleSet == 'pedantic') {
         ++pedanticLintCount;
+        if (score.hasFix) {
+          ++pedanticFixCount;
+        }
       }
       if (ruleSet == 'flutter') {
         ++flutterUserLintCount;
@@ -98,6 +102,9 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
     breakdowns.write('; ');
   }
   breakdowns.write('$fixCount w/ fixes');
+  if (details.contains(Detail.pedantic)) {
+    breakdowns.write(' ($pedanticFixCount pedantic)');
+  }
 
   if (breakdowns.isNotEmpty) {
     footer.write(': $breakdowns');

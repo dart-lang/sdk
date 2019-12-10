@@ -134,11 +134,12 @@ unawaited_futures: 0.1.19
 unnecessary_await_in_return: 0.1.73
 unnecessary_brace_in_string_interps: 0.1.30
 unnecessary_const: 0.1.54
+unnecessary_final : 0.1.104
+unnecessary_getters_setters: 0.1.1
+unnecessary_lambdas: 0.1.30
 unnecessary_new: 0.1.54
 unnecessary_null_aware_assignments: 0.1.30
 unnecessary_null_in_if_null_operators: 0.1.30
-unnecessary_getters_setters: 0.1.1
-unnecessary_lambdas: 0.1.30
 unnecessary_overrides: 0.1.31
 unnecessary_parenthesis: 0.1.44
 unnecessary_statements: 0.1.36
