@@ -711,9 +711,7 @@ class FragmentEmitter {
       'variances': emitVariances(fragment),
       'sharedTypeRtis':
           _options.experimentNewRti ? TypeReferenceResource() : [],
-      'nativeSupport': program.needsNativeSupport
-          ? emitNativeSupport(fragment)
-          : new js.EmptyStatement(),
+      'nativeSupport': emitNativeSupport(fragment),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
           new js.EmptyStatement(),
@@ -2163,12 +2161,16 @@ class FragmentEmitter {
       }
     }
 
-    if (interceptorsByTag.isNotEmpty) {
+    // Emit the empty objects for main fragment in case we emit
+    // getNativeInterceptor.
+    // TODO(sra): Refine the impacts to accuratley predict whether we need this
+    // at all, and delete 'setOrUpdateInterceptorsByTag' if it is not called.
+    if (fragment.isMainFragment || interceptorsByTag.isNotEmpty) {
       statements.add(js.js.statement(
           "hunkHelpers.setOrUpdateInterceptorsByTag(#);",
           js.objectLiteral(interceptorsByTag)));
     }
-    if (leafTags.isNotEmpty) {
+    if (fragment.isMainFragment || leafTags.isNotEmpty) {
       statements.add(js.js.statement(
           "hunkHelpers.setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     }
