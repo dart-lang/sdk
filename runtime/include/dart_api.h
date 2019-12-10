@@ -581,7 +581,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
- * \param callback_data The callback data which was passed to the
+ * \param isolate_data The isolate data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolateGroup().
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
@@ -595,7 +595,7 @@ typedef Dart_Isolate (*Dart_IsolateGroupCreateCallback)(
     const char* package_root,
     const char* package_config,
     Dart_IsolateFlags* flags,
-    void* callback_data,
+    void* isolate_data,
     char** error);
 
 /**
@@ -894,7 +894,11 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   isolate or NULL if no snapshot is provided. If provided, the buffers must
  *   remain valid until the isolate shuts down.
  * \param flags Pointer to VM specific flags or NULL for default flags.
- * \param callback_data Embedder data.  This data will be passed to
+ * \param isolate_group_data Embedder group data. This data can be obtained
+ *   by calling Dart_IsolateGroupData and will be passed to the
+ *   Dart_IsolateShutdownCallback, Dart_IsolateCleanupCallback, and
+ *   Dart_IsolateGroupCleanupCallback.
+ * \param isolate_data Embedder data.  This data will be passed to
  *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
@@ -931,7 +935,11 @@ Dart_CreateIsolateGroup(const char* script_uri,
  * \param kernel_buffer_size A buffer which contains a kernel/DIL program. Must
  *   remain valid until isolate shutdown.
  * \param flags Pointer to VM specific flags or NULL for default flags.
- * \param callback_data Embedder data.  This data will be passed to
+ * \param isolate_group_data Embedder group data. This data can be obtained
+ *   by calling Dart_IsolateGroupData and will be passed to the
+ *   Dart_IsolateShutdownCallback, Dart_IsolateCleanupCallback, and
+ *   Dart_IsolateGroupCleanupCallback.
+ * \param isolate_data Embedder data.  This data will be passed to
  *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
