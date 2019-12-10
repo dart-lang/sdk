@@ -894,6 +894,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
   if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
     buffer.AddString(" dwarf-stack-traces");
   }
+
+  if (Dart::non_nullable_flag()) {
+    buffer.AddString(" nnbd-experiment");
+  }
 #undef ADD_ISOLATE_FLAG
 #undef ADD_FLAG
 
