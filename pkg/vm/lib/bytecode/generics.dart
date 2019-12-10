@@ -226,14 +226,31 @@ bool isUncheckedCall(Member interfaceTarget, Expression receiver,
 
   DartType receiverStaticType = getStaticType(receiver, staticTypeContext);
   if (receiverStaticType is InterfaceType) {
-    if (receiverStaticType.typeArguments.isEmpty) {
+    final typeArguments = receiverStaticType.typeArguments;
+    if (typeArguments.isEmpty) {
       return true;
     }
 
-    if (receiverStaticType.typeArguments.every(
-        (t) => isSealedType(t, staticTypeContext.typeEnvironment.coreTypes))) {
-      return true;
+    final typeParameters = receiverStaticType.classNode.typeParameters;
+    assert(typeArguments.length == typeParameters.length);
+    for (int i = 0; i < typeArguments.length; ++i) {
+      switch (typeParameters[i].variance) {
+        case Variance.covariant:
+          if (!isSealedType(
+              typeArguments[i], staticTypeContext.typeEnvironment.coreTypes)) {
+            return false;
+          }
+          break;
+        case Variance.invariant:
+          break;
+        case Variance.contravariant:
+          return false;
+        default:
+          throw 'Unexpected variance ${typeParameters[i].variance} of '
+              '${typeParameters[i]} in ${receiverStaticType.classNode}';
+      }
     }
+    return true;
   }
   return false;
 }
