@@ -956,9 +956,11 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
   MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
+  RawObject* volatile debugging_prev = 0;  // TODO(36906): Remove.
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     cur += raw_obj->VisitPointers(visitor);
+    debugging_prev = raw_obj;
   }
 }
 
@@ -967,10 +969,12 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
          (Thread::Current()->task_kind() == Thread::kMarkerTask));
   MakeNewSpaceIterable();
   uword cur = FirstObjectStart();
+  RawObject* volatile debugging_prev = 0;  // TODO(36906): Remove.
   while (cur < top_) {
     RawObject* raw_obj = RawObject::FromAddr(cur);
     visitor->VisitObject(raw_obj);
     cur += raw_obj->HeapSize();
+    debugging_prev = raw_obj;
   }
 }
 
