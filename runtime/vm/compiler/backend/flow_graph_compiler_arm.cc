@@ -762,15 +762,14 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   const Register kSubtypeTestCacheReg = R3;
   const Register kDstTypeReg = R8;
-  const Register kRegToCall = dst_type.IsTypeParameter() ? R9 : kDstTypeReg;
   const Register kScratchReg = R4;
 
   compiler::Label done;
 
   GenerateAssertAssignableViaTypeTestingStub(
       dst_type, dst_name, kInstanceReg, kInstantiatorTypeArgumentsReg,
-      kFunctionTypeArgumentsReg, kSubtypeTestCacheReg, kDstTypeReg, kRegToCall,
-      kScratchReg, &done);
+      kFunctionTypeArgumentsReg, kSubtypeTestCacheReg, kDstTypeReg, kScratchReg,
+      &done);
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
   // but it will be used by the code throwing a TypeError if the type test fails
@@ -790,7 +789,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   __ LoadField(
       R9,
       compiler::FieldAddress(
-          kRegToCall,
+          kDstTypeReg,
           compiler::target::AbstractType::type_test_stub_entry_point_offset()));
   __ LoadWordFromPoolOffset(kSubtypeTestCacheReg, sub_type_cache_offset, PP,
                             AL);
