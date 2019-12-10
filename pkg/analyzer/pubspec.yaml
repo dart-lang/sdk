@@ -8,7 +8,7 @@ environment:
   sdk: '>=2.2.2 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared: 1.0.1
+  _fe_analyzer_shared: ^1.0.1
   args: '>=0.12.1 <2.0.0'
   charcode: ^1.1.0
   collection: ^1.10.1
