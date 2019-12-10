@@ -36,7 +36,9 @@ class Snapshot {
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
-  static AppSnapshot* TryReadAppSnapshot(const char* script_name);
+  static AppSnapshot* TryReadAppSnapshot(
+      const char* script_name,
+      bool force_load_elf_from_memory = false);
   static void WriteAppSnapshot(const char* filename,
                                uint8_t* vm_data_buffer,
                                intptr_t vm_data_size,

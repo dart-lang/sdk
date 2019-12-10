@@ -129,8 +129,7 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   if (Options::depfile() == NULL) {
     return;
   }
-  File* file =
-      File::Open(NULL, Options::depfile(), File::kWriteTruncate);
+  File* file = File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Error: Unable to open snapshot depfile: %s\n\n",
               Options::depfile());
@@ -1002,7 +1001,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
-
 Dart_Handle GetVMServiceAssetsArchiveCallback() {
   uint8_t* decompressed = NULL;
   intptr_t decompressed_len = 0;
@@ -1116,7 +1114,12 @@ void main(int argc, char** argv) {
   Loader::InitOnce();
 
   if (app_snapshot == nullptr) {
-    app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
+    // For testing purposes we add a flag to debug-mode to use the
+    // in-memory ELF loader.
+    const bool force_load_elf_from_memory =
+        false DEBUG_ONLY(|| Options::force_load_elf_from_memory());
+    app_snapshot =
+        Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
   }
   if (app_snapshot != nullptr) {
     vm_run_app_snapshot = true;

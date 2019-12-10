@@ -213,7 +213,7 @@ class File : public ReferenceCounted<File> {
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
   static File* OpenFD(int fd);
 #endif
 

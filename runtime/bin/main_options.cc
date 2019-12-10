@@ -46,6 +46,9 @@ STRING_OPTIONS_LIST(STRING_OPTION_DEFINITION)
   bool OPTION_FIELD(variable) = false;                                         \
   DEFINE_BOOL_OPTION(name, OPTION_FIELD(variable))
 BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
+#if defined(DEBUG)
+DEBUG_BOOL_OPTIONS_LIST(BOOL_OPTION_DEFINITION)
+#endif
 #undef BOOL_OPTION_DEFINITION
 
 #define SHORT_BOOL_OPTION_DEFINITION(short_name, long_name, variable)          \

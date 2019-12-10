@@ -52,6 +52,9 @@ namespace bin {
   V(h, help, help_option)                                                      \
   V(v, verbose, verbose_option)
 
+#define DEBUG_BOOL_OPTIONS_LIST(V)                                             \
+  V(force_load_elf_from_memory, force_load_elf_from_memory)
+
 // A list of flags taking arguments from an enum. Organized as:
 //   V(flag_name, enum_type, field_name)
 // In main_options.cc there must be a list of strings that matches the enum
@@ -92,6 +95,9 @@ class Options {
 #define BOOL_OPTION_GETTER(flag, variable)                                     \
   static bool variable() { return variable##_; }
   BOOL_OPTIONS_LIST(BOOL_OPTION_GETTER)
+#if defined(DEBUG)
+  DEBUG_BOOL_OPTIONS_LIST(BOOL_OPTION_GETTER)
+#endif
 #undef BOOL_OPTION_GETTER
 
 #define SHORT_BOOL_OPTION_GETTER(short_name, long_name, variable)              \
@@ -137,6 +143,9 @@ class Options {
 
 #define BOOL_OPTION_DECL(flag, variable) static bool variable##_;
   BOOL_OPTIONS_LIST(BOOL_OPTION_DECL)
+#if defined(DEBUG)
+  DEBUG_BOOL_OPTIONS_LIST(BOOL_OPTION_DECL)
+#endif
 #undef BOOL_OPTION_DECL
 
 #define SHORT_BOOL_OPTION_DECL(short_name, long_name, variable)                \
@@ -169,6 +178,9 @@ class Options {
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
   BOOL_OPTIONS_LIST(OPTION_FRIEND)
+#if defined(DEBUG)
+  DEBUG_BOOL_OPTIONS_LIST(OPTION_FRIEND)
+#endif
 #undef OPTION_FRIEND
 
 #define SHORT_BOOL_OPTION_FRIEND(short_name, long_name, variable)              \
