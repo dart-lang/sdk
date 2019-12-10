@@ -1805,8 +1805,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // VM uses more specific function type and doesn't expect to
     // see inferred _Closure class.
     if (concreteClass != null && concreteClass != closureClass) {
-      inferredTypesAttribute
-          .add(TypeLiteralConstant(coreTypes.legacyRawType(concreteClass)));
+      inferredTypesAttribute.add(TypeLiteralConstant(coreTypes.rawType(
+          concreteClass,
+          (concreteClass == coreTypes.nullClass)
+              ? Nullability.nullable
+              : staticTypeContext.nonNullable)));
     } else {
       inferredTypesAttribute.add(NullConstant());
     }
