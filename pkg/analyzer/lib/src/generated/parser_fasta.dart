@@ -380,7 +380,11 @@ class _Parser2 extends ParserAdapter {
   factory _Parser2(
       Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
       {bool allowNativeClause = false}) {
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+    );
     return _Parser2._(source, errorReporter, source.uri, featureSet,
         allowNativeClause: allowNativeClause);
   }

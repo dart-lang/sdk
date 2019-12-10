@@ -129,7 +129,11 @@ class ConstantEvaluator {
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = RecordingErrorListener();
-    ErrorReporter errorReporter = ErrorReporter(errorListener, _source);
+    ErrorReporter errorReporter = ErrorReporter(
+      errorListener,
+      _source,
+      isNonNullableByDefault: _typeSystem.isNonNullableByDefault,
+    );
     DartObjectImpl result = expression.accept(ConstantVisitor(
         ConstantEvaluationEngine(_typeProvider, DeclaredVariables(),
             typeSystem: _typeSystem),

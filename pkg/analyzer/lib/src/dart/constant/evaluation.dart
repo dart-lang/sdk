@@ -98,6 +98,10 @@ class ConstantEvaluationEngine {
             ),
         experimentStatus = experimentStatus ?? ExperimentStatus();
 
+  bool get _isNonNullableByDefault {
+    return (typeSystem as TypeSystemImpl).isNonNullableByDefault;
+  }
+
   /// Check that the arguments to a call to fromEnvironment() are correct. The
   /// [arguments] are the AST nodes of the arguments. The [argumentValues] are
   /// the values of the unnamed arguments. The [namedArgumentValues] are the
@@ -169,8 +173,11 @@ class ConstantEvaluationEngine {
         Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = RecordingErrorListener();
-          ErrorReporter errorReporter =
-              ErrorReporter(errorListener, constant.source);
+          ErrorReporter errorReporter = ErrorReporter(
+            errorListener,
+            constant.source,
+            isNonNullableByDefault: _isNonNullableByDefault,
+          );
           DartObjectImpl dartObject =
               defaultValue.accept(ConstantVisitor(this, errorReporter));
           constant.evaluationResult =
@@ -184,8 +191,11 @@ class ConstantEvaluationEngine {
       Expression constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter =
-            ErrorReporter(errorListener, constant.source);
+        ErrorReporter errorReporter = ErrorReporter(
+          errorListener,
+          constant.source,
+          isNonNullableByDefault: _isNonNullableByDefault,
+        );
         DartObjectImpl dartObject =
             constantInitializer.accept(ConstantVisitor(this, errorReporter));
         // Only check the type for truly const declarations (don't check final
@@ -235,8 +245,11 @@ class ConstantEvaluationEngine {
           element.isConst &&
           constNode.arguments != null) {
         RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter =
-            ErrorReporter(errorListener, constant.source);
+        ErrorReporter errorReporter = ErrorReporter(
+          errorListener,
+          constant.source,
+          isNonNullableByDefault: _isNonNullableByDefault,
+        );
         ConstantVisitor constantVisitor = ConstantVisitor(this, errorReporter);
         DartObjectImpl result = evaluateConstructorCall(
             constNode,
@@ -551,8 +564,11 @@ class ConstantEvaluationEngine {
     // different source. But they still should cause a constant evaluation
     // error for the current node.
     var externalErrorListener = BooleanErrorListener();
-    var externalErrorReporter =
-        ErrorReporter(externalErrorListener, constructor.source);
+    var externalErrorReporter = ErrorReporter(
+      externalErrorListener,
+      constructor.source,
+      isNonNullableByDefault: _isNonNullableByDefault,
+    );
 
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
@@ -811,8 +827,11 @@ class ConstantEvaluationEngine {
       ConstantEvaluationTarget constant) {
     if (constant is VariableElement) {
       RecordingErrorListener errorListener = RecordingErrorListener();
-      ErrorReporter errorReporter =
-          ErrorReporter(errorListener, constant.source);
+      ErrorReporter errorReporter = ErrorReporter(
+        errorListener,
+        constant.source,
+        isNonNullableByDefault: _isNonNullableByDefault,
+      );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.

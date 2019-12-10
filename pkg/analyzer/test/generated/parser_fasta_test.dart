@@ -2088,7 +2088,11 @@ class FastaParserTestCase
     _fastaTokens = result.tokens;
 
     // Run parser
-    ErrorReporter errorReporter = ErrorReporter(listener, source);
+    ErrorReporter errorReporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
     fasta.Parser parser = fasta.Parser(null);
     AstBuilder astBuilder =
         AstBuilder(errorReporter, source.uri, true, featureSet);
@@ -3244,7 +3248,11 @@ class ParserProxy extends analyzer.ParserAdapter {
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener(checkRanges: true);
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: false,
+    );
     return ParserProxy._(
         firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,

@@ -31,7 +31,11 @@ class LinterRuleOptionsValidatorTest {
   setUp() {
     registerLintRules();
     recorder = new RecordingErrorListener();
-    reporter = new ErrorReporter(recorder, new _TestSource());
+    reporter = new ErrorReporter(
+      recorder,
+      new _TestSource(),
+      isNonNullableByDefault: false,
+    );
   }
 
   test_linter_defined_rules() {

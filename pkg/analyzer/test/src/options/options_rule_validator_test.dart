@@ -38,8 +38,11 @@ class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
  */
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener listener = GatheringErrorListener();
-    ErrorReporter reporter =
-        ErrorReporter(listener, StringSource(content, 'analysis_options.yaml'));
+    ErrorReporter reporter = ErrorReporter(
+      listener,
+      StringSource(content, 'analysis_options.yaml'),
+      isNonNullableByDefault: false,
+    );
     validator.validate(reporter, loadYamlNode(content));
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }

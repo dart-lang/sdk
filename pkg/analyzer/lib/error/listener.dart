@@ -68,6 +68,11 @@ class ErrorReporter {
   final Source _defaultSource;
 
   /**
+   * Is `true` if the library being analyzed is non-nullable by default.
+   */
+  final bool isNonNullableByDefault;
+
+  /**
    * The source to be used when reporting errors.
    */
   Source _source;
@@ -77,7 +82,8 @@ class ErrorReporter {
    * given [_errorListener]. Errors will be reported against the
    * [_defaultSource] unless another source is provided later.
    */
-  ErrorReporter(this._errorListener, this._defaultSource) {
+  ErrorReporter(this._errorListener, this._defaultSource,
+      {this.isNonNullableByDefault = false}) {
     if (_errorListener == null) {
       throw ArgumentError("An error listener must be provided");
     } else if (_defaultSource == null) {
@@ -204,13 +210,13 @@ class ErrorReporter {
           buffer.write(name);
           (type as TypeImpl).appendTo(
             buffer,
-            withNullability: false,
+            withNullability: isNonNullableByDefault,
             skipAllDynamicArguments: false,
           );
           return buffer.toString();
         }
       }
-      return type.getDisplayString(withNullability: false);
+      return type.getDisplayString(withNullability: isNonNullableByDefault);
     }
 
     Map<String, List<_TypeToConvert>> typeGroups = {};

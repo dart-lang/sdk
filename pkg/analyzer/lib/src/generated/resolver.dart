@@ -2729,7 +2729,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       AnalysisErrorListener errorListener,
       {Scope nameScope})
       : source = source,
-        errorReporter = ErrorReporter(errorListener, source) {
+        errorReporter = ErrorReporter(
+          errorListener,
+          source,
+          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
+        ) {
     if (nameScope == null) {
       this.nameScope = LibraryScope(definingLibrary);
     } else {

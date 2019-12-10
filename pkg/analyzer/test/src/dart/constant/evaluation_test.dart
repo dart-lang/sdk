@@ -199,7 +199,11 @@ class ConstantVisitorTestSupport extends DriverResolutionTest {
 
     var source = this.result.unit.declaredElement.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: false,
+    );
 
     DartObjectImpl result = expression.accept(
       ConstantVisitor(

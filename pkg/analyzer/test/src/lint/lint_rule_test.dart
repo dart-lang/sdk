@@ -70,7 +70,8 @@ class CollectingReporter extends ErrorReporter {
   ErrorCode code;
 
   CollectingReporter(AnalysisErrorListener listener, Source source)
-      : super(listener, source);
+      : super(listener, source, isNonNullableByDefault: false);
+
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
     code = errorCode;

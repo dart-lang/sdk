@@ -114,7 +114,11 @@ class DartLinter implements AnalysisErrorListener {
           // processing gets pushed down, this hack can go away.)
           if (rule.reporter == null && sourceUrl != null) {
             var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(this, source);
+            rule.reporter = ErrorReporter(
+              this,
+              source,
+              isNonNullableByDefault: false,
+            );
           }
           try {
             spec.accept(visitor);
@@ -343,15 +347,24 @@ class LinterContextImpl implements LinterContext {
 
   @override
   LinterConstantEvaluationResult evaluateConstant(Expression node) {
-    var source = currentUnit.unit.declaredElement.source;
+    var unitElement = currentUnit.unit.declaredElement;
+    var source = unitElement.source;
+    var libraryElement = unitElement.library;
+
     var errorListener = RecordingErrorListener();
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
+    );
+
     var visitor = ConstantVisitor(
       ConstantEvaluationEngine(
         typeProvider,
         declaredVariables,
         typeSystem: typeSystem,
       ),
-      ErrorReporter(errorListener, source),
+      errorReporter,
     );
 
     var value = node.accept(visitor);
@@ -364,7 +377,11 @@ class LinterContextImpl implements LinterContext {
     var libraryElement = unitElement.library;
 
     var listener = ConstantAnalysisErrorListener();
-    var errorReporter = ErrorReporter(listener, unitElement.source);
+    var errorReporter = ErrorReporter(
+      listener,
+      unitElement.source,
+      isNonNullableByDefault: libraryElement.isNonNullableByDefault,
+    );
 
     node.accept(
       ConstantVerifier(
@@ -628,7 +645,11 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           // processing gets pushed down, this hack can go away.)
           if (rule.reporter == null && sourceUrl != null) {
             var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(this, source);
+            rule.reporter = ErrorReporter(
+              this,
+              source,
+              isNonNullableByDefault: false,
+            );
           }
           try {
             spec.accept(visitor);

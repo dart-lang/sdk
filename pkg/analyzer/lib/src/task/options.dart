@@ -425,7 +425,11 @@ class OptionsFileValidator {
 
   List<AnalysisError> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    ErrorReporter reporter = ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    );
     if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
       reporter.reportError(AnalysisError(
           source,

@@ -24,13 +24,22 @@ class ErrorReporterTest extends DriverResolutionTest {
 
   test_creation() async {
     var source = TestSource();
-    expect(ErrorReporter(listener, source), isNotNull);
+    var reporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
+    expect(reporter, isNotNull);
   }
 
   test_reportErrorForElement_named() async {
     await resolveTestCode('class A {}');
     var element = findElement.class_('A');
-    var reporter = ErrorReporter(listener, element.source);
+    var reporter = ErrorReporter(
+      listener,
+      element.source,
+      isNonNullableByDefault: false,
+    );
     reporter.reportErrorForElement(
       StaticWarningCode.CAST_TO_NON_TYPE,
       element,
@@ -48,7 +57,11 @@ import 'dart:math';
 ''');
     var element = findElement.import('dart:math');
 
-    var reporter = ErrorReporter(listener, element.source);
+    var reporter = ErrorReporter(
+      listener,
+      element.source,
+      isNonNullableByDefault: false,
+    );
     reporter.reportErrorForElement(
       StaticWarningCode.CAST_TO_NON_TYPE,
       element,
@@ -61,7 +74,11 @@ import 'dart:math';
 
   test_reportErrorForSpan() async {
     var source = TestSource();
-    var reporter = ErrorReporter(listener, source);
+    var reporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
 
     var text = '''
 foo: bar
@@ -110,7 +127,11 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(listener, firstType.element.source);
+    var reporter = ErrorReporter(
+      listener,
+      firstType.element.source,
+      isNonNullableByDefault: false,
+    );
 
     reporter.reportTypeErrorForNode(
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
@@ -145,7 +166,11 @@ main() {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var reporter = ErrorReporter(listener, firstType.element.source);
+    var reporter = ErrorReporter(
+      listener,
+      firstType.element.source,
+      isNonNullableByDefault: false,
+    );
     reporter.reportTypeErrorForNode(
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
@@ -174,7 +199,11 @@ main() {
     var fb = findNode.topLevelVariableDeclaration('fb');
 
     var source = result.unit.declaredElement.source;
-    var reporter = ErrorReporter(listener, source);
+    var reporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
     reporter.reportTypeErrorForNode(
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
@@ -205,7 +234,11 @@ main() {
     var bb = findNode.topLevelVariableDeclaration('bb');
 
     var source = result.unit.declaredElement.source;
-    var reporter = ErrorReporter(listener, source);
+    var reporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
     reporter.reportTypeErrorForNode(
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),

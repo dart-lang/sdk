@@ -1441,8 +1441,11 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       {DartType returnType, bool expectError = false}) {
     var listener = RecordingErrorListener();
 
-    var reporter = ErrorReporter(listener,
-        NonExistingSource('/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
+    var reporter = ErrorReporter(
+      listener,
+      NonExistingSource('/test.dart', toUri('/test.dart'), UriKind.FILE_URI),
+      isNonNullableByDefault: false,
+    );
 
     var typeArguments = typeSystem.inferGenericFunctionOrType(
       typeParameters: ft.typeFormals,

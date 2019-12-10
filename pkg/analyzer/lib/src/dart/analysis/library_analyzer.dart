@@ -138,15 +138,15 @@ class LibraryAnalyzer {
     }
     timerLibraryAnalyzerFreshUnit.stop();
 
+    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    _libraryScope = LibraryScope(_libraryElement);
+
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
-
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    _libraryScope = LibraryScope(_libraryElement);
 
     timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
@@ -465,7 +465,11 @@ class LibraryAnalyzer {
   ErrorReporter _getErrorReporter(FileState file) {
     return _errorReporters.putIfAbsent(file, () {
       RecordingErrorListener listener = _getErrorListener(file);
-      return ErrorReporter(listener, file.source);
+      return ErrorReporter(
+        listener,
+        file.source,
+        isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
+      );
     });
   }
 

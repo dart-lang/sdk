@@ -458,8 +458,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// @return the value of the compile time constant
   DartObjectImpl _validate(Expression expression, ErrorCode errorCode) {
     RecordingErrorListener errorListener = RecordingErrorListener();
-    ErrorReporter subErrorReporter =
-        ErrorReporter(errorListener, _errorReporter.source);
+    ErrorReporter subErrorReporter = ErrorReporter(
+      errorListener,
+      _errorReporter.source,
+      isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
+    );
     DartObjectImpl result =
         expression.accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
@@ -550,8 +553,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             // can't be evaluated we'll just report a single error.
             AnalysisErrorListener errorListener =
                 AnalysisErrorListener.NULL_LISTENER;
-            ErrorReporter subErrorReporter =
-                ErrorReporter(errorListener, _errorReporter.source);
+            ErrorReporter subErrorReporter = ErrorReporter(
+              errorListener,
+              _errorReporter.source,
+              isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
+            );
             DartObjectImpl result = initializer
                 .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
             if (result == null) {
