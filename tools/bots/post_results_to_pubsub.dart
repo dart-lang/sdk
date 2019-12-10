@@ -64,7 +64,7 @@ main(List<String> args) async {
     message.write(']');
     numMessages++;
     final attributes = {
-      if (line == lines.length) 'num_messages': numMessages.toString()
+      if (line == lines.length) 'num_chunks': numMessages.toString()
     };
     var base64data = base64Encode(utf8.encode(message.toString()));
     var messageObject = {
