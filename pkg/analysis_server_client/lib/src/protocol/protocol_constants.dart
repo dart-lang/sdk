@@ -227,6 +227,7 @@ const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';
 const String EDIT_RESPONSE_DARTFIX_HAS_ERRORS = 'hasErrors';
 const String EDIT_RESPONSE_DARTFIX_OTHER_SUGGESTIONS = 'otherSuggestions';
 const String EDIT_RESPONSE_DARTFIX_SUGGESTIONS = 'suggestions';
+const String EDIT_RESPONSE_DARTFIX_URL = 'url';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
 const String EDIT_RESPONSE_FORMAT_SELECTION_LENGTH = 'selectionLength';
 const String EDIT_RESPONSE_FORMAT_SELECTION_OFFSET = 'selectionOffset';
