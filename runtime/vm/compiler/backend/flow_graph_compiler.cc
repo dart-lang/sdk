@@ -453,7 +453,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
   RecordCatchEntryMoves(env);
-  if (deopt_id != DeoptId::kNone) {
+  if ((deopt_id != DeoptId::kNone) && !FLAG_precompiled_mode) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -776,6 +776,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
+  ASSERT(!FLAG_precompiled_mode);
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
@@ -923,7 +924,9 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   // stubs.
   ASSERT(!using_shared_stub || num_slow_path_args == 0);
   if (env == nullptr) {
-    ASSERT(!is_optimizing());
+    // In AOT, environments can be removed by EliminateEnvironments pass
+    // (if not in a try block).
+    ASSERT(!is_optimizing() || FLAG_precompiled_mode);
     return nullptr;
   }
 
@@ -1270,13 +1273,15 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   GenerateCall(token_pos, stub, kind, locs);
-  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  if (!FLAG_precompiled_mode) {
+    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+    }
   }
 }
 
@@ -2424,12 +2429,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ CallRuntime(runtime_entry_, num_args_);
   }
-  // Can't query deopt_id() without checking if instruction can deoptimize...
-  intptr_t deopt_id = DeoptId::kNone;
-  if (instruction()->CanDeoptimize() ||
-      instruction()->CanBecomeDeoptimizationTarget()) {
-    deopt_id = instruction()->deopt_id();
-  }
+  const intptr_t deopt_id = instruction()->deopt_id();
   compiler->AddDescriptor(RawPcDescriptors::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
                           instruction()->token_pos(), try_index_);

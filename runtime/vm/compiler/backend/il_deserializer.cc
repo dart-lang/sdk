@@ -1291,7 +1291,10 @@ StrictCompareInstr* FlowGraphDeserializer::DeserializeStrictCompare(
 
 ThrowInstr* FlowGraphDeserializer::DeserializeThrow(SExpList* sexp,
                                                     const InstrInfo& info) {
-  return new (zone()) ThrowInstr(info.token_pos, info.deopt_id);
+  auto const arguments = FetchPushedArguments(sexp, ThrowInstr::kNumArguments);
+  if (arguments == nullptr) return nullptr;
+
+  return new (zone()) ThrowInstr(info.token_pos, info.deopt_id, arguments);
 }
 
 bool FlowGraphDeserializer::ParseCallInfo(SExpList* call, CallInfo* out) {
