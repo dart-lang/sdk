@@ -3260,152 +3260,53 @@ class LeastUpperBoundTest extends BoundTestBase {
 
 @reflectiveTest
 class TypeSystemTest extends AbstractTypeSystemTest {
-  InterfaceTypeImpl get functionClassTypeNone {
-    return interfaceTypeNone(
-      typeProvider.functionType.element,
-    );
-  }
-
-  InterfaceTypeImpl get functionClassTypeQuestion {
-    return interfaceTypeQuestion(
-      typeProvider.functionType.element,
-    );
-  }
-
-  InterfaceTypeImpl get functionClassTypeStar {
-    return interfaceTypeStar(
-      typeProvider.functionType.element,
-    );
-  }
-
-  DartType get noneType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.none);
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeNone {
-    return functionTypeNone(
-      returnType: voidNone,
-    );
-  }
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeQuestion {
-    return functionTypeQuestion(
-      returnType: voidNone,
-    );
-  }
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeStar {
-    return functionTypeStar(
-      returnType: voidNone,
-    );
-  }
-
-  DartType get objectClassTypeNone => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.none);
-
-  DartType get objectClassTypeQuestion => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.question);
-
-  DartType get objectClassTypeStar => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.star);
-
-  DartType get questionType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.question);
-
-  DartType get starType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.star);
-
-  InterfaceTypeImpl get stringClassTypeNone {
-    return interfaceTypeNone(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl get stringClassTypeQuestion {
-    return interfaceTypeQuestion(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl get stringClassTypeStar {
-    return interfaceTypeStar(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeNone(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeStar(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   test_isNonNullable_dynamic() {
     expect(typeSystem.isNonNullable(dynamicType), false);
   }
 
   test_isNonNullable_function_none() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeNone), true);
+    expect(
+      typeSystem.isNonNullable(
+        functionTypeNone(returnType: voidNone),
+      ),
+      true,
+    );
   }
 
   test_isNonNullable_function_question() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeQuestion), false);
+    expect(
+      typeSystem.isNonNullable(
+        functionTypeQuestion(returnType: voidNone),
+      ),
+      false,
+    );
   }
 
   test_isNonNullable_function_star() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeStar), true);
+    expect(
+      typeSystem.isNonNullable(
+        functionTypeStar(returnType: voidNone),
+      ),
+      true,
+    );
   }
 
   test_isNonNullable_functionClass_none() {
-    expect(typeSystem.isNonNullable(functionClassTypeNone), true);
+    expect(typeSystem.isNonNullable(functionNone), true);
   }
 
   test_isNonNullable_functionClass_question() {
-    expect(typeSystem.isNonNullable(functionClassTypeQuestion), false);
+    expect(typeSystem.isNonNullable(functionQuestion), false);
   }
 
   test_isNonNullable_functionClass_star() {
-    expect(typeSystem.isNonNullable(functionClassTypeStar), true);
+    expect(typeSystem.isNonNullable(functionStar), true);
   }
 
   test_isNonNullable_futureOr_noneArgument_none() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeNone(argument: noneType),
+        futureOrNone(intNone),
       ),
       true,
     );
@@ -3414,7 +3315,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_noneArgument_question() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeQuestion(argument: noneType),
+        futureOrQuestion(intNone),
       ),
       false,
     );
@@ -3423,7 +3324,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_noneArgument_star() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeStar(argument: noneType),
+        futureOrStar(intNone),
       ),
       true,
     );
@@ -3432,7 +3333,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_questionArgument_none() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeNone(argument: questionType),
+        futureOrNone(intQuestion),
       ),
       false,
     );
@@ -3441,7 +3342,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_questionArgument_question() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeQuestion(argument: questionType),
+        futureOrQuestion(intQuestion),
       ),
       false,
     );
@@ -3450,7 +3351,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_questionArgument_star() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeStar(argument: questionType),
+        futureOrStar(intQuestion),
       ),
       false,
     );
@@ -3459,7 +3360,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_starArgument_none() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeNone(argument: starType),
+        futureOrNone(intStar),
       ),
       true,
     );
@@ -3468,7 +3369,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_starArgument_question() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeStar(argument: questionType),
+        futureOrStar(intQuestion),
       ),
       false,
     );
@@ -3477,22 +3378,22 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_futureOr_starArgument_star() {
     expect(
       typeSystem.isNonNullable(
-        futureOrTypeStar(argument: starType),
+        futureOrStar(intStar),
       ),
       true,
     );
   }
 
   test_isNonNullable_interface_none() {
-    expect(typeSystem.isNonNullable(noneType), true);
+    expect(typeSystem.isNonNullable(intNone), true);
   }
 
   test_isNonNullable_interface_question() {
-    expect(typeSystem.isNonNullable(questionType), false);
+    expect(typeSystem.isNonNullable(intQuestion), false);
   }
 
   test_isNonNullable_interface_star() {
-    expect(typeSystem.isNonNullable(starType), true);
+    expect(typeSystem.isNonNullable(intStar), true);
   }
 
   test_isNonNullable_never() {
@@ -3506,7 +3407,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_typeParameter_noneBound_none() {
     expect(
       typeSystem.isNonNullable(
-        _typeParameterTypeNone(bound: noneType),
+        _typeParameterTypeNone(bound: intNone),
       ),
       true,
     );
@@ -3515,7 +3416,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_typeParameter_noneBound_question() {
     expect(
       typeSystem.isNonNullable(
-        _typeParameterTypeQuestion(bound: noneType),
+        _typeParameterTypeQuestion(bound: intNone),
       ),
       false,
     );
@@ -3524,7 +3425,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_typeParameter_questionBound_none() {
     expect(
       typeSystem.isNonNullable(
-        _typeParameterTypeNone(bound: questionType),
+        _typeParameterTypeNone(bound: intQuestion),
       ),
       false,
     );
@@ -3533,7 +3434,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_typeParameter_questionBound_question() {
     expect(
       typeSystem.isNonNullable(
-        _typeParameterTypeQuestion(bound: questionType),
+        _typeParameterTypeQuestion(bound: intQuestion),
       ),
       false,
     );
@@ -3542,7 +3443,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNonNullable_typeParameter_starBound_star() {
     expect(
       typeSystem.isNonNullable(
-        _typeParameterTypeStar(bound: starType),
+        _typeParameterTypeStar(bound: intStar),
       ),
       true,
     );
@@ -3557,33 +3458,48 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isNullable_function_none() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeNone), false);
+    expect(
+      typeSystem.isNullable(
+        functionTypeNone(returnType: voidNone),
+      ),
+      false,
+    );
   }
 
   test_isNullable_function_question() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeQuestion), true);
+    expect(
+      typeSystem.isNullable(
+        functionTypeQuestion(returnType: voidNone),
+      ),
+      true,
+    );
   }
 
   test_isNullable_function_star() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeStar), false);
+    expect(
+      typeSystem.isNullable(
+        functionTypeStar(returnType: voidNone),
+      ),
+      false,
+    );
   }
 
   test_isNullable_functionClass_none() {
-    expect(typeSystem.isNullable(functionClassTypeNone), false);
+    expect(typeSystem.isNullable(functionNone), false);
   }
 
   test_isNullable_functionClass_question() {
-    expect(typeSystem.isNullable(functionClassTypeQuestion), true);
+    expect(typeSystem.isNullable(functionQuestion), true);
   }
 
   test_isNullable_functionClass_star() {
-    expect(typeSystem.isNullable(functionClassTypeStar), false);
+    expect(typeSystem.isNullable(functionStar), false);
   }
 
   test_isNullable_futureOr_noneArgument_none() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeNone(argument: noneType),
+        futureOrNone(intNone),
       ),
       false,
     );
@@ -3592,7 +3508,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_noneArgument_question() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeQuestion(argument: noneType),
+        futureOrQuestion(intNone),
       ),
       true,
     );
@@ -3601,7 +3517,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_noneArgument_star() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeStar(argument: noneType),
+        futureOrStar(intNone),
       ),
       false,
     );
@@ -3610,7 +3526,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_questionArgument_none() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeNone(argument: questionType),
+        futureOrNone(intQuestion),
       ),
       true,
     );
@@ -3619,7 +3535,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_questionArgument_question() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeQuestion(argument: questionType),
+        futureOrQuestion(intQuestion),
       ),
       true,
     );
@@ -3628,7 +3544,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_questionArgument_star() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeStar(argument: questionType),
+        futureOrStar(intQuestion),
       ),
       true,
     );
@@ -3637,7 +3553,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_starArgument_none() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeNone(argument: starType),
+        futureOrNone(intStar),
       ),
       false,
     );
@@ -3646,7 +3562,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_starArgument_question() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeQuestion(argument: starType),
+        futureOrQuestion(intStar),
       ),
       true,
     );
@@ -3655,22 +3571,22 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_futureOr_starArgument_star() {
     expect(
       typeSystem.isNullable(
-        futureOrTypeStar(argument: starType),
+        futureOrStar(intStar),
       ),
       false,
     );
   }
 
   test_isNullable_interface_none() {
-    expect(typeSystem.isNullable(noneType), false);
+    expect(typeSystem.isNullable(intNone), false);
   }
 
   test_isNullable_interface_question() {
-    expect(typeSystem.isNullable(questionType), true);
+    expect(typeSystem.isNullable(intQuestion), true);
   }
 
   test_isNullable_interface_star() {
-    expect(typeSystem.isNullable(starType), false);
+    expect(typeSystem.isNullable(intStar), false);
   }
 
   test_isNullable_Never() {
@@ -3688,7 +3604,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_typeParameter_noneBound_none() {
     expect(
       typeSystem.isNullable(
-        _typeParameterTypeNone(bound: noneType),
+        _typeParameterTypeNone(bound: intNone),
       ),
       false,
     );
@@ -3697,7 +3613,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_typeParameter_noneBound_question() {
     expect(
       typeSystem.isNullable(
-        _typeParameterTypeQuestion(bound: noneType),
+        _typeParameterTypeQuestion(bound: intNone),
       ),
       true,
     );
@@ -3706,7 +3622,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_typeParameter_questionBound_none() {
     expect(
       typeSystem.isNullable(
-        _typeParameterTypeNone(bound: questionType),
+        _typeParameterTypeNone(bound: intQuestion),
       ),
       false,
     );
@@ -3715,7 +3631,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_typeParameter_questionBound_question() {
     expect(
       typeSystem.isNullable(
-        _typeParameterTypeQuestion(bound: questionType),
+        _typeParameterTypeQuestion(bound: intQuestion),
       ),
       true,
     );
@@ -3724,7 +3640,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isNullable_typeParameter_starBound_star() {
     expect(
       typeSystem.isNullable(
-        _typeParameterTypeStar(bound: starType),
+        _typeParameterTypeStar(bound: intStar),
       ),
       false,
     );
@@ -3741,7 +3657,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNonNullable_futureOr_noneArgument_none() {
     expect(
       typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: noneType),
+        futureOrNone(intNone),
       ),
       true,
     );
@@ -3750,7 +3666,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNonNullable_futureOr_questionArgument_none() {
     expect(
       typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: questionType),
+        futureOrNone(intQuestion),
       ),
       false,
     );
@@ -3759,7 +3675,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNonNullable_futureOr_starArgument_none() {
     expect(
       typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: starType),
+        futureOrNone(intStar),
       ),
       true,
     );
@@ -3770,7 +3686,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isPotentiallyNonNullable_none() {
-    expect(typeSystem.isPotentiallyNonNullable(noneType), true);
+    expect(typeSystem.isPotentiallyNonNullable(intNone), true);
   }
 
   test_isPotentiallyNonNullable_null() {
@@ -3778,11 +3694,11 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isPotentiallyNonNullable_question() {
-    expect(typeSystem.isPotentiallyNonNullable(questionType), false);
+    expect(typeSystem.isPotentiallyNonNullable(intQuestion), false);
   }
 
   test_isPotentiallyNonNullable_star() {
-    expect(typeSystem.isPotentiallyNonNullable(starType), true);
+    expect(typeSystem.isPotentiallyNonNullable(intStar), true);
   }
 
   test_isPotentiallyNonNullable_void() {
@@ -3796,7 +3712,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNullable_futureOr_noneArgument_none() {
     expect(
       typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: noneType),
+        futureOrNone(intNone),
       ),
       false,
     );
@@ -3805,7 +3721,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNullable_futureOr_questionArgument_none() {
     expect(
       typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: questionType),
+        futureOrNone(intQuestion),
       ),
       true,
     );
@@ -3814,7 +3730,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_isPotentiallyNullable_futureOr_starArgument_none() {
     expect(
       typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: starType),
+        futureOrNone(intStar),
       ),
       false,
     );
@@ -3825,7 +3741,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isPotentiallyNullable_none() {
-    expect(typeSystem.isPotentiallyNullable(noneType), false);
+    expect(typeSystem.isPotentiallyNullable(intNone), false);
   }
 
   test_isPotentiallyNullable_null() {
@@ -3833,11 +3749,11 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isPotentiallyNullable_question() {
-    expect(typeSystem.isPotentiallyNullable(questionType), true);
+    expect(typeSystem.isPotentiallyNullable(intQuestion), true);
   }
 
   test_isPotentiallyNullable_star() {
-    expect(typeSystem.isPotentiallyNullable(starType), false);
+    expect(typeSystem.isPotentiallyNullable(intStar), false);
   }
 
   test_isPotentiallyNullable_void() {
@@ -3854,8 +3770,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   test_promoteToNonNull_functionType() {
     // NonNull(T0 Function(...)) = T0 Function(...)
     expect(
-      typeSystem.promoteToNonNull(nothingToVoidFunctionTypeQuestion),
-      nothingToVoidFunctionTypeNone,
+      typeSystem.promoteToNonNull(
+        functionTypeQuestion(returnType: voidNone),
+      ),
+      functionTypeNone(returnType: voidNone),
     );
   }
 
@@ -3863,30 +3781,30 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     // NonNull(FutureOr<T>) = FutureOr<T>
     expect(
       typeSystem.promoteToNonNull(
-        futureOrTypeQuestion(argument: stringClassTypeQuestion),
+        futureOrQuestion(stringQuestion),
       ),
-      futureOrTypeNone(argument: stringClassTypeQuestion),
+      futureOrNone(stringQuestion),
     );
   }
 
   test_promoteToNonNull_interfaceType_function_none() {
     expect(
-      typeSystem.promoteToNonNull(functionClassTypeQuestion),
-      functionClassTypeNone,
+      typeSystem.promoteToNonNull(functionQuestion),
+      functionNone,
     );
   }
 
   test_promoteToNonNull_interfaceType_none() {
     expect(
-      typeSystem.promoteToNonNull(stringClassTypeNone),
-      stringClassTypeNone,
+      typeSystem.promoteToNonNull(stringNone),
+      stringNone,
     );
   }
 
   test_promoteToNonNull_interfaceType_question() {
     expect(
-      typeSystem.promoteToNonNull(stringClassTypeQuestion),
-      stringClassTypeNone,
+      typeSystem.promoteToNonNull(stringQuestion),
+      stringNone,
     );
   }
 
@@ -3895,16 +3813,16 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     // NonNull(List<String?>?) = List<String?>
     expect(
       typeSystem.promoteToNonNull(
-        listClassTypeQuestion(stringClassTypeQuestion),
+        listQuestion(stringQuestion),
       ),
-      listClassTypeNone(stringClassTypeQuestion),
+      listNone(stringQuestion),
     );
   }
 
   test_promoteToNonNull_interfaceType_star() {
     expect(
-      typeSystem.promoteToNonNull(stringClassTypeStar),
-      stringClassTypeNone,
+      typeSystem.promoteToNonNull(stringStar),
+      stringNone,
     );
   }
 
@@ -3917,13 +3835,13 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_promoteToNonNull_typeParameter_noneBound_none() {
-    var element = typeParameter('T', bound: noneType);
+    var element = typeParameter('T', bound: intNone);
     var type = typeParameterTypeNone(element);
     expect(typeSystem.promoteToNonNull(type), same(type));
   }
 
   test_promoteToNonNull_typeParameter_noneBound_question() {
-    var element = typeParameter('T', bound: stringClassTypeNone);
+    var element = typeParameter('T', bound: stringNone);
     var type = typeParameterTypeQuestion(element);
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
@@ -3938,51 +3856,51 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
       baseElement: element,
-      expectedBound: objectClassTypeNone,
+      expectedBound: objectNone,
       expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_none() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
+    var element = typeParameter('T', bound: stringQuestion);
     var type = typeParameterTypeNone(element);
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
       baseElement: element,
-      expectedBound: stringClassTypeNone,
+      expectedBound: stringNone,
       expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_question() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
+    var element = typeParameter('T', bound: stringQuestion);
     var type = typeParameterTypeQuestion(element);
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
       baseElement: element,
-      expectedBound: stringClassTypeNone,
+      expectedBound: stringNone,
       expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_star() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
+    var element = typeParameter('T', bound: stringQuestion);
     var type = typeParameterTypeStar(element);
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
       baseElement: element,
-      expectedBound: stringClassTypeNone,
+      expectedBound: stringNone,
       expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_starBound_none() {
-    var element = typeParameter('T', bound: stringClassTypeStar);
+    var element = typeParameter('T', bound: stringStar);
     var type = typeParameterTypeNone(element);
     _assertPromotedTypeParameterType(
       typeSystem.promoteToNonNull(type),
       baseElement: element,
-      expectedBound: stringClassTypeNone,
+      expectedBound: stringNone,
       expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -4000,7 +3918,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   void _assertPromotedTypeParameterType(
     TypeParameterTypeImpl actual, {
     @required TypeParameterElement baseElement,
-    TypeImpl expectedBound,
+    DartType expectedBound,
     @required NullabilitySuffix expectedNullabilitySuffix,
   }) {
     if (expectedBound != null) {
