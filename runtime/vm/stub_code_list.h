@@ -19,6 +19,8 @@ namespace dart {
   V(ArrayWriteBarrier)                                                         \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
+  V(AllocateMintWithFPURegs)                                                   \
+  V(AllocateMintWithoutFPURegs)                                                \
   V(AllocateContext)                                                           \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \

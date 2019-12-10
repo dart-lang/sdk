@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -4592,16 +4593,18 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps,
-                      ValueFitsSmi() ? LocationSummary::kNoCall
-                                     : LocationSummary::kCallOnSlowPath);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      ValueFitsSmi() ? LocationSummary::kNoCall
+                     : (SlowPathSharingSupported(opt)
+                            ? LocationSummary::kCallOnSharedSlowPath
+                            : LocationSummary::kCallOnSlowPath));
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   if (!ValueFitsSmi()) {
-    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(0, Location::RegisterLocation(R1));
   }
-  summary->set_out(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
 
@@ -4626,8 +4629,35 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmp(value_hi, compiler::Operand(out_reg, ASR, 31), EQ);
   __ b(&done, EQ);
 
-  BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
-                                  out_reg, tmp);
+  if (compiler->intrinsic_mode()) {
+    __ TryAllocate(compiler->mint_class(),
+                   compiler->intrinsic_slow_path_label(), out_reg, tmp);
+  } else {
+    if (locs()->call_on_shared_slow_path()) {
+      const bool live_fpu_regs =
+          locs()->live_registers()->FpuRegisterCount() > 0;
+      __ ldr(
+          TMP,
+          compiler::Address(
+              THR,
+              live_fpu_regs
+                  ? compiler::target::Thread::
+                        allocate_mint_with_fpu_regs_entry_point_offset()
+                  : compiler::target::Thread::
+                        allocate_mint_without_fpu_regs_entry_point_offset()));
+      __ blx(TMP);
+
+      ASSERT(!locs()->live_registers()->ContainsRegister(R0));
+      auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
+      compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+                                     RawPcDescriptors::kOther, locs(),
+                                     extended_env);
+    } else {
+      BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
+                                      out_reg, tmp);
+    }
+  }
+
   __ StoreToOffset(kWord, value_lo, out_reg,
                    compiler::target::Mint::value_offset() - kHeapObjectTag);
   __ StoreToOffset(kWord, value_hi, out_reg,

@@ -32,12 +32,6 @@ class StubCodeCompiler : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  static void GenerateSharedStub(Assembler* assembler,
-                                 bool save_fpu_registers,
-                                 const RuntimeEntry* target,
-                                 intptr_t self_code_stub_offset_from_thread,
-                                 bool allow_return);
-
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);

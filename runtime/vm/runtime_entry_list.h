@@ -48,6 +48,7 @@ namespace dart {
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
+  V(AllocateMint)                                                              \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \

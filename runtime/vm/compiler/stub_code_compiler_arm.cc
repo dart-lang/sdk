@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
 // For `AllocateObjectInstr::WillAllocateNewOrRemembered`
@@ -155,12 +156,12 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateSharedStub(
-    Assembler* assembler,
-    bool save_fpu_registers,
-    const RuntimeEntry* target,
-    intptr_t self_code_stub_offset_from_thread,
-    bool allow_return) {
+void GenerateSharedStub(Assembler* assembler,
+                        bool save_fpu_registers,
+                        const RuntimeEntry* target,
+                        intptr_t self_code_stub_offset_from_thread,
+                        bool allow_return,
+                        bool store_runtime_result_in_r0 = false) {
   // If the target CPU does not support VFP the caller should always use the
   // non-FPU stub.
   if (save_fpu_registers && !TargetCPUFeatures::vfp_supported()) {
@@ -180,12 +181,32 @@ void StubCodeCompiler::GenerateSharedStub(
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
+
+  if (store_runtime_result_in_r0) {
+    ASSERT(all_registers.ContainsRegister(R0));
+    ASSERT(allow_return);
+
+    // Push an even value so it will not be seen as a pointer
+    __ Push(LR);
+  }
+
   __ CallRuntime(*target, /*argument_count=*/0);
+
+  if (store_runtime_result_in_r0) {
+    __ Pop(R0);
+  }
+
   if (!allow_return) {
     __ Breakpoint();
     return;
   }
   __ LeaveStubFrame();
+  if (store_runtime_result_in_r0) {
+    // Stores the runtime result in stack where R0 was pushed ( R0 is the very
+    // last register to be pushed by __ PushRegisters(all_registers) )
+    __ str(R0, Address(SP));
+  }
+
   __ PopRegisters(all_registers);
   __ Pop(LR);
   __ bx(LR);
@@ -1120,6 +1141,38 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
   __ LeaveStubFrame();
   __ Ret();
+}
+
+// Called for allocation of Mint.
+void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
+    Assembler* assembler) {
+  Label slow_case;
+  __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                 /*temp_reg=*/R1);
+  __ Ret();
+
+  __ Bind(&slow_case);
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kAllocateMintRuntimeEntry,
+                     target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true,
+                     /*store_runtime_result_in_r0=*/true);
+}
+
+// Called for allocation of Mint.
+void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
+    Assembler* assembler) {
+  Label slow_case;
+  __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                 /*temp_reg=*/R1);
+  __ Ret();
+
+  __ Bind(&slow_case);
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
+      target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true,
+      /*store_runtime_result_in_r0=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).

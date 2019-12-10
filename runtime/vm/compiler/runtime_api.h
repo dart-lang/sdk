@@ -650,6 +650,8 @@ class Thread : public AllStatic {
   static word monomorphic_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
+  static word allocate_mint_with_fpu_regs_entry_point_offset();
+  static word allocate_mint_without_fpu_regs_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
@@ -692,6 +694,8 @@ class Thread : public AllStatic {
   static word stack_overflow_shared_with_fpu_regs_stub_offset();
   static word lazy_deopt_from_return_stub_offset();
   static word lazy_deopt_from_throw_stub_offset();
+  static word allocate_mint_with_fpu_regs_stub_offset();
+  static word allocate_mint_without_fpu_regs_stub_offset();
   static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();

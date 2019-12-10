@@ -2393,6 +2393,15 @@ static void HandleOSRRequest(Thread* thread) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
+  if (FLAG_shared_slow_path_triggers_gc) {
+    isolate->heap()->CollectAllGarbage();
+  }
+  const auto& integer_box =
+      Integer::Handle(zone, Integer::NewFromUint64(0x00ff00ff00ff0000));
+  arguments.SetReturn(integer_box);
+};
+
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
