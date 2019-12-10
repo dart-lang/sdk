@@ -1,6 +1,10 @@
-## Next release
-(Add new changes here, and they will be copied to the change section for the
- next release)
+## 2.7.0
+
+**Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
+in preview, and are now officially supported as of 2.7.0. Learn more about them
+here:
+
+https://medium.com/dartlang/extension-methods-2d466cd8b308
 
 ### Language
 
@@ -63,8 +67,8 @@ even when imported with a prefix.
 ### Dart VM
 
 * New fields added to existing instances by a reload will now be initialized
-lazily, as if the field was a late field. This makes the initialization order
-program-defined, whereas previously it was undefined.
+  lazily, as if the field was a late field. This makes the initialization order
+  program-defined, whereas previously it was undefined.
 
 ### Tools
 
@@ -102,12 +106,12 @@ documentation.
 ### Language
 
 *   **[IN PREVIEW]** [Static extension members][]: A new language feature
-    allowing specially declared static functions to be invoked
-    like instance members on expressions of appropriate static types
-    is available in preview.
+    allowing specially declared static functions to be invoked like instance
+    members on expressions of appropriate static types is available in preview.
 
-    Static extension members are declared using a new `extension`
-    declaration. Example:
+    Static extension members are declared using a new `extension` declaration.
+    Example:
+
     ```dart
     extension MyFancyList<T> on List<T> {
       /// Whether this list has an even length.
@@ -125,20 +129,19 @@ documentation.
               combine(this[i - 1], this[i])];
     }
     ```
-    Extension declarations cannot declare instance fields or
-    constructors.
+
+    Extension declarations cannot declare instance fields or constructors.
     Extension members can be invoked explicitly,
-    `MyFancyList(intList).isLengthEven)`,
-    or implicitly, `intList.isLengthEven`,
-    where the latter is recognized by `intList` matching the `List<T>`
-    "on" type of the declaration.
-    An extension member cannot be called implicitly on an expression
-    whose static type has a member with the same base-name.
-    In that case, the interface member takes precedence.
-    If multiple extension members apply to the same implicit
-    invocation, the most specific one is used, if there is one such.
+    `MyFancyList(intList).isLengthEven)`, or implicitly, `intList.isLengthEven`,
+    where the latter is recognized by `intList` matching the `List<T>` "on" type
+    of the declaration. An extension member cannot be called implicitly on an
+    expression whose static type has a member with the same base-name. In that
+    case, the interface member takes precedence. If multiple extension members
+    apply to the same implicit invocation, the most specific one is used, if
+    there is one such.
 
     Extensions can be declared on any type, not just interface types.
+
     ```dart
     extension IntCounter on int {
       /// The numbers from this number to, but not including, [end].
@@ -153,6 +156,7 @@ documentation.
       R Function(T) curry(S first) => (T second) => this(first, second);
     }
     ```
+
     [Static extension members]: https://github.com/dart-lang/language/blob/master/accepted/2.6/static-extension-members/feature-specification.md
 
 *   **Breaking change** [#37985](https://github.com/dart-lang/sdk/issues/37985):
@@ -162,11 +166,13 @@ documentation.
     now print "Null", and it was printing "dynamic" before (note that the
     anonymous closure `() {}` in the example has `Null` as its return type):
 
-```dart
-import 'dart:async';
-void foo<T>(FutureOr<T> Function() f) { print(T); }
-main() { foo(() {}); }
-```
+    ```dart
+    import 'dart:async';
+
+    void foo<T>(FutureOr<T> Function() f) { print(T); }
+
+    main() { foo(() {}); }
+    ```
 
 
 ### Core libraries
