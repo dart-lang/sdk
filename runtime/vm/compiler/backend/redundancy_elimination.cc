@@ -3192,7 +3192,7 @@ void AllocationSinking::CreateMaterializationAt(
 // present there.
 template <typename T>
 void AddInstruction(GrowableArray<T*>* list, T* value) {
-  ASSERT(!value->IsGraphEntry());
+  ASSERT(!value->IsGraphEntry() && !value->IsFunctionEntry());
   for (intptr_t i = 0; i < list->length(); i++) {
     if ((*list)[i] == value) {
       return;

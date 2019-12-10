@@ -3493,7 +3493,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
     case MethodRecognizer::kInt32x4Shuffle:
@@ -3538,6 +3537,10 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
       *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
       break;
   }
+  // InheritDeoptTarget also inherits environment (which may add 'entry' into
+  // env_use_list()), so InheritDeoptTarget should be done only after decided
+  // to inline.
+  (*entry)->InheritDeoptTarget(Z, call);
   flow_graph->AppendTo(cursor, *last,
                        call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
                        FlowGraph::kValue);

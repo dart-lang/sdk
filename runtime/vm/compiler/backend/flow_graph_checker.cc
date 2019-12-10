@@ -364,6 +364,8 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // BlockEntry instructions have environments attached to them but
     // have no reliable way to verify if they are still in the graph.
     ASSERT(is_env);
+    ASSERT(instruction->next() != nullptr);
+    ASSERT(DefDominatesUse(def, instruction));
   } else {
     // Others are fully linked into graph.
     ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
