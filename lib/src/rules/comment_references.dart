@@ -30,7 +30,8 @@ On the other hand, assuming `outOfScopeId` is out of scope:
 
 **BAD:**
 ```
-void f(int outOfScopeId) { ... }
+/// Return true if [value] is larger than [outOfScopeId].
+bool isOutOfRange(int value) { ... }
 ```
 
 Note that the square bracket comment format is designed to allow 
