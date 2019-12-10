@@ -407,7 +407,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
       var leftWriteType = _getStaticType(node.leftHandSide);
       if (!_typeSystem.isAssignableTo(type, leftWriteType)) {
-        _resolver.errorReporter.reportTypeErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.rightHandSide,
           [type, leftWriteType],
@@ -1288,7 +1288,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
     if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
-      _resolver.errorReporter.reportTypeErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,
         [type, operandWriteType],
@@ -1792,7 +1792,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
     } else if (_strictInference) {
       if (parent is VariableDeclarationList && parent.type == null) {
-        _resolver.errorReporter.reportTypeErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
           [node.name.name],

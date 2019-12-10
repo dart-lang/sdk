@@ -237,7 +237,7 @@ class TypeArgumentsVerifier {
               continue;
             }
           }
-          _errorReporter.reportTypeErrorForNode(
+          _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               argumentNode,
               [argType, boundType]);
@@ -329,7 +329,7 @@ class TypeArgumentsVerifier {
         var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
         var bound = substitution.substituteType(rawBound);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {
-          _errorReporter.reportTypeErrorForNode(
+          _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
               [argType, bound]);

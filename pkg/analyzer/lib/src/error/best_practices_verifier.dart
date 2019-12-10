@@ -1286,7 +1286,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
       if (parameter.type == null) {
         ParameterElement element = parameter.declaredElement;
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
           parameter,
           [element.displayName],

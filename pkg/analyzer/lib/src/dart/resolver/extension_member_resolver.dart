@@ -212,7 +212,7 @@ class ExtensionMemberResolver {
         if (boundType != null) {
           boundType = substitution.substituteType(boundType);
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            _errorReporter.reportTypeErrorForNode(
+            _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
               [argType, boundType],

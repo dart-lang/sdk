@@ -55,13 +55,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (superclass.name.staticElement.name == 'Struct') {
           inStruct = true;
         } else {
-          _errorReporter.reportTypeErrorForNode(
+          _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
       } else if (_isSubtypeOfStruct(superclass)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
             [node.name.name, superclass.name.name]);
@@ -72,10 +72,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     void checkSupertype(TypeName typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       if (_isDartFfiClass(typename)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             subtypeOfFfiCode, typename, [node.name, typename.name]);
       } else if (_isSubtypeOfStruct(typename)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             subtypeOfStructCode, typename, [node.name, typename.name]);
       }
     }
@@ -361,7 +361,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               (T as InterfaceType).typeArguments.single)) {
         final AstNode errorNode =
             typeArguments != null ? typeArguments[0] : node;
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
             errorNode,
             [T]);
@@ -371,7 +371,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       final DartType TPrime = (T as InterfaceType).typeArguments[0];
       final DartType F = node.typeArgumentTypes[0];
       if (!_validateCompatibleFunctionTypes(F, TPrime)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
     }
@@ -495,7 +495,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     final DartType T = node.typeArgumentTypes[0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      _errorReporter.reportTypeErrorForNode(
+      _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
       return;
     }
@@ -503,7 +503,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     Expression f = node.argumentList.arguments[0];
     DartType FT = f.staticType;
     if (!_validateCompatibleFunctionTypes(FT, T)) {
-      _errorReporter.reportTypeErrorForNode(
+      _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
       return;
     }
@@ -522,7 +522,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       Expression e = node.argumentList.arguments[1];
       // TODO(brianwilkerson) Validate that `e` is a constant expression.
       if (!_validateCompatibleNativeType(e.staticType, R, true)) {
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
       }
     }
@@ -544,15 +544,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
       final AstNode errorNode = typeArguments[0];
-      _errorReporter.reportTypeErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
-          errorNode,
-          [S, 'lookupFunction']);
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode, [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
       final AstNode errorNode = typeArguments[1];
-      _errorReporter.reportTypeErrorForNode(
+      _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
   }

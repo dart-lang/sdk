@@ -114,24 +114,13 @@ class ErrorReporter {
    */
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
-    int length = 0;
-    if (element is ImportElement) {
-      length = 6; // 'import'.length
-    } else if (element is ExportElement) {
-      length = 6; // 'export'.length
-    } else {
-      length = element.nameLength;
-    }
-    reportErrorForOffset(errorCode, element.nameOffset, length, arguments);
+    reportErrorForOffset(
+        errorCode, element.nameOffset, element.nameLength, arguments);
   }
 
   /**
    * Report an error with the given [errorCode] and [arguments].
    * The [node] is used to compute the location of the error.
-   *
-   * If the arguments contain the names of two or more types, the method
-   * [reportTypeErrorForNode] should be used and the types
-   * themselves (rather than their names) should be passed as arguments.
    */
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
@@ -144,6 +133,7 @@ class ErrorReporter {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
+    _convertTypeNames(arguments);
     _errorListener
         .onError(AnalysisError(_source, offset, length, errorCode, arguments));
   }
@@ -187,9 +177,9 @@ class ErrorReporter {
    * If there are not two or more types in the argument list, the method
    * [reportErrorForNode] should be used instead.
    */
+  @Deprecated('Use reportErrorForNode(), it will convert types as well')
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    _convertTypeNames(arguments);
     reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
@@ -201,6 +191,10 @@ class ErrorReporter {
    * clarify the message.
    */
   void _convertTypeNames(List<Object> arguments) {
+    if (arguments == null) {
+      return;
+    }
+
     Map<String, List<_TypeToConvert>> typeGroups = {};
     for (int i = 0; i < arguments.length; i++) {
       Object argument = arguments[i];

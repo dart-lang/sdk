@@ -2368,7 +2368,7 @@ class GenericInferrer {
         // mode.
         if (errorNode is ConstructorName) {
           String constructorName = '${errorNode.type}.${errorNode.name}';
-          errorReporter?.reportTypeErrorForNode(
+          errorReporter?.reportErrorForNode(
               HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,
               [constructorName]);
