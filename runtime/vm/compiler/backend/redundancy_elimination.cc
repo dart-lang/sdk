@@ -1435,6 +1435,7 @@ static bool MayHaveVisibleEffect(Instruction* instr) {
     case Instruction::kStoreStaticField:
     case Instruction::kStoreIndexed:
     case Instruction::kStoreIndexedUnsafe:
+    case Instruction::kStoreUntagged:
       return true;
     default:
       return instr->HasUnknownSideEffects() || instr->MayThrow();
@@ -3676,6 +3677,112 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
       } else {
         join->phis_->TruncateTo(to_index);
       }
+    }
+  }
+}
+
+// Returns true if [current] instruction can be possibly eliminated
+// (if its result is not used).
+static bool CanEliminateInstruction(Instruction* current,
+                                    BlockEntryInstr* block) {
+  ASSERT(current->GetBlock() == block);
+  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
+      current == block->last_instruction() || current->IsMaterializeObject() ||
+      current->IsCheckStackOverflow()) {
+    return false;
+  }
+  return true;
+}
+
+void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
+  GrowableArray<Instruction*> worklist;
+  BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
+
+  // Mark all instructions with side-effects as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      // TODO(alexmarkov): take control dependencies into account and
+      // eliminate dead branches/conditions.
+      if (!CanEliminateInstruction(current, block)) {
+        worklist.Add(current);
+        if (Definition* def = current->AsDefinition()) {
+          if (def->HasSSATemp()) {
+            live.Add(def->ssa_temp_index());
+          }
+        }
+      }
+    }
+  }
+
+  // Iteratively follow inputs of instructions in the work list.
+  while (!worklist.is_empty()) {
+    Instruction* current = worklist.RemoveLast();
+    for (intptr_t i = 0, n = current->InputCount(); i < n; ++i) {
+      Definition* input = current->InputAt(i)->definition();
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
+      Definition* input = current->ArgumentAt(i);
+      ASSERT(input->HasSSATemp());
+      if (!live.Contains(input->ssa_temp_index())) {
+        worklist.Add(input);
+        live.Add(input->ssa_temp_index());
+      }
+    }
+    if (current->env() != nullptr) {
+      for (Environment::DeepIterator it(current->env()); !it.Done();
+           it.Advance()) {
+        Definition* input = it.CurrentValue()->definition();
+        if (PushArgumentInstr* push_argument = input->AsPushArgument()) {
+          input = push_argument->value()->definition();
+        }
+        if (input->HasSSATemp() && !live.Contains(input->ssa_temp_index())) {
+          worklist.Add(input);
+          live.Add(input->ssa_temp_index());
+        }
+      }
+    }
+  }
+
+  // Remove all instructions which are not marked as live.
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    if (JoinEntryInstr* join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* current = it.Current();
+        if (!live.Contains(current->ssa_temp_index())) {
+          current->UnuseAllInputs();
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!CanEliminateInstruction(current, block) ||
+          current->IsPushArgument()) {
+        continue;
+      }
+      if (Definition* def = current->AsDefinition()) {
+        if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
+          continue;
+        }
+      }
+      // Remove PushArgument instructions corresponding to 'current'.
+      for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
+        PushArgumentInstr* push_arg = current->PushArgumentAt(i);
+        push_arg->ReplaceUsesWith(push_arg->value()->definition());
+        push_arg->RemoveFromGraph();
+      }
+      current->UnuseAllInputs();
+      it.RemoveCurrentFromGraph();
     }
   }
 }

@@ -1691,15 +1691,19 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
 
   if (DecodeOperandA().value() == 0) {
     // throw
-    LoadStackSlots(1);
-    code_ += B->PushArgument();
-    code_ += B->ThrowException(position_);
+    const intptr_t kNumArguments = 1;
+    LoadStackSlots(kNumArguments);
+    ArgumentArray arguments = GetArguments(kNumArguments);
+    code_ +=
+        Fragment(new (Z) ThrowInstr(position_, B->GetNextDeoptId(), arguments))
+            .closed();
   } else {
     // rethrow
-    LoadStackSlots(2);
-    GetArguments(2);
+    const intptr_t kNumArguments = 2;
+    LoadStackSlots(kNumArguments);
+    ArgumentArray arguments = GetArguments(kNumArguments);
     code_ += Fragment(new (Z) ReThrowInstr(position_, kInvalidTryIndex,
-                                           B->GetNextDeoptId()))
+                                           B->GetNextDeoptId(), arguments))
                  .closed();
   }
 

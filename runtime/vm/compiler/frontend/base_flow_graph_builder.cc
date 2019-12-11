@@ -237,20 +237,6 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
-Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
-  Fragment instructions;
-  instructions += Drop();
-  instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId())).closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
-  // the graph).
-  NullConstant();
-
-  pending_argument_count_ -= 1;
-
-  return instructions;
-}
-
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));

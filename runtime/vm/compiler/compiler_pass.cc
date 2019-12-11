@@ -255,6 +255,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
+  INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
@@ -325,9 +326,11 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
+  INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
+  INVOKE_PASS(DCE);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(Canonicalize);
@@ -464,6 +467,8 @@ COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });
 
 COMPILER_PASS(EliminateDeadPhis,
               { DeadCodeElimination::EliminateDeadPhis(flow_graph); });
+
+COMPILER_PASS(DCE, { DeadCodeElimination::EliminateDeadCode(flow_graph); });
 
 COMPILER_PASS(AllocationSinking_Sink, {
   // TODO(vegorov): Support allocation sinking with try-catch.

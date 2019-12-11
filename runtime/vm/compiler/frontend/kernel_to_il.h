@@ -127,6 +127,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    const ZoneGrowableArray<Representation>& arg_reps,
                    const ZoneGrowableArray<Location>& arg_locs);
 
+  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment LoadLateField(const Field& field, LocalVariable* instance);

@@ -273,7 +273,6 @@ class BaseFlowGraphBuilder {
                               intptr_t stack_depth,
                               intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
   intptr_t GetNextDeoptId() {

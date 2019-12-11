@@ -27,6 +27,7 @@ namespace dart {
   V(Canonicalize)                                                              \
   V(ComputeSSA)                                                                \
   V(ConstantPropagation)                                                       \
+  V(DCE)                                                                       \
   V(DSE)                                                                       \
   V(EliminateDeadPhis)                                                         \
   V(EliminateEnvironments)                                                     \
