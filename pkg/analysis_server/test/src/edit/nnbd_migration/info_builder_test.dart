@@ -9,6 +9,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_informat
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -18,8 +19,168 @@ import '../../../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(BuildEnclosingMemberDescriptionTest);
     defineReflectiveTests(InfoBuilderTest);
   });
+}
+
+@reflectiveTest
+class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
+  Future<ResolvedUnitResult> resolveTestFile() async {
+    String includedRoot = resourceProvider.pathContext.dirname(testFile);
+    server.setAnalysisRoots('0', [includedRoot], [], {});
+    return await server
+        .getAnalysisDriver(testFile)
+        .currentSession
+        .getResolvedUnit(testFile);
+  }
+
+  test_classConstructor_named() async {
+    addTestFile(r'''
+class C {
+  C.aaa();
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember constructor = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
+        equals("the constructor 'C.aaa'"));
+  }
+
+  test_classConstructor_unnamed() async {
+    addTestFile(r'''
+class C {
+  C();
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember constructor = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(constructor),
+        equals("the default constructor of 'C'"));
+  }
+
+  test_classGetter() async {
+    addTestFile(r'''
+class C {
+  int get aaa => 7;
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember getter = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(getter),
+        equals("the getter 'C.aaa'"));
+  }
+
+  test_classMethod() async {
+    addTestFile(r'''
+class C {
+  int aaa() => 7;
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember method = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(method),
+        equals("the method 'C.aaa'"));
+  }
+
+  test_classOperator() async {
+    addTestFile(r'''
+class C {
+  bool operator ==(Object other) => false;
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember operator = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(operator),
+        equals("the operator 'C.=='"));
+  }
+
+  test_classSetter() async {
+    addTestFile(r'''
+class C {
+  void set aaa(value) {}
+}
+''');
+    var result = await resolveTestFile();
+    ClassDeclaration class_ = result.unit.declarations.single;
+    ClassMember setter = class_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(setter),
+        equals("the setter 'C.aaa='"));
+  }
+
+  test_extensionMethod() async {
+    addTestFile(r'''
+extension E on List {
+  int aaa() => 7;
+}
+''');
+    var result = await resolveTestFile();
+    ExtensionDeclaration extension_ = result.unit.declarations.single;
+    ClassMember method = extension_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(method),
+        equals("the method 'E.aaa'"));
+  }
+
+  test_extensionMethod_unnamed() async {
+    addTestFile(r'''
+extension on List {
+  int aaa() => 7;
+}
+''');
+    var result = await resolveTestFile();
+    ExtensionDeclaration extension_ = result.unit.declarations.single;
+    ClassMember method = extension_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(method),
+        equals("the method 'aaa' in unnamed extension on List"));
+  }
+
+  test_mixinMethod() async {
+    addTestFile(r'''
+mixin C {
+  int aaa() => 7;
+}
+''');
+    var result = await resolveTestFile();
+    MixinDeclaration mixin_ = result.unit.declarations.single;
+    ClassMember method = mixin_.members.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(method),
+        equals("the method 'C.aaa'"));
+  }
+
+  test_topLevelFunction() async {
+    addTestFile(r'''
+void aaa(value) {}
+''');
+    var result = await resolveTestFile();
+    var function = result.unit.declarations.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(function),
+        equals("the function 'aaa'"));
+  }
+
+  test_topLevelGetter() async {
+    addTestFile(r'''
+int get aaa => 7;
+''');
+    var result = await resolveTestFile();
+    var getter = result.unit.declarations.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(getter),
+        equals("the getter 'aaa'"));
+  }
+
+  test_topLevelSetter() async {
+    addTestFile(r'''
+void set aaa(value) {}
+''');
+    var result = await resolveTestFile();
+    var setter = result.unit.declarations.single;
+    expect(InfoBuilder.buildEnclosingMemberDescription(setter),
+        equals("the setter 'aaa='"));
+  }
 }
 
 @reflectiveTest
@@ -75,7 +236,7 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     // Compute the analysis results.
     String includedRoot = resourceProvider.pathContext.dirname(testFile);
     server.setAnalysisRoots('0', [includedRoot], [], {});
-    ResolvedUnitResult result = await server
+    var result = await server
         .getAnalysisDriver(testFile)
         .currentSession
         .getResolvedUnit(testFile);
@@ -249,7 +410,7 @@ void g() {
     expect(regions, hasLength(3));
     // regions[0] is the hard edge that f's parameter is non-nullable.
     assertRegion(region: regions[1], offset: 15, details: [
-      "An explicit 'null' is assigned",
+      "An explicit 'null' is assigned in the function 'f'",
     ]);
     assertRegion(
         region: regions[2],
@@ -273,7 +434,7 @@ void g(List<int?> list1, List<int?> list2) {
     expect(regions, hasLength(4));
     // regions[0] is the hard edge that list1 is unconditionally indexed
     assertRegion(region: regions[1], offset: 15, details: [
-      "An explicit 'null' is assigned",
+      "An explicit 'null' is assigned in the function 'g'",
       // TODO(mfairhurst): Fix this bug.
       'exact nullable node with no info (Substituted(type(32), migrated))'
     ]);
@@ -281,7 +442,7 @@ void g(List<int?> list1, List<int?> list2) {
     assertRegion(
         region: regions[3],
         offset: 33,
-        details: ["A nullable value is assigned"]);
+        details: ["A nullable value is assigned in the function 'g'"]);
   }
 
   test_expressionFunctionReturnTarget() async {
@@ -391,6 +552,32 @@ class A {
         region: regions[1],
         offset: 33,
         details: ["This field is initialized to a nullable value"]);
+  }
+
+  test_fieldLaterAssignedNullable() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class Foo {
+  int value = 7;
+  void bar() {
+    value = null;
+  }
+}
+''', migratedContent: '''
+class Foo {
+  int? value = 7;
+  void bar() {
+    value = null;
+  }
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    RegionInfo region = regions.single;
+    assertRegion(region: region, offset: 17, details: [
+      "An explicit 'null' is assigned in the method 'Foo.bar'",
+    ]);
+
+    assertDetail(detail: region.details[0], offset: 56, length: 4);
   }
 
   test_insertedRequired_fieldFormal() async {

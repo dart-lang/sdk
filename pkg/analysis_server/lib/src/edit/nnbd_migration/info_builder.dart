@@ -21,6 +21,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceEdit, SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -145,7 +146,6 @@ class InfoBuilder {
         return "This parameter has ${aNullableDefault(node)}";
       }
     } else if (node is FieldFormalParameter) {
-      AstNode parent = node.parent;
       if (parent is DefaultFormalParameter) {
         return "This field is initialized by an optional field formal "
             "parameter that has ${aNullableDefault(parent)}";
@@ -246,7 +246,14 @@ class InfoBuilder {
       return "The constructor '$constructorName' does not initialize this "
           "field in its initializer list";
     }
-    return capitalize("$nullableValue is assigned");
+
+    String enclosingMemberDescription = buildEnclosingMemberDescription(node);
+    if (enclosingMemberDescription != null) {
+      return capitalize(
+          "$nullableValue is assigned in $enclosingMemberDescription");
+    } else {
+      return capitalize("$nullableValue is assigned");
+    }
   }
 
   /// Return a description of the given [origin].
@@ -611,5 +618,78 @@ class InfoBuilder {
   /// Return the unit info for the file at the given [path].
   UnitInfo _unitForPath(String path) {
     return unitMap.putIfAbsent(path, () => UnitInfo(path));
+  }
+
+  /// Builds a description for [node]'s enclosing member(s).
+  ///
+  /// This may include a class and method name, for example, or the name of the
+  /// enclosing top-level member.
+  @visibleForTesting
+  static String buildEnclosingMemberDescription(AstNode node) {
+    String functionName;
+    String baseDescription;
+
+    void describeFunction(AstNode node) {
+      if (node is ConstructorDeclaration) {
+        if (node.name == null) {
+          baseDescription = "the default constructor of";
+          functionName = "";
+        } else {
+          baseDescription = "the constructor";
+          functionName = node.name.name;
+        }
+      } else if (node is MethodDeclaration) {
+        functionName = node.name.name;
+        if (node.isGetter) {
+          baseDescription = "the getter";
+        } else if (node.isOperator) {
+          baseDescription = "the operator";
+        } else if (node.isSetter) {
+          baseDescription = "the setter";
+          functionName += "=";
+        } else {
+          baseDescription = "the method";
+        }
+      } else if (node is FunctionDeclaration) {
+        functionName = node.name.name;
+        if (node.isGetter) {
+          baseDescription = "the getter";
+        } else if (node.isSetter) {
+          baseDescription = "the setter";
+          functionName += "=";
+        } else {
+          baseDescription = "the function";
+        }
+      }
+    }
+
+    ClassMember enclosingClassMember = node.thisOrAncestorOfType<ClassMember>();
+
+    if (enclosingClassMember != null) {
+      describeFunction(enclosingClassMember);
+      CompilationUnitMember member = enclosingClassMember.parent;
+      if (member is NamedCompilationUnitMember) {
+        String memberName = member.name.name;
+        if (functionName.isEmpty) {
+          return "$baseDescription '$memberName'";
+        } else {
+          return "$baseDescription '$memberName.$functionName'";
+        }
+      } else if (member is ExtensionDeclaration) {
+        if (member.name == null) {
+          String extendedClass = member.extendedType.type.name;
+          return "$baseDescription '$functionName' in unnamed extension on $extendedClass";
+        } else {
+          return "$baseDescription '${member.name.name}.$functionName'";
+        }
+      }
+    }
+    FunctionDeclaration enclosingFunction =
+        node.thisOrAncestorOfType<FunctionDeclaration>();
+    if (enclosingFunction is FunctionDeclaration) {
+      describeFunction(enclosingFunction);
+      return "$baseDescription '$functionName'";
+    }
+    return null;
   }
 }
