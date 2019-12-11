@@ -65,6 +65,16 @@ intptr_t TimelineEventSystraceRecorder::PrintSystrace(TimelineEvent* event,
       }
       break;
     }
+    case TimelineEvent::kAsyncBegin: {
+      length = Utils::SNPrint(buffer, buffer_size, "S|%" Pd64 "|%s|%" Pd64 "",
+                              pid, event->label(), event->AsyncId());
+      break;
+    }
+    case TimelineEvent::kAsyncEnd: {
+      length = Utils::SNPrint(buffer, buffer_size, "F|%" Pd64 "|%s|%" Pd64 "",
+                              pid, event->label(), event->AsyncId());
+      break;
+    }
     default:
       // Ignore event types that we cannot serialize to the Systrace format.
       break;
