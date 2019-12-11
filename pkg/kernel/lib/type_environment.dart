@@ -714,6 +714,10 @@ class StaticTypeContext {
   ///
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nullable => _library.nullable;
+
+  /// Return `true` if the current library is opted in to non-nullable by
+  /// default.
+  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -791,6 +795,9 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library?.nullable;
+
+  @override
+  bool get isNonNullableByDefault => _library.isNonNullableByDefault;
 
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
@@ -875,6 +882,9 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library?.nullable;
+
+  @override
+  bool get isNonNullableByDefault => _library?.isNonNullableByDefault;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

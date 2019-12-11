@@ -2412,6 +2412,7 @@ resynthesize
 retain
 retained
 rethrow
+rethrowing
 retired
 retrieve
 retrieved

@@ -485,6 +485,18 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   }
 
   @override
+  visitThrow(Throw node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitThrow(node);
+  }
+
+  @override
+  visitRethrow(Rethrow node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitRethrow(node);
+  }
+
+  @override
   visitAsExpression(AsExpression node) {
     if (node.isTypeError) {
       computeForNode(node, createImplicitAsId(node));
