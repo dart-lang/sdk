@@ -14,11 +14,12 @@
 
 #### Linter
 
-The Linter was updated to `0.1.105+1`, which includes:
+The Linter was updated to `0.1.106`, which includes:
 
-* hardened checks for lib dir location (fixing crashes in `avoid_renaming_method_parameters`,
-  `prefer_relative_imports` and `public_member_api_docs`)
-* improved performance for `always_require_non_null_named_parameters`
+* improved docs for `comment_references`
+* fixes to `null_closures` to properly handle `Iterable.singleWhere`
+* (internal) migration to latest analyzer APIs
+* new lint: `no_logic_in_create_state`
 
 #### Pub
 
