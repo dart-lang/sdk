@@ -180,8 +180,6 @@ class CompactorTask : public ThreadPool::Task {
         free_end_(0) {}
 
  private:
-  //friend RawObject* class RawObject::ptr();
-
   void Run();
   void PlanPage(HeapPage* page);
   void SlidePage(HeapPage* page);
@@ -534,7 +532,7 @@ uword CompactorTask::PlanBlock(uword first_object,
   }
 
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-  intptr_t next_page_start = free_page_->next()->object_start();
+  uword next_page_start = free_page_->next()->object_start();
 #endif
 
   // 2. Find the next contiguous space that can fit the live objects that
@@ -542,12 +540,12 @@ uword CompactorTask::PlanBlock(uword first_object,
   PlanMoveToContiguousSize(block_live_size);
 
 #if defined(REALLOCATION_EXTRA_SIZE_ENABLED)
-  // If the block is reallocated to a new page, the block needs to be
-  // planned again when the block size increases, because some reallocation
-  // addresses could match. This check ensures that the heap does not increase
-  // it's used space during compaction and that the reallocated object doesn't
-  // overlap the next object.
-  RawObject* raw_first = RawObject::FromAddr(first_object);
+  // If the block is reallocated to a new page, the block is planned again
+  // when the block size increases and the first object address matches the
+  // start of the next page, because some reallocation addresses could match
+  // having an effect in the reallocation size. This check ensures that the
+  // heap does not increase its used space during compaction and that the
+  // reallocated object doesn't overlap the next object.
   if (UNLIKELY(free_current_ == next_page_start &&
 	  free_current_ == first_object &&
       block_live_size > kBlockSize)) {
