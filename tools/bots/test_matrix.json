@@ -995,13 +995,16 @@
           "arguments": [
             "--mode=${mode}",
             "--arch=${arch}",
-            "--asan"
+            "--sanitizer=asan"
           ]
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["runtime"],
+          "arguments": [
+            "--sanitizer=asan",
+            "runtime"
+          ],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -1032,13 +1035,16 @@
           "arguments": [
             "--mode=${mode}",
             "--arch=${arch}",
-            "--lsan"
+            "--sanitizer=lsan"
           ]
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["runtime"],
+          "arguments": [
+            "--sanitizer=lsan",
+            "runtime"
+          ],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -1069,13 +1075,16 @@
           "arguments": [
             "--mode=${mode}",
             "--arch=${arch}",
-            "--msan"
+            "--sanitizer=msan"
           ]
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["runtime"],
+          "arguments": [
+            "--sanitizer=msan",
+            "runtime"
+          ],
           "environment": {
             "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -1106,13 +1115,16 @@
           "arguments": [
             "--mode=${mode}",
             "--arch=${arch}",
-            "--tsan"
+            "--sanitizer=tsan"
           ]
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["runtime"],
+          "arguments": [
+            "--sanitizer=tsan",
+            "runtime"
+          ],
           "environment": {
             "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
             "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -1143,13 +1155,16 @@
           "arguments": [
             "--mode=${mode}",
             "--arch=${arch}",
-            "--ubsan"
+            "--sanitizer=ubsan"
           ]
         },
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["runtime"],
+          "arguments": [
+            "--sanitizer=ubsan",
+            "runtime"
+          ],
           "environment": {
             "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
           }

@@ -140,10 +140,11 @@ def GetBuildConf(mode, arch):
     return GetBuildMode(mode) + arch.upper()
 
 
-def GetBuildRoot(host_os, mode=None, arch=None):
+def GetBuildRoot(host_os, mode=None, arch=None, sanitizer=None):
     global BUILD_ROOT
     if mode:
-        return os.path.join(BUILD_ROOT[host_os], GetBuildConf(mode, arch))
+        return os.path.join(BUILD_ROOT[host_os],
+                            GetBuildConf(mode, arch, sanitizer))
     else:
         return BUILD_ROOT[host_os]
 

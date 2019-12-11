@@ -62,6 +62,12 @@ def BuildOptions():
         help='Target OSs (comma-separated).',
         metavar='[all,host,android]',
         default='host')
+    result.add_option(
+        "--sanitizer",
+        type=str,
+        help='Build variants (comma-separated).',
+        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+        default='none')
     # TODO(38701): Remove this and everything that references it once the
     # forked NNBD SDK is merged back in.
     result.add_option(
@@ -91,9 +97,12 @@ def ProcessOptions(options, args):
         options.mode = 'debug,release,product'
     if options.os == 'all':
         options.os = 'host,android'
+    if options.sanitizer == 'all':
+        options.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     options.mode = options.mode.split(',')
     options.arch = options.arch.split(',')
     options.os = options.os.split(',')
+    options.sanitizer = options.sanitizer.split(',')
     for mode in options.mode:
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
@@ -273,11 +282,12 @@ def EnsureGomaStarted(out_dir):
     goma_started = True
     return True
 
-
 # Returns a tuple (build_config, command to run, whether goma is used)
-def BuildOneConfig(options, targets, target_os, mode, arch):
-    build_config = utils.GetBuildConf(mode, arch, target_os, options.nnbd)
-    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, options.nnbd)
+def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
+    build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer,
+                                      options.nnbd)
+    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
+                                 options.nnbd)
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
@@ -345,8 +355,10 @@ def Main():
     for target_os in options.os:
         for mode in options.mode:
             for arch in options.arch:
-                configs.append(
-                    BuildOneConfig(options, targets, target_os, mode, arch))
+                for sanitizer in options.sanitizer:
+                    configs.append(
+                        BuildOneConfig(options, targets, target_os, mode, arch,
+                                       sanitizer))
 
     # Build regular configs.
     goma_builds = []

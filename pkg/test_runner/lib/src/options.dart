@@ -92,6 +92,9 @@ class OptionsParser {
   static final List<_Option> _options = [
     _Option('mode', 'Mode in which to run the tests.',
         abbr: 'm', values: ['all']..addAll(Mode.names)),
+    _Option('sanitizer', 'Sanitizer in which to run the tests.',
+        defaultsTo: Sanitizer.none.name,
+        values: ['all']..addAll(Sanitizer.names)),
     _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
@@ -776,29 +779,37 @@ compiler.''',
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
-            var system = System.find(data["system"] as String);
-            var configuration = Configuration("custom configuration",
-                architecture, compiler, mode, runtime, system,
-                nnbdMode: nnbdMode,
-                timeout: data["timeout"] as int,
-                enableAsserts: data["enable_asserts"] as bool,
-                useAnalyzerCfe: data["use_cfe"] as bool,
-                useAnalyzerFastaParser:
-                    data["analyzer_use_fasta_parser"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useElf: data["use_elf"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useHotReload: data["hot_reload"] as bool,
-                useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
-                vmOptions: vmOptions,
-                dart2jsOptions: dart2jsOptions,
-                experiments: experiments,
-                babel: data['babel'] as String,
-                builderTag: data["builder_tag"] as String);
-            addConfiguration(configuration);
+            // Expand sanitizers.
+            String sanitizers = (data["sanitizer"] as String) ?? "none";
+            if (sanitizers == "all")
+              sanitizers = "none,asan,lsan,msan,tsan,ubsan";
+            for (var sanitizerName in sanitizers.split(",")) {
+              var sanitizer = Sanitizer.find(sanitizerName);
+              var system = System.find(data["system"] as String);
+              var configuration = Configuration("custom configuration",
+                  architecture, compiler, mode, runtime, system,
+                  nnbdMode: nnbdMode,
+                  sanitizer: sanitizer,
+                  timeout: data["timeout"] as int,
+                  enableAsserts: data["enable_asserts"] as bool,
+                  useAnalyzerCfe: data["use_cfe"] as bool,
+                  useAnalyzerFastaParser:
+                      data["analyzer_use_fasta_parser"] as bool,
+                  useBlobs: data["use_blobs"] as bool,
+                  useElf: data["use_elf"] as bool,
+                  useSdk: data["use_sdk"] as bool,
+                  useHotReload: data["hot_reload"] as bool,
+                  useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                  isHostChecked: data["host_checked"] as bool,
+                  isCsp: data["csp"] as bool,
+                  isMinified: data["minified"] as bool,
+                  vmOptions: vmOptions,
+                  dart2jsOptions: dart2jsOptions,
+                  experiments: experiments,
+                  babel: data['babel'] as String,
+                  builderTag: data["builder_tag"] as String);
+              addConfiguration(configuration);
+            }
           }
         }
       }
