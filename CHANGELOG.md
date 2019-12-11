@@ -1,3 +1,10 @@
+# 0.1.106
+
+* improved docs for `comment_references`
+* fixed `null_closures` to properly handle `Iterable.singleWhere`
+* (internal) migrated to latest analyzer APIs
+* new lint: `no_logic_in_create_state`
+
 # 0.1.105+1
 
 * fixed regressions in `always_require_non_null_named_parameters`
