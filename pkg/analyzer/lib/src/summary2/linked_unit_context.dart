@@ -137,7 +137,7 @@ class LinkedUnitContext {
   /// Return the [LibraryElement] referenced in the [node].
   LibraryElement directiveLibrary(UriBasedDirective node) {
     var uriStr = LazyDirective.getSelectedUri(node);
-    if (uriStr == null || uriStr.isEmpty) return null;
+    if (uriStr == null) return null;
     return bundleContext.elementFactory.libraryOfUri(uriStr);
   }
 

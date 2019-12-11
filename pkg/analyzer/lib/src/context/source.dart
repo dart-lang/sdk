@@ -134,8 +134,11 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   Source resolveUri(Source containingSource, String containedUri) {
-    if (containedUri == null || containedUri.isEmpty) {
+    if (containedUri == null) {
       return null;
+    }
+    if (containedUri.isEmpty) {
+      return containingSource;
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.

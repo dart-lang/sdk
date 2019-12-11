@@ -160,6 +160,7 @@ import 'invalid_required_optional_positional_param_test.dart'
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
 import 'invalid_use_of_never_value_test.dart' as invalid_use_of_never_value;
@@ -504,6 +505,7 @@ main() {
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
+    invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_never_value.main();
     invalid_use_of_null_value.main();

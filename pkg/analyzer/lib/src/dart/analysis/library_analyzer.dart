@@ -521,7 +521,8 @@ class LibraryAnalyzer {
         return file.exists;
       }
     }
-    return false;
+    // A library can refer to itself with an empty URI.
+    return source == _library.source;
   }
 
   /**

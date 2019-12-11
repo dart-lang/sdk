@@ -296,7 +296,7 @@ class LibraryBuilder {
       directive.configurations,
       directive.uri.stringValue,
     );
-    if (relativeUriStr == null || relativeUriStr.isEmpty) {
+    if (relativeUriStr == null) {
       return null;
     }
     var relativeUri = Uri.parse(relativeUriStr);

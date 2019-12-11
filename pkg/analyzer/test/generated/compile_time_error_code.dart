@@ -2354,31 +2354,6 @@ class A<E> {
     ]);
   }
 
-  test_invalidUri_export() async {
-    await assertErrorsInCode('''
-export 'ht:';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
-    ]);
-  }
-
-  test_invalidUri_import() async {
-    await assertErrorsInCode('''
-import 'ht:';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
-    ]);
-  }
-
-  test_invalidUri_part() async {
-    await assertErrorsInCode(r'''
-library lib;
-part 'ht:';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 18, 5),
-    ]);
-  }
-
   test_isInConstInstanceCreation_restored() async {
     // If ErrorVerifier._isInConstInstanceCreation is not properly restored on
     // exit from visitInstanceCreationExpression, the error at (1) will be

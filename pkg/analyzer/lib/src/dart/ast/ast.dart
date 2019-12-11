@@ -10192,6 +10192,9 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (uriContent == null) {
       return UriValidationCode.INVALID_URI;
     }
+    if (uriContent.isEmpty) {
+      return null;
+    }
     if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }

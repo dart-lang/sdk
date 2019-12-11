@@ -27,7 +27,6 @@ class export { }
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'export'.
 // [error line 19, column 14, length 0]
-// [analyzer] COMPILE_TIME_ERROR.INVALID_URI
 // [cfe] Expected ';' after this.
 //           ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
@@ -63,11 +62,9 @@ class implements { }
 //    ^^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'implements'.
-// [error line 62, column 18, length 0]
+// [error line 61, column 18, length 0]
 // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
 // [cfe] Expected a type, but got '{'.
-// [error line 62, column 18, length 0]
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 //               ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
 class import { }
@@ -80,8 +77,7 @@ class import { }
 //    ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'import'.
-// [error line 73, column 14, length 0]
-// [analyzer] COMPILE_TIME_ERROR.INVALID_URI
+// [error line 70, column 14, length 0]
 // [cfe] Expected ';' after this.
 //           ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
@@ -134,8 +130,8 @@ class part { }
 //    ^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'part'.
-// [error line 127, column 12, length 0]
-// [analyzer] COMPILE_TIME_ERROR.INVALID_URI
+// [error line 123, column 12, length 0]
+// [analyzer] COMPILE_TIME_ERROR.PART_OF_NON_PART
 // [cfe] Expected ';' after this.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE
