@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/package_config.dart';
+import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -10,13 +10,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PackageConfigTest);
+    defineReflectiveTests(PackageConfigJsonTest);
   });
 }
 
 @reflectiveTest
-class PackageConfigTest with ResourceProviderMixin {
-  void assertPackage(PackageConfigPackage actual, _ExpectedPackage expected) {
+class PackageConfigJsonTest with ResourceProviderMixin {
+  void assertPackage(
+      PackageConfigJsonPackage actual, _ExpectedPackage expected) {
     expect(actual.name, expected.name);
     expect(actual.rootUri, toUri(expected.rootUriPath));
     expect(actual.packageUri, toUri(expected.packageUriPath));
@@ -172,7 +173,7 @@ class PackageConfigTest with ResourceProviderMixin {
         name: 'test',
         rootUriPath: '/test/',
         packageUriPath: '/test/lib/',
-        languageVersion: LanguageVersion(2, 6),
+        languageVersion: null,
       ),
     );
   }
@@ -249,12 +250,12 @@ class PackageConfigTest with ResourceProviderMixin {
 ''', 'packageUri');
   }
 
-  PackageConfig _parse(String content) {
+  PackageConfigJson _parse(String content) {
     var path = '/test/.dart_tool/package_config.json';
     newFile(path, content: content);
 
     var uri = toUri(path);
-    return parsePackageConfig(uri, content);
+    return parsePackageConfigJson(uri, content);
   }
 
   void _throwsFormatException(String content, String expectedSubString) {

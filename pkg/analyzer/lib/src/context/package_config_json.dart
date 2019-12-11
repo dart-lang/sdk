@@ -8,9 +8,9 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Parse the content of a `package_config.json` file located at the [uri].
-PackageConfig parsePackageConfig(Uri uri, String content) {
+PackageConfigJson parsePackageConfigJson(Uri uri, String content) {
   assert(uri.isAbsolute);
-  return _PackageConfigParser(uri, content).parse();
+  return _PackageConfigJsonParser(uri, content).parse();
 }
 
 class LanguageVersion {
@@ -32,7 +32,7 @@ class LanguageVersion {
 /// Information about packages used by a Pub package.
 ///
 /// It represents a parsed and processed `package_config.json` file.
-class PackageConfig {
+class PackageConfigJson {
   /// The absolute URI of the file.
   final Uri uri;
 
@@ -40,7 +40,7 @@ class PackageConfig {
   final int configVersion;
 
   /// The list of packages.
-  final List<PackageConfigPackage> packages;
+  final List<PackageConfigJsonPackage> packages;
 
   /// The timestamp for when the file was generated.
   ///
@@ -59,7 +59,7 @@ class PackageConfig {
   /// Might be `null`.
   final Version generatorVersion;
 
-  PackageConfig({
+  PackageConfigJson({
     @required this.uri,
     @required this.configVersion,
     @required this.packages,
@@ -69,8 +69,8 @@ class PackageConfig {
   });
 }
 
-/// Description of a single package in [PackageConfig].
-class PackageConfigPackage {
+/// Description of a single package in [PackageConfigJson].
+class PackageConfigJsonPackage {
   /// The name of the package.
   final String name;
 
@@ -83,10 +83,10 @@ class PackageConfigPackage {
   /// sub-directory of the [rootUri].
   final Uri packageUri;
 
-  /// The language version for the package.
+  /// The language version for the package, or `null` if not specified.
   final LanguageVersion languageVersion;
 
-  PackageConfigPackage({
+  PackageConfigJsonPackage({
     this.name,
     this.rootUri,
     this.packageUri,
@@ -94,28 +94,27 @@ class PackageConfigPackage {
   });
 }
 
-class _PackageConfigParser {
+class _PackageConfigJsonParser {
   final RegExp _languageVersionRegExp = RegExp(r'(0|[1-9]\d*)\.(0|[1-9]\d*)');
-  final LanguageVersion _defaultLanguageVersion = const LanguageVersion(2, 6);
 
   final Uri uri;
   final String content;
 
   int version;
-  List<PackageConfigPackage> packages = [];
+  List<PackageConfigJsonPackage> packages = [];
   DateTime generated;
   String generator;
   Version generatorVersion;
 
-  _PackageConfigParser(this.uri, this.content);
+  _PackageConfigJsonParser(this.uri, this.content);
 
-  PackageConfig parse() {
+  PackageConfigJson parse() {
     var contentObject = json.decode(content);
     if (contentObject is Map<String, dynamic>) {
       _parseVersion(contentObject);
       _parsePackages(contentObject);
       _parseGenerated(contentObject);
-      return PackageConfig(
+      return PackageConfigJson(
         uri: uri,
         configVersion: version,
         packages: packages,
@@ -208,7 +207,7 @@ class _PackageConfigParser {
     var languageVersion = _parsePackageLanguageVersion(map);
 
     packages.add(
-      PackageConfigPackage(
+      PackageConfigJsonPackage(
         name: name,
         rootUri: rootUri,
         packageUri: packageUri,
@@ -220,7 +219,7 @@ class _PackageConfigParser {
   LanguageVersion _parsePackageLanguageVersion(Map<String, Object> map) {
     var versionStr = _getOptionalField<String>(map, 'languageVersion');
     if (versionStr == null) {
-      return _defaultLanguageVersion;
+      return null;
     }
 
     var match = _languageVersionRegExp.matchAsPrefix(versionStr);
