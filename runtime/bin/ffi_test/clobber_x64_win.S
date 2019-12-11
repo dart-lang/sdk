@@ -22,14 +22,14 @@ mov r10, 1
 
 ;; Clobber all other volatile registers (except the argument).
 mov rax, 1
-mov rcx, 1
+mov rdx, 1
 mov r8, 1
 mov r9, 1
 mov r11, 1
 
 ;; Stack must be 16-byte aligned before the call. We save three registers above
 ;; to ensure this.
-call rdx
+call rcx
 
 pop r12
 pop r14
