@@ -30,6 +30,9 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 [ $csp ]
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
+[ $compiler != dart2analyzer && !$csp ]
+collection/failing_list_test: Skip # This test is only testing the approval UI. It will be reverted quickly.
+
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Slow
 
