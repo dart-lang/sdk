@@ -1,10 +1,6 @@
-## 2.7.0
-
-**Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
-in preview, and are now officially supported as of 2.7.0. Learn more about them
-here:
-
-https://medium.com/dartlang/extension-methods-2d466cd8b308
+## Next release
+(Add new changes here, and they will be copied to the change section for the
+ next release)
 
 ### Language
 
@@ -27,6 +23,12 @@ The Linter was updated to `0.1.105+1`, which includes:
 #### Pub
 
 ## 2.7.0 - 2019-12-11
+
+**Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
+in preview, and are now officially supported as of 2.7.0. Learn more about them
+here:
+
+https://medium.com/dartlang/extension-methods-2d466cd8b308
 
 ### Language
 
