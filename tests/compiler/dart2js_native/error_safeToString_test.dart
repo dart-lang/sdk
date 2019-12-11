@@ -1,6 +1,8 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// dart2jsOptions=--no-minify
 
 import "native_testing.dart";
 import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT;
@@ -147,7 +149,7 @@ testNative() {
   print('Q:  $x  ${Error.safeToString(x)}');
   // We are going to get either the general interceptor or the JavaScript
   // constructor.
-  Expect.isTrue("Instance of 'QQQQ'" == Error.safeToString(x) ||
+  Expect.isTrue("Instance of 'Q'" == Error.safeToString(x) ||
       interceptorString == Error.safeToString(x));
 
   x = makeR();

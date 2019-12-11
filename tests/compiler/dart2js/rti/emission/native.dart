@@ -12,7 +12,8 @@ import 'dart:_foreign_helper' show JS;
 @Native('PPPP')
 class Purple {}
 
-/*class: Q:instance*/
+/*strong.class: Q:checks=[],instance*/
+/*omit.class: Q:instance*/
 @Native('QQQQ')
 class Q {}
 

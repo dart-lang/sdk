@@ -61,6 +61,8 @@ class ClassChecks {
 
   Iterable<TypeCheck> get checks => _map.values;
 
+  bool get isEmpty => _map.isEmpty;
+
   @override
   String toString() {
     return 'ClassChecks($checks)';

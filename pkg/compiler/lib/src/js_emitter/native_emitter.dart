@@ -251,9 +251,13 @@ class NativeEmitter {
           field.needsCheckedSetter;
     }
 
+    // TODO(fishythefish): Have trivial classes redirect to their supertypes in
+    // the ruleset.
     return cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
+        (cls.classChecksNewRti == null || cls.classChecksNewRti.isEmpty) &&
         cls.callStubs.isEmpty &&
+        cls.namedTypeVariablesNewRti.isEmpty &&
         !cls.superclass.isSimpleMixinApplication &&
         !cls.fields.any(needsAccessor);
   }
