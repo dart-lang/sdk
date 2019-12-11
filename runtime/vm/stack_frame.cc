@@ -280,7 +280,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     global_table =
         this->isolate()->object_store()->canonicalized_stack_map_entries();
     CompressedStackMapsIterator it(maps, global_table);
-    const uword start = Instructions::PayloadStart(code.instructions());
+    const uword start = code.PayloadStart();
     const uint32_t pc_offset = pc() - start;
     if (it.Find(pc_offset)) {
       if (is_interpreted()) {

@@ -147,19 +147,16 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
         {
-          PcRelativeCallPattern call(
-              Instructions::PayloadStart(current_caller.instructions()) +
-              offset);
+          PcRelativeCallPattern call(current_caller.PayloadStart() + offset);
           ASSERT(call.IsValid());
           offset_into_target = call.distance();
         }
 
         const uword destination_payload =
             Instructions::PayloadStart(destination_.instructions());
-        const uword entry_point =
-            call_entry_point == Code::kUncheckedEntry
-                ? Instructions::UncheckedEntryPoint(destination_.instructions())
-                : Instructions::EntryPoint(destination_.instructions());
+        const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                      ? destination_.UncheckedEntryPoint()
+                                      : destination_.EntryPoint();
 
         offset_into_target += (entry_point - destination_payload);
 
@@ -262,18 +259,16 @@ void CodeRelocator::ScanCallTargets(const Code& code,
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
     {
-      PcRelativeCallPattern call(
-          Instructions::PayloadStart(code.instructions()) + offset);
+      PcRelativeCallPattern call(code.PayloadStart() + offset);
       ASSERT(call.IsValid());
       offset_into_target = call.distance();
     }
 
     const uword destination_payload =
         Instructions::PayloadStart(destination_.instructions());
-    const uword entry_point =
-        call_entry_point == Code::kUncheckedEntry
-            ? Instructions::UncheckedEntryPoint(destination_.instructions())
-            : Instructions::EntryPoint(destination_.instructions());
+    const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                  ? destination_.UncheckedEntryPoint()
+                                  : destination_.EntryPoint();
 
     offset_into_target += (entry_point - destination_payload);
 

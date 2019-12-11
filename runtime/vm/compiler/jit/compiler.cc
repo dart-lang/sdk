@@ -846,11 +846,10 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     per_compile_timer.Stop();
 
     if (trace_compiler) {
+      const auto& code = Code::Handle(function.CurrentCode());
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
-                function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).PayloadStart(),
-                Code::Handle(function.CurrentCode()).Size(),
-                per_compile_timer.TotalElapsedTime());
+                function.ToFullyQualifiedCString(), code.PayloadStart(),
+                code.Size(), per_compile_timer.TotalElapsedTime());
     }
 
     return result.raw();

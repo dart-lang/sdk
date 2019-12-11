@@ -1300,6 +1300,10 @@ class RawKernelProgramInfo : public RawObject {
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
+  // When in the precompiled runtime, there is no active_instructions_ field
+  // and the entry point caches should contain entry points for instructions_.
+  // Otherwise, they should contain entry points for active_instructions_.
+
   uword entry_point_;  // Accessed from generated code.
 
   // In AOT this entry-point supports switchable calls. It checks the type of
@@ -1382,6 +1386,9 @@ class RawCode : public RawObject {
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
+  // Caches the unchecked entry point offset for instructions_, in case we need
+  // to reset the active_instructions_ to instructions_.
+  NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
@@ -1462,7 +1469,6 @@ class RawInstructions : public RawObject {
   // Instructions size in bytes and flags.
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
-  uint32_t unchecked_entrypoint_pc_offset_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }

@@ -12591,9 +12591,7 @@ void Library::CheckFunctionFingerprints() {
 }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
 
-RawInstructions* Instructions::New(intptr_t size,
-                                   bool has_single_entry_point,
-                                   uword unchecked_entrypoint_pc_offset) {
+RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
   ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
@@ -12609,7 +12607,6 @@ RawInstructions* Instructions::New(intptr_t size,
     result ^= raw;
     result.SetSize(size);
     result.SetHasSingleEntryPoint(has_single_entry_point);
-    result.set_unchecked_entrypoint_pc_offset(unchecked_entrypoint_pc_offset);
     result.set_stats(nullptr);
   }
   return result.raw();
@@ -14937,8 +14934,7 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
   assembler->GetSelfHandle() = code.raw();
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
-      assembler->CodeSize(), assembler->has_single_entry_point(),
-      assembler->UncheckedEntryOffset()));
+      assembler->CodeSize(), assembler->has_single_entry_point()));
 
   {
     // Important: if GC is triggerred at any point between Instructions::New
@@ -15000,8 +14996,10 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
 
     // Hook up Code and Instructions objects.
-    code.SetActiveInstructions(instrs);
+    const uword unchecked_offset = assembler->UncheckedEntryOffset();
+    code.SetActiveInstructions(instrs, unchecked_offset);
     code.set_instructions(instrs);
+    NOT_IN_PRECOMPILED(code.set_unchecked_offset(unchecked_offset));
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
@@ -15232,8 +15230,8 @@ void Code::DisableDartCode() const {
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixCallersTarget();
-  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
-  StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()),
+                        new_code.UncheckedEntryPointOffset());
 }
 
 void Code::DisableStubCode() const {
@@ -15241,23 +15239,26 @@ void Code::DisableStubCode() const {
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixAllocationStubTarget();
-  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
-  StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()),
+                        new_code.UncheckedEntryPointOffset());
 }
 
 void Code::InitializeCachedEntryPointsFrom(RawCode* code,
-                                           RawInstructions* instructions) {
+                                           RawInstructions* instructions,
+                                           uint32_t unchecked_offset) {
   NoSafepointScope _;
-  code->ptr()->entry_point_ = Instructions::EntryPoint(instructions);
-  code->ptr()->monomorphic_entry_point_ =
+  const uword entry_point = Instructions::EntryPoint(instructions);
+  const uword monomorphic_entry_point =
       Instructions::MonomorphicEntryPoint(instructions);
-  code->ptr()->unchecked_entry_point_ =
-      Instructions::UncheckedEntryPoint(instructions);
+  code->ptr()->entry_point_ = entry_point;
+  code->ptr()->monomorphic_entry_point_ = monomorphic_entry_point;
+  code->ptr()->unchecked_entry_point_ = entry_point + unchecked_offset;
   code->ptr()->monomorphic_unchecked_entry_point_ =
-      Instructions::MonomorphicUncheckedEntryPoint(instructions);
+      monomorphic_entry_point + unchecked_offset;
 }
 
-void Code::SetActiveInstructions(const Instructions& instructions) const {
+void Code::SetActiveInstructions(const Instructions& instructions,
+                                 uint32_t unchecked_offset) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
@@ -15265,7 +15266,17 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
   StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
-  Code::InitializeCachedEntryPointsFrom(raw(), instructions.raw());
+  Code::InitializeCachedEntryPointsFrom(raw(), instructions.raw(),
+                                        unchecked_offset);
+#endif
+}
+
+void Code::ResetActiveInstructions() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  SetActiveInstructions(Instructions::Handle(instructions()),
+                        raw_ptr()->unchecked_offset_);
 #endif
 }
 
@@ -15960,7 +15971,7 @@ void MegamorphicCache::SwitchToBareInstructions() {
     const intptr_t cid = (*slot)->GetClassIdMayBeSmi();
     if (cid == kFunctionCid) {
       RawCode* code = Function::CurrentCodeOf(Function::RawCast(*slot));
-      *slot = Smi::FromAlignedAddress(Code::EntryPoint(code));
+      *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
     } else {
       ASSERT(cid == kSmiCid);
     }

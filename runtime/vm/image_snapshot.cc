@@ -634,8 +634,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += sizeof(compiler::target::uword);
       WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
       text_offset += sizeof(compiler::target::uword);
-      WriteWordLiteralText(insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
-      text_offset += sizeof(compiler::target::uword);
 #else   // defined(IS_SIMARM_X64)
       uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
       uword payload_start = insns.PayloadStart();
@@ -946,8 +944,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteTargetWord(marked_tags);
     instructions_blob_stream_.WriteFixed<uint32_t>(
         insns.raw_ptr()->size_and_flags_);
-    instructions_blob_stream_.WriteFixed<uint32_t>(
-        insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
     payload_stream_start = instructions_blob_stream_.Position();
     instructions_blob_stream_.WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());

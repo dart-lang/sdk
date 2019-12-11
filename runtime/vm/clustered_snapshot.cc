@@ -1416,19 +1416,20 @@ class CodeSerializationCluster : public SerializationCluster {
       if (pointer_offsets_length != 0) {
         FATAL("Cannot serialize code with embedded pointers");
       }
-      if (kind == Snapshot::kFullAOT) {
-        if (code->ptr()->instructions_ != code->ptr()->active_instructions_) {
-          // Disabled code is fatal in AOT since we cannot recompile.
-          s->UnexpectedObject(code, "Disabled code");
-        }
+      if (kind == Snapshot::kFullAOT && Code::IsDisabled(code)) {
+        // Disabled code is fatal in AOT since we cannot recompile.
+        s->UnexpectedObject(code, "Disabled code");
       }
 
       s->WriteInstructions(code->ptr()->instructions_, code);
+      s->WriteUnsigned(code->ptr()->unchecked_offset_);
       if (kind == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         // For now, we may write the FixCallersTarget or equivalent stub. This
         // will cause a fixup if this code is called.
         s->WriteInstructions(code->ptr()->active_instructions_, code);
+        s->WriteUnsigned(code->ptr()->unchecked_entry_point_ -
+                         code->ptr()->entry_point_);
       }
 
       WriteField(code, object_pool_);
@@ -1513,18 +1514,20 @@ class CodeDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
       RawInstructions* instr = d->ReadInstructions();
+      uint32_t unchecked_offset = d->ReadUnsigned();
 
-      Code::InitializeCachedEntryPointsFrom(code, instr);
-      NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+      code->ptr()->unchecked_offset_ = unchecked_offset;
       if (d->kind() == Snapshot::kFullJIT) {
-        RawInstructions* instr = d->ReadInstructions();
-        code->ptr()->active_instructions_ = instr;
-        Code::InitializeCachedEntryPointsFrom(code, instr);
+        instr = d->ReadInstructions();
+        unchecked_offset = d->ReadUnsigned();
       }
+      code->ptr()->active_instructions_ = instr;
 #endif  // !DART_PRECOMPILED_RUNTIME
+
+      Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 
       code->ptr()->object_pool_ =
           reinterpret_cast<RawObjectPool*>(d->ReadRef());

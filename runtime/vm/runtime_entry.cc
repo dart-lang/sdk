@@ -2386,7 +2386,7 @@ static void HandleOSRRequest(Thread* thread) {
 
   if (!result.IsNull()) {
     const Code& code = Code::Cast(result);
-    uword optimized_entry = Instructions::EntryPoint(code.instructions());
+    uword optimized_entry = code.EntryPoint();
     frame->set_pc(optimized_entry);
     frame->set_pc_marker(code.raw());
   }

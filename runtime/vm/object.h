@@ -4826,11 +4826,7 @@ class Instructions : public Object {
 
   uword PayloadStart() const { return PayloadStart(raw()); }
   uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(raw()); }
-  uword MonomorphicUncheckedEntryPoint() const {
-    return MonomorphicUncheckedEntryPoint(raw());
-  }
   uword EntryPoint() const { return EntryPoint(raw()); }
-  uword UncheckedEntryPoint() const { return UncheckedEntryPoint(raw()); }
   static uword PayloadStart(const RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
@@ -4879,26 +4875,6 @@ class Instructions : public Object {
     return entry;
   }
 
-  static uword UncheckedEntryPoint(const RawInstructions* instr) {
-    uword entry =
-        PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
-    if (!HasSingleEntryPoint(instr)) {
-      entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
-                                      : kPolymorphicEntryOffsetAOT;
-    }
-    return entry;
-  }
-
-  static uword MonomorphicUncheckedEntryPoint(const RawInstructions* instr) {
-    uword entry =
-        PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
-    if (!HasSingleEntryPoint(instr)) {
-      entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
-                                      : kMonomorphicEntryOffsetAOT;
-    }
-    return entry;
-  }
-
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(RawInstructions) + sizeof(RawObject) +
                     (2 * kMaxObjectAlignment)));
@@ -4935,10 +4911,6 @@ class Instructions : public Object {
   CodeStatistics* stats() const;
   void set_stats(CodeStatistics* stats) const;
 
-  uword unchecked_entrypoint_pc_offset() const {
-    return raw_ptr()->unchecked_entrypoint_pc_offset_;
-  }
-
  private:
   void SetSize(intptr_t value) const {
     ASSERT(value >= 0);
@@ -4951,17 +4923,11 @@ class Instructions : public Object {
                     FlagsBits::update(value, raw_ptr()->size_and_flags_));
   }
 
-  void set_unchecked_entrypoint_pc_offset(uword value) const {
-    StoreNonPointer(&raw_ptr()->unchecked_entrypoint_pc_offset_, value);
-  }
-
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size,
-                              bool has_single_entry_point,
-                              uword unchecked_entrypoint_pc_offset);
+  static RawInstructions* New(intptr_t size, bool has_single_entry_point);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -5346,7 +5312,8 @@ class Code : public Object {
     return code->ptr()->instructions_;
   }
 
-  static uword EntryPoint(const RawCode* code) {
+  // Returns the entry point of [InstructionsOf(code)].
+  static uword EntryPointOf(const RawCode* code) {
     return Instructions::EntryPoint(InstructionsOf(code));
   }
 
@@ -5411,27 +5378,44 @@ class Code : public Object {
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
+  // Returns the payload start of [instructions()].
   uword PayloadStart() const {
     return Instructions::PayloadStart(instructions());
   }
+  // Returns the entry point of [instructions()].
   uword EntryPoint() const { return Instructions::EntryPoint(instructions()); }
+  // Returns the unchecked entry point of [instructions()].
   uword UncheckedEntryPoint() const {
-    return Instructions::UncheckedEntryPoint(instructions());
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->unchecked_entry_point_;
+#else
+    return EntryPoint() + raw_ptr()->unchecked_offset_;
+#endif
   }
+  // Returns the monomorphic entry point of [instructions()].
   uword MonomorphicEntryPoint() const {
     return Instructions::MonomorphicEntryPoint(instructions());
   }
+  // Returns the unchecked monomorphic entry point of [instructions()].
   uword MonomorphicUncheckedEntryPoint() const {
-    return Instructions::MonomorphicUncheckedEntryPoint(instructions());
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->monomorphic_unchecked_entry_point_;
+#else
+    return MonomorphicEntryPoint() + raw_ptr()->unchecked_offset_;
+#endif
   }
+  // Returns the size of [instructions()].
   intptr_t Size() const { return Instructions::Size(instructions()); }
+
   RawObjectPool* GetObjectPool() const;
+  // Returns whether the given PC address is in [instructions()].
   bool ContainsInstructionAt(uword addr) const {
     return ContainsInstructionAt(raw(), addr);
   }
 
+  // Returns whether the given PC address is in [InstructionsOf(code)].
   static bool ContainsInstructionAt(const RawCode* code, uword addr) {
-    return Instructions::ContainsPc(code->ptr()->instructions_, addr);
+    return Instructions::ContainsPc(InstructionsOf(code), addr);
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -5746,11 +5730,18 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(instructions() != active_instructions());
-    SetActiveInstructions(Instructions::Handle(instructions()));
+    ResetActiveInstructions();
   }
 
-  bool IsDisabled() const { return instructions() != active_instructions(); }
+  bool IsDisabled() const { return IsDisabled(raw()); }
+  static bool IsDisabled(RawCode* code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return false;
+#else
+    return code->ptr()->instructions_ != code->ptr()->active_instructions_;
+#endif
+  }
 
  private:
   void set_state_bits(intptr_t bits) const;
@@ -5804,15 +5795,39 @@ class Code : public Object {
 #endif
   }
 
-  // Initializes 4 cached entrypoint addresses in 'code' from 'instructions'.
+  // Initializes the cached entrypoint addresses in [code] as calculated
+  // from [instructions] and [unchecked_offset].
   static void InitializeCachedEntryPointsFrom(RawCode* code,
-                                              RawInstructions* instructions);
+                                              RawInstructions* instructions,
+                                              uint32_t unchecked_offset);
 
-  void SetActiveInstructions(const Instructions& instructions) const;
+  // Sets [active_instructions_] to [instructions] and updates the cached
+  // entry point addresses.
+  void SetActiveInstructions(const Instructions& instructions,
+                             uint32_t unchecked_offset) const;
+
+  // Resets [active_instructions_] to its original value of [instructions_] and
+  // updates the cached entry point addresses to match.
+  void ResetActiveInstructions() const;
 
   void set_instructions(const Instructions& instructions) const {
     ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
     StorePointer(&raw_ptr()->instructions_, instructions.raw());
+  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_unchecked_offset(uword offset) const {
+    StoreNonPointer(&raw_ptr()->unchecked_offset_, offset);
+  }
+#endif
+
+  // Returns the unchecked entry point offset for [instructions_].
+  uint32_t UncheckedEntryPointOffset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return raw_ptr()->unchecked_entry_point_ - raw_ptr()->entry_point_;
+#else
+    return raw_ptr()->unchecked_offset_;
+#endif
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -5857,6 +5872,7 @@ class Code : public Object {
   // function points to is optimized.
   friend class RawFunction;
   friend class CallSiteResetter;
+  friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
 };
 
 class Bytecode : public Object {
@@ -10280,7 +10296,7 @@ void MegamorphicCache::SetEntry(const Array& array,
     if (target.IsFunction()) {
       const auto& function = Function::Cast(target);
       const auto& entry_point = Smi::Handle(
-          Smi::FromAlignedAddress(Code::EntryPoint(function.CurrentCode())));
+          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
       array.SetAt((index * kEntryLength) + kTargetFunctionIndex, entry_point);
       return;
     }
