@@ -412,7 +412,7 @@ bool File::Copy(Namespace* namespc,
   // TODO(ZX-429): Use sendfile/copyfile or equivalent when there is one.
   intptr_t result;
   const intptr_t kBufferSize = 8 * KB;
-  uint8_t buffer[kBufferSize];
+  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
   while ((result = NO_RETRY_EXPECTED(read(old_fd, buffer, kBufferSize))) > 0) {
     int wrote = NO_RETRY_EXPECTED(write(new_fd, buffer, result));
     if (wrote != result) {
@@ -420,6 +420,7 @@ bool File::Copy(Namespace* namespc,
       break;
     }
   }
+  free(buffer);
   FDUtils::SaveErrorAndClose(old_fd);
   FDUtils::SaveErrorAndClose(new_fd);
   if (result < 0) {

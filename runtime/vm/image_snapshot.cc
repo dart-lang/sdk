@@ -226,15 +226,16 @@ uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
 
 #if defined(DART_PRECOMPILER)
 void ImageWriter::DumpInstructionStats() {
-  CombinedCodeStatistics instruction_stats;
+  std::unique_ptr<CombinedCodeStatistics> instruction_stats(
+      new CombinedCodeStatistics());
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
     CodeStatistics* stats = data.insns_->stats();
     if (stats != nullptr) {
-      stats->AppendTo(&instruction_stats);
+      stats->AppendTo(instruction_stats.get());
     }
   }
-  instruction_stats.DumpStatistics();
+  instruction_stats->DumpStatistics();
 }
 
 void ImageWriter::DumpInstructionsSizes() {

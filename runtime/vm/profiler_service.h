@@ -53,7 +53,7 @@ class ProfileFunctionSourcePosition {
   DISALLOW_ALLOCATION();
 };
 
-class ProfileCodeInlinedFunctionsCache : public ValueObject {
+class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
  public:
   ProfileCodeInlinedFunctionsCache() : cache_cursor_(0), last_hit_(0) {
     for (intptr_t i = 0; i < kCacheSize; i++) {

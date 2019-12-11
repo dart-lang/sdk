@@ -419,7 +419,7 @@ bool File::Copy(Namespace* namespc,
   //   where sendfile() fails with EINVAL or ENOSYS.
   if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
     const intptr_t kBufferSize = 8 * KB;
-    uint8_t buffer[kBufferSize];
+    uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
     while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) >
            0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
@@ -428,6 +428,7 @@ bool File::Copy(Namespace* namespc,
         break;
       }
     }
+    free(buffer);
   }
   int e = errno;
   close(old_fd);
