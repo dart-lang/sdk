@@ -1,3 +1,7 @@
+## 0.39.3-dev
+* Bumped the analyzer's SDK requirement to `>=2.6.0`, so that extension methods
+  can be used within the analyzer implementation.
+
 ## 0.39.2+1
 * Fixed bug #39702.
 

@@ -36,3 +36,24 @@ class ElementTypeProvider {
   /// Queries the type of a variable element.
   DartType getVariableType(VariableElement variable) => variable.type;
 }
+
+/// Extension providing additional convenience functions based on
+/// [ElementTypeProvider].  This is an extension so that these methods don't
+/// need to be replicated when [ElementTypeProvider] is overridden.
+extension E on ElementTypeProvider {
+  /// Null-aware version of [ElementTypeProvider.getExecutableParameters].
+  List<ParameterElement> safeExecutableParameters(ExecutableElement element) =>
+      element == null ? null : getExecutableParameters(element);
+
+  /// Null-aware version of [ElementTypeProvider.getExecutableReturnType].
+  DartType safeExecutableReturnType(FunctionTypedElement element) =>
+      element == null ? null : getExecutableReturnType(element);
+
+  /// Null-aware version of [ElementTypeProvider.getExecutableType].
+  FunctionType safeExecutableType(ExecutableElement element) =>
+      element == null ? null : getExecutableType(element);
+
+  /// Null-aware version of [ElementTypeProvider.getVariableType].
+  DartType safeVariableType(VariableElement variable) =>
+      variable == null ? null : getVariableType(variable);
+}

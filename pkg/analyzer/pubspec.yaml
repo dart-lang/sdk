@@ -1,10 +1,10 @@
 name: analyzer
-version: 0.39.2+1
+version: 0.39.3-dev
 description: This package provides a library that performs static analysis of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer
 
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   _fe_analyzer_shared: ^1.0.1
