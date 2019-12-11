@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
+import 'dart:io' show File, Platform, stdin;
 
 import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/handler/notification_handler.dart';
@@ -63,7 +63,7 @@ class Driver {
     logger.stdout('');
     if (result.hasErrors) {
       logger.stdout('WARNING: The analyzed source contains errors'
-          ' that may affect the accuracy of these changes.');
+          ' that might affect the accuracy of these changes.');
       logger.stdout('');
       if (!force) {
         logger.stdout('Rerun with --$forceOption to apply these changes.');
@@ -276,6 +276,22 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     try {
       await startServerAnalysis(options);
       result = await requestFixes(options, progress: progress);
+      if (options.previewPort != null) {
+        var urls = result.urls;
+        if (urls != null) {
+          if (urls.length == 1) {
+            logger.stdout('Please open ${urls[0]} in a browser and '
+                'press enter when you are done viewing the preview.');
+          } else {
+            logger.stdout('Please open the following URLs in a browser and '
+                'press enter when you are done viewing the preview:');
+            for (var url in urls) {
+              logger.stdout('  $url');
+            }
+          }
+          stdin.readLineSync();
+        }
+      }
       serverStopped = server.stop();
       await applyFixes();
       await serverStopped;
