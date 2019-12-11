@@ -509,37 +509,15 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command _createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    /// This can be disabled to test DDC's hybrid mode (automatically converting
-    /// Analyzer summaries to Kernel files).
-    ///
-    /// The current DDC configurations are:
-    ///
-    /// - using Analyzer ASTs and Analyzer summaries: the current default
-    ///   configuration; used in internal builds.
-    /// - using Kernel trees and Kernel IL files: the new default for external
-    ///   users (e.g. Flutter Web), and in the future, the only DDC mode.
-    /// - using Kernel trees, but Analyzer summaries (converted automatically):
-    ///   this was intended to help migrate internal users, but is currently
-    ///   unused.
-    ///
-    /// The first two are tested on the bots and are called "dartdevc" and
-    /// "dartdevk" respectively. This flag switches "dartdevk" to use either
-    /// Kernel IL files, or the Analyzer summaries.
-    final useDillFormat = useKernel;
-
     var args = <String>[];
-    if (useKernel) {
-      args.add('--kernel');
-    }
     if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile =
-          useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+      var sdkSummaryFile = 'ddc_sdk.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$sdkSummaryFile")
+          .append(sdkSummaryFile)
           .absolute
           .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
@@ -558,16 +536,17 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
-    var pkgExtension = useDillFormat ? 'dill' : 'sum';
-    for (var package in testPackages) {
+    var packages = _configuration.nnbdMode == NnbdMode.legacy
+        ? testPackages
+        : testPackagesNnbd;
+    for (var package in packages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
       var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
           .absolute
           .toNativePath();
       args.add("$summary=$package");

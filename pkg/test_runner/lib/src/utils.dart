@@ -31,6 +31,18 @@ const testPackages = [
   "unittest"
 ];
 
+// TODO(nshahan): Grow this list until it matches the list above. We are
+// temporarily using a reduced set of packages in tests until they are compliant
+// or we can simply opt them out of the null safety feature without build
+// errors. This list should be consistent with the build target
+// utils/dartdevc:dartdevc_test_kernel_pkg
+const testPackagesNnbd = [
+  "async_helper",
+  "expect",
+  "js",
+  "meta",
+];
+
 /// Gets the file extension for a shell script on the host OS.
 String get shellScriptExtension => Platform.isWindows ? '.bat' : '';
 
