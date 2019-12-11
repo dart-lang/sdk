@@ -80,6 +80,12 @@ class NonNullableFix extends FixCodeTask {
   @override
   int get numPhases => 2;
 
+  /// Return a list of the Urls corresponding to the included roots.
+  List<String> get previewUrls => [
+        Uri(scheme: 'http', host: 'localhost', port: port, path: includedRoot)
+            .toString()
+      ];
+
   @override
   Future<void> finish() async {
     migration.finish();

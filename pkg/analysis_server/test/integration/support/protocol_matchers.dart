@@ -2588,7 +2588,7 @@ final Matcher isEditDartfixParams =
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
  *   "details": optional List<String>
- *   "url": optional List<String>
+ *   "urls": optional List<String>
  * }
  */
 final Matcher isEditDartfixResult =
@@ -2599,7 +2599,7 @@ final Matcher isEditDartfixResult =
           "edits": isListOf(isSourceFileEdit)
         }, optionalFields: {
           "details": isListOf(isString),
-          "url": isListOf(isString)
+          "urls": isListOf(isString)
         }));
 
 /**

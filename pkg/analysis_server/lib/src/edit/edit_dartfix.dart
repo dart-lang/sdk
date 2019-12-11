@@ -172,6 +172,7 @@ class EditDartFix
       hasErrors,
       listener.sourceChange.edits,
       details: listener.details,
+      urls: nonNullableFixTask?.previewUrls,
     ).toResponse(request.id);
   }
 

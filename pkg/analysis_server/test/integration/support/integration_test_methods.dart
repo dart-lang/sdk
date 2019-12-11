@@ -1811,7 +1811,7 @@ abstract class IntegrationTestMixin {
    *   or (b) describe exceptions that were thrown but that did not stop the
    *   fixes from being produced. The list will be omitted if it is empty.
    *
-   * url: List<String> (optional)
+   * urls: List<String> (optional)
    *
    *   The URLs that users can visit in a browser to see a preview of the
    *   proposed changes. There is one URL for each of the included file paths.
