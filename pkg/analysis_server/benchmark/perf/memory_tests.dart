@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:test/test.dart';
 
 import '../../test/integration/support/integration_tests.dart';
@@ -95,5 +95,51 @@ class AnalysisServerMemoryUsageTest
     } finally {
       await socket.close();
     }
+  }
+}
+
+class ServiceProtocol {
+  final WebSocket socket;
+
+  int _id = 0;
+  final Map<String, Completer<Map>> _completers = {};
+
+  ServiceProtocol._(this.socket) {
+    socket.listen(_handleMessage);
+  }
+
+  Future<Map> call(String method, [Map args]) {
+    String id = '${++_id}';
+    Completer<Map> completer = new Completer();
+    _completers[id] = completer;
+    Map m = {'id': id, 'method': method};
+    if (args != null) m['params'] = args;
+    String message = jsonEncode(m);
+    socket.add(message);
+    return completer.future;
+  }
+
+  Future dispose() => socket.close();
+
+  void _handleMessage(dynamic message) {
+    if (message is! String) {
+      return;
+    }
+
+    try {
+      dynamic json = jsonDecode(message);
+      if (json.containsKey('id')) {
+        dynamic id = json['id'];
+        _completers[id]?.complete(json['result']);
+        _completers.remove(id);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  static Future<ServiceProtocol> connect(Uri uri) async {
+    WebSocket socket = await WebSocket.connect(uri.toString());
+    return new ServiceProtocol._(socket);
   }
 }

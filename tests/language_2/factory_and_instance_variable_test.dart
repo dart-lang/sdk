@@ -7,7 +7,10 @@ abstract class A {
   factory A.bar() = B.bar;
 
   get foo => bar;
-  static get baz => bar; //# 01: compile-time error
+  static get baz => bar;
+  //                ^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
+  // [cfe] Getter not found: 'bar'.
 }
 
 class B implements A {
@@ -15,7 +18,10 @@ class B implements A {
   factory B.bar() => new C.bar();
 
   get foo => bar;
-  static get baz => bar; //# 02: compile-time error
+  static get baz => bar;
+  //                ^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
+  // [cfe] Getter not found: 'bar'.
 
   B() {}
 }
@@ -25,7 +31,10 @@ class C extends B {
     bar = "foo";
   }
 
-  static get baz => bar; //# 03: compile-time error
+  static get baz => bar;
+  //                ^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
+  // [cfe] Getter not found: 'bar'.
 }
 
 main() {

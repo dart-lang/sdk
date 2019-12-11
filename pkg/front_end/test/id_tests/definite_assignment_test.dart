@@ -25,12 +25,8 @@ main(List<String> args) async {
       runTest: runTestFor(
           const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
-        // TODO(johnniwinther): Update break/continue handling to support these:
-        'do.dart',
-        'for.dart',
+        // TODO(johnniwinther): Change for loop encoding to support this:
         'for_each.dart',
-        'switch.dart',
-        'while.dart',
       ]);
 }
 

@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new PartDirectivesTest().buildAll();
+  PartDirectivesTest().buildAll();
 }
 
 class PartDirectivesTest extends PartialCodeTest {
@@ -15,7 +15,7 @@ class PartDirectivesTest extends PartialCodeTest {
     buildTests(
         'part_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'part',
               [
@@ -25,9 +25,9 @@ class PartDirectivesTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "part '';"),
-          new TestDescriptor('emptyUri', "part ''",
+          TestDescriptor('emptyUri', "part ''",
               [ParserErrorCode.EXPECTED_TOKEN], "part '';"),
-          new TestDescriptor('uri', "part 'a.dart'",
+          TestDescriptor('uri', "part 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "part 'a.dart';"),
         ],
         PartialCodeTest.postPartSuffixes);

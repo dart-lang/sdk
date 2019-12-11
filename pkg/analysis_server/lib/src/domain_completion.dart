@@ -258,7 +258,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }, onError: (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
           CaughtException.withMessage(
-              'Failed to handle completion domain request: ${request.toJson()}',
+              'Failed to handle completion domain request: ${request.method}',
               exception,
               stackTrace));
     });

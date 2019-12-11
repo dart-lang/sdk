@@ -9,7 +9,16 @@ main() {
   var v = 1.0;
   Expect.throwsRangeError(() => v.toStringAsExponential(-1));
   Expect.throwsRangeError(() => v.toStringAsExponential(21));
-  v.toStringAsExponential(1.5); //# 01: compile-time error
-  v.toStringAsExponential("string"); //# 02: compile-time error
-  v.toStringAsExponential("3"); //# 03: compile-time error
+  v.toStringAsExponential(1.5);
+  //                      ^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+  v.toStringAsExponential("string");
+  //                      ^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
+  v.toStringAsExponential("3");
+  //                      ^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 }

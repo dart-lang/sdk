@@ -2,6 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This file is an "idl" style description of the summary format.  It
+/// contains abstract classes which declare the interface for reading data from
+/// summaries.  It is parsed and transformed into code that implements the
+/// summary format.
+///
+/// The code generation process introduces the following semantics:
+/// - Getters of type List never return null, and have a default value of the
+///   empty list.
+/// - Getters of type int return unsigned 32-bit integers, never null, and have
+///   a default value of zero.
+/// - Getters of type String never return null, and have a default value of ''.
+/// - Getters of type bool never return null, and have a default value of false.
+/// - Getters of type double never return null, and have a default value of
+///   `0.0`.
+/// - Getters whose type is an enum never return null, and have a default value
+///   of the first value declared in the enum.
+///
+/// Terminology used in this document:
+/// - "Unlinked" refers to information that can be determined from reading a
+///   single .dart file in isolation.
+/// - "Prelinked" refers to information that can be determined from the defining
+///   compilation unit of a library, plus direct imports, plus the transitive
+///   closure of exports reachable from those libraries, plus all part files
+///   constituting those libraries.
+/// - "Linked" refers to all other information; in theory, this information may
+///   depend on all files in the transitive import/export closure.  However, in
+///   practice we expect that the number of additional dependencies will usually
+///   be small, since the additional dependencies only need to be consulted for
+///   type propagation, type inference, and constant evaluation, which typically
+///   have short dependency chains.
+///
+/// Since we expect "linked" and "prelinked" dependencies to be similar, we only
+/// rarely distinguish between them; most information is that is not "unlinked"
+/// is typically considered "linked" for simplicity.
+///
+/// Except as otherwise noted, synthetic elements are not stored in the summary;
+/// they are re-synthesized at the time the summary is read.
 import 'base.dart' as base;
 import 'base.dart' show Id, TopLevel, Variant, VariantId;
 import 'format.dart' as generated;
@@ -1947,6 +1984,35 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   int get nameOffset;
 }
 
+/// Unlinked summary information about a namespace directive.
+abstract class UnlinkedNamespaceDirective extends base.SummaryClass {
+  /// The configurations that control which library will actually be used.
+  @Id(0)
+  List<UnlinkedNamespaceDirectiveConfiguration> get configurations;
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  @Id(1)
+  String get uri;
+}
+
+/// Unlinked summary information about a namespace directive configuration.
+abstract class UnlinkedNamespaceDirectiveConfiguration
+    extends base.SummaryClass {
+  /// The name of the declared variable used in the condition.
+  @Id(0)
+  String get name;
+
+  /// The URI to be used if the condition is true.
+  @Id(2)
+  String get uri;
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or the empty string if the condition does not include an equality test.
+  @Id(1)
+  String get value;
+}
+
 /// Enum of token types, corresponding to AST token types.
 enum UnlinkedTokenType {
   NOTHING,
@@ -2107,7 +2173,7 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
 
   /// URIs of `export` directives.
   @Id(1)
-  List<String> get exports;
+  List<UnlinkedNamespaceDirective> get exports;
 
   /// Is `true` if the unit contains a `library` directive.
   @Id(6)
@@ -2119,7 +2185,7 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
 
   /// URIs of `import` directives.
   @Id(2)
-  List<String> get imports;
+  List<UnlinkedNamespaceDirective> get imports;
 
   @Id(7)
   List<UnlinkedInformativeData> get informativeData;

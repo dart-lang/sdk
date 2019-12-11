@@ -8,31 +8,53 @@ import "package:expect/expect.dart";
 
 class A {
   A(
-    this.x // //# 01: compile-time error
+    this.x
+//  ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD
+//       ^
+// [cfe] 'x' isn't an instance field of this class.
       );
   final foo = 499;
 }
 
 class B extends A {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
 
 class B2 extends A {
   B2();
+//^^
+// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
   B2.named() : this.x = 499;
+//^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [cfe] The superclass, 'A', has no unnamed constructor that takes no arguments.
   var x;
 }
 
 class C {
   C
-  .named // //# 02: compile-time error
+  .named
   ();
   final foo = 499;
 }
 
 class D extends C {}
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.NO_DEFAULT_SUPER_CONSTRUCTOR
+// [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
 
 class D2 extends C {
   D2();
+//^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+// [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   D2.named() : this.x = 499;
+//^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+// [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   var x;
 }
 

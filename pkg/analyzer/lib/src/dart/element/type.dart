@@ -11,8 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -46,12 +45,12 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * The unique instance of this class.
    */
-  static final DynamicTypeImpl instance = new DynamicTypeImpl._();
+  static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
+  DynamicTypeImpl._() : super(DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
@@ -64,6 +63,11 @@ class DynamicTypeImpl extends TypeImpl {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('dynamic');
+  }
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
@@ -142,50 +146,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @deprecated
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
-
-  @override
-  String get displayName {
-    if (name == null || name.isEmpty) {
-      // Function types have an empty name when they are defined implicitly by
-      // either a closure or as part of a parameter declaration.
-      StringBuffer buffer = new StringBuffer();
-      appendTo(buffer);
-      if (nullabilitySuffix == NullabilitySuffix.question) {
-        buffer.write('?');
-      }
-      return buffer.toString();
-    }
-
-    List<DartType> typeArguments = this.typeArguments;
-
-    bool allTypeArgumentsAreDynamic() {
-      for (DartType type in typeArguments) {
-        if (type != null && !type.isDynamic) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(name);
-    // If there is at least one non-dynamic type, then list them out.
-    if (!allTypeArgumentsAreDynamic()) {
-      buffer.write("<");
-      for (int i = 0; i < typeArguments.length; i++) {
-        if (i != 0) {
-          buffer.write(", ");
-        }
-        DartType typeArg = typeArguments[i];
-        buffer.write(typeArg.displayName);
-      }
-      buffer.write(">");
-    }
-    if (nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-    return buffer.toString();
-  }
 
   @override
   FunctionTypedElement get element {
@@ -295,9 +255,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
-    // TODO(paulberry): eliminate code duplication with
-    // _ElementWriter.writeType.  See issue #35818.
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
     if (typeFormals.isNotEmpty) {
       StringBuffer typeParametersBuffer = StringBuffer();
       // To print a type with type variables, first make sure we have unique
@@ -329,14 +287,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         while (!namesToAvoid.add(name)) {
           // Unicode subscript-zero is U+2080, zero is U+0030. Other digits
           // are sequential from there. Thus +0x2050 will get us the subscript.
-          String subscript = new String.fromCharCodes(
+          String subscript = String.fromCharCodes(
               counter.toString().codeUnits.map((n) => n + 0x2050));
 
           name = e.name + subscript;
           counter++;
         }
-        TypeParameterTypeImpl t = new TypeParameterTypeImpl(
-            new TypeParameterElementImpl(name, -1),
+        TypeParameterTypeImpl t = TypeParameterTypeImpl(
+            TypeParameterElementImpl(name, -1),
             nullabilitySuffix: NullabilitySuffix.none);
         t.appendTo(typeParametersBuffer, withNullability: withNullability);
         instantiateTypeArgs.add(t);
@@ -363,8 +321,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl instantiate(List<DartType> argumentTypes) {
     if (argumentTypes.length != typeFormals.length) {
-      throw new ArgumentError(
-          "argumentTypes.length (${argumentTypes.length}) != "
+      throw ArgumentError("argumentTypes.length (${argumentTypes.length}) != "
           "typeFormals.length (${typeFormals.length})");
     }
     if (argumentTypes.isEmpty) {
@@ -377,7 +334,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       var type = p.type;
       var newType = substitution.substituteType(type);
       if (identical(newType, type)) return p;
-      return new ParameterElementImpl.synthetic(
+      return ParameterElementImpl.synthetic(
           p.name,
           newType,
           // ignore: deprecated_member_use_from_same_package
@@ -395,7 +352,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant: true}) {
+      {bool isCovariant = true}) {
     var returnType = (this.returnType as TypeImpl)
         .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
     ParameterElement transformParameter(ParameterElement p) {
@@ -403,7 +360,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       var newType =
           type.replaceTopAndBottom(typeProvider, isCovariant: !isCovariant);
       if (identical(newType, type)) return p;
-      return new ParameterElementImpl.synthetic(
+      return ParameterElementImpl.synthetic(
           p.name,
           newType,
           // ignore: deprecated_member_use_from_same_package
@@ -428,8 +385,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
-      throw new ArgumentError(
-          "argumentTypes.length (${argumentTypes.length}) != "
+      throw ArgumentError("argumentTypes.length (${argumentTypes.length}) != "
           "parameterTypes.length (${parameterTypes.length})");
     }
 
@@ -772,7 +728,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
       TypeParameterElementImpl pFresh =
-          new TypeParameterElementImpl.synthetic(p2.name);
+          TypeParameterElementImpl.synthetic(p2.name);
 
       DartType variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -922,7 +878,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (_accessors == null) {
       List<PropertyAccessorElement> accessors = element.accessors;
       List<PropertyAccessorElement> members =
-          new List<PropertyAccessorElement>(accessors.length);
+          List<PropertyAccessorElement>(accessors.length);
       for (int i = 0; i < accessors.length; i++) {
         members[i] = PropertyAccessorMember.from(accessors[i], this);
       }
@@ -936,46 +892,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
       List<ConstructorElement> members =
-          new List<ConstructorElement>(constructors.length);
+          List<ConstructorElement>(constructors.length);
       for (int i = 0; i < constructors.length; i++) {
         members[i] = ConstructorMember.from(constructors[i], this);
       }
       _constructors = members;
     }
     return _constructors;
-  }
-
-  @override
-  String get displayName {
-    List<DartType> typeArguments = this.typeArguments;
-
-    bool allTypeArgumentsAreDynamic() {
-      for (DartType type in typeArguments) {
-        if (type != null && !type.isDynamic) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(name);
-    // If there is at least one non-dynamic type, then list them out.
-    if (!allTypeArgumentsAreDynamic()) {
-      buffer.write("<");
-      for (int i = 0; i < typeArguments.length; i++) {
-        if (i != 0) {
-          buffer.write(", ");
-        }
-        DartType typeArg = typeArguments[i];
-        buffer.write(typeArg.displayName);
-      }
-      buffer.write(">");
-    }
-    if (nullabilitySuffix == NullabilitySuffix.question) {
-      buffer.write('?');
-    }
-    return buffer.toString();
   }
 
   @override
@@ -1128,7 +1051,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement> get methods {
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
-      List<MethodElement> members = new List<MethodElement>(methods.length);
+      List<MethodElement> members = List<MethodElement>(methods.length);
       for (int i = 0; i < methods.length; i++) {
         members[i] = MethodMember.from(methods[i], this);
       }
@@ -1176,8 +1099,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
-    buffer.write(name);
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write(element.name);
     int argumentCount = typeArguments.length;
     if (argumentCount > 0) {
       buffer.write("<");
@@ -1212,7 +1135,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * return the type `A<String>`.
    */
   InterfaceType asInstanceOf(ClassElement targetElement) {
-    return _asInstanceOf(targetElement, new Set<ClassElement>());
+    return _asInstanceOf(targetElement, Set<ClassElement>());
   }
 
   @override
@@ -1276,7 +1199,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -1299,7 +1222,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   PropertyAccessorElement lookUpInheritedGetter(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     PropertyAccessorElement result;
     if (thisType) {
       result = lookUpGetter(name, library);
@@ -1310,7 +1233,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return result;
     }
     return _lookUpMemberInInterfaces(this, false, library,
-        new HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
+        HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
   }
 
   @override
@@ -1326,24 +1249,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         this,
         false,
         library,
-        new HashSet<ClassElement>(),
+        HashSet<ClassElement>(),
         (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
   }
 
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
-      {bool concrete: false,
-      bool forSuperInvocation: false,
+      {bool concrete = false,
+      bool forSuperInvocation = false,
       int startMixinIndex,
-      bool setter: false,
-      bool thisType: false}) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+      bool setter = false,
+      bool thisType = false}) {
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
 
     /// TODO(scheglov) Remove [includeSupers]. It is used only to work around
     /// the problem with Flutter code base (using old super-mixins).
     ExecutableElement lookUpImpl(InterfaceTypeImpl type,
-        {bool acceptAbstract: false,
-        bool includeType: true,
-        bool inMixin: false,
+        {bool acceptAbstract = false,
+        bool includeType = true,
+        bool inMixin = false,
         int startMixinIndex}) {
       if (type == null || !visitedClasses.add(type.element)) {
         return null;
@@ -1419,7 +1342,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   MethodElement lookUpInheritedMethod(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     MethodElement result;
     if (thisType) {
       result = lookUpMethod(name, library);
@@ -1430,12 +1353,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return result;
     }
     return _lookUpMemberInInterfaces(this, false, library,
-        new HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
+        HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
   }
 
   @override
   PropertyAccessorElement lookUpInheritedSetter(String name,
-      {LibraryElement library, bool thisType: true}) {
+      {LibraryElement library, bool thisType = true}) {
     PropertyAccessorElement result;
     if (thisType) {
       result = lookUpSetter(name, library);
@@ -1446,7 +1369,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return result;
     }
     return _lookUpMemberInInterfaces(this, false, library,
-        new HashSet<ClassElement>(), (t) => t.getSetter(name));
+        HashSet<ClassElement>(), (t) => t.getSetter(name));
   }
 
   @override
@@ -1473,7 +1396,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -1519,7 +1442,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
@@ -1542,7 +1465,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant: true}) {
+      {bool isCovariant = true}) {
     // First check if this is actually an instance of Bottom
     if (this.isDartCoreNull) {
       if (isCovariant) {
@@ -1560,7 +1483,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(typeArguments, this.typeArguments)) {
       return this;
     } else {
-      return new InterfaceTypeImpl.explicit(element, typeArguments,
+      return InterfaceTypeImpl.explicit(element, typeArguments,
           nullabilitySuffix: nullabilitySuffix);
     }
   }
@@ -1570,7 +1493,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     if (argumentTypes.isEmpty || typeArguments.isEmpty) {
@@ -1580,7 +1503,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<DartType> newTypeArguments =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
 
-    InterfaceTypeImpl newType = new InterfaceTypeImpl.explicit(
+    InterfaceTypeImpl newType = InterfaceTypeImpl.explicit(
         element, newTypeArguments,
         nullabilitySuffix: nullabilitySuffix);
     return newType;
@@ -1721,8 +1644,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
-    AnalysisContext context = first.element.context;
-    return context.typeSystem.getLeastUpperBound(first, second);
+    TypeSystemImpl typeSystem = first.element.library.typeSystem;
+    return typeSystem.getLeastUpperBound(first, second);
   }
 
   /**
@@ -1739,7 +1662,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement firstElement = firstType.element;
     ClassElement secondElement = secondType.element;
     if (firstElement != secondElement) {
-      throw new ArgumentError('The same elements expected, but '
+      throw ArgumentError('The same elements expected, but '
           '$firstElement and $secondElement are given.');
     }
     if (firstType == secondType) {
@@ -1751,7 +1674,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (argumentCount == 0) {
       return firstType;
     }
-    List<DartType> lubArguments = new List<DartType>(argumentCount);
+    List<DartType> lubArguments = List<DartType>(argumentCount);
     for (int i = 0; i < argumentCount; i++) {
       //
       // Ideally we would take the least upper bound of the two argument types,
@@ -1781,7 +1704,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return NullabilitySuffix.none;
     }
 
-    return new InterfaceTypeImpl.explicit(firstElement, lubArguments,
+    return InterfaceTypeImpl.explicit(firstElement, lubArguments,
         nullabilitySuffix: computeNullability());
   }
 
@@ -1859,7 +1782,7 @@ class NeverTypeImpl extends TypeImpl {
    * in diagnostic messages (this is TBD).
    */
   static final NeverTypeImpl instanceNullable =
-      new NeverTypeImpl._(NullabilitySuffix.question);
+      NeverTypeImpl._(NullabilitySuffix.question);
 
   /**
    * The unique instance of this class, starred.
@@ -1871,13 +1794,12 @@ class NeverTypeImpl extends TypeImpl {
    * not.
    */
   static final NeverTypeImpl instanceLegacy =
-      new NeverTypeImpl._(NullabilitySuffix.star);
+      NeverTypeImpl._(NullabilitySuffix.star);
 
   /**
    * The unique instance of this class, non-nullable.
    */
-  static final NeverTypeImpl instance =
-      new NeverTypeImpl._(NullabilitySuffix.none);
+  static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1885,8 +1807,7 @@ class NeverTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  NeverTypeImpl._(this.nullabilitySuffix)
-      : super(new NeverElementImpl(), 'Never');
+  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl(), 'Never');
 
   @override
   int get hashCode => 0;
@@ -1902,6 +1823,14 @@ class NeverTypeImpl extends TypeImpl {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('Never');
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
+  }
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
@@ -1964,7 +1893,9 @@ abstract class TypeImpl implements DartType {
   TypeImpl(this._element, this.name);
 
   @override
-  String get displayName => name;
+  String get displayName {
+    return getDisplayString(withNullability: false);
+  }
 
   @override
   Element get element => _element;
@@ -2029,15 +1960,13 @@ abstract class TypeImpl implements DartType {
   /**
    * Append a textual representation of this type to the given [buffer].
    */
-  void appendTo(StringBuffer buffer, {bool withNullability = false}) {
-    if (name == null) {
-      buffer.write("<unnamed type>");
-    } else {
-      buffer.write(name);
-    }
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
+  void appendTo(StringBuffer buffer, {@required bool withNullability});
+
+  @override
+  String getDisplayString({bool withNullability = false}) {
+    var buffer = StringBuffer();
+    appendTo(buffer, withNullability: withNullability);
+    return buffer.toString();
   }
 
   /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
@@ -2062,9 +1991,7 @@ abstract class TypeImpl implements DartType {
 
   @override
   String toString({bool withNullability = false}) {
-    StringBuffer buffer = new StringBuffer();
-    appendTo(buffer, withNullability: withNullability);
-    return buffer.toString();
+    return getDisplayString(withNullability: withNullability);
   }
 
   /**
@@ -2082,11 +2009,6 @@ abstract class TypeImpl implements DartType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
   void _appendNullability(StringBuffer buffer) {
-    if (isDynamic || isVoid) {
-      // These types don't have nullability variations, so don't append
-      // anything.
-      return;
-    }
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         buffer.write('?');
@@ -2135,7 +2057,7 @@ abstract class TypeImpl implements DartType {
     if (length == 0) {
       return types;
     }
-    List<DartType> newTypes = new List<DartType>(length);
+    List<DartType> newTypes = List<DartType>(length);
     for (int i = 0; i < length; i++) {
       newTypes[i] =
           (types[i] as TypeImpl).substitute2(argumentTypes, parameterTypes);
@@ -2180,6 +2102,14 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
         other.element == element &&
         other.bound == bound &&
         other.nullabilitySuffix == nullabilitySuffix;
+  }
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write(element.name);
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
   }
 
   @override
@@ -2250,7 +2180,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
           }
         } else {
           // We should never be substituting for `T?`.
-          throw new StateError('Tried to substitute for T?');
+          throw StateError('Tried to substitute for T?');
         }
 
         return argumentType.withNullability(resultNullability);
@@ -2276,7 +2206,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (count == 0) {
       return const <TypeParameterType>[];
     }
-    List<TypeParameterType> types = new List<TypeParameterType>(count);
+    List<TypeParameterType> types = List<TypeParameterType>(count);
     for (int i = 0; i < count; i++) {
       types[i] = typeParameters[i].type;
     }
@@ -2301,7 +2231,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * The unique instance of this class, with indeterminate nullability.
    */
-  static final VoidTypeImpl instance = new VoidTypeImpl._();
+  static final VoidTypeImpl instance = VoidTypeImpl._();
 
   /**
    * Prevent the creation of instances of this class.
@@ -2319,6 +2249,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  void appendTo(StringBuffer buffer, {@required bool withNullability}) {
+    buffer.write('void');
+  }
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,

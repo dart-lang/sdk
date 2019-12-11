@@ -22,7 +22,7 @@ class InvalidUseOfVisibleForTestingMemberTest extends DriverResolutionTest
     with PackageMixin {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_unnamedConstructor() async {
@@ -298,7 +298,7 @@ class InvalidUseOfVisibleForTestingMember_InExtensionTest
     extends InvalidUseOfVisibleForTestingMemberTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_functionInExtension() async {

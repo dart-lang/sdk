@@ -152,14 +152,7 @@ class _ClassTable {
   }
 
   String get containerName {
-    // For useful error messages, it can be helpful to indicate if the library
-    // is external.  If a class or member was not found in an external library,
-    // it might be that it exists in the actual library, but its interface was
-    // not included in this build unit.
-    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    return library.isExternal
-        ? "external library '${library.importUri}'"
-        : "library '${library.importUri}'";
+    return "library '${library.importUri}'";
   }
 
   _MemberTable _getClassIndex(String name) {

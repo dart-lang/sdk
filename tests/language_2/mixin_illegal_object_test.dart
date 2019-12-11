@@ -7,12 +7,20 @@
 class S {}
 
 class C0 extends S
-with Object //                      //# 01: compile-time error
+//    ^
+// [cfe] Can't use 'Object' as a mixin because it has constructors.
+with Object
+//   ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 {}
 
-class C1 = S with Object; //        //# 02: compile-time error
+class C1 = S with Object;
+//    ^
+// [cfe] Can't use 'Object' as a mixin because it has constructors.
+//                ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 main() {
   new C0();
-  new C1(); //                      //# 02: continued
+  new C1();
 }

@@ -118,10 +118,7 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
-    var inferrer = new InstanceMemberInferrer(
-      linker.typeProvider,
-      linker.inheritance,
-    );
+    var inferrer = InstanceMemberInferrer(linker.inheritance);
     for (var builder in linker.builders.values) {
       for (var unit in builder.element.units) {
         inferrer.inferCompilationUnit(unit);

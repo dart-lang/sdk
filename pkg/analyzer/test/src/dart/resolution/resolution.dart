@@ -19,15 +19,16 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
 
-final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
-final isNeverType = new TypeMatcher<NeverTypeImpl>();
+final isNeverType = TypeMatcher<NeverTypeImpl>();
 
-final isVoidType = new TypeMatcher<VoidTypeImpl>();
+final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
@@ -59,8 +60,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
-  TypeProvider get typeProvider =>
-      result.unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => result.typeProvider;
 
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => false;
@@ -120,6 +120,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, same(expected));
   }
 
+  void assertElementLibraryUri(Element element, String expected) {
+    var uri = element.library.source.uri;
+    expect('$uri', expected);
+  }
+
   void assertElementName(Element element, String name,
       {bool isSynthetic = false, int offset}) {
     expect(element.name, name);
@@ -168,7 +173,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
     addTestFile(code);
     await resolveTestFile();
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  Future<void> assertErrorsInFile(
+    String path,
+    String content,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+    newFile(path, content: content);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  void assertErrorsInResolvedUnit(
+    ResolvedUnitResult result,
+    List<ExpectedError> expectedErrors,
+  ) {
+    GatheringErrorListener errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors(expectedErrors);
   }
@@ -179,7 +203,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
    */
   void assertErrorsWithCodes(List<AnalysisError> errors,
       [List<ErrorCode> expected = const <ErrorCode>[]]) {
-    var errorListener = new GatheringErrorListener();
+    var errorListener = GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
@@ -226,7 +250,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertInstanceCreation(InstanceCreationExpression creation,
       ClassElement expectedClassElement, String expectedType,
       {String constructorName,
-      bool expectedConstructorMember: false,
+      bool expectedConstructorMember = false,
       Map<String, String> expectedSubstitution,
       PrefixElement expectedPrefix}) {
     String expectedClassName = expectedClassElement.name;
@@ -320,7 +344,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     String expectedMethodNameType,
     String expectedNameType,
     String expectedType,
-    List<String> expectedTypeArguments: const <String>[],
+    List<String> expectedTypeArguments = const <String>[],
   }) {
     MethodInvocationImpl invocationImpl = invocation;
 
@@ -354,6 +378,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));
     assertTypeNull(ref);
+  }
+
+  void assertNamespaceDirectiveSelected(
+    NamespaceDirective directive, {
+    @required String expectedRelativeUri,
+    @required String expectedUri,
+  }) {
+    expect(directive.selectedUriContent, expectedRelativeUri);
+    expect('${directive.selectedSource.uri}', expectedUri);
   }
 
   Future<void> assertNoErrorsInCode(String code) async {
@@ -534,8 +567,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
-    findNode = new FindNode(result.content, result.unit);
-    findElement = new FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Return a textual representation of the [type] that is appropriate for

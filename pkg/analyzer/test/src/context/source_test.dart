@@ -22,9 +22,9 @@ class SourceFactoryImplTest with ResourceProviderMixin {
     String libPath = convertPath('/pkgs/somepkg/lib');
     Uri libUri = getFolder(libPath).toUri();
     Map<String, Uri> packageUriMap = <String, Uri>{'foo': libUri};
-    SourceFactoryImpl sourceFactory = new SourceFactoryImpl(
-      <UriResolver>[new ResourceUriResolver(resourceProvider)],
-      new _MockPackages(packageUriMap),
+    SourceFactoryImpl sourceFactory = SourceFactoryImpl(
+      <UriResolver>[ResourceUriResolver(resourceProvider)],
+      _MockPackages(packageUriMap),
     );
     Source libSource = newFile('/pkgs/somepkg/lib').createSource();
     Uri uri = sourceFactory.restoreUri(libSource);

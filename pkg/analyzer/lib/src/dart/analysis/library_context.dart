@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -46,7 +45,7 @@ class LibraryContext {
   final ByteStore byteStore;
   final AnalysisSession analysisSession;
   final SummaryDataStore externalSummaries;
-  final SummaryDataStore store = new SummaryDataStore([]);
+  final SummaryDataStore store = SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
   /// When it reaches [_maxLinkedDataInBytes] the whole context is thrown away.
@@ -79,13 +78,8 @@ class LibraryContext {
     _createElementFactory();
     load2(targetLibrary);
 
-    inheritanceManager = new InheritanceManager3();
+    inheritanceManager = InheritanceManager3();
   }
-
-  /**
-   * The type provider used in this context.
-   */
-  TypeProvider get typeProvider => analysisContext.typeProvider;
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -273,10 +267,10 @@ class LibraryContext {
 
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
-    if (analysisContext.typeProvider != null) return;
-
-    var dartCore = elementFactory.libraryOfUri('dart:core');
-    var dartAsync = elementFactory.libraryOfUri('dart:async');
-    elementFactory.createTypeProviders(dartCore, dartAsync);
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      elementFactory.createTypeProviders(dartCore, dartAsync);
+    }
   }
 }

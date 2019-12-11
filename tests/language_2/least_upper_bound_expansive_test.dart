@@ -40,17 +40,40 @@ void testC1(bool z, C1<int> a, N<C1<String>> b) {
     // Object is the most specific type in the intersection of the supertypes.
 
     // Is least upper bound dynamic?
-    (z ? a : b).z; //# 01: compile-time error
+    (z ? a : b).z;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'z' isn't defined for the class 'Object'.
+
     // Is least upper bound N<...> ?
-    (z ? a : b).n; //# 02: compile-time error
+    (z ? a : b).n;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound C1<...> ?
-    (z ? a : b).c1; //# 03: compile-time error
+    (z ? a : b).c1;
+    //          ^^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'c1' isn't defined for the class 'Object'.
+
     // Is least upper bound N<dynamic> ?
-    (z ? a : b).n.z; //# 04: compile-time error
+    (z ? a : b).n.z;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound N<N<...>> ?
-    (z ? a : b).n.n; //# 05: compile-time error
+    (z ? a : b).n.n;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound N<C1<...>> ?
-    (z ? a : b).n.c1; //# 06: compile-time error
+    (z ? a : b).n.c1;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
   }
 }
 
@@ -81,17 +104,40 @@ void testC2(bool z, C2<int> a, N<C2<String>> b) {
     // Object is the most specific type in the intersection of the supertypes.
 
     // Is least upper bound dynamic?
-    (z ? a : b).z; //# 07: compile-time error
+    (z ? a : b).z;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'z' isn't defined for the class 'Object'.
+
     // Is least upper bound N<...> ?
-    (z ? a : b).n; //# 08: compile-time error
+    (z ? a : b).n;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound C2<...> ?
-    (z ? a : b).c2; //# 09: compile-time error
+    (z ? a : b).c2;
+    //          ^^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'c2' isn't defined for the class 'Object'.
+
     // Is least upper bound N<dynamic> ?
-    (z ? a : b).n.z; //# 10: compile-time error
+    (z ? a : b).n.z;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound N<N<...>> ?
-    (z ? a : b).n.n; //# 11: compile-time error
+    (z ? a : b).n.n;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
+
     // Is least upper bound N<C2<...>> ?
-    (z ? a : b).n.c2; //# 12: compile-time error
+    (z ? a : b).n.c2;
+    //          ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'n' isn't defined for the class 'Object'.
   }
 }
 

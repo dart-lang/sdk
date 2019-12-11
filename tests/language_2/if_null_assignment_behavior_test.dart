@@ -118,9 +118,12 @@ class C {
 
   void instanceTest() {
     // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-    vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']); //# 01: ok
-    yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']); //# 02: ok
-    finalOne ??= null; //# 03: compile-time error
+    vGetValue = 1; check(1, () => v ??= bad(), ['$s.v']);
+    yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
+    finalOne ??= null;
+//  ^^^^^^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL
+// [cfe] The setter 'finalOne' isn't defined for the class 'C'.
     yGetValue = 1;
   }
 }
@@ -137,8 +140,8 @@ class D extends C {
   void derivedInstanceTest() {
     // super.v ??= e is equivalent to
     // ((x) => x == null ? super.v = e : x)(super.v)
-    vGetValue = 1; check(1, () => super.v ??= bad(), ['$s.v']); //# 05: ok
-    yGetValue = 1; check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']); //# 06: ok
+    vGetValue = 1; check(1, () => super.v ??= bad(), ['$s.v']);
+    yGetValue = 1; check(1, () => super.v ??= y, ['$s.v', 'y', '$s.v=1']);
   }
 }
 
@@ -152,55 +155,73 @@ main() {
   new D('d').derivedInstanceTest();
 
   // v ??= e is equivalent to ((x) => x == null ? v = e : x)(v)
-  xGetValue = 1; check(1, () => x ??= bad(), ['x']); //# 07: ok
-  yGetValue = 1; check(1, () => x ??= y, ['x', 'y', 'x=1']); //# 08: ok
-  h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']); //# 09: ok
-  yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']); //# 10: ok
-  { var l = 1; check(1, () => l ??= bad(), []); } //# 11: ok
-  { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); } //# 12: ok
-  { final l = 1; l ??= null; } //# 13: compile-time error
-  C ??= null; //# 15: compile-time error
-  h ??= null; //# 29: compile-time error
-  h[0] ??= null; //# 30: compile-time error
+  xGetValue = 1; check(1, () => x ??= bad(), ['x']);
+  yGetValue = 1; check(1, () => x ??= y, ['x', 'y', 'x=1']);
+  h.xGetValue = 1; check(1, () => h.x ??= bad(), ['h.x']);
+  yGetValue = 1; check(1, () => h.x ??= y, ['h.x', 'y', 'h.x=1']);
+  { var l = 1; check(1, () => l ??= bad(), []); }
+  { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); }
+  { final l = 1; l ??= null; }
+  //             ^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [cfe] Setter not found: 'l'.
+  C ??= null;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [cfe] Setter not found: 'C'.
+  h ??= null;
+//^
+// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+// [cfe] A prefix can't be used as an expression.
+  h[0] ??= null;
+//^
+// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+// [cfe] A prefix can't be used as an expression.
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
-  C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']); //# 16: ok
-  yGetValue = 1; check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']); //# 17: ok
-  h.C.xGetValue = 1; check(1, () => h.C.x ??= bad(), ['h.C.x']); //# 18: ok
-  yGetValue = 1; check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); //# 19: ok
+  C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']);
+  yGetValue = 1; check(1, () => C.x ??= y, ['C.x', 'y', 'C.x=1']);
+  h.C.xGetValue = 1; check(1, () => h.C.x ??= bad(), ['h.C.x']);
+  yGetValue = 1; check(1, () => h.C.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
 
   // e1.v ??= e2 is equivalent to
   // ((x) => ((y) => y == null ? x.v = e2 : y)(x.v))(e1)
-  xGetValue = new C('x'); xGetValue.vGetValue = 1; //# 20: ok
-  check(1, () => x.v ??= bad(), ['x', 'x.v']); //    //# 20: continued
-  xGetValue = new C('x'); yGetValue = 1; //               //# 21: ok
-  check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); //# 21: continued
-  fValue = new C('f()'); fValue.vGetValue = 1; //      //# 22: ok
-  check(1, () => f().v ??= bad(), ['f()', 'f().v']); //# 22: continued
-  fValue = new C('f()'); yGetValue = 1; //                         //# 23: ok
-  check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']); //# 23: continued
+  xGetValue = new C('x'); xGetValue.vGetValue = 1;
+  check(1, () => x.v ??= bad(), ['x', 'x.v']);
+  xGetValue = new C('x'); yGetValue = 1;
+  check(1, () => x.v ??= y, ['x', 'x.v', 'y', 'x.v=1']);
+  fValue = new C('f()'); fValue.vGetValue = 1;
+  check(1, () => f().v ??= bad(), ['f()', 'f().v']);
+  fValue = new C('f()'); yGetValue = 1;
+  check(1, () => f().v ??= y, ['f()', 'f().v', 'y', 'f().v=1']);
 
   // e1[e2] ??= e3 is equivalent to
   // ((a, i) => ((x) => x == null ? a[i] = e3 : x)(a[i]))(e1, e2)
-  xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2; //# 24: ok
-  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']); //                //# 24: continued
-  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2; //         //# 25: ok
-  check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']); //# 25: continued
+  xGetValue = new C('x'); yGetValue = 1; xGetValue.indexGetValue = 2;
+  check(2, () => x[y] ??= bad(), ['x', 'y', 'x[1]']);
+  xGetValue = new C('x'); yGetValue = 1; zGetValue = 2;
+  check(2, () => x[y] ??= z, ['x', 'y', 'x[1]', 'z', 'x[1]=2']);
 
   // e1?.v ??= e2 is equivalent to ((x) => x == null ? null : x.v ??= e2)(e1).
-  check(null, () => x?.v ??= bad(), ['x']); //# 26: ok
-  xGetValue = new C('x'); xGetValue.vGetValue = 1; //# 27: ok
-  check(1, () => x?.v ??= bad(), ['x', 'x.v']); //    //# 27: continued
-  xGetValue = new C('x'); yGetValue = 1; //                //# 28: ok
-  check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']); //# 28: continued
+  check(null, () => x?.v ??= bad(), ['x']);
+  xGetValue = new C('x'); xGetValue.vGetValue = 1;
+  check(1, () => x?.v ??= bad(), ['x', 'x.v']);
+  xGetValue = new C('x'); yGetValue = 1;
+  check(1, () => x?.v ??= y, ['x', 'x.v', 'y', 'x.v=1']);
 
   // C?.v ??= e2 is equivalent to C.v ??= e2.
-  C.xGetValue = 1; //                        //# 29: ok
-  check(1, () => C?.x ??= bad(), ['C.x']); //# 29: continued
-  h.C.xgetValue = 1; //                          //# 30: ok
-  check(1, () => h.c?.x ??= bad(), ['h.C.x']); //# 30: continued
-  yGetValue = 1; //                                    //# 31: ok
-  check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']); //# 31: continued
-  yGetValue = 1; //                                          //# 32: ok
-  check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']); //# 32: continued
+  C.xGetValue = 1;
+  check(1, () => C?.x ??= bad(), ['C.x']);
+  h.C.xgetValue = 1;
+  //  ^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [cfe] Setter not found: 'xgetValue'.
+  check(1, () => h.c?.x ??= bad(), ['h.C.x']);
+  //               ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_PREFIXED_NAME
+  // [cfe] Getter not found: 'c'.
+  yGetValue = 1;
+  check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
+  yGetValue = 1;
+  check(1, () => h.C?.x ??= y, ['h.C.x', 'y', 'h.C.x=1']);
 }

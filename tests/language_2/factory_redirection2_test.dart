@@ -9,7 +9,14 @@ import "package:expect/expect.dart";
 
 class Foo {
   Foo()
-  = Bar //# 01: syntax error
+  = Bar
+//^
+// [analyzer] SYNTACTIC_ERROR.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+// [cfe] Expected a function body or '=>'.
+//^
+// [cfe] Only factory constructor can specify '=' redirection.
+//  ^
+// [cfe] Constructors can't have a return type.
   ;
 }
 

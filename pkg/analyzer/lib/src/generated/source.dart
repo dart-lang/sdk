@@ -58,14 +58,14 @@ class ContentCache {
    * A table mapping the full path of sources to the contents of those sources.
    * This is used to override the default contents of a source.
    */
-  Map<String, String> _contentMap = new HashMap<String, String>();
+  Map<String, String> _contentMap = HashMap<String, String>();
 
   /**
    * A table mapping the full path of sources to the modification stamps of
    * those sources. This is used when the default contents of a source has been
    * overridden.
    */
-  Map<String, int> _stampMap = new HashMap<String, int>();
+  Map<String, int> _stampMap = HashMap<String, int>();
 
   int _nextStamp = 0;
 
@@ -147,11 +147,11 @@ class CustomUriResolver extends UriResolver {
     String mapping = _urlMappings[uri.toString()];
     if (mapping == null) return null;
 
-    Uri fileUri = new Uri.file(mapping);
+    Uri fileUri = Uri.file(mapping);
     if (!fileUri.isAbsolute) return null;
 
-    JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri ?? uri);
+    JavaFile javaFile = JavaFile.fromUri(fileUri);
+    return FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 
@@ -251,7 +251,7 @@ class LineInfo_Location {
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
-  static final unknown = new NonExistingSource(
+  static final unknown = NonExistingSource(
       '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
 
   @override
@@ -267,7 +267,7 @@ class NonExistingSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedError('$fullName does not exist.');
+    throw UnsupportedError('$fullName does not exist.');
   }
 
   @override

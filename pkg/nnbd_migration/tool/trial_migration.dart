@@ -8,21 +8,51 @@
 // result of migration, as well as categories (and counts) of exceptions that
 // occurred.
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:args/args.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:path/path.dart' as path;
 
 main(List<String> args) async {
-  if (args.length > 1) {
+  ArgParser argParser = ArgParser();
+  ArgResults parsedArgs;
+
+  argParser.addFlag('help', abbr: 'h', help: 'Display options');
+
+  argParser.addOption('sdk',
+      abbr: 's',
+      defaultsTo: path.dirname(path.dirname(Platform.resolvedExecutable)),
+      help: 'Select the root of the SDK to analyze against for this run '
+          '(compiled with --nnbd).  For example: ../../xcodebuild/DebugX64NNBD/dart-sdk');
+
+  try {
+    parsedArgs = argParser.parse(args);
+  } on ArgParserException {
+    stderr.writeln(argParser.usage);
+    exit(1);
+  }
+  if (parsedArgs['help'] as bool) {
+    print(argParser.usage);
+    exit(0);
+  }
+
+  if (parsedArgs.rest.length > 1) {
     throw 'invalid args. Specify *one* argument to get exceptions of interest.';
   }
 
+  String sdkPath = path.canonicalize(parsedArgs['sdk'] as String);
+
   warnOnNoAssertions();
-  String categoryOfInterest = args.isEmpty ? null : args.single;
+  warnOnNoSdkNnbd(sdkPath);
+
+  String categoryOfInterest =
+      parsedArgs.rest.isEmpty ? null : parsedArgs.rest.single;
   var rootUri = Platform.script.resolve('../../..');
   var listener = _Listener(categoryOfInterest);
   for (var testPath in [
@@ -32,7 +62,7 @@ main(List<String> args) async {
     'pkg/meta',
     'third_party/pkg/path',
     'third_party/pkg/term_glyph',
-//    'third_party/pkg/typed_data', - TODO(paulberry): fatal exception
+    'third_party/pkg/typed_data',
     'third_party/pkg/async',
     'third_party/pkg/source_span',
     'third_party/pkg/stack_trace',
@@ -43,8 +73,8 @@ main(List<String> args) async {
   ]) {
     print('Migrating $testPath');
     var testUri = rootUri.resolve(testPath);
-    var contextCollection =
-        AnalysisContextCollection(includedPaths: [testUri.toFilePath()]);
+    var contextCollection = AnalysisContextCollectionImpl(
+        includedPaths: [testUri.toFilePath()], sdkPath: sdkPath);
     var context = contextCollection.contexts.single;
     var files = context.contextRoot
         .analyzedFiles()
@@ -85,6 +115,14 @@ main(List<String> args) async {
   }
 }
 
+void printWarning(String warn) {
+  stderr.writeln('''
+!!!
+!!! Warning! $warn
+!!!
+''');
+}
+
 void warnOnNoAssertions() {
   try {
     assert(false);
@@ -92,11 +130,20 @@ void warnOnNoAssertions() {
     return;
   }
 
-  print('''
-!!!
-!!! Warning! You didn't --enable-asserts!
-!!!
-''');
+  printWarning("You didn't --enable-asserts!");
+}
+
+void warnOnNoSdkNnbd(String sdkPath) {
+  // TODO(jcollins-g): contact eng-prod for a more foolproof detection method
+  String libraries = path.join(sdkPath, 'lib', 'libraries.json');
+  try {
+    var decodedJson = JsonDecoder().convert(File(libraries).readAsStringSync());
+    if ((decodedJson['comment:1'] as String).contains('sdk_nnbd')) return;
+  } on Exception {
+    printWarning('Unable to determine whether this SDK supports NNBD');
+    return;
+  }
+  printWarning('SDK at $sdkPath not compiled with --nnbd, use --sdk option');
 }
 
 class _Listener implements NullabilityMigrationListener {

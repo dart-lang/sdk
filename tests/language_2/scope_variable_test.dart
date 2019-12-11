@@ -33,9 +33,13 @@ int testShadowingAfterUse() {
   {
     var b = 2;
     var c = a; // Use of 'a' prior to its shadow declaration below.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     var d = b + c;
     // Shadow declaration of 'a'.
-    var a = 5; //# 01: compile-time error
+    var a = 5;
+    //  ^
+    // [cfe] Can't declare 'a' because it was already used in this scope.
     return d + a;
   }
 }

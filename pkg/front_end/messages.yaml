@@ -780,6 +780,7 @@ ExtraneousModifierInExtension:
   template: "Can't have modifier '#lexeme' in an extension."
   tip: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  hasPublishedDocs: true
   script:
     - "extension on String { foo(covariant String child) {} }"
 
@@ -2060,6 +2061,11 @@ TypeVariableDuplicatedNameCause:
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
+
+AnnotationOnFunctionTypeTypeVariable:
+  template: "A type variable on a function type can't have annotations."
+  script:
+    - "main() { Function<@Object() T>() x; }"
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."

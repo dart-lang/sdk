@@ -7,29 +7,89 @@
 main() {
   var x;
 
-  x = "$"; //   //# 1: syntax error
-  x = "x$"; //  //# 2: syntax error
-  x = "$x$"; // //# 3: syntax error
-  x = "$$x"; // //# 4: syntax error
-  x = "$ "; //  //# 5: syntax error
+  x = "$";
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = "x$";
+  //     ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = "$x$";
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = "$$x";
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = "$ ";
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
 
-  x = '$'; //   //# 6: syntax error
-  x = 'x$'; //  //# 7: syntax error
-  x = '$x$'; // //# 8: syntax error
-  x = '$$x'; // //# 9: syntax error
-  x = '$ '; //  //# 10: syntax error
+  x = '$';
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = 'x$';
+  //     ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '$x$';
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '$$x';
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '$ ';
+  //    ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
 
-  x = """$"""; //   //# 11: syntax error
-  x = """x$"""; //  //# 12: syntax error
-  x = """$x$"""; // //# 13: syntax error
-  x = """$$x"""; // //# 14: syntax error
-  x = """$ """; //  //# 15: syntax error
+  x = """$""";
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = """x$""";
+  //       ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = """$x$""";
+  //        ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = """$$x""";
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = """$ """;
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
 
-  x = '''$'''; //   //# 16: syntax error
-  x = '''x$'''; //  //# 17: syntax error
-  x = '''$x$'''; // //# 18: syntax error
-  x = '''$$x'''; // //# 19: syntax error
-  x = '''$ '''; //  //# 20: syntax error
+  x = '''$''';
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '''x$''';
+  //       ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '''$x$''';
+  //        ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '''$$x''';
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+  x = '''$ ''';
+  //      ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
 
   return x;
 }

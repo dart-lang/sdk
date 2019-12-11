@@ -6,7 +6,7 @@ class Class extends core::Object {
   static field core::int? _#lateStaticField1;
   static field core::int? _#lateStaticField2;
   field core::int? _#lateInstanceField;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   static get lateStaticField1() → core::int;
   static set lateStaticField1(core::int #t1) → void;

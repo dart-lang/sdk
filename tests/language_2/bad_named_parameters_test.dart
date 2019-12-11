@@ -19,17 +19,34 @@ main() {
   BadNamedParametersTest np = new BadNamedParametersTest();
 
   // Parameter b passed twice.
-  np.f42(10, 25, b: 25); //# 01: compile-time error
+  np.f42(10, 25, b: 25);
+  //    ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Parameter x does not exist.
-  np.f42(10, 25, x: 99); //# 02: compile-time error
+  np.f42(10, 25, x: 99);
+  //    ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
+  //             ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
 
   // Parameter b1 does not exist.
-  np.f52(10, b: 25, b1: 99, c: 35); //# 03: compile-time error
+  np.f52(10, b: 25, b1: 99, c: 35);
+  //                ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  // [cfe] No named parameter with the name 'b1'.
 
   // Too many parameters.
-  np.f42(10, 20, 30, 40); //# 04: compile-time error
+  np.f42(10, 20, 30, 40);
+  //    ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
+  // [cfe] Too many positional arguments: 1 allowed, but 4 found.
 
   // Too few parameters.
-  np.f42(b: 25); //# 05: compile-time error
+  np.f42(b: 25);
+  //    ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
 }

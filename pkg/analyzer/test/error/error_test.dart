@@ -73,7 +73,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> pathComponents = _analyzerRootComponents.toList()
       ..addAll(relativeComponents);
     String filePath = path.normalize(path.joinAll(pathComponents));
-    return parseCompilationUnit(new File(filePath).readAsStringSync());
+    return parseCompilationUnit(File(filePath).readAsStringSync());
   }
 
   test_errorCodeValues() {

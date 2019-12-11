@@ -8,13 +8,23 @@ class C {
   num a;
   C.sameType(num this.a);
   C.subType(int this.a);
-  C.superType(dynamic this.a); //# 01: compile-time error
-  C.unrelatedType(String this.a); //# 02: compile-time error
+  C.superType(dynamic this.a);
+  //          ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
+  //                       ^
+  // [cfe] The type of parameter 'a', 'dynamic' is not a subtype of the corresponding field's type, 'num'.
+  C.unrelatedType(String this.a);
+  //              ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
+  //              ^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
+  //                          ^
+  // [cfe] The type of parameter 'a', 'String' is not a subtype of the corresponding field's type, 'num'.
 }
 
 main() {
   new C.sameType(3.14);
   new C.subType(42);
-  new C.superType([]); //# 01: continued
-  new C.unrelatedType('String'); //# 02: continued
+  new C.superType([]);
+  new C.unrelatedType('String');
 }

@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "deferred_prefix_constraints_lib.dart" deferred as lib; // //# 01: compile-time error
+import "deferred_prefix_constraints_lib.dart" deferred as lib;
+//                                            ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SHARED_DEFERRED_PREFIX
+//                                                        ^
+// [cfe] Can't use the name 'lib' for a deferred library, as the name is used elsewhere.
 import "deferred_prefix_constraints_lib2.dart" as lib;
 
 void main() {}

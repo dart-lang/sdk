@@ -38,6 +38,7 @@ Future<String> compile(String code,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
     bool newRti: false,
+    bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
@@ -62,6 +63,9 @@ Future<String> compile(String code,
   }
   if (newRti) {
     options.add(Flags.experimentNewRti);
+  }
+  if (enableVariance) {
+    options.add('${Flags.enableLanguageExperiments}=variance');
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword

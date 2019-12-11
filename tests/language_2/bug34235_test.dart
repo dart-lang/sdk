@@ -9,7 +9,7 @@ class Base {
 class M1 {
   void foo(
       // Prevent formatter from joining the line below to the one above
-      {x} //# 01: compile-time error
+      {x}
       ) {}
 }
 
@@ -20,6 +20,11 @@ class M2 {
 }
 
 class Derived extends BaseWithM1 with M2 {}
+//    ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] Applying the mixin 'M2' to 'BaseWithM1' introduces an erroneous override of 'foo'.
+//                                    ^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 
 main() {
   new Derived().foo();

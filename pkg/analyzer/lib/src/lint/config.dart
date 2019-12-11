@@ -13,7 +13,7 @@ LintConfig parseConfig(YamlMap optionsMap) {
     var options = getValue(optionsMap, 'linter');
     // Quick check of basic contract.
     if (options is YamlMap) {
-      return new LintConfig.parseMap(options);
+      return LintConfig.parseMap(options);
     }
   }
   return null;
@@ -36,10 +36,9 @@ LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
  */
 abstract class LintConfig {
   factory LintConfig.parse(String source, {String sourceUrl}) =>
-      new _LintConfig().._parse(source, sourceUrl: sourceUrl);
+      _LintConfig().._parse(source, sourceUrl: sourceUrl);
 
-  factory LintConfig.parseMap(YamlMap map) =>
-      new _LintConfig().._parseYaml(map);
+  factory LintConfig.parseMap(YamlMap map) => _LintConfig().._parseYaml(map);
 
   List<String> get fileExcludes;
   List<String> get fileIncludes;
@@ -136,7 +135,7 @@ class _LintConfig implements LintConfig {
           // - camel_case_types
           if (v is YamlList) {
             v.nodes.forEach((rule) {
-              var config = new _RuleConfig();
+              var config = _RuleConfig();
               config.name = asString(rule);
               config.args = {'enabled': true};
               ruleConfigs.add(config);
@@ -148,7 +147,7 @@ class _LintConfig implements LintConfig {
             v.nodes.forEach((key, value) {
               //{unnecessary_getters: false}
               if (asBool(value) != null) {
-                var config = new _RuleConfig();
+                var config = _RuleConfig();
                 config.name = asString(key);
                 config.args = {'enabled': asBool(value)};
                 ruleConfigs.add(config);
@@ -159,7 +158,7 @@ class _LintConfig implements LintConfig {
                 value.nodes.forEach((rule, args) {
                   // TODO: verify format
                   // unnecessary_getters: false
-                  var config = new _RuleConfig();
+                  var config = _RuleConfig();
                   config.group = asString(key);
                   config.name = asString(rule);
                   config.args = parseArgs(args);

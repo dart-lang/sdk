@@ -27,11 +27,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        'for.dart',
-        'for_element.dart',
-      ]);
+          const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class AssignedVariablesDataComputer extends DataComputer<_Data> {

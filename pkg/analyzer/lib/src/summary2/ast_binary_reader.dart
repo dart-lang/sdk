@@ -1455,9 +1455,13 @@ class AstBinaryReader {
   }
 
   StringInterpolation _read_stringInterpolation(LinkedNode data) {
-    return astFactory.stringInterpolation(
+    var node = astFactory.stringInterpolation(
       _readNodeList(data.stringInterpolation_elements),
-    )..staticType = _stringType;
+    );
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   SuperConstructorInvocation _read_superConstructorInvocation(LinkedNode data) {

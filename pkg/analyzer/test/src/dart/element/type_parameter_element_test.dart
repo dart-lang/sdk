@@ -67,6 +67,35 @@ class TypeParameterElementTest extends _TypeParameterElementBase {
     expect(_equal(M, T), isTrue);
   }
 
+  test_equal_memberMember2_differentBase() {
+    var T1 = typeParameter('T');
+    var T2 = typeParameter('T');
+
+    var M1 = TypeParameterMember(T1, null, typeProvider.numType);
+    var M2 = TypeParameterMember(T2, null, typeProvider.numType);
+
+    expect(M1 == M2, isFalse);
+  }
+
+  test_equal_memberMember2_sameBase_differentBounds() {
+    var T = typeParameter('T');
+
+    var M1 = TypeParameterMember(T, null, typeProvider.intType);
+    var M2 = TypeParameterMember(T, null, typeProvider.doubleType);
+
+    expect(M1 == M2, isTrue);
+  }
+
+  test_equal_memberMember2_sameBase_equalBounds() {
+    var T = typeParameter('T');
+
+    var M1 = TypeParameterMember(T, null, typeProvider.numType);
+    var M2 = TypeParameterMember(T, null, typeProvider.numType);
+
+    expect(M1 == M2, isTrue);
+    expect(M2 == M1, isTrue);
+  }
+
   test_equal_memberMember_differentBase() {
     var T1 = typeParameter('T1');
     var T2 = typeParameter('T2');

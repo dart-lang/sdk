@@ -60,7 +60,7 @@ class ExtensionTypeSet {
 
     // These are used natively by dart:html but also not annotated.
     _addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);
-    _addExtensionTypesForLibrary('dart:collection', ['ListMixin']);
+    _addExtensionTypesForLibrary('dart:collection', ['ListMixin', 'MapMixin']);
     _addExtensionTypesForLibrary('dart:math', ['Rectangle']);
 
     // Second, html types - these are only searched if we use dart:html, etc.:

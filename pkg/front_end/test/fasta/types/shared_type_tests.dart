@@ -906,8 +906,10 @@ abstract class SubtypeTest<T, E> {
     isObliviousSubtype('Id<T & String?>', 'T & String',
         typeParameters: 'T extends Object?');
     // TODO(dmitryas): Uncomment the following.
-    //isObliviousSubtype('Id<T & String>?', 'T & String', typeParameters: 'T extends Object');
-    //isObliviousSubtype('Id<T & String>?', 'T & String?', typeParameters: 'T extends Object');
+//    isObliviousSubtype('Id<T & String>?', 'T & String',
+//        typeParameters: 'T extends Object');
+//    isObliviousSubtype('Id<T & String>?', 'T & String?',
+//        typeParameters: 'T extends Object');
 
     isSubtype('Id<T* & String*>*', 'T*', typeParameters: 'T extends Object*');
     isSubtype('Id<T & String>', 'T', typeParameters: 'T extends Object');

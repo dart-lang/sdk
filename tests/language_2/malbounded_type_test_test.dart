@@ -7,11 +7,19 @@ import 'package:expect/expect.dart';
 class Super<T extends num> {}
 
 class Malbounded1 implements Super
-    <String>  //# 00: compile-time error
+//    ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super' in the supertype 'Super' of class 'Malbounded1'.
+    <String>
+//   ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
     {}
 
 class Malbounded2 extends Super
-    <String>  //# 01: compile-time error
+//    ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super' in the supertype 'Super' of class 'Malbounded2'.
+    <String>
+//   ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
     {}
 
 main() {
@@ -21,6 +29,10 @@ main() {
   Expect.isFalse(s is Malbounded1);
   Expect.isFalse(s is Malbounded2);
   Expect.isTrue(s is Super
-      <String> //# 02: compile-time error
+  //              ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super'.
+      <String>
+//     ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
       );
 }

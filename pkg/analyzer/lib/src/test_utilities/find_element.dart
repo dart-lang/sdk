@@ -74,7 +74,7 @@ class FindElement extends _FindElementBase {
   FunctionElement localFunction(String name) {
     FunctionElement result;
 
-    unit.accept(new FunctionAstVisitor(
+    unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
         var element = node.functionDeclaration.declaredElement;
         if (element is FunctionElement) {
@@ -104,7 +104,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    unit.accept(new FunctionAstVisitor(
+    unit.accept(FunctionAstVisitor(
       declaredIdentifier: (node) {
         updateResult(node.declaredElement);
       },

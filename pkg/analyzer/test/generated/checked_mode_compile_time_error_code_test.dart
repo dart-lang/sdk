@@ -479,7 +479,7 @@ var v = const <String> [42];
 const Object x = [1];
 const List<String> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 41, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 45, 1),
     ]);
   }
 
@@ -488,7 +488,7 @@ const List<String> y = x;
 const Object x = {1: 1};
 const Map<String, dynamic> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 52, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
     ]);
   }
 
@@ -497,7 +497,7 @@ const Map<String, dynamic> y = x;
 const Object x = {1: 1};
 const Map<dynamic, String> y = x;
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 52, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
     ]);
   }
 
@@ -619,7 +619,7 @@ const Unresolved x = null;
     await assertErrorsInCode('''
 const int x = 'foo';
 ''', [
-      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 10, 1),
+      error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 14, 5),
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 14, 5),
     ]);
   }

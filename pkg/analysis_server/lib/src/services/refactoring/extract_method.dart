@@ -758,7 +758,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      TypeSystem typeSystem = await resolveResult.session.typeSystem;
+      TypeSystem typeSystem = await resolveResult.typeSystem;
       _ReturnTypeComputer returnTypeComputer =
           new _ReturnTypeComputer(typeSystem);
       _selectionStatements.forEach((statement) {
@@ -799,7 +799,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   Future<void> _initializeReturnType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    TypeProvider typeProvider = await resolveResult.session.typeProvider;
+    TypeProvider typeProvider = await resolveResult.typeProvider;
     if (_selectionFunctionExpression != null) {
       variableType = '';
       returnType = '';

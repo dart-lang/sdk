@@ -620,8 +620,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         if (initializer is ConstantExpression) {
           param.defaultValue =
               constantAllocationCollector.typeFor(initializer.constant);
+        } else if (initializer is BasicLiteral ||
+            initializer is SymbolLiteral ||
+            initializer is TypeLiteral) {
+          param.defaultValue = _visit(initializer);
         } else {
-          param.defaultValue = _staticType(initializer);
+          throw 'Unexpected parameter $name default value ${initializer.runtimeType} $initializer';
         }
       } else {
         param.defaultValue = _nullType;
@@ -707,9 +711,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Type _staticType(Expression node) =>
       _typesBuilder.fromStaticType(_staticDartType(node), true);
 
-  Type _cachedBoolType;
-  Type get _boolType => _cachedBoolType ??=
-      new ConeType(_typesBuilder.getTFClass(_environment.coreTypes.boolClass));
+  ConcreteType _cachedBoolType;
+  ConcreteType get _boolType => _cachedBoolType ??=
+      _entryPointsListener.addAllocatedClass(_environment.coreTypes.boolClass);
+
+  ConcreteType _cachedBoolTrue;
+  ConcreteType get _boolTrue => _cachedBoolTrue ??=
+      new ConcreteType(_boolType.cls, null, BoolConstant(true));
+
+  ConcreteType _cachedBoolFalse;
+  ConcreteType get _boolFalse => _cachedBoolFalse ??=
+      new ConcreteType(_boolType.cls, null, BoolConstant(false));
 
   Type _cachedDoubleType;
   Type get _doubleType => _cachedDoubleType ??= new ConeType(
@@ -737,20 +749,45 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Class get _superclass => _staticTypeContext.thisType.classNode.superclass;
 
-  Type _intLiteralType(int value) {
-    Class concreteClass =
+  Type _boolLiteralType(bool value) => value ? _boolTrue : _boolFalse;
+
+  Type _intLiteralType(int value, Constant constant) {
+    final Class concreteClass =
         target.concreteIntLiteralClass(_environment.coreTypes, value);
-    return concreteClass != null
-        ? _entryPointsListener.addAllocatedClass(concreteClass)
-        : _intType;
+    if (concreteClass != null) {
+      constant ??= IntConstant(value);
+      return new ConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass).cls,
+          null,
+          constant);
+    }
+    return _intType;
   }
 
-  Type _stringLiteralType(String value) {
-    Class concreteClass =
+  Type _doubleLiteralType(double value, Constant constant) {
+    final Class concreteClass =
+        target.concreteDoubleLiteralClass(_environment.coreTypes, value);
+    if (concreteClass != null) {
+      constant ??= DoubleConstant(value);
+      return new ConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass).cls,
+          null,
+          constant);
+    }
+    return _doubleType;
+  }
+
+  Type _stringLiteralType(String value, Constant constant) {
+    final Class concreteClass =
         target.concreteStringLiteralClass(_environment.coreTypes, value);
-    return concreteClass != null
-        ? _entryPointsListener.addAllocatedClass(concreteClass)
-        : _stringType;
+    if (concreteClass != null) {
+      constant ??= StringConstant(value);
+      return new ConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass).cls,
+          null,
+          constant);
+    }
+    return _stringType;
   }
 
   void _handleNestedFunctionNode(FunctionNode node) {
@@ -792,17 +829,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitBoolLiteral(BoolLiteral node) {
-    return _boolType;
+    return _boolLiteralType(node.value);
   }
 
   @override
   TypeExpr visitIntLiteral(IntLiteral node) {
-    return _intLiteralType(node.value);
+    return _intLiteralType(node.value, null);
   }
 
   @override
   TypeExpr visitDoubleLiteral(DoubleLiteral node) {
-    return _doubleType;
+    return _doubleLiteralType(node.value, null);
   }
 
   @override
@@ -1174,7 +1211,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitStringLiteral(StringLiteral node) {
-    return _stringLiteralType(node.value);
+    return _stringLiteralType(node.value, null);
   }
 
   @override
@@ -1618,22 +1655,22 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitBoolConstant(BoolConstant constant) {
-    return summaryCollector._boolType;
+    return summaryCollector._boolLiteralType(constant.value);
   }
 
   @override
   Type visitIntConstant(IntConstant constant) {
-    return summaryCollector._intLiteralType(constant.value);
+    return summaryCollector._intLiteralType(constant.value, constant);
   }
 
   @override
   Type visitDoubleConstant(DoubleConstant constant) {
-    return summaryCollector._doubleType;
+    return summaryCollector._doubleLiteralType(constant.value, constant);
   }
 
   @override
   Type visitStringConstant(StringConstant constant) {
-    return summaryCollector._stringLiteralType(constant.value);
+    return summaryCollector._stringLiteralType(constant.value, constant);
   }
 
   @override
@@ -1651,22 +1688,28 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     for (final Constant entry in constant.entries) {
       typeFor(entry);
     }
-    Class concreteClass = summaryCollector.target
+    final Class concreteClass = summaryCollector.target
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
-    return concreteClass != null
-        ? summaryCollector._entryPointsListener.addAllocatedClass(concreteClass)
-        : _getStaticType(constant);
+    if (concreteClass != null) {
+      return new ConcreteType(
+          summaryCollector._entryPointsListener
+              .addAllocatedClass(concreteClass)
+              .cls,
+          null,
+          constant);
+    }
+    return _getStaticType(constant);
   }
 
   @override
   Type visitInstanceConstant(InstanceConstant constant) {
-    final resultType = summaryCollector._entryPointsListener
+    final resultClass = summaryCollector._entryPointsListener
         .addAllocatedClass(constant.classNode);
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
       summaryCollector._entryPointsListener
           .addDirectFieldAccess(fieldReference.asField, typeFor(value));
     });
-    return resultType;
+    return new ConcreteType(resultClass.cls, null, constant);
   }
 
   @override

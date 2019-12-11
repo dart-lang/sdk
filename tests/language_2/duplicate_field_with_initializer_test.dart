@@ -4,7 +4,10 @@
 
 class Repeated {
   var a, b = 'Something';
-  var b; //# 01: compile-time error
+  var b;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'b' is already declared in this scope.
 }
 
 main() {}

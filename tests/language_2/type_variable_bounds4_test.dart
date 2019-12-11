@@ -6,25 +6,37 @@
 
 class A<
     T
-          extends num //# 01: compile-time error
+          extends num
     > {}
 
 class B<T> implements A<T> {}
+//    ^
+// [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A' in the supertype 'A' of class 'B'.
+//                      ^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 class C<
     T
-          extends num //# 01: continued
+          extends num
     > implements B<T> {}
 
 class Class<T> {
   newA() {
     new A<T>();
+    //  ^
+    // [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+    //    ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
   newB() {
     new B<T>();
   }
   newC() {
     new C<T>();
+    //  ^
+    // [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'C'.
+    //    ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }
 
@@ -40,8 +52,16 @@ void main() {
   test(() => new C<int>());
 
   test(() => new A<String>());
+  //             ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
+  //               ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   test(() => new B<String>());
   test(() => new C<String>());
+  //             ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'C'.
+  //               ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
   dynamic c = new Class<int>();
   test(() => c.newA());

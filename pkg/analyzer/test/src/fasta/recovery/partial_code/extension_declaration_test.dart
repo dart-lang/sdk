@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new ExtensionDeclarationTest().buildAll();
+  ExtensionDeclarationTest().buildAll();
 }
 
 class ExtensionDeclarationTest extends PartialCodeTest {
@@ -16,7 +16,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
     buildTests(
         'extension_declaration',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'extension',
               [
@@ -33,7 +33,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
                 'setter',
                 'typedef'
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'named',
               'extension E',
               [
@@ -43,7 +43,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               ],
               'extension E on _s_ {}',
               failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin']),
-          new TestDescriptor(
+          TestDescriptor(
               'on',
               'extension E on',
               [
@@ -52,7 +52,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               ],
               'extension E on _s_ {}',
               failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin']),
-          new TestDescriptor(
+          TestDescriptor(
               'extendedType',
               'extension E on String',
               [
@@ -64,7 +64,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
           // the declaration that's expected to follow it.
           //
           // The notable exceptions are 'class', 'enum', 'mixin', and 'typedef'.
-          new TestDescriptor(
+          TestDescriptor(
               'partialBody',
               'extension E on String {',
               [
@@ -86,7 +86,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               ]),
         ],
         PartialCodeTest.declarationSuffixes,
-        featureSet: new FeatureSet.forTesting(
+        featureSet: FeatureSet.forTesting(
             sdkVersion: '2.3.0',
             additionalFeatures: [Feature.extension_methods]));
   }

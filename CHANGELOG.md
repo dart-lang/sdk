@@ -1,4 +1,34 @@
+## Next release
+(Add new changes here, and they will be copied to the change section for the
+ next release)
+
+### Language
+
+### Core libraries
+
+#### `dart:io`
+
+### Dart VM
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.105+1`, which includes:
+
+* hardened checks for lib dir location (fixing crashes in `avoid_renaming_method_parameters`,
+  `prefer_relative_imports` and `public_member_api_docs`)
+* improved performance for `always_require_non_null_named_parameters`
+
+#### Pub
+
 ## 2.7.0 - 2019-12-11
+
+**Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
+in preview, and are now officially supported as of 2.7.0. Learn more about them
+here:
+
+https://medium.com/dartlang/extension-methods-2d466cd8b308
 
 ### Language
 
@@ -46,11 +76,11 @@ program-defined, whereas previously it was undefined.
 
 #### Linter
 
-The Linter was updated to `0.1.104`, which includes:
+The Linter was updated to `0.1.105+1`, which includes:
 
-* updated `unnecessary_overrides` to allow overrides when annotations (besides `@override` are specified)
-* updated `file_names` to allow names w/ leading `_`'s (and improved performance)
-* new lint: `unnecessary_final`
+* hardened checks for lib dir location (fixing crashes in `avoid_renaming_method_parameters`,
+  `prefer_relative_imports` and `public_member_api_docs`)
+* improved performance for `always_require_non_null_named_parameters`
 
 #### Pub
 

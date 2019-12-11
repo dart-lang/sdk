@@ -2668,7 +2668,7 @@ class _Uri implements Uri {
         }
       }
     }
-    String fragment = reference.hasFragment ? reference.fragment : null;
+    String? fragment = reference.hasFragment ? reference.fragment : null;
     return _Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort,
         targetPath, targetQuery, fragment);
   }

@@ -280,9 +280,10 @@ int getCrc32(List<int> array, [int crc = 0]) {
     crc = _CRC32_TABLE[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
     len -= 8;
   }
-  if (len > 0)
+  if (len > 0) {
     do {
       crc = _CRC32_TABLE[(crc ^ array[ip++]) & 0xff] ^ (crc >> 8);
     } while (--len > 0);
+  }
   return crc ^ 0xffffffff;
 }

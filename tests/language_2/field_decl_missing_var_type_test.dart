@@ -7,10 +7,13 @@
 // generate a compile-time error.
 
 class A {
-  _this; //                     //# 01: syntax error
-  A(x) : this._this = x; //     //# 01: continued
+  _this;
+//^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+// [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  A(x) : this._this = x;
 }
 
 main() {
-  new A(0); //                  //# 01: continued
+  new A(0);
 }

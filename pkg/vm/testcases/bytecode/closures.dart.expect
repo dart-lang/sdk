@@ -1301,6 +1301,7 @@ L2:
   CheckStack           1
   Push                 r2
   InterfaceCall        CP#2, 1
+  AssertBoolean        0
   JumpIfFalse          L1
   AllocateContext      0, 1
   PopLocal             r0
@@ -1840,12 +1841,18 @@ ConstantPool {
       }
     }
     method testForInLoop(dart.core::List<dart.core::int*>* list) → void {
-      for (dart.core::int* i in list) {
-        () →* dart.core::Null? inc = () → dart.core::Null? {
-          i = i.{dart.core::num::+}(1);
-        };
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] inc.call();
-        dart.core::print(i);
+      {
+        dart.core::Iterator<dart.core::int*>* :sync-for-iterator = dart._internal::unsafeCast<dart.core::Iterable<dart.core::int*>*>(list).{dart.core::Iterable::iterator};
+        for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(); ) {
+          dart.core::int* i = :sync-for-iterator.{dart.core::Iterator::current};
+          {
+            () →* dart.core::Null? inc = () → dart.core::Null? {
+              i = i.{dart.core::num::+}(1);
+            };
+            [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] inc.call();
+            dart.core::print(i);
+          }
+        }
       }
     }
   }

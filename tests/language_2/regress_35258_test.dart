@@ -4,11 +4,22 @@
 
 main() {
   new C(42);
+  //  ^
+  // [cfe] Can't use 'C' because it is declared more than once.
+  //   ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }
 
 class C {
   final d;
+  //    ^
+  // [cfe] Final field 'd' is not initialized.
 
-  C() {} //# 01: compile-time error
+  C() {}
+//^
+// [analyzer] STATIC_WARNING.FINAL_NOT_INITIALIZED_CONSTRUCTOR
   C(this.d) {}
+//^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_DEFAULT
+// [cfe] 'C' is already declared in this scope.
 }

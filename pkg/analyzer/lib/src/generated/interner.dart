@@ -17,7 +17,7 @@ class MappedInterner implements Interner {
   /**
    * A table mapping strings to themselves.
    */
-  Map<String, String> _table = new HashMap<String, String>();
+  Map<String, String> _table = HashMap<String, String>();
 
   @override
   String intern(String string) {

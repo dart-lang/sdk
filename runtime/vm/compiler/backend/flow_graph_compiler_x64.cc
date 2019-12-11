@@ -1018,12 +1018,13 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
-                                                  const ICData& ic_data) {
+                                                  const ICData& ic_data,
+                                                  Code::EntryKind entry_kind) {
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(RBX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub,
-                   RawPcDescriptors::kUnoptStaticCall, locs);
+                   RawPcDescriptors::kUnoptStaticCall, locs, entry_kind);
   __ Drop(count_with_type_args, RCX);
 }
 

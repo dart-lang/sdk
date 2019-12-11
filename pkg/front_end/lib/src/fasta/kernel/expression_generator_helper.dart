@@ -7,6 +7,7 @@ library fasta.expression_generator_helper;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import '../builder/builder.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -63,9 +64,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
-  List<Initializer> buildFieldInitializer(bool isSynthetic, String name,
-      int fieldNameOffset, int assignmentOffset, Expression expression,
-      {DartType formalType});
+  List<Initializer> buildFieldInitializer(String name, int fieldNameOffset,
+      int assignmentOffset, Expression expression,
+      {FormalParameterBuilder formal});
 
   Initializer buildSuperInitializer(
       bool isSynthetic, Constructor constructor, Arguments arguments,

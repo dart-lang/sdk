@@ -18,10 +18,17 @@ class D {
 
 class E extends D {
   // This override is illegal because C is not a subtype of BToB.
-  C f() => null; //# 01: compile-time error
+  C f() => null;
+  //^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] The return type of the method 'E.f' is 'C', which does not match the return type, 'B Function(B)', of the overridden method, 'D.f'.
 
   // This override is illegal because BToB is not a supertype of C.
-  void g(BToB x) {} //# 02: compile-time error
+  void g(BToB x) {}
+  //   ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  //          ^
+  // [cfe] The parameter 'x' of the method 'E.g' has type 'B Function(B)', which does not match the corresponding type, 'C', in the overridden method, 'D.g'.
 }
 
 main() {

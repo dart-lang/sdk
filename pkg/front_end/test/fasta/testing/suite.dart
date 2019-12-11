@@ -201,10 +201,12 @@ class FastaContext extends ChainContext with MatchContext {
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
           fullCompile ? ".strong.expect" : ".outline.expect",
-          serializeFirst: true));
-      steps.add(new MatchExpectation(
-          fullCompile ? ".strong.expect" : ".outline.expect",
           serializeFirst: false));
+      if (!updateExpectations) {
+        steps.add(new MatchExpectation(
+            fullCompile ? ".strong.expect" : ".outline.expect",
+            serializeFirst: true));
+      }
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
@@ -218,12 +220,14 @@ class FastaContext extends ChainContext with MatchContext {
             fullCompile
                 ? ".strong.transformed.expect"
                 : ".outline.transformed.expect",
-            serializeFirst: true));
-        steps.add(new MatchExpectation(
-            fullCompile
-                ? ".strong.transformed.expect"
-                : ".outline.transformed.expect",
             serializeFirst: false));
+        if (!updateExpectations) {
+          steps.add(new MatchExpectation(
+              fullCompile
+                  ? ".strong.transformed.expect"
+                  : ".outline.transformed.expect",
+              serializeFirst: true));
+        }
       }
       steps.add(const EnsureNoErrors());
       if (!skipVm) {

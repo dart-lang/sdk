@@ -17,6 +17,9 @@ enum Enum1 {
 
 main() {
   Expect.equals('Enum1._A,Enum1._B', Enum1.values.join(','));
-  Expect.equals('Enum2._A,Enum2._B', Enum2.values.join(',')); //# 01: ok
-  Expect.throwsNoSuchMethodError(() => Enum2._A); //# 02: compile-time error
+  Expect.equals('Enum2._A,Enum2._B', Enum2.values.join(','));
+  Expect.throwsNoSuchMethodError(() => Enum2._A);
+  //                                         ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] Getter not found: '_A'.
 }

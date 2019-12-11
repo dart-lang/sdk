@@ -536,7 +536,7 @@ class TypeSystem {
         new MapTypeInformation(currentMember, mask, keyTypeInfo, valueTypeInfo);
 
     for (int i = 0; i < keyTypes.length; ++i) {
-      TypeInformation newType = map.addEntryAssignment(
+      TypeInformation newType = map.addEntryInput(
           _abstractValueDomain, keyTypes[i], valueTypes[i], true);
       if (newType != null) allocatedTypes.add(newType);
     }
@@ -562,8 +562,8 @@ class TypeSystem {
     PhiElementTypeInformation result = new PhiElementTypeInformation(
         _abstractValueDomain, currentMember, null, null,
         isTry: false);
-    result.addAssignment(firstInput);
-    result.addAssignment(secondInput);
+    result.addInput(firstInput);
+    result.addInput(secondInput);
     allocatedTypes.add(result);
     return result;
   }
@@ -574,7 +574,7 @@ class TypeSystem {
         _abstractValueDomain, currentMember, node, variable,
         isTry: isTry);
     allocatedTypes.add(result);
-    result.addAssignment(inputType);
+    result.addInput(inputType);
     return result;
   }
 
@@ -614,14 +614,14 @@ class TypeSystem {
   TypeInformation simplifyPhi(
       ir.Node node, Local variable, PhiElementTypeInformation phiType) {
     assert(phiType.branchNode == node);
-    if (phiType.assignments.length == 1) return phiType.assignments.first;
+    if (phiType.inputs.length == 1) return phiType.inputs.first;
     return phiType;
   }
 
   /// Adds [newType] as an input of [phiType].
   PhiElementTypeInformation addPhiInput(Local variable,
       PhiElementTypeInformation phiType, TypeInformation newType) {
-    phiType.addAssignment(newType);
+    phiType.addInput(newType);
     return phiType;
   }
 

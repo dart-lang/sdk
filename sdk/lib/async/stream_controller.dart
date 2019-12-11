@@ -409,7 +409,12 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   /** The controller is in its initial state with no subscription. */
   static const int _STATE_INITIAL = 0;
-  /** The controller has a subscription, but hasn't been closed or canceled. */
+  /**
+   * The controller has a subscription, but hasn't been closed or canceled.
+   *
+   * Keep in sync with
+   * runtime/vm/stack_trace.cc:kStreamController_StateSubscribed.
+   */
   static const int _STATE_SUBSCRIBED = 1;
   /** The subscription is canceled. */
   static const int _STATE_CANCELED = 2;
@@ -447,9 +452,11 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    *
    * When [_state] is [_STATE_CANCELED] the field is currently not used.
    */
+  @pragma("vm:entry-point")
   var _varData;
 
   /** Current state of the controller. */
+  @pragma("vm:entry-point")
   int _state = _STATE_INITIAL;
 
   /**

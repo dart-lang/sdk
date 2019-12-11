@@ -25,7 +25,7 @@ main() {
   // ignore: unused_local_variable
   var a2 =
       /*cfe|dart2js.Set<num>*/
-      /*cfe:nnbd.Set<num>!*/
+      /*cfe:nnbd.Set<num!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -38,7 +38,7 @@ main() {
   // ignore: unused_local_variable
   var a3 =
       /*cfe|dart2js.Set<Object>*/
-      /*cfe:nnbd.Set<Object>!*/
+      /*cfe:nnbd.Set<Object!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/

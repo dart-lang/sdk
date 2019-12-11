@@ -634,4 +634,28 @@ class RulesetEncoder {
         _colon,
         js.number(entry.value),
       ]);
+
+  jsAst.StringConcatenation encodeTypeParameterVariances(
+          Map<ClassEntity, List<Variance>> typeParameterVariances) =>
+      js.concatenateStrings([
+        _quote,
+        _leftBrace,
+        ...js.joinLiterals(
+            typeParameterVariances.entries
+                .map(_encodeTypeParameterVariancesForClass),
+            _comma),
+        _rightBrace,
+        _quote,
+      ]);
+
+  jsAst.StringConcatenation _encodeTypeParameterVariancesForClass(
+          MapEntry<ClassEntity, List<Variance>> classEntry) =>
+      js.concatenateStrings([
+        js.quoteName(_emitter.typeAccessNewRti(classEntry.key)),
+        _colon,
+        _leftBracket,
+        ...js.joinLiterals(
+            classEntry.value.map((v) => js.number(v.index)), _comma),
+        _rightBracket
+      ]);
 }

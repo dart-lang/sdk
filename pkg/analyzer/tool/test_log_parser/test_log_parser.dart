@@ -13,7 +13,7 @@ main(List<String> args) async {
   }
   String filePath = args[0];
 
-  List<String> output = new File(filePath).readAsLinesSync();
+  List<String> output = File(filePath).readAsLinesSync();
   int failureCount = 0;
   int index = 0;
   final int expectedPrefixLength = 'Expected: '.length;
@@ -31,7 +31,7 @@ main(List<String> args) async {
       String expected = output[index + 1].substring(expectedPrefixLength);
       String actual = output[index + 2].substring(actualPrefixLength);
       String key = '$expected-$actual';
-      currentResult = new TestResult(testName, expected, actual);
+      currentResult = TestResult(testName, expected, actual);
       testsByExpectedAndActual
           .putIfAbsent(key, () => <TestResult>[])
           .add(currentResult);
@@ -115,7 +115,7 @@ main(List<String> args) async {
 
 /// A representation of the result of a single test.
 class TestResult {
-  static final RegExp framePattern = new RegExp('#[0-9]+ ');
+  static final RegExp framePattern = RegExp('#[0-9]+ ');
 
   String testName;
   String expected;

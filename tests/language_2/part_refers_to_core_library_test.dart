@@ -6,6 +6,10 @@
 
 library dart.async;
 
-part 'dart:async/future.dart'; //# 01: compile-time error
+part 'dart:async/future.dart';
+//   ^
+// [cfe] Can't use 'org-dartlang-untranslatable-uri:dart%3Aasync%2Ffuture.dart' as a part, because it has no 'part of' declaration.
+//   ^
+// [cfe] Not found: 'dart:async/future.dart'
 
 main() {}

@@ -1814,10 +1814,12 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   int64_t limit = 64 - shift_count;
   int64_t value = value_boundary.ConstantValue();
 
-  if ((value == 0) || (shift_count == 0) ||
-      ((limit > 0) && Utils::IsInt(static_cast<int>(limit), value))) {
+  if (value == 0) {
+    return RangeBoundary(0);
+  } else if (shift_count == 0 ||
+             (limit > 0 && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
-    int64_t result = value << shift_count;
+    const int64_t result = value << shift_count;
     return RangeBoundary(result);
   }
 

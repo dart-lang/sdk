@@ -93,6 +93,7 @@ namespace dart {
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
+  F(KernelProgramInfo, retained_kernel_blob_)                                  \
   F(Code, object_pool_)                                                        \
   F(Code, instructions_)                                                       \
   F(Code, owner_)                                                              \

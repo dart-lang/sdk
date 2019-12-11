@@ -528,12 +528,12 @@ abstract class _SplayTreeIterator<K, T> implements Iterator<T> {
       // Don't include the root, start at the next element after the root.
       _findLeftMostDescendent(tree._root!.right);
     } else {
-      _workList.add(tree._root);
+      _workList.add(tree._root!);
     }
   }
 
-  T? get current {
-    if (_currentNode == null) return null;
+  T get current {
+    if (_currentNode == null) return null as T;
     return _getValue(_currentNode!);
   }
 

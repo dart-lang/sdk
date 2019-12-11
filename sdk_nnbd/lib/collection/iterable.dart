@@ -33,7 +33,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return FollowedByIterable<E>(this, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     for (E e in this) {
       if (e == element) return true;
     }

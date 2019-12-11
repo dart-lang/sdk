@@ -42,43 +42,83 @@ class C {
 main() {
   const x = 3;
   {
-    const x = 1; //# cc01: compile-time error
+    const x = 1;
     const C.cc01(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc02: compile-time error
+    const x = 1;
     const C.cc02(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc03: compile-time error
+    const x = 1;
     const C.cc03(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc04: compile-time error
+    const x = 1;
     const C.cc04(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc05: compile-time error
+    const x = 1;
     const C.cc05(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc06: compile-time error
+    const x = 1;
     const C.cc06(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc07: compile-time error
+    const x = 1;
     const C.cc07(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc08: compile-time error
+    const x = 1;
     const C.cc08(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc09: compile-time error
+    const x = 1;
     const C.cc09(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
   {
-    const x = 1; //# cc10: compile-time error
+    const x = 1;
     const C.cc10(2, x);
+//  ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//        ^
+// [cfe] Constant evaluation error:
   }
 }

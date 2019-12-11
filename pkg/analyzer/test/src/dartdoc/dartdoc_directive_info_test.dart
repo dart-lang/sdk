@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class DartdocDirectiveInfoTest {
-  DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+  DartdocDirectiveInfo info = DartdocDirectiveInfo();
 
   test_processDartdoc_macro_defined() {
     info.extractTemplate('''

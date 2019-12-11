@@ -190,9 +190,7 @@ f(Iterable<int> i) {
 ''');
   }
 
-  @failingTest
   test_dartfix_nonNullable() async {
-    // Failing because this contains a side-cast from Null to int.
     createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int f(int i) => 0;

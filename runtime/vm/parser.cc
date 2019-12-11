@@ -204,9 +204,10 @@ void ParsedFunction::AllocateVariables() {
       tmp = Symbols::FromConcat(T, Symbols::OriginalParam(), variable->name());
 
       RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
-      raw_parameter =
-          new LocalVariable(variable->declaration_token_pos(),
-                            variable->token_pos(), tmp, variable->type());
+      raw_parameter = new LocalVariable(
+          variable->declaration_token_pos(), variable->token_pos(), tmp,
+          variable->type(), variable->parameter_type(),
+          variable->parameter_value());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }

@@ -42,8 +42,8 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
   PubWorkspace workspace;
 
   setUp() {
-    final contextBuilder = new MockContextBuilder();
-    final packages = new MockPackages();
+    final contextBuilder = MockContextBuilder();
+    final packages = MockPackages();
     final packageMap = <String, List<Folder>>{'project': []};
     contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
     contextBuilder.packagesToMapMap[packages] = packageMap;
@@ -108,7 +108,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     PubWorkspace workspace = PubWorkspace.find(
-        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
+        resourceProvider, convertPath('/workspace'), MockContextBuilder());
     expect(workspace.isBazel, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
@@ -116,20 +116,20 @@ class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_fail_notAbsolute() {
     expect(
         () => PubWorkspace.find(resourceProvider, convertPath('not_absolute'),
-            new MockContextBuilder()),
+            MockContextBuilder()),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
   void test_find_file() {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     PubWorkspace workspace = PubWorkspace.find(resourceProvider,
-        convertPath('/workspace/lib/lib1.dart'), new MockContextBuilder());
+        convertPath('/workspace/lib/lib1.dart'), MockContextBuilder());
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_find_missingPubspec() {
     PubWorkspace workspace = PubWorkspace.find(resourceProvider,
-        convertPath('/workspace/lib/lib1.dart'), new MockContextBuilder());
+        convertPath('/workspace/lib/lib1.dart'), MockContextBuilder());
     expect(workspace, isNull);
   }
 }

@@ -6,8 +6,20 @@
 
 main() {
   final x = 30;
-  x = 0; //   //# 01: compile-time error
-  x += 1; //  //# 02: compile-time error
-  ++x; //     //# 03: compile-time error
-  x++; //     //# 04: compile-time error
+  x = 0;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Setter not found: 'x'.
+  x += 1;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Setter not found: 'x'.
+  ++x;
+  //^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [cfe] Setter not found: 'x'.
+  x++;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Setter not found: 'x'.
 }

@@ -18,34 +18,34 @@ import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
-  AnalysisError invalid_assignment = new AnalysisError(
-      new TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+  AnalysisError invalid_assignment = AnalysisError(
+      TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
 
   AnalysisError missing_return =
-      new AnalysisError(new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+      AnalysisError(TestSource(), 0, 1, HintCode.MISSING_RETURN, [
     ['x']
   ]);
 
-  AnalysisError unused_local_variable = new AnalysisError(
-      new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+  AnalysisError unused_local_variable =
+      AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
     ['x']
   ]);
 
-  AnalysisError use_of_void_result = new AnalysisError(
-      new TestSource(), 0, 1, StaticWarningCode.USE_OF_VOID_RESULT, [
+  AnalysisError use_of_void_result =
+      AnalysisError(TestSource(), 0, 1, StaticWarningCode.USE_OF_VOID_RESULT, [
     ['x']
   ]);
 
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
-  AnalysisError annotate_overrides = new AnalysisError(
-      new TestSource(), 0, 1, new LintCode('annotate_overrides', ''));
+  AnalysisError annotate_overrides =
+      AnalysisError(TestSource(), 0, 1, LintCode('annotate_overrides', ''));
 
   setUp(() {
-    context = new TestContext();
+    context = TestContext();
   });
 
   group('ErrorProcessor', () {
@@ -86,7 +86,7 @@ analyzer:
       test('yaml map', () {
         var options = optionsProvider.getOptionsFromString(config);
         var errorConfig =
-            new ErrorConfig((options['analyzer'] as YamlMap)['errors']);
+            ErrorConfig((options['analyzer'] as YamlMap)['errors']);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
@@ -112,7 +112,7 @@ analyzer:
           'missing_return': 'false',
           'unused_local_variable': 'error'
         });
-        var errorConfig = new ErrorConfig(options);
+        var errorConfig = ErrorConfig(options);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore
@@ -136,8 +136,7 @@ analyzer:
     test('configure lints', () {
       var options = optionsProvider.getOptionsFromString(
           'analyzer:\n  errors:\n    annotate_overrides: warning\n');
-      var errorConfig =
-          new ErrorConfig((options['analyzer'] as YamlMap)['errors']);
+      var errorConfig = ErrorConfig((options['analyzer'] as YamlMap)['errors']);
       expect(errorConfig.processors, hasLength(1));
 
       ErrorProcessor processor = errorConfig.processors.first;
@@ -149,7 +148,7 @@ analyzer:
 
 TestContext context;
 
-AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 ErrorProcessor processor;
 
 void configureOptions(String options) {

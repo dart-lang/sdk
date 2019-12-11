@@ -28,7 +28,7 @@ class TodoCode extends ErrorCode {
    * * TODOS
    */
   static RegExp TODO_REGEX =
-      new RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
+      RegExp("([\\s/\\*])((TODO[^\\w\\d][^\\r\\n]*)|(TODO:?\$))");
 
   /**
    * Initialize a newly created error code to have the given [name].

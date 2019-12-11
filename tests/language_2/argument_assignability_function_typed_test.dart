@@ -18,20 +18,26 @@ num objectToNum(Object x) => null;
 
 main() {
   // Unrelated types (not assignable)
-  f(intToInt); //# 01: compile-time error
-  f(objectToObject); //# 02: compile-time error
+  f(intToInt);
+  //^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'int Function(int)' can't be assigned to the parameter type 'num Function(num)'.
+  f(objectToObject);
+  //^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'Object Function(Object)' can't be assigned to the parameter type 'num Function(num)'.
 
   // Assignable but fails at runtime.
   var intToObject2 = intToObject;
-  Expect.throwsTypeError(() => f(intToObject2)); //# 03: ok
+  Expect.throwsTypeError(() => f(intToObject2));
   var intToNum2 = intToNum;
-  Expect.throwsTypeError(() => f(intToNum2)); //# 04: ok
+  Expect.throwsTypeError(() => f(intToNum2));
   var numToObject2 = numToObject;
-  Expect.throwsTypeError(() => f(numToObject2)); //# 05: ok
+  Expect.throwsTypeError(() => f(numToObject2));
 
   // Ok
-  f(numToNum); //# 06: ok
-  f(numToInt); //# 07: ok
-  f(objectToNum); //# 08: ok
-  f(objectToInt); //# 09: ok
+  f(numToNum);
+  f(numToInt);
+  f(objectToNum);
+  f(objectToInt);
 }

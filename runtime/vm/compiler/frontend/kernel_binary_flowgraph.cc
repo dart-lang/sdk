@@ -188,6 +188,27 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
+    const Field& field,
+    bool has_initializer) {
+  if (has_initializer && PeekTag() == kNullLiteral) {
+    SkipExpression();  // read past the null literal.
+    if (H.thread()->IsMutatorThread()) {
+      field.RecordStore(Object::null_object());
+    } else {
+      ASSERT(field.is_nullable(/* silence_assert = */ true));
+    }
+    return Fragment();
+  }
+
+  Fragment instructions;
+  instructions += LoadLocal(parsed_function()->receiver_var());
+  instructions += flow_graph_builder_->Constant(Object::sentinel());
+  instructions += flow_graph_builder_->StoreInstanceField(
+      field, StoreInstanceFieldInstr::Kind::kInitializing);
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
@@ -292,7 +313,11 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         const Tag initializer_tag = ReadTag();
-        if (initializer_tag == kSomething) {
+        if (class_field.is_late()) {
+          instructions +=
+              BuildLateFieldInitializer(Field::ZoneHandle(Z, class_field.raw()),
+                                        initializer_tag == kSomething);
+        } else if (initializer_tag == kSomething) {
           EnterScope(field_offset);
           // If this field is initialized in constructor then we can ignore the
           // value produced by the field initializer. However we still need to
@@ -663,18 +688,13 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
                 raw_parameter.owner() == NULL));
         ASSERT(!raw_parameter.is_captured());
 
-        // Copy the parameter from the stack to the context.  Overwrite it
-        // with a null constant on the stack so the original value is
-        // eligible for garbage collection.
+        // Copy the parameter from the stack to the context.
         body += LoadLocal(context);
         body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
             Slot::GetContextVariableSlotFor(thread(), *variable),
             StoreInstanceFieldInstr::Kind::kInitializing);
-        body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
-        body += Drop();
       }
     }
     body += Drop();  // The context.
@@ -788,6 +808,7 @@ Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
   F += SetAsyncStackTrace(dart_function);
+  F += B->InitConstantParameters();
   return F;
 }
 
@@ -799,6 +820,31 @@ Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
   F += SetupCapturedParameters(dart_function);
   F += ShortcutForUserDefinedEquals(dart_function, first_parameter);
   return F;
+}
+
+Fragment StreamingFlowGraphBuilder::ClearRawParameters(
+    const Function& dart_function) {
+  const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+  Fragment code;
+  for (intptr_t i = 0; i < dart_function.NumParameters(); ++i) {
+    LocalVariable* variable = pf.ParameterVariable(i);
+
+    if (!variable->is_captured()) continue;
+
+    // Captured 'this' is immutable, so within the outer method we don't need to
+    // load it from the context. Therefore we don't reset it to null.
+    if (pf.function().HasThisParameter() && pf.has_receiver_var() &&
+        variable == pf.receiver_var()) {
+      ASSERT(i == 0);
+      continue;
+    }
+
+    variable = pf.RawParameterVariable(i);
+    code += NullConstant();
+    code += StoreLocal(TokenPosition::kNoSource, variable);
+    code += Drop();
+  }
+  return code;
 }
 
 UncheckedEntryPointStyle StreamingFlowGraphBuilder::ChooseEntryPointStyle(
@@ -890,7 +936,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
                                 &explicit_type_checks, &implicit_type_checks,
                                 &implicit_redefinitions);
 
+  // The RawParameter variables should be set to null to avoid retaining more
+  // objects than necessary during GC.
   const Fragment body =
+      ClearRawParameters(dart_function) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(
@@ -2611,12 +2660,15 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       const String& getter_name = H.DartGetterName(target);
       const Function& getter =
           Function::ZoneHandle(Z, owner.LookupStaticFunction(getter_name));
-      if (getter.IsNull() || !field.has_nontrivial_initializer()) {
-        Fragment instructions = Constant(field);
-        return instructions + LoadStaticField();
-      } else {
+      if (!getter.IsNull() && field.NeedsGetter()) {
         return StaticCall(position, getter, 0, Array::null_array(),
                           ICData::kStatic, &result_type);
+      } else {
+        if (result_type.IsConstant()) {
+          return Constant(result_type.constant_value);
+        }
+        Fragment instructions = Constant(field);
+        return instructions + LoadStaticField();
       }
     }
   } else {
@@ -2649,13 +2701,24 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   if (H.IsField(target)) {
     const Field& field =
         Field::ZoneHandle(Z, H.LookupFieldByKernelField(target));
+    const Class& owner = Class::Handle(Z, field.Owner());
+    const String& setter_name = H.DartSetterName(target);
+    const Function& setter =
+        Function::ZoneHandle(Z, owner.LookupStaticFunction(setter_name));
     Fragment instructions = BuildExpression();  // read expression.
     if (NeedsDebugStepCheck(stack(), position)) {
       instructions = DebugStepCheck(position) + instructions;
     }
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
-    return instructions + StoreStaticField(position, field);
+    if (!setter.IsNull() && field.NeedsSetter()) {
+      instructions += PushArgument();
+      instructions += StaticCall(position, setter, 1, ICData::kStatic);
+      instructions += Drop();
+    } else {
+      instructions += StoreStaticField(position, field);
+    }
+    return instructions;
   } else {
     ASSERT(H.IsProcedure(target));
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -93,6 +93,13 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     } else if (node is Arguments) {
       if (node.types.isNotEmpty) {
         return '<${node.types.map(typeToText).join(',')}>';
+      }
+    } else if (node is ForInStatement) {
+      if (id.kind == IdKind.current) {
+        DartType type = _staticTypeContext.typeEnvironment
+            .forInElementType(
+                node, node.iterable.getStaticType(_staticTypeContext));
+        return typeToText(type);
       }
     }
     return null;

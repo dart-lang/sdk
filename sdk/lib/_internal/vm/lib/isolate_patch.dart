@@ -327,11 +327,7 @@ class Isolate {
 
   @patch
   static Future<Uri> get packageRoot {
-    var hook = VMLibraryHooks.packageRootUriFuture;
-    if (hook == null) {
-      throw new UnsupportedError("Isolate.packageRoot");
-    }
-    return hook();
+    return Future.value(null);
   }
 
   @patch

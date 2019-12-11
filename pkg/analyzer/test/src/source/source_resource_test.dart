@@ -25,22 +25,22 @@ class FileSourceTest with ResourceProviderMixin {
   void test_equals_false_differentFiles() {
     File file1 = getFile("/does/not/exist1.dart");
     File file2 = getFile("/does/not/exist2.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source1 == source2, isFalse);
   }
 
   void test_equals_false_null() {
     File file = getFile("/does/not/exist1.dart");
-    FileSource source1 = new FileSource(file);
+    FileSource source1 = FileSource(file);
     expect(source1 == null, isFalse);
   }
 
   void test_equals_true() {
     File file1 = getFile("/does/not/exist.dart");
     File file2 = getFile("/does/not/exist.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source1 == source2, isTrue);
   }
 
@@ -87,28 +87,28 @@ class FileSourceTest with ResourceProviderMixin {
 
   void test_getFullName() {
     File file = getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source.fullName, file.path);
   }
 
   void test_getShortName() {
     File file = getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source.shortName, "exist.dart");
   }
 
   void test_hashCode() {
     File file1 = getFile("/does/not/exist.dart");
     File file2 = getFile("/does/not/exist.dart");
-    FileSource source1 = new FileSource(file1);
-    FileSource source2 = new FileSource(file2);
+    FileSource source1 = FileSource(file1);
+    FileSource source2 = FileSource(file2);
     expect(source2.hashCode, source1.hashCode);
   }
 
   void test_isInSystemLibrary_contagious() {
     DartSdk sdk = _createSdk();
-    UriResolver resolver = new DartUriResolver(sdk);
-    SourceFactory factory = new SourceFactory([resolver]);
+    UriResolver resolver = DartUriResolver(sdk);
+    SourceFactory factory = SourceFactory([resolver]);
     // resolve dart:core
     Source result = resolver.resolveAbsolute(Uri.parse("dart:async"));
     expect(result, isNotNull);
@@ -121,7 +121,7 @@ class FileSourceTest with ResourceProviderMixin {
 
   void test_isInSystemLibrary_false() {
     File file = getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.isInSystemLibrary, isFalse);
@@ -129,7 +129,7 @@ class FileSourceTest with ResourceProviderMixin {
 
   void test_issue14500() {
     // see https://code.google.com/p/dart/issues/detail?id=14500
-    FileSource source = new FileSource(getFile("/some/packages/foo:bar.dart"));
+    FileSource source = FileSource(getFile("/some/packages/foo:bar.dart"));
     expect(source, isNotNull);
     expect(source.exists(), isFalse);
   }
@@ -142,7 +142,7 @@ class FileSourceTest with ResourceProviderMixin {
       return;
     }
     File file = getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
     expect(relative, isNotNull);
@@ -157,7 +157,7 @@ class FileSourceTest with ResourceProviderMixin {
       return;
     }
     File file = getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
     expect(relative, isNotNull);
@@ -171,7 +171,7 @@ class FileSourceTest with ResourceProviderMixin {
       return;
     }
     File file = getFile("/a/b/test.dart");
-    FileSource source = new FileSource(file);
+    FileSource source = FileSource(file);
     expect(source, isNotNull);
     Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
     expect(relative, isNotNull);
@@ -180,13 +180,13 @@ class FileSourceTest with ResourceProviderMixin {
 
   void test_system() {
     File file = getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file, Uri.parse("dart:core"));
+    FileSource source = FileSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.isInSystemLibrary, isTrue);
   }
 
   DartSdk _createSdk() {
-    return new MockSdk(resourceProvider: resourceProvider);
+    return MockSdk(resourceProvider: resourceProvider);
   }
 }

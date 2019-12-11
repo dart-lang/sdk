@@ -18,6 +18,6 @@ assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support n
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
-int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
+int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics.
 superinterface_variance/*: Skip # Issue dart-lang/language#113
 vm/*: SkipByDesign # VM only tests.; VM only tests.

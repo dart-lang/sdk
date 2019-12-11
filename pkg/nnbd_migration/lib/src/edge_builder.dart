@@ -32,6 +32,12 @@ import 'package:nnbd_migration/src/utilities/scoped_set.dart';
 
 import 'decorated_type_operations.dart';
 
+/// A potentially reversible decision is that downcasts and sidecasts should
+/// assume non-nullability. This could be changed such that we assume the
+/// widest type, or the narrowest type. For now we assume non-nullability, but
+/// have a flag to isolate that work.
+const _assumeNonNullabilityInCasts = true;
+
 /// Test class mixing in _AssignmentChecker, to allow [checkAssignment] to be
 /// more easily unit tested.
 @visibleForTesting
@@ -636,6 +642,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
+    node.metadata.accept(this);
     if (_flowAnalysis != null) {
       // This is a local function.
       node.functionExpression.accept(this);
@@ -841,14 +848,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Making it nullable could change runtime behavior.
       _graph.makeNonNullable(
           decoratedType.node, IsCheckMainTypeOrigin(source, type));
-      if (type.typeArguments != null) {
-        // TODO(mfairhurst): connect arguments to the expression type when they
-        // relate.
-        type.typeArguments.arguments.forEach((argument) {
-          _graph.makeNullable(
-              _variables.decoratedTypeAnnotation(source, argument).node,
-              IsCheckComponentTypeOrigin(source, argument));
-        });
+      if (!_assumeNonNullabilityInCasts) {
+        // TODO(mfairhurst): wire this to handleDowncast if we do not assume
+        // nullability.
+        assert(false);
       }
     } else if (type is GenericFunctionType) {
       // TODO(brianwilkerson)
@@ -1201,7 +1204,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       return type;
     } else if (staticElement is FunctionElement ||
-        staticElement is MethodElement) {
+        staticElement is MethodElement ||
+        staticElement is ConstructorElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       var elementType = getOrComputeElementType(staticElement);
@@ -1256,6 +1260,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitStringLiteral(StringLiteral node) {
     node.visitChildren(this);
     return _makeNonNullLiteralType(node);
+  }
+
+  @override
+  DecoratedType visitSuperConstructorInvocation(
+      SuperConstructorInvocation node) {
+    var callee = node.staticElement;
+    var nullabilityNode = NullabilityNode.forInferredType();
+    var createdType = DecoratedType(callee.returnType, nullabilityNode);
+    var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    _handleInvocationArguments(
+        node,
+        node.argumentList.arguments,
+        null /* typeArguments */,
+        [] /* typeArgumentTypes */,
+        calleeType,
+        [] /* constructorTypeParameters */);
+    return null;
   }
 
   @override
@@ -1930,7 +1951,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  /// Creates the necessary constraint(s) for an [argumentList] when invoking an
+  /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
   /// Returns the decorated return type of the invocation, after any necessary
@@ -2236,9 +2257,13 @@ mixin _AssignmentChecker {
             source: source, destination: destination, hard: hard);
         return;
       }
-      // Neither a proper upcast assignment nor an implicit downcast (some
-      // illegal code, or we did something wrong to get here).
-      assert(false, 'side cast not supported: $sourceType to $destinationType');
+      // A side cast. This may be an explicit side cast, or illegal code. There
+      // is no nullability we can infer here.
+      assert(
+          _assumeNonNullabilityInCasts,
+          'side cast not supported without assuming non-nullability:'
+          ' $sourceType to $destinationType');
+      _connect(source.node, destination.node, origin, hard: hard);
       return;
     }
     _connect(source.node, destination.node, origin, hard: hard);

@@ -100,7 +100,7 @@ class DefaultValueResolver {
     var node = _defaultParameter(parameter);
     if (node == null) return;
 
-    var contextType = TypeVariableEliminator(_linker.typeProvider)
+    var contextType = TypeVariableEliminator(_libraryElement.typeProvider)
         .substituteType(parameter.type);
 
     _astResolver ??= AstResolver(_linker, _unitElement, _scope);

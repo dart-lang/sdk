@@ -8,4 +8,4 @@ import 'dart:async';
 
 import 'utils.dart';
 
-Future<void> main(List<String> args) async => doTestsNoCausal();
+Future<void> main(List<String> args) async => await doTestsNoCausal();

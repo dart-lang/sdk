@@ -65,8 +65,8 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       }
       LibraryScope nameScope = new LibraryScope(containingLibrary);
       for (var extension in nameScope.extensions) {
-        var typeSystem = containingLibrary.context.typeSystem;
-        var typeProvider = containingLibrary.context.typeProvider;
+        var typeSystem = containingLibrary.typeSystem;
+        var typeProvider = containingLibrary.typeProvider;
         var extendedType =
             _resolveExtendedType(typeSystem, typeProvider, extension, type);
         if (extendedType != null &&

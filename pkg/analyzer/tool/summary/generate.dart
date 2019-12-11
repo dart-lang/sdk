@@ -36,15 +36,14 @@ main(List<String> args) async {
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {
-  final GeneratedFile formatTarget =
-      new GeneratedFile('format.dart', (_) async {
-    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+  final GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
+    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
     codeGenerator.generateFormatCode();
     return codeGenerator._outBuffer.toString();
   });
 
-  final GeneratedFile schemaTarget = new GeneratedFile('format.fbs', (_) async {
-    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+  final GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
+    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
     codeGenerator.generateFlatBufferSchema();
     return codeGenerator._outBuffer.toString();
   });
@@ -78,7 +77,7 @@ class _BaseGenerator {
     if (type.isList) {
       if (builder) {
         idl_model.FieldType elementType =
-            new idl_model.FieldType(type.typeName, false);
+            idl_model.FieldType(type.typeName, false);
         return '<${encodedType(elementType)}>[]';
       } else {
         return 'const <${idlPrefix(type.typeName)}>[]';
@@ -434,7 +433,7 @@ class _BuilderGenerator extends _BaseGenerator {
           writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
         }
         if (writeCode == null) {
-          throw new UnimplementedError('Writing type ${fieldType.typeName}');
+          throw UnimplementedError('Writing type ${fieldType.typeName}');
         }
         out('if ($condition) {');
         indent(() {
@@ -637,20 +636,20 @@ class _BuilderGenerator extends _BaseGenerator {
 
 class _CodeGenerator {
   /// Buffer in which generated code is accumulated.
-  final StringBuffer _outBuffer = new StringBuffer();
+  final StringBuffer _outBuffer = StringBuffer();
 
   /// Semantic model of the "IDL" input file.
   idl_model.Idl _idl;
 
   _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
-    File idlFile = new File(idlPath);
+    File idlFile = File(idlPath);
     String idlText =
-        idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
+        idlFile.readAsStringSync().replaceAll(RegExp('\r\n?'), '\n');
     // Extract a description of the IDL and make sure it is valid.
     var startingToken = scanString(idlText, includeComments: true).tokens;
-    var listener = new MiniAstBuilder();
-    var parser = new MiniAstParser(listener);
+    var listener = MiniAstBuilder();
+    var parser = MiniAstParser(listener);
     parser.parseUnit(startingToken);
     extractIdl(listener.compilationUnit);
     checkIdl();
@@ -662,11 +661,11 @@ class _CodeGenerator {
     _idl.classes.forEach((String name, idl_model.ClassDeclaration cls) {
       if (cls.fileIdentifier != null) {
         if (cls.fileIdentifier.length != 4) {
-          throw new Exception('$name: file identifier must be 4 characters');
+          throw Exception('$name: file identifier must be 4 characters');
         }
         for (int i = 0; i < cls.fileIdentifier.length; i++) {
           if (cls.fileIdentifier.codeUnitAt(i) >= 256) {
-            throw new Exception(
+            throw Exception(
                 '$name: file identifier must be encodable as Latin-1');
           }
         }
@@ -689,19 +688,19 @@ class _CodeGenerator {
           } else if (type.typeName == 'String') {
             // List of strings is ok
           } else {
-            throw new Exception(
+            throw Exception(
                 '$name.$fieldName: illegal type (list of ${type.typeName})');
           }
         }
         if (idsUsed.containsKey(field.id)) {
-          throw new Exception('$name.$fieldName: id ${field.id} already used by'
+          throw Exception('$name.$fieldName: id ${field.id} already used by'
               ' ${idsUsed[field.id]}');
         }
         idsUsed[field.id] = fieldName;
       }
       for (int i = 0; i < idsUsed.length; i++) {
         if (!idsUsed.containsKey(i)) {
-          throw new Exception('$name: no field uses id $i');
+          throw Exception('$name: no field uses id $i');
         }
       }
     });
@@ -710,7 +709,7 @@ class _CodeGenerator {
   /// Process the AST in [idlParsed] and store the resulting semantic model in
   /// [_idl].  Also perform some error checking.
   void extractIdl(CompilationUnit idlParsed) {
-    _idl = new idl_model.Idl();
+    _idl = idl_model.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
@@ -728,12 +727,12 @@ class _CodeGenerator {
               if (arg is StringLiteral) {
                 fileIdentifier = arg.stringValue;
               } else {
-                throw new Exception(
+                throw Exception(
                     'Class `$clsName`: TopLevel argument must be a string'
                     ' literal');
               }
             } else if (annotation.arguments.isNotEmpty) {
-              throw new Exception(
+              throw Exception(
                   'Class `$clsName`: TopLevel requires 0 or 1 arguments');
             }
           } else if (annotation.arguments == null &&
@@ -748,7 +747,7 @@ class _CodeGenerator {
               if (arg is StringLiteral) {
                 variantField = arg.stringValue;
               } else {
-                throw new Exception(
+                throw Exception(
                   'Class `$clsName`: @Variant argument must be a string literal',
                 );
               }
@@ -759,7 +758,7 @@ class _CodeGenerator {
             }
           }
         }
-        idl_model.ClassDeclaration cls = new idl_model.ClassDeclaration(
+        idl_model.ClassDeclaration cls = idl_model.ClassDeclaration(
           documentation: _getNodeDoc(decl),
           name: clsName,
           isTopLevel: isTopLevel,
@@ -770,8 +769,7 @@ class _CodeGenerator {
         _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
         if (decl.superclass == null || decl.superclass.name != expectedBase) {
-          throw new Exception(
-              'Class `$clsName` needs to extend `$expectedBase`');
+          throw Exception('Class `$clsName` needs to extend `$expectedBase`');
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
@@ -781,21 +779,20 @@ class _CodeGenerator {
             // Ignore `fromBuffer` declarations; they simply forward to the
             // read functions generated by [_generateReadFunction].
           } else {
-            throw new Exception('Unexpected class member `$classMember`');
+            throw Exception('Unexpected class member `$classMember`');
           }
         }
       } else if (decl is EnumDeclaration) {
         String doc = _getNodeDoc(decl);
         idl_model.EnumDeclaration enm =
-            new idl_model.EnumDeclaration(doc, decl.name);
+            idl_model.EnumDeclaration(doc, decl.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
           String doc = _getNodeDoc(constDecl);
-          enm.values
-              .add(new idl_model.EnumValueDeclaration(doc, constDecl.name));
+          enm.values.add(idl_model.EnumValueDeclaration(doc, constDecl.name));
         }
       } else {
-        throw new Exception('Unexpected declaration `$decl`');
+        throw Exception('Unexpected declaration `$decl`');
       }
     }
   }
@@ -865,7 +862,7 @@ class _CodeGenerator {
   ) {
     var desc = '${cls.name}.${getter.name}';
     if (getter.returnType == null) {
-      throw new Exception('Getter needs a type: $desc');
+      throw Exception('Getter needs a type: $desc');
     }
 
     var type = getter.returnType;
@@ -878,7 +875,7 @@ class _CodeGenerator {
       type = type.typeArguments[0];
     }
     if (type.typeArguments != null) {
-      throw new Exception('Cannot handle type arguments in `$type`');
+      throw Exception('Cannot handle type arguments in `$type`');
     }
 
     int id;
@@ -889,7 +886,7 @@ class _CodeGenerator {
     for (Annotation annotation in getter.metadata) {
       if (annotation.name == 'Id') {
         if (id != null) {
-          throw new Exception('Duplicate @id annotation ($getter)');
+          throw Exception('Duplicate @id annotation ($getter)');
         }
         if (annotation.arguments == null) {
           throw Exception('@Id must be passed an argument ($desc)');
@@ -902,13 +899,13 @@ class _CodeGenerator {
         if (idExpression is IntegerLiteral) {
           id = idExpression.value;
         } else {
-          throw new Exception(
+          throw Exception(
             '@Id argument must be an integer literal ($desc)',
           );
         }
       } else if (annotation.name == 'deprecated') {
         if (annotation.arguments != null) {
-          throw new Exception('@deprecated does not take args ($desc)');
+          throw Exception('@deprecated does not take args ($desc)');
         }
         isDeprecated = true;
       } else if (annotation.name == 'informative') {
@@ -961,10 +958,10 @@ class _CodeGenerator {
       }
     }
     if (id == null) {
-      throw new Exception('Missing @id annotation ($desc)');
+      throw Exception('Missing @id annotation ($desc)');
     }
 
-    var fieldType = new idl_model.FieldType(type.name, isList);
+    var fieldType = idl_model.FieldType(type.name, isList);
 
     String name = getter.name;
     Map<String, idl_model.LogicalProperty> logicalProperties;
@@ -1333,6 +1330,12 @@ class _MixinGenerator extends _BaseGenerator {
         return '_result[${quoted(name)}] = $convertField';
       }
 
+      void writeConditionalStatement(String condition, String statement) {
+        out('if ($condition) {');
+        out('  $statement;');
+        out('}');
+      }
+
       // Write toJson().
       out('@override');
       out('Map<String, Object> toJson() {');
@@ -1345,7 +1348,7 @@ class _MixinGenerator extends _BaseGenerator {
               if (field.logicalProperties == null) {
                 var condition = jsonCondition(field.type, field.name);
                 var storeField = jsonStore(field.type, field.name);
-                out('if ($condition) $storeField;');
+                writeConditionalStatement(condition, storeField);
               }
             }
             for (var variant in _computeVariants(cls)) {
@@ -1359,7 +1362,7 @@ class _MixinGenerator extends _BaseGenerator {
                       if (logicalProperty.variants.contains(variant)) {
                         var condition = jsonCondition(field.type, logicalName);
                         var storeField = jsonStore(field.type, logicalName);
-                        out('if ($condition) $storeField;');
+                        writeConditionalStatement(condition, storeField);
                       }
                     }
                   }
@@ -1373,7 +1376,7 @@ class _MixinGenerator extends _BaseGenerator {
             for (idl_model.FieldDeclaration field in cls.fields) {
               String condition = jsonCondition(field.type, field.name);
               String storeField = jsonStore(field.type, field.name);
-              out('if ($condition) $storeField;');
+              writeConditionalStatement(condition, storeField);
             }
           });
         }

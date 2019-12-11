@@ -7,9 +7,14 @@
 // Files 01 to 16 should be compile time errors, files 17 to 21 should not.
 
 class C {
-  static void set n(int i) {} // //# 01: compile-time error
+  static void set n(int i) {}
+  //              ^
+  // [cfe] Conflicts with member 'n'.
 
   static int n() => 42;
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] Conflicts with setter 'n'.
 }
 
 main() {

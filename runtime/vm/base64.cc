@@ -35,7 +35,7 @@ static const int8_t decode_table[] = {
 
 static const char PAD = '=';
 
-uint8_t* DecodeBase64(Zone* zone, const char* str, intptr_t* out_decoded_len) {
+uint8_t* DecodeBase64(const char* str, intptr_t* out_decoded_len) {
   intptr_t len = strlen(str);
   if (len == 0 || (len % 4 != 0)) {
     return nullptr;
@@ -48,7 +48,7 @@ uint8_t* DecodeBase64(Zone* zone, const char* str, intptr_t* out_decoded_len) {
     if (current_code_unit == PAD) pad_length++;
   }
   intptr_t decoded_en = ((len * 6) >> 3) - pad_length;
-  uint8_t* bytes = zone->Alloc<uint8_t>(decoded_en);
+  uint8_t* bytes = static_cast<uint8_t*>(malloc(decoded_en));
 
   for (int i = 0, o = 0; o < decoded_en;) {
     // Accumulate 4 valid 6 bit Base 64 characters into an int.

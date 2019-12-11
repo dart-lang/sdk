@@ -54,7 +54,7 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
     expect(
         hover.elementDescription,
         'class B<T> extends A<T> with M1, M2<int> '
-        'implements I1<int, String>, I2');
+        'implements I1<int, String>, I2<dynamic>');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }

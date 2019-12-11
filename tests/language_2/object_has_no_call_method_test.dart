@@ -3,15 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void test(dynamic d, Object o, Function f) {
-  d(); //# 01: ok
-  o(); //# 02: compile-time error
-  f(); //# 03: ok
-  d.call; //# 04: ok
-  o.call; //# 05: compile-time error
-  f.call; //# 06: ok
-  d.call(); //# 07: ok
-  o.call(); //# 08: compile-time error
-  f.call(); //# 09: ok
+  d();
+  o();
+//^
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// ^
+// [cfe] The method 'call' isn't defined for the class 'Object'.
+  f();
+  d.call;
+  o.call;
+  //^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'call' isn't defined for the class 'Object'.
+  f.call;
+  d.call();
+  o.call();
+  //^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'call' isn't defined for the class 'Object'.
+  f.call();
 }
 
 main() {}

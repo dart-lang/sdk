@@ -65,14 +65,6 @@ DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
-// TODO(bkonyi): remove this flag around Nov 2019 after UX studies are
-// complete. See issue 38535.
-DEFINE_FLAG(int,
-            object_id_ring_size,
-            ObjectIdRing::kDefaultCapacity,
-            "(EXPERIMENTAL) Manually set the size of the service protocol's "
-            "object ID ring buffer. Set to be removed by Nov 2019.");
-
 // Reload flags.
 DECLARE_FLAG(int, reload_every);
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1266,7 +1258,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      reloaded_kernel_blobs_(GrowableObjectArray::null()),
       field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(),
@@ -1475,12 +1466,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 
 #ifndef PRODUCT
   if (FLAG_support_service) {
-    if (FLAG_object_id_ring_size != ObjectIdRing::kDefaultCapacity) {
-      OS::Print(
-          "WARNING: this flag is temporary, is not supported, and should"
-          " only be used for UX studies. Use at your own risk!\n");
-    }
-    ObjectIdRing::Init(result, FLAG_object_id_ring_size);
+    ObjectIdRing::Init(result);
   }
 #endif  // !PRODUCT
 
@@ -1500,14 +1486,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   }
 
   return result;
-}
-
-void Isolate::RetainKernelBlob(const ExternalTypedData& kernel_blob) {
-  if (reloaded_kernel_blobs_ == Object::null()) {
-    reloaded_kernel_blobs_ = GrowableObjectArray::New();
-  }
-  auto& kernel_blobs = GrowableObjectArray::Handle(reloaded_kernel_blobs_);
-  kernel_blobs.Add(kernel_blob);
 }
 
 Thread* Isolate::mutator_thread() const {
@@ -2343,7 +2321,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&reloaded_kernel_blobs_));
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));

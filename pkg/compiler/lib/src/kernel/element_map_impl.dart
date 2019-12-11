@@ -643,6 +643,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.getBound(this);
   }
 
+  @override
+  List<Variance> getTypeVariableVariances(IndexedClass cls) {
+    assert(checkFamily(cls));
+    KClassData data = classes.getData(cls);
+    return data.getVariances();
+  }
+
   ClassEntity getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
@@ -1740,6 +1747,11 @@ class KernelElementEnvironment extends ElementEnvironment
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     if (typeVariable is KLocalTypeVariable) return typeVariable.bound;
     return elementMap.getTypeVariableBound(typeVariable);
+  }
+
+  @override
+  List<Variance> getTypeVariableVariances(ClassEntity cls) {
+    return elementMap.getTypeVariableVariances(cls);
   }
 
   @override

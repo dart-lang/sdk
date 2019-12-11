@@ -45,7 +45,7 @@ class DeepCaller2 extends core::Object {
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method barL4([@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
     return [@vm.direct-call.metadata=#lib::A::field2??] [@vm.inferred-type.metadata=!] aa.{self::A::field2};
 }
-[@vm.inferred-type.metadata=dart.core::Null?]static field core::Function* unknown;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic
   return [@vm.direct-call.metadata=#lib::DeepCaller1::barL1] [@vm.inferred-type.metadata=#lib::T1 (skip check)] x.{self::DeepCaller1::barL1}(aa);
 static method use2([@vm.inferred-type.metadata=#lib::DeepCaller2] self::DeepCaller2* x, [@vm.inferred-type.metadata=#lib::A?] self::A* aa) → dynamic

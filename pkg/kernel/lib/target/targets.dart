@@ -264,6 +264,7 @@ abstract class Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
 
   Class concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   ConstantsBackend constantsBackend(CoreTypes coreTypes);

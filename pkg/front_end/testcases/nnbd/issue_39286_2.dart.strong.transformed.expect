@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::int y = null;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   method f() → self::D?
@@ -13,7 +13,7 @@ class C extends core::Object {
     return this;
 }
 class D extends core::Object {
-  synthetic constructor •() → self::D*
+  synthetic constructor •() → self::D
     : super core::Object::•()
     ;
   method g() → self::D

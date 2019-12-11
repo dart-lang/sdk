@@ -7,8 +7,6 @@
 // These mallocs trigger an asan alarm, so these tests are in a separate file
 // which is excluded in asan mode.
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";

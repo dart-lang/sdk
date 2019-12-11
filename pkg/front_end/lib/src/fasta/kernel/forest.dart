@@ -323,7 +323,7 @@ class Forest {
   Statement createBreakStatement(int fileOffset, Object label) {
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatement(null)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: false)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a catch clause.
@@ -355,7 +355,7 @@ class Forest {
   Statement createContinueStatement(int fileOffset, Object label) {
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatement(null)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: true)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a do statement.

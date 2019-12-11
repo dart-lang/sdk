@@ -61,7 +61,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           ExternalTypedData::Handle(Z,
                                     parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset()),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &active_class_,
@@ -184,7 +185,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           Field& class_field = Field::Handle(Z);
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
-            if (!class_field.is_static() && !class_field.is_late()) {
+            if (!class_field.is_static()) {
               ExternalTypedData& kernel_data =
                   ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
@@ -469,7 +470,7 @@ void ScopeBuilder::VisitConstructor() {
     Field& class_field = Field::Handle(Z);
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
-      if (!class_field.is_static() && !class_field.is_late()) {
+      if (!class_field.is_static()) {
         ExternalTypedData& kernel_data =
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
@@ -1275,7 +1276,17 @@ void ScopeBuilder::VisitVariableDeclaration() {
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
-  scope_->AddVariable(variable);
+  // Lift the two special async vars out of the function body scope, into the
+  // outer function declaration scope.
+  // This way we can allocate them in the outermost context at fixed indices,
+  // allowing support for --lazy-async-stacks implementation to find awaiters.
+  if (name.Equals(Symbols::AwaitJumpVar()) ||
+      name.Equals(Symbols::AsyncCompleter()) ||
+      name.Equals(Symbols::Controller())) {
+    scope_->parent()->AddVariable(variable);
+  } else {
+    scope_->AddVariable(variable);
+  }
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }
@@ -1572,12 +1583,16 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const String& name,
     const AbstractType& type,
     const InferredTypeMetadata* param_type_md /* = NULL */) {
-  CompileType* param_type = NULL;
-  if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
+  CompileType* param_type = nullptr;
+  const Object* param_value = nullptr;
+  if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
     param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
+    if (param_type_md->IsConstant()) {
+      param_value = &param_type_md->constant_value;
+    }
   }
-  return new (Z)
-      LocalVariable(declaration_pos, token_pos, name, type, param_type);
+  return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
+                               param_type, param_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(

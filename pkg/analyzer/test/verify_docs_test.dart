@@ -109,7 +109,7 @@ $snippet
 ''',
         modificationStamp: 1);
     try {
-      AnalysisContextCollection collection = new AnalysisContextCollection(
+      AnalysisContextCollection collection = AnalysisContextCollection(
           includedPaths: <String>[snippetDirPath], resourceProvider: provider);
       List<AnalysisContext> contexts = collection.contexts;
       if (contexts.length != 1) {

@@ -33,19 +33,29 @@ class FactoryTest {
 
 // Test compile time error for factories with parameterized types.
 
-abstract class Link<T> {// //# 00: continued
-  factory Link.create() = LinkFactory<T>.create; // //# 00: compile-time error
-}// //# 00: continued
+abstract class Link<T> {
+  factory Link.create() = LinkFactory<T>.create;
+  //                      ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [cfe] Expected 0 type arguments.
+  //                      ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+}
 
-class LinkFactory {// //# 00: continued
+class LinkFactory {
   //   Compile time error: should be LinkFactory<T> to match abstract class above
-  factory Link.create() { //# 00: compile-time error
-    return null;// //# 00: continued
-  }// //# 00: continued
-}// //# 00: continued
+  factory Link.create() {
+  //      ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_FACTORY_NAME_NOT_A_CLASS
+  // [cfe] The name of a constructor must match the name of the enclosing class.
+    return null;
+  }
+}
 
 
 main() {
   FactoryTest.testMain();
-  var a = new Link<int>.create(); //# 00: continued
+  var a = new Link<int>.create();
+  //          ^
+  // [cfe] Expected 0 type arguments.
 }

@@ -7,12 +7,19 @@ class A {
 }
 
 class B {
-  final a; //    //# 01: compile-time error
+  final a;
   const B(dynamic v) //
-      : a = A(v) //# 01: continued
+      : a = A(v)
+      //    ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+      // [cfe] Constant evaluation error:
+      //    ^
+      // [cfe] Constant expression expected.
   ;
 }
 
 void main() {
   const B("");
+//^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 }

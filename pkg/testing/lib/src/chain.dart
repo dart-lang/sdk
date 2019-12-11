@@ -248,6 +248,7 @@ abstract class ChainContext {
         print("${suite.name}/${description.shortName}: ${result.outcome}");
       });
     }
+    postRun();
   }
 
   Stream<TestDescription> list(Chain suite) async* {
@@ -311,6 +312,8 @@ abstract class ChainContext {
   }
 
   Future<void> cleanUp(TestDescription description, Result result) => null;
+
+  Future<void> postRun() => null;
 }
 
 abstract class Step<I, O, C extends ChainContext> {

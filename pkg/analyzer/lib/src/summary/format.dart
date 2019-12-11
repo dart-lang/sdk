@@ -244,7 +244,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADEC");
   }
 
@@ -285,7 +285,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
 
 idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverExceptionContextReader().read(rootRef, 0);
 }
 
@@ -296,7 +296,7 @@ class _AnalysisDriverExceptionContextReader
   @override
   _AnalysisDriverExceptionContextImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverExceptionContextImpl(bc, offset);
+      _AnalysisDriverExceptionContextImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionContextImpl extends Object
@@ -345,11 +345,18 @@ abstract class _AnalysisDriverExceptionContextMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (exception != '') _result["exception"] = exception;
-    if (files.isNotEmpty)
+    if (exception != '') {
+      _result["exception"] = exception;
+    }
+    if (files.isNotEmpty) {
       _result["files"] = files.map((_value) => _value.toJson()).toList();
-    if (path != '') _result["path"] = path;
-    if (stackTrace != '') _result["stackTrace"] = stackTrace;
+    }
+    if (path != '') {
+      _result["path"] = path;
+    }
+    if (stackTrace != '') {
+      _result["stackTrace"] = stackTrace;
+    }
     return _result;
   }
 
@@ -427,7 +434,7 @@ class _AnalysisDriverExceptionFileReader
   @override
   _AnalysisDriverExceptionFileImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverExceptionFileImpl(bc, offset);
+      _AnalysisDriverExceptionFileImpl(bc, offset);
 }
 
 class _AnalysisDriverExceptionFileImpl extends Object
@@ -459,8 +466,12 @@ abstract class _AnalysisDriverExceptionFileMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (content != '') _result["content"] = content;
-    if (path != '') _result["path"] = path;
+    if (content != '') {
+      _result["content"] = content;
+    }
+    if (path != '') {
+      _result["path"] = path;
+    }
     return _result;
   }
 
@@ -524,7 +535,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADRU");
   }
 
@@ -551,7 +562,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
 
 idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
 }
 
@@ -562,7 +573,7 @@ class _AnalysisDriverResolvedUnitReader
   @override
   _AnalysisDriverResolvedUnitImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverResolvedUnitImpl(bc, offset);
+      _AnalysisDriverResolvedUnitImpl(bc, offset);
 }
 
 class _AnalysisDriverResolvedUnitImpl extends Object
@@ -597,9 +608,12 @@ abstract class _AnalysisDriverResolvedUnitMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (errors.isNotEmpty)
+    if (errors.isNotEmpty) {
       _result["errors"] = errors.map((_value) => _value.toJson()).toList();
-    if (index != null) _result["index"] = index.toJson();
+    }
+    if (index != null) {
+      _result["index"] = index.toJson();
+    }
     return _result;
   }
 
@@ -682,7 +696,7 @@ class _AnalysisDriverSubtypeReader
 
   @override
   _AnalysisDriverSubtypeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverSubtypeImpl(bc, offset);
+      _AnalysisDriverSubtypeImpl(bc, offset);
 }
 
 class _AnalysisDriverSubtypeImpl extends Object
@@ -715,8 +729,12 @@ abstract class _AnalysisDriverSubtypeMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (members.isNotEmpty) _result["members"] = members;
-    if (name != 0) _result["name"] = name;
+    if (members.isNotEmpty) {
+      _result["members"] = members;
+    }
+    if (name != 0) {
+      _result["name"] = name;
+    }
     return _result;
   }
 
@@ -874,7 +892,7 @@ class _AnalysisDriverUnitErrorReader
 
   @override
   _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnitErrorImpl(bc, offset);
+      _AnalysisDriverUnitErrorImpl(bc, offset);
 }
 
 class _AnalysisDriverUnitErrorImpl extends Object
@@ -936,14 +954,25 @@ abstract class _AnalysisDriverUnitErrorMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (contextMessages.isNotEmpty)
+    if (contextMessages.isNotEmpty) {
       _result["contextMessages"] =
           contextMessages.map((_value) => _value.toJson()).toList();
-    if (correction != '') _result["correction"] = correction;
-    if (length != 0) _result["length"] = length;
-    if (message != '') _result["message"] = message;
-    if (offset != 0) _result["offset"] = offset;
-    if (uniqueName != '') _result["uniqueName"] = uniqueName;
+    }
+    if (correction != '') {
+      _result["correction"] = correction;
+    }
+    if (length != 0) {
+      _result["length"] = length;
+    }
+    if (message != '') {
+      _result["message"] = message;
+    }
+    if (offset != 0) {
+      _result["offset"] = offset;
+    }
+    if (uniqueName != '') {
+      _result["uniqueName"] = uniqueName;
+    }
     return _result;
   }
 
@@ -1402,7 +1431,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADUI");
   }
 
@@ -1566,7 +1595,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
 }
 
 idl.AnalysisDriverUnitIndex readAnalysisDriverUnitIndex(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverUnitIndexReader().read(rootRef, 0);
 }
 
@@ -1576,7 +1605,7 @@ class _AnalysisDriverUnitIndexReader
 
   @override
   _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnitIndexImpl(bc, offset);
+      _AnalysisDriverUnitIndexImpl(bc, offset);
 }
 
 class _AnalysisDriverUnitIndexImpl extends Object
@@ -1757,45 +1786,72 @@ abstract class _AnalysisDriverUnitIndexMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (elementKinds.isNotEmpty)
+    if (elementKinds.isNotEmpty) {
       _result["elementKinds"] = elementKinds
           .map((_value) => _value.toString().split('.')[1])
           .toList();
-    if (elementNameClassMemberIds.isNotEmpty)
+    }
+    if (elementNameClassMemberIds.isNotEmpty) {
       _result["elementNameClassMemberIds"] = elementNameClassMemberIds;
-    if (elementNameParameterIds.isNotEmpty)
+    }
+    if (elementNameParameterIds.isNotEmpty) {
       _result["elementNameParameterIds"] = elementNameParameterIds;
-    if (elementNameUnitMemberIds.isNotEmpty)
+    }
+    if (elementNameUnitMemberIds.isNotEmpty) {
       _result["elementNameUnitMemberIds"] = elementNameUnitMemberIds;
-    if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
-    if (nullStringId != 0) _result["nullStringId"] = nullStringId;
-    if (strings.isNotEmpty) _result["strings"] = strings;
-    if (subtypes.isNotEmpty)
+    }
+    if (elementUnits.isNotEmpty) {
+      _result["elementUnits"] = elementUnits;
+    }
+    if (nullStringId != 0) {
+      _result["nullStringId"] = nullStringId;
+    }
+    if (strings.isNotEmpty) {
+      _result["strings"] = strings;
+    }
+    if (subtypes.isNotEmpty) {
       _result["subtypes"] = subtypes.map((_value) => _value.toJson()).toList();
-    if (supertypes.isNotEmpty) _result["supertypes"] = supertypes;
-    if (unitLibraryUris.isNotEmpty)
+    }
+    if (supertypes.isNotEmpty) {
+      _result["supertypes"] = supertypes;
+    }
+    if (unitLibraryUris.isNotEmpty) {
       _result["unitLibraryUris"] = unitLibraryUris;
-    if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
-    if (usedElementIsQualifiedFlags.isNotEmpty)
+    }
+    if (unitUnitUris.isNotEmpty) {
+      _result["unitUnitUris"] = unitUnitUris;
+    }
+    if (usedElementIsQualifiedFlags.isNotEmpty) {
       _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
-    if (usedElementKinds.isNotEmpty)
+    }
+    if (usedElementKinds.isNotEmpty) {
       _result["usedElementKinds"] = usedElementKinds
           .map((_value) => _value.toString().split('.')[1])
           .toList();
-    if (usedElementLengths.isNotEmpty)
+    }
+    if (usedElementLengths.isNotEmpty) {
       _result["usedElementLengths"] = usedElementLengths;
-    if (usedElementOffsets.isNotEmpty)
+    }
+    if (usedElementOffsets.isNotEmpty) {
       _result["usedElementOffsets"] = usedElementOffsets;
-    if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
-    if (usedNameIsQualifiedFlags.isNotEmpty)
+    }
+    if (usedElements.isNotEmpty) {
+      _result["usedElements"] = usedElements;
+    }
+    if (usedNameIsQualifiedFlags.isNotEmpty) {
       _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
-    if (usedNameKinds.isNotEmpty)
+    }
+    if (usedNameKinds.isNotEmpty) {
       _result["usedNameKinds"] = usedNameKinds
           .map((_value) => _value.toString().split('.')[1])
           .toList();
-    if (usedNameOffsets.isNotEmpty)
+    }
+    if (usedNameOffsets.isNotEmpty) {
       _result["usedNameOffsets"] = usedNameOffsets;
-    if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
+    }
+    if (usedNames.isNotEmpty) {
+      _result["usedNames"] = usedNames;
+    }
     return _result;
   }
 
@@ -1934,7 +1990,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "ADUU");
   }
 
@@ -1988,7 +2044,7 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object
 
 idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(
     List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AnalysisDriverUnlinkedUnitReader().read(rootRef, 0);
 }
 
@@ -1999,7 +2055,7 @@ class _AnalysisDriverUnlinkedUnitReader
   @override
   _AnalysisDriverUnlinkedUnitImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
+      _AnalysisDriverUnlinkedUnitImpl(bc, offset);
 }
 
 class _AnalysisDriverUnlinkedUnitImpl extends Object
@@ -2058,14 +2114,21 @@ abstract class _AnalysisDriverUnlinkedUnitMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (definedClassMemberNames.isNotEmpty)
+    if (definedClassMemberNames.isNotEmpty) {
       _result["definedClassMemberNames"] = definedClassMemberNames;
-    if (definedTopLevelNames.isNotEmpty)
+    }
+    if (definedTopLevelNames.isNotEmpty) {
       _result["definedTopLevelNames"] = definedTopLevelNames;
-    if (referencedNames.isNotEmpty)
+    }
+    if (referencedNames.isNotEmpty) {
       _result["referencedNames"] = referencedNames;
-    if (subtypedNames.isNotEmpty) _result["subtypedNames"] = subtypedNames;
-    if (unit2 != null) _result["unit2"] = unit2.toJson();
+    }
+    if (subtypedNames.isNotEmpty) {
+      _result["subtypedNames"] = subtypedNames;
+    }
+    if (unit2 != null) {
+      _result["unit2"] = unit2.toJson();
+    }
     return _result;
   }
 
@@ -2553,7 +2616,7 @@ class _AvailableDeclarationReader
 
   @override
   _AvailableDeclarationImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableDeclarationImpl(bc, offset);
+      _AvailableDeclarationImpl(bc, offset);
 }
 
 class _AvailableDeclarationImpl extends Object
@@ -2752,37 +2815,78 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (children.isNotEmpty)
+    if (children.isNotEmpty) {
       _result["children"] = children.map((_value) => _value.toJson()).toList();
-    if (codeLength != 0) _result["codeLength"] = codeLength;
-    if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-    if (defaultArgumentListString != '')
+    }
+    if (codeLength != 0) {
+      _result["codeLength"] = codeLength;
+    }
+    if (codeOffset != 0) {
+      _result["codeOffset"] = codeOffset;
+    }
+    if (defaultArgumentListString != '') {
       _result["defaultArgumentListString"] = defaultArgumentListString;
-    if (defaultArgumentListTextRanges.isNotEmpty)
+    }
+    if (defaultArgumentListTextRanges.isNotEmpty) {
       _result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
-    if (docComplete != '') _result["docComplete"] = docComplete;
-    if (docSummary != '') _result["docSummary"] = docSummary;
-    if (fieldMask != 0) _result["fieldMask"] = fieldMask;
-    if (isAbstract != false) _result["isAbstract"] = isAbstract;
-    if (isConst != false) _result["isConst"] = isConst;
-    if (isDeprecated != false) _result["isDeprecated"] = isDeprecated;
-    if (isFinal != false) _result["isFinal"] = isFinal;
-    if (kind != idl.AvailableDeclarationKind.CLASS)
+    }
+    if (docComplete != '') {
+      _result["docComplete"] = docComplete;
+    }
+    if (docSummary != '') {
+      _result["docSummary"] = docSummary;
+    }
+    if (fieldMask != 0) {
+      _result["fieldMask"] = fieldMask;
+    }
+    if (isAbstract != false) {
+      _result["isAbstract"] = isAbstract;
+    }
+    if (isConst != false) {
+      _result["isConst"] = isConst;
+    }
+    if (isDeprecated != false) {
+      _result["isDeprecated"] = isDeprecated;
+    }
+    if (isFinal != false) {
+      _result["isFinal"] = isFinal;
+    }
+    if (kind != idl.AvailableDeclarationKind.CLASS) {
       _result["kind"] = kind.toString().split('.')[1];
-    if (locationOffset != 0) _result["locationOffset"] = locationOffset;
-    if (locationStartColumn != 0)
+    }
+    if (locationOffset != 0) {
+      _result["locationOffset"] = locationOffset;
+    }
+    if (locationStartColumn != 0) {
       _result["locationStartColumn"] = locationStartColumn;
-    if (locationStartLine != 0)
+    }
+    if (locationStartLine != 0) {
       _result["locationStartLine"] = locationStartLine;
-    if (name != '') _result["name"] = name;
-    if (parameterNames.isNotEmpty) _result["parameterNames"] = parameterNames;
-    if (parameters != '') _result["parameters"] = parameters;
-    if (parameterTypes.isNotEmpty) _result["parameterTypes"] = parameterTypes;
-    if (relevanceTags.isNotEmpty) _result["relevanceTags"] = relevanceTags;
-    if (requiredParameterCount != 0)
+    }
+    if (name != '') {
+      _result["name"] = name;
+    }
+    if (parameterNames.isNotEmpty) {
+      _result["parameterNames"] = parameterNames;
+    }
+    if (parameters != '') {
+      _result["parameters"] = parameters;
+    }
+    if (parameterTypes.isNotEmpty) {
+      _result["parameterTypes"] = parameterTypes;
+    }
+    if (relevanceTags.isNotEmpty) {
+      _result["relevanceTags"] = relevanceTags;
+    }
+    if (requiredParameterCount != 0) {
       _result["requiredParameterCount"] = requiredParameterCount;
-    if (returnType != '') _result["returnType"] = returnType;
-    if (typeParameters != '') _result["typeParameters"] = typeParameters;
+    }
+    if (returnType != '') {
+      _result["returnType"] = returnType;
+    }
+    if (typeParameters != '') {
+      _result["typeParameters"] = typeParameters;
+    }
     return _result;
   }
 
@@ -2945,7 +3049,7 @@ class AvailableFileBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UICF");
   }
 
@@ -3000,7 +3104,7 @@ class AvailableFileBuilder extends Object
 }
 
 idl.AvailableFile readAvailableFile(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _AvailableFileReader().read(rootRef, 0);
 }
 
@@ -3009,7 +3113,7 @@ class _AvailableFileReader extends fb.TableReader<_AvailableFileImpl> {
 
   @override
   _AvailableFileImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableFileImpl(bc, offset);
+      _AvailableFileImpl(bc, offset);
 }
 
 class _AvailableFileImpl extends Object
@@ -3083,18 +3187,28 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (declarations.isNotEmpty)
+    if (declarations.isNotEmpty) {
       _result["declarations"] =
           declarations.map((_value) => _value.toJson()).toList();
-    if (directiveInfo != null)
+    }
+    if (directiveInfo != null) {
       _result["directiveInfo"] = directiveInfo.toJson();
-    if (exports.isNotEmpty)
+    }
+    if (exports.isNotEmpty) {
       _result["exports"] = exports.map((_value) => _value.toJson()).toList();
-    if (isLibrary != false) _result["isLibrary"] = isLibrary;
-    if (isLibraryDeprecated != false)
+    }
+    if (isLibrary != false) {
+      _result["isLibrary"] = isLibrary;
+    }
+    if (isLibraryDeprecated != false) {
       _result["isLibraryDeprecated"] = isLibraryDeprecated;
-    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
-    if (parts.isNotEmpty) _result["parts"] = parts;
+    }
+    if (lineStarts.isNotEmpty) {
+      _result["lineStarts"] = lineStarts;
+    }
+    if (parts.isNotEmpty) {
+      _result["parts"] = parts;
+    }
     return _result;
   }
 
@@ -3186,7 +3300,7 @@ class _AvailableFileExportReader
 
   @override
   _AvailableFileExportImpl createObject(fb.BufferContext bc, int offset) =>
-      new _AvailableFileExportImpl(bc, offset);
+      _AvailableFileExportImpl(bc, offset);
 }
 
 class _AvailableFileExportImpl extends Object
@@ -3220,10 +3334,13 @@ abstract class _AvailableFileExportMixin implements idl.AvailableFileExport {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (combinators.isNotEmpty)
+    if (combinators.isNotEmpty) {
       _result["combinators"] =
           combinators.map((_value) => _value.toJson()).toList();
-    if (uri != '') _result["uri"] = uri;
+    }
+    if (uri != '') {
+      _result["uri"] = uri;
+    }
     return _result;
   }
 
@@ -3315,7 +3432,7 @@ class _AvailableFileExportCombinatorReader
   @override
   _AvailableFileExportCombinatorImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _AvailableFileExportCombinatorImpl(bc, offset);
+      _AvailableFileExportCombinatorImpl(bc, offset);
 }
 
 class _AvailableFileExportCombinatorImpl extends Object
@@ -3349,8 +3466,12 @@ abstract class _AvailableFileExportCombinatorMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (hides.isNotEmpty) _result["hides"] = hides;
-    if (shows.isNotEmpty) _result["shows"] = shows;
+    if (hides.isNotEmpty) {
+      _result["hides"] = hides;
+    }
+    if (shows.isNotEmpty) {
+      _result["shows"] = shows;
+    }
     return _result;
   }
 
@@ -3456,7 +3577,7 @@ class _DiagnosticMessageReader extends fb.TableReader<_DiagnosticMessageImpl> {
 
   @override
   _DiagnosticMessageImpl createObject(fb.BufferContext bc, int offset) =>
-      new _DiagnosticMessageImpl(bc, offset);
+      _DiagnosticMessageImpl(bc, offset);
 }
 
 class _DiagnosticMessageImpl extends Object
@@ -3501,10 +3622,18 @@ abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (filePath != '') _result["filePath"] = filePath;
-    if (length != 0) _result["length"] = length;
-    if (message != '') _result["message"] = message;
-    if (offset != 0) _result["offset"] = offset;
+    if (filePath != '') {
+      _result["filePath"] = filePath;
+    }
+    if (length != 0) {
+      _result["length"] = length;
+    }
+    if (message != '') {
+      _result["message"] = message;
+    }
+    if (offset != 0) {
+      _result["offset"] = offset;
+    }
     return _result;
   }
 
@@ -3597,7 +3726,7 @@ class _DirectiveInfoReader extends fb.TableReader<_DirectiveInfoImpl> {
 
   @override
   _DirectiveInfoImpl createObject(fb.BufferContext bc, int offset) =>
-      new _DirectiveInfoImpl(bc, offset);
+      _DirectiveInfoImpl(bc, offset);
 }
 
 class _DirectiveInfoImpl extends Object
@@ -3630,8 +3759,12 @@ abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (templateNames.isNotEmpty) _result["templateNames"] = templateNames;
-    if (templateValues.isNotEmpty) _result["templateValues"] = templateValues;
+    if (templateNames.isNotEmpty) {
+      _result["templateNames"] = templateNames;
+    }
+    if (templateValues.isNotEmpty) {
+      _result["templateValues"] = templateValues;
+    }
     return _result;
   }
 
@@ -10167,7 +10300,7 @@ class _LinkedNodeReader extends fb.TableReader<_LinkedNodeImpl> {
 
   @override
   _LinkedNodeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeImpl(bc, offset);
+      _LinkedNodeImpl(bc, offset);
 }
 
 class _LinkedNodeImpl extends Object
@@ -12425,1201 +12558,1613 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (flags != 0) _result["flags"] = flags;
-    if (kind != idl.LinkedNodeKind.adjacentStrings)
+    if (flags != 0) {
+      _result["flags"] = flags;
+    }
+    if (kind != idl.LinkedNodeKind.adjacentStrings) {
       _result["kind"] = kind.toString().split('.')[1];
-    if (name != '') _result["name"] = name;
+    }
+    if (name != '') {
+      _result["name"] = name;
+    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
-      if (adjacentStrings_strings.isNotEmpty)
+      if (adjacentStrings_strings.isNotEmpty) {
         _result["adjacentStrings_strings"] =
             adjacentStrings_strings.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.annotation) {
-      if (annotation_arguments != null)
+      if (annotation_arguments != null) {
         _result["annotation_arguments"] = annotation_arguments.toJson();
-      if (annotation_constructorName != null)
+      }
+      if (annotation_constructorName != null) {
         _result["annotation_constructorName"] =
             annotation_constructorName.toJson();
-      if (annotation_element != 0)
+      }
+      if (annotation_element != 0) {
         _result["annotation_element"] = annotation_element;
-      if (annotation_name != null)
+      }
+      if (annotation_name != null) {
         _result["annotation_name"] = annotation_name.toJson();
-      if (annotation_substitution != null)
+      }
+      if (annotation_substitution != null) {
         _result["annotation_substitution"] = annotation_substitution.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.argumentList) {
-      if (argumentList_arguments.isNotEmpty)
+      if (argumentList_arguments.isNotEmpty) {
         _result["argumentList_arguments"] =
             argumentList_arguments.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.asExpression) {
-      if (asExpression_expression != null)
+      if (asExpression_expression != null) {
         _result["asExpression_expression"] = asExpression_expression.toJson();
-      if (asExpression_type != null)
+      }
+      if (asExpression_type != null) {
         _result["asExpression_type"] = asExpression_type.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.assertInitializer) {
-      if (assertInitializer_condition != null)
+      if (assertInitializer_condition != null) {
         _result["assertInitializer_condition"] =
             assertInitializer_condition.toJson();
-      if (assertInitializer_message != null)
+      }
+      if (assertInitializer_message != null) {
         _result["assertInitializer_message"] =
             assertInitializer_message.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.assertStatement) {
-      if (assertStatement_condition != null)
+      if (assertStatement_condition != null) {
         _result["assertStatement_condition"] =
             assertStatement_condition.toJson();
-      if (assertStatement_message != null)
+      }
+      if (assertStatement_message != null) {
         _result["assertStatement_message"] = assertStatement_message.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.assignmentExpression) {
-      if (assignmentExpression_leftHandSide != null)
+      if (assignmentExpression_leftHandSide != null) {
         _result["assignmentExpression_leftHandSide"] =
             assignmentExpression_leftHandSide.toJson();
-      if (assignmentExpression_rightHandSide != null)
+      }
+      if (assignmentExpression_rightHandSide != null) {
         _result["assignmentExpression_rightHandSide"] =
             assignmentExpression_rightHandSide.toJson();
-      if (assignmentExpression_substitution != null)
+      }
+      if (assignmentExpression_substitution != null) {
         _result["assignmentExpression_substitution"] =
             assignmentExpression_substitution.toJson();
-      if (assignmentExpression_element != 0)
+      }
+      if (assignmentExpression_element != 0) {
         _result["assignmentExpression_element"] = assignmentExpression_element;
-      if (assignmentExpression_operator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (assignmentExpression_operator != idl.UnlinkedTokenType.NOTHING) {
         _result["assignmentExpression_operator"] =
             assignmentExpression_operator.toString().split('.')[1];
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.awaitExpression) {
-      if (awaitExpression_expression != null)
+      if (awaitExpression_expression != null) {
         _result["awaitExpression_expression"] =
             awaitExpression_expression.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.binaryExpression) {
-      if (binaryExpression_invokeType != null)
+      if (binaryExpression_invokeType != null) {
         _result["binaryExpression_invokeType"] =
             binaryExpression_invokeType.toJson();
-      if (binaryExpression_leftOperand != null)
+      }
+      if (binaryExpression_leftOperand != null) {
         _result["binaryExpression_leftOperand"] =
             binaryExpression_leftOperand.toJson();
-      if (binaryExpression_rightOperand != null)
+      }
+      if (binaryExpression_rightOperand != null) {
         _result["binaryExpression_rightOperand"] =
             binaryExpression_rightOperand.toJson();
-      if (binaryExpression_substitution != null)
+      }
+      if (binaryExpression_substitution != null) {
         _result["binaryExpression_substitution"] =
             binaryExpression_substitution.toJson();
-      if (binaryExpression_element != 0)
+      }
+      if (binaryExpression_element != 0) {
         _result["binaryExpression_element"] = binaryExpression_element;
-      if (binaryExpression_operator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (binaryExpression_operator != idl.UnlinkedTokenType.NOTHING) {
         _result["binaryExpression_operator"] =
             binaryExpression_operator.toString().split('.')[1];
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.block) {
-      if (block_statements.isNotEmpty)
+      if (block_statements.isNotEmpty) {
         _result["block_statements"] =
             block_statements.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.blockFunctionBody) {
-      if (blockFunctionBody_block != null)
+      if (blockFunctionBody_block != null) {
         _result["blockFunctionBody_block"] = blockFunctionBody_block.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.booleanLiteral) {
-      if (booleanLiteral_value != false)
+      if (booleanLiteral_value != false) {
         _result["booleanLiteral_value"] = booleanLiteral_value;
+      }
     }
     if (kind == idl.LinkedNodeKind.breakStatement) {
-      if (breakStatement_label != null)
+      if (breakStatement_label != null) {
         _result["breakStatement_label"] = breakStatement_label.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.cascadeExpression) {
-      if (cascadeExpression_sections.isNotEmpty)
+      if (cascadeExpression_sections.isNotEmpty) {
         _result["cascadeExpression_sections"] = cascadeExpression_sections
             .map((_value) => _value.toJson())
             .toList();
-      if (cascadeExpression_target != null)
+      }
+      if (cascadeExpression_target != null) {
         _result["cascadeExpression_target"] = cascadeExpression_target.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.catchClause) {
-      if (catchClause_body != null)
+      if (catchClause_body != null) {
         _result["catchClause_body"] = catchClause_body.toJson();
-      if (catchClause_exceptionParameter != null)
+      }
+      if (catchClause_exceptionParameter != null) {
         _result["catchClause_exceptionParameter"] =
             catchClause_exceptionParameter.toJson();
-      if (catchClause_exceptionType != null)
+      }
+      if (catchClause_exceptionType != null) {
         _result["catchClause_exceptionType"] =
             catchClause_exceptionType.toJson();
-      if (catchClause_stackTraceParameter != null)
+      }
+      if (catchClause_stackTraceParameter != null) {
         _result["catchClause_stackTraceParameter"] =
             catchClause_stackTraceParameter.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.classDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (classDeclaration_extendsClause != null)
+      }
+      if (classDeclaration_extendsClause != null) {
         _result["classDeclaration_extendsClause"] =
             classDeclaration_extendsClause.toJson();
-      if (classDeclaration_withClause != null)
+      }
+      if (classDeclaration_withClause != null) {
         _result["classDeclaration_withClause"] =
             classDeclaration_withClause.toJson();
-      if (classDeclaration_nativeClause != null)
+      }
+      if (classDeclaration_nativeClause != null) {
         _result["classDeclaration_nativeClause"] =
             classDeclaration_nativeClause.toJson();
-      if (classDeclaration_isDartObject != false)
+      }
+      if (classDeclaration_isDartObject != false) {
         _result["classDeclaration_isDartObject"] =
             classDeclaration_isDartObject;
-      if (classOrMixinDeclaration_implementsClause != null)
+      }
+      if (classOrMixinDeclaration_implementsClause != null) {
         _result["classOrMixinDeclaration_implementsClause"] =
             classOrMixinDeclaration_implementsClause.toJson();
-      if (classOrMixinDeclaration_members.isNotEmpty)
+      }
+      if (classOrMixinDeclaration_members.isNotEmpty) {
         _result["classOrMixinDeclaration_members"] =
             classOrMixinDeclaration_members
                 .map((_value) => _value.toJson())
                 .toList();
-      if (classOrMixinDeclaration_typeParameters != null)
+      }
+      if (classOrMixinDeclaration_typeParameters != null) {
         _result["classOrMixinDeclaration_typeParameters"] =
             classOrMixinDeclaration_typeParameters.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (simplyBoundable_isSimplyBounded != false)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (simplyBoundable_isSimplyBounded != false) {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
-      if (unused11 != null) _result["unused11"] = unused11.toJson();
+      }
+      if (unused11 != null) {
+        _result["unused11"] = unused11.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (classTypeAlias_typeParameters != null)
+      }
+      if (classTypeAlias_typeParameters != null) {
         _result["classTypeAlias_typeParameters"] =
             classTypeAlias_typeParameters.toJson();
-      if (classTypeAlias_superclass != null)
+      }
+      if (classTypeAlias_superclass != null) {
         _result["classTypeAlias_superclass"] =
             classTypeAlias_superclass.toJson();
-      if (classTypeAlias_withClause != null)
+      }
+      if (classTypeAlias_withClause != null) {
         _result["classTypeAlias_withClause"] =
             classTypeAlias_withClause.toJson();
-      if (classTypeAlias_implementsClause != null)
+      }
+      if (classTypeAlias_implementsClause != null) {
         _result["classTypeAlias_implementsClause"] =
             classTypeAlias_implementsClause.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (simplyBoundable_isSimplyBounded != false)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (simplyBoundable_isSimplyBounded != false) {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
+      }
     }
     if (kind == idl.LinkedNodeKind.comment) {
-      if (comment_references.isNotEmpty)
+      if (comment_references.isNotEmpty) {
         _result["comment_references"] =
             comment_references.map((_value) => _value.toJson()).toList();
-      if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
-      if (comment_type != idl.LinkedNodeCommentType.block)
+      }
+      if (comment_tokens.isNotEmpty) {
+        _result["comment_tokens"] = comment_tokens;
+      }
+      if (comment_type != idl.LinkedNodeCommentType.block) {
         _result["comment_type"] = comment_type.toString().split('.')[1];
+      }
     }
     if (kind == idl.LinkedNodeKind.commentReference) {
-      if (commentReference_identifier != null)
+      if (commentReference_identifier != null) {
         _result["commentReference_identifier"] =
             commentReference_identifier.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.compilationUnit) {
-      if (compilationUnit_declarations.isNotEmpty)
+      if (compilationUnit_declarations.isNotEmpty) {
         _result["compilationUnit_declarations"] = compilationUnit_declarations
             .map((_value) => _value.toJson())
             .toList();
-      if (compilationUnit_scriptTag != null)
+      }
+      if (compilationUnit_scriptTag != null) {
         _result["compilationUnit_scriptTag"] =
             compilationUnit_scriptTag.toJson();
-      if (compilationUnit_directives.isNotEmpty)
+      }
+      if (compilationUnit_directives.isNotEmpty) {
         _result["compilationUnit_directives"] = compilationUnit_directives
             .map((_value) => _value.toJson())
             .toList();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.conditionalExpression) {
-      if (conditionalExpression_condition != null)
+      if (conditionalExpression_condition != null) {
         _result["conditionalExpression_condition"] =
             conditionalExpression_condition.toJson();
-      if (conditionalExpression_elseExpression != null)
+      }
+      if (conditionalExpression_elseExpression != null) {
         _result["conditionalExpression_elseExpression"] =
             conditionalExpression_elseExpression.toJson();
-      if (conditionalExpression_thenExpression != null)
+      }
+      if (conditionalExpression_thenExpression != null) {
         _result["conditionalExpression_thenExpression"] =
             conditionalExpression_thenExpression.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.configuration) {
-      if (configuration_name != null)
+      if (configuration_name != null) {
         _result["configuration_name"] = configuration_name.toJson();
-      if (configuration_value != null)
+      }
+      if (configuration_value != null) {
         _result["configuration_value"] = configuration_value.toJson();
-      if (configuration_uri != null)
+      }
+      if (configuration_uri != null) {
         _result["configuration_uri"] = configuration_uri.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.constructorDeclaration) {
-      if (constructorDeclaration_initializers.isNotEmpty)
+      if (constructorDeclaration_initializers.isNotEmpty) {
         _result["constructorDeclaration_initializers"] =
             constructorDeclaration_initializers
                 .map((_value) => _value.toJson())
                 .toList();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (constructorDeclaration_body != null)
+      }
+      if (constructorDeclaration_body != null) {
         _result["constructorDeclaration_body"] =
             constructorDeclaration_body.toJson();
-      if (constructorDeclaration_parameters != null)
+      }
+      if (constructorDeclaration_parameters != null) {
         _result["constructorDeclaration_parameters"] =
             constructorDeclaration_parameters.toJson();
-      if (constructorDeclaration_redirectedConstructor != null)
+      }
+      if (constructorDeclaration_redirectedConstructor != null) {
         _result["constructorDeclaration_redirectedConstructor"] =
             constructorDeclaration_redirectedConstructor.toJson();
-      if (constructorDeclaration_returnType != null)
+      }
+      if (constructorDeclaration_returnType != null) {
         _result["constructorDeclaration_returnType"] =
             constructorDeclaration_returnType.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
-      if (constructorFieldInitializer_expression != null)
+      if (constructorFieldInitializer_expression != null) {
         _result["constructorFieldInitializer_expression"] =
             constructorFieldInitializer_expression.toJson();
-      if (constructorFieldInitializer_fieldName != null)
+      }
+      if (constructorFieldInitializer_fieldName != null) {
         _result["constructorFieldInitializer_fieldName"] =
             constructorFieldInitializer_fieldName.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.constructorName) {
-      if (constructorName_name != null)
+      if (constructorName_name != null) {
         _result["constructorName_name"] = constructorName_name.toJson();
-      if (constructorName_type != null)
+      }
+      if (constructorName_type != null) {
         _result["constructorName_type"] = constructorName_type.toJson();
-      if (constructorName_substitution != null)
+      }
+      if (constructorName_substitution != null) {
         _result["constructorName_substitution"] =
             constructorName_substitution.toJson();
-      if (constructorName_element != 0)
+      }
+      if (constructorName_element != 0) {
         _result["constructorName_element"] = constructorName_element;
+      }
     }
     if (kind == idl.LinkedNodeKind.continueStatement) {
-      if (continueStatement_label != null)
+      if (continueStatement_label != null) {
         _result["continueStatement_label"] = continueStatement_label.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (declaredIdentifier_identifier != null)
+      }
+      if (declaredIdentifier_identifier != null) {
         _result["declaredIdentifier_identifier"] =
             declaredIdentifier_identifier.toJson();
-      if (declaredIdentifier_type != null)
+      }
+      if (declaredIdentifier_type != null) {
         _result["declaredIdentifier_type"] = declaredIdentifier_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
-      if (defaultFormalParameter_defaultValue != null)
+      if (defaultFormalParameter_defaultValue != null) {
         _result["defaultFormalParameter_defaultValue"] =
             defaultFormalParameter_defaultValue.toJson();
-      if (defaultFormalParameter_parameter != null)
+      }
+      if (defaultFormalParameter_parameter != null) {
         _result["defaultFormalParameter_parameter"] =
             defaultFormalParameter_parameter.toJson();
+      }
       if (defaultFormalParameter_kind !=
-          idl.LinkedNodeFormalParameterKind.requiredPositional)
+          idl.LinkedNodeFormalParameterKind.requiredPositional) {
         _result["defaultFormalParameter_kind"] =
             defaultFormalParameter_kind.toString().split('.')[1];
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.doStatement) {
-      if (doStatement_body != null)
+      if (doStatement_body != null) {
         _result["doStatement_body"] = doStatement_body.toJson();
-      if (doStatement_condition != null)
+      }
+      if (doStatement_condition != null) {
         _result["doStatement_condition"] = doStatement_condition.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.dottedName) {
-      if (dottedName_components.isNotEmpty)
+      if (dottedName_components.isNotEmpty) {
         _result["dottedName_components"] =
             dottedName_components.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.doubleLiteral) {
-      if (doubleLiteral_value != 0.0)
+      if (doubleLiteral_value != 0.0) {
         _result["doubleLiteral_value"] = doubleLiteral_value.isFinite
             ? doubleLiteral_value
             : doubleLiteral_value.toString();
+      }
     }
     if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
-      if (emptyFunctionBody_fake != 0)
+      if (emptyFunctionBody_fake != 0) {
         _result["emptyFunctionBody_fake"] = emptyFunctionBody_fake;
+      }
     }
     if (kind == idl.LinkedNodeKind.emptyStatement) {
-      if (emptyStatement_fake != 0)
+      if (emptyStatement_fake != 0) {
         _result["emptyStatement_fake"] = emptyStatement_fake;
+      }
     }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.enumDeclaration) {
-      if (enumDeclaration_constants.isNotEmpty)
+      if (enumDeclaration_constants.isNotEmpty) {
         _result["enumDeclaration_constants"] =
             enumDeclaration_constants.map((_value) => _value.toJson()).toList();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.exportDirective) {
-      if (namespaceDirective_combinators.isNotEmpty)
+      if (namespaceDirective_combinators.isNotEmpty) {
         _result["namespaceDirective_combinators"] =
             namespaceDirective_combinators
                 .map((_value) => _value.toJson())
                 .toList();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (namespaceDirective_configurations.isNotEmpty)
+      }
+      if (namespaceDirective_configurations.isNotEmpty) {
         _result["namespaceDirective_configurations"] =
             namespaceDirective_configurations
                 .map((_value) => _value.toJson())
                 .toList();
-      if (namespaceDirective_selectedUri != '')
+      }
+      if (namespaceDirective_selectedUri != '') {
         _result["namespaceDirective_selectedUri"] =
             namespaceDirective_selectedUri;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (uriBasedDirective_uri != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (uriBasedDirective_uri != null) {
         _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
-      if (uriBasedDirective_uriContent != '')
+      }
+      if (uriBasedDirective_uriContent != '') {
         _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
-      if (uriBasedDirective_uriElement != 0)
+      }
+      if (uriBasedDirective_uriElement != 0) {
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      }
     }
     if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
-      if (expressionFunctionBody_expression != null)
+      if (expressionFunctionBody_expression != null) {
         _result["expressionFunctionBody_expression"] =
             expressionFunctionBody_expression.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.expressionStatement) {
-      if (expressionStatement_expression != null)
+      if (expressionStatement_expression != null) {
         _result["expressionStatement_expression"] =
             expressionStatement_expression.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.extendsClause) {
-      if (extendsClause_superclass != null)
+      if (extendsClause_superclass != null) {
         _result["extendsClause_superclass"] = extendsClause_superclass.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.extensionDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (extensionDeclaration_typeParameters != null)
+      }
+      if (extensionDeclaration_typeParameters != null) {
         _result["extensionDeclaration_typeParameters"] =
             extensionDeclaration_typeParameters.toJson();
-      if (extensionDeclaration_extendedType != null)
+      }
+      if (extensionDeclaration_extendedType != null) {
         _result["extensionDeclaration_extendedType"] =
             extensionDeclaration_extendedType.toJson();
-      if (extensionDeclaration_members.isNotEmpty)
+      }
+      if (extensionDeclaration_members.isNotEmpty) {
         _result["extensionDeclaration_members"] = extensionDeclaration_members
             .map((_value) => _value.toJson())
             .toList();
-      if (extensionDeclaration_refName != '')
+      }
+      if (extensionDeclaration_refName != '') {
         _result["extensionDeclaration_refName"] = extensionDeclaration_refName;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.extensionOverride) {
-      if (extensionOverride_extendedType != null)
+      if (extensionOverride_extendedType != null) {
         _result["extensionOverride_extendedType"] =
             extensionOverride_extendedType.toJson();
-      if (extensionOverride_arguments.isNotEmpty)
+      }
+      if (extensionOverride_arguments.isNotEmpty) {
         _result["extensionOverride_arguments"] = extensionOverride_arguments
             .map((_value) => _value.toJson())
             .toList();
-      if (extensionOverride_extensionName != null)
+      }
+      if (extensionOverride_extensionName != null) {
         _result["extensionOverride_extensionName"] =
             extensionOverride_extensionName.toJson();
-      if (extensionOverride_typeArguments != null)
+      }
+      if (extensionOverride_typeArguments != null) {
         _result["extensionOverride_typeArguments"] =
             extensionOverride_typeArguments.toJson();
-      if (extensionOverride_typeArgumentTypes.isNotEmpty)
+      }
+      if (extensionOverride_typeArgumentTypes.isNotEmpty) {
         _result["extensionOverride_typeArgumentTypes"] =
             extensionOverride_typeArgumentTypes
                 .map((_value) => _value.toJson())
                 .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (fieldDeclaration_fields != null)
+      }
+      if (fieldDeclaration_fields != null) {
         _result["fieldDeclaration_fields"] = fieldDeclaration_fields.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
+      if (actualType != null) {
+        _result["actualType"] = actualType.toJson();
+      }
+      if (normalFormalParameter_metadata.isNotEmpty) {
         _result["normalFormalParameter_metadata"] =
             normalFormalParameter_metadata
                 .map((_value) => _value.toJson())
                 .toList();
-      if (fieldFormalParameter_type != null)
+      }
+      if (fieldFormalParameter_type != null) {
         _result["fieldFormalParameter_type"] =
             fieldFormalParameter_type.toJson();
-      if (fieldFormalParameter_typeParameters != null)
+      }
+      if (fieldFormalParameter_typeParameters != null) {
         _result["fieldFormalParameter_typeParameters"] =
             fieldFormalParameter_typeParameters.toJson();
-      if (fieldFormalParameter_formalParameters != null)
+      }
+      if (fieldFormalParameter_formalParameters != null) {
         _result["fieldFormalParameter_formalParameters"] =
             fieldFormalParameter_formalParameters.toJson();
-      if (inheritsCovariant != false)
+      }
+      if (inheritsCovariant != false) {
         _result["inheritsCovariant"] = inheritsCovariant;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
-      if (forEachParts_iterable != null)
+      if (forEachParts_iterable != null) {
         _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
-      if (forEachPartsWithDeclaration_loopVariable != null)
+      }
+      if (forEachPartsWithDeclaration_loopVariable != null) {
         _result["forEachPartsWithDeclaration_loopVariable"] =
             forEachPartsWithDeclaration_loopVariable.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.forEachPartsWithIdentifier) {
-      if (forEachParts_iterable != null)
+      if (forEachParts_iterable != null) {
         _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
-      if (forEachPartsWithIdentifier_identifier != null)
+      }
+      if (forEachPartsWithIdentifier_identifier != null) {
         _result["forEachPartsWithIdentifier_identifier"] =
             forEachPartsWithIdentifier_identifier.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.forElement) {
-      if (forMixin_forLoopParts != null)
+      if (forMixin_forLoopParts != null) {
         _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
-      if (forElement_body != null)
+      }
+      if (forElement_body != null) {
         _result["forElement_body"] = forElement_body.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
-      if (forParts_condition != null)
+      if (forParts_condition != null) {
         _result["forParts_condition"] = forParts_condition.toJson();
-      if (forPartsWithDeclarations_variables != null)
+      }
+      if (forPartsWithDeclarations_variables != null) {
         _result["forPartsWithDeclarations_variables"] =
             forPartsWithDeclarations_variables.toJson();
-      if (forParts_updaters.isNotEmpty)
+      }
+      if (forParts_updaters.isNotEmpty) {
         _result["forParts_updaters"] =
             forParts_updaters.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.forPartsWithExpression) {
-      if (forParts_condition != null)
+      if (forParts_condition != null) {
         _result["forParts_condition"] = forParts_condition.toJson();
-      if (forPartsWithExpression_initialization != null)
+      }
+      if (forPartsWithExpression_initialization != null) {
         _result["forPartsWithExpression_initialization"] =
             forPartsWithExpression_initialization.toJson();
-      if (forParts_updaters.isNotEmpty)
+      }
+      if (forParts_updaters.isNotEmpty) {
         _result["forParts_updaters"] =
             forParts_updaters.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.forStatement) {
-      if (forMixin_forLoopParts != null)
+      if (forMixin_forLoopParts != null) {
         _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
-      if (forStatement_body != null)
+      }
+      if (forStatement_body != null) {
         _result["forStatement_body"] = forStatement_body.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.formalParameterList) {
-      if (formalParameterList_parameters.isNotEmpty)
+      if (formalParameterList_parameters.isNotEmpty) {
         _result["formalParameterList_parameters"] =
             formalParameterList_parameters
                 .map((_value) => _value.toJson())
                 .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      if (actualReturnType != null)
+      if (actualReturnType != null) {
         _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionDeclaration_functionExpression != null)
+      }
+      if (functionDeclaration_functionExpression != null) {
         _result["functionDeclaration_functionExpression"] =
             functionDeclaration_functionExpression.toJson();
-      if (functionDeclaration_returnType != null)
+      }
+      if (functionDeclaration_returnType != null) {
         _result["functionDeclaration_returnType"] =
             functionDeclaration_returnType.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
-      if (functionDeclarationStatement_functionDeclaration != null)
+      if (functionDeclarationStatement_functionDeclaration != null) {
         _result["functionDeclarationStatement_functionDeclaration"] =
             functionDeclarationStatement_functionDeclaration.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.functionExpression) {
-      if (actualReturnType != null)
+      if (actualReturnType != null) {
         _result["actualReturnType"] = actualReturnType.toJson();
-      if (functionExpression_body != null)
+      }
+      if (functionExpression_body != null) {
         _result["functionExpression_body"] = functionExpression_body.toJson();
-      if (functionExpression_formalParameters != null)
+      }
+      if (functionExpression_formalParameters != null) {
         _result["functionExpression_formalParameters"] =
             functionExpression_formalParameters.toJson();
-      if (functionExpression_typeParameters != null)
+      }
+      if (functionExpression_typeParameters != null) {
         _result["functionExpression_typeParameters"] =
             functionExpression_typeParameters.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      if (invocationExpression_invokeType != null)
+      if (invocationExpression_invokeType != null) {
         _result["invocationExpression_invokeType"] =
             invocationExpression_invokeType.toJson();
-      if (functionExpressionInvocation_function != null)
+      }
+      if (functionExpressionInvocation_function != null) {
         _result["functionExpressionInvocation_function"] =
             functionExpressionInvocation_function.toJson();
-      if (invocationExpression_typeArguments != null)
+      }
+      if (invocationExpression_typeArguments != null) {
         _result["invocationExpression_typeArguments"] =
             invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
+      }
+      if (invocationExpression_arguments != null) {
         _result["invocationExpression_arguments"] =
             invocationExpression_arguments.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      if (actualReturnType != null)
+      if (actualReturnType != null) {
         _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionTypeAlias_formalParameters != null)
+      }
+      if (functionTypeAlias_formalParameters != null) {
         _result["functionTypeAlias_formalParameters"] =
             functionTypeAlias_formalParameters.toJson();
-      if (functionTypeAlias_returnType != null)
+      }
+      if (functionTypeAlias_returnType != null) {
         _result["functionTypeAlias_returnType"] =
             functionTypeAlias_returnType.toJson();
-      if (functionTypeAlias_typeParameters != null)
+      }
+      if (functionTypeAlias_typeParameters != null) {
         _result["functionTypeAlias_typeParameters"] =
             functionTypeAlias_typeParameters.toJson();
-      if (typeAlias_hasSelfReference != false)
+      }
+      if (typeAlias_hasSelfReference != false) {
         _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (simplyBoundable_isSimplyBounded != false)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (simplyBoundable_isSimplyBounded != false) {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
+      }
     }
     if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
+      if (actualType != null) {
+        _result["actualType"] = actualType.toJson();
+      }
+      if (normalFormalParameter_metadata.isNotEmpty) {
         _result["normalFormalParameter_metadata"] =
             normalFormalParameter_metadata
                 .map((_value) => _value.toJson())
                 .toList();
-      if (functionTypedFormalParameter_formalParameters != null)
+      }
+      if (functionTypedFormalParameter_formalParameters != null) {
         _result["functionTypedFormalParameter_formalParameters"] =
             functionTypedFormalParameter_formalParameters.toJson();
-      if (functionTypedFormalParameter_returnType != null)
+      }
+      if (functionTypedFormalParameter_returnType != null) {
         _result["functionTypedFormalParameter_returnType"] =
             functionTypedFormalParameter_returnType.toJson();
-      if (functionTypedFormalParameter_typeParameters != null)
+      }
+      if (functionTypedFormalParameter_typeParameters != null) {
         _result["functionTypedFormalParameter_typeParameters"] =
             functionTypedFormalParameter_typeParameters.toJson();
-      if (inheritsCovariant != false)
+      }
+      if (inheritsCovariant != false) {
         _result["inheritsCovariant"] = inheritsCovariant;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      if (actualReturnType != null)
+      if (actualReturnType != null) {
         _result["actualReturnType"] = actualReturnType.toJson();
-      if (genericFunctionType_typeParameters != null)
+      }
+      if (genericFunctionType_typeParameters != null) {
         _result["genericFunctionType_typeParameters"] =
             genericFunctionType_typeParameters.toJson();
-      if (genericFunctionType_returnType != null)
+      }
+      if (genericFunctionType_returnType != null) {
         _result["genericFunctionType_returnType"] =
             genericFunctionType_returnType.toJson();
-      if (genericFunctionType_id != 0)
+      }
+      if (genericFunctionType_id != 0) {
         _result["genericFunctionType_id"] = genericFunctionType_id;
-      if (genericFunctionType_formalParameters != null)
+      }
+      if (genericFunctionType_formalParameters != null) {
         _result["genericFunctionType_formalParameters"] =
             genericFunctionType_formalParameters.toJson();
-      if (genericFunctionType_type != null)
+      }
+      if (genericFunctionType_type != null) {
         _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (genericTypeAlias_typeParameters != null)
+      }
+      if (genericTypeAlias_typeParameters != null) {
         _result["genericTypeAlias_typeParameters"] =
             genericTypeAlias_typeParameters.toJson();
-      if (genericTypeAlias_functionType != null)
+      }
+      if (genericTypeAlias_functionType != null) {
         _result["genericTypeAlias_functionType"] =
             genericTypeAlias_functionType.toJson();
-      if (typeAlias_hasSelfReference != false)
+      }
+      if (typeAlias_hasSelfReference != false) {
         _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (simplyBoundable_isSimplyBounded != false)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (simplyBoundable_isSimplyBounded != false) {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
+      }
     }
     if (kind == idl.LinkedNodeKind.hideCombinator) {
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (names.isNotEmpty) _result["names"] = names;
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (names.isNotEmpty) {
+        _result["names"] = names;
+      }
     }
     if (kind == idl.LinkedNodeKind.ifElement) {
-      if (ifMixin_condition != null)
+      if (ifMixin_condition != null) {
         _result["ifMixin_condition"] = ifMixin_condition.toJson();
-      if (ifElement_thenElement != null)
+      }
+      if (ifElement_thenElement != null) {
         _result["ifElement_thenElement"] = ifElement_thenElement.toJson();
-      if (ifElement_elseElement != null)
+      }
+      if (ifElement_elseElement != null) {
         _result["ifElement_elseElement"] = ifElement_elseElement.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.ifStatement) {
-      if (ifMixin_condition != null)
+      if (ifMixin_condition != null) {
         _result["ifMixin_condition"] = ifMixin_condition.toJson();
-      if (ifStatement_elseStatement != null)
+      }
+      if (ifStatement_elseStatement != null) {
         _result["ifStatement_elseStatement"] =
             ifStatement_elseStatement.toJson();
-      if (ifStatement_thenStatement != null)
+      }
+      if (ifStatement_thenStatement != null) {
         _result["ifStatement_thenStatement"] =
             ifStatement_thenStatement.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.implementsClause) {
-      if (implementsClause_interfaces.isNotEmpty)
+      if (implementsClause_interfaces.isNotEmpty) {
         _result["implementsClause_interfaces"] = implementsClause_interfaces
             .map((_value) => _value.toJson())
             .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.importDirective) {
-      if (namespaceDirective_combinators.isNotEmpty)
+      if (namespaceDirective_combinators.isNotEmpty) {
         _result["namespaceDirective_combinators"] =
             namespaceDirective_combinators
                 .map((_value) => _value.toJson())
                 .toList();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (namespaceDirective_configurations.isNotEmpty)
+      }
+      if (namespaceDirective_configurations.isNotEmpty) {
         _result["namespaceDirective_configurations"] =
             namespaceDirective_configurations
                 .map((_value) => _value.toJson())
                 .toList();
-      if (namespaceDirective_selectedUri != '')
+      }
+      if (namespaceDirective_selectedUri != '') {
         _result["namespaceDirective_selectedUri"] =
             namespaceDirective_selectedUri;
-      if (importDirective_prefix != '')
+      }
+      if (importDirective_prefix != '') {
         _result["importDirective_prefix"] = importDirective_prefix;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (uriBasedDirective_uri != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (uriBasedDirective_uri != null) {
         _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
-      if (uriBasedDirective_uriContent != '')
+      }
+      if (uriBasedDirective_uriContent != '') {
         _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
-      if (uriBasedDirective_uriElement != 0)
+      }
+      if (uriBasedDirective_uriElement != 0) {
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      }
     }
     if (kind == idl.LinkedNodeKind.indexExpression) {
-      if (indexExpression_index != null)
+      if (indexExpression_index != null) {
         _result["indexExpression_index"] = indexExpression_index.toJson();
-      if (indexExpression_target != null)
+      }
+      if (indexExpression_target != null) {
         _result["indexExpression_target"] = indexExpression_target.toJson();
-      if (indexExpression_substitution != null)
+      }
+      if (indexExpression_substitution != null) {
         _result["indexExpression_substitution"] =
             indexExpression_substitution.toJson();
-      if (indexExpression_element != 0)
+      }
+      if (indexExpression_element != 0) {
         _result["indexExpression_element"] = indexExpression_element;
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
-      if (instanceCreationExpression_arguments.isNotEmpty)
+      if (instanceCreationExpression_arguments.isNotEmpty) {
         _result["instanceCreationExpression_arguments"] =
             instanceCreationExpression_arguments
                 .map((_value) => _value.toJson())
                 .toList();
-      if (instanceCreationExpression_constructorName != null)
+      }
+      if (instanceCreationExpression_constructorName != null) {
         _result["instanceCreationExpression_constructorName"] =
             instanceCreationExpression_constructorName.toJson();
-      if (instanceCreationExpression_typeArguments != null)
+      }
+      if (instanceCreationExpression_typeArguments != null) {
         _result["instanceCreationExpression_typeArguments"] =
             instanceCreationExpression_typeArguments.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.integerLiteral) {
-      if (expression_type != null)
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
-      if (integerLiteral_value != 0)
+      }
+      if (integerLiteral_value != 0) {
         _result["integerLiteral_value"] = integerLiteral_value;
+      }
     }
     if (kind == idl.LinkedNodeKind.interpolationExpression) {
-      if (interpolationExpression_expression != null)
+      if (interpolationExpression_expression != null) {
         _result["interpolationExpression_expression"] =
             interpolationExpression_expression.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.interpolationString) {
-      if (interpolationString_value != '')
+      if (interpolationString_value != '') {
         _result["interpolationString_value"] = interpolationString_value;
+      }
     }
     if (kind == idl.LinkedNodeKind.isExpression) {
-      if (isExpression_expression != null)
+      if (isExpression_expression != null) {
         _result["isExpression_expression"] = isExpression_expression.toJson();
-      if (isExpression_type != null)
+      }
+      if (isExpression_type != null) {
         _result["isExpression_type"] = isExpression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.label) {
-      if (label_label != null) _result["label_label"] = label_label.toJson();
+      if (label_label != null) {
+        _result["label_label"] = label_label.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.labeledStatement) {
-      if (labeledStatement_labels.isNotEmpty)
+      if (labeledStatement_labels.isNotEmpty) {
         _result["labeledStatement_labels"] =
             labeledStatement_labels.map((_value) => _value.toJson()).toList();
-      if (labeledStatement_statement != null)
+      }
+      if (labeledStatement_statement != null) {
         _result["labeledStatement_statement"] =
             labeledStatement_statement.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (libraryDirective_name != null)
+      }
+      if (libraryDirective_name != null) {
         _result["libraryDirective_name"] = libraryDirective_name.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.libraryIdentifier) {
-      if (libraryIdentifier_components.isNotEmpty)
+      if (libraryIdentifier_components.isNotEmpty) {
         _result["libraryIdentifier_components"] = libraryIdentifier_components
             .map((_value) => _value.toJson())
             .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.listLiteral) {
-      if (typedLiteral_typeArguments.isNotEmpty)
+      if (typedLiteral_typeArguments.isNotEmpty) {
         _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
             .map((_value) => _value.toJson())
             .toList();
-      if (listLiteral_elements.isNotEmpty)
+      }
+      if (listLiteral_elements.isNotEmpty) {
         _result["listLiteral_elements"] =
             listLiteral_elements.map((_value) => _value.toJson()).toList();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
-      if (mapLiteralEntry_key != null)
+      if (mapLiteralEntry_key != null) {
         _result["mapLiteralEntry_key"] = mapLiteralEntry_key.toJson();
-      if (mapLiteralEntry_value != null)
+      }
+      if (mapLiteralEntry_value != null) {
         _result["mapLiteralEntry_value"] = mapLiteralEntry_value.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      if (actualReturnType != null)
+      if (actualReturnType != null) {
         _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (methodDeclaration_body != null)
+      }
+      if (methodDeclaration_body != null) {
         _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
-      if (methodDeclaration_formalParameters != null)
+      }
+      if (methodDeclaration_formalParameters != null) {
         _result["methodDeclaration_formalParameters"] =
             methodDeclaration_formalParameters.toJson();
-      if (methodDeclaration_returnType != null)
+      }
+      if (methodDeclaration_returnType != null) {
         _result["methodDeclaration_returnType"] =
             methodDeclaration_returnType.toJson();
-      if (methodDeclaration_typeParameters != null)
+      }
+      if (methodDeclaration_typeParameters != null) {
         _result["methodDeclaration_typeParameters"] =
             methodDeclaration_typeParameters.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
       if (methodDeclaration_hasOperatorEqualWithParameterTypeFromObject !=
-          false)
+          false) {
         _result["methodDeclaration_hasOperatorEqualWithParameterTypeFromObject"] =
             methodDeclaration_hasOperatorEqualWithParameterTypeFromObject;
+      }
     }
     if (kind == idl.LinkedNodeKind.methodInvocation) {
-      if (invocationExpression_invokeType != null)
+      if (invocationExpression_invokeType != null) {
         _result["invocationExpression_invokeType"] =
             invocationExpression_invokeType.toJson();
-      if (methodInvocation_methodName != null)
+      }
+      if (methodInvocation_methodName != null) {
         _result["methodInvocation_methodName"] =
             methodInvocation_methodName.toJson();
-      if (methodInvocation_target != null)
+      }
+      if (methodInvocation_target != null) {
         _result["methodInvocation_target"] = methodInvocation_target.toJson();
-      if (invocationExpression_typeArguments != null)
+      }
+      if (invocationExpression_typeArguments != null) {
         _result["invocationExpression_typeArguments"] =
             invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
+      }
+      if (invocationExpression_arguments != null) {
         _result["invocationExpression_arguments"] =
             invocationExpression_arguments.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.mixinDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (mixinDeclaration_onClause != null)
+      }
+      if (mixinDeclaration_onClause != null) {
         _result["mixinDeclaration_onClause"] =
             mixinDeclaration_onClause.toJson();
-      if (classOrMixinDeclaration_implementsClause != null)
+      }
+      if (classOrMixinDeclaration_implementsClause != null) {
         _result["classOrMixinDeclaration_implementsClause"] =
             classOrMixinDeclaration_implementsClause.toJson();
-      if (classOrMixinDeclaration_members.isNotEmpty)
+      }
+      if (classOrMixinDeclaration_members.isNotEmpty) {
         _result["classOrMixinDeclaration_members"] =
             classOrMixinDeclaration_members
                 .map((_value) => _value.toJson())
                 .toList();
-      if (classOrMixinDeclaration_typeParameters != null)
+      }
+      if (classOrMixinDeclaration_typeParameters != null) {
         _result["classOrMixinDeclaration_typeParameters"] =
             classOrMixinDeclaration_typeParameters.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (simplyBoundable_isSimplyBounded != false)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (simplyBoundable_isSimplyBounded != false) {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
-      if (mixinDeclaration_superInvokedNames.isNotEmpty)
+      }
+      if (mixinDeclaration_superInvokedNames.isNotEmpty) {
         _result["mixinDeclaration_superInvokedNames"] =
             mixinDeclaration_superInvokedNames;
+      }
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {
-      if (namedExpression_expression != null)
+      if (namedExpression_expression != null) {
         _result["namedExpression_expression"] =
             namedExpression_expression.toJson();
-      if (namedExpression_name != null)
+      }
+      if (namedExpression_name != null) {
         _result["namedExpression_name"] = namedExpression_name.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.nativeClause) {
-      if (nativeClause_name != null)
+      if (nativeClause_name != null) {
         _result["nativeClause_name"] = nativeClause_name.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
-      if (nativeFunctionBody_stringLiteral != null)
+      if (nativeFunctionBody_stringLiteral != null) {
         _result["nativeFunctionBody_stringLiteral"] =
             nativeFunctionBody_stringLiteral.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.nullLiteral) {
-      if (nullLiteral_fake != 0) _result["nullLiteral_fake"] = nullLiteral_fake;
-      if (expression_type != null)
+      if (nullLiteral_fake != 0) {
+        _result["nullLiteral_fake"] = nullLiteral_fake;
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.onClause) {
-      if (onClause_superclassConstraints.isNotEmpty)
+      if (onClause_superclassConstraints.isNotEmpty) {
         _result["onClause_superclassConstraints"] =
             onClause_superclassConstraints
                 .map((_value) => _value.toJson())
                 .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
-      if (parenthesizedExpression_expression != null)
+      if (parenthesizedExpression_expression != null) {
         _result["parenthesizedExpression_expression"] =
             parenthesizedExpression_expression.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.partDirective) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (uriBasedDirective_uri != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (uriBasedDirective_uri != null) {
         _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
-      if (uriBasedDirective_uriContent != '')
+      }
+      if (uriBasedDirective_uriContent != '') {
         _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
-      if (uriBasedDirective_uriElement != 0)
+      }
+      if (uriBasedDirective_uriElement != 0) {
         _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+      }
     }
     if (kind == idl.LinkedNodeKind.partOfDirective) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (partOfDirective_libraryName != null)
+      }
+      if (partOfDirective_libraryName != null) {
         _result["partOfDirective_libraryName"] =
             partOfDirective_libraryName.toJson();
-      if (partOfDirective_uri != null)
+      }
+      if (partOfDirective_uri != null) {
         _result["partOfDirective_uri"] = partOfDirective_uri.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.postfixExpression) {
-      if (postfixExpression_operand != null)
+      if (postfixExpression_operand != null) {
         _result["postfixExpression_operand"] =
             postfixExpression_operand.toJson();
-      if (postfixExpression_substitution != null)
+      }
+      if (postfixExpression_substitution != null) {
         _result["postfixExpression_substitution"] =
             postfixExpression_substitution.toJson();
-      if (postfixExpression_element != 0)
+      }
+      if (postfixExpression_element != 0) {
         _result["postfixExpression_element"] = postfixExpression_element;
-      if (postfixExpression_operator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (postfixExpression_operator != idl.UnlinkedTokenType.NOTHING) {
         _result["postfixExpression_operator"] =
             postfixExpression_operator.toString().split('.')[1];
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.prefixExpression) {
-      if (prefixExpression_operand != null)
+      if (prefixExpression_operand != null) {
         _result["prefixExpression_operand"] = prefixExpression_operand.toJson();
-      if (prefixExpression_substitution != null)
+      }
+      if (prefixExpression_substitution != null) {
         _result["prefixExpression_substitution"] =
             prefixExpression_substitution.toJson();
-      if (prefixExpression_element != 0)
+      }
+      if (prefixExpression_element != 0) {
         _result["prefixExpression_element"] = prefixExpression_element;
-      if (prefixExpression_operator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (prefixExpression_operator != idl.UnlinkedTokenType.NOTHING) {
         _result["prefixExpression_operator"] =
             prefixExpression_operator.toString().split('.')[1];
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
-      if (prefixedIdentifier_identifier != null)
+      if (prefixedIdentifier_identifier != null) {
         _result["prefixedIdentifier_identifier"] =
             prefixedIdentifier_identifier.toJson();
-      if (prefixedIdentifier_prefix != null)
+      }
+      if (prefixedIdentifier_prefix != null) {
         _result["prefixedIdentifier_prefix"] =
             prefixedIdentifier_prefix.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.propertyAccess) {
-      if (propertyAccess_propertyName != null)
+      if (propertyAccess_propertyName != null) {
         _result["propertyAccess_propertyName"] =
             propertyAccess_propertyName.toJson();
-      if (propertyAccess_target != null)
+      }
+      if (propertyAccess_target != null) {
         _result["propertyAccess_target"] = propertyAccess_target.toJson();
-      if (propertyAccess_operator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (propertyAccess_operator != idl.UnlinkedTokenType.NOTHING) {
         _result["propertyAccess_operator"] =
             propertyAccess_operator.toString().split('.')[1];
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.redirectingConstructorInvocation) {
-      if (redirectingConstructorInvocation_arguments != null)
+      if (redirectingConstructorInvocation_arguments != null) {
         _result["redirectingConstructorInvocation_arguments"] =
             redirectingConstructorInvocation_arguments.toJson();
-      if (redirectingConstructorInvocation_constructorName != null)
+      }
+      if (redirectingConstructorInvocation_constructorName != null) {
         _result["redirectingConstructorInvocation_constructorName"] =
             redirectingConstructorInvocation_constructorName.toJson();
-      if (redirectingConstructorInvocation_substitution != null)
+      }
+      if (redirectingConstructorInvocation_substitution != null) {
         _result["redirectingConstructorInvocation_substitution"] =
             redirectingConstructorInvocation_substitution.toJson();
-      if (redirectingConstructorInvocation_element != 0)
+      }
+      if (redirectingConstructorInvocation_element != 0) {
         _result["redirectingConstructorInvocation_element"] =
             redirectingConstructorInvocation_element;
+      }
     }
     if (kind == idl.LinkedNodeKind.rethrowExpression) {
-      if (expression_type != null)
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.returnStatement) {
-      if (returnStatement_expression != null)
+      if (returnStatement_expression != null) {
         _result["returnStatement_expression"] =
             returnStatement_expression.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
-      if (typedLiteral_typeArguments.isNotEmpty)
+      if (typedLiteral_typeArguments.isNotEmpty) {
         _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
             .map((_value) => _value.toJson())
             .toList();
-      if (setOrMapLiteral_elements.isNotEmpty)
+      }
+      if (setOrMapLiteral_elements.isNotEmpty) {
         _result["setOrMapLiteral_elements"] =
             setOrMapLiteral_elements.map((_value) => _value.toJson()).toList();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.showCombinator) {
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (names.isNotEmpty) _result["names"] = names;
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (names.isNotEmpty) {
+        _result["names"] = names;
+      }
     }
     if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
+      if (actualType != null) {
+        _result["actualType"] = actualType.toJson();
+      }
+      if (normalFormalParameter_metadata.isNotEmpty) {
         _result["normalFormalParameter_metadata"] =
             normalFormalParameter_metadata
                 .map((_value) => _value.toJson())
                 .toList();
-      if (simpleFormalParameter_type != null)
+      }
+      if (simpleFormalParameter_type != null) {
         _result["simpleFormalParameter_type"] =
             simpleFormalParameter_type.toJson();
-      if (inheritsCovariant != false)
+      }
+      if (inheritsCovariant != false) {
         _result["inheritsCovariant"] = inheritsCovariant;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (topLevelTypeInferenceError != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (topLevelTypeInferenceError != null) {
         _result["topLevelTypeInferenceError"] =
             topLevelTypeInferenceError.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.simpleIdentifier) {
-      if (simpleIdentifier_substitution != null)
+      if (simpleIdentifier_substitution != null) {
         _result["simpleIdentifier_substitution"] =
             simpleIdentifier_substitution.toJson();
-      if (simpleIdentifier_element != 0)
+      }
+      if (simpleIdentifier_element != 0) {
         _result["simpleIdentifier_element"] = simpleIdentifier_element;
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
-      if (simpleStringLiteral_value != '')
+      if (simpleStringLiteral_value != '') {
         _result["simpleStringLiteral_value"] = simpleStringLiteral_value;
+      }
     }
     if (kind == idl.LinkedNodeKind.spreadElement) {
-      if (spreadElement_expression != null)
+      if (spreadElement_expression != null) {
         _result["spreadElement_expression"] = spreadElement_expression.toJson();
-      if (spreadElement_spreadOperator != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (spreadElement_spreadOperator != idl.UnlinkedTokenType.NOTHING) {
         _result["spreadElement_spreadOperator"] =
             spreadElement_spreadOperator.toString().split('.')[1];
+      }
     }
     if (kind == idl.LinkedNodeKind.stringInterpolation) {
-      if (stringInterpolation_elements.isNotEmpty)
+      if (stringInterpolation_elements.isNotEmpty) {
         _result["stringInterpolation_elements"] = stringInterpolation_elements
             .map((_value) => _value.toJson())
             .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.superConstructorInvocation) {
-      if (superConstructorInvocation_arguments != null)
+      if (superConstructorInvocation_arguments != null) {
         _result["superConstructorInvocation_arguments"] =
             superConstructorInvocation_arguments.toJson();
-      if (superConstructorInvocation_constructorName != null)
+      }
+      if (superConstructorInvocation_constructorName != null) {
         _result["superConstructorInvocation_constructorName"] =
             superConstructorInvocation_constructorName.toJson();
-      if (superConstructorInvocation_substitution != null)
+      }
+      if (superConstructorInvocation_substitution != null) {
         _result["superConstructorInvocation_substitution"] =
             superConstructorInvocation_substitution.toJson();
-      if (superConstructorInvocation_element != 0)
+      }
+      if (superConstructorInvocation_element != 0) {
         _result["superConstructorInvocation_element"] =
             superConstructorInvocation_element;
+      }
     }
     if (kind == idl.LinkedNodeKind.superExpression) {
-      if (expression_type != null)
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.switchCase) {
-      if (switchMember_statements.isNotEmpty)
+      if (switchMember_statements.isNotEmpty) {
         _result["switchMember_statements"] =
             switchMember_statements.map((_value) => _value.toJson()).toList();
-      if (switchCase_expression != null)
+      }
+      if (switchCase_expression != null) {
         _result["switchCase_expression"] = switchCase_expression.toJson();
-      if (switchMember_labels.isNotEmpty)
+      }
+      if (switchMember_labels.isNotEmpty) {
         _result["switchMember_labels"] =
             switchMember_labels.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.switchDefault) {
-      if (switchMember_statements.isNotEmpty)
+      if (switchMember_statements.isNotEmpty) {
         _result["switchMember_statements"] =
             switchMember_statements.map((_value) => _value.toJson()).toList();
-      if (switchMember_labels.isNotEmpty)
+      }
+      if (switchMember_labels.isNotEmpty) {
         _result["switchMember_labels"] =
             switchMember_labels.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.switchStatement) {
-      if (switchStatement_members.isNotEmpty)
+      if (switchStatement_members.isNotEmpty) {
         _result["switchStatement_members"] =
             switchStatement_members.map((_value) => _value.toJson()).toList();
-      if (switchStatement_expression != null)
+      }
+      if (switchStatement_expression != null) {
         _result["switchStatement_expression"] =
             switchStatement_expression.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.symbolLiteral) {
-      if (expression_type != null)
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
-      if (names.isNotEmpty) _result["names"] = names;
+      }
+      if (names.isNotEmpty) {
+        _result["names"] = names;
+      }
     }
     if (kind == idl.LinkedNodeKind.thisExpression) {
-      if (expression_type != null)
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.throwExpression) {
-      if (throwExpression_expression != null)
+      if (throwExpression_expression != null) {
         _result["throwExpression_expression"] =
             throwExpression_expression.toJson();
-      if (expression_type != null)
+      }
+      if (expression_type != null) {
         _result["expression_type"] = expression_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (topLevelVariableDeclaration_variableList != null)
+      }
+      if (topLevelVariableDeclaration_variableList != null) {
         _result["topLevelVariableDeclaration_variableList"] =
             topLevelVariableDeclaration_variableList.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.tryStatement) {
-      if (tryStatement_catchClauses.isNotEmpty)
+      if (tryStatement_catchClauses.isNotEmpty) {
         _result["tryStatement_catchClauses"] =
             tryStatement_catchClauses.map((_value) => _value.toJson()).toList();
-      if (tryStatement_body != null)
+      }
+      if (tryStatement_body != null) {
         _result["tryStatement_body"] = tryStatement_body.toJson();
-      if (tryStatement_finallyBlock != null)
+      }
+      if (tryStatement_finallyBlock != null) {
         _result["tryStatement_finallyBlock"] =
             tryStatement_finallyBlock.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.typeArgumentList) {
-      if (typeArgumentList_arguments.isNotEmpty)
+      if (typeArgumentList_arguments.isNotEmpty) {
         _result["typeArgumentList_arguments"] = typeArgumentList_arguments
             .map((_value) => _value.toJson())
             .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.typeName) {
-      if (typeName_typeArguments.isNotEmpty)
+      if (typeName_typeArguments.isNotEmpty) {
         _result["typeName_typeArguments"] =
             typeName_typeArguments.map((_value) => _value.toJson()).toList();
-      if (typeName_name != null)
+      }
+      if (typeName_name != null) {
         _result["typeName_name"] = typeName_name.toJson();
-      if (typeName_type != null)
+      }
+      if (typeName_type != null) {
         _result["typeName_type"] = typeName_type.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.typeParameter) {
-      if (annotatedNode_metadata.isNotEmpty)
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (typeParameter_bound != null)
+      }
+      if (typeParameter_bound != null) {
         _result["typeParameter_bound"] = typeParameter_bound.toJson();
-      if (typeParameter_variance != idl.UnlinkedTokenType.NOTHING)
+      }
+      if (typeParameter_variance != idl.UnlinkedTokenType.NOTHING) {
         _result["typeParameter_variance"] =
             typeParameter_variance.toString().split('.')[1];
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (typeParameter_defaultType != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (typeParameter_defaultType != null) {
         _result["typeParameter_defaultType"] =
             typeParameter_defaultType.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.typeParameterList) {
-      if (typeParameterList_typeParameters.isNotEmpty)
+      if (typeParameterList_typeParameters.isNotEmpty) {
         _result["typeParameterList_typeParameters"] =
             typeParameterList_typeParameters
                 .map((_value) => _value.toJson())
                 .toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
+      if (actualType != null) {
+        _result["actualType"] = actualType.toJson();
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclaration_initializer != null)
+      }
+      if (variableDeclaration_initializer != null) {
         _result["variableDeclaration_initializer"] =
             variableDeclaration_initializer.toJson();
-      if (inheritsCovariant != false)
+      }
+      if (inheritsCovariant != false) {
         _result["inheritsCovariant"] = inheritsCovariant;
-      if (informativeId != 0) _result["informativeId"] = informativeId;
-      if (topLevelTypeInferenceError != null)
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
+      if (topLevelTypeInferenceError != null) {
         _result["topLevelTypeInferenceError"] =
             topLevelTypeInferenceError.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.variableDeclarationList) {
-      if (variableDeclarationList_variables.isNotEmpty)
+      if (variableDeclarationList_variables.isNotEmpty) {
         _result["variableDeclarationList_variables"] =
             variableDeclarationList_variables
                 .map((_value) => _value.toJson())
                 .toList();
-      if (annotatedNode_metadata.isNotEmpty)
+      }
+      if (annotatedNode_metadata.isNotEmpty) {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclarationList_type != null)
+      }
+      if (variableDeclarationList_type != null) {
         _result["variableDeclarationList_type"] =
             variableDeclarationList_type.toJson();
-      if (informativeId != 0) _result["informativeId"] = informativeId;
+      }
+      if (informativeId != 0) {
+        _result["informativeId"] = informativeId;
+      }
     }
     if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
-      if (variableDeclarationStatement_variables != null)
+      if (variableDeclarationStatement_variables != null) {
         _result["variableDeclarationStatement_variables"] =
             variableDeclarationStatement_variables.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.whileStatement) {
-      if (whileStatement_body != null)
+      if (whileStatement_body != null) {
         _result["whileStatement_body"] = whileStatement_body.toJson();
-      if (whileStatement_condition != null)
+      }
+      if (whileStatement_condition != null) {
         _result["whileStatement_condition"] = whileStatement_condition.toJson();
+      }
     }
     if (kind == idl.LinkedNodeKind.withClause) {
-      if (withClause_mixinTypes.isNotEmpty)
+      if (withClause_mixinTypes.isNotEmpty) {
         _result["withClause_mixinTypes"] =
             withClause_mixinTypes.map((_value) => _value.toJson()).toList();
+      }
     }
     if (kind == idl.LinkedNodeKind.yieldStatement) {
-      if (yieldStatement_expression != null)
+      if (yieldStatement_expression != null) {
         _result["yieldStatement_expression"] =
             yieldStatement_expression.toJson();
+      }
     }
     return _result;
   }
@@ -14940,7 +15485,7 @@ class LinkedNodeBundleBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "LNBn");
   }
 
@@ -14966,7 +15511,7 @@ class LinkedNodeBundleBuilder extends Object
 }
 
 idl.LinkedNodeBundle readLinkedNodeBundle(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _LinkedNodeBundleReader().read(rootRef, 0);
 }
 
@@ -14975,7 +15520,7 @@ class _LinkedNodeBundleReader extends fb.TableReader<_LinkedNodeBundleImpl> {
 
   @override
   _LinkedNodeBundleImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeBundleImpl(bc, offset);
+      _LinkedNodeBundleImpl(bc, offset);
 }
 
 class _LinkedNodeBundleImpl extends Object
@@ -15009,10 +15554,13 @@ abstract class _LinkedNodeBundleMixin implements idl.LinkedNodeBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (libraries.isNotEmpty)
+    if (libraries.isNotEmpty) {
       _result["libraries"] =
           libraries.map((_value) => _value.toJson()).toList();
-    if (references != null) _result["references"] = references.toJson();
+    }
+    if (references != null) {
+      _result["references"] = references.toJson();
+    }
     return _result;
   }
 
@@ -15170,7 +15718,7 @@ class _LinkedNodeLibraryReader extends fb.TableReader<_LinkedNodeLibraryImpl> {
 
   @override
   _LinkedNodeLibraryImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeLibraryImpl(bc, offset);
+      _LinkedNodeLibraryImpl(bc, offset);
 }
 
 class _LinkedNodeLibraryImpl extends Object
@@ -15232,13 +15780,24 @@ abstract class _LinkedNodeLibraryMixin implements idl.LinkedNodeLibrary {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (exports.isNotEmpty) _result["exports"] = exports;
-    if (name != '') _result["name"] = name;
-    if (nameLength != 0) _result["nameLength"] = nameLength;
-    if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    if (units.isNotEmpty)
+    if (exports.isNotEmpty) {
+      _result["exports"] = exports;
+    }
+    if (name != '') {
+      _result["name"] = name;
+    }
+    if (nameLength != 0) {
+      _result["nameLength"] = nameLength;
+    }
+    if (nameOffset != 0) {
+      _result["nameOffset"] = nameOffset;
+    }
+    if (units.isNotEmpty) {
       _result["units"] = units.map((_value) => _value.toJson()).toList();
-    if (uriStr != '') _result["uriStr"] = uriStr;
+    }
+    if (uriStr != '') {
+      _result["uriStr"] = uriStr;
+    }
     return _result;
   }
 
@@ -15331,7 +15890,7 @@ class _LinkedNodeReferencesReader
 
   @override
   _LinkedNodeReferencesImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeReferencesImpl(bc, offset);
+      _LinkedNodeReferencesImpl(bc, offset);
 }
 
 class _LinkedNodeReferencesImpl extends Object
@@ -15364,8 +15923,12 @@ abstract class _LinkedNodeReferencesMixin implements idl.LinkedNodeReferences {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (name.isNotEmpty) _result["name"] = name;
-    if (parent.isNotEmpty) _result["parent"] = parent;
+    if (name.isNotEmpty) {
+      _result["name"] = name;
+    }
+    if (parent.isNotEmpty) {
+      _result["parent"] = parent;
+    }
     return _result;
   }
 
@@ -15634,7 +16197,7 @@ class _LinkedNodeTypeReader extends fb.TableReader<_LinkedNodeTypeImpl> {
 
   @override
   _LinkedNodeTypeImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeImpl(bc, offset);
+      _LinkedNodeTypeImpl(bc, offset);
 }
 
 class _LinkedNodeTypeImpl extends Object
@@ -15746,30 +16309,44 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (functionFormalParameters.isNotEmpty)
+    if (functionFormalParameters.isNotEmpty) {
       _result["functionFormalParameters"] =
           functionFormalParameters.map((_value) => _value.toJson()).toList();
-    if (functionReturnType != null)
+    }
+    if (functionReturnType != null) {
       _result["functionReturnType"] = functionReturnType.toJson();
-    if (functionTypedef != 0) _result["functionTypedef"] = functionTypedef;
-    if (functionTypedefTypeArguments.isNotEmpty)
+    }
+    if (functionTypedef != 0) {
+      _result["functionTypedef"] = functionTypedef;
+    }
+    if (functionTypedefTypeArguments.isNotEmpty) {
       _result["functionTypedefTypeArguments"] = functionTypedefTypeArguments
           .map((_value) => _value.toJson())
           .toList();
-    if (functionTypeParameters.isNotEmpty)
+    }
+    if (functionTypeParameters.isNotEmpty) {
       _result["functionTypeParameters"] =
           functionTypeParameters.map((_value) => _value.toJson()).toList();
-    if (interfaceClass != 0) _result["interfaceClass"] = interfaceClass;
-    if (interfaceTypeArguments.isNotEmpty)
+    }
+    if (interfaceClass != 0) {
+      _result["interfaceClass"] = interfaceClass;
+    }
+    if (interfaceTypeArguments.isNotEmpty) {
       _result["interfaceTypeArguments"] =
           interfaceTypeArguments.map((_value) => _value.toJson()).toList();
-    if (kind != idl.LinkedNodeTypeKind.bottom)
+    }
+    if (kind != idl.LinkedNodeTypeKind.bottom) {
       _result["kind"] = kind.toString().split('.')[1];
-    if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant)
+    }
+    if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
       _result["nullabilitySuffix"] = nullabilitySuffix.toString().split('.')[1];
-    if (typeParameterElement != 0)
+    }
+    if (typeParameterElement != 0) {
       _result["typeParameterElement"] = typeParameterElement;
-    if (typeParameterId != 0) _result["typeParameterId"] = typeParameterId;
+    }
+    if (typeParameterId != 0) {
+      _result["typeParameterId"] = typeParameterId;
+    }
     return _result;
   }
 
@@ -15873,7 +16450,7 @@ class _LinkedNodeTypeFormalParameterReader
   @override
   _LinkedNodeTypeFormalParameterImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeFormalParameterImpl(bc, offset);
+      _LinkedNodeTypeFormalParameterImpl(bc, offset);
 }
 
 class _LinkedNodeTypeFormalParameterImpl extends Object
@@ -15913,10 +16490,15 @@ abstract class _LinkedNodeTypeFormalParameterMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (kind != idl.LinkedNodeFormalParameterKind.requiredPositional)
+    if (kind != idl.LinkedNodeFormalParameterKind.requiredPositional) {
       _result["kind"] = kind.toString().split('.')[1];
-    if (name != '') _result["name"] = name;
-    if (type != null) _result["type"] = type.toJson();
+    }
+    if (name != '') {
+      _result["name"] = name;
+    }
+    if (type != null) {
+      _result["type"] = type.toJson();
+    }
     return _result;
   }
 
@@ -16011,7 +16593,7 @@ class _LinkedNodeTypeSubstitutionReader
   @override
   _LinkedNodeTypeSubstitutionImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeSubstitutionImpl(bc, offset);
+      _LinkedNodeTypeSubstitutionImpl(bc, offset);
 }
 
 class _LinkedNodeTypeSubstitutionImpl extends Object
@@ -16046,10 +16628,13 @@ abstract class _LinkedNodeTypeSubstitutionMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (typeArguments.isNotEmpty)
+    if (typeArguments.isNotEmpty) {
       _result["typeArguments"] =
           typeArguments.map((_value) => _value.toJson()).toList();
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters;
+    }
+    if (typeParameters.isNotEmpty) {
+      _result["typeParameters"] = typeParameters;
+    }
     return _result;
   }
 
@@ -16126,7 +16711,7 @@ class _LinkedNodeTypeTypeParameterReader
   @override
   _LinkedNodeTypeTypeParameterImpl createObject(
           fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeTypeParameterImpl(bc, offset);
+      _LinkedNodeTypeTypeParameterImpl(bc, offset);
 }
 
 class _LinkedNodeTypeTypeParameterImpl extends Object
@@ -16158,8 +16743,12 @@ abstract class _LinkedNodeTypeTypeParameterMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (bound != null) _result["bound"] = bound.toJson();
-    if (name != '') _result["name"] = name;
+    if (bound != null) {
+      _result["bound"] = bound.toJson();
+    }
+    if (name != '') {
+      _result["name"] = name;
+    }
     return _result;
   }
 
@@ -16285,7 +16874,7 @@ class _LinkedNodeUnitReader extends fb.TableReader<_LinkedNodeUnitImpl> {
 
   @override
   _LinkedNodeUnitImpl createObject(fb.BufferContext bc, int offset) =>
-      new _LinkedNodeUnitImpl(bc, offset);
+      _LinkedNodeUnitImpl(bc, offset);
 }
 
 class _LinkedNodeUnitImpl extends Object
@@ -16337,11 +16926,21 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (isNNBD != false) _result["isNNBD"] = isNNBD;
-    if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
-    if (node != null) _result["node"] = node.toJson();
-    if (partUriStr != '') _result["partUriStr"] = partUriStr;
-    if (uriStr != '') _result["uriStr"] = uriStr;
+    if (isNNBD != false) {
+      _result["isNNBD"] = isNNBD;
+    }
+    if (isSynthetic != false) {
+      _result["isSynthetic"] = isSynthetic;
+    }
+    if (node != null) {
+      _result["node"] = node.toJson();
+    }
+    if (partUriStr != '') {
+      _result["partUriStr"] = partUriStr;
+    }
+    if (uriStr != '') {
+      _result["uriStr"] = uriStr;
+    }
     return _result;
   }
 
@@ -16385,7 +16984,7 @@ class PackageBundleBuilder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
 
@@ -16403,7 +17002,7 @@ class PackageBundleBuilder extends Object
 }
 
 idl.PackageBundle readPackageBundle(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _PackageBundleReader().read(rootRef, 0);
 }
 
@@ -16412,7 +17011,7 @@ class _PackageBundleReader extends fb.TableReader<_PackageBundleImpl> {
 
   @override
   _PackageBundleImpl createObject(fb.BufferContext bc, int offset) =>
-      new _PackageBundleImpl(bc, offset);
+      _PackageBundleImpl(bc, offset);
 }
 
 class _PackageBundleImpl extends Object
@@ -16437,7 +17036,9 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (bundle2 != null) _result["bundle2"] = bundle2.toJson();
+    if (bundle2 != null) {
+      _result["bundle2"] = bundle2.toJson();
+    }
     return _result;
   }
 
@@ -16534,7 +17135,7 @@ class _TopLevelInferenceErrorReader
 
   @override
   _TopLevelInferenceErrorImpl createObject(fb.BufferContext bc, int offset) =>
-      new _TopLevelInferenceErrorImpl(bc, offset);
+      _TopLevelInferenceErrorImpl(bc, offset);
 }
 
 class _TopLevelInferenceErrorImpl extends Object
@@ -16575,10 +17176,15 @@ abstract class _TopLevelInferenceErrorMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (arguments.isNotEmpty) _result["arguments"] = arguments;
-    if (kind != idl.TopLevelInferenceErrorKind.assignment)
+    if (arguments.isNotEmpty) {
+      _result["arguments"] = arguments;
+    }
+    if (kind != idl.TopLevelInferenceErrorKind.assignment) {
       _result["kind"] = kind.toString().split('.')[1];
-    if (slot != 0) _result["slot"] = slot;
+    }
+    if (slot != 0) {
+      _result["slot"] = slot;
+    }
     return _result;
   }
 
@@ -17471,7 +18077,7 @@ class _UnlinkedInformativeDataReader
 
   @override
   _UnlinkedInformativeDataImpl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedInformativeDataImpl(bc, offset);
+      _UnlinkedInformativeDataImpl(bc, offset);
 }
 
 class _UnlinkedInformativeDataImpl extends Object
@@ -17662,170 +18268,305 @@ abstract class _UnlinkedInformativeDataMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (kind != idl.LinkedNodeKind.adjacentStrings)
+    if (kind != idl.LinkedNodeKind.adjacentStrings) {
       _result["kind"] = kind.toString().split('.')[1];
+    }
     if (kind == idl.LinkedNodeKind.classDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.classTypeAlias) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.compilationUnit) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (compilationUnit_lineStarts.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (compilationUnit_lineStarts.isNotEmpty) {
         _result["compilationUnit_lineStarts"] = compilationUnit_lineStarts;
+      }
     }
     if (kind == idl.LinkedNodeKind.constructorDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (constructorDeclaration_periodOffset != 0)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (constructorDeclaration_periodOffset != 0) {
         _result["constructorDeclaration_periodOffset"] =
             constructorDeclaration_periodOffset;
-      if (constructorDeclaration_returnTypeOffset != 0)
+      }
+      if (constructorDeclaration_returnTypeOffset != 0) {
         _result["constructorDeclaration_returnTypeOffset"] =
             constructorDeclaration_returnTypeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (defaultFormalParameter_defaultValueCode != '')
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (defaultFormalParameter_defaultValueCode != '') {
         _result["defaultFormalParameter_defaultValueCode"] =
             defaultFormalParameter_defaultValueCode;
+      }
     }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.enumDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.exportDirective) {
-      if (directiveKeywordOffset != 0)
+      if (directiveKeywordOffset != 0) {
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.extensionDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
-      if (documentationComment_tokens.isNotEmpty)
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.hideCombinator) {
-      if (combinatorEnd != 0) _result["combinatorEnd"] = combinatorEnd;
-      if (combinatorKeywordOffset != 0)
+      if (combinatorEnd != 0) {
+        _result["combinatorEnd"] = combinatorEnd;
+      }
+      if (combinatorKeywordOffset != 0) {
         _result["combinatorKeywordOffset"] = combinatorKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.importDirective) {
-      if (importDirective_prefixOffset != 0)
+      if (importDirective_prefixOffset != 0) {
         _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
-      if (directiveKeywordOffset != 0)
+      }
+      if (directiveKeywordOffset != 0) {
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
-      if (directiveKeywordOffset != 0)
+      if (directiveKeywordOffset != 0) {
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.mixinDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.partDirective) {
-      if (directiveKeywordOffset != 0)
+      if (directiveKeywordOffset != 0) {
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.partOfDirective) {
-      if (directiveKeywordOffset != 0)
+      if (directiveKeywordOffset != 0) {
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.showCombinator) {
-      if (combinatorEnd != 0) _result["combinatorEnd"] = combinatorEnd;
-      if (combinatorKeywordOffset != 0)
+      if (combinatorEnd != 0) {
+        _result["combinatorEnd"] = combinatorEnd;
+      }
+      if (combinatorKeywordOffset != 0) {
         _result["combinatorKeywordOffset"] = combinatorKeywordOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
-      if (documentationComment_tokens.isNotEmpty)
+      if (documentationComment_tokens.isNotEmpty) {
         _result["documentationComment_tokens"] = documentationComment_tokens;
+      }
     }
     if (kind == idl.LinkedNodeKind.typeParameter) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
     }
     if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (codeLength != 0) {
+        _result["codeLength"] = codeLength;
+      }
+      if (codeOffset != 0) {
+        _result["codeOffset"] = codeOffset;
+      }
+      if (nameOffset != 0) {
+        _result["nameOffset"] = nameOffset;
+      }
     }
     return _result;
   }
@@ -18057,14 +18798,291 @@ abstract class _UnlinkedInformativeDataMixin
   String toString() => convert.json.encode(toJson());
 }
 
+class UnlinkedNamespaceDirectiveBuilder extends Object
+    with _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  List<UnlinkedNamespaceDirectiveConfigurationBuilder> _configurations;
+  String _uri;
+
+  @override
+  List<UnlinkedNamespaceDirectiveConfigurationBuilder> get configurations =>
+      _configurations ??= <UnlinkedNamespaceDirectiveConfigurationBuilder>[];
+
+  /// The configurations that control which library will actually be used.
+  set configurations(
+      List<UnlinkedNamespaceDirectiveConfigurationBuilder> value) {
+    this._configurations = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// The URI referenced by this directive, nad used by default when none
+  /// of the [configurations] matches.
+  set uri(String value) {
+    this._uri = value;
+  }
+
+  UnlinkedNamespaceDirectiveBuilder(
+      {List<UnlinkedNamespaceDirectiveConfigurationBuilder> configurations,
+      String uri})
+      : _configurations = configurations,
+        _uri = uri;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _configurations?.forEach((b) => b.flushInformative());
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_configurations;
+    fb.Offset offset_uri;
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder
+          .writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    fbBuilder.startTable();
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(0, offset_configurations);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(1, offset_uri);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedNamespaceDirectiveReader
+    extends fb.TableReader<_UnlinkedNamespaceDirectiveImpl> {
+  const _UnlinkedNamespaceDirectiveReader();
+
+  @override
+  _UnlinkedNamespaceDirectiveImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      _UnlinkedNamespaceDirectiveImpl(bc, offset);
+}
+
+class _UnlinkedNamespaceDirectiveImpl extends Object
+    with _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedNamespaceDirectiveImpl(this._bc, this._bcOffset);
+
+  List<idl.UnlinkedNamespaceDirectiveConfiguration> _configurations;
+  String _uri;
+
+  @override
+  List<idl.UnlinkedNamespaceDirectiveConfiguration> get configurations {
+    _configurations ??=
+        const fb.ListReader<idl.UnlinkedNamespaceDirectiveConfiguration>(
+                const _UnlinkedNamespaceDirectiveConfigurationReader())
+            .vTableGet(_bc, _bcOffset, 0,
+                const <idl.UnlinkedNamespaceDirectiveConfiguration>[]);
+    return _configurations;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _uri;
+  }
+}
+
+abstract class _UnlinkedNamespaceDirectiveMixin
+    implements idl.UnlinkedNamespaceDirective {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (configurations.isNotEmpty) {
+      _result["configurations"] =
+          configurations.map((_value) => _value.toJson()).toList();
+    }
+    if (uri != '') {
+      _result["uri"] = uri;
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "configurations": configurations,
+        "uri": uri,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class UnlinkedNamespaceDirectiveConfigurationBuilder extends Object
+    with _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name => _name ??= '';
+
+  /// The name of the declared variable used in the condition.
+  set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /// The URI to be used if the condition is true.
+  set uri(String value) {
+    this._uri = value;
+  }
+
+  @override
+  String get value => _value ??= '';
+
+  /// The value to which the value of the declared variable will be compared,
+  /// or the empty string if the condition does not include an equality test.
+  set value(String value) {
+    this._value = value;
+  }
+
+  UnlinkedNamespaceDirectiveConfigurationBuilder(
+      {String name, String uri, String value})
+      : _name = name,
+        _uri = uri,
+        _value = value;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {}
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addString(this._value ?? '');
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    fb.Offset offset_uri;
+    fb.Offset offset_value;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    if (_value != null) {
+      offset_value = fbBuilder.writeString(_value);
+    }
+    fbBuilder.startTable();
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(2, offset_uri);
+    }
+    if (offset_value != null) {
+      fbBuilder.addOffset(1, offset_value);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedNamespaceDirectiveConfigurationReader
+    extends fb.TableReader<_UnlinkedNamespaceDirectiveConfigurationImpl> {
+  const _UnlinkedNamespaceDirectiveConfigurationReader();
+
+  @override
+  _UnlinkedNamespaceDirectiveConfigurationImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      _UnlinkedNamespaceDirectiveConfigurationImpl(bc, offset);
+}
+
+class _UnlinkedNamespaceDirectiveConfigurationImpl extends Object
+    with _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedNamespaceDirectiveConfigurationImpl(this._bc, this._bcOffset);
+
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uri;
+  }
+
+  @override
+  String get value {
+    _value ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _value;
+  }
+}
+
+abstract class _UnlinkedNamespaceDirectiveConfigurationMixin
+    implements idl.UnlinkedNamespaceDirectiveConfiguration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (name != '') {
+      _result["name"] = name;
+    }
+    if (uri != '') {
+      _result["uri"] = uri;
+    }
+    if (value != '') {
+      _result["value"] = value;
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "name": name,
+        "uri": uri,
+        "value": value,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
 class UnlinkedUnit2Builder extends Object
     with _UnlinkedUnit2Mixin
     implements idl.UnlinkedUnit2 {
   List<int> _apiSignature;
-  List<String> _exports;
+  List<UnlinkedNamespaceDirectiveBuilder> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
-  List<String> _imports;
+  List<UnlinkedNamespaceDirectiveBuilder> _imports;
   List<UnlinkedInformativeDataBuilder> _informativeData;
   List<int> _lineStarts;
   List<String> _parts;
@@ -18080,10 +19098,11 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
-  List<String> get exports => _exports ??= <String>[];
+  List<UnlinkedNamespaceDirectiveBuilder> get exports =>
+      _exports ??= <UnlinkedNamespaceDirectiveBuilder>[];
 
   /// URIs of `export` directives.
-  set exports(List<String> value) {
+  set exports(List<UnlinkedNamespaceDirectiveBuilder> value) {
     this._exports = value;
   }
 
@@ -18104,10 +19123,11 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
-  List<String> get imports => _imports ??= <String>[];
+  List<UnlinkedNamespaceDirectiveBuilder> get imports =>
+      _imports ??= <UnlinkedNamespaceDirectiveBuilder>[];
 
   /// URIs of `import` directives.
-  set imports(List<String> value) {
+  set imports(List<UnlinkedNamespaceDirectiveBuilder> value) {
     this._imports = value;
   }
 
@@ -18138,10 +19158,10 @@ class UnlinkedUnit2Builder extends Object
 
   UnlinkedUnit2Builder(
       {List<int> apiSignature,
-      List<String> exports,
+      List<UnlinkedNamespaceDirectiveBuilder> exports,
       bool hasLibraryDirective,
       bool hasPartOfDirective,
-      List<String> imports,
+      List<UnlinkedNamespaceDirectiveBuilder> imports,
       List<UnlinkedInformativeDataBuilder> informativeData,
       List<int> lineStarts,
       List<String> parts})
@@ -18156,6 +19176,8 @@ class UnlinkedUnit2Builder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _exports?.forEach((b) => b.flushInformative());
+    _imports?.forEach((b) => b.flushInformative());
     _informativeData?.forEach((b) => b.flushInformative());
     _lineStarts = null;
   }
@@ -18175,7 +19197,7 @@ class UnlinkedUnit2Builder extends Object
     } else {
       signature.addInt(this._exports.length);
       for (var x in this._exports) {
-        signature.addString(x);
+        x?.collectApiSignature(signature);
       }
     }
     if (this._imports == null) {
@@ -18183,7 +19205,7 @@ class UnlinkedUnit2Builder extends Object
     } else {
       signature.addInt(this._imports.length);
       for (var x in this._imports) {
-        signature.addString(x);
+        x?.collectApiSignature(signature);
       }
     }
     signature.addBool(this._hasPartOfDirective == true);
@@ -18207,7 +19229,7 @@ class UnlinkedUnit2Builder extends Object
   }
 
   List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
+    fb.Builder fbBuilder = fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UUN2");
   }
 
@@ -18223,11 +19245,11 @@ class UnlinkedUnit2Builder extends Object
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder
-          .writeList(_exports.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder
-          .writeList(_imports.map((b) => fbBuilder.writeString(b)).toList());
+          .writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_informativeData == null || _informativeData.isEmpty)) {
       offset_informativeData = fbBuilder
@@ -18270,7 +19292,7 @@ class UnlinkedUnit2Builder extends Object
 }
 
 idl.UnlinkedUnit2 readUnlinkedUnit2(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
   return const _UnlinkedUnit2Reader().read(rootRef, 0);
 }
 
@@ -18279,7 +19301,7 @@ class _UnlinkedUnit2Reader extends fb.TableReader<_UnlinkedUnit2Impl> {
 
   @override
   _UnlinkedUnit2Impl createObject(fb.BufferContext bc, int offset) =>
-      new _UnlinkedUnit2Impl(bc, offset);
+      _UnlinkedUnit2Impl(bc, offset);
 }
 
 class _UnlinkedUnit2Impl extends Object
@@ -18291,10 +19313,10 @@ class _UnlinkedUnit2Impl extends Object
   _UnlinkedUnit2Impl(this._bc, this._bcOffset);
 
   List<int> _apiSignature;
-  List<String> _exports;
+  List<idl.UnlinkedNamespaceDirective> _exports;
   bool _hasLibraryDirective;
   bool _hasPartOfDirective;
-  List<String> _imports;
+  List<idl.UnlinkedNamespaceDirective> _imports;
   List<idl.UnlinkedInformativeData> _informativeData;
   List<int> _lineStarts;
   List<String> _parts;
@@ -18307,9 +19329,10 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
-  List<String> get exports {
-    _exports ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 1, const <String>[]);
+  List<idl.UnlinkedNamespaceDirective> get exports {
+    _exports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
+            const _UnlinkedNamespaceDirectiveReader())
+        .vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedNamespaceDirective>[]);
     return _exports;
   }
 
@@ -18328,9 +19351,10 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
-  List<String> get imports {
-    _imports ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 2, const <String>[]);
+  List<idl.UnlinkedNamespaceDirective> get imports {
+    _imports ??= const fb.ListReader<idl.UnlinkedNamespaceDirective>(
+            const _UnlinkedNamespaceDirectiveReader())
+        .vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedNamespaceDirective>[]);
     return _imports;
   }
 
@@ -18361,18 +19385,31 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
-    if (exports.isNotEmpty) _result["exports"] = exports;
-    if (hasLibraryDirective != false)
+    if (apiSignature.isNotEmpty) {
+      _result["apiSignature"] = apiSignature;
+    }
+    if (exports.isNotEmpty) {
+      _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    }
+    if (hasLibraryDirective != false) {
       _result["hasLibraryDirective"] = hasLibraryDirective;
-    if (hasPartOfDirective != false)
+    }
+    if (hasPartOfDirective != false) {
       _result["hasPartOfDirective"] = hasPartOfDirective;
-    if (imports.isNotEmpty) _result["imports"] = imports;
-    if (informativeData.isNotEmpty)
+    }
+    if (imports.isNotEmpty) {
+      _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    }
+    if (informativeData.isNotEmpty) {
       _result["informativeData"] =
           informativeData.map((_value) => _value.toJson()).toList();
-    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
-    if (parts.isNotEmpty) _result["parts"] = parts;
+    }
+    if (lineStarts.isNotEmpty) {
+      _result["lineStarts"] = lineStarts;
+    }
+    if (parts.isNotEmpty) {
+      _result["parts"] = parts;
+    }
     return _result;
   }
 

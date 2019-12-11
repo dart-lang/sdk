@@ -76,6 +76,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
@@ -204,6 +205,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
+  CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
@@ -373,6 +375,13 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_FACTORY_METHOD_DECL,
   HintCode.INVALID_FACTORY_METHOD_IMPL,
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES,
   HintCode.INVALID_LITERAL_ANNOTATION,
   HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
   HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
@@ -707,6 +716,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
   StaticWarningCode.CAST_TO_NON_TYPE,
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
@@ -724,6 +734,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
+  StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
@@ -731,7 +742,9 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.MIXED_RETURN_TYPES,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
   StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
   StaticWarningCode.NEW_WITH_NON_TYPE,
@@ -831,7 +844,7 @@ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
  */
 ErrorCode errorCodeByUniqueName(String uniqueName) {
   if (_uniqueNameToCodeMap == null) {
-    _uniqueNameToCodeMap = new HashMap<String, ErrorCode>();
+    _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
     for (ErrorCode errorCode in errorCodeValues) {
       _uniqueNameToCodeMap[errorCode.uniqueName] = errorCode;
     }
@@ -919,7 +932,7 @@ class AnalysisError implements Diagnostic {
     if (correctionTemplate != null) {
       this._correction = formatList(correctionTemplate, arguments);
     }
-    _problemMessage = new DiagnosticMessageImpl(
+    _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
@@ -933,7 +946,7 @@ class AnalysisError implements Diagnostic {
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
       {List<DiagnosticMessage> contextMessages = const []}) {
-    _problemMessage = new DiagnosticMessageImpl(
+    _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
@@ -992,8 +1005,7 @@ class AnalysisError implements Diagnostic {
       case ErrorSeverity.INFO:
         return Severity.info;
       default:
-        throw new StateError(
-            'Invalid error severity: ${errorCode.errorSeverity}');
+        throw StateError('Invalid error severity: ${errorCode.errorSeverity}');
     }
   }
 
@@ -1026,7 +1038,7 @@ class AnalysisError implements Diagnostic {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write((source != null) ? source.fullName : "<unknown source>");
     buffer.write("(");
     buffer.write(offset);
@@ -1043,7 +1055,7 @@ class AnalysisError implements Diagnostic {
    * a single list of errors.
    */
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
-    Set<AnalysisError> errors = new HashSet<AnalysisError>();
+    Set<AnalysisError> errors = HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {
       errors.addAll(errorList);
     }

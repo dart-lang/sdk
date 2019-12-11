@@ -19,7 +19,7 @@ class SdkConstraintExtractorTest with ResourceProviderMixin {
   SdkConstraintExtractor extractorFor(String pubspecContent) {
     String pubspecPath = '/pkg/test/pubspec.yaml';
     File pubspecFile = newFile(pubspecPath, content: pubspecContent);
-    return new SdkConstraintExtractor(pubspecFile);
+    return SdkConstraintExtractor(pubspecFile);
   }
 
   test_constraint_any() {

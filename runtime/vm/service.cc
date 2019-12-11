@@ -2870,6 +2870,12 @@ static const MethodParameter* evaluate_compiled_expression_params[] = {
     NULL,
 };
 
+RawExternalTypedData* DecodeKernelBuffer(const char* kernel_buffer_base64) {
+  intptr_t kernel_length;
+  uint8_t* kernel_buffer = DecodeBase64(kernel_buffer_base64, &kernel_length);
+  return ExternalTypedData::NewFinalizeWithFree(kernel_buffer, kernel_length);
+}
+
 static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return true;
@@ -2898,9 +2904,8 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
-  intptr_t kernel_length;
-  const char* kernel_bytes_str = js->LookupParam("kernelBytes");
-  uint8_t* kernel_bytes = DecodeBase64(zone, kernel_bytes_str, &kernel_length);
+  const ExternalTypedData& kernel_data = ExternalTypedData::Handle(
+      zone, DecodeKernelBuffer(js->LookupParam("kernelBytes")));
 
   if (js->HasParam("frameIndex")) {
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -2918,7 +2923,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     const Object& result = Object::Handle(
         zone,
         frame->EvaluateCompiledExpression(
-            kernel_bytes, kernel_length,
+            kernel_data,
             Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
             Array::Handle(zone, Array::MakeFixedLength(param_values)),
             type_arguments));
@@ -2951,7 +2956,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           lib.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2963,7 +2968,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           cls.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2978,7 +2983,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           instance.EvaluateCompiledExpression(
-              receiver_cls, kernel_bytes, kernel_length,
+              receiver_cls, kernel_data,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));

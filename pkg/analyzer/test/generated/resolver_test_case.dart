@@ -51,13 +51,13 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /**
    * A list containing all of the AST nodes that were not resolved.
    */
-  List<AstNode> _unresolvedNodes = new List<AstNode>();
+  List<AstNode> _unresolvedNodes = List<AstNode>();
 
   /**
    * A list containing all of the AST nodes that were resolved to an element of
    * the wrong type.
    */
-  List<AstNode> _wrongTypedNodes = new List<AstNode>();
+  List<AstNode> _wrongTypedNodes = List<AstNode>();
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers
@@ -73,7 +73,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    */
   void assertResolved() {
     if (_unresolvedNodes.isNotEmpty || _wrongTypedNodes.isNotEmpty) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       if (_unresolvedNodes.isNotEmpty) {
         buffer.write("Failed to resolve ");
         buffer.write(_unresolvedNodes.length);
@@ -322,8 +322,8 @@ class ResolverTestCase with ResourceProviderMixin {
 
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
-  StringBuffer _logBuffer = new StringBuffer();
-  FileContentOverlay fileContentOverlay = new FileContentOverlay();
+  StringBuffer _logBuffer = StringBuffer();
+  FileContentOverlay fileContentOverlay = FileContentOverlay();
   AnalysisDriver driver;
 
   AnalysisOptions get analysisOptions => driver?.analysisOptions;
@@ -331,7 +331,7 @@ class ResolverTestCase with ResourceProviderMixin {
   /**
    * The default [AnalysisOptions] that should be used by [reset].
    */
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
+  AnalysisOptions get defaultAnalysisOptions => AnalysisOptionsImpl();
 
   /**
    * Return the list of experiments that are to be enabled for tests in this
@@ -348,8 +348,7 @@ class ResolverTestCase with ResourceProviderMixin {
     if (analysisResults.isEmpty) {
       fail('typeProvider called before computing an analysis result.');
     }
-    return analysisResults
-        .values.first.unit.declaredElement.context.typeProvider;
+    return analysisResults.values.first.typeProvider;
   }
 
   /**
@@ -394,7 +393,7 @@ class ResolverTestCase with ResourceProviderMixin {
     TestAnalysisResult result = analysisResults[source];
     expect(result, isNotNull);
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    GatheringErrorListener errorListener = GatheringErrorListener();
     for (AnalysisError error in result.errors) {
       expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
@@ -421,7 +420,7 @@ class ResolverTestCase with ResourceProviderMixin {
    */
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
-      {bool verify: true, String sourceName: _defaultSourceName}) async {
+      {bool verify = true, String sourceName = _defaultSourceName}) async {
     Source source = addNamedSource(sourceName, code);
     await computeAnalysisResult(source);
     assertErrors(source, errors);
@@ -467,8 +466,7 @@ class ResolverTestCase with ResourceProviderMixin {
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     ResolvedUnitResult result = await driver.getResult(source.fullName);
-    analysisResult = new TestAnalysisResult(
-        source, result.unit, result.errors, result.typeSystem);
+    analysisResult = TestAnalysisResult(source, result.unit, result.errors);
     analysisResults[source] = analysisResult;
     return analysisResult;
   }
@@ -514,25 +512,24 @@ class ResolverTestCase with ResourceProviderMixin {
       sourcedCompilationUnits = const <CompilationUnitElement>[];
     } else {
       int count = typeNames.length;
-      sourcedCompilationUnits = new List<CompilationUnitElement>(count);
+      sourcedCompilationUnits = List<CompilationUnitElement>(count);
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
-        ClassElementImpl type = new ClassElementImpl(typeName, -1);
+        ClassElementImpl type = ClassElementImpl(typeName, -1);
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
-            new CompilationUnitElementImpl();
+            CompilationUnitElementImpl();
         compilationUnit.source = createNamedSource(fileName);
         compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
         sourcedCompilationUnits[i] = compilationUnit;
       }
     }
-    CompilationUnitElementImpl compilationUnit =
-        new CompilationUnitElementImpl();
+    CompilationUnitElementImpl compilationUnit = CompilationUnitElementImpl();
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     var featureSet = context.analysisOptions.contextFeatures;
-    LibraryElementImpl library = new LibraryElementImpl(
+    LibraryElementImpl library = LibraryElementImpl(
         context,
         driver?.currentSession,
         libraryName,
@@ -583,14 +580,14 @@ class ResolverTestCase with ResourceProviderMixin {
     if (experiments != null) {
       (options as AnalysisOptionsImpl).enabledExperiments = experiments;
     }
-    DartSdk sdk = new MockSdk(
+    DartSdk sdk = MockSdk(
       resourceProvider: resourceProvider,
       analysisOptions: options,
     );
 
     List<UriResolver> resolvers = <UriResolver>[
-      new DartUriResolver(sdk),
-      new ResourceUriResolver(resourceProvider)
+      DartUriResolver(sdk),
+      ResourceUriResolver(resourceProvider)
     ];
     if (packages != null) {
       var packageMap = <String, List<Folder>>{};
@@ -600,21 +597,14 @@ class ResolverTestCase with ResourceProviderMixin {
         File file = newFile('/packages/$name/$name.dart', content: content);
         packageMap[name] = <Folder>[file.parent];
       });
-      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
+      resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
     }
-    SourceFactory sourceFactory = new SourceFactory(resolvers);
+    SourceFactory sourceFactory = SourceFactory(resolvers);
 
-    PerformanceLog log = new PerformanceLog(_logBuffer);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-    driver = new AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        new MemoryByteStore(),
-        fileContentOverlay,
-        null,
-        sourceFactory,
-        options);
+    PerformanceLog log = PerformanceLog(_logBuffer);
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
+    driver = AnalysisDriver(scheduler, log, resourceProvider, MemoryByteStore(),
+        fileContentOverlay, null, sourceFactory, options);
     scheduler.start();
   }
 
@@ -645,7 +635,7 @@ class ResolverTestCase with ResourceProviderMixin {
       List<ErrorCode> codesWithoutExperimental,
       List<ErrorCode> codesWithExperimental) async {
     // Setup analysis context as non-experimental
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 //    options.enableDeferredLoading = false;
     resetWith(options: options);
     // Analysis and assertions
@@ -683,7 +673,7 @@ class ResolverTestCase with ResourceProviderMixin {
    * the given [sources] have been resolved.
    */
   void verify(List<Source> sources) {
-    ResolutionVerifier verifier = new ResolutionVerifier();
+    ResolutionVerifier verifier = ResolutionVerifier();
     for (Source source in sources) {
       TestAnalysisResult result = analysisResults[source];
       expect(result, isNotNull);
@@ -717,10 +707,10 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    * output.
    */
   FunctionTypeImpl expectFunctionType(String name, String type,
-      {String elementTypeParams: '[]',
-      String typeParams: '[]',
-      String typeArgs: '[]',
-      String typeFormals: '[]',
+      {String elementTypeParams = '[]',
+      String typeParams = '[]',
+      String typeArgs = '[]',
+      String typeFormals = '[]',
       String identifierType}) {
     identifierType ??= type;
 
@@ -814,7 +804,12 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
-  final TypeSystemImpl typeSystem;
 
-  TestAnalysisResult(this.source, this.unit, this.errors, this.typeSystem);
+  TestAnalysisResult(this.source, this.unit, this.errors);
+
+  LibraryElement get libraryElement => unit.declaredElement.library;
+
+  TypeProvider get typeProvider => libraryElement.typeProvider;
+
+  TypeSystem get typeSystem => libraryElement.typeSystem;
 }

@@ -87,7 +87,7 @@ class Variance {
       case 3:
         return invariant;
     }
-    throw new ArgumentError('Invalid encoding for variance: $encoding');
+    throw ArgumentError('Invalid encoding for variance: $encoding');
   }
 
   /// Return the variance associated with the string representation of variance.
@@ -101,8 +101,7 @@ class Variance {
     } else if (varianceString == "unrelated") {
       return unrelated;
     }
-    throw new ArgumentError(
-        'Invalid keyword string for variance: $varianceString');
+    throw ArgumentError('Invalid keyword string for variance: $varianceString');
   }
 
   /// Returns the associated keyword lexeme.
@@ -117,7 +116,7 @@ class Variance {
       case unrelated:
         return '';
       default:
-        throw new ArgumentError(
+        throw ArgumentError(
             'Missing keyword lexeme representation for variance: $this');
     }
   }

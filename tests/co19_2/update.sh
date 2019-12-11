@@ -27,8 +27,7 @@ BUILD_ID=$(bb add \
               -json \
               -p variant=legacy \
               dart/ci/co19-roller \
-             | jq '.id' \
-             | tr -d '"')
+             | jq -r '.id')
 bb collect -interval 10s $BUILD_ID
 
 # Update DEPS:

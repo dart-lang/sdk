@@ -40,14 +40,14 @@ class JavaFile {
     return false;
   }
 
-  JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
+  JavaFile getAbsoluteFile() => JavaFile(getAbsolutePath());
   String getAbsolutePath() {
     String abolutePath = path.context.absolute(_path);
     abolutePath = path.context.normalize(abolutePath);
     return abolutePath;
   }
 
-  JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
+  JavaFile getCanonicalFile() => JavaFile(getCanonicalPath());
   String getCanonicalPath() {
     return _newFile().resolveSymbolicLinksSync();
   }
@@ -63,7 +63,7 @@ class JavaFile {
   JavaFile getParentFile() {
     var parent = getParent();
     if (parent == null) return null;
-    return new JavaFile(parent);
+    return JavaFile(parent);
   }
 
   String getPath() => _path;
@@ -91,7 +91,7 @@ class JavaFile {
     var files = <JavaFile>[];
     var entities = _newDirectory().listSync();
     for (FileSystemEntity entity in entities) {
-      files.add(new JavaFile(entity.path));
+      files.add(JavaFile(entity.path));
     }
     return files;
   }
@@ -104,13 +104,13 @@ class JavaFile {
     return path.context.toUri(absolutePath);
   }
 
-  Directory _newDirectory() => new Directory(_path);
-  File _newFile() => new File(_path);
+  Directory _newDirectory() => Directory(_path);
+  File _newFile() => File(_path);
 }
 
 @Deprecated("Only used by `DirectoryBasedDartSdk`, which is also deprecated.")
 class JavaSystemIO {
-  static Map<String, String> _properties = new Map();
+  static Map<String, String> _properties = Map();
   static String getenv(String name) => Platform.environment[name];
   static String getProperty(String name) {
     {
@@ -136,7 +136,7 @@ class JavaSystemIO {
         {
           var outDir = path.context.dirname(path.context.dirname(exec));
           sdkPath = path.context.join(path.context.dirname(outDir), "sdk");
-          if (new Directory(sdkPath).existsSync()) {
+          if (Directory(sdkPath).existsSync()) {
             _properties[name] = sdkPath;
             return sdkPath;
           }

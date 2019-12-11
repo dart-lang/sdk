@@ -9,8 +9,9 @@ import 'dart:typed_data';
 
 import 'ast.dart';
 import 'core_types.dart';
-import 'src/heap.dart';
 import 'type_algebra.dart';
+import 'src/heap.dart';
+import 'src/future_or.dart';
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
@@ -62,8 +63,8 @@ abstract class ClassHierarchy {
   /// Dart 2 least upper bound, which has special behaviors in the case where
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes);
+  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
+      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
@@ -71,7 +72,14 @@ abstract class ClassHierarchy {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes);
+
+  /// Returns the type arguments of the instantiation of [superclass] that is
+  /// implemented by [type], or `null` if [type] does not implement [superclass]
+  /// at all.
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass);
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass].  [superclass] must
@@ -540,8 +548,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes) {
+  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
+      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -561,6 +569,16 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
     // Compute the list of superclasses for both types, with the above
     // optimization.
+
+    // LLUB(Null, List<dynamic>*) works differently for opt-in and opt-out
+    // libraries.  In opt-out libraries the legacy behavior is preserved, so
+    // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
+    // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
+    if (!clientLibrary.isNonNullableByDefault) {
+      if (type1 == coreTypes.nullType) return type2;
+      if (type2 == coreTypes.nullType) return type1;
+    }
+
     _ClassInfo info1 = infoFor(type1.classNode);
     _ClassInfo info2 = infoFor(type2.classNode);
     List<_ClassInfo> classes1;
@@ -615,8 +633,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        // TODO(dmitryas): Update nullability as necessary for the LUB spec.
-        candidate = coreTypes.legacyRawType(next.classNode);
+        candidate = coreTypes.rawType(next.classNode,
+            uniteNullabilities(type1.nullability, type2.nullability));
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
@@ -629,7 +647,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperTypes[next.classNode].first.asInterfaceType);
         if (superType1 == superType2) {
-          candidate = superType1;
+          candidate = superType1.withNullability(
+              uniteNullabilities(type1.nullability, type2.nullability));
           ++numCandidatesAtThisDepth;
         }
       }
@@ -653,11 +672,30 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    List<DartType> typeArguments =
+        getTypeArgumentsAsInstanceOf(type, superclass);
+    if (typeArguments == null) return null;
+    // The return value should be a legacy type if it's computed for an
+    // opted-out library, unless the return value is Null? which is always
+    // nullable.
+    Nullability nullability = superclass == coreTypes.nullClass ||
+            clientLibrary.isNonNullableByDefault
+        ? type.nullability
+        : Nullability.legacy;
+    return new InterfaceType(superclass, nullability, typeArguments);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
+    if (superclass.typeParameters.isEmpty) return const <DartType>[];
     return Substitution.fromInterfaceType(type)
-        .substituteType(castedType.asInterfaceType);
+        .substituteSupertype(castedType)
+        .typeArguments;
   }
 
   @override

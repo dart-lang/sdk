@@ -6,6 +6,12 @@
 
 main() {
   var m = const
-      <String> //# 01: compile-time error
+      <String>
       [0, 1];
+//     ^
+// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+//        ^
+// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

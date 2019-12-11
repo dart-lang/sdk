@@ -13,5 +13,8 @@ class A {
 
 main() {
   A.method();
-  Expect.throws(() => new A()); //# 01: compile-time error
+  Expect.throws(() => new A());
+  //                      ^
+  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+  // [cfe] Method not found: 'A'.
 }

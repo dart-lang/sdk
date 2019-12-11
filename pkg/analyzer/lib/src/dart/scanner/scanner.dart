@@ -81,12 +81,12 @@ class Scanner {
    */
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
-      new Scanner.fasta(source, errorListener,
+      Scanner.fasta(source, errorListener,
           contents: reader.getContents(), offset: reader.offset);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: -1}) {
-    return new Scanner._(
+      {String contents, int offset = -1}) {
+    return Scanner._(
         source, contents ?? source.contents.data, offset, errorListener);
   }
 
@@ -125,7 +125,7 @@ class Scanner {
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
-        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+        .onError(AnalysisError(source, offset, 1, errorCode, arguments));
   }
 
   void setSourceStart(int line, int column) {

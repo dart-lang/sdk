@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -46,7 +45,7 @@ void applyCheckElementTextReplacements() {
       newCode =
           newCode.substring(0, r.offset) + r.text + newCode.substring(r.end);
     });
-    new File(_testPath).writeAsStringSync(newCode);
+    File(_testPath).writeAsStringSync(newCode);
   }
 }
 
@@ -58,17 +57,17 @@ void applyCheckElementTextReplacements() {
 void checkElementText(
   LibraryElement library,
   String expected, {
-  bool withCodeRanges: false,
-  bool withConstElements: true,
-  bool withExportScope: false,
-  bool withFullyResolvedAst: false,
-  bool withOffsets: false,
-  bool withSyntheticAccessors: false,
-  bool withSyntheticFields: false,
-  bool withTypes: false,
-  bool annotateNullability: false,
+  bool withCodeRanges = false,
+  bool withConstElements = true,
+  bool withExportScope = false,
+  bool withFullyResolvedAst = false,
+  bool withOffsets = false,
+  bool withSyntheticAccessors = false,
+  bool withSyntheticFields = false,
+  bool withTypes = false,
+  bool annotateNullability = false,
 }) {
-  var writer = new _ElementWriter(
+  var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     withCodeRanges: withCodeRanges,
     withConstElements: withConstElements,
@@ -88,8 +87,8 @@ void checkElementText(
 
   if (_testPath != null && actualText != expected) {
     if (_testCode == null) {
-      _testCode = new File(_testPath).readAsStringSync();
-      _testCodeLines = new LineInfo.fromContent(_testCode);
+      _testCode = File(_testPath).readAsStringSync();
+      _testCodeLines = LineInfo.fromContent(_testCode);
     }
 
     try {
@@ -122,8 +121,8 @@ void checkElementText(
       expectationOffset += rawStringPrefix.length;
       int expectationEnd = _testCode.indexOf("'''", expectationOffset);
 
-      _replacements.add(new _Replacement(
-          expectationOffset, expectationEnd, '\n' + actualText));
+      _replacements.add(
+          _Replacement(expectationOffset, expectationEnd, '\n' + actualText));
     }
   }
 
@@ -150,21 +149,21 @@ class _ElementWriter {
   final bool withSyntheticFields;
   final bool withTypes;
   final bool annotateNullability;
-  final StringBuffer buffer = new StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   String indent = '';
 
   _ElementWriter({
     this.selfUriStr,
     this.withCodeRanges,
-    this.withConstElements: true,
-    this.withExportScope: false,
-    this.withFullyResolvedAst: false,
-    this.withOffsets: false,
-    this.withSyntheticAccessors: false,
-    this.withSyntheticFields: false,
-    this.withTypes: false,
-    this.annotateNullability: false,
+    this.withConstElements = true,
+    this.withExportScope = false,
+    this.withFullyResolvedAst = false,
+    this.withOffsets = false,
+    this.withSyntheticAccessors = false,
+    this.withSyntheticFields = false,
+    this.withTypes = false,
+    this.annotateNullability = false,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -223,7 +222,7 @@ class _ElementWriter {
 
     if (e.isMixin) {
       if (e.superclassConstraints.isEmpty) {
-        throw new StateError('At least Object is expected.');
+        throw StateError('At least Object is expected.');
       }
       writeList(' on ', '', e.superclassConstraints, ', ', writeType);
     }
@@ -504,7 +503,7 @@ class _ElementWriter {
 
   void writeList<T>(String open, String close, List<T> items, String separator,
       writeItem(T item),
-      {bool includeEmpty: false}) {
+      {bool includeEmpty = false}) {
     if (!includeEmpty && items.isEmpty) {
       return;
     }
@@ -1030,45 +1029,11 @@ class _ElementWriter {
   }
 
   void writeType(DartType type) {
-    if (type is InterfaceType) {
-      buffer.write(type.element.name);
-      if (type.element.typeParameters.isNotEmpty) {
-        writeList('<', '>', type.typeArguments, ', ', writeType);
-      }
-    } else if (type is FunctionType) {
-      writeType2(type.returnType);
-      buffer.write('Function');
-      writeTypeParameterElements(type.typeFormals);
-      buffer.write('(');
-      bool commaNeeded = false;
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isRequiredPositional),
-          commaNeeded,
-          '',
-          '');
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isOptionalPositional),
-          commaNeeded,
-          '[',
-          ']');
-      commaNeeded = _writeParameters(
-          type.parameters.where((p) => p.isNamed), commaNeeded, '{', '}');
-      buffer.write(')');
-    } else {
-      buffer.write(type.displayName);
-    }
-    if (annotateNullability) {
-      switch ((type as TypeImpl).nullabilitySuffix) {
-        case NullabilitySuffix.none:
-          break;
-        case NullabilitySuffix.question:
-          buffer.write('?');
-          break;
-        case NullabilitySuffix.star:
-          buffer.write('*');
-          break;
-      }
-    }
+    buffer.write(
+      type.getDisplayString(
+        withNullability: annotateNullability,
+      ),
+    );
   }
 
   void writeType2(DartType type) {
@@ -1198,32 +1163,6 @@ class _ElementWriter {
   void _writelnWithIndent(String line) {
     buffer.write(indent);
     buffer.writeln(line);
-  }
-
-  bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
-      String prefix, String suffix) {
-    if (parameters.isEmpty) return commaNeeded;
-    if (commaNeeded) {
-      buffer.write(', ');
-      commaNeeded = false;
-    }
-    buffer.write(prefix);
-    for (var parameter in parameters) {
-      if (commaNeeded) {
-        buffer.write(', ');
-      }
-      if (parameter.isRequiredNamed) {
-        buffer.write('required ');
-      }
-      writeType(parameter.type);
-      if (parameter.isNamed) {
-        buffer.write(' ');
-        buffer.write(parameter.name);
-      }
-      commaNeeded = true;
-    }
-    buffer.write(suffix);
-    return commaNeeded;
   }
 
   void _writeResolvedMetadata(List<ElementAnnotation> metadata) {

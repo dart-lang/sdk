@@ -8,7 +8,10 @@ class Class {
   static int get getter => 0;
 
   method() {
-    getter++; //# 01: compile-time error
+    getter++;
+//  ^^^^^^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'getter'.
   }
 }
 

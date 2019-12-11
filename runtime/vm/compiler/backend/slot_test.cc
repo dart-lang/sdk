@@ -54,8 +54,9 @@ TEST_CASE(SlotFromGuardedField) {
   const Field& field = Field::Handle(
       Field::New(String::Handle(Symbols::New(thread, "field")),
                  /*is_static=*/false, /*is_final=*/false, /*is_const=*/false,
-                 /*is_reflectable=*/true, dummy_class, Object::dynamic_type(),
-                 TokenPosition::kMinSource, TokenPosition::kMinSource));
+                 /*is_reflectable=*/true, /*is_late=*/false, dummy_class,
+                 Object::dynamic_type(), TokenPosition::kMinSource,
+                 TokenPosition::kMinSource));
 
   // Set non-trivial guarded state on the field.
   field.set_guarded_cid(kSmiCid);

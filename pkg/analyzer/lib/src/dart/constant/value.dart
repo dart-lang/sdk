@@ -17,13 +17,13 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 /// The state of an object representing a boolean value.
 class BoolState extends InstanceState {
   /// An instance representing the boolean value 'false'.
-  static BoolState FALSE_STATE = new BoolState(false);
+  static BoolState FALSE_STATE = BoolState(false);
 
   /// An instance representing the boolean value 'true'.
-  static BoolState TRUE_STATE = new BoolState(true);
+  static BoolState TRUE_STATE = BoolState(true);
 
   /// A state that can be used to represent a boolean whose value is not known.
-  static BoolState UNKNOWN_VALUE = new BoolState(null);
+  static BoolState UNKNOWN_VALUE = BoolState(null);
 
   /// The value of this instance.
   final bool value;
@@ -58,7 +58,7 @@ class BoolState extends InstanceState {
     if (value == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(value ? "true" : "false");
+    return StringState(value ? "true" : "false");
   }
 
   @override
@@ -166,16 +166,16 @@ class DartObjectImpl implements DartObject {
     if (type.element.library.isDartCore) {
       String typeName = type.name;
       if (typeName == "bool") {
-        return new DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
+        return DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
       } else if (typeName == "double") {
-        return new DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
+        return DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
       } else if (typeName == "int") {
-        return new DartObjectImpl(type, IntState.UNKNOWN_VALUE);
+        return DartObjectImpl(type, IntState.UNKNOWN_VALUE);
       } else if (typeName == "String") {
-        return new DartObjectImpl(type, StringState.UNKNOWN_VALUE);
+        return DartObjectImpl(type, StringState.UNKNOWN_VALUE);
       }
     }
-    return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
+    return DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
   Map<String, DartObjectImpl> get fields => _state.fields;
@@ -224,14 +224,14 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl add(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.add(rightOperand._state);
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     } else if (result is StringState) {
-      return new DartObjectImpl(typeProvider.stringType, result);
+      return DartObjectImpl(typeProvider.stringType, result);
     }
     // We should never get here.
-    throw new StateError("add returned a ${result.runtimeType}");
+    throw StateError("add returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '~' operator on this object. The
@@ -240,7 +240,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl bitNot(TypeProvider typeProvider) =>
-      new DartObjectImpl(typeProvider.intType, _state.bitNot());
+      DartObjectImpl(typeProvider.intType, _state.bitNot());
 
   /// Return the result of casting this object to the given [castType].
   DartObjectImpl castToType(TypeProvider typeProvider, TypeSystem typeSystem,
@@ -250,7 +250,7 @@ class DartObjectImpl implements DartObject {
       return this;
     }
     if (!typeSystem.isSubtypeOf(type, (castType._state as TypeState)._type)) {
-      throw new EvaluationException(
+      throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
     return this;
@@ -264,7 +264,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl concatenate(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.stringType, _state.concatenate(rightOperand._state));
 
   /// Return the result of applying boolean conversion to this object. The
@@ -277,7 +277,7 @@ class DartObjectImpl implements DartObject {
     if (identical(type, boolType)) {
       return this;
     }
-    return new DartObjectImpl(boolType, _state.convertToBool());
+    return DartObjectImpl(boolType, _state.convertToBool());
   }
 
   /// Return the result of invoking the '/' operator on this object with the
@@ -290,12 +290,12 @@ class DartObjectImpl implements DartObject {
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.divide(rightOperand._state);
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     }
     // We should never get here.
-    throw new StateError("divide returned a ${result.runtimeType}");
+    throw StateError("divide returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '&' operator on this object with the
@@ -307,14 +307,13 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl eagerAnd(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType, _state.logicalAnd(rightOperand._state));
     } else if (isInt && rightOperand.isInt) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.intType, _state.bitAnd(rightOperand._state));
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '|' operator on this object with the
@@ -326,14 +325,13 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl eagerOr(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType, _state.logicalOr(rightOperand._state));
     } else if (isInt && rightOperand.isInt) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.intType, _state.bitOr(rightOperand._state));
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -345,14 +343,13 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl eagerXor(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType, _state.logicalXor(rightOperand._state));
     } else if (isInt && rightOperand.isInt) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.intType, _state.bitXor(rightOperand._state));
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '==' operator on this object with the
@@ -364,17 +361,17 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl equalEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType,
           isNull && rightOperand.isNull
               ? BoolState.TRUE_STATE
               : BoolState.FALSE_STATE);
     }
     if (isBoolNumStringOrNull) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType, _state.equalEqual(rightOperand._state));
     }
-    throw new EvaluationException(
+    throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
@@ -405,7 +402,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl greaterThan(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.boolType, _state.greaterThan(rightOperand._state));
 
   /// Return the result of invoking the '&gt;=' operator on this object with the
@@ -416,7 +413,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl greaterThanOrEqual(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(typeProvider.boolType,
+      DartObjectImpl(typeProvider.boolType,
           _state.greaterThanOrEqual(rightOperand._state));
 
   /// Return the result of testing whether this object has the given
@@ -437,7 +434,7 @@ class DartObjectImpl implements DartObject {
     } else {
       state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
     }
-    return new DartObjectImpl(typeProvider.boolType, state);
+    return DartObjectImpl(typeProvider.boolType, state);
   }
 
   /// Return the result of invoking the '~/' operator on this object with the
@@ -448,7 +445,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl integerDivide(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.intType, _state.integerDivide(rightOperand._state));
 
   /// Indicates whether `this` is equal to [other], ignoring types both in this
@@ -471,7 +468,7 @@ class DartObjectImpl implements DartObject {
   /// known types.
   DartObjectImpl isIdentical(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    return new DartObjectImpl(
+    return DartObjectImpl(
         typeProvider.boolType, _state.isIdentical(rightOperand._state));
   }
 
@@ -483,7 +480,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl lazyAnd(
           TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
-      new DartObjectImpl(typeProvider.boolType,
+      DartObjectImpl(typeProvider.boolType,
           _state.lazyAnd(() => rightOperandComputer()?._state));
 
   /// Return the result of invoking the '==' operator on this object with the
@@ -495,17 +492,17 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl lazyEqualEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType,
           isNull && rightOperand.isNull
               ? BoolState.TRUE_STATE
               : BoolState.FALSE_STATE);
     }
     if (isBoolNumStringOrNull) {
-      return new DartObjectImpl(
+      return DartObjectImpl(
           typeProvider.boolType, _state.lazyEqualEqual(rightOperand._state));
     }
-    throw new EvaluationException(
+    throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
@@ -517,7 +514,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl lazyOr(
           TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
-      new DartObjectImpl(typeProvider.boolType,
+      DartObjectImpl(typeProvider.boolType,
           _state.lazyOr(() => rightOperandComputer()?._state));
 
   /// Return the result of invoking the '&lt;' operator on this object with the
@@ -528,7 +525,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl lessThan(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.boolType, _state.lessThan(rightOperand._state));
 
   /// Return the result of invoking the '&lt;=' operator on this object with the
@@ -539,7 +536,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl lessThanOrEqual(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.boolType, _state.lessThanOrEqual(rightOperand._state));
 
   /// Return the result of invoking the '!' operator on this object. The
@@ -548,7 +545,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl logicalNot(TypeProvider typeProvider) =>
-      new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
+      DartObjectImpl(typeProvider.boolType, _state.logicalNot());
 
   /// Return the result of invoking the '&gt;&gt;&gt;' operator on this object
   /// with the [rightOperand]. The [typeProvider] is the type provider used to
@@ -558,7 +555,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl logicalShiftRight(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.intType, _state.logicalShiftRight(rightOperand._state));
 
   /// Return the result of invoking the '-' operator on this object with the
@@ -570,12 +567,12 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl minus(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.minus(rightOperand._state);
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     }
     // We should never get here.
-    throw new StateError("minus returned a ${result.runtimeType}");
+    throw StateError("minus returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '-' operator on this object. The
@@ -586,12 +583,12 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl negated(TypeProvider typeProvider) {
     InstanceState result = _state.negated();
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     }
     // We should never get here.
-    throw new StateError("negated returned a ${result.runtimeType}");
+    throw StateError("negated returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '!=' operator on this object with the
@@ -615,7 +612,7 @@ class DartObjectImpl implements DartObject {
     if (identical(type, stringType)) {
       return this;
     }
-    return new DartObjectImpl(stringType, _state.convertToString());
+    return DartObjectImpl(stringType, _state.convertToString());
   }
 
   /// Return the result of invoking the '%' operator on this object with the
@@ -628,12 +625,12 @@ class DartObjectImpl implements DartObject {
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.remainder(rightOperand._state);
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     }
     // We should never get here.
-    throw new StateError("remainder returned a ${result.runtimeType}");
+    throw StateError("remainder returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '&lt;&lt;' operator on this object with
@@ -644,7 +641,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl shiftLeft(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.intType, _state.shiftLeft(rightOperand._state));
 
   /// Return the result of invoking the '&gt;&gt;' operator on this object with
@@ -655,7 +652,7 @@ class DartObjectImpl implements DartObject {
   /// object of this kind.
   DartObjectImpl shiftRight(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      new DartObjectImpl(
+      DartObjectImpl(
           typeProvider.intType, _state.shiftRight(rightOperand._state));
 
   /// Return the result of invoking the 'length' getter on this object. The
@@ -664,7 +661,7 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl stringLength(TypeProvider typeProvider) =>
-      new DartObjectImpl(typeProvider.intType, _state.stringLength());
+      DartObjectImpl(typeProvider.intType, _state.stringLength());
 
   /// Return the result of invoking the '*' operator on this object with the
   /// [rightOperand]. The [typeProvider] is the type provider used to find known
@@ -675,12 +672,12 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl times(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.times(rightOperand._state);
     if (result is IntState) {
-      return new DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
-      return new DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(typeProvider.doubleType, result);
     }
     // We should never get here.
-    throw new StateError("times returned a ${result.runtimeType}");
+    throw StateError("times returned a ${result.runtimeType}");
   }
 
   @override
@@ -777,7 +774,7 @@ class DartObjectImpl implements DartObject {
   /// value.
   void _assertType(DartObjectImpl object) {
     if (object._state is! TypeState) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE);
     }
   }
 }
@@ -785,7 +782,7 @@ class DartObjectImpl implements DartObject {
 /// The state of an object representing a double.
 class DoubleState extends NumState {
   /// A state that can be used to represent a double whose value is not known.
-  static DoubleState UNKNOWN_VALUE = new DoubleState(null);
+  static DoubleState UNKNOWN_VALUE = DoubleState(null);
 
   /// The value of this instance.
   final double value;
@@ -818,16 +815,15 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value + rightValue.toDouble());
+      return DoubleState(value + rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value + rightValue);
+      return DoubleState(value + rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -835,7 +831,7 @@ class DoubleState extends NumState {
     if (value == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(value.toString());
+    return StringState(value.toString());
   }
 
   @override
@@ -849,16 +845,15 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value / rightValue.toDouble());
+      return DoubleState(value / rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value / rightValue);
+      return DoubleState(value / rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -880,8 +875,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value > rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -903,8 +897,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value >= rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -919,17 +912,16 @@ class DoubleState extends NumState {
         return IntState.UNKNOWN_VALUE;
       }
       double result = value / rightValue.toDouble();
-      return new IntState(result.toInt());
+      return IntState(result.toInt());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
       double result = value / rightValue;
-      return new IntState(result.toInt());
+      return IntState(result.toInt());
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -977,8 +969,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value < rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1000,8 +991,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value <= rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1015,16 +1005,15 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value - rightValue.toDouble());
+      return DoubleState(value - rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value - rightValue);
+      return DoubleState(value - rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1032,7 +1021,7 @@ class DoubleState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return new DoubleState(-(value));
+    return DoubleState(-(value));
   }
 
   @override
@@ -1046,16 +1035,15 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value % rightValue.toDouble());
+      return DoubleState(value % rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value % rightValue);
+      return DoubleState(value % rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1069,16 +1057,15 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value * rightValue.toDouble());
+      return DoubleState(value * rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new DoubleState(value * rightValue);
+      return DoubleState(value * rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1118,7 +1105,7 @@ class FunctionState extends InstanceState {
     if (_element == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(_element.name);
+    return StringState(_element.name);
   }
 
   @override
@@ -1158,7 +1145,7 @@ class GenericState extends InstanceState {
 
   /// A state that can be used to represent an object whose state is not known.
   static GenericState UNKNOWN_VALUE =
-      new GenericState(new HashMap<String, DartObjectImpl>());
+      GenericState(HashMap<String, DartObjectImpl>());
 
   /// The values of the fields of this instance.
   final Map<String, DartObjectImpl> _fieldMap;
@@ -1192,7 +1179,7 @@ class GenericState extends InstanceState {
   bool operator ==(Object object) {
     if (object is GenericState) {
       HashSet<String> otherFields =
-          new HashSet<String>.from(object._fieldMap.keys.toSet());
+          HashSet<String>.from(object._fieldMap.keys.toSet());
       for (String fieldName in _fieldMap.keys.toSet()) {
         if (_fieldMap[fieldName] != object._fieldMap[fieldName]) {
           return false;
@@ -1230,7 +1217,7 @@ class GenericState extends InstanceState {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     List<String> fieldNames = _fieldMap.keys.toList();
     fieldNames.sort();
     bool first = true;
@@ -1284,14 +1271,13 @@ abstract class InstanceState {
     }
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Throw an exception if the given [state] does not represent a boolean value.
   void assertBool(InstanceState state) {
     if (state is! BoolState) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
@@ -1302,7 +1288,7 @@ abstract class InstanceState {
         state is NumState ||
         state is StringState ||
         state is NullState)) {
-      throw new EvaluationException(
+      throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
   }
@@ -1311,7 +1297,7 @@ abstract class InstanceState {
   /// null value.
   void assertIntOrNull(InstanceState state) {
     if (!(state is IntState || state is NullState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
     }
   }
 
@@ -1319,14 +1305,14 @@ abstract class InstanceState {
   /// numeric, string or null value.
   void assertNumOrNull(InstanceState state) {
     if (!(state is NumState || state is NullState)) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
   }
 
   /// Throw an exception if the given [state] does not represent a String value.
   void assertString(InstanceState state) {
     if (state is! StringState) {
-      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
@@ -1338,8 +1324,7 @@ abstract class InstanceState {
   IntState bitAnd(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '~' operator on this object.
@@ -1348,8 +1333,7 @@ abstract class InstanceState {
   /// object of this kind.
   IntState bitNot() {
     assertIntOrNull(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '|' operator on this object with the
@@ -1360,8 +1344,7 @@ abstract class InstanceState {
   IntState bitOr(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -1372,8 +1355,7 @@ abstract class InstanceState {
   IntState bitXor(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the ' ' operator on this object with the
@@ -1383,8 +1365,7 @@ abstract class InstanceState {
   /// object of this kind.
   StringState concatenate(InstanceState rightOperand) {
     assertString(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of applying boolean conversion to this object.
@@ -1407,8 +1388,7 @@ abstract class InstanceState {
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '==' operator on this object with the
@@ -1426,8 +1406,7 @@ abstract class InstanceState {
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '&gt;=' operator on this object with the
@@ -1438,8 +1417,7 @@ abstract class InstanceState {
   BoolState greaterThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '~/' operator on this object with the
@@ -1450,8 +1428,7 @@ abstract class InstanceState {
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the identical function on this object with
@@ -1503,8 +1480,7 @@ abstract class InstanceState {
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '&lt;=' operator on this object with the
@@ -1515,8 +1491,7 @@ abstract class InstanceState {
   BoolState lessThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '&' operator on this object with the
@@ -1568,8 +1543,7 @@ abstract class InstanceState {
   IntState logicalShiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -1596,8 +1570,7 @@ abstract class InstanceState {
   NumState minus(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '-' operator on this object.
@@ -1606,8 +1579,7 @@ abstract class InstanceState {
   /// object of this kind.
   NumState negated() {
     assertNumOrNull(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '%' operator on this object with the
@@ -1618,8 +1590,7 @@ abstract class InstanceState {
   NumState remainder(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '&lt;&lt;' operator on this object with
@@ -1630,8 +1601,7 @@ abstract class InstanceState {
   IntState shiftLeft(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '&gt;&gt;' operator on this object with
@@ -1642,8 +1612,7 @@ abstract class InstanceState {
   IntState shiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the 'length' getter on this object.
@@ -1652,8 +1621,7 @@ abstract class InstanceState {
   /// object of this kind.
   IntState stringLength() {
     assertString(this);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   /// Return the result of invoking the '*' operator on this object with the
@@ -1664,15 +1632,14 @@ abstract class InstanceState {
   NumState times(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 }
 
 /// The state of an object representing an int.
 class IntState extends NumState {
   /// A state that can be used to represent an int whose value is not known.
-  static IntState UNKNOWN_VALUE = new IntState(null);
+  static IntState UNKNOWN_VALUE = IntState(null);
 
   /// The value of this instance.
   final int value;
@@ -1711,16 +1678,15 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value + rightValue);
+      return IntState(value + rightValue);
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return new DoubleState(value.toDouble() + rightValue);
+      return DoubleState(value.toDouble() + rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1734,10 +1700,9 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value & rightValue);
+      return IntState(value & rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1745,7 +1710,7 @@ class IntState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return new IntState(~value);
+    return IntState(~value);
   }
 
   @override
@@ -1759,10 +1724,9 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value | rightValue);
+      return IntState(value | rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1776,10 +1740,9 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value ^ rightValue);
+      return IntState(value ^ rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1787,7 +1750,7 @@ class IntState extends NumState {
     if (value == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(value.toString());
+    return StringState(value.toString());
   }
 
   @override
@@ -1801,17 +1764,16 @@ class IntState extends NumState {
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       } else {
-        return new DoubleState(value.toDouble() / rightValue.toDouble());
+        return DoubleState(value.toDouble() / rightValue.toDouble());
       }
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return new DoubleState(value.toDouble() / rightValue);
+      return DoubleState(value.toDouble() / rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1833,8 +1795,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value.toDouble() > rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1856,8 +1817,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value.toDouble() >= rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1871,20 +1831,18 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
-        throw new EvaluationException(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
       }
-      return new IntState(value ~/ rightValue);
+      return IntState(value ~/ rightValue);
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       double result = value.toDouble() / rightValue;
-      return new IntState(result.toInt());
+      return IntState(result.toInt());
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1932,8 +1890,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value.toDouble() < rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1955,8 +1912,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value.toDouble() <= rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -1981,13 +1937,12 @@ class IntState extends NumState {
         if (divisor == 0) {
           // The `rightValue` is large enough to cause all of the non-zero bits
           // in the left operand to be shifted out of the value.
-          return new IntState(0);
+          return IntState(0);
         }
-        return new IntState(value ~/ divisor);
+        return IntState(value ~/ divisor);
       }
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2004,16 +1959,15 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value - rightValue);
+      return IntState(value - rightValue);
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return new DoubleState(value.toDouble() - rightValue);
+      return DoubleState(value.toDouble() - rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2021,7 +1975,7 @@ class IntState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return new IntState(-value);
+    return IntState(-value);
   }
 
   @override
@@ -2039,17 +1993,16 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       if (rightValue != 0) {
-        return new IntState(value % rightValue);
+        return IntState(value % rightValue);
       }
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return new DoubleState(value.toDouble() % rightValue);
+      return DoubleState(value.toDouble() % rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2066,11 +2019,10 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       if (rightValue >= 0) {
-        return new IntState(value << rightValue);
+        return IntState(value << rightValue);
       }
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2087,11 +2039,10 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       if (rightValue >= 0) {
-        return new IntState(value >> rightValue);
+        return IntState(value >> rightValue);
       }
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2108,16 +2059,15 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new IntState(value * rightValue);
+      return IntState(value * rightValue);
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
-      return new DoubleState(value.toDouble() * rightValue);
+      return DoubleState(value.toDouble() * rightValue);
     }
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2187,7 +2137,7 @@ class ListState extends InstanceState {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('[');
     bool first = true;
     _elements.forEach((DartObjectImpl element) {
@@ -2267,7 +2217,7 @@ class MapState extends InstanceState {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
     _entries.forEach((DartObjectImpl key, DartObjectImpl value) {
@@ -2288,7 +2238,7 @@ class MapState extends InstanceState {
 /// The state of an object representing the value 'null'.
 class NullState extends InstanceState {
   /// An instance representing the boolean value 'null'.
-  static NullState NULL_STATE = new NullState();
+  static NullState NULL_STATE = NullState();
 
   @override
   int get hashCode => 0;
@@ -2307,12 +2257,11 @@ class NullState extends InstanceState {
 
   @override
   BoolState convertToBool() {
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
-  StringState convertToString() => new StringState("null");
+  StringState convertToString() => StringState("null");
 
   @override
   BoolState equalEqual(InstanceState rightOperand) {
@@ -2332,8 +2281,7 @@ class NullState extends InstanceState {
 
   @override
   BoolState logicalNot() {
-    throw new EvaluationException(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
   @override
@@ -2415,7 +2363,7 @@ class SetState extends InstanceState {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
     _elements.forEach((DartObjectImpl element) {
@@ -2434,7 +2382,7 @@ class SetState extends InstanceState {
 /// The state of an object representing a string.
 class StringState extends InstanceState {
   /// A state that can be used to represent a double whose value is not known.
-  static StringState UNKNOWN_VALUE = new StringState(null);
+  static StringState UNKNOWN_VALUE = StringState(null);
 
   /// The value of this instance.
   final String value;
@@ -2468,7 +2416,7 @@ class StringState extends InstanceState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
-      return new StringState("$value$rightValue");
+      return StringState("$value$rightValue");
     }
     return super.concatenate(rightOperand);
   }
@@ -2507,7 +2455,7 @@ class StringState extends InstanceState {
     if (value == null) {
       return IntState.UNKNOWN_VALUE;
     }
-    return new IntState(value.length);
+    return IntState(value.length);
   }
 
   @override
@@ -2537,7 +2485,7 @@ class SymbolState extends InstanceState {
     if (value == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(value);
+    return StringState(value);
   }
 
   @override
@@ -2593,7 +2541,7 @@ class TypeState extends InstanceState {
     if (_type == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return new StringState(_type.displayName);
+    return StringState(_type.displayName);
   }
 
   @override

@@ -2,24 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void f0(this.x) {} // //# 0: compile-time error
+void f0(this.x) {}
+//      ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+// [cfe] Field formal parameters can only be used in a constructor.
 
-void f1(int g(this.x)) {} // //# 1: compile-time error
+void f1(int g(this.x)) {}
+//            ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+// [cfe] Field formal parameters can only be used in a constructor.
 
-void f2(int g(int this.x)) {} // //# 2: compile-time error
+void f2(int g(int this.x)) {}
+//            ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+//                ^
+// [cfe] Field formal parameters can only be used in a constructor.
 
 class C {
   C();
   var x;
-  void f3(int g(this.x)) {} // //# 3: compile-time error
-  C.f4(int g(this.x)); // //# 4: compile-time error
+  void f3(int g(this.x)) {}
+  //            ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  // [cfe] Field formal parameters can only be used in a constructor.
+  C.f4(int g(this.x));
+  //         ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+  // [cfe] Field formal parameters can only be used in a constructor.
 }
 
 main() {
-  f0(null); // //# 0: continued
-  f1(null); // //# 1: continued
-  f2(null); // //# 2: continued
+  f0(null);
+  f1(null);
+  f2(null);
   C c = new C();
-  c.f3(null); // //# 3: continued
-  new C.f4(null); // //# 4: continued
+  c.f3(null);
+  new C.f4(null);
 }

@@ -99,7 +99,7 @@
     {
       "name": "text_serialization",
       "kind": "Chain",
-      "source": "test/fasta/text_serialization_suite.dart",
+      "source": "test/fasta/text_serialization_tester.dart",
       "path": "testcases/",
       "status": "testcases/text_serialization.status",
       "pattern": [
@@ -229,12 +229,15 @@
       "path": "../",
       "status": "test/spelling_test.status",
       "pattern": [
+        "_fe_analyzer_shared/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$",
         "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$",
-        "src/fasta/fasta_codes_cfe_generated\\.dart$"
+        "kernel/lib/vm/.*\\.dart$",
+        "kernel/lib/transformations/.*\\.dart$",
+        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
+        "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]
     },
     {

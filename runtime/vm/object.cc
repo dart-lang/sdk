@@ -3698,8 +3698,7 @@ RawObject* Class::Invoke(const String& function_name,
 }
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -3707,8 +3706,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
     const TypeArguments& type_arguments);
 
 RawObject* Class::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -3721,7 +3719,7 @@ RawObject* Class::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_buffer, type_definitions,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
       arguments, type_arguments);
@@ -3836,7 +3834,11 @@ bool Class::InjectCIDFields() const {
   const AbstractType& field_type = Type::Handle(zone, Type::IntType());
   for (size_t i = 0; i < ARRAY_SIZE(cid_fields); i++) {
     field_name = Symbols::New(thread, cid_fields[i].field_name);
-    field = Field::New(field_name, true, false, true, false, *this, field_type,
+    field = Field::New(field_name, /* is_static = */ true,
+                       /* is_final = */ false,
+                       /* is_const = */ true,
+                       /* is_reflectable = */ false,
+                       /* is_late = */ false, *this, field_type,
                        TokenPosition::kMinSource, TokenPosition::kMinSource);
     value = Smi::New(cid_fields[i].cid);
     field.SetStaticValue(value, true);
@@ -8748,6 +8750,7 @@ void Field::InitializeNew(const Field& result,
                           bool is_final,
                           bool is_const,
                           bool is_reflectable,
+                          bool is_late,
                           const Object& owner,
                           TokenPosition token_pos,
                           TokenPosition end_token_pos) {
@@ -8760,13 +8763,14 @@ void Field::InitializeNew(const Field& result,
   result.set_is_final(is_final);
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
+  result.set_is_late(is_late);
   result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(!is_final);
+  result.set_is_unboxing_candidate(!is_final && !is_late);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
@@ -8802,6 +8806,7 @@ RawField* Field::New(const String& name,
                      bool is_final,
                      bool is_const,
                      bool is_reflectable,
+                     bool is_late,
                      const Object& owner,
                      const AbstractType& type,
                      TokenPosition token_pos,
@@ -8809,7 +8814,7 @@ RawField* Field::New(const String& name,
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
-                owner, token_pos, end_token_pos);
+                is_late, owner, token_pos, end_token_pos);
   result.SetFieldType(type);
   return result.raw();
 }
@@ -8817,6 +8822,7 @@ RawField* Field::New(const String& name,
 RawField* Field::NewTopLevel(const String& name,
                              bool is_final,
                              bool is_const,
+                             bool is_late,
                              const Object& owner,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) {
@@ -8824,7 +8830,7 @@ RawField* Field::NewTopLevel(const String& name,
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, true,       /* is_static */
                 is_final, is_const, true, /* is_reflectable */
-                owner, token_pos, end_token_pos);
+                is_late, owner, token_pos, end_token_pos);
   return result.raw();
 }
 
@@ -8887,18 +8893,50 @@ void Field::set_guarded_list_length_in_object_offset(
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
 }
 
+bool Field::NeedsSetter() const {
+  // Late fields always need a setter, unless they're static and non-final.
+  if (is_late()) {
+    if (is_static() && !is_final()) {
+      return false;
+    }
+    return true;
+  }
+
+  // Non-late static fields never need a setter.
+  if (is_static()) {
+    return false;
+  }
+
+  // Otherwise, the field only needs a setter if it isn't final.
+  return !is_final();
+}
+
+bool Field::NeedsGetter() const {
+  // All instance fields need a getter.
+  if (!is_static()) return true;
+
+  // Static fields also need a getter if they have a non-trivial initializer,
+  // because it needs to be initialized lazily.
+  if (has_nontrivial_initializer()) return true;
+
+  // Static late fields with no initializer also need a getter, to check if it's
+  // been initialized.
+  return is_late() && !has_initializer();
+}
+
 const char* Field::ToCString() const {
   if (IsNull()) {
     return "Field: null";
   }
   const char* kF0 = is_static() ? " static" : "";
-  const char* kF1 = is_final() ? " final" : "";
-  const char* kF2 = is_const() ? " const" : "";
+  const char* kF1 = is_late() ? " late" : "";
+  const char* kF2 = is_final() ? " final" : "";
+  const char* kF3 = is_const() ? " const" : "";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s",
-                     cls_name, field_name, kF0, kF1, kF2);
+  return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s",
+                     cls_name, field_name, kF0, kF1, kF2, kF3);
 }
 
 // Build a closure object that gets (or sets) the contents of a static
@@ -10210,6 +10248,7 @@ void Library::AddMetadata(const Object& owner,
       Field::Handle(zone, Field::NewTopLevel(metaname,
                                              false,  // is_final
                                              false,  // is_const
+                                             false,  // is_late
                                              owner, token_pos, token_pos));
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
@@ -11506,14 +11545,13 @@ RawObject* Library::Invoke(const String& function_name,
 }
 
 RawObject* Library::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions, String::Handle(url()),
-      String::Handle(), arguments, type_arguments);
+      kernel_buffer, type_definitions, String::Handle(url()), String::Handle(),
+      arguments, type_arguments);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11571,8 +11609,7 @@ class LibraryLookupTraits {
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -11586,7 +11623,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
   return ApiError::New(error_str);
 #else
   std::unique_ptr<kernel::Program> kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
+      kernel::Program::ReadFromTypedData(kernel_buffer);
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
@@ -11974,6 +12011,7 @@ void Namespace::AddMetadata(const Object& owner,
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                                   false,  // is_final
                                                   false,  // is_const
+                                                  false,  // is_late
                                                   owner, token_pos, token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
@@ -12154,6 +12192,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const Array& scripts,
     const Array& libraries_cache,
     const Array& classes_cache,
+    const Object& retained_kernel_blob,
     const uint32_t binary_version) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
@@ -12168,6 +12207,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
   info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
+  info.StorePointer(&info.raw_ptr()->retained_kernel_blob_,
+                    retained_kernel_blob.raw());
   info.set_kernel_binary_version(binary_version);
   return info.raw();
 }
@@ -14894,7 +14935,7 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
       assembler->CodeSize(), assembler->has_single_entry_point(),
-      compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
+      assembler->UncheckedEntryOffset()));
 
   {
     // Important: if GC is triggerred at any point between Instructions::New
@@ -16441,8 +16482,7 @@ RawObject* Instance::Invoke(const String& function_name,
 
 RawObject* Instance::EvaluateCompiledExpression(
     const Class& method_cls,
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -16456,7 +16496,7 @@ RawObject* Instance::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_buffer, type_definitions,
       String::Handle(Library::Handle(method_cls.library()).url()),
       String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
       type_arguments);
@@ -21654,6 +21694,18 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
   return result.raw();
 }
 
+RawExternalTypedData* ExternalTypedData::NewFinalizeWithFree(uint8_t* data,
+                                                             intptr_t len) {
+  ExternalTypedData& result = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, data, len, Heap::kOld));
+  result.AddFinalizer(
+      data,
+      [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
+         void* data) { free(data); },
+      len);
+  return result.raw();
+}
+
 RawTypedDataView* TypedDataView::New(intptr_t class_id, Heap::Space space) {
   auto& result = TypedDataView::Handle();
   {
@@ -22128,10 +22180,15 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
         }
       } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
-        // The frame immediately after the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
+        // With lazy_async_stacks we're constructing the stack correctly
+        // (see `StackTraceUtils::CollectFramesLazy`) so there are no extra
+        // frames to skip.
+        if (!FLAG_lazy_async_stacks) {
+          // The frame immediately after the asynchronous gap marker is the
+          // identical to the frame above the marker. Skip the frame to enhance
+          // the readability of the trace.
+          i++;
+        }
       } else {
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
         if (code_object.IsCode()) {

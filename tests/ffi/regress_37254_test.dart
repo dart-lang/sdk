@@ -240,7 +240,6 @@ void load6() {
 void main() {
   // Trigger both the runtime entry and the IL in bytecode.
   for (int i = 0; i < 100; i++) {
-    print(i);
     store1();
     store2();
     store3();

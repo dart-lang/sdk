@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Typedef1 = ({a: core::int, required b: core::int}) → dynamic;
 typedef Typedef2 = ({a: core::int, required b: core::int}) → dynamic;
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
   method method({core::int a, required core::int b, required final core::int c, required covariant final core::int d}) → dynamic
     ;

@@ -20,7 +20,10 @@ class Bar<T> implements Foo<T> {
       print(" String=$isString");
     };
 
-    func("Hello World!"); //# 01: compile-time error
+    func("Hello World!");
+    //   ^^^^^^^^^^^^^^
+    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'String' can't be assigned to the parameter type 'T'.
     return new Bar<T>();
   }
 }

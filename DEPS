@@ -36,9 +36,11 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
-  # It requires access to the dart-build-access group, which EngProd has.
-  "co19_2_rev": "a8f7aa15ab860a309667168243bda01fda0794df",
+  # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
+  # hashes. It requires access to the dart-build-access group, which EngProd
+  # has.
+  "co19_rev": "8767031866e8243eafdb46011d4d8a7b5705019d",
+  "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -84,7 +86,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.29.1",
+  "dartdoc_tag" : "v0.29.2",
   "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
@@ -100,7 +102,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.104",
+  "linter_tag": "0.1.105+1",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -117,7 +119,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "d15067931a6b671a1c9dcc98b5923347676269cf",
+  "pub_rev": "ff5ad1eab1649a8eee6cc593302d3624d9853049",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
@@ -186,9 +188,16 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/tests/co19_2/src": {
+  Var("dart_root") + "/tests/co19/src": {
       "packages": [{
           "package": "dart/third_party/co19",
+          "version": "git_revision:" + Var("co19_rev"),
+      }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/tests/co19_2/src": {
+      "packages": [{
+          "package": "dart/third_party/co19/legacy",
           "version": "git_revision:" + Var("co19_2_rev"),
       }],
       "dep_type": "cipd",

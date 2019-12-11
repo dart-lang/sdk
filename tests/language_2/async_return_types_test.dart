@@ -14,19 +14,35 @@ Future<int> foo2() async {
   return 3;
 }
 
-Future<int> //# wrongTypeParameter: compile-time error
+Future<int>
 foo3() async {
   return "String";
+  //     ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<int>'.
 }
 
-Future<int, String> //# tooManyTypeParameters: compile-time error
+Future<int, String>
+// [error line 25, column 1, length 19]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 1 type arguments.
 foo4() async {
+// [error line 29, column 1]
+// [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return "String";
+  //     ^
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<invalid-type>'.
 }
 
-int //# wrongReturnType: compile-time error
+int
+// [error line 37, column 1, length 3]
+// [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
 foo5() async {
+// [error line 40, column 1]
+// [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
+  //     ^
+  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
 }
 
 Future<int> foo6() async {
@@ -34,25 +50,33 @@ Future<int> foo6() async {
   return new Future<int>.value(3);
 }
 
-Future<Future<int>> //# nestedFuture: compile-time error
+Future<Future<int>>
 foo7() async {
   return new Future<int>.value(3);
+  //     ^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
 }
 
 Iterable<int> foo8() sync* {
   yield 1;
   // Can only have valueless return in sync* functions.
-  return
-      8 //# return_value_sync_star: compile-time error
-      ;
+  return 8;
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
+// [cfe] 'sync*' and 'async*' can't return a value.
+//^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 }
 
 Stream<int> foo9() async* {
   yield 1;
   // Can only have valueless return in async* functions.
-  return
-      8 //# return_value_sync_star: compile-time error
-      ;
+  return 8;
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
+// [cfe] 'sync*' and 'async*' can't return a value.
+//^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 }
 
 test() async {

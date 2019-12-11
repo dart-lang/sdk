@@ -295,6 +295,31 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_broadcastRequest_noCurrentSession() async {
+    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+    await withPlugin(
+        pluginName: 'plugin1',
+        content: '(invalid content here)',
+        test: (String plugin1Path) async {
+          ContextRoot contextRoot = _newContextRoot(pkgPath);
+          await manager.addPluginToContextRoot(contextRoot, plugin1Path);
+
+          Map<PluginInfo, Future<Response>> responses =
+              manager.broadcastRequest(
+                  new CompletionGetSuggestionsParams(
+                      '/pkg1/lib/pkg1.dart', 100),
+                  contextRoot: contextRoot);
+          expect(responses, hasLength(0));
+
+          await manager.stopAll();
+        });
+    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_broadcastWatchEvent() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();

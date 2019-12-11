@@ -39,9 +39,11 @@ abstract class AnalysisSession {
 
   /// Return a type provider that is consistent with the results returned by
   /// this session.
+  @Deprecated('Use LibraryElement.typeProvider')
   Future<TypeProvider> get typeProvider;
 
   /// Return the type system being used by this session.
+  @Deprecated('Use LibraryElement.typeSystem')
   Future<TypeSystem> get typeSystem;
 
   /// Return the URI converter used to convert between URI's and file paths.

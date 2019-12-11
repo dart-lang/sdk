@@ -47,8 +47,6 @@ int _isolateId;
 // Requests made to the service isolate over the load port.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
-const _Dart_kResourceLoad = 5; // Resource class support.
-const _Dart_kGetPackageRootUri = 6; // Uri of the packages/ directory.
 const _Dart_kGetPackageConfigUri = 7; // Uri of the .packages file.
 const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
@@ -76,8 +74,6 @@ Uri _workingDirectory;
 // package imports can be resolved relative to it. The root script is the basis
 // for the root library in the VM.
 Uri _rootScript;
-// The package root set on the command line.
-Uri _packageRoot;
 
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
@@ -157,38 +153,6 @@ void _setWorkingDirectory(String cwd) {
 }
 
 // Embedder Entrypoint:
-// The embedder calls this method with a custom package root.
-@pragma("vm:entry-point")
-String _setPackageRoot(String packageRoot) {
-  if (!_setupCompleted) {
-    _setupHooks();
-  }
-  if (_traceLoading) {
-    _log('Setting package root: $packageRoot');
-  }
-  if (packageRoot.startsWith('file:') ||
-      packageRoot.startsWith('http:') ||
-      packageRoot.startsWith('https:')) {
-    packageRoot = _enforceTrailingSlash(packageRoot);
-    _packageRoot = _workingDirectory.resolve(packageRoot);
-  } else {
-    packageRoot = _sanitizeWindowsPath(packageRoot);
-    packageRoot = _trimWindowsPath(packageRoot);
-    _packageRoot = _workingDirectory.resolveUri(new Uri.directory(packageRoot));
-  }
-  // Now that we have determined the packageRoot value being used, set it
-  // up for use in Platform.packageRoot. This is only set when the embedder
-  // sets up the package root. Automatically discovered package root will
-  // not update the VMLibraryHooks value.
-  var packageRootStr = _packageRoot.toString();
-  VMLibraryHooks.packageRootString = packageRootStr;
-  if (_traceLoading) {
-    _log('Package root URI: $_packageRoot');
-  }
-  return packageRootStr;
-}
-
-// Embedder Entrypoint:
 @pragma("vm:entry-point")
 String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
@@ -248,70 +212,12 @@ String _resolveScriptUri(String scriptName) {
   return scriptUri.toString();
 }
 
-// Only used by vm/cc unit tests.
-Uri _resolvePackageUri(Uri uri) {
-  assert(_packageRoot != null);
-  return _packageRoot.resolve(uri.path);
-}
-
-// Returns either a file path or a URI starting with http[s]:, as a String.
-String _filePathFromUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  if (_traceLoading) {
-    _log('Getting file path from: $uri');
-  }
-
-  var path;
-  switch (uri.scheme) {
-    case '':
-    case 'file':
-      return uri.toFilePath();
-    case 'package':
-      return _filePathFromUri(_resolvePackageUri(uri).toString());
-    case 'data':
-    case 'http':
-    case 'https':
-      return uri.toString();
-    default:
-      // Only handling file, http, and package URIs
-      // in standalone binary.
-      if (_traceLoading) {
-        _log('Unknown scheme (${uri.scheme}) in $uri.');
-      }
-      throw 'Not a known scheme: $uri';
-  }
-}
-
 // Register callbacks and hooks with the rest of the core libraries.
 @pragma("vm:entry-point")
 _setupHooks() {
   _setupCompleted = true;
-  VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;
-
-  VMLibraryHooks.packageRootUriFuture = _getPackageRootFuture;
   VMLibraryHooks.packageConfigUriFuture = _getPackageConfigFuture;
   VMLibraryHooks.resolvePackageUriFuture = _resolvePackageUriFuture;
-}
-
-// Handling of Resource class by dispatching to the load port.
-Future<List<int>> _resourceReadAsBytes(Uri uri) async {
-  List response =
-      await _makeLoaderRequest<List<int>>(_Dart_kResourceLoad, uri.toString());
-  if (response[4] is String) {
-    // Throw the error.
-    throw response[4];
-  } else {
-    return response[4];
-  }
-}
-
-// TODO(mfairhurst): remove this
-Future<Uri> _getPackageRootFuture() {
-  if (_traceLoading) {
-    _log("Request for package root from user code.");
-  }
-  // Return null, as the `packages/` directory is not supported in dart 2.
-  return new Future.value(null);
 }
 
 Future<Uri> _getPackageConfigFuture() {

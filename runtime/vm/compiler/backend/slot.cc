@@ -159,16 +159,12 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
-  // TODO(vegorov) Can't assign static type to local variables because
-  // for captured parameters we generate the code that first stores a
-  // variable into the context and then loads it from the context to perform
-  // the type check.
   return SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kCapturedVariable,
       IsImmutableBit::encode(variable.is_final()) | IsNullableBit::encode(true),
       kDynamicCid,
       compiler::target::Context::variable_offset(variable.index().value()),
-      &variable.name(), /*static_type=*/nullptr));
+      &variable.name(), &variable.type()));
 }
 
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {

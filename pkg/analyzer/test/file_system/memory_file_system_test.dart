@@ -53,7 +53,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
-  MemoryResourceProvider createProvider() => new MemoryResourceProvider();
+  MemoryResourceProvider createProvider() => MemoryResourceProvider();
 
   File getFile({@required bool exists, String content, String filePath}) {
     if (filePath == null) {
@@ -89,7 +89,7 @@ abstract class BaseTest extends FileSystemTestSupport {
 @reflectiveTest
 class FileSystemExceptionTest {
   test_constructor() {
-    var exception = new FileSystemException('/my/path', 'my message');
+    var exception = FileSystemException('/my/path', 'my message');
     expect(exception.path, '/my/path');
     expect(exception.message, 'my message');
     expect(exception.toString(),
@@ -124,7 +124,7 @@ class MemoryFileSourceExistingTest extends BaseTest {
   }
 
   test_equals_false_notMemorySource() {
-    expect(source == new Object(), isFalse);
+    expect(source == Object(), isFalse);
   }
 
   test_equals_true_sameFile() {
@@ -445,7 +445,7 @@ class MemoryResourceProviderTest extends BaseTest
   }
 
   Future _delayed(computation()) {
-    return new Future.delayed(Duration.zero, computation);
+    return Future.delayed(Duration.zero, computation);
   }
 
   _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {

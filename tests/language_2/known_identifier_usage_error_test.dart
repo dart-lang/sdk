@@ -22,8 +22,14 @@ import 'dart:async';
 
 Future<int> f1() async {
   int async = 1;
-  int await = 1; //# 02: syntax error
-  int yield = 1; //# 03: syntax error
+  int await = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
+  int yield = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (int i in s) {
@@ -33,8 +39,14 @@ Future<int> f1() async {
 
 Stream<int> f2() async* {
   int async = 1;
-  int await = 1; //# 05: syntax error
-  int yield = 1; //# 06: syntax error
+  int await = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
+  int yield = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
   await for (var i in s) {
@@ -44,13 +56,22 @@ Stream<int> f2() async* {
 
 Iterable<int> f3() sync* {
   int async = 1;
-  int await = 1; //# 08: syntax error
-  int yield = 1; //# 09: syntax error
+  int await = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
+  int yield = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
 
   Stream<int> s = new Stream<int>.fromFuture(new Future<int>.value(1));
-  await for (int i in s) { //# 10: compile-time error
-    yield i + 1; //# 10: continued
-  } //# 10: continued
+  await for (int i in s) {
+  //               ^^
+  // [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
+  // [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+    yield i + 1;
+  }
 }
 
 int f4() {
@@ -59,9 +80,12 @@ int f4() {
   int yield = 1;
 
   Stream s = new Stream<int>.fromFuture(new Future<int>.value(1));
-  await for (int i in s) { //# 11: compile-time error
-    return i + 1; //# 11: continued
-  } //# 11: continued
+  await for (int i in s) {
+  //               ^^
+  // [analyzer] COMPILE_TIME_ERROR.ASYNC_FOR_IN_WRONG_CONTEXT
+  // [cfe] The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.
+    return i + 1;
+  }
 
 }
 

@@ -18,84 +18,84 @@ main() {
 @reflectiveTest
 class DeclaredVariablesTest {
   void test_getBool_false() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables =
-        new DeclaredVariables.fromMap({variableName: 'false'});
+        DeclaredVariables.fromMap({variableName: 'false'});
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toBoolValue(), false);
   }
 
   void test_getBool_invalid() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables =
-        new DeclaredVariables.fromMap({variableName: 'not true'});
+        DeclaredVariables.fromMap({variableName: 'not true'});
     _assertNullDartObject(
         typeProvider, variables.getBool(typeProvider, variableName));
   }
 
   void test_getBool_true() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables =
-        new DeclaredVariables.fromMap({variableName: 'true'});
+        DeclaredVariables.fromMap({variableName: 'true'});
     DartObject object = variables.getBool(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toBoolValue(), true);
   }
 
   void test_getBool_undefined() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
+    DeclaredVariables variables = DeclaredVariables();
     _assertUnknownDartObject(
         typeProvider.boolType, variables.getBool(typeProvider, variableName));
   }
 
   void test_getInt_invalid() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables.fromMap(
-        {variableName: 'four score and seven years'});
+    DeclaredVariables variables =
+        DeclaredVariables.fromMap({variableName: 'four score and seven years'});
     _assertNullDartObject(
         typeProvider, variables.getInt(typeProvider, variableName));
   }
 
   void test_getInt_undefined() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
+    DeclaredVariables variables = DeclaredVariables();
     _assertUnknownDartObject(
         typeProvider.intType, variables.getInt(typeProvider, variableName));
   }
 
   void test_getInt_valid() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
     DeclaredVariables variables =
-        new DeclaredVariables.fromMap({variableName: '23'});
+        DeclaredVariables.fromMap({variableName: '23'});
     DartObject object = variables.getInt(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toIntValue(), 23);
   }
 
   void test_getString_defined() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
     String value = "value";
     DeclaredVariables variables =
-        new DeclaredVariables.fromMap({variableName: value});
+        DeclaredVariables.fromMap({variableName: value});
     DartObject object = variables.getString(typeProvider, variableName);
     expect(object, isNotNull);
     expect(object.toStringValue(), value);
   }
 
   void test_getString_undefined() {
-    TestTypeProvider typeProvider = new TestTypeProvider();
+    TestTypeProvider typeProvider = TestTypeProvider();
     String variableName = "var";
-    DeclaredVariables variables = new DeclaredVariables();
+    DeclaredVariables variables = DeclaredVariables();
     _assertUnknownDartObject(typeProvider.stringType,
         variables.getString(typeProvider, variableName));
   }

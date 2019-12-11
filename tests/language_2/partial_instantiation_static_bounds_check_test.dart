@@ -14,7 +14,9 @@ class C<T> {
 
 class D<T> extends C<T> {
   void foo() {
-    void Function(int) k = instanceFn; //# 03: compile-time error
+    void Function(int) k = instanceFn;
+    //                     ^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   }
 }
 
@@ -23,6 +25,10 @@ void main() {
     print(T);
   }
 
-  void Function(String) k0 = localFn; //# 01: compile-time error
-  void Function(String) k1 = topFn; //# 02: compile-time error
+  void Function(String) k0 = localFn;
+  //                         ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
+  void Function(String) k1 = topFn;
+  //                         ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 }

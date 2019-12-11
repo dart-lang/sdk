@@ -552,6 +552,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
+  bool get isNonNullableByDefault =>
+      _staticTypeContext.nonNullable == Nullability.nonNullable;
+
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
       {this.desugarSets = false,
@@ -957,8 +960,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (nameValue is StringConstant && isValidSymbolName(nameValue.value)) {
         return canonicalize(new SymbolConstant(nameValue.value, null));
       }
-      return report(node.arguments.positional.first,
-          templateConstEvalInvalidSymbolName.withArguments(nameValue));
+      return report(
+          node.arguments.positional.first,
+          templateConstEvalInvalidSymbolName.withArguments(
+              nameValue, isNonNullableByDefault));
     }
 
     final List<DartType> typeArguments =
@@ -1269,7 +1274,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               templateConstEvalInvalidType.withArguments(
                   message,
                   typeEnvironment.coreTypes.stringLegacyRawType,
-                  message.getType(_staticTypeContext)));
+                  message.getType(_staticTypeContext),
+                  isNonNullableByDefault));
         }
       }
     } else {
@@ -1278,7 +1284,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(_staticTypeContext)));
+              condition.getType(_staticTypeContext),
+              isNonNullableByDefault));
     }
   }
 
@@ -1323,8 +1330,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       } else {
         return report(
             node,
-            templateConstEvalInvalidEqualsOperandType.withArguments(
-                receiver, receiver.getType(_staticTypeContext)));
+            templateConstEvalInvalidEqualsOperandType.withArguments(receiver,
+                receiver.getType(_staticTypeContext), isNonNullableByDefault));
       }
     }
 
@@ -1344,7 +1351,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     '+',
                     receiver,
                     typeEnvironment.coreTypes.stringLegacyRawType,
-                    other.getType(_staticTypeContext)));
+                    other.getType(_staticTypeContext),
+                    isNonNullableByDefault));
         }
       }
     } else if (intFolder.isInt(receiver)) {
@@ -1364,7 +1372,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     op,
                     other,
                     typeEnvironment.coreTypes.intLegacyRawType,
-                    other.getType(_staticTypeContext)));
+                    other.getType(_staticTypeContext),
+                    isNonNullableByDefault));
           }
           num receiverValue = (receiver as PrimitiveConstant<num>).value;
           return canonicalize(evaluateBinaryNumericOperation(
@@ -1376,7 +1385,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(_staticTypeContext)));
+                other.getType(_staticTypeContext),
+                isNonNullableByDefault));
       }
     } else if (receiver is DoubleConstant) {
       if ((op == '|' || op == '&' || op == '^') ||
@@ -1387,7 +1397,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.intLegacyRawType,
-                receiver.getType(_staticTypeContext)));
+                receiver.getType(_staticTypeContext),
+                isNonNullableByDefault));
       }
       if (arguments.length == 0) {
         switch (op) {
@@ -1408,7 +1419,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numLegacyRawType,
-                other.getType(_staticTypeContext)));
+                other.getType(_staticTypeContext),
+                isNonNullableByDefault));
       }
     } else if (receiver is BoolConstant) {
       if (arguments.length == 1) {
@@ -1431,8 +1443,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(node, messageConstEvalNullValue);
     }
 
-    return report(node,
-        templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
+    return report(
+        node,
+        templateConstEvalInvalidMethodInvocation.withArguments(
+            op, receiver, isNonNullableByDefault));
   }
 
   @override
@@ -1461,12 +1475,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   node.operator,
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(_staticTypeContext)));
+                  right.getType(_staticTypeContext),
+                  isNonNullableByDefault));
         }
         return report(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left));
+                node.operator, left, isNonNullableByDefault));
       case '&&':
         if (left is BoolConstant) {
           if (!left.value) return falseConstant;
@@ -1482,12 +1497,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   node.operator,
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
-                  right.getType(_staticTypeContext)));
+                  right.getType(_staticTypeContext),
+                  isNonNullableByDefault));
         }
         return report(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left));
+                node.operator, left, isNonNullableByDefault));
       case '??':
         return (left is! NullConstant)
             ? left
@@ -1496,7 +1512,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return report(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left));
+                node.operator, left, isNonNullableByDefault));
     }
   }
 
@@ -1522,7 +1538,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           templateConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(_staticTypeContext)));
+              condition.getType(_staticTypeContext),
+              isNonNullableByDefault));
     }
   }
 
@@ -1554,7 +1571,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return report(
         node,
         templateConstEvalInvalidPropertyGet.withArguments(
-            node.name.name, receiver));
+            node.name.name, receiver, isNonNullableByDefault));
   }
 
   @override
@@ -1642,8 +1659,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       } else {
         return report(
             node,
-            templateConstEvalInvalidStringInterpolationOperand
-                .withArguments(constant));
+            templateConstEvalInvalidStringInterpolationOperand.withArguments(
+                constant, isNonNullableByDefault));
       }
     }
     if (concatenated.length > 1) {
@@ -1806,7 +1823,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         templateConstEvalInvalidType.withArguments(
             constant,
             typeEnvironment.coreTypes.boolLegacyRawType,
-            constant.getType(_staticTypeContext)));
+            constant.getType(_staticTypeContext),
+            isNonNullableByDefault));
   }
 
   @override
@@ -1917,8 +1935,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (!isSubtype(constant, type)) {
       return report(
           node,
-          templateConstEvalInvalidType.withArguments(
-              constant, type, constant.getType(_staticTypeContext)));
+          templateConstEvalInvalidType.withArguments(constant, type,
+              constant.getType(_staticTypeContext), isNonNullableByDefault));
     }
     return constant;
   }
@@ -1943,7 +1961,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     if (!isInstantiated(result)) {
       return report(
-          node, templateConstEvalFreeTypeParameter.withArguments(type));
+          node,
+          templateConstEvalFreeTypeParameter.withArguments(
+              type, isNonNullableByDefault));
     }
 
     return result;

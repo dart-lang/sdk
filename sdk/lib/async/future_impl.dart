@@ -79,6 +79,7 @@ class _FutureListener<S, T> {
   // Which fields means what.
   final int state;
   // Used for then/whenDone callback and error test
+  @pragma("vm:entry-point")
   final Function callback;
   // Used for error callbacks.
   final Function errorCallback;
@@ -213,6 +214,7 @@ class _Future<T> implements Future<T> {
    * will complete with the same result.
    * All listeners are forwarded to the other future.
    */
+  @pragma("vm:entry-point")
   var _resultOrListeners;
 
   // This constructor is used by async/await.

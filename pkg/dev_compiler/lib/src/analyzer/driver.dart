@@ -109,11 +109,11 @@ class CompilerAnalysisDriver {
     var sourceFactory = createSourceFactory(options,
         sdkResolver: DartUriResolver(dartSdk), summaryData: summaryData);
 
-    /// A fresh file system state for this list of [explicitSources].
-    var fsState = _createFileSystemState(sourceFactory);
-
     var declaredVariables = DeclaredVariables.fromMap(
         Map.of(options.declaredVariables)..addAll(sdkLibraryVariables));
+
+    /// A fresh file system state for this list of [explicitSources].
+    var fsState = _createFileSystemState(declaredVariables, sourceFactory);
 
     var resynthesizerBuilder = DevCompilerResynthesizerBuilder(
       fsState: fsState,
@@ -142,7 +142,8 @@ class CompilerAnalysisDriver {
     );
   }
 
-  FileSystemState _createFileSystemState(SourceFactory sourceFactory) {
+  FileSystemState _createFileSystemState(
+      DeclaredVariables declaredVariables, SourceFactory sourceFactory) {
     var unlinkedSalt =
         Uint32List(1 + AnalysisOptionsImpl.unlinkedSignatureLength);
     unlinkedSalt[0] = AnalysisDriver.DATA_VERSION;
@@ -160,6 +161,7 @@ class CompilerAnalysisDriver {
         'contextName',
         sourceFactory,
         analysisOptions,
+        declaredVariables,
         unlinkedSalt,
         linkedSalt,
         externalSummaries: summaryData);

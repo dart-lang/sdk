@@ -311,21 +311,21 @@ class FindNode {
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
     if (content.contains(search, index + 1)) {
-      throw new StateError('The pattern |$search| is not unique in:\n$content');
+      throw StateError('The pattern |$search| is not unique in:\n$content');
     }
     if (index < 0) {
-      throw new StateError('The pattern |$search| is not found in:\n$content');
+      throw StateError('The pattern |$search| is not found in:\n$content');
     }
 
-    var node = new NodeLocator2(index).searchWithin(unit);
+    var node = NodeLocator2(index).searchWithin(unit);
     if (node == null) {
-      throw new StateError(
+      throw StateError(
           'The pattern |$search| had no corresponding node in:\n$content');
     }
 
     var result = node.thisOrAncestorMatching(predicate);
     if (result == null) {
-      throw new StateError(
+      throw StateError(
           'The node for |$search| had no matching ancestor in:\n$content');
     }
     return result;

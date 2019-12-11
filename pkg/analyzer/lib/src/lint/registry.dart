@@ -14,7 +14,7 @@ class Registry with IterableMixin<LintRule> {
   /**
    * The default registry to be used by clients.
    */
-  static final Registry ruleRegistry = new Registry();
+  static final Registry ruleRegistry = Registry();
 
   /**
    * A table mapping rule names to rules.

@@ -24,7 +24,9 @@ ${parser.usage}''');
 // Pubsub messages must be < 10MB long.  Because the JSON we send is
 // Base64 encoded, and we add a final record after checking the size,
 // the limit must be less than 3/4 of 10MB.
-const messageLengthLimit = 7000000;
+// Because we have some Firestore scalability issues when thousands of new
+// tests are added, we currently use less than half of the maximum size.
+const messageLengthLimit = 3000000;
 const postUrl =
     'https://pubsub.googleapis.com/v1/projects/dart-ci/topics/results:publish';
 
@@ -42,14 +44,15 @@ main(List<String> args) async {
     usage(parser);
   }
 
-  var client = http.Client();
+  final client = http.Client();
 
-  var lines = await File(options['result_file']).readAsLines();
-  var token = await File(options['auth_token']).readAsString();
+  final lines = await File(options['result_file']).readAsLines();
+  final token = await File(options['auth_token']).readAsString();
   // Construct pubsub messages.
   var line = 0;
+  var numMessages = 0;
   while (line < lines.length) {
-    var message = StringBuffer();
+    final message = StringBuffer();
     message.write('[');
     message.write(lines[line++]);
     var messageLines = 1;
@@ -59,9 +62,17 @@ main(List<String> args) async {
       messageLines++;
     }
     message.write(']');
+    numMessages++;
+    final attributes = {
+      if (line == lines.length) 'num_messages': numMessages.toString()
+    };
     var base64data = base64Encode(utf8.encode(message.toString()));
-    var jsonMessage =
-        '{"messages": [{"attributes": {}, "data": "$base64data"}]}';
+    var messageObject = {
+      'messages': [
+        {'attributes': attributes, 'data': base64data}
+      ]
+    };
+    var jsonMessage = jsonEncode(messageObject);
     var headers = {'Authorization': 'Bearer $token'};
     var response =
         await client.post(postUrl, headers: headers, body: jsonMessage);
@@ -69,5 +80,6 @@ main(List<String> args) async {
     print('Status ${response.statusCode}');
     print('Response: ${response.body}');
   }
+  print('Number of Pub/Sub messages sent: $numMessages');
   client.close();
 }

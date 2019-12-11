@@ -20,12 +20,17 @@ abstract class A1 {
 }
 
 class A2 {
+//    ^
+// [cfe] The non-abstract class 'A2' is missing implementations for these members:
+
   // Intentionally abstract method.
-  method(); //# 00: compile-time error
+  method();
+//^^^^^^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   A2.make() {}
 }
 
 main() {
   new A1.make();
-  new A2.make(); //# 00: continued
+  new A2.make();
 }

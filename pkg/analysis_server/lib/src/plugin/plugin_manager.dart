@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -438,7 +439,11 @@ class PluginManager {
     Map<PluginInfo, Future<Response>> responseMap =
         <PluginInfo, Future<Response>>{};
     for (PluginInfo plugin in plugins) {
-      responseMap[plugin] = plugin.currentSession?.sendRequest(params);
+      final request = plugin.currentSession?.sendRequest(params);
+      // Only add an entry to the map if we have sent a request.
+      if (request != null) {
+        responseMap[plugin] = request;
+      }
     }
     return responseMap;
   }
@@ -675,7 +680,13 @@ class PluginManager {
    * Stop all of the plugins that are currently running.
    */
   Future<List<void>> stopAll() {
-    return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
+    return Future.wait(_pluginMap.values.map((PluginInfo info) async {
+      try {
+        await info.stop();
+      } catch (e, st) {
+        AnalysisEngine.instance.instrumentationService.logException(e, st);
+      }
+    }));
   }
 
   /**

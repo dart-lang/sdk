@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo {
-  Foo<A>() {} // //# 00: compile-time error
+  Foo<A>() {}
+  // ^^^
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_CONSTRUCTOR
+  // [cfe] Constructors can't have type parameters.
 }
 
 main() {

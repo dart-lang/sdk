@@ -204,7 +204,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return inferred;
   }
 
-  DartType inferListType(ListLiteral node, {bool downwards: false}) {
+  DartType inferListType(ListLiteral node, {bool downwards = false}) {
     DartType contextType = InferenceContext.getContext(node);
 
     var element = _typeProvider.listElement;
@@ -403,13 +403,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         operator,
         node.rightHandSide.staticType,
         type,
-        _featureSet,
       );
       _recordStaticType(node, type);
 
       var leftWriteType = _getStaticType(node.leftHandSide);
-      if (!_typeSystem.isAssignableTo(type, leftWriteType,
-          featureSet: _featureSet)) {
+      if (!_typeSystem.isAssignableTo(type, leftWriteType)) {
         _resolver.errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.rightHandSide,
@@ -504,11 +502,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
     if (node.leftOperand is! ExtensionOverride) {
       staticType = _typeSystem.refineBinaryExpressionType(
-          node.leftOperand.staticType,
-          node.operator.type,
-          node.rightOperand.staticType,
-          staticType,
-          _featureSet);
+        node.leftOperand.staticType,
+        node.operator.type,
+        node.rightOperand.staticType,
+        staticType,
+      );
     }
     _recordStaticType(node, staticType);
   }
@@ -699,10 +697,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context,
-            featureSet: _featureSet) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context,
-            featureSet: _featureSet)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
@@ -1255,7 +1251,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2,
-      {bool read: false}) {
+      {bool read = false}) {
     DartType staticType1 = _getExpressionType(expr1, read: read);
     DartType staticType2 = _getExpressionType(expr2, read: read);
 
@@ -1292,8 +1288,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _checkForInvalidAssignmentIncDec(
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,
@@ -1464,7 +1459,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * See [getExpressionType] for more information. Without strong mode, this is
    * equivalent to [_getStaticType].
    */
-  DartType _getExpressionType(Expression expr, {bool read: false}) =>
+  DartType _getExpressionType(Expression expr, {bool read = false}) =>
       getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
@@ -1488,7 +1483,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * Return the static type of the given [expression].
    */
-  DartType _getStaticType(Expression expression, {bool read: false}) {
+  DartType _getStaticType(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
       type = getReadType(expression);
@@ -1657,7 +1652,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       TypeArgumentList typeArguments,
       ArgumentList argumentList,
       AstNode errorNode,
-      {bool isConst: false}) {
+      {bool isConst = false}) {
     if (typeArguments == null &&
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty) {

@@ -4,12 +4,16 @@
 
 class Foo<T> {
   factory Foo() = Bar<T>;
+  //              ^
+  // [cfe] The type 'T' doesn't extend 'num'.
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   Foo.create() {}
 }
 
 class Bar<
     T
-            extends num //# 01: compile-time error
+            extends num
     > extends Foo<T> {
   factory Bar() {
     return new Bar<T>.create();
@@ -20,4 +24,6 @@ class Bar<
 
 main() {
   new Foo<String>();
+  //  ^
+  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Bar'.
 }

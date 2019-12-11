@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart._interceptors;
 
 /**
@@ -37,7 +35,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return allMatchesInStringUnchecked(this, string, start);
   }
 
-  Match matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
+  Match? matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
     int stringLength = JS('!', '#.length', string);
     if (start < 0 || start > stringLength) {
       throw RangeError.range(start, 0, stringLength);
@@ -71,13 +69,13 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  String replaceAllMapped(Pattern from, String convert(Match match)) {
+  String replaceAllMapped(Pattern from, String Function(Match) convert) {
     return this.splitMapJoin(from, onMatch: convert);
   }
 
   @notNull
   String splitMapJoin(Pattern from,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 

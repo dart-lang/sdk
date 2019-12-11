@@ -2168,6 +2168,9 @@ class FixProcessor extends BaseProcessor {
     // prepare target declaration
     var targetDeclarationResult =
         await sessionHelper.getElementDeclaration(targetElement);
+    if (targetDeclarationResult == null) {
+      return;
+    }
     if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
         targetDeclarationResult.node is! ExtensionDeclaration) {
       return;

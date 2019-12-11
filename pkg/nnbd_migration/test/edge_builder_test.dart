@@ -434,6 +434,44 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
   }
 
+  test_as_side_cast() async {
+    await analyze('''
+class A {}
+class B {}
+class C implements A, B {}
+B f(A a) {
+  // possible via f(C());
+  return a as B;
+}
+''');
+    assertEdge(
+        decoratedTypeAnnotation('A a').node, decoratedTypeAnnotation('B;').node,
+        hard: true);
+  }
+
+  test_as_side_cast_generics() async {
+    await analyze('''
+class A<T> {}
+class B<T> {}
+class C implements A<int>, B<bool> {}
+B<bool> f(A<int> a) {
+  // possible via f(C());
+  return a as B<bool>;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('A<int> a').node,
+        decoratedTypeAnnotation('B<bool>;').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('bool>;').node,
+        decoratedTypeAnnotation('bool> f').node,
+        hard: false);
+    assertNoEdge(anyNode, decoratedTypeAnnotation('bool>;').node);
+    assertNoEdge(anyNode, decoratedTypeAnnotation('int> a').node);
+    // int> a should be connected to the bound of T in A<T>, but nothing else.
+    expect(
+        decoratedTypeAnnotation('int> a').node.downstreamEdges, hasLength(1));
+  }
+
   test_assert_demonstrates_non_null_intent() async {
     await analyze('''
 void f(int i) {
@@ -1627,6 +1665,66 @@ class C {
     // exception to be thrown.
   }
 
+  test_constructor_withRedirectingSuperInitializer() async {
+    await analyze('''
+class C {
+  C.named(int i);
+}
+class D extends C {
+  D(int j) : super.named(j);
+}
+''');
+
+    var namedConstructor = findElement.constructor('named', of: 'C');
+    var constructorType = variables.decoratedElementType(namedConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(
+        decoratedTypeAnnotation('int j').node, constructorParameterType.node,
+        hard: true);
+  }
+
+  @FailingTest(
+      reason: 'Need to pass type arguments along in '
+          'EdgeBuilder.visitSuperConstructorInvocation')
+  test_constructor_withRedirectingSuperInitializer_withTypeArgument() async {
+    await analyze('''
+class C<T> {
+  C.named(T i);
+}
+class D extends C<int> {
+  D(int j) : super.named(j);
+}
+''');
+
+    var namedConstructor = findElement.constructor('named', of: 'C');
+    var constructorType = variables.decoratedElementType(namedConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(
+        decoratedTypeAnnotation('int j').node, constructorParameterType.node,
+        hard: true);
+  }
+
+  @FailingTest(
+      reason: 'Need to pass type arguments along in '
+          'EdgeBuilder.visitSuperConstructorInvocation')
+  test_constructor_withRedirectingSuperInitializer_withTypeVariable() async {
+    await analyze('''
+class C<T> {
+  C.named(T i);
+}
+class D<T> extends C<T> {
+  D(T j) : super.named(j);
+}
+''');
+
+    var namedConstructor = findElement.constructor('named', of: 'C');
+    var constructorType = variables.decoratedElementType(namedConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(
+        decoratedTypeAnnotation('int j').node, constructorParameterType.node,
+        hard: true);
+  }
+
   test_constructorDeclaration_returnType_generic() async {
     await analyze('''
 class C<T, U> {
@@ -2037,6 +2135,15 @@ bar() {
 ''');
     var type = decoratedTypeAnnotation('Function(String message)');
     expect(type.returnType, isNotNull);
+  }
+
+  test_function_metadata() async {
+    await analyze('''
+@deprecated
+void f() {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
   }
 
   test_functionDeclaration_expression_body() async {
@@ -2903,7 +3010,7 @@ bool f(a) => a is List<int>;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
     assertEdge(decoratedTypeAnnotation('List').node, never, hard: true);
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertNoEdge(always, decoratedTypeAnnotation('int').node);
   }
 
   test_library_metadata() async {

@@ -629,6 +629,7 @@ abstract class KClassData {
   bool get isMixinApplication;
 
   Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
+  List<Variance> getVariances();
 
   /// Convert this [KClassData] to the corresponding [JClassData].
   JClassData convert();
@@ -659,6 +660,7 @@ class KClassDataImpl implements KClassData {
   OrderedTypeSet orderedTypeSet;
 
   Iterable<ConstantValue> _metadata;
+  List<Variance> _variances;
 
   KClassDataImpl(this.node);
 
@@ -676,6 +678,10 @@ class KClassDataImpl implements KClassData {
             node.enclosingLibrary, elementMap.typeEnvironment),
         node.annotations);
   }
+
+  @override
+  List<Variance> getVariances() =>
+      _variances ??= node.typeParameters.map(convertVariance).toList();
 
   @override
   JClassData convert() {

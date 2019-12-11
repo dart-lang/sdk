@@ -18,6 +18,12 @@ main() {
   Expect.equals(42, S.foo());
   Expect.equals(87, M.bar());
 
-  Expect.throwsNoSuchMethodError(() => C.foo()); //# 01: compile-time error
-  Expect.throwsNoSuchMethodError(() => C.bar()); //# 02: compile-time error
+  Expect.throwsNoSuchMethodError(() => C.foo());
+  //                                     ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] Method not found: 'C.foo'.
+  Expect.throwsNoSuchMethodError(() => C.bar());
+  //                                     ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] Method not found: 'C.bar'.
 }

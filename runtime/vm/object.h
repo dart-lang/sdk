@@ -719,10 +719,10 @@ class Object {
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
 
-  static RawClass* class_class_;             // Class of the Class vm object.
-  static RawClass* dynamic_class_;           // Class of the 'dynamic' type.
-  static RawClass* void_class_;              // Class of the 'void' type.
-  static RawClass* never_class_;             // Class of the 'Never' type.
+  static RawClass* class_class_;           // Class of the Class vm object.
+  static RawClass* dynamic_class_;         // Class of the 'dynamic' type.
+  static RawClass* void_class_;            // Class of the 'void' type.
+  static RawClass* never_class_;           // Class of the 'Never' type.
   static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
@@ -731,10 +731,10 @@ class Object {
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* ffi_trampoline_data_class_;  // Class of FfiTrampolineData
                                                 // vm obj.
-  static RawClass* field_class_;             // Class of the Field vm object.
-  static RawClass* script_class_;        // Class of the Script vm object.
-  static RawClass* library_class_;       // Class of the Library vm object.
-  static RawClass* namespace_class_;     // Class of Namespace vm object.
+  static RawClass* field_class_;                // Class of the Field vm object.
+  static RawClass* script_class_;     // Class of the Script vm object.
+  static RawClass* library_class_;    // Class of the Library vm object.
+  static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
                                                 // object.
   static RawClass* code_class_;                 // Class of the Code vm object.
@@ -744,13 +744,13 @@ class Object {
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
   static RawClass*
-      compressed_stackmaps_class_;          // Class of CompressedStackMaps.
-  static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
+      compressed_stackmaps_class_;             // Class of CompressedStackMaps.
+  static RawClass* var_descriptors_class_;     // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
-  static RawClass* context_class_;        // Class of the Context vm object.
-  static RawClass* context_scope_class_;  // Class of ContextScope vm object.
-  static RawClass* dyncalltypecheck_class_;     // Class of ParameterTypeCheck.
+  static RawClass* context_class_;           // Class of the Context vm object.
+  static RawClass* context_scope_class_;     // Class of ContextScope vm object.
+  static RawClass* dyncalltypecheck_class_;  // Class of ParameterTypeCheck.
   static RawClass* singletargetcache_class_;    // Class of SingleTargetCache.
   static RawClass* unlinkedcall_class_;         // Class of UnlinkedCall.
   static RawClass* icdata_class_;               // Class of ICData.
@@ -1374,8 +1374,7 @@ class Class : public Object {
   // (type_)param_names, and is invoked with the (type)argument values given in
   // (type_)param_values.
   RawObject* EvaluateCompiledExpression(
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_buffer,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -2505,6 +2504,10 @@ class Function : public Object {
     return IsClosureFunction() || IsFfiTrampoline();
   }
 
+  bool HasThisParameter() const {
+    return IsDynamicFunction() || IsGenerativeConstructor();
+  }
+
   bool IsDynamicFunction(bool allow_abstract = false) const {
     if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
@@ -3600,6 +3603,7 @@ class Field : public Object {
                        bool is_final,
                        bool is_const,
                        bool is_reflectable,
+                       bool is_late,
                        const Object& owner,
                        const AbstractType& type,
                        TokenPosition token_pos,
@@ -3608,6 +3612,7 @@ class Field : public Object {
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
+                               bool is_late,
                                const Object& owner,
                                TokenPosition token_pos,
                                TokenPosition end_token_pos);
@@ -3718,6 +3723,9 @@ class Field : public Object {
     ASSERT(!r || is_final());
     return r;
   }
+
+  bool NeedsSetter() const;
+  bool NeedsGetter() const;
 
   const char* GuardedPropertiesAsCString() const;
 
@@ -3848,6 +3856,7 @@ class Field : public Object {
                             bool is_final,
                             bool is_const,
                             bool is_reflectable,
+                            bool is_late,
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
@@ -4147,8 +4156,7 @@ class Library : public Object {
   // parameters given in (type_)param_names, and is invoked with the (type)
   // argument values given in (type_)param_values.
   RawObject* EvaluateCompiledExpression(
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_buffer,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -4574,6 +4582,7 @@ class KernelProgramInfo : public Object {
                                    const Array& scripts,
                                    const Array& libraries_cache,
                                    const Array& classes_cache,
+                                   const Object& retained_kernel_blob,
                                    const uint32_t binary_version);
 
   static intptr_t InstanceSize() {
@@ -5590,7 +5599,7 @@ class Code : public Object {
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
-  // Same as above, expect the pc is interpreted as a return address (as needed
+  // Same as above, except the pc is interpreted as a return address (as needed
   // for a stack trace or the bottom frames of a profiler sample).
   void GetInlinedFunctionsAtReturnAddress(
       intptr_t pc_offset,
@@ -5845,8 +5854,8 @@ class Code : public Object {
   friend class CodeDeserializationCluster;
   friend class StubCode;               // for set_object_pool
   friend class MegamorphicCacheTable;  // for set_object_pool
-  friend class CodePatcher;     // for set_instructions
-  friend class ProgramVisitor;  // for set_instructions
+  friend class CodePatcher;            // for set_instructions
+  friend class ProgramVisitor;         // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
@@ -6027,6 +6036,10 @@ class Context : public Object {
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static const intptr_t kAwaitJumpVarIndex = 0;
+  static const intptr_t kAsyncCompleterIndex = 1;
+  static const intptr_t kControllerIndex = 1;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(RawContext, data) +
@@ -6543,8 +6556,7 @@ class Instance : public Object {
   // argument values given in (type_)param_values.
   RawObject* EvaluateCompiledExpression(
       const Class& method_cls,
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_buffer,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -9222,6 +9234,8 @@ class ExternalTypedData : public TypedDataBase {
                                    intptr_t len,
                                    Heap::Space space = Heap::kNew);
 
+  static RawExternalTypedData* NewFinalizeWithFree(uint8_t* data, intptr_t len);
+
   static bool IsExternalTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
     intptr_t cid = obj.raw()->GetClassId();
@@ -10352,8 +10366,7 @@ class ArrayOfTuplesView {
   class TupleView {
    public:
     TupleView(const Array& array, intptr_t index)
-        : array_(array), index_(index) {
-    }
+        : array_(array), index_(index) {}
 
     template <EnumType kElement>
     typename std::tuple_element<kElement, TupleT>::type::RawObjectType* Get()

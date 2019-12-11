@@ -7,7 +7,12 @@
 import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
-typedef F1({x = 3, y}); //# 01: compile-time error
+typedef F1({x = 3, y});
+// [error line 10, column 1, length 23]
+// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
+//            ^
+// [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
+// [cfe] Can't have a default value in a function type.
 
 typedef functype({x, y, z});
 
@@ -24,8 +29,12 @@ class A {
   factory A.redirectFactory({int x, int y, int z}) = A;
 
   // Default values are not allowed on redirecting factory constructors.
-  factory A.badRedirectFactory({int x = 3, int y}) = //# 02: compile-time error
-      A; //# 02: compile-time error
+  factory A.badRedirectFactory({int x = 3, int y}) =
+  //                                ^
+  // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
+  //                                    ^
+  // [cfe] Can't have a default value here because any default values of 'A' would be used instead.
+      A;
 
   int get value => x * y * z;
 
@@ -35,7 +44,7 @@ class A {
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-  F1 _ = null; //# 01: continued
+  F1 _ = null;
 
   var a = new A();
 

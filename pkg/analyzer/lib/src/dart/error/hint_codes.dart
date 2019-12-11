@@ -74,7 +74,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DEAD_CODE = const HintCode('DEAD_CODE', "Dead code.",
       correction: "Try removing the code, or "
-          "fixing the code before it so that it can be reached.");
+          "fixing the code before it so that it can be reached.",
+      hasPublishedDocs: true);
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -132,7 +133,8 @@ class HintCode extends AnalyzerErrorCode {
           "'on Object catch (e)' are never reached.",
       correction:
           "Try reordering the catch clauses so that they can be reached, or "
-          "removing the unreachable catch clauses.");
+          "removing the unreachable catch clauses.",
+      hasPublishedDocs: true);
 
   /**
    * Dead code is code that is never reached. This case covers cases where the
@@ -194,7 +196,8 @@ class HintCode extends AnalyzerErrorCode {
           "subtype of '{1}' and hence will have been caught already.",
       correction:
           "Try reordering the catch clauses so that this block can be reached, "
-          "or removing the unreachable catch clause.");
+          "or removing the unreachable catch clause.",
+      hasPublishedDocs: true);
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -348,7 +351,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DUPLICATE_IMPORT = const HintCode(
       'DUPLICATE_IMPORT', "Duplicate import.",
-      correction: "Try removing all but one import of the library.");
+      correction: "Try removing all but one import of the library.",
+      hasPublishedDocs: true);
 
   /**
    * Duplicate hidden names.
@@ -690,6 +694,138 @@ class HintCode extends AnalyzerErrorCode {
       const HintCode('INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
           "The member '{0}' can only be used within '{1}' or a test.");
 
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+          "The Dart language version override number must begin with '@dart'",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+          "The Dart language version override comment must be specified with "
+              "an '=' character",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+          "The Dart language version override comment must be specified with "
+              "the word 'dart' in all lower case",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+          "The Dart language version override comment must be specified with a "
+              "version number, like '2.0', after the '=' character.",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+          "The Dart language version override number can't be prefixed with "
+              "a letter",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+          "The Dart language version override comment can't be followed by "
+              "any non-whitespace characters",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
+      const HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+          'The Dart language version override comment must be specified with '
+              'exactly two slashes.',
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
   /**
    * This hint is generated anywhere where a private declaration is annotated
    * with `@visibleForTemplate` or `@visibleForTesting`.
@@ -740,7 +876,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_VISIBILITY_ANNOTATION = const HintCode(
       'INVALID_VISIBILITY_ANNOTATION',
       "The member '{0}' is annotated with '{1}', but this annotation is only "
-          "meaningful on declarations of public members.");
+          "meaningful on declarations of public members.",
+      hasPublishedDocs: true);
 
   /**
    * Hint for the `x is double` type checks.
@@ -834,7 +971,8 @@ class HintCode extends AnalyzerErrorCode {
   // }
   // ```
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
-      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for a constructor, function or method invocation where a
@@ -848,7 +986,8 @@ class HintCode extends AnalyzerErrorCode {
       const HintCodeWithUniqueName(
           'MISSING_REQUIRED_PARAM',
           'HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
-          "The parameter '{0}' is required. {1}.");
+          "The parameter '{0}' is required. {1}.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -932,7 +1071,8 @@ class HintCode extends AnalyzerErrorCode {
           "superclass.",
       correction:
           "Try composing with this class, or refer to its documentation for "
-          "more information.");
+          "more information.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for classes that inherit from classes annotated with
@@ -1004,7 +1144,8 @@ class HintCode extends AnalyzerErrorCode {
       'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
       "This instance creation must be 'const', because the {0} constructor is "
           "marked as '@literal'.",
-      correction: "Try adding a 'const' keyword.");
+      correction: "Try adding a 'const' keyword.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for non-const instance creation (with the `new` keyword)
@@ -1019,7 +1160,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
           "This instance creation must be 'const', because the {0} constructor "
               "is marked as '@literal'.",
-          correction: "Try replacing the 'new' keyword with 'const'.");
+          correction: "Try replacing the 'new' keyword with 'const'.",
+          hasPublishedDocs: true);
 
   /**
    * When the left operand of a binary expression uses '?.' operator, it can be
@@ -1074,7 +1216,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
           "The getter doesn't override an inherited getter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A field with the override annotation does not override a getter or setter.
@@ -1087,7 +1230,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
           "The field doesn't override an inherited getter or setter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A method with the override annotation does not override an existing method.
@@ -1134,7 +1278,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
           "The method doesn't override an inherited method.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * A setter with the override annotation does not override an existing setter.
@@ -1147,7 +1292,8 @@ class HintCode extends AnalyzerErrorCode {
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
           "The setter doesn't override an inherited setter.",
           correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.");
+              "removing the override annotation.",
+          hasPublishedDocs: true);
 
   /**
    * It is a bad practice for a package import to reference anything outside the
@@ -2051,6 +2197,8 @@ class HintCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.HINT;
 }
 
+/// A [HintCode] class in which a [uniqueName] can be given which is not just
+/// derived from [name].
 class HintCodeWithUniqueName extends HintCode {
   @override
   final String uniqueName;

@@ -204,7 +204,7 @@ class _PerformanceTagImpl implements PerformanceTag {
    */
   static _PerformanceTagImpl current = unknown;
 
-  static final _PerformanceTagImpl unknown = new _PerformanceTagImpl('unknown');
+  static final _PerformanceTagImpl unknown = _PerformanceTagImpl('unknown');
 
   /**
    * A list of all performance tags that have been created so far.
@@ -223,8 +223,8 @@ class _PerformanceTagImpl implements PerformanceTag {
   final Stopwatch stopwatch;
 
   _PerformanceTagImpl(String label)
-      : userTag = new UserTag(label),
-        stopwatch = new Stopwatch() {
+      : userTag = UserTag(label),
+        stopwatch = Stopwatch() {
     all.add(this);
   }
 
@@ -236,7 +236,7 @@ class _PerformanceTagImpl implements PerformanceTag {
 
   @override
   PerformanceTag createChild(String childTagName) {
-    return new _PerformanceTagImpl('$label.$childTagName');
+    return _PerformanceTagImpl('$label.$childTagName');
   }
 
   @override

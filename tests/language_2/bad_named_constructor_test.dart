@@ -4,7 +4,10 @@
 
 class A {
   A() {}
-  WrongName.foo() {} //# 01: compile-time error
+  WrongName.foo() {}
+//^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTRUCTOR_NAME
+// [cfe] The name of a constructor must match the name of the enclosing class.
 }
 
 main() {

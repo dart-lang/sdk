@@ -152,14 +152,14 @@ Future<void> _processFile(File file,
   var errors = <StaticError>[];
   if (insertAnalyzer) {
     stdout.write("\r${file.path} (Running analyzer...)");
-    errors.addAll(await _runAnalyzer(file.absolute.path, options));
+    errors.addAll(await runAnalyzer(file.absolute.path, options));
   }
 
   if (insertCfe) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    errors.addAll(await _runCfe(file.absolute.path, options));
+    errors.addAll(await runCfe(file.absolute.path, options));
   }
 
   errors = StaticError.simplify(errors);
@@ -177,8 +177,7 @@ Future<void> _processFile(File file,
 }
 
 /// Invoke analyzer on [path] and gather all static errors it reports.
-Future<List<StaticError>> _runAnalyzer(
-    String path, List<String> options) async {
+Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
@@ -197,7 +196,7 @@ Future<List<StaticError>> _runAnalyzer(
 }
 
 /// Invoke CFE on [path] and gather all static errors it reports.
-Future<List<StaticError>> _runCfe(String path, List<String> options) async {
+Future<List<StaticError>> runCfe(String path, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
@@ -210,6 +209,9 @@ Future<List<StaticError>> _runCfe(String path, List<String> options) async {
     "dev:null", // Output is only created for file URIs.
     path,
   ]);
+
+  // TODO(karlklose): handle exit codes != 0. This can happen if the dart
+  // executable is not compatible with the kernel package version.
 
   var errors = <StaticError>[];
   FastaCommandOutput.parseErrors(result.stdout as String, errors);

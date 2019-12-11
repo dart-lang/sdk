@@ -1,6 +1,7 @@
 library test;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class C extends core::Object {
   static field dynamic staticField = null;
@@ -12,26 +13,68 @@ class C extends core::Object {
   set instanceSetter(dynamic x) → void {}
   method test() → void {
     dynamic localVar;
-    for (final dynamic #t1 in <dynamic>[]) {
-      self::topLevel = #t1;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::topLevel = #t1;
+        }
+      }
     }
-    for (final dynamic #t2 in <dynamic>[]) {
-      self::topLevelSetter = #t2;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::topLevelSetter = #t2;
+        }
+      }
     }
-    for (final dynamic #t3 in <dynamic>[]) {
-      self::C::staticField = #t3;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::C::staticField = #t3;
+        }
+      }
     }
-    for (final dynamic #t4 in <dynamic>[]) {
-      self::C::staticSetter = #t4;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
+        {
+          self::C::staticSetter = #t4;
+        }
+      }
     }
-    for (final dynamic #t5 in <dynamic>[]) {
-      this.{self::C::instanceField} = #t5;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::instanceField} = #t5;
+        }
+      }
     }
-    for (final dynamic #t6 in <dynamic>[]) {
-      this.{self::C::instanceSetter} = #t6;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
+        {
+          this.{self::C::instanceSetter} = #t6;
+        }
+      }
     }
-    for (final dynamic #t7 in <dynamic>[]) {
-      localVar = #t7;
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
+        {
+          localVar = #t7;
+        }
+      }
     }
   }
 }

@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 class MethodInvocationResolver {
-  static final _nameCall = new Name(null, 'call');
+  static final _nameCall = Name(null, 'call');
 
   /// Resolver visitor is separated from the elements resolver, which calls
   /// this method resolver. If we rewrite a [MethodInvocation] node, we put
@@ -479,7 +479,7 @@ class MethodInvocationResolver {
     // We can invoke Object methods on Function.
     var member = _inheritance.getMember(
       _resolver.typeProvider.functionType,
-      new Name(null, name),
+      Name(null, name),
     );
     if (member != null) {
       nameNode.staticElement = member;
@@ -655,7 +655,7 @@ class MethodInvocationResolver {
 
     // TODO(scheglov) I don't like how we resolve prefixed names.
     // But maybe this is the only one solution.
-    var prefixedName = new PrefixedIdentifierImpl.temp(receiver, nameNode);
+    var prefixedName = PrefixedIdentifierImpl.temp(receiver, nameNode);
     var element = nameScope.lookup(prefixedName, _definingLibrary);
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
@@ -840,7 +840,7 @@ class MethodInvocationResolver {
   }
 
   void _setDynamicResolution(MethodInvocation node,
-      {bool setNameTypeToDynamic: true}) {
+      {bool setNameTypeToDynamic = true}) {
     if (setNameTypeToDynamic) {
       node.methodName.staticType = _dynamicType;
     }

@@ -9,11 +9,17 @@ import 'package:expect/expect.dart';
 class C {
   const C();
 
-  const //# 01: syntax error
+  const
+//^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'const' here.
   get x => 1;
 }
 
-const //# 02: syntax error
+const
+// [error line 19, column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'const' here.
 get y => 2;
 
 main() {

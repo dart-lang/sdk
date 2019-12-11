@@ -297,8 +297,11 @@ class EnumBuilder extends SourceClassBuilder {
     }
     SourceFieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
-    valuesBuilder.buildBody(new ListLiteral(values,
-        typeArgument: rawType(library.nonNullable), isConst: true));
+    valuesBuilder.buildBody(
+        // TODO(johnniwinther): Create the bodies only when we have core types.
+        null,
+        new ListLiteral(values,
+            typeArgument: rawType(library.nonNullable), isConst: true));
     ConstructorBuilderImpl constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
@@ -343,6 +346,9 @@ class EnumBuilder extends SourceClassBuilder {
             new StringLiteral("$name.$constant")
           ]);
           field.buildBody(
+              // TODO(johnniwinther): Create the bodies only when we have core
+              //  types.
+              null,
               new ConstructorInvocation(constructor, arguments, isConst: true));
         }
       }

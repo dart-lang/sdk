@@ -61,6 +61,7 @@ class ObjectPointerVisitor;
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
+  V(Controller, ":controller")                                                 \
   V(ControllerStream, ":controller_stream")                                    \
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
@@ -252,6 +253,7 @@ class ObjectPointerVisitor;
   V(StackTraceParameter, ":stack_trace")                                       \
   V(StackTraceVar, ":stack_trace_var")                                         \
   V(Stream, "stream")                                                          \
+  V(StreamController, "StreamController")                                      \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
@@ -300,7 +302,9 @@ class ObjectPointerVisitor;
   V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
+  V(_AsyncStreamController, "_AsyncStreamController")                          \
   V(_Awaiter, "_awaiter")                                                      \
+  V(_BufferingStreamSubscription, "_BufferingStreamSubscription")              \
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
@@ -311,6 +315,7 @@ class ObjectPointerVisitor;
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
+  V(_ControllerSubscription, "_ControllerSubscription")                        \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -343,6 +348,7 @@ class ObjectPointerVisitor;
   V(_Float64x2ArrayView, "_Float64x2ArrayView")                                \
   V(_Float64x2List, "_Float64x2List")                                          \
   V(_FunctionTypeMirror, "_FunctionTypeMirror")                                \
+  V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
@@ -385,6 +391,7 @@ class ObjectPointerVisitor;
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
   V(_StackTrace, "_StackTrace")                                                \
+  V(_StreamController, "_StreamController")                                    \
   V(_StreamImpl, "_StreamImpl")                                                \
   V(_String, "String")                                                         \
   V(_SyncIterable, "_SyncIterable")                                            \
@@ -417,12 +424,15 @@ class ObjectPointerVisitor;
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
+  V(_future, "_future")                                                        \
   V(_get, "_get")                                                              \
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
   V(_lookupHandler, "_lookupHandler")                                          \
   V(_name, "_name")                                                            \
+  V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
+  V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_setLength, "_setLength")                                                  \
@@ -431,13 +441,16 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
+  V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(add, "add")                                                                \
+  V(callback, "callback")                                                      \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \
   V(char_in_capture, ":char_in_capture")                                       \
   V(char_in_match, ":char_in_match")                                           \
   V(clear, "clear")                                                            \
+  V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
   V(getID, "getID")                                                            \

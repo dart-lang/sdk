@@ -106,7 +106,7 @@ main() {
 }
 """);
     // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
+    expectIdentifierType("foo();", TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_FunctionTypeAlias() async {
@@ -117,7 +117,7 @@ main(Foo foo) {
 }
 """);
     // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
+    expectIdentifierType("foo();", TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_propagatedType() async {
@@ -206,6 +206,11 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   ResolverVisitor _visitor;
 
   /**
+   * The library containing the code being resolved.
+   */
+  LibraryElementImpl _definingLibrary;
+
+  /**
    * The analyzer being used to analyze the test cases.
    */
   StaticTypeAnalyzer _analyzer;
@@ -215,12 +220,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   TypeProvider _typeProvider;
 
-  TypeProvider get typeProvider => _typeProvider;
+  TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
   /**
    * The type system used to analyze the test cases.
    */
-  TypeSystemImpl get _typeSystem => _visitor.typeSystem;
+  TypeSystemImpl get _typeSystem => _definingLibrary.typeSystem;
 
   void fail_visitFunctionExpressionInvocation() {
     _fail("Not yet tested");
@@ -238,7 +243,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 
   void setUp() {
-    _listener = new GatheringErrorListener();
+    _listener = GatheringErrorListener();
     _analyzer = _createAnalyzer();
   }
 
@@ -687,7 +692,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _analyze5(p1);
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = HashMap<String, DartType>();
     expectedNamedTypes["p1"] = dynamicType;
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(
@@ -706,7 +711,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.expressionFunctionBody(_resolvedInteger(0)));
     _analyze5(p);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = HashMap<String, DartType>();
     expectedNamedTypes["p"] = dynamicType;
     _assertFunctionType(
         dynamicType, null, null, expectedNamedTypes, resultType);
@@ -759,7 +764,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.blockFunctionBody2());
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(dynamicType, <DartType>[dynamicType], null,
         expectedNamedTypes, resultType);
@@ -779,7 +784,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         AstTestFactory.expressionFunctionBody(_resolvedInteger(0)));
     _analyze5(p2);
     DartType resultType = _analyze(node);
-    Map<String, DartType> expectedNamedTypes = new HashMap<String, DartType>();
+    Map<String, DartType> expectedNamedTypes = HashMap<String, DartType>();
     expectedNamedTypes["p2"] = dynamicType;
     _assertFunctionType(dynamicType, <DartType>[dynamicType], null,
         expectedNamedTypes, resultType);
@@ -1314,20 +1319,25 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   StaticTypeAnalyzer _createAnalyzer() {
     var context = TestAnalysisContext();
-    var inheritance = new InheritanceManager3();
-    Source source = new FileSource(getFile("/lib.dart"));
+    var inheritance = InheritanceManager3();
+    Source source = FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
-        new CompilationUnitElementImpl();
+        CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
-    LibraryElementImpl definingLibrary = new LibraryElementImpl(
+
+    _definingLibrary = LibraryElementImpl(
         context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
-    definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    _typeProvider = context.typeProvider;
-    _visitor = new ResolverVisitor(
-        inheritance, definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: new LibraryScope(definingLibrary));
+    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+
+    _definingLibrary.typeProvider = context.typeProviderLegacy;
+    _definingLibrary.typeSystem = context.typeSystemLegacy;
+    _typeProvider = context.typeProviderLegacy;
+
+    _visitor = ResolverVisitor(
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
+        featureSet: featureSet, nameScope: LibraryScope(_definingLibrary));
     return _visitor.typeAnalyzer;
   }
 
@@ -1367,11 +1377,11 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   FunctionExpression _resolvedFunctionExpression(
       FormalParameterList parameters, FunctionBody body) {
-    List<ParameterElement> parameterElements = new List<ParameterElement>();
+    List<ParameterElement> parameterElements = List<ParameterElement>();
     for (FormalParameter parameter in parameters.parameters) {
       var nameNode = parameter.identifier;
       ParameterElementImpl element =
-          new ParameterElementImpl(nameNode.name, nameNode.offset);
+          ParameterElementImpl(nameNode.name, nameNode.offset);
       // ignore: deprecated_member_use_from_same_package
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
@@ -1380,7 +1390,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     }
     FunctionExpression node =
         AstTestFactory.functionExpression2(parameters, body);
-    FunctionElementImpl element = new FunctionElementImpl('', -1);
+    FunctionElementImpl element = FunctionElementImpl('', -1);
     element.parameters = parameterElements;
     (node as FunctionExpressionImpl).declaredElement = element;
     return node;
@@ -1437,7 +1447,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     SimpleIdentifier identifier = parameter.identifier;
     Element element = identifier.staticElement;
     if (element is! ParameterElement) {
-      element = new ParameterElementImpl(identifier.name, identifier.offset);
+      element = ParameterElementImpl(identifier.name, identifier.offset);
       identifier.staticElement = element;
     }
     (element as ParameterElementImpl).type = type;

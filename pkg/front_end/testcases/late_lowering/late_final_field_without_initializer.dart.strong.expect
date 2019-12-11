@@ -1,28 +1,29 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
   static field core::int? _#lateStaticField2 = null;
   field core::int? _#lateInstanceField = null;
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
   static get lateStaticField1() → core::int
-    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} throw "Field 'lateStaticField1' has not been initialized." : #t1{core::int};
+    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has not been initialized.") : #t1{core::int};
   static set lateStaticField1(core::int #t2) → void
     if(self::Class::_#lateStaticField1.==(null))
       self::Class::_#lateStaticField1 = #t2;
     else
-      throw "Field 'lateStaticField1' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has already been initialized.");
   static get lateStaticField2() → core::int
-    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} throw "Field 'lateStaticField2' has not been initialized." : #t3{core::int};
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has not been initialized.") : #t3{core::int};
   static set lateStaticField2(core::int #t4) → void
     if(self::Class::_#lateStaticField2.==(null))
       self::Class::_#lateStaticField2 = #t4;
     else
-      throw "Field 'lateStaticField2' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has already been initialized.");
   static method staticMethod() → dynamic {
     self::throws(() → core::int => self::Class::lateStaticField2, "Read value from uninitialized Class.lateStaticField2");
     self::Class::lateStaticField2 = 42;
@@ -30,12 +31,12 @@ class Class extends core::Object {
     self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t5 = this.{self::Class::_#lateInstanceField} in #t5.==(null) ?{core::int} throw "Field 'lateInstanceField' has not been initialized." : #t5{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.") : #t5{core::int};
   set lateInstanceField(core::int #t6) → void
     if(this.{self::Class::_#lateInstanceField}.==(null))
       this.{self::Class::_#lateInstanceField} = #t6;
     else
-      throw "Field 'lateInstanceField' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has already been initialized.");
   method instanceMethod() → dynamic {
     self::throws(() → core::int => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
     this.{self::Class::lateInstanceField} = 16;
@@ -45,12 +46,12 @@ class Class extends core::Object {
 }
 static field core::int? _#lateTopLevelField = null;
 static get lateTopLevelField() → core::int
-  return let final core::int? #t7 = self::_#lateTopLevelField in #t7.==(null) ?{core::int} throw "Field 'lateTopLevelField' has not been initialized." : #t7{core::int};
+  return let final core::int? #t7 = self::_#lateTopLevelField in #t7.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField' has not been initialized.") : #t7{core::int};
 static set lateTopLevelField(core::int #t8) → void
   if(self::_#lateTopLevelField.==(null))
     self::_#lateTopLevelField = #t8;
   else
-    throw "Field 'lateTopLevelField' has already been initialized.";
+    throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField' has already been initialized.");
 static method main() → dynamic {
   self::throws(() → core::int => self::lateTopLevelField, "Read value from uninitialized lateTopLevelField");
   self::lateTopLevelField = 123;

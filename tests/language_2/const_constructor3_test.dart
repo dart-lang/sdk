@@ -12,14 +12,23 @@ class D extends C {
 }
 
 const intValue = 0;
-const c = const C(0.0); //# 01: ok
-const d = const C(intValue); //# 02: compile-time error
-const e = const D(0.0); //# 03: ok
-const f = const D(intValue); //# 04: compile-time error
+const c = const C(0.0);
+const d = const C(intValue);
+//                ^^^^^^^^
+// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
+//                ^^^^^^^^
+// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+const e = const D(0.0);
+const f = const D(intValue);
+//        ^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+//              ^
+// [cfe] Constant evaluation error:
 
 main() {
-  print(c); //# 01: continued
-  print(d); //# 02: continued
-  print(e); //# 03: continued
-  print(f); //# 04: continued
+  print(c);
+  print(d);
+  print(e);
+  print(f);
 }

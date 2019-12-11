@@ -103,7 +103,11 @@ final String _implCode = r'''
 
   void dispose() {
     _streamSub.cancel();
-    _completers.values.forEach((c) => c.completeError('disposed'));
+    _completers.forEach((id, c) {
+      final method = _methodCalls[id];
+      return c.completeError(
+          RPCError(method, -32000, 'Service connection disposed'));
+    });
     _completers.clear();
     if (_disposeHandler != null) {
       _disposeHandler();
@@ -1461,7 +1465,7 @@ class Type extends Member {
                   "List<${fieldType.listTypeArg}>.from(createServiceObject($ref ?? json['samples'], $typesList));");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList));");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) ?? []);");
             }
           }
         }

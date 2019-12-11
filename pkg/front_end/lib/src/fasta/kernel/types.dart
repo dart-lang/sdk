@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         InvalidType,
+        Library,
         NamedType,
         NeverType,
         Nullability,
@@ -21,6 +22,8 @@ import 'package:kernel/ast.dart'
         TypedefType,
         Variance,
         VoidType;
+
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart'
     show Substitution, combineNullabilitiesForSubstitution;
@@ -282,8 +285,15 @@ class Types implements SubtypeTester {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    return hierarchy.getKernelTypeAsInstanceOf(type, superclass);
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      Library clientLibrary, CoreTypes coreTypes) {
+    return hierarchy.getKernelTypeAsInstanceOf(type, superclass, clientLibrary);
+  }
+
+  @override
+  List<DartType> getTypeArgumentsAsInstanceOf(
+      InterfaceType type, Class superclass) {
+    return hierarchy.getKernelTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override
@@ -349,14 +359,14 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
       // arguments in getKernelTypeAsInstanceOf.
       return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
     }
-    InterfaceType asSupertype =
-        types.hierarchy.getKernelTypeAsInstanceOf(s, t.classNode);
-    if (asSupertype == null) {
+    List<DartType> asSupertypeArguments =
+        types.hierarchy.getKernelTypeArgumentsAsInstanceOf(s, t.classNode);
+    if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();
     }
     return types
-        .areTypeArgumentsOfSubtypeKernel(asSupertype.typeArguments,
-            t.typeArguments, t.classNode.typeParameters)
+        .areTypeArgumentsOfSubtypeKernel(
+            asSupertypeArguments, t.typeArguments, t.classNode.typeParameters)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 

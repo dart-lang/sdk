@@ -18,9 +18,9 @@ main() {
   });
 }
 
-final _isFile = new TypeMatcher<File>();
-final _isFileSystemException = new TypeMatcher<FileSystemException>();
-final _isFolder = new TypeMatcher<Folder>();
+final _isFile = TypeMatcher<File>();
+final _isFileSystemException = TypeMatcher<FileSystemException>();
+final _isFolder = TypeMatcher<Folder>();
 
 @reflectiveTest
 class FileTest extends OverlayTestSupport {
@@ -71,7 +71,7 @@ class FileTest extends OverlayTestSupport {
     Source source = file.createSource();
     expect(source, isNotNull);
     expect(source.fullName, defaultFilePath);
-    expect(source.uri, new Uri.file(defaultFilePath));
+    expect(source.uri, Uri.file(defaultFilePath));
   }
 
   test_delete_existing_withoutOverlay() {
@@ -348,7 +348,7 @@ class FileTest extends OverlayTestSupport {
 
   test_toUri() {
     File file = _file(exists: true);
-    expect(file.toUri(), new Uri.file(file.path));
+    expect(file.toUri(), Uri.file(file.path));
   }
 
   test_writeAsBytesSync_withoutOverlay() {
@@ -469,7 +469,7 @@ class FolderTest extends OverlayTestSupport {
   test_delete_notExisting() {
     Folder folder = _folder(exists: false);
     expect(folder.exists, isFalse);
-    expect(() => folder.delete(), throwsA(new TypeMatcher<ArgumentError>()));
+    expect(() => folder.delete(), throwsA(TypeMatcher<ArgumentError>()));
   }
 
   test_exists_false() {
@@ -618,7 +618,7 @@ class FolderTest extends OverlayTestSupport {
 
   test_toUri() {
     Folder folder = _folder(exists: true);
-    expect(folder.toUri(), new Uri.directory(folder.path));
+    expect(folder.toUri(), Uri.directory(folder.path));
   }
 
   void _resolveSymbolicLinksSync_noLinks(Folder folder) {
@@ -813,8 +813,8 @@ class OverlayTestSupport {
   String defaultFilePath;
 
   void setUp() {
-    baseProvider = new MemoryResourceProvider();
-    provider = new OverlayResourceProvider(baseProvider);
+    baseProvider = MemoryResourceProvider();
+    provider = OverlayResourceProvider(baseProvider);
 
     defaultFolderPath = baseProvider.convertPath('/foo/bar');
     defaultFilePath = baseProvider.convertPath('/foo/bar/test.dart');

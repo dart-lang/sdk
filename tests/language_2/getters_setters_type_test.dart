@@ -8,12 +8,11 @@ import "package:expect/expect.dart";
 
 int bar = 499;
 
-int //# 01: static type warning
-get foo => bar;
+int get foo => bar;
+// [error line 11, column 1, length 19]
+// [analyzer] STATIC_WARNING.MISMATCHED_GETTER_AND_SETTER_TYPES
 
-void set foo(
-             String //  //# 01: continued
-    str) {
+void set foo(String str) {
   bar = str.length;
 }
 

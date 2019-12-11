@@ -43,6 +43,42 @@ abstract class SpellContext extends ChainContext {
   List<spell.Dictionaries> get dictionaries;
 
   bool get onlyBlacklisted;
+
+  Set<String> reportedWords = {};
+  Set<String> reportedWordsBlacklisted = {};
+
+  @override
+  Future<void> postRun() {
+    if (reportedWordsBlacklisted.isNotEmpty) {
+      print("\n\n\n");
+      print("================");
+      print("The following words was reported as used and blacklisted:");
+      print("----------------");
+      for (String s in reportedWordsBlacklisted) {
+        print("$s");
+      }
+      print("================");
+    }
+    if (reportedWords.isNotEmpty) {
+      print("\n\n\n");
+      print("================");
+      print("The following word(s) were reported as unknown:");
+      print("----------------");
+      for (String s in reportedWords) {
+        print("$s");
+      }
+      if (dictionaries.isNotEmpty) {
+        print("----------------");
+        print("If the word(s) are correctly spelled please add it to one of "
+            "these files:");
+        for (spell.Dictionaries dictionary in dictionaries) {
+          print(" - ${spell.dictionaryToUri(dictionary)}");
+        }
+      }
+      print("================");
+    }
+    return null;
+  }
 }
 
 class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
@@ -73,8 +109,10 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
       String message;
       if (blacklisted) {
         message = "Misspelled word: '$word' has explicitly been blacklisted.";
+        context.reportedWordsBlacklisted.add(word);
       } else {
         message = "The word '$word' is not in our dictionary.";
+        context.reportedWords.add(word);
       }
       if (alternatives != null && alternatives.isNotEmpty) {
         message += "\n\nThe following word(s) was 'close' "

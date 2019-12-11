@@ -1501,6 +1501,9 @@ abstract class AbstractTypeRelation<T extends DartType>
   /// Returns the declared bound of [element].
   DartType getTypeVariableBound(TypeVariableEntity element);
 
+  /// Returns the variances for each type parameter in [cls].
+  List<Variance> getTypeVariableVariances(ClassEntity cls);
+
   @override
   bool visitType(T t, T s) {
     throw 'internal error: unknown type ${t}';
@@ -1529,10 +1532,25 @@ abstract class AbstractTypeRelation<T extends DartType>
     bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
       List<T> tTypeArgs = instance.typeArguments;
       List<T> sTypeArgs = other.typeArguments;
+      List<Variance> tVariances = getTypeVariableVariances(instance.element);
       assert(tTypeArgs.length == sTypeArgs.length);
+      assert(tTypeArgs.length == tVariances.length);
       for (int i = 0; i < tTypeArgs.length; i++) {
-        if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) {
-          return false;
+        switch (tVariances[i]) {
+          case Variance.legacyCovariant:
+          case Variance.covariant:
+            if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) return false;
+            break;
+          case Variance.contravariant:
+            if (invalidTypeArguments(sTypeArgs[i], tTypeArgs[i])) return false;
+            break;
+          case Variance.invariant:
+            if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i]) ||
+                invalidTypeArguments(sTypeArgs[i], tTypeArgs[i])) return false;
+            break;
+          default:
+            throw StateError(
+                "Invalid variance ${tVariances[i]} used for subtype check.");
         }
       }
       return true;

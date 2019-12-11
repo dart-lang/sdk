@@ -10,13 +10,31 @@ class A {
 
 main() {
   const A(1);
-  const A(); //# 01: compile-time error
-  const A(1, 2); //# 02: compile-time error
+  const A();
+  //     ^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
+  const A(1, 2);
+  //     ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   const A.named();
-  const A.named(b: 1); //# 03: compile-time error
-  const A.named(a: 1, a: 2); //# 04: compile-time error
-  const A.named(a: 1, b: 2); //# 05: compile-time error
+  const A.named(b: 1);
+  //            ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  // [cfe] No named parameter with the name 'b'.
+  const A.named(a: 1, a: 2);
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_NAMED_ARGUMENT
+  // [cfe] Duplicated named argument 'a'.
+  const A.named(a: 1, b: 2);
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  // [cfe] No named parameter with the name 'b'.
   const A.optional();
   const A.optional(42);
-  const A.optional(42, 54); //# 06: compile-time error
+  const A.optional(42, 54);
+  //              ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

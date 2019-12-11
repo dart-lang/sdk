@@ -521,6 +521,9 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (result_type() != nullptr) {
     f->Print(", result_type = %s", result_type()->ToCString());
   }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {

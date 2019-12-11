@@ -33,11 +33,11 @@ main() {
   });
 }
 
-final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+final isDynamicType = TypeMatcher<DynamicTypeImpl>();
 
-final isNeverType = new TypeMatcher<NeverTypeImpl>();
+final isNeverType = TypeMatcher<NeverTypeImpl>();
 
-final isVoidType = new TypeMatcher<VoidTypeImpl>();
+final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /**
  * Integration tests for resolution.
@@ -73,8 +73,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   ClassElement get stringElement => typeProvider.stringType.element;
 
-  TypeProvider get typeProvider =>
-      result.unit.declaredElement.context.typeProvider;
+  TypeProvider get typeProvider => result.typeProvider;
 
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
     VariableElement element = node.staticElement;
@@ -251,8 +250,8 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   Future resolveTestFile() async {
     result = await driver.getResult(testFile);
-    findNode = new FindNode(result.content, result.unit);
-    findElement = new FindElement(result.unit);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   test_adjacentStrings() async {
@@ -569,7 +568,6 @@ main() {}
 ''');
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ImportElement aImport = unit.declaredElement.library.imports[0];
     PrefixElement aPrefix = aImport.prefix;
@@ -725,7 +723,6 @@ class A {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     ClassElement aClass = unitElement.getType('A');
     var aGetter = aClass.getField('a').getter;
@@ -939,8 +936,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -966,8 +961,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -1016,8 +1009,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
     ExpressionStatement statement = statements[0];
@@ -2165,9 +2156,7 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
 
-    var typeProvider = unit.declaredElement.context.typeProvider;
     InterfaceType intType = typeProvider.intType;
     InterfaceType listIntType = typeProvider.listType2(intType);
 
@@ -2365,7 +2354,6 @@ main() {
 ''');
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ImportElement aImport = unit.declaredElement.library.imports[0];
     LibraryElement aLibrary = aImport.importedLibrary;
@@ -2483,7 +2471,6 @@ class C<T> {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     ClassElement cElement = unitElement.getType('C');
     ConstructorElement defaultConstructor = cElement.constructors[0];
@@ -4947,7 +4934,6 @@ class C {
 ''');
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ClassDeclaration cDeclaration = unit.declarations[0];
 
@@ -4985,8 +4971,6 @@ void main() {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -5021,7 +5005,6 @@ num v;
 ''');
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -5054,8 +5037,6 @@ void main() {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -5086,8 +5067,6 @@ void main() {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -6163,8 +6142,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -6202,7 +6179,6 @@ class C {
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ClassDeclaration cClassDeclaration = unit.declarations[1];
     ClassElement cClassElement = cClassDeclaration.declaredElement;
@@ -6388,7 +6364,6 @@ main() {
     var unitElement = result.unit.declaredElement;
     ImportElement myImport = unitElement.library.imports[0];
     PrefixElement myPrefix = myImport.prefix;
-    var typeProvider = unitElement.context.typeProvider;
 
     var myLibrary = myImport.importedLibrary;
     var myUnit = myLibrary.definingCompilationUnit;
@@ -6465,8 +6440,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -6514,8 +6487,6 @@ main() {
     addTestFile(content);
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -6554,7 +6525,6 @@ class C {
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ClassDeclaration cClassDeclaration = unit.declarations[1];
     ClassElement cClassElement = cClassDeclaration.declaredElement;
@@ -6608,7 +6578,6 @@ class C {
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ClassDeclaration cClassDeclaration = unit.declarations[1];
     ClassElement cClassElement = cClassDeclaration.declaredElement;
@@ -6643,7 +6612,6 @@ class C {
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     ClassDeclaration cClassDeclaration = unit.declarations[1];
     ClassElement cClassElement = cClassDeclaration.declaredElement;
@@ -7466,7 +7434,6 @@ class C<T> {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     ClassDeclaration cNode = unit.declarations[0];
     ClassElement cElement = cNode.declaredElement;
@@ -7513,8 +7480,6 @@ class C {
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     ClassDeclaration cNode = unit.declarations[0];
     ClassElement cElement = cNode.declaredElement;
@@ -7560,7 +7525,6 @@ double b = 2.3;
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     {
       TopLevelVariableDeclaration aDeclaration = unit.declarations[0];
@@ -7603,7 +7567,6 @@ var a = 1, b = 2.3;
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     TopLevelVariableDeclaration variableDeclaration = unit.declarations[0];
     expect(variableDeclaration.variables.type, isNull);
@@ -7718,7 +7681,6 @@ typedef int F<T>(bool a, T b);
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     FunctionTypeAlias alias = unit.declarations[0];
     FunctionTypeAliasElement aliasElement = alias.declaredElement;
@@ -7752,7 +7714,6 @@ class C<T extends A, U extends List<A>, V> {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
     ClassDeclaration aNode = unit.declarations[0];
     ClassElement aElement = aNode.declaredElement;
@@ -7827,8 +7788,6 @@ void main() {
 }
 ''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     List<Statement> statements = _getMainStatements(result);
 
@@ -8038,7 +7997,6 @@ typedef void F(int p);
 ''');
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
     FunctionTypeAlias fNode = unit.declarations[1];
     FunctionTypeAliasElement fElement = fNode.declaredElement;

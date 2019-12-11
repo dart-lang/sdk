@@ -60,10 +60,12 @@ main() {
   final sumManyNumbers = ffiTestFunctions
       .lookupFunction<NativeVigesimalOp, VigesimalOp>("SumManyNumbers");
 
+  bool gotException = false;
   try {
     sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
         15, 16.0, 17, 18.0, null, 20.0);
   } on Error {
-    print('Expected exception on passing null for int');
+    gotException = true;
   }
+  Expect.isTrue(gotException);
 }

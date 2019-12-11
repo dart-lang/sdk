@@ -8,7 +8,10 @@ class StringInterpolation6NegativeTest {
   static testMain() {
     // Dollar not followed by "{" or identifier.
     String regexp;
-    regexp = "^(\\d\\d?)[-/](\\d\\d?)$"; //# 01: syntax error
+    regexp = "^(\\d\\d?)[-/](\\d\\d?)$";
+    //                                ^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
     print(regexp);
   }
 }

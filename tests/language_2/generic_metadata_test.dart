@@ -8,7 +8,13 @@ class C<T> {
   const C();
 }
 
-@C() //# 01: ok
-@C<dynamic>() //# 02: compile-time error
-@C<int>() //# 03: compile-time error
+@C()
+@C<dynamic>()
+//^
+// [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
+// [cfe] An annotation (metadata) can't use type arguments.
+@C<int>()
+//^
+// [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
+// [cfe] An annotation (metadata) can't use type arguments.
 main() {}

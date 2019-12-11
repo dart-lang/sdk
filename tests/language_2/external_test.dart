@@ -7,45 +7,97 @@ class Bar {
 }
 
 class Foo {
+//    ^
+// [cfe] The non-abstract class 'Foo' is missing implementations for these members:
   var x;
   f() {}
 
   Foo() : x = 0;
 
   // fields can't be declared external
-  external var x01; // //# 01: syntax error
-  external int x02; // //# 02: syntax error
+  external var x01;
+//^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXTERNAL_FIELD
+// [cfe] Fields can't be declared to be 'external'.
+  external int x02;
+//^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXTERNAL_FIELD
+// [cfe] Fields can't be declared to be 'external'.
 
-  external f11() { } // //# 11: syntax error
-  external f12() => 1; // //# 12: syntax error
-  static external f14(); // //# 14: syntax error
-  int external f16(); // //# 16: syntax error
+  external f11() { }
+  //             ^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
+  // [cfe] An external or native method can't have a body.
+  external f12() => 1;
+  //             ^^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
+  // [cfe] An external or native method can't have a body.
+  //                ^
+  // [cfe] An external or native method can't have a body.
+  static external f14();
+  //     ^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
+  // [cfe] The modifier 'external' should be before the modifier 'static'.
+  int external f16();
+  //  ^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ';' after this.
+  //           ^^^^^^
+  // [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 
-  external Foo.n21(val) : x = 1; // //# 21: syntax error
-  external Foo.n22(val) { x = 1; } // //# 22: syntax error
-  external factory Foo.n23(val) => new Foo(); // //# 23: syntax error
-  external Foo.n24(this.x); // //# 24: compile-time error
-  external factory Foo.n25(val) = Bar; // //# 25: syntax error
+  external Foo.n21(val) : x = 1;
+  //                           ^
+  // [cfe] Only constructors can have initializers, and 'n21' is not a constructor.
+  external Foo.n22(val) { x = 1; }
+  //                    ^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
+  // [cfe] An external or native method can't have a body.
+  external factory Foo.n23(val) => new Foo();
+  //                            ^^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_FACTORY_WITH_BODY
+  // [cfe] External factories can't have a body.
+  //                               ^
+  // [cfe] An external or native method can't have a body.
+  external Foo.n24(this.x);
+  //                    ^
+  // [cfe] An external constructor can't initialize fields.
+  external factory Foo.n25(val) = Bar;
+  //                            ^
+  // [analyzer] SYNTACTIC_ERROR.EXTERNAL_FACTORY_REDIRECTION
+  // [cfe] A redirecting factory can't be external.
+  //                              ^^^
+  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] The constructor function type 'Bar Function(dynamic)' isn't a subtype of 'Foo Function(dynamic)'.
 }
 
-external int t06(int i) { } // //# 30: syntax error
-external int t07(int i) => i + 1; // //# 31: syntax error
+external int t06(int i) { }
+// [error line 73, column 1, length 8]
+// [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
+// [cfe] An external or native method can't have a body.
+//                      ^
+// [cfe] An external or native method can't have a body.
+external int t07(int i) => i + 1;
+// [error line 79, column 1, length 8]
+// [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
+// [cfe] An external or native method can't have a body.
+//                         ^
+// [cfe] An external or native method can't have a body.
 
 main() {
   // Ensure Foo class is compiled.
   var foo = new Foo();
 
-  new Foo().f11(); //                                   //# 11: continued
-  new Foo().f12(); //                                   //# 12: continued
-  Foo.f14(); //                                         //# 14: continued
-  new Foo().f16(); //                                   //# 16: continued
+  new Foo().f11();
+  new Foo().f12();
+  Foo.f14();
+  new Foo().f16();
 
-  new Foo.n21(1); //                                     //# 21: continued
-  new Foo.n22(1); //                                     //# 22: continued
-  new Foo.n23(1); //                                     //# 23: continued
-  new Foo.n24(1); //                                     //# 24: continued
-  new Foo.n25(1); //                                     //# 25: continued
+  new Foo.n21(1);
+  new Foo.n22(1);
+  new Foo.n23(1);
+  new Foo.n24(1);
+  new Foo.n25(1);
 
-  t06(1); //                                            //# 30: continued
-  t07(1); //                                            //# 31: continued
+  t06(1);
+  t07(1);
 }

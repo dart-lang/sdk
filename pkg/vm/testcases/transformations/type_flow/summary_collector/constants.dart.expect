@@ -1,25 +1,26 @@
 ------------ #lib::smiLiteral ------------
 
-RESULT: _T (dart.core::_Smi)
+RESULT: _T (dart.core::_Smi, 42)
 ------------ #lib::intLiteral ------------
 
 RESULT: _T (dart.core::int)+
 ------------ #lib::strLiteral ------------
 
-RESULT: _T (dart.core::_OneByteString)
+RESULT: _T (dart.core::_OneByteString, abc)
 ------------ #lib::indexingIntoConstantList1 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-RESULT: _T (dart.core::_Smi)
+t1 = _Join [dart.core::int*] (_T (dart.core::_Smi, 1), _T (dart.core::_Smi, 2), _T (dart.core::_Smi, 3))
+RESULT: t1
 ------------ #lib::indexingIntoConstantList2 ------------
 %i = _Parameter #0 [_T (dart.core::int)+?]
-t1 = _Join [dart.core::Object*] (_T (dart.core::_OneByteString), _T (dart.core::_Smi), _T {}?)
+t1 = _Join [dart.core::Object*] (_T (dart.core::_OneByteString, hi), _T (dart.core::_Smi, 33), _T {}?, _T (dart.core::_Smi, -5))
 RESULT: t1
 ------------ #lib::main ------------
 
 RESULT: _T {}?
 ------------ #lib::_constList1 ------------
 
-RESULT: _T (dart.core::_ImmutableList)
+RESULT: _T (dart.core::_ImmutableList, ListConstant<dart.core::int*>([1, 2, 3]))
 ------------ #lib::_constList2 ------------
 
-RESULT: _T (dart.core::_ImmutableList)
+RESULT: _T (dart.core::_ImmutableList, ListConstant<dart.core::Object*>([hi, 33, null, -5]))

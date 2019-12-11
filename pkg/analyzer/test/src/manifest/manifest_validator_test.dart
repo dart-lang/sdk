@@ -28,7 +28,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
    */
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     List<AnalysisError> errors = validator.validate(content, true);
-    GatheringErrorListener listener = new GatheringErrorListener();
+    GatheringErrorListener listener = GatheringErrorListener();
     listener.addAll(errors);
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -44,7 +44,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   void setUp() {
     File ManifestFile = getFile('/sample/Manifest.xml');
     Source source = ManifestFile.createSource();
-    validator = new ManifestValidator(source);
+    validator = ManifestValidator(source);
   }
 
   test_hardwareNotSupported_error() {

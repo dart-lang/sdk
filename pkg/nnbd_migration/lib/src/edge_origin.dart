@@ -216,25 +216,11 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.instantiateToBounds;
 }
 
-/// Edge origin resulting from the use of a type as a component type in an 'is'
-/// check.
-///
-/// Somewhat opposite of the principle type, allowing improper non-null type
-/// parameters etc. in an is check (`is List<int>` instead of `is List<int?>`)
-/// could introduce a change to runtime behavior.
-class IsCheckComponentTypeOrigin extends EdgeOrigin {
-  IsCheckComponentTypeOrigin(Source source, TypeAnnotation node)
-      : super(source, node);
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.isCheckComponentType;
-}
-
 /// Edge origin resulting from the use of a type as the main type in an 'is'
 /// check.
 ///
 /// Before the migration, there was no way to say `is int?`, and therefore,
-// `is int` should migrate to non-null int.
+/// `is int` should migrate to non-null int.
 class IsCheckMainTypeOrigin extends EdgeOrigin {
   IsCheckMainTypeOrigin(Source source, TypeAnnotation node)
       : super(source, node);

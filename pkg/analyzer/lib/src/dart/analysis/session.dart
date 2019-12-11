@@ -51,6 +51,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SourceFactory get sourceFactory => _driver.sourceFactory;
 
+  @Deprecated('Use LibraryElement.typeProvider')
   @override
   Future<TypeProvider> get typeProvider async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -59,7 +60,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     if (_typeProvider == null) {
       LibraryElement coreLibrary = await _driver.getLibraryByUri('dart:core');
       LibraryElement asyncLibrary = await _driver.getLibraryByUri('dart:async');
-      _typeProvider = new TypeProviderImpl(
+      _typeProvider = TypeProviderImpl(
         coreLibrary: coreLibrary,
         asyncLibrary: asyncLibrary,
         isNonNullableByDefault: false,
@@ -68,6 +69,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _typeProvider;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   @override
   Future<TypeSystemImpl> get typeSystem async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -87,7 +89,7 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   UriConverter get uriConverter {
-    return _uriConverter ??= new DriverBasedUriConverter(_driver);
+    return _uriConverter ??= DriverBasedUriConverter(_driver);
   }
 
   @deprecated
@@ -191,13 +193,13 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// an [InconsistentAnalysisException] if they might not be.
   void _checkConsistency() {
     if (_driver.currentSession != this) {
-      throw new InconsistentAnalysisException();
+      throw InconsistentAnalysisException();
     }
   }
 
   void _checkElementOfThisSession(Element element) {
     if (element.session != this) {
-      throw new ArgumentError(
+      throw ArgumentError(
           '(${element.runtimeType}) $element was not produced by '
           'this session.');
     }
@@ -219,6 +221,7 @@ class SynchronousSession {
 
   SynchronousSession(this.analysisOptions, this.declaredVariables);
 
+  @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider => _typeProviderLegacy;
 
   TypeProvider get typeProviderLegacy {
@@ -229,6 +232,7 @@ class SynchronousSession {
     return _typeProviderNonNullableByDefault;
   }
 
+  @Deprecated('Use LibraryElement.typeSystem')
   TypeSystemImpl get typeSystem {
     return typeSystemLegacy;
   }

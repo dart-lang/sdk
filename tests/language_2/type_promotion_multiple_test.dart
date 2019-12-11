@@ -34,67 +34,133 @@ void main() {
 void test(A a1) {
   A a2 = new E();
   print(a1.a);
-  print(a1.b); //# 01: compile-time error
-  print(a1.c); //# 02: compile-time error
-  print(a1.d); //# 03: compile-time error
+  print(a1.b);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  print(a1.c);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'c' isn't defined for the class 'A'.
+  print(a1.d);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'd' isn't defined for the class 'A'.
 
   print(a2.a);
-  print(a2.b); //# 04: compile-time error
-  print(a2.c); //# 05: compile-time error
-  print(a2.d); //# 06: compile-time error
+  print(a2.b);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'b' isn't defined for the class 'A'.
+  print(a2.c);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'c' isn't defined for the class 'A'.
+  print(a2.d);
+  //       ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'd' isn't defined for the class 'A'.
 
   if (a1 is B && a2 is C) {
     print(a1.a);
     print(a1.b);
-    print(a1.c); //# 07: compile-time error
-    print(a1.d); //# 08: compile-time error
+    print(a1.c);
+    //       ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'c' isn't defined for the class 'B'.
+    print(a1.d);
+    //       ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'd' isn't defined for the class 'B'.
 
     print(a2.a);
     print(a2.b);
     print(a2.c);
-    print(a2.d); //# 09: compile-time error
+    print(a2.d);
+    //       ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'd' isn't defined for the class 'C'.
 
     if (a1 is C && a2 is D) {
       print(a1.a);
       print(a1.b);
       print(a1.c);
-      print(a1.d); //# 10: compile-time error
+      print(a1.d);
+      //       ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'C'.
 
       print(a2.a);
       print(a2.b);
       print(a2.c);
-      print(a2.d); //# 11: compile-time error
+      print(a2.d);
+      //       ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'C'.
     }
   }
 
   var o1 = a1 is B && a2 is C
           ? '${a1.a}'
               '${a1.b}'
-      '${a1.c}' //# 12: compile-time error
-      '${a1.d}' //# 13: compile-time error
+      '${a1.c}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'c' isn't defined for the class 'B'.
+      '${a1.d}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'B'.
               '${a2.a}'
               '${a2.b}'
               '${a2.c}'
-      '${a2.d}' //# 14: compile-time error
+      '${a2.d}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'C'.
           : '${a1.a}'
-      '${a1.b}' //# 15: compile-time error
-      '${a1.c}' //# 16: compile-time error
-      '${a1.d}' //# 17: compile-time error
+      '${a1.b}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'b' isn't defined for the class 'A'.
+      '${a1.c}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'c' isn't defined for the class 'A'.
+      '${a1.d}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'A'.
           '${a2.a}'
-      '${a2.b}' //# 18: compile-time error
-      '${a2.c}' //# 19: compile-time error
-      '${a2.d}' //# 20: compile-time error
+      '${a2.b}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'b' isn't defined for the class 'A'.
+      '${a2.c}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'c' isn't defined for the class 'A'.
+      '${a2.d}'
+      //    ^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] The getter 'd' isn't defined for the class 'A'.
       ;
 
   if (a2 is C && a1 is B && a1 is C && a2 is B && a2 is D) {
     print(a1.a);
     print(a1.b);
     print(a1.c);
-    print(a1.d); //# 21: compile-time error
+    print(a1.d);
+    //       ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'd' isn't defined for the class 'C'.
 
     print(a2.a);
     print(a2.b);
     print(a2.c);
-    print(a2.d); //# 22: compile-time error
+    print(a2.d);
+    //       ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'd' isn't defined for the class 'C'.
   }
 }

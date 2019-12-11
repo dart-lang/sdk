@@ -27,13 +27,13 @@ import 'test_strategies.dart';
  * The return type separator: →
  */
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
-  DeclaredVariables declaredVariables = new DeclaredVariables();
+  DeclaredVariables declaredVariables = DeclaredVariables();
   SourceFactory sourceFactory;
   MockSdk sdk;
 
   String testFile;
   Source testSource;
-  Set<Source> otherLibrarySources = new Set<Source>();
+  Set<Source> otherLibrarySources = Set<Source>();
 
   /**
    * Tests may set this to `true` to indicate that a missing file at the time of
@@ -42,7 +42,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   bool allowMissingFiles = false;
 
   AbstractResynthesizeTest() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
+    sdk = MockSdk(resourceProvider: resourceProvider);
 
     sourceFactory = SourceFactory(
       [
@@ -5504,7 +5504,7 @@ Exports:
   }
 
   test_export_configurations_useDefault() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
     addLibrarySource('/foo.dart', 'class A {}');
@@ -5529,7 +5529,7 @@ Exports:
   }
 
   test_export_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
@@ -5555,7 +5555,7 @@ Exports:
   }
 
   test_export_configurations_useSecond() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
@@ -5762,7 +5762,7 @@ Exports:
   }
 
   test_exportImport_configurations_useDefault() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
     addLibrarySource('/foo.dart', 'class A {}');
@@ -5787,7 +5787,7 @@ class B extends A {
   }
 
   test_exportImport_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'true',
       'dart.library.html': 'false',
     });
@@ -5813,7 +5813,7 @@ class B extends A {
   }
 
   test_exportImport_configurations_useSecond() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
@@ -6634,7 +6634,7 @@ int get x {}
   }
 
   test_import_configurations_useDefault() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
     });
     addLibrarySource('/foo.dart', 'class A {}');
@@ -6657,7 +6657,7 @@ class B extends A {
   }
 
   test_import_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
@@ -6681,7 +6681,7 @@ class B extends A {
   }
 
   test_import_configurations_useFirst_eqTrue() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'true',
       'dart.library.html': 'true',
     });
@@ -6705,7 +6705,7 @@ class B extends A {
   }
 
   test_import_configurations_useSecond() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
@@ -6729,7 +6729,7 @@ class B extends A {
   }
 
   test_import_configurations_useSecond_eqTrue() async {
-    declaredVariables = new DeclaredVariables.fromMap({
+    declaredVariables = DeclaredVariables.fromMap({
       'dart.library.io': 'false',
       'dart.library.html': 'true',
     });
@@ -11428,7 +11428,7 @@ int j;
 /// to be applied to a class implementing [ResynthesizeTestStrategy].
 mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   Future<LibraryElementImpl> checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false}) async {
+      {bool allowErrors = false, bool dumpSummaries = false}) async {
     throw 42;
 //    Source source = addTestSource(text);
 //    SummaryResynthesizer resynthesizer = encodeLibrary(source);

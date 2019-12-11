@@ -13,7 +13,10 @@ main() {
     // Comply to inlining heuristics.
     // Use an unresolved prefix.
     var foo =
-      Unresolved. //# 01: compile-time error
+      Unresolved.
+//    ^^^^^^^^^^
+// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [cfe] Getter not found: 'Unresolved'.
         bar(
       // Make dart2js generate a call to setRuntimeTypeInfo.
       new Foo<int>(),

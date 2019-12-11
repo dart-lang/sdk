@@ -814,7 +814,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var ctor in superclass.constructors) {
         var savedUri = _currentUri;
         _currentUri = ctor.enclosingClass.fileUri;
-        var jsParams = _emitParameters(ctor.function);
+        var jsParams = _emitParameters(ctor.function, isForwarding: true);
         _currentUri = savedUri;
         var name = ctor.name.name;
         var ctorBody = [
@@ -1015,18 +1015,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               return #.is(o) || #.is(o);
             }
             ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
+              #.castError(o, this, false);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
+              #.castError(o, this, true);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
@@ -1041,18 +1039,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               return #.is(o) || #.is(o);
             }
             ''', [className, typeT, futureOfT]));
-        // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
-        // _ignoreTypeFailure logic.
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, false);
+              #.castError(o, this, false);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
-              return #.as(o, this, true);
+              #.castError(o, this, true);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
@@ -2821,9 +2817,28 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.Fun(formals, block);
   }
 
-  List<js_ast.Parameter> _emitParameters(FunctionNode f) {
+  js_ast.Parameter _emitParameter(VariableDeclaration node,
+      {bool withoutInitializer = false}) {
+    var initializer = node.initializer;
+    var id = _emitVariableDef(node);
+    if (initializer == null || withoutInitializer) return id;
+    return js_ast.DestructuredVariable(
+        name: id, defaultValue: _visitExpression(initializer));
+  }
+
+  List<js_ast.Parameter> _emitParameters(FunctionNode f,
+      {bool isForwarding = false}) {
+    // Destructure optional positional parameters in place.
+    // Given:
+    //  - (arg1, arg2, [opt1, opt2 = def2])
+    // Emit:
+    //  - (arg1, arg2, opt1 = null, opt2 = def2)
+    // Note, if [isForwarding] is set, omit initializers as this actually a
+    // forwarded call not a parameter list. E.g., the second in:
+    //  - foo(arg1, opt1 = def1) => super(arg1, opt1).
     var positional = f.positionalParameters;
-    var result = List<js_ast.Parameter>.of(positional.map(_emitVariableDef));
+    var result = List<js_ast.Parameter>.of(positional
+        .map((p) => _emitParameter(p, withoutInitializer: isForwarding)));
     if (positional.isNotEmpty &&
         f.requiredParameterCount == positional.length &&
         positional.last.annotations.any(isJsRestAnnotation)) {
@@ -2914,7 +2929,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //
       // In the future, we might be able to simplify this, see:
       // https://github.com/dart-lang/sdk/issues/28320
-      var jsParams = _emitParameters(function);
+      var jsParams = _emitParameters(function, isForwarding: true);
       var mutatedParams = jsParams;
       var gen = emitGeneratorFn((fnBody) {
         var mutatedVars = js_ast.findMutatedVariables(fnBody);
@@ -2972,8 +2987,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   DartType _expectedReturnType(FunctionNode f, Class expected) {
     var type = f.thisFunctionType.returnType;
     if (type is InterfaceType) {
-      var match = _hierarchy.getTypeAsInstanceOf(type, expected);
-      if (match != null) return match.typeArguments[0];
+      var matchArguments =
+          _hierarchy.getTypeArgumentsAsInstanceOf(type, expected);
+      if (matchArguments != null) return matchArguments[0];
     }
     return const DynamicType();
   }
@@ -3055,17 +3071,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    for (var p in f.positionalParameters.take(f.requiredParameterCount)) {
+    for (var p in f.positionalParameters) {
       var jsParam = _emitIdentifier(p.name);
-      initParameter(p, jsParam);
-    }
-    for (var p in f.positionalParameters.skip(f.requiredParameterCount)) {
-      var jsParam = _emitIdentifier(p.name);
-      var defaultValue = _defaultParamValue(p);
-      if (defaultValue != null) {
-        body.add(js.statement(
-            'if (# === void 0) # = #;', [jsParam, jsParam, defaultValue]));
-      }
       initParameter(p, jsParam);
     }
     for (var p in f.namedParameters) {
@@ -4050,8 +4057,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitStaticGet(node.target);
 
   js_ast.Expression _emitStaticGet(Member target) {
-    // TODO(vsm): Re-inline constants.  See:
-    // https://github.com/dart-lang/sdk/issues/36285
     var result = _emitStaticTarget(target);
     if (_reifyTearoff(target)) {
       // TODO(jmesserly): we could tag static/top-level function types once

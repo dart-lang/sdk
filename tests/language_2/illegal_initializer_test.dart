@@ -8,35 +8,48 @@ class A {
 }
 
 class B extends A {
-  B.c1()
-      : super.foo
-  /* //# 01: syntax error
-        ()
-  */ //# 01: continued
-  ;
+  B.c1() : super.foo;
+//                  ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Expected '(' after this.
 
   B.foo();
-  B.c2()
-      : this.foo
-  /* //# 02: syntax error
-        ()
-  */ //# 02: continued
-  ;
+  B.c2() : this.foo;
+      //   ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+      // [cfe] Can't access 'this' in a field initializer.
+      //   ^^^^
+      // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
+      // [cfe] Expected an assignment after the field name.
+      //   ^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
+      //        ^^^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
 
-  B.c3()
-      : super
-  /* //# 03: syntax error
-        ()
-  */ //# 03: continued
+  B.c3() : super;
+  //            ^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected '(' after this.
   ;
+//^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_CLASS_MEMBER
+// [cfe] Expected a class member, but got ';'.
 
   B();
-  B.c4()
-      : this
-  /* //# 04: syntax error
-        ()
-  */ //# 04: continued
-  ;
+  B.c4() : this;
+      //   ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
+      // [cfe] Expected an assignment after the field name.
+      //   ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
+      //   ^^^^
+      // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
+      // [error line 39, column 16, length 0]
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [cfe] Expected '.' before this.
+      //       ^
+      // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+      // [cfe] Expected an identifier, but got ''.
 }
 
 main() {

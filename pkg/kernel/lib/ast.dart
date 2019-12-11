@@ -190,6 +190,15 @@ abstract class NamedNode extends TreeNode {
   }
 
   CanonicalName get canonicalName => reference?.canonicalName;
+
+  /// This is an advanced feature.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure the reference in this named node points to itself.
+  void _relinkNode() {
+    this.reference.node = this;
+  }
 }
 
 abstract class FileUriNode extends TreeNode {
@@ -319,7 +328,7 @@ class Library extends NamedNode
 
   // TODO(jensj): Do we have a better option than this?
   static int defaultLanguageVersionMajor = 2;
-  static int defaultLanguageVersionMinor = 7;
+  static int defaultLanguageVersionMinor = 8;
 
   int _languageVersionMajor;
   int _languageVersionMinor;
@@ -335,28 +344,10 @@ class Library extends NamedNode
     _languageVersionMinor = languageVersionMinor;
   }
 
-  static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
   static const int NonNullableByDefaultFlag = 1 << 2;
 
   int flags = 0;
-
-  /// If true, the library is part of another build unit and its contents
-  /// are only partially loaded.
-  ///
-  /// Classes of an external library are loaded at one of the [ClassLevel]s
-  /// other than [ClassLevel.Body].  Members in an external library have no
-  /// body, but have their typed interface present.
-  ///
-  /// If the library is non-external, then its classes are at [ClassLevel.Body]
-  /// and all members are loaded.
-  @Deprecated("Library.isExternal is going away.")
-  bool get isExternal => (flags & ExternalFlag) != 0;
-
-  @Deprecated("Library.isExternal is going away.")
-  void set isExternal(bool value) {
-    flags = value ? (flags | ExternalFlag) : (flags & ~ExternalFlag);
-  }
 
   /// If true, the library is synthetic, for instance library that doesn't
   /// represents an actual file and is created as the result of error recovery.
@@ -400,7 +391,6 @@ class Library extends NamedNode
 
   Library(this.importUri,
       {this.name,
-      bool isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
       List<LibraryPart> parts,
@@ -420,8 +410,6 @@ class Library extends NamedNode
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
-    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    this.isExternal = isExternal;
     setParents(this.dependencies, this);
     setParents(this.parts, this);
     setParents(this.typedefs, this);
@@ -518,6 +506,38 @@ class Library extends NamedNode
     for (int i = 0; i < extensions.length; ++i) {
       Extension extension = extensions[i];
       canonicalName.getChild(extension.name).bindTo(extension.reference);
+    }
+  }
+
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this library points to said
+  /// named node.
+  void relink() {
+    _relinkNode();
+    assert(canonicalName != null);
+    for (int i = 0; i < typedefs.length; ++i) {
+      Typedef typedef_ = typedefs[i];
+      typedef_._relinkNode();
+    }
+    for (int i = 0; i < fields.length; ++i) {
+      Field field = fields[i];
+      field._relinkNode();
+    }
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < classes.length; ++i) {
+      Class class_ = classes[i];
+      class_.relink();
+    }
+    for (int i = 0; i < extensions.length; ++i) {
+      Extension extension = extensions[i];
+      extension._relinkNode();
     }
   }
 
@@ -1127,6 +1147,34 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     dirty = false;
   }
 
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// See [Component.relink] for a comprehensive description.
+  ///
+  /// Makes sure all references in named nodes in this class points to said
+  /// named node.
+  void relink() {
+    this.reference.node = this;
+    for (int i = 0; i < fields.length; ++i) {
+      Field member = fields[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < procedures.length; ++i) {
+      Procedure member = procedures[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < constructors.length; ++i) {
+      Constructor member = constructors[i];
+      member._relinkNode();
+    }
+    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
+      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+      member._relinkNode();
+    }
+    dirty = false;
+  }
+
   /// The immediate super class, or `null` if this is the root class.
   Class get superclass => supertype?.classNode;
 
@@ -1231,12 +1279,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Returns the type of `this` for the class using [coreTypes] for caching.
   InterfaceType getThisType(CoreTypes coreTypes, Nullability nullability) {
     return coreTypes.thisInterfaceType(this, nullability);
-  }
-
-  InterfaceType _bottomType;
-  InterfaceType get bottomType {
-    return _bottomType ??= new InterfaceType(this, Nullability.legacy,
-        new List<DartType>.filled(typeParameters.length, const BottomType()));
   }
 
   /// Returns a possibly synthesized name for this class, consistent with
@@ -2599,14 +2641,19 @@ abstract class Expression extends TreeNode {
           typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     if (type == context.typeEnvironment.nullType) {
-      return superclass.bottomType;
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, context.nullable);
     }
     if (type is InterfaceType) {
-      var upcastType =
-          context.typeEnvironment.getTypeAsInstanceOf(type, superclass);
-      if (upcastType != null) return upcastType;
+      List<DartType> upcastTypeArguments = context.typeEnvironment
+          .getTypeArgumentsAsInstanceOf(type, superclass);
+      if (upcastTypeArguments != null) {
+        return new InterfaceType(
+            superclass, type.nullability, upcastTypeArguments);
+      }
     } else if (type is BottomType) {
-      return superclass.bottomType;
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, context.nonNullable);
     }
     context.typeEnvironment
         .typeError(this, '$type is not a subtype of $superclass');
@@ -2990,9 +3037,10 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    var receiver = context.typeEnvironment
-        .getTypeAsInstanceOf(context.thisType, declaringClass);
-    return Substitution.fromInterfaceType(receiver)
+    List<DartType> receiverArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType, declaringClass);
+    return Substitution.fromPairs(
+            declaringClass.typeParameters, receiverArguments)
         .substituteType(interfaceTarget.getterType);
   }
 
@@ -3349,10 +3397,11 @@ class SuperMethodInvocation extends InvocationExpression {
   DartType getStaticType(StaticTypeContext context) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
-    var receiverType = context.typeEnvironment
-        .getTypeAsInstanceOf(context.thisType, superclass);
-    var returnType = Substitution.fromInterfaceType(receiverType)
-        .substituteType(interfaceTarget.function.returnType);
+    List<DartType> receiverTypeArguments = context.typeEnvironment
+        .getTypeArgumentsAsInstanceOf(context.thisType, superclass);
+    DartType returnType =
+        Substitution.fromPairs(superclass.typeParameters, receiverTypeArguments)
+            .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
             interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);
@@ -6908,6 +6957,38 @@ class Component extends TreeNode {
     }
   }
 
+  /// This is an advanced feature. Use of this method should be coordinated
+  /// with the kernel team.
+  ///
+  /// Makes sure all references in named nodes in this component points to said
+  /// named node.
+  ///
+  /// The use case is advanced incremental compilation, where we want to rebuild
+  /// a single library and make all other libraries use the new library and the
+  /// content therein *while* having the option to go back to pointing (be
+  /// "linked") to the old library if the delta is rejected.
+  ///
+  /// Please note that calling this is a potentially dangerous thing to do,
+  /// and that stuff *can* go wrong, and you could end up in a situation where
+  /// you point to several versions of "the same" library. Examples:
+  ///  * If you only relink part (e.g. a class) if your component you can wind
+  ///    up in an unfortunate situation where if the library (say libA) contains
+  ///    class 'B' and class 'C', you only replace 'B' (with one in library
+  ///    'libAPrime'), everything pointing to 'B' via parent pointers talks
+  ///    about 'libAPrime', whereas everything pointing to 'C' would still
+  ///    ultimately point to 'libA'.
+  ///  * If you relink to a library that doesn't have exactly the same members
+  ///    as the one you're "linking from" you can wind up in an unfortunate
+  ///    situation, e.g. if the thing you relink two is missing a static method,
+  ///    any links to that static method will still point to the old static
+  ///    method and thus (via parent pointers) to the old library.
+  ///  * (probably more).
+  void relink() {
+    for (int i = 0; i < libraries.length; ++i) {
+      libraries[i].relink();
+    }
+  }
+
   void computeCanonicalNamesForLibrary(Library library) {
     root.getChildFromUri(library.importUri).bindTo(library.reference);
     library.computeCanonicalNames();
@@ -7024,6 +7105,7 @@ abstract class BinarySink {
   void writeStringReference(String str);
   void writeName(Name node);
   void writeDartType(DartType type);
+  void writeConstantReference(Constant constant);
   void writeNode(Node node);
 
   void enterScope(
@@ -7052,6 +7134,7 @@ abstract class BinarySource {
   String readStringReference();
   Name readName();
   DartType readDartType();
+  Constant readConstantReference();
   FunctionNode readFunctionNode();
 
   void enterScope({List<TypeParameter> typeParameters});

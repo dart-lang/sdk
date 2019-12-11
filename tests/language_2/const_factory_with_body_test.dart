@@ -5,9 +5,12 @@
 // Tests that a "const factory" with body produces a compile-time error.
 
 class ConstFactoryWithBody {
-  const factory ConstFactoryWithBody.one() { } //# 01: compile-time error
+  const factory ConstFactoryWithBody.one() { }
+//^^^^^
+// [analyzer] SYNTACTIC_ERROR.CONST_FACTORY
+// [cfe] Only redirecting factory constructors can be declared to be 'const'.
 }
 
 main() {
-  const ConstFactoryWithBody.one(); //# 01: continued
+  const ConstFactoryWithBody.one();
 }

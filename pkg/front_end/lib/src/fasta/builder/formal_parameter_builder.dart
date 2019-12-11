@@ -15,7 +15,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' show Expression, VariableDeclaration;
+import 'package:kernel/ast.dart'
+    show DynamicType, Expression, VariableDeclaration;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -145,13 +146,13 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           ..variable = variable);
   }
 
-  void finalizeInitializingFormal() {
-    Object cls = parent.parent;
-    if (cls is ClassBuilder) {
-      Builder fieldBuilder = cls.scope.lookup(name, charOffset, fileUri);
-      if (fieldBuilder is FieldBuilder) {
-        variable.type = fieldBuilder.field.type;
-      }
+  void finalizeInitializingFormal(ClassBuilder classBuilder) {
+    assert(variable.type == null);
+    Builder fieldBuilder = classBuilder.lookupLocalMember(name);
+    if (fieldBuilder is FieldBuilder) {
+      variable.type = fieldBuilder.inferType();
+    } else {
+      variable.type = const DynamicType();
     }
   }
 

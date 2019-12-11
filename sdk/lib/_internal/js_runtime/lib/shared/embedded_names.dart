@@ -461,5 +461,6 @@ class RtiUniverseFieldNames {
   static String evalCache = 'eC';
   static String typeRules = 'tR';
   static String erasedTypes = 'eT';
+  static String typeParameterVariances = 'tPV';
   static String sharedEmptyArray = 'sEA';
 }

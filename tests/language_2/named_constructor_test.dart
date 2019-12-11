@@ -20,30 +20,85 @@ void main() {
   Expect.equals(1, new Class.named().value);
   Expect.equals(1, new Class<int>.named().value);
   // 'Class.named' is not a type:
-  new Class.named<int>().value; //# 01: compile-time error
+  new Class.named<int>().value;
+  //        ^
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  //             ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+
   // 'Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new Class<int>.named<int>().value; //# 02: syntax error
+  new Class<int>.named<int>().value;
+  //             ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   new prefix.Class().value;
   // 'prefix' is not a type:
-  new prefix<int>.Class().value; //# 03: compile-time error
+  new prefix<int>.Class().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
   new prefix.Class<int>().value;
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>().value; //# 04: syntax error
+  new prefix<int>.Class<int>().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
+  //              ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   new prefix.Class.named().value;
   // 'prefix<int>.Class.named' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class.named().value; //# 05: syntax error
+  new prefix<int>.Class.named().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
+  //              ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected '(' after this.
+
+
   // 'prefix.Class<int>.named' doesn't fit the grammar syntax T.id:
   new prefix.Class<int>.named().value;
   // 'prefix.Class.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix.Class.named<int>().value; //# 06: syntax error
+  new prefix.Class.named<int>().value;
+  //               ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>.named().value; //# 07: syntax error
+  new prefix<int>.Class<int>.named().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
+  //              ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+
+
   // 'prefix<int>.Class.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class.named<int>().value; //# 08: syntax error
+  new prefix<int>.Class.named<int>().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
+  //              ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected '(' after this.
+
+
   // 'prefix.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix.Class<int>.named<int>().value; //# 09: syntax error
+  new prefix.Class<int>.named<int>().value;
+  //                    ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+
   // 'prefix<int>.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>.named<int>().value; //# 10: syntax error
+  new prefix<int>.Class<int>.named<int>().value;
+  //  ^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'prefix.Class'.
+  //              ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [cfe] A constructor invocation can't have type arguments on the constructor name.
 }

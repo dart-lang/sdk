@@ -15,7 +15,10 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-  var instanceMethod = 87; // //# 01: compile-time error
+  var instanceMethod = 87;
+  //  ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_FIELD_AND_METHOD
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 
   superInstanceMethod() => super.instanceMethod();
 }
@@ -26,6 +29,9 @@ main() {
   Sub sub = s;
   print(s.instanceMethod);
   Expect.equals(42, s.superInstanceMethod());
-  Expect.equals(42, sup.superInstanceMethod()); //# 02: compile-time error
+  Expect.equals(42, sup.superInstanceMethod());
+  //                    ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [cfe] The method 'superInstanceMethod' isn't defined for the class 'Super'.
   Expect.equals(42, sub.superInstanceMethod());
 }

@@ -169,8 +169,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             expectedReturn == NativeType.kPointer) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
-                templateFfiExpectedNoExceptionalReturn
-                    .withArguments(funcType.returnType),
+                templateFfiExpectedNoExceptionalReturn.withArguments(
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
                 node.location.file);
@@ -182,8 +182,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           // types.
           if (node.arguments.positional.length < 2) {
             diagnosticReporter.report(
-                templateFfiExpectedExceptionalReturn
-                    .withArguments(funcType.returnType),
+                templateFfiExpectedExceptionalReturn.withArguments(
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
                 node.location.file);
@@ -217,8 +217,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           if (!env.isSubtypeOf(returnType, funcType.returnType,
               SubtypeCheckMode.ignoringNullabilities)) {
             diagnosticReporter.report(
-                templateFfiDartTypeMismatch.withArguments(
-                    returnType, funcType.returnType),
+                templateFfiDartTypeMismatch.withArguments(returnType,
+                    funcType.returnType, currentLibrary.isNonNullableByDefault),
                 exceptionalReturn.fileOffset,
                 1,
                 exceptionalReturn.location.file);
@@ -382,8 +382,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return;
     }
     diagnosticReporter.report(
-        templateFfiTypeMismatch.withArguments(
-            dartType, correspondingDartType, nativeType),
+        templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
+            nativeType, currentLibrary.isNonNullableByDefault),
         node.fileOffset,
         1,
         node.location.file);
@@ -394,7 +394,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       {bool allowStructs: false}) {
     if (!_nativeTypeValid(nativeType, allowStructs: allowStructs)) {
       diagnosticReporter.report(
-          templateFfiTypeInvalid.withArguments(nativeType),
+          templateFfiTypeInvalid.withArguments(
+              nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,
           node.location.file);

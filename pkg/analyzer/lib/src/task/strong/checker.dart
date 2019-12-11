@@ -36,7 +36,7 @@ import 'ast_properties.dart';
 /// gets the known static type of the expression.
 DartType getExpressionType(
     Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
-    {bool read: false}) {
+    {bool read = false}) {
   DartType type;
   if (read) {
     type = getReadType(expression);
@@ -136,7 +136,7 @@ class CodeChecker extends RecursiveAstVisitor {
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter {
-    _overrideChecker = new _OverrideChecker(this);
+    _overrideChecker = _OverrideChecker(this);
   }
 
   bool get failure => _failure;
@@ -347,7 +347,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitCompilationUnit(CompilationUnit node) {
     _featureSet = node.featureSet;
     _hasImplicitCasts = false;
-    _covariantPrivateMembers = new HashSet();
+    _covariantPrivateMembers = HashSet();
     node.visitChildren(this);
     setHasImplicitCasts(node, _hasImplicitCasts);
     setCovariantPrivateMembers(node, _covariantPrivateMembers);
@@ -744,7 +744,11 @@ class CodeChecker extends RecursiveAstVisitor {
       var rhsType = _getExpressionType(expr.rightHandSide);
       var lhsType = _getExpressionType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
-          lhsType, op, rhsType, functionType.returnType, _featureSet);
+        lhsType,
+        op,
+        rhsType,
+        functionType.returnType,
+      );
 
       // Check the argument for an implicit cast.
       _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
@@ -825,10 +829,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// [to] or is already a subtype of it, does nothing.
   void _checkImplicitCast(Expression expr, DartType to,
       {DartType from,
-      bool opAssign: false,
-      bool forSpread: false,
-      bool forSpreadKey: false,
-      bool forSpreadValue: false}) {
+      bool opAssign = false,
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     from ??= _getExpressionType(expr);
 
     if (_needsImplicitCast(expr, to, from: from) == true) {
@@ -939,7 +943,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkReturnOrYield(Expression expression, AstNode node,
-      {bool yieldStar: false}) {
+      {bool yieldStar = false}) {
     FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
     var type = _getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
@@ -976,8 +980,12 @@ class CodeChecker extends RecursiveAstVisitor {
         var functionType = element.type;
         var rhsType = typeProvider.intType;
         var lhsType = _getExpressionType(operand);
-        var returnType = rules.refineBinaryExpressionType(lhsType,
-            TokenType.PLUS, rhsType, functionType.returnType, _featureSet);
+        var returnType = rules.refineBinaryExpressionType(
+          lhsType,
+          TokenType.PLUS,
+          rhsType,
+          functionType.returnType,
+        );
 
         // Skip the argument check - `int` cannot be downcast.
         //
@@ -996,7 +1004,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   /// Gets the expected return type of the given function [body], either from
   /// a normal return/yield, or from a yield*.
-  DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar: false}) {
+  DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar = false}) {
     FunctionType functionType;
     var parent = body.parent;
     if (parent is Declaration) {
@@ -1093,10 +1101,10 @@ class CodeChecker extends RecursiveAstVisitor {
           e is PropertyAccessorElement && e.variable is FieldElement);
 
   void _markImplicitCast(Expression expr, DartType to,
-      {bool opAssign: false,
-      bool forSpread: false,
-      bool forSpreadKey: false,
-      bool forSpreadValue: false}) {
+      {bool opAssign = false,
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     if (opAssign) {
       setImplicitOperationCast(expr, to);
     } else if (forSpread) {
@@ -1135,7 +1143,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to, featureSet: _featureSet)) {
+    if (rules.isAssignableTo(from, to)) {
       return true;
     }
 
@@ -1168,10 +1176,10 @@ class CodeChecker extends RecursiveAstVisitor {
   /// the AST node.
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from,
-      bool opAssign: false,
-      forSpread: false,
-      forSpreadKey: false,
-      forSpreadValue: false}) {
+      bool opAssign = false,
+      forSpread = false,
+      forSpreadKey = false,
+      forSpreadValue = false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
@@ -1286,8 +1294,8 @@ class CodeChecker extends RecursiveAstVisitor {
     // Compute the right severity taking the analysis options into account.
     // We construct a dummy error to make the common case where we end up
     // ignoring the strong mode message cheaper.
-    var processor = ErrorProcessor.getProcessor(_options,
-        new AnalysisError.forValues(null, -1, 0, errorCode, null, null));
+    var processor = ErrorProcessor.getProcessor(
+        _options, AnalysisError.forValues(null, -1, 0, errorCode, null, null));
     var severity =
         (processor != null) ? processor.severity : errorCode.errorSeverity;
 
@@ -1304,8 +1312,7 @@ class CodeChecker extends RecursiveAstVisitor {
           : node.offset;
       int length = node.end - begin;
       var source = (node.root as CompilationUnit).declaredElement.source;
-      var error =
-          new AnalysisError(source, begin, length, errorCode, arguments);
+      var error = AnalysisError(source, begin, length, errorCode, arguments);
       reporter.onError(error);
     }
   }
@@ -1349,7 +1356,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _validateTopLevelInitializer(String name, Expression n) {
-    n.accept(new _TopLevelInitializerValidator(this, name));
+    n.accept(_TopLevelInitializerValidator(this, name));
   }
 
   void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
@@ -1369,7 +1376,7 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (parent is ForElement) {
       awaitKeyword = parent.awaitKeyword;
     } else {
-      throw new StateError(
+      throw StateError(
           'Unexpected parent of ForEachParts: ${parent.runtimeType}');
     }
     // Find the element type of the sequence.
@@ -1477,7 +1484,7 @@ class _OverrideChecker {
     var allCovariant = _findAllGenericInterfaces(element);
     if (allCovariant.isEmpty) return;
 
-    var seenConcreteMembers = new HashSet<String>();
+    var seenConcreteMembers = HashSet<String>();
     var members = _getConcreteMembers(element.thisType, seenConcreteMembers);
 
     // For members on this class, check them against all generic interfaces.
@@ -1653,7 +1660,7 @@ class _OverrideChecker {
   ///
   Set<Element> _findSuperclassCovariantChecks(ClassElement element,
       Set<ClassElement> allCovariant, HashSet<String> seenConcreteMembers) {
-    var visited = new HashSet<ClassElement>()..add(element);
+    var visited = HashSet<ClassElement>()..add(element);
     var superChecks = _createCovariantCheckSet();
     var existingChecks = _createCovariantCheckSet();
 
@@ -1688,7 +1695,7 @@ class _OverrideChecker {
   }
 
   static Set<Element> _createCovariantCheckSet() {
-    return new LinkedHashSet(
+    return LinkedHashSet(
       equals: (a, b) => a.declaration == b.declaration,
       hashCode: (e) => e.declaration.hashCode,
     );
@@ -1791,7 +1798,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   }
 
   void validateIdentifierElement(AstNode n, Element e,
-      {bool isMethodCall: false}) {
+      {bool isMethodCall = false}) {
     if (e == null) {
       return;
     }

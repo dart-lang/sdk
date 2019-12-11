@@ -13,7 +13,7 @@ main() {
 }
 
 List<int> _b(int length) {
-  return new List<int>(length);
+  return List<int>(length);
 }
 
 @reflectiveTest
@@ -95,7 +95,7 @@ class CacheTest {
   }
 
   Cache<String, List<int>> _newBytesCache(int maxSizeBytes) =>
-      new Cache<String, List<int>>(maxSizeBytes, (bytes) => bytes.length);
+      Cache<String, List<int>>(maxSizeBytes, (bytes) => bytes.length);
 
   static List<int> _noBytes() => null;
 }

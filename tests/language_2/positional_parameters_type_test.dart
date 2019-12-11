@@ -18,6 +18,12 @@ main() {
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
   acceptFunNumOptBool(funNumOptBoolX);
-  acceptFunNumOptBool(funNum);     //# 01: compile-time error
-  acceptFunNumOptBool(funNumBool); //# 02: compile-time error
+  acceptFunNumOptBool(funNum);
+  //                  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [cfe] The local function has type 'void Function(num)' that isn't of expected type 'void Function(num, [bool])'.
+  acceptFunNumOptBool(funNumBool);
+  //                  ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [cfe] The local function has type 'void Function(num, bool)' that isn't of expected type 'void Function(num, [bool])'.
 }

@@ -31,21 +31,33 @@ void main() {
   A a = new E();
   if (a is B) {
     print(a.a);
-    print(a.b); //# 01: compile-time error
+    print(a.b);
+    //      ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
     a = null;
   }
   if (a is B) {
     a = null;
     print(a.a);
-    print(a.b); //# 02: compile-time error
+    print(a.b);
+    //      ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
   if (a is B) {
     print(a.a);
-    print(a.b); //# 03: compile-time error
+    print(a.b);
+    //      ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
     {
       a = null;
     }
     print(a.a);
-    print(a.b); //# 04: compile-time error
+    print(a.b);
+    //      ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }

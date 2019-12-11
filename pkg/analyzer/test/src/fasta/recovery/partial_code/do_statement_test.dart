@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new DoStatementTest().buildAll();
+  DoStatementTest().buildAll();
 }
 
 class DoStatementTest extends PartialCodeTest {
@@ -17,7 +17,7 @@ class DoStatementTest extends PartialCodeTest {
     buildTests(
         'do_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'do',
               [
@@ -31,7 +31,7 @@ class DoStatementTest extends PartialCodeTest {
               ],
               "do {} while (_s_);",
               allFailing: true),
-          new TestDescriptor(
+          TestDescriptor(
               'leftBrace',
               'do {',
               [
@@ -43,7 +43,7 @@ class DoStatementTest extends PartialCodeTest {
               ],
               "do {} while (_s_);",
               failing: allExceptEof),
-          new TestDescriptor(
+          TestDescriptor(
               'rightBrace',
               'do {}',
               [
@@ -54,7 +54,7 @@ class DoStatementTest extends PartialCodeTest {
               ],
               "do {} while (_s_);",
               failing: ['while']),
-          new TestDescriptor(
+          TestDescriptor(
               'while',
               'do {} while',
               [
@@ -63,7 +63,7 @@ class DoStatementTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "do {} while (_s_);"),
-          new TestDescriptor(
+          TestDescriptor(
               'leftParen',
               'do {} while (',
               [
@@ -80,12 +80,12 @@ class DoStatementTest extends PartialCodeTest {
                 'localFunctionVoid',
                 'return'
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'condition',
               'do {} while (a',
               [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
               "do {} while (a);"),
-          new TestDescriptor('rightParen', 'do {} while (a)',
+          TestDescriptor('rightParen', 'do {} while (a)',
               [ParserErrorCode.EXPECTED_TOKEN], "do {} while (a);"),
         ],
         PartialCodeTest.statementSuffixes,

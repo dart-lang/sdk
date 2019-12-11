@@ -7,7 +7,10 @@
 class StringInterpolation2NegativeTest {
   static testMain() {
     // Dollar followed by "/".
-    print('C;Y1;X4;K"$/Month"'); //# 01: syntax error
+    print('C;Y1;X4;K"$/Month"');
+    //                ^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   }
 }
 

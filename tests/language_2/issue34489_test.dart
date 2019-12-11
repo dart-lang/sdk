@@ -7,5 +7,8 @@ class C<T> {
 }
 
 main() {
-  new C().field = 'bad'; //# 01: compile-time error
+  new C().field = 'bad';
+  //              ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'String' can't be assigned to a variable of type 'Type'.
 }

@@ -5,9 +5,13 @@
 import "package:expect/expect.dart";
 
 class A {
-  final int i = f(); //# 01: compile-time error
+  final int i = f();
+  //            ^
+  // [cfe] Method invocation is not a constant expression.
   final int j = 1;
   const A();
+//^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
 }
 
 int f() {

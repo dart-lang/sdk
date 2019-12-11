@@ -22,7 +22,6 @@ const List<String> subtools = const <String>[
   "outline",
   "parser",
   "scanner",
-  "dump-partial",
   "dump-ir",
   "testing",
   "generate-messages",
@@ -113,12 +112,6 @@ Error: No Dart file specified.
     },
     "scanner": {
       "exitCode": 0,
-      "stderr": "",
-    },
-    "dump-partial": {
-      "exitCode": 1,
-      "stdout": "usage: pkg/front_end/tool/fasta dump_partial"
-          " partial.dill [extra1.dill] ... [extraN.dill]\n",
       "stderr": "",
     },
     "dump-ir": {

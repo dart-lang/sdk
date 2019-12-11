@@ -100,13 +100,21 @@ main() {
     // `Future<dynamic>`, by verifying that its return value can be assigned to
     // `Future<int>` but not `int`.
     Future<int> v1 = f_inferred_futureDynamic();
-    int v2 = f_inferred_futureDynamic(); //# 01: compile-time error
+    int v2 = f_inferred_futureDynamic();
+    //       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                               ^
+    // [cfe] A value of type 'Future<Object>' can't be assigned to a variable of type 'int'.
 
     // Check that f_inferred_A's static return type is `Future<A>`, by verifying
     // that its return value can be assigned to `Future<B2>` but not
     // `Future<int>`.
     Future<B2> v3 = f_inferred_A();
-    Future<int> v4 = f_inferred_A(); //# 02: compile-time error
+    Future<int> v4 = f_inferred_A();
+    //               ^^^^^^^^^^^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //                           ^
+    // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<int>'.
   }
 
   checkFutureDynamic(f_inferred_futureDynamic);

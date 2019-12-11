@@ -6,8 +6,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

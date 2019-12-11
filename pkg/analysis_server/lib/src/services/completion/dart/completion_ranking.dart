@@ -13,16 +13,16 @@ import 'package:analysis_server/src/services/completion/dart/completion_ranking_
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 
+/// Number of code completion isolates.
+// TODO(devoncarew): We need to explore the memory costs of running multiple ML
+// isolates.
+const int _ISOLATE_COUNT = 2;
+
 /// Number of lookback tokens.
 const int _LOOKBACK = 100;
 
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
-
-// TODO(devoncarew): We need to explore the memory costs of running multiple ML
-// isolates.
-/// Number of code completion isolates.
-const int _ISOLATE_COUNT = 2;
 
 /// Prediction service run by the model isolate.
 void entrypoint(SendPort sendPort) {
@@ -62,17 +62,31 @@ class CompletionRanking {
 
   CompletionRanking(this._directory);
 
-  /// Send an RPC to the isolate worker and wait for it to respond.
-  Future<Map<String, Map<String, double>>> makeRequest(
-      String method, List<String> args) async {
-    final port = ReceivePort();
-    _writes[_index].send({
-      'method': method,
+  /// Send an RPC to the isolate worker requesting that it load the model and
+  /// wait for it to respond.
+  Future<Map<String, Map<String, double>>> makeLoadRequest(
+      SendPort sendPort, List<String> args) async {
+    final receivePort = ReceivePort();
+    sendPort.send({
+      'method': 'load',
       'args': args,
-      'port': port.sendPort,
+      'port': receivePort.sendPort,
     });
-    this._index = (_index + 1) % _ISOLATE_COUNT;
-    return await port.first;
+    return await receivePort.first;
+  }
+
+  /// Send an RPC to the isolate worker requesting that it make a prediction and
+  /// wait for it to respond.
+  Future<Map<String, Map<String, double>>> makePredictRequest(
+      List<String> args) async {
+    final receivePort = ReceivePort();
+    _writes[_index].send({
+      'method': 'predict',
+      'args': args,
+      'port': receivePort.sendPort,
+    });
+    _index = (_index + 1) % _writes.length;
+    return await receivePort.first;
   }
 
   /// Makes a next-token prediction starting at the completion request cursor
@@ -88,7 +102,7 @@ class CompletionRanking {
     performanceMetrics._incrementPredictionRequestCount();
 
     final Stopwatch timer = Stopwatch()..start();
-    final response = await makeRequest('predict', query);
+    final response = await makePredictRequest(query);
     timer.stop();
 
     final Map<String, double> result = response['data'];
@@ -113,6 +127,10 @@ class CompletionRanking {
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
       DartCompletionRequest request,
       FeatureSet featureSet) async {
+    assert((includedElementNames != null &&
+            includedSuggestionRelevanceTags != null) ||
+        (includedElementNames == null &&
+            includedSuggestionRelevanceTags == null));
     final probability = await probabilityFuture
         .timeout(const Duration(seconds: 1), onTimeout: () => null);
     if (probability == null || probability.isEmpty) {
@@ -153,13 +171,14 @@ class CompletionRanking {
 
     var allowModelOnlySuggestions =
         !testNamedArgument(suggestions) && !testFollowingDot(request);
-    entries.forEach((MapEntry entry) {
+    for (MapEntry entry in entries) {
       // There may be multiple like
       // CompletionSuggestion and CompletionSuggestion().
       final completionSuggestions = suggestions.where((suggestion) =>
           areCompletionsEquivalent(suggestion.completion, entry.key));
       List<IncludedSuggestionRelevanceTag> includedSuggestions;
-      final isIncludedElementName = includedElementNames.contains(entry.key);
+      final isIncludedElementName = includedElementNames != null &&
+          includedElementNames.contains(entry.key);
       if (includedSuggestionRelevanceTags != null) {
         includedSuggestions = includedSuggestionRelevanceTags
             .where((tag) => areCompletionsEquivalent(
@@ -211,15 +230,14 @@ class CompletionRanking {
               .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
         }
       }
-    });
-
+    }
     return suggestions;
   }
 
   /// Spin up the model isolates and load the tflite model.
   Future<void> start() async {
-    this._writes = [];
-    this._index = 0;
+    _writes = [];
+    _index = 0;
     final initializations = <Future<void>>[];
 
     // Start the first isolate.
@@ -237,10 +255,11 @@ class CompletionRanking {
     final Stopwatch timer = Stopwatch()..start();
     final port = ReceivePort();
     await Isolate.spawn(entrypoint, port.sendPort);
-    this._writes.add(await port.first);
-    return makeRequest('load', [_directory]).whenComplete(() {
+    SendPort sendPort = await port.first;
+    return makeLoadRequest(sendPort, [_directory]).whenComplete(() {
       timer.stop();
       performanceMetrics._isolateInitTimes.add(timer.elapsed);
+      _writes.add(sendPort);
     });
   }
 }
@@ -256,11 +275,11 @@ class PerformanceMetrics {
 
   List<Duration> get isolateInitTimes => _isolateInitTimes;
 
-  /// An iterable of the last `n` prediction results;
-  Iterable<PredictionResult> get predictionResults => _predictionResults;
-
   /// The total prediction requests to ML Complete.
   int get predictionRequestCount => _predictionRequestCount;
+
+  /// An iterable of the last `n` prediction results;
+  Iterable<PredictionResult> get predictionResults => _predictionResults;
 
   void _addPredictionResult(PredictionResult request) {
     _predictionResults.addFirst(request);

@@ -73,7 +73,7 @@ class DocumentationValidator {
 
   /// Validate the documentation.
   Future<void> validate() async {
-    AnalysisContextCollection collection = new AnalysisContextCollection(
+    AnalysisContextCollection collection = AnalysisContextCollection(
         includedPaths:
             codePaths.map((codePath) => codePath.documentationPath).toList(),
         resourceProvider: PhysicalResourceProvider.INSTANCE);
@@ -177,11 +177,11 @@ class DocumentationValidator {
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
     if (session == null) {
-      throw new StateError('No session for "$path"');
+      throw StateError('No session for "$path"');
     }
     ParsedUnitResult result = session.getParsedUnit(path);
     if (result.state != ResultState.VALID) {
-      throw new StateError('Unable to parse "$path"');
+      throw StateError('Unable to parse "$path"');
     }
     return result;
   }

@@ -8,8 +8,14 @@ class A {
 }
 
 class C extends A {
-  f() {} //# 01: compile-time error
-  foo(var a, [x]) {} //# 02: compile-time error
+  f() {}
+//^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'C.f' has fewer positional arguments than those of overridden method 'A.f'.
+  foo(var a, [x]) {}
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'C.foo' has fewer positional arguments than those of overridden method 'A.foo'.
 }
 
 main() {

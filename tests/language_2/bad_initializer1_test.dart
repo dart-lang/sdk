@@ -6,13 +6,19 @@
 
 main() {
   const elems = const [
+  //    ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
+  // [cfe] Can't declare 'elems' because it was already used in this scope.
     const [
       1,
       2.0,
       true,
       false,
       0xffffffffff,
-      elems //# 01: compile-time error
+      elems
+//    ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+// [cfe] Getter not found: 'elems'.
     ],
     "a",
     "b"

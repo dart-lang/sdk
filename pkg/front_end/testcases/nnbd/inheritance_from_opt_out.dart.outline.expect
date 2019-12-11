@@ -19,35 +19,35 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///inheritance_from_opt_out_lib.dart";
 
 class Class1 extends inh::LegacyClass1 {
-  synthetic constructor •() → self::Class1*
+  synthetic constructor •() → self::Class1
     ;
 }
 class Class2<T extends core::Object? = dynamic> extends inh::LegacyClass2<self::Class2::T%> {
-  synthetic constructor •() → self::Class2<self::Class2::T%>*
+  synthetic constructor •() → self::Class2<self::Class2::T%>
     ;
 }
 class Class3a<T extends core::Object? = dynamic> extends inh::LegacyClass3<self::Class3a::T%> {
-  synthetic constructor •() → self::Class3a<self::Class3a::T%>*
+  synthetic constructor •() → self::Class3a<self::Class3a::T%>
     ;
 }
 class Class3b<T extends core::Object? = dynamic> extends inh::LegacyClass3<self::Class3b::T%> implements inh::GenericInterface<self::Class3b::T%> {
-  synthetic constructor •() → self::Class3b<self::Class3b::T%>*
+  synthetic constructor •() → self::Class3b<self::Class3b::T%>
     ;
 }
 class Class4a extends inh::LegacyClass4 {
-  synthetic constructor •() → self::Class4a*
+  synthetic constructor •() → self::Class4a
     ;
 }
 class Class4b extends core::Object implements inh::GenericInterface<core::num> {
-  synthetic constructor •() → self::Class4b*
+  synthetic constructor •() → self::Class4b
     ;
 }
 class Class4c extends core::Object implements inh::GenericInterface<core::num?> {
-  synthetic constructor •() → self::Class4c*
+  synthetic constructor •() → self::Class4c
     ;
 }
 class Class4d extends inh::LegacyClass4 implements inh::GenericInterface<core::num> {
-  synthetic constructor •() → self::Class4d*
+  synthetic constructor •() → self::Class4d
     ;
 }
 static method main() → dynamic

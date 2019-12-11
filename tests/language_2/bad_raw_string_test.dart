@@ -5,19 +5,41 @@
 main() {
   // Raw String may not contain newline (may not be multi-line).
   String x = ''
-    r' // //# 01: syntax error
-' //      //# 01: continued
-    r" // //# 02: syntax error
-" //      //# 02: continued
+    r'
+//  ^
+// [cfe] String starting with r' must end with '.
+//   ^
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+'
+// [error line 13, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+// [cfe] String starting with ' must end with '.
+    r"
+//  ^
+// [cfe] String starting with r" must end with ".
+//   ^
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+"
+// [error line 22, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+// [cfe] String starting with " must end with ".
+
       // Test that a raw string containing just one character, a \n char, fails.
       // Enclose the test string in a bigger multiline string, except in case 03:
-    ''' // //# 03: syntax error
+    '''
       """
-    ''' // //# 03: continued
+    '''
     r'
+//  ^
+// [cfe] String starting with r' must end with '.
+//   ^
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
 '
-    ''' // //# 03: continued
+// [error line 37, column 1, length 1]
+// [analyzer] SYNTACTIC_ERROR.UNTERMINATED_STRING_LITERAL
+// [cfe] String starting with ' must end with '.
+    '''
     """
-    ''' // //# 03: continued
+    '''
       ;
 }

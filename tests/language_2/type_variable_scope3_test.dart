@@ -6,12 +6,15 @@
 
 class Foo<
     T
-    , T // //# 00: compile-time error
+    , T
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [cfe] A type variable can't have the same name as another.
     > {}
 
 main() {
   new Foo<
       String
-      , String // //# 00: continued
+      , String
       >();
 }

@@ -146,7 +146,7 @@ class A {
   static const num n = 3.0;
   // The severe error is from constant evaluation where we know the
   // concrete type.
-  static const int /*error:VARIABLE_TYPE_MISMATCH*/i = /*info:ASSIGNMENT_CAST*/n;
+  static const int i = /*info:ASSIGNMENT_CAST, error:VARIABLE_TYPE_MISMATCH*/n;
   final int fi;
   const A(num a) : this.fi = /*info:DOWN_CAST_IMPLICIT*/a;
 }

@@ -78,7 +78,11 @@ void checkStaticTypes(C c) {
   // that its return value can be assigned to `Future<B2>` but not
   // `Future<int>`.
   Future<B2> v1 = c.f_inferred_A();
-  Future<int> v2 = c.f_inferred_A(); //# 01: compile-time error
+  Future<int> v2 = c.f_inferred_A();
+  //               ^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                 ^
+  // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<int>'.
 }
 
 void checkDynamic(dynamic tearoff) {

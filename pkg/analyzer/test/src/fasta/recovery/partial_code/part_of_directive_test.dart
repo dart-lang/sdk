@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new PartOfDirectivesTest().buildAll();
+  PartOfDirectivesTest().buildAll();
 }
 
 class PartOfDirectivesTest extends PartialCodeTest {
@@ -27,7 +27,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
     buildTests(
         'part_of_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'part of',
               [
@@ -41,7 +41,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
     buildTests(
         'part_of_directive',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'part of',
               [
@@ -56,10 +56,10 @@ class PartOfDirectivesTest extends PartialCodeTest {
     buildTests(
         'part_of_directive',
         [
-          new TestDescriptor('name', 'part of lib',
+          TestDescriptor('name', 'part of lib',
               [ParserErrorCode.EXPECTED_TOKEN], 'library lib;',
               allFailing: true),
-          new TestDescriptor(
+          TestDescriptor(
               'nameDot',
               'part of lib.',
               [
@@ -68,11 +68,11 @@ class PartOfDirectivesTest extends PartialCodeTest {
               ],
               'part of lib._s_;',
               failing: ['functionNonVoid', 'getter']),
-          new TestDescriptor('nameDotName', 'part of lib.a',
+          TestDescriptor('nameDotName', 'part of lib.a',
               [ParserErrorCode.EXPECTED_TOKEN], 'part of lib.a;'),
-          new TestDescriptor('emptyUri', "part of ''",
+          TestDescriptor('emptyUri', "part of ''",
               [ParserErrorCode.EXPECTED_TOKEN], "part of '';"),
-          new TestDescriptor('uri', "part of 'a.dart'",
+          TestDescriptor('uri', "part of 'a.dart'",
               [ParserErrorCode.EXPECTED_TOKEN], "part of 'a.dart';"),
         ],
         PartialCodeTest.declarationSuffixes);

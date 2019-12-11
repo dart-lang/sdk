@@ -10,13 +10,8 @@ analyzer:
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
-    avoid_return_types_on_setters: ignore
-    curly_braces_in_flow_control_structures: ignore
     empty_catches: ignore
     prefer_iterable_wheretype: ignore
-    # TODO(srawlins): At the time of writing, 230 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-named-default-separator`.
-    prefer_equal_for_default_values: ignore
     # TODO(srawlins): At the time of writing, 2600 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
     # today.
@@ -25,10 +20,6 @@ analyzer:
     # is mechanical, via `dartfmt --fix-optional-const`, but not worth the
     # churn today.
     unnecessary_const: ignore
-    # TODO(srawlins): At the time of writing, 3200 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-optional-new`, but not worth the churn
-    # today.
-    unnecessary_new: ignore
 
 linter:
   rules:

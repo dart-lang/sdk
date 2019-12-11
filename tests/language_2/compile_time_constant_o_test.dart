@@ -9,14 +9,24 @@ const str = "foo";
 const m1 = const {"foo": 499};
 const m2 = const {"$str": 499};
 const m3 = const {
+//         ^
+// [cfe] Constant evaluation error:
+
   // Causes in a duplicate key error.
-  "$str": 42, //# 01: compile-time error
+  "$str": 42,
   "foo": 499
+//^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 };
 const m4 = const {
+//         ^
+// [cfe] Constant evaluation error:
+
   // Causes in a duplicate key error.
-  "foo": 42, //# 02: compile-time error
+  "foo": 42,
   "$str": 499
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 };
 const m5 = const {"f" "o" "o": 499};
 

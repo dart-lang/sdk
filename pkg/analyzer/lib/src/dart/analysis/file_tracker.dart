@@ -47,37 +47,37 @@ class FileTracker {
   /**
    * The set of added files.
    */
-  final addedFiles = new LinkedHashSet<String>();
+  final addedFiles = LinkedHashSet<String>();
 
   /**
    * The set of files were reported as changed through [changeFile] and not
    * checked for actual changes yet.
    */
-  final _changedFiles = new LinkedHashSet<String>();
+  final _changedFiles = LinkedHashSet<String>();
 
   /**
    * The set of files that are currently scheduled for analysis, which were
    * reported as changed through [changeFile].
    */
-  var _pendingChangedFiles = new LinkedHashSet<String>();
+  var _pendingChangedFiles = LinkedHashSet<String>();
 
   /**
    * The set of files that are currently scheduled for analysis, which directly
    * import a changed file.
    */
-  var _pendingImportFiles = new LinkedHashSet<String>();
+  var _pendingImportFiles = LinkedHashSet<String>();
 
   /**
    * The set of files that are currently scheduled for analysis, which have an
    * error or a warning, which might be fixed by a changed file.
    */
-  var _pendingErrorFiles = new LinkedHashSet<String>();
+  var _pendingErrorFiles = LinkedHashSet<String>();
 
   /**
    * The set of files that are currently scheduled for analysis, and don't
    * have any special relation with changed files.
    */
-  var _pendingFiles = new LinkedHashSet<String>();
+  var _pendingFiles = LinkedHashSet<String>();
 
   FileTracker(this._logger, this._fsState, this._changeHook);
 
@@ -238,10 +238,10 @@ class FileTracker {
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found.');
         // TODO(scheglov) schedule analysis of only affected files
-        var pendingChangedFiles = new LinkedHashSet<String>();
-        var pendingImportFiles = new LinkedHashSet<String>();
-        var pendingErrorFiles = new LinkedHashSet<String>();
-        var pendingFiles = new LinkedHashSet<String>();
+        var pendingChangedFiles = LinkedHashSet<String>();
+        var pendingImportFiles = LinkedHashSet<String>();
+        var pendingErrorFiles = LinkedHashSet<String>();
+        var pendingFiles = LinkedHashSet<String>();
 
         // Add the changed file.
         if (addedFiles.contains(path)) {

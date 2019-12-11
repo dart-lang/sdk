@@ -270,6 +270,18 @@ class StaticError implements Comparable<StaticError> {
     return thisMessage.compareTo(otherMessage);
   }
 
+  @override
+  bool operator ==(other) => other is StaticError && compareTo(other) == 0;
+
+  @override
+  int get hashCode {
+    return 3 * line.hashCode +
+        5 * column.hashCode +
+        7 * (length ?? 0).hashCode +
+        11 * (code ?? "").hashCode +
+        13 * (message ?? "").hashCode;
+  }
+
   /// Whether this error expectation is a specified error for the front end
   /// reported by [actual].
   bool isSpecifiedFor(StaticError actual) {

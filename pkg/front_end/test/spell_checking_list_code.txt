@@ -157,6 +157,7 @@ compares
 completes
 complicating
 component's
+comprehensive
 compressed
 compression
 concat
@@ -175,6 +176,8 @@ containers
 continuations
 contra
 convention
+coordinated
+coordinating
 core
 core's
 corrected
@@ -193,6 +196,7 @@ cyclically
 d
 d11e
 dag
+dangerous
 dangling
 danrubel
 daringfireball
@@ -349,6 +353,7 @@ frontend
 frontends
 fs
 fsource
+fuller
 function's
 fuse
 futured
@@ -458,7 +463,6 @@ json
 juxtaposition
 juxtapositions
 k
-k’s
 kallentu
 kernel's
 kernel2kernel
@@ -466,6 +470,7 @@ klass
 kmillikin
 kustermann
 kv
+k’s
 l
 lacks
 lang
@@ -486,6 +491,7 @@ lifted
 lifter
 linearized
 lives
+llub
 lm
 locationd
 lots
@@ -643,13 +649,13 @@ queries
 quick
 quoted
 r
+r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
-r'$creation
 ra
 radix
 raises
@@ -695,6 +701,7 @@ relatively
 relativize
 relax
 relaxes
+relink
 remapped
 remedy
 removal
@@ -728,6 +735,7 @@ rparen
 rs
 runnable
 s
+say
 sb
 scheglov
 scoped
@@ -841,6 +849,7 @@ tagged
 tagger
 tags
 taking
+talks
 team
 tear
 tearing
@@ -857,6 +866,7 @@ terminator
 tester
 tex
 th
+therein
 thought
 ti
 tick
@@ -905,6 +915,7 @@ uint
 uint16
 uint32
 uint8
+ultimately
 umbrella
 un
 unaffected
@@ -985,6 +996,7 @@ widget
 widgets
 wiki
 wikipedia
+wind
 with1
 worthwhile
 writeln

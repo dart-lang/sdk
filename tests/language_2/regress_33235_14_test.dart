@@ -10,17 +10,27 @@ class A {
 }
 
 class B extends A {
-  static void set n(int i) {} // //# 02: compile-time error
+  static void set n(int i) {}
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 abstract class B2 implements A {
-  static void set n(int i) {} // //# 03: compile-time error
+  static void set n(int i) {}
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Can't declare a member that conflicts with an inherited one.
 }
 
 class C {
-  static void set n(int i) {} // //# 01: compile-time error
+  static void set n(int i) {}
+  //              ^
+  // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_STATIC_AND_INSTANCE
 
   void set n(int x) {}
+  //       ^
+  // [cfe] 'n' is already declared in this scope.
 }
 
 main() {

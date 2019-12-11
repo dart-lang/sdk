@@ -146,7 +146,7 @@ class OpType {
       return optype;
     }
 
-    optype._typeSystem = target.unit?.declaredElement?.context?.typeSystem;
+    optype._typeSystem = target.unit?.declaredElement?.library?.typeSystem;
 
     var targetNode = target.containingNode;
     targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));

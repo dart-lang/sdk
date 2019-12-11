@@ -597,7 +597,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         }
       }
       const auto& typed_data = ExternalTypedData::Handle(
-          Z, MakeRetainedTypedData(kernel_buffer, kernel_buffer_size));
+          Z, ExternalTypedData::NewFinalizeWithFree(
+                 const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size));
+
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
@@ -934,30 +936,6 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
   *kernel_buffer = retval.kernel;
   *kernel_buffer_size = retval.kernel_size;
   return nullptr;
-}
-
-RawExternalTypedData* IsolateGroupReloadContext::MakeRetainedTypedData(
-    const uint8_t* kernel_buffer,
-    intptr_t kernel_buffer_size) {
-  // The ownership of the kernel buffer goes now to the VM.
-  const auto& typed_data = ExternalTypedData::Handle(
-      Z, ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
-                                const_cast<uint8_t*>(kernel_buffer),
-                                kernel_buffer_size, Heap::kOld));
-  typed_data.AddFinalizer(
-      const_cast<uint8_t*>(kernel_buffer),
-      [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
-         void* data) { free(data); },
-      kernel_buffer_size);
-
-  // TODO(dartbug.com/33973): Change the heap objects to have a proper
-  // retaining path to the kernel blob and ensure the finalizer will free it
-  // once there are no longer references to it.
-  // (The [ExternalTypedData] currently referenced by e.g. functions point
-  // into the middle of c-allocated buffer and don't have a finalizer).
-  first_isolate_->RetainKernelBlob(typed_data);
-
-  return typed_data.raw();
 }
 
 void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {

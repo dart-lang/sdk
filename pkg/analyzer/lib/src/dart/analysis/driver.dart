@@ -38,7 +38,6 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptions,
         AnalysisOptionsImpl,
         PerformanceStatistics;
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
@@ -89,7 +88,10 @@ typedef Future<void> WorkToWaitAfterComputingResult(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 90;
+  static const int DATA_VERSION = 91;
+
+  /// The length of the list returned by [_computeDeclaredVariablesSignature].
+  static const int _declaredVariablesSignatureLength = 4;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -132,7 +134,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   SourceFactory _sourceFactory;
 
   /// The declared environment variables.
-  DeclaredVariables declaredVariables = new DeclaredVariables();
+  DeclaredVariables declaredVariables = DeclaredVariables();
 
   /// Information about the context root being analyzed by this driver.
   final ContextRoot contextRoot;
@@ -142,14 +144,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   final Uint32List _unlinkedSalt =
-      new Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
+      Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _linkedSalt =
-      new Uint32List(2 + AnalysisOptions.signatureLength);
+  final Uint32List _linkedSalt = Uint32List(
+      2 + AnalysisOptions.signatureLength + _declaredVariablesSignatureLength);
 
   /// The set of priority files, that should be analyzed sooner.
-  final _priorityFiles = new LinkedHashSet<String>();
+  final _priorityFiles = LinkedHashSet<String>();
 
   /// The mapping from the files for which analysis was requested using
   /// [getResult] to the [Completer]s to report the result.
@@ -202,10 +204,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _requestedParts = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /// The set of part files that are currently scheduled for analysis.
-  final _partsToAnalyze = new LinkedHashSet<String>();
+  final _partsToAnalyze = LinkedHashSet<String>();
 
   /// The controller for the [results] stream.
-  final _resultController = new StreamController<ResolvedUnitResult>();
+  final _resultController = StreamController<ResolvedUnitResult>();
 
   /// The stream that will be written to when analysis results are produced.
   Stream<ResolvedUnitResult> _onResults;
@@ -218,7 +220,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The controller for the [exceptions] stream.
   final StreamController<ExceptionResult> _exceptionController =
-      new StreamController<ExceptionResult>();
+      StreamController<ExceptionResult>();
 
   /// The instance of the [Search] helper.
   Search _search;
@@ -282,20 +284,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.disableChangesAndCacheAllResults: false,
-      this.enableIndex: false,
+      {this.disableChangesAndCacheAllResults = false,
+      this.enableIndex = false,
       SummaryDataStore externalSummaries,
-      bool retainDataForTesting: false})
+      bool retainDataForTesting = false})
       : _logger = logger,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
     _createNewSession(null);
     _onResults = _resultController.stream.asBroadcastStream();
-    _testView = new AnalysisDriverTestView(this);
+    _testView = AnalysisDriverTestView(this);
     _createFileTracker();
     _scheduler.add(this);
-    _search = new Search(this);
+    _search = Search(this);
   }
 
   /// Return the set of files explicitly added to analysis using [addFile].
@@ -337,7 +339,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   List<String> get priorityFiles => _priorityFiles.toList(growable: false);
 
   @override
-  void set priorityFiles(List<String> priorityPaths) {
+  set priorityFiles(List<String> priorityPaths) {
     _priorityResults.keys
         .toSet()
         .difference(priorityPaths.toSet())
@@ -502,7 +504,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<void> discoverAvailableFiles() {
     if (_discoverAvailableFilesTask != null &&
         _discoverAvailableFilesTask.isCompleted) {
-      return new Future.value();
+      return Future.value();
     }
     _discoverAvailableFiles();
     _scheduler.notify(this);
@@ -554,7 +556,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return new ErrorsResultImpl(currentSession, path, analysisResult.uri,
+    return ErrorsResultImpl(currentSession, path, analysisResult.uri,
         analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
   }
 
@@ -562,7 +564,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// define a class member with the given [name].
   Future<List<String>> getFilesDefiningClassMemberName(String name) {
     _discoverAvailableFiles();
-    var task = new _FilesDefiningClassMemberNameTask(this, name);
+    var task = _FilesDefiningClassMemberNameTask(this, name);
     _definingClassMemberNameTasks.add(task);
     _scheduler.notify(this);
     return task.completer.future;
@@ -572,7 +574,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// reference the given external [name].
   Future<List<String>> getFilesReferencingName(String name) {
     _discoverAvailableFiles();
-    var task = new _FilesReferencingNameTask(this, name);
+    var task = _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
     _scheduler.notify(this);
     return task.completer.future;
@@ -584,7 +586,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
-    return new FileResultImpl(
+    return FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
 
@@ -594,12 +596,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
     _throwIfNotAbsolutePath(path);
     if (!enableIndex) {
-      throw new ArgumentError('Indexing is not enabled.');
+      throw ArgumentError('Indexing is not enabled.');
     }
     if (!_fsState.hasUri(path)) {
-      return new Future.value();
+      return Future.value();
     }
-    var completer = new Completer<AnalysisDriverUnitIndex>();
+    var completer = Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
         .add(completer);
@@ -702,7 +704,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return new Future.value();
+      return Future.value();
     }
 
     FileState file = _fsState.getFileForPath(path);
@@ -718,7 +720,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     // Schedule analysis.
-    var completer = new Completer<ResolvedLibraryResult>();
+    var completer = Completer<ResolvedLibraryResult>();
     _requestedLibraries
         .putIfAbsent(path, () => <Completer<ResolvedLibraryResult>>[])
         .add(completer);
@@ -781,10 +783,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
   Future<ResolvedUnitResult> getResult(String path,
-      {bool sendCachedToStream: false}) {
+      {bool sendCachedToStream = false}) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return new Future.value();
+      return Future.value();
     }
 
     // Return the cached result.
@@ -794,12 +796,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (sendCachedToStream) {
           _resultController.add(result);
         }
-        return new Future.value(result);
+        return Future.value(result);
       }
     }
 
     // Schedule analysis.
-    var completer = new Completer<ResolvedUnitResult>();
+    var completer = Completer<ResolvedUnitResult>();
     _requestedFiles
         .putIfAbsent(path, () => <Completer<ResolvedUnitResult>>[])
         .add(completer);
@@ -828,9 +830,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<UnitElementResult> getUnitElement(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return new Future.value();
+      return Future.value();
     }
-    var completer = new Completer<UnitElementResult>();
+    var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
         .add(completer);
@@ -848,9 +850,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<String> getUnitElementSignature(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return new Future.value();
+      return Future.value();
     }
-    var completer = new Completer<String>();
+    var completer = Completer<String>();
     _unitElementSignatureFiles
         .putIfAbsent(path, () => <Completer<String>>[])
         .add(completer);
@@ -861,7 +863,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ApiSignature getUnitKeyByPath(String path) {
     _throwIfNotAbsolutePath(path);
     var file = fsState.getFileForPath(path);
-    ApiSignature signature = new ApiSignature();
+    ApiSignature signature = ApiSignature();
     signature.addUint32List(_linkedSalt);
     signature.addString(file.transitiveSignature);
     return signature;
@@ -908,9 +910,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ParsedUnitResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
     FileState file = _fileTracker.verifyApiSignature(path);
-    RecordingErrorListener listener = new RecordingErrorListener();
+    RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return new ParsedUnitResultImpl(currentSession, file.path, file.uri,
+    return ParsedUnitResultImpl(currentSession, file.path, file.uri,
         file.content, file.lineInfo, file.isPart, unit, listener.errors);
   }
 
@@ -1210,9 +1212,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the resolved signature of the file in its library is the same as the one
   /// that was the most recently produced to the client.
   AnalysisResult _computeAnalysisResult(String path,
-      {bool withUnit: false,
-      bool asIsIfPartWithoutLibrary: false,
-      bool skipIfSameSignature: false}) {
+      {bool withUnit = false,
+      bool asIsIfPartWithoutLibrary = false,
+      bool skipIfSameSignature = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1261,7 +1263,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
         var libraryContext = _createLibraryContext(library);
 
-        LibraryAnalyzer analyzer = new LibraryAnalyzer(
+        LibraryAnalyzer analyzer = LibraryAnalyzer(
             analysisOptions,
             declaredVariables,
             sourceFactory,
@@ -1308,9 +1310,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       } catch (exception, stackTrace) {
         String contextKey =
             _storeExceptionContext(path, library, exception, stackTrace);
-        throw new _ExceptionState(exception, stackTrace, contextKey);
+        throw _ExceptionState(exception, stackTrace, contextKey);
       }
     });
+  }
+
+  Uint32List _computeDeclaredVariablesSignature() {
+    var buffer = ApiSignature();
+
+    var variableNames = declaredVariables.variableNames;
+    buffer.addInt(variableNames.length);
+
+    for (var name in variableNames) {
+      var value = declaredVariables.get(name);
+      buffer.addString(name);
+      buffer.addString(value);
+    }
+
+    var bytes = buffer.toByteList();
+    return Uint8List.fromList(bytes).buffer.asUint32List();
   }
 
   AnalysisDriverUnitIndex _computeIndex(String path) {
@@ -1328,7 +1346,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _testView.numOfAnalyzedLibraries++;
       var libraryContext = _createLibraryContext(library);
 
-      LibraryAnalyzer analyzer = new LibraryAnalyzer(
+      LibraryAnalyzer analyzer = LibraryAnalyzer(
           analysisOptions,
           declaredVariables,
           sourceFactory,
@@ -1346,9 +1364,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (unitFile.path != null) {
           var unitResult = unitResults[unitFile];
           resolvedUnits.add(
-            new AnalysisResult(
+            AnalysisResult(
               currentSession,
-              _sourceFactory,
               unitFile.path,
               unitFile.uri,
               unitFile.exists,
@@ -1364,19 +1381,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
       }
 
-      return new ResolvedLibraryResultImpl(
+      return ResolvedLibraryResultImpl(
         currentSession,
         library.path,
         library.uri,
         resolvedUnits.first.libraryElement,
-        libraryContext.typeProvider,
         resolvedUnits,
       );
     });
   }
 
   UnitElementResult _computeUnitElement(String path,
-      {bool asIsIfPartWithoutLibrary: false}) {
+      {bool asIsIfPartWithoutLibrary = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1393,7 +1409,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _logger.writeln('Work in $name');
       var libraryContext = _createLibraryContext(library);
       var element = libraryContext.computeUnitElement(library, file);
-      return new UnitElementResultImpl(
+      return UnitElementResultImpl(
         currentSession,
         path,
         file.uri,
@@ -1404,7 +1420,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   String _computeUnitElementSignature(String path,
-      {bool asIsIfPartWithoutLibrary: false}) {
+      {bool asIsIfPartWithoutLibrary = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1426,7 +1442,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// changes.
   void _createFileTracker() {
     _fillSalt();
-    _fsState = new FileSystemState(
+    _fsState = FileSystemState(
       _logger,
       _byteStore,
       _contentOverlay,
@@ -1434,11 +1450,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       name,
       sourceFactory,
       analysisOptions,
+      declaredVariables,
       _unlinkedSalt,
       _linkedSalt,
       externalSummaries: _externalSummaries,
     );
-    _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
+    _fileTracker = FileTracker(_logger, _fsState, _changeHook);
   }
 
   /// Return the context in which the [library] should be analyzed.
@@ -1450,7 +1467,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     if (_libraryContext == null) {
-      _libraryContext = new LibraryContext(
+      _libraryContext = LibraryContext(
         session: currentSession,
         logger: _logger,
         fsState: fsState,
@@ -1472,13 +1489,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (onCurrentSessionAboutToBeDiscarded != null) {
       onCurrentSessionAboutToBeDiscarded(path);
     }
-    _currentSession = new AnalysisSessionImpl(this);
+    _currentSession = AnalysisSessionImpl(this);
   }
 
   /// If this has not been done yet, schedule discovery of all files that are
   /// potentially available, so that they are included in [knownFiles].
   void _discoverAvailableFiles() {
-    _discoverAvailableFilesTask ??= new _DiscoverAvailableFilesTask(this);
+    _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(this);
   }
 
   /// Fill [_unlinkedSalt] and [_linkedSalt] with data.
@@ -1487,9 +1504,23 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _unlinkedSalt[1] = enableIndex ? 1 : 0;
     _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
 
-    _linkedSalt[0] = DATA_VERSION;
-    _linkedSalt[1] = enableIndex ? 1 : 0;
-    _linkedSalt.setAll(2, _analysisOptions.signature);
+    _fillSaltLinked();
+  }
+
+  void _fillSaltLinked() {
+    var index = 0;
+
+    _linkedSalt[index] = DATA_VERSION;
+    index++;
+
+    _linkedSalt[index] = enableIndex ? 1 : 0;
+    index++;
+
+    _linkedSalt.setAll(index, _analysisOptions.signature);
+    index += AnalysisOptionsImpl.unlinkedSignatureLength;
+
+    _linkedSalt.setAll(index, _computeDeclaredVariablesSignature());
+    index += _declaredVariablesSignatureLength;
   }
 
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
@@ -1497,12 +1528,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisResult _getAnalysisResultFromBytes(
       FileState file, String signature, List<int> bytes,
       {String content, CompilationUnit resolvedUnit}) {
-    var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+    var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
-    return new AnalysisResult(
+    return AnalysisResult(
         currentSession,
-        _sourceFactory,
         file.path,
         file.uri,
         file.exists,
@@ -1541,7 +1571,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 offset: message.offset));
           }
         }
-        errors.add(new AnalysisError.forValues(
+        errors.add(AnalysisError.forValues(
             file.source,
             error.offset,
             error.length,
@@ -1562,7 +1592,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the signature that identifies fully resolved results for the [file]
   /// in the [library], e.g. element model, errors, index, etc.
   String _getResolvedUnitSignature(FileState library, FileState file) {
-    ApiSignature signature = new ApiSignature();
+    ApiSignature signature = ApiSignature();
     signature.addUint32List(_linkedSalt);
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
@@ -1592,9 +1622,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisResult _newMissingDartLibraryResult(
       FileState file, String missingUri) {
     // TODO(scheglov) Find a better way to report this.
-    return new AnalysisResult(
+    return AnalysisResult(
         currentSession,
-        _sourceFactory,
         file.path,
         file.uri,
         file.exists,
@@ -1604,7 +1633,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         null,
         null,
         [
-          new AnalysisError(file.source, 0, 0,
+          AnalysisError(file.source, 0, 0,
               CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
         ],
         null);
@@ -1618,8 +1647,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       stackTrace = state.stackTrace;
       contextKey = state.contextKey;
     }
-    CaughtException caught = new CaughtException(exception, stackTrace);
-    _exceptionController.add(new ExceptionResult(path, caught, contextKey));
+    CaughtException caught = CaughtException(exception, stackTrace);
+    _exceptionController.add(ExceptionResult(path, caught, contextKey));
   }
 
   /// Serialize the given [resolvedUnit] errors and index into bytes.
@@ -1627,8 +1656,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       CompilationUnit resolvedUnit, List<AnalysisError> errors) {
     AnalysisDriverUnitIndexBuilder index = enableIndex
         ? indexUnit(resolvedUnit)
-        : new AnalysisDriverUnitIndexBuilder();
-    return new AnalysisDriverResolvedUnitBuilder(
+        : AnalysisDriverUnitIndexBuilder();
+    return AnalysisDriverResolvedUnitBuilder(
             errors: errors.map((error) {
               List<DiagnosticMessageBuilder> contextMessages;
               if (error.contextMessages != null) {
@@ -1641,7 +1670,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                       offset: message.offset));
                 }
               }
-              return new AnalysisDriverUnitErrorBuilder(
+              return AnalysisDriverUnitErrorBuilder(
                   offset: error.offset,
                   length: error.length,
                   uniqueName: error.errorCode.uniqueName,
@@ -1663,12 +1692,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     try {
       List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
           .transitiveFiles
-          .map((file) => new AnalysisDriverExceptionFileBuilder(
+          .map((file) => AnalysisDriverExceptionFileBuilder(
               path: file.path, content: file.content))
           .toList();
       contextFiles.sort((a, b) => a.path.compareTo(b.path));
       AnalysisDriverExceptionContextBuilder contextBuilder =
-          new AnalysisDriverExceptionContextBuilder(
+          AnalysisDriverExceptionContextBuilder(
               path: path,
               exception: exception.toString(),
               stackTrace: stackTrace.toString(),
@@ -1686,7 +1715,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return '00$n';
       }
 
-      DateTime time = new DateTime.now();
+      DateTime time = DateTime.now();
       String m = _twoDigits(time.month);
       String d = _twoDigits(time.day);
       String h = _twoDigits(time.hour);
@@ -1706,7 +1735,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// we should not allow invocations that change files.
   void _throwIfChangesAreNotAllowed() {
     if (disableChangesAndCacheAllResults) {
-      throw new StateError('Changing files is not allowed for this driver.');
+      throw StateError('Changing files is not allowed for this driver.');
     }
   }
 
@@ -1714,7 +1743,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// any input paths to prevent errors later.
   void _throwIfNotAbsolutePath(String path) {
     if (!_resourceProvider.pathContext.isAbsolute(path)) {
-      throw new ArgumentError('Only absolute paths are supported: $path');
+      throw ArgumentError('Only absolute paths are supported: $path');
     }
   }
 
@@ -1749,7 +1778,7 @@ abstract class AnalysisDriverGeneric {
   /// The driver will produce the results through the [results] stream. The
   /// exact order in which results are produced is not defined, neither
   /// between priority files, nor between priority and non-priority files.
-  void set priorityFiles(List<String> priorityPaths);
+  set priorityFiles(List<String> priorityPaths);
 
   /// Return the priority of work that the driver needs to perform.
   AnalysisDriverPriority get workPriority;
@@ -1809,8 +1838,8 @@ class AnalysisDriverScheduler {
   final DriverWatcher driverWatcher;
 
   final List<AnalysisDriverGeneric> _drivers = [];
-  final Monitor _hasWork = new Monitor();
-  final StatusSupport _statusSupport = new StatusSupport();
+  final Monitor _hasWork = Monitor();
+  final StatusSupport _statusSupport = StatusSupport();
 
   bool _started = false;
 
@@ -1868,7 +1897,7 @@ class AnalysisDriverScheduler {
   /// after will be asked to perform work.
   void start() {
     if (_started) {
-      throw new StateError('The scheduler has already been started.');
+      throw StateError('The scheduler has already been started.');
     }
     _started = true;
     _run();
@@ -1885,7 +1914,7 @@ class AnalysisDriverScheduler {
   Future<void> _run() async {
     // Give other microtasks the time to run before doing the analysis cycle.
     await null;
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
     PerformanceLogSection analysisSection;
     while (true) {
       // Pump the event queue.
@@ -1948,9 +1977,9 @@ class AnalysisDriverScheduler {
   /// the event queue.
   static Future _pumpEventQueue(int times) {
     if (times == 0) {
-      return new Future.value();
+      return Future.value();
     }
-    return new Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
+    return Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
   }
 }
 
@@ -1985,11 +2014,8 @@ class AnalysisDriverTestView {
 /// Every result is independent, and is not guaranteed to be consistent with
 /// any previously returned result, even inside of the same library.
 class AnalysisResult extends ResolvedUnitResultImpl {
-  static final _UNCHANGED = new AnalysisResult(
-      null, null, null, null, null, null, null, null, null, null, null, null);
-
-  /// The [SourceFactory] with which the file was analyzed.
-  final SourceFactory sourceFactory;
+  static final _UNCHANGED = AnalysisResult(
+      null, null, null, null, null, null, null, null, null, null, null);
 
   /// The signature of the result based on the content of the file, and the
   /// transitive closure of files imported and exported by the library of
@@ -2001,7 +2027,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
 
   AnalysisResult(
       AnalysisSession session,
-      this.sourceFactory,
       String path,
       Uri uri,
       bool exists,
@@ -2014,15 +2039,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
-
-  @override
-  LibraryElement get libraryElement => unit.declaredElement.library;
-
-  @override
-  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
-
-  @override
-  TypeSystemImpl get typeSystem => unit.declaredElement.context.typeSystem;
 }
 
 class DriverPerformance {
@@ -2080,7 +2096,7 @@ class _DiscoverAvailableFilesTask {
   final AnalysisDriver driver;
 
   bool isCompleted = false;
-  Completer<void> completer = new Completer<void>();
+  Completer<void> completer = Completer<void>();
 
   Iterator<Folder> folderIterator;
   List<String> files = [];
@@ -2114,7 +2130,7 @@ class _DiscoverAvailableFilesTask {
     }
 
     // List each package/lib folder recursively.
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
     while (folderIterator.moveNext()) {
       var folder = folderIterator.current;
       _appendFilesRecursively(folder);
@@ -2183,10 +2199,10 @@ class _FilesDefiningClassMemberNameTask {
 
   final AnalysisDriver driver;
   final String name;
-  final Completer<List<String>> completer = new Completer<List<String>>();
+  final Completer<List<String>> completer = Completer<List<String>>();
 
   final List<String> definingFiles = <String>[];
-  final Set<String> checkedFiles = new Set<String>();
+  final Set<String> checkedFiles = Set<String>();
   final List<String> filesToCheck = <String>[];
 
   _FilesDefiningClassMemberNameTask(this.driver, this.name);
@@ -2200,7 +2216,7 @@ class _FilesDefiningClassMemberNameTask {
   /// scenarios. Instead we use a fixed length of time, so we can spend less time
   /// overall and keep quick enough response time.
   bool perform() {
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
       if (filesToCheck.isEmpty) {
@@ -2237,7 +2253,7 @@ class _FilesReferencingNameTask {
 
   final AnalysisDriver driver;
   final String name;
-  final Completer<List<String>> completer = new Completer<List<String>>();
+  final Completer<List<String>> completer = Completer<List<String>>();
 
   int fileStamp = -1;
   List<FileState> filesToCheck;
@@ -2268,7 +2284,7 @@ class _FilesReferencingNameTask {
       filesToCheckIndex = 0;
     }
 
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
     while (filesToCheckIndex < filesToCheck.length) {
       if (filesToCheckIndex % _WORK_FILES == 0 &&
           timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {

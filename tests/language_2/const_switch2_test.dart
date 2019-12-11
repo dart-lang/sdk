@@ -7,10 +7,16 @@ import 'package:expect/expect.dart';
 int main() {
   var a = [1, 2, 3][2];
   switch (a) {
-    case 0.0: //           //# 01: compile-time error
-      print("illegal"); // //# 01: continued
-      break; //            //# 01: continued
+  //      ^
+  // [analyzer] STATIC_WARNING.SWITCH_EXPRESSION_NOT_ASSIGNABLE
+    case 0.0:
+    //   ^
+    // [cfe] Type 'int' of the switch expression isn't assignable to the type 'double' of this case expression.
+      print("illegal");
+      break;
     case 1:
+    //   ^
+    // [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_CASE_EXPRESSION_TYPES
       print("OK");
   }
 }

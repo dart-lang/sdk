@@ -38,7 +38,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         constant_reader_(this, active_class_),
         bytecode_metadata_helper_(this, active_class_),
         direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
+        inferred_type_metadata_helper_(this, &constant_reader_),
         procedure_attributes_metadata_helper_(this),
         call_site_attributes_metadata_helper_(this, &type_translator_),
         closure_owner_(Object::Handle(flow_graph_builder->zone_)) {}
@@ -63,6 +63,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   FlowGraph* BuildGraphOfFieldInitializer();
   Fragment BuildFieldInitializer(const Field& field,
                                  bool only_for_side_effects);
+  Fragment BuildLateFieldInitializer(const Field& field, bool has_initializer);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
@@ -82,6 +83,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFirstTimePrologue(const Function& dart_function,
                                   LocalVariable* first_parameter,
                                   intptr_t type_parameters_offset);
+  Fragment ClearRawParameters(const Function& dart_function);
   Fragment DebugStepCheckInPrologue(const Function& dart_function,
                                     TokenPosition position);
   Fragment SetAsyncStackTrace(const Function& dart_function);

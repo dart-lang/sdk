@@ -54,24 +54,6 @@ class A {
     await assertNoAssistAt('v;');
   }
 
-  test_localVariable_noInitializer() async {
-    await resolveTestUnit('''
-main() {
-  int v;
-}
-''');
-    await assertNoAssistAt('v;');
-  }
-
-  test_localVariable_onInitializer() async {
-    await resolveTestUnit('''
-main() {
-  final int v = 1;
-}
-''');
-    await assertNoAssistAt('1;');
-  }
-
   test_localVariable() async {
     await resolveTestUnit('''
 main() {
@@ -111,20 +93,44 @@ main() {
 ''');
   }
 
-  test_topLevelVariable_noInitializer() async {
-    verifyNoTestUnitErrors = false;
+  test_localVariable_noInitializer() async {
     await resolveTestUnit('''
-int v;
+main() {
+  int v;
+}
 ''');
     await assertNoAssistAt('v;');
   }
 
-  test_topLevelVariable_syntheticName() async {
-    verifyNoTestUnitErrors = false;
+  test_localVariable_onInitializer() async {
     await resolveTestUnit('''
-MyType
+main() {
+  final int v = 1;
+}
 ''');
-    await assertNoAssistAt('MyType');
+    await assertNoAssistAt('1;');
+  }
+
+  test_loopVariable() async {
+    await resolveTestUnit('''
+main() {
+  for(int i = 0; i < 3; i++) {}
+}
+''');
+    await assertHasAssistAt('int ', '''
+main() {
+  for(var i = 0; i < 3; i++) {}
+}
+''');
+  }
+
+  test_loopVariable_noType() async {
+    await resolveTestUnit('''
+main() {
+  for(var i = 0; i < 3; i++) {}
+}
+''');
+    await assertNoAssistAt('var ');
   }
 
   test_topLevelVariable() async {
@@ -143,5 +149,21 @@ final int V = 1;
     await assertHasAssistAt('int ', '''
 final V = 1;
 ''');
+  }
+
+  test_topLevelVariable_noInitializer() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+int v;
+''');
+    await assertNoAssistAt('v;');
+  }
+
+  test_topLevelVariable_syntheticName() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+MyType
+''');
+    await assertNoAssistAt('MyType');
   }
 }

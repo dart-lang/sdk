@@ -1624,7 +1624,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   void _storeTypedLiteral(LinkedNodeBuilder builder, TypedLiteral node,
-      {bool isMap: false, bool isSet: false}) {
+      {bool isMap = false, bool isSet = false}) {
     _storeExpression(builder, node);
     builder
       ..flags = AstBinaryFlags.encode(
@@ -1712,7 +1712,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     } else if (node.isOptionalNamed) {
       return LinkedNodeFormalParameterKind.optionalNamed;
     } else {
-      throw new StateError('Unknown kind of parameter');
+      throw StateError('Unknown kind of parameter');
     }
   }
 }

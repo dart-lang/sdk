@@ -633,12 +633,13 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     const Register kFunctionTypeArgumentsReg = R2;
     __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
            compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(R0);                           // Push the instance.
-    __ PushObject(type);                   // Push the type.
-    __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
+    __ PushPair(R0, NULL_REG);  // Make room for the result and
+                                // push the instance.
+    __ LoadObject(TMP, type);   // Push the type.
+
+    __ PushPair(kInstantiatorTypeArgumentsReg, TMP);
     __ LoadUniqueObject(R0, test_cache);
-    __ Push(R0);
+    __ PushPair(R0, kFunctionTypeArgumentsReg);
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
@@ -703,14 +704,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ Bind(&runtime_call);
     __ ldp(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg,
            compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ Push(R0);                           // Push the source object.
-    __ PushObject(dst_type);               // Push the type of the destination.
-    __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
-    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushPair(R0, NULL_REG);     // Make room for the result and
+                                   // push the source object.
+    __ LoadObject(TMP, dst_type);  // Push the type of the dest.
+    __ PushPair(kInstantiatorTypeArgumentsReg, TMP);
+    __ LoadObject(TMP, dst_name);  // Push the name of the destination.
+    __ PushPair(TMP, kFunctionTypeArgumentsReg);
+
     __ LoadUniqueObject(R0, test_cache);
-    __ Push(R0);
-    __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
+    __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
+    __ PushPair(TMP, R0);
     GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // type check runtime call is the checked value.
@@ -1158,7 +1161,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
-                                                  const ICData& ic_data) {
+                                                  const ICData& ic_data,
+                                                  Code::EntryKind entry_kind) {
+  // TODO(34162): Support multiple entry-points on ARM64.
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(R5, ic_data);
@@ -1199,8 +1204,8 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     intptr_t deopt_id) {
   if (needs_number_check) {
     ASSERT(!obj.IsMint() && !obj.IsDouble());
-    __ Push(reg);
-    __ PushObject(obj);
+    __ LoadObject(TMP, obj);
+    __ PushPair(TMP, reg);
     if (is_optimizing()) {
       __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
@@ -1208,8 +1213,9 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmp, we need Z computed).
-    __ Drop(1);   // Discard constant.
-    __ Pop(reg);  // Restore 'reg'.
+    // Discard constant.
+    // Restore 'reg'.
+    __ PopPair(ZR, reg);
   } else {
     __ CompareObject(reg, obj);
   }
@@ -1222,8 +1228,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                        TokenPosition token_pos,
                                                        intptr_t deopt_id) {
   if (needs_number_check) {
-    __ Push(left);
-    __ Push(right);
+    __ PushPair(right, left);
     if (is_optimizing()) {
       __ BranchLinkPatchable(StubCode::OptimizedIdenticalWithNumberCheck());
     } else {
@@ -1231,8 +1236,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     }
     AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall, deopt_id, token_pos);
     // Stub returns result in flags (result of a cmp, we need Z computed).
-    __ Pop(right);
-    __ Pop(left);
+    __ PopPair(right, left);
   } else {
     __ CompareRegisters(left, right);
   }

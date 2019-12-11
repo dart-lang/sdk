@@ -1911,7 +1911,7 @@ class FastaParserTestCase
   @override
   set enableUriInPartOf(bool value) {
     if (value == false) {
-      throw new UnimplementedError(
+      throw UnimplementedError(
           'URIs in "part of" declarations cannot be disabled in Fasta.');
     }
   }
@@ -1958,15 +1958,14 @@ class FastaParserTestCase
             : ScannerConfiguration.classic,
         includeComments: true);
     _fastaTokens = result.tokens;
-    _parserProxy = new ParserProxy(_fastaTokens, featureSet,
+    _parserProxy = ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
 
   @override
   ExpectedError expectedError(ErrorCode code, int offset, int length) =>
-      new ExpectedError(
-          _toFastaGeneratedAnalyzerErrorCode(code), offset, length);
+      ExpectedError(_toFastaGeneratedAnalyzerErrorCode(code), offset, length);
 
   @override
   void expectNotNullIfNoErrors(Object result) {
@@ -1992,7 +1991,7 @@ class FastaParserTestCase
 
   @override
   Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional: true}) {
+      {bool allowConditional = true}) {
     if (optional) {
       if (code.isEmpty) {
         return _parseExpression('foo');
@@ -2050,8 +2049,7 @@ class FastaParserTestCase
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
       FeatureSet featureSet}) {
-    GatheringErrorListener listener =
-        new GatheringErrorListener(checkRanges: true);
+    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
 
     CompilationUnit unit =
         parseCompilationUnit2(content, listener, featureSet: featureSet);
@@ -2072,7 +2070,7 @@ class FastaParserTestCase
       String content, GatheringErrorListener listener,
       {FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
-    var source = new StringSource(content, 'parser_test_StringSource.dart');
+    var source = StringSource(content, 'parser_test_StringSource.dart');
 
     // Adjust the feature set based on language version comment.
     void languageVersionChanged(
@@ -2090,10 +2088,10 @@ class FastaParserTestCase
     _fastaTokens = result.tokens;
 
     // Run parser
-    ErrorReporter errorReporter = new ErrorReporter(listener, source);
-    fasta.Parser parser = new fasta.Parser(null);
+    ErrorReporter errorReporter = ErrorReporter(listener, source);
+    fasta.Parser parser = fasta.Parser(null);
     AstBuilder astBuilder =
-        new AstBuilder(errorReporter, source.uri, true, featureSet);
+        AstBuilder(errorReporter, source.uri, true, featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -2173,7 +2171,7 @@ class FastaParserTestCase
 
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -2191,8 +2189,8 @@ class FastaParserTestCase
 
   @override
   FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[],
       List<ExpectedError> errors}) {
     createParser(code);
     FormalParameterList result =
@@ -2284,8 +2282,8 @@ class FastaParserTestCase
 
   @override
   NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      {bool inFunctionType = false,
+      List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
     FormalParameterList list = parseFormalParameterList('($code)',
         inFunctionType: inFunctionType, errorCodes: errorCodes);
     return list.parameters.single;
@@ -2390,8 +2388,9 @@ class FastaParserTestCase
         code == ParserErrorCode.FINAL_CLASS ||
         code == ParserErrorCode.FINAL_ENUM ||
         code == ParserErrorCode.FINAL_TYPEDEF ||
-        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
+        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION) {
       return ParserErrorCode.EXTRANEOUS_MODIFIER;
+    }
     return code;
   }
 
@@ -3242,11 +3241,11 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
-      {bool allowNativeClause: false, int expectedEndOffset}) {
-    TestSource source = new TestSource();
-    var errorListener = new GatheringErrorListener(checkRanges: true);
-    var errorReporter = new ErrorReporter(errorListener, source);
-    return new ParserProxy._(
+      {bool allowNativeClause = false, int expectedEndOffset}) {
+    TestSource source = TestSource();
+    var errorListener = GatheringErrorListener(checkRanges: true);
+    var errorReporter = ErrorReporter(errorListener, source);
+    return ParserProxy._(
         firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
@@ -3254,10 +3253,10 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener, FeatureSet featureSet,
-      {bool allowNativeClause: false, this.expectedEndOffset})
+      {bool allowNativeClause = false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause) {
-    _eventListener = new ForwardingTestListener(astBuilder);
+    _eventListener = ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }
 
@@ -3328,7 +3327,7 @@ class ParserProxy extends analyzer.ParserAdapter {
   }
 
   @override
-  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+  FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
     return _run('unspecified',
         () => super.parseFormalParameterList(inFunctionType: inFunctionType));
   }
@@ -4061,7 +4060,7 @@ class A native 'something' {
         ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
       ]);
     }
-    expect(member, new TypeMatcher<ClassDeclaration>());
+    expect(member, TypeMatcher<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.nativeClause, isNotNull);
     expect(declaration.nativeClause.nativeKeyword, isNotNull);

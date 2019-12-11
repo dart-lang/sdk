@@ -14,7 +14,7 @@ class A {
 class B implements A {
   const B();
 
-  operator ==(o) => true; // //# 00: compile-time error
+  operator ==(o) => true;
 }
 
 class C implements D {
@@ -30,7 +30,9 @@ class D implements A {
 
 main() {
   switch (new B()) {
-    case const A.B(): Expect.fail("bad switch"); break; // //# 00: continued
+//^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+    case const A.B(): Expect.fail("bad switch"); break;
   }
 
   switch (new C()) {
@@ -43,13 +45,17 @@ main() {
     case const A.C2():
       Expect.fail("bad switch");
       break;
-    case const A(): Expect.fail("bad switch"); break; // //# 01: compile-time error
+    case const A(): Expect.fail("bad switch"); break;
+    //   ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_CASE_EXPRESSION_TYPES
   }
 
   switch (new A()) {
     case const A():
       Expect.fail("bad switch");
       break;
-    case const A.B(): Expect.fail("bad switch"); break; // //# 02: compile-time error
+    case const A.B(): Expect.fail("bad switch"); break;
+    //   ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_CASE_EXPRESSION_TYPES
   }
 }

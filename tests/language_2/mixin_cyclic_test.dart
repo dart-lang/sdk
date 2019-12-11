@@ -11,13 +11,21 @@ class S {}
 class M<T> {}
 
 class C1 = S with M;
-class C2 = S with C2; //# 01: compile-time error
+class C2 = S with C2;
+//    ^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_WITH
+// [cfe] 'C2' is a supertype of itself.
+//                ^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 class C3 = S with M implements A;
-class C4 = S with M implements C4; //# 02: compile-time error
+class C4 = S with M implements C4;
+//    ^^
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS
+// [cfe] 'C4' is a supertype of itself.
 
 void main() {
   new C1();
-  new C2(); //# 01: continued
+  new C2();
   new C3();
-  new C4(); //# 02: continued
+  new C4();
 }

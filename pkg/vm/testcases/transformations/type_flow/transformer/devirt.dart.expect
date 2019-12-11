@@ -48,7 +48,7 @@ static method callerA3({[@vm.inferred-type.metadata=#lib::C] self::A* aa = #C1})
 static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A* aa) → void {
   [@vm.direct-call.metadata=#lib::C::foo??] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
-static method callerE1([@vm.inferred-type.metadata=dart.core::_OneByteString] dynamic x) → void {
+static method callerE1([@vm.inferred-type.metadata=dart.core::_OneByteString (value: abc)] dynamic x) → void {
   [@vm.direct-call.metadata=dart.core::_StringBase::toString] [@vm.inferred-type.metadata=!? (skip check)] x.{core::Object::toString}();
 }
 static method callerE2([@vm.inferred-type.metadata=#lib::E?] dynamic x) → void {

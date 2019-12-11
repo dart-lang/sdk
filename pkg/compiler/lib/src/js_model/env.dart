@@ -16,6 +16,7 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/visitors.dart';
+import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
@@ -451,6 +452,8 @@ abstract class JClassData {
 
   bool get isEnumClass;
   bool get isMixinApplication;
+
+  List<Variance> getVariances();
 }
 
 class JClassDataImpl implements JClassData {
@@ -482,6 +485,8 @@ class JClassDataImpl implements JClassData {
   @override
   OrderedTypeSet orderedTypeSet;
 
+  List<Variance> _variances;
+
   JClassDataImpl(this.cls, this.definition);
 
   factory JClassDataImpl.readFromDataSource(DataSource source) {
@@ -506,6 +511,10 @@ class JClassDataImpl implements JClassData {
 
   @override
   DartType get callType => null;
+
+  @override
+  List<Variance> getVariances() =>
+      _variances ??= cls.typeParameters.map(convertVariance).toList();
 }
 
 /// Enum used for identifying [JMemberData] subclasses in serialization.

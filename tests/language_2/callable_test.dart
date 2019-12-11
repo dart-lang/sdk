@@ -38,8 +38,16 @@ main() {
   Function g = y; // Should pass checked mode test
   F f0 = y; // Should pass checked mode test
 
-  F f1 = x; //# 00: compile-time error
-  G g0 = y; //# 01: compile-time error
+  F f1 = x;
+  //^
+  // [cfe] A value of type 'dynamic Function()' can't be assigned to a variable of type 'dynamic Function(int)'.
+  //     ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  G g0 = y;
+  //^
+  // [cfe] A value of type 'dynamic Function(int)' can't be assigned to a variable of type 'dynamic Function(String)'.
+  //     ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
 
   Expect.equals(f(), 42);
   Expect.equals(g(100), 187);

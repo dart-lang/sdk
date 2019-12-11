@@ -143,7 +143,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
       return;
     }
     E predecessor = entry!._previous!;
-    E successor = entry!;
+    E successor = entry;
     newEntry._previous = predecessor;
     newEntry._next = successor;
     predecessor._next = newEntry;

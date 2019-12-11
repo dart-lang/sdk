@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionTest extends DriverResolutionTest {
-  test_returnType_notNullable() async {
+  test_returnType_blockBody_notNullable() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
@@ -28,7 +28,7 @@ var v = (bool b) {
     assertElementTypeString(element.returnType, 'num');
   }
 
-  test_returnType_null_hasReturn() async {
+  test_returnType_blockBody_null_hasReturn() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return;
@@ -38,7 +38,7 @@ var v = (bool b) {
     assertElementTypeString(element.returnType, 'Null');
   }
 
-  test_returnType_null_noReturn() async {
+  test_returnType_blockBody_null_noReturn() async {
     await resolveTestCode('''
 var v = () {};
 ''');
@@ -46,7 +46,7 @@ var v = () {};
     assertElementTypeString(element.returnType, 'Null');
   }
 
-  test_returnType_nullable() async {
+  test_returnType_blockBody_nullable() async {
     await resolveTestCode('''
 var v = (bool b) {
   if (b) return 0;
@@ -59,13 +59,41 @@ var v = (bool b) {
       assertElementTypeString(element.returnType, 'int');
     }
   }
+
+  test_returnType_expressionBody_Never() async {
+    await resolveTestCode('''
+var v = () => throw 42;
+''');
+    var element = findNode.functionExpression('() =>').declaredElement;
+    if (typeToStringWithNullability) {
+      assertElementTypeString(element.returnType, 'Never');
+    } else {
+      assertElementTypeString(element.returnType, 'Null');
+    }
+  }
+
+  test_returnType_expressionBody_notNullable() async {
+    await resolveTestCode('''
+var v = () => 42;
+''');
+    var element = findNode.functionExpression('() =>').declaredElement;
+    assertElementTypeString(element.returnType, 'int');
+  }
+
+  test_returnType_expressionBody_Null() async {
+    await resolveTestCode('''
+var v = () => null;
+''');
+    var element = findNode.functionExpression('() =>').declaredElement;
+    assertElementTypeString(element.returnType, 'Null');
+  }
 }
 
 @reflectiveTest
 class FunctionExpressionWithNnbdTest extends FunctionExpressionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
 
   @override

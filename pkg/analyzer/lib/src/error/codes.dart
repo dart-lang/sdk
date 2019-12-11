@@ -428,6 +428,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "or removing the 'await' before the for loop.");
 
   /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error for the initializer expression of a `late` local variable
+   * to use a prefix `await` expression.
+   */
+  static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
+      const CompileTimeErrorCode('AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+          "The await expression can't be used in a 'late' local variable.",
+          correction:
+              "Try removing the 'late' modifier, or rewriting the initializer "
+              "without using the 'await' expression.");
+
+  /**
    * 16.30 Await Expressions: It is a compile-time error if the function
    * immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
    * await expression.)
@@ -964,7 +977,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_NOT_INITIALIZED =
       const CompileTimeErrorCode(
           'CONST_NOT_INITIALIZED', "The constant '{0}' must be initialized.",
-          correction: "Try adding an initialization to the declaration.");
+          correction: "Try adding an initialization to the declaration.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1569,7 +1583,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'EXTENDS_NON_CLASS', "Classes can only extend other classes.",
           correction:
               "Try specifying a different superclass, or removing the extends "
-              "clause.");
+              "clause.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2258,7 +2273,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode IMPLICIT_THIS_REFERENCE_IN_INITIALIZER =
       const CompileTimeErrorCode('IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
-          "Only static members can be accessed in initializers.");
+          "Only static members can be accessed in initializers.",
+          hasPublishedDocs: true);
 
   /**
    * SDK implementation libraries can be imported only by other SDK libraries.
@@ -2445,7 +2461,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
           "'{0}' isn't a field in the enclosing class.",
           correction: "Try correcting the name to match an existing field, or "
-              "defining a field named '{0}'.");
+              "defining a field named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form
@@ -2749,7 +2766,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode INVALID_OVERRIDE =
       const CompileTimeErrorCode('INVALID_OVERRIDE',
-          "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').");
+          "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+          hasPublishedDocs: true);
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level
@@ -2876,7 +2894,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode(
           'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
           "The extension '{0}' doesn't define a 'call' method so the override "
-              "can't be used in an invocation.");
+              "can't be used in an invocation.",
+          hasPublishedDocs: true);
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement
@@ -2911,6 +2930,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'LABEL_UNDEFINED', "Can't reference undefined label '{0}'.",
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
+
+  /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error for a class with a `const` constructor to have a
+   * `late final` field.
+   */
+  static const CompileTimeErrorCode LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR =
+      const CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+          "Can't have a late final field in a class with a const constructor.",
+          correction: "Try removing the 'late' modifier, or don't declare "
+              "'const' constructors.");
 
   /**
    * No parameters.
@@ -3277,7 +3308,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Otherwise, remove the type from the on clause.
   static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE =
       const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
-          "Only classes and mixins can be used as superclass constraints.");
+          "Only classes and mixins can be used as superclass constraints.",
+          hasPublishedDocs: true);
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
@@ -3319,50 +3351,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adding an empty argument list.");
 
   /**
-   * This error is generated if a constructor declaration has an implicit
-   * invocation of a zero argument super constructor (`super()`), but the
-   * superclass does not define a zero argument constructor.
-   *
-   * 7.6.1 Generative Constructors: If no superinitializer is provided, an
-   * implicit superinitializer of the form <b>super</b>() is added at the end of
-   * <i>k</i>'s initializer list, unless the enclosing class is class
-   * <i>Object</i>.
-   *
-   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i>
-   * does not declare a generative constructor named <i>S</i> (respectively
-   * <i>S.id</i>)
-   *
    * Parameters:
-   * 0: the name of the superclass that does not define the implicitly invoked
+   * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT =
-      const CompileTimeErrorCode('NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
+      const CompileTimeErrorCodeWithUniqueName(
+          'NO_DEFAULT_SUPER_CONSTRUCTOR',
+          'NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
           "The superclass '{0}' doesn't have a zero argument constructor.",
           correction: "Try declaring a zero argument constructor in '{0}', or "
               "explicitly invoking a different constructor in '{0}'.");
 
   /**
-   * This error is generated if a class declaration has an implicit default
-   * constructor, which implicitly invokes a zero argument super constructor
-   * (`super()`), but the superclass does not define a zero argument
-   * constructor.
-   *
-   * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it
-   * implicitly has a default constructor C() : <b>super<b>() {}, unless
-   * <i>C</i> is class <i>Object</i>.
-   *
-   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i>
-   * does not declare a generative constructor named <i>S</i> (respectively
-   * <i>S.id</i>)
-   *
    * Parameters:
-   * 0: the name of the superclass that does not define the implicitly invoked
+   * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
    * 1: the name of the subclass that does not contain any explicit constructors
    */
   static const CompileTimeErrorCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT =
-      const CompileTimeErrorCode('NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
+      const CompileTimeErrorCodeWithUniqueName(
+          'NO_DEFAULT_SUPER_CONSTRUCTOR',
+          'NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
           "The superclass '{0}' doesn't have a zero argument constructor.",
           correction: "Try declaring a zero argument constructor in '{0}', or "
               "declaring a constructor in {1} that explicitly invokes a "
@@ -3483,7 +3493,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE =
       const CompileTimeErrorCode('NON_CONSTANT_DEFAULT_VALUE',
-          "The default value of an optional parameter must be constant.");
+          "The default value of an optional parameter must be constant.",
+          hasPublishedDocs: true);
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the default value of
@@ -5244,7 +5255,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode(
           'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
           "Operator '{0}' should declare exactly {1} parameters, but {2} "
-              "found.");
+              "found.",
+          hasPublishedDocs: true);
 
   /**
    * 7.1.1 Operators: It is a compile time error if the arity of the
@@ -5368,7 +5380,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   const CompileTimeErrorCode(String name, String message,
       {String correction,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
@@ -5379,6 +5391,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   @override
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
+}
+
+class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
+  @override
+  final String uniqueName;
+
+  const CompileTimeErrorCodeWithUniqueName(
+      String name, this.uniqueName, String message,
+      {String correction, bool hasPublishedDocs})
+      : super(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 }
 
 /**
@@ -5616,7 +5639,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   static const StaticTypeWarningCode NON_BOOL_CONDITION =
       const StaticTypeWarningCode(
           'NON_BOOL_CONDITION', "Conditions must have a static type of 'bool'.",
-          correction: "Try changing the condition.");
+          correction: "Try changing the condition.", hasPublishedDocs: true);
 
   /**
    * 17.17 Assert: It is a static type warning if the type of <i>e</i> may not
@@ -5698,7 +5721,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       const StaticTypeWarningCode(
           'RETURN_OF_INVALID_TYPE',
           "The return type '{0}' isn't a '{1}', as defined by the method "
-              "'{2}'.");
+              "'{2}'.",
+          hasPublishedDocs: true);
 
   /**
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not
@@ -5753,8 +5777,9 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       const StaticTypeWarningCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
           'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
-          "A value of type '{0} can't be returned from function '{2}' because it "
-              "has a return type of '{1}'.");
+          "A value of type '{0}' can't be returned from function '{2}' because "
+              "it has a return type of '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5766,8 +5791,9 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       const StaticTypeWarningCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
           'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
-          "A value of type '{0} can't be returned from method '{2}' because it has "
-              "a return type of '{1}'.");
+          "A value of type '{0}' can't be returned from method '{2}' because "
+              "it has a return type of '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype
@@ -5959,7 +5985,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   static const StaticTypeWarningCode UNDEFINED_OPERATOR =
       const StaticTypeWarningCode('UNDEFINED_OPERATOR',
           "The operator '{0}' isn't defined for the class '{1}'.",
-          correction: "Try defining the operator '{0}'.");
+          correction: "Try defining the operator '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6202,7 +6229,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
           "The type '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
-          correction: "Try adjusting the number of type arguments.");
+          correction: "Try adjusting the number of type arguments.",
+          hasPublishedDocs: true);
 
   /**
    * It will be a static type warning if <i>m</i> is not a generic method with
@@ -6295,7 +6323,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   const StaticTypeWarningCode(String name, String message,
       {String correction,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
@@ -6398,7 +6426,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode AMBIGUOUS_IMPORT = const StaticWarningCode(
       'AMBIGUOUS_IMPORT', "The name '{0}' is defined in the libraries {1}.",
       correction: "Try using 'as prefix' for one of the import directives, or "
-          "hiding the name from all but one of the imports.");
+          "hiding the name from all but one of the imports.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6552,7 +6581,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "There isn’t a setter named '{0}' in class '{1}'.",
           correction:
               "Try correcting the name to reference an existing setter, or "
-              "declare the setter.");
+              "declare the setter.",
+          hasPublishedDocs: true);
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form
@@ -6672,18 +6702,12 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode CONCRETE_CLASS_WITH_ABSTRACT_MEMBER =
       const StaticWarningCode('CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
           "'{0}' must have a method body because '{1}' isn't abstract.",
-          correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
+          correction: "Try making '{1}' abstract, or adding a body to '{0}'.",
+          hasPublishedDocs: true);
 
-  /**
-   * 16.12.2 Const: Given an instance creation expression of the form <i>const
-   * q(a<sub>1</sub>, &hellip; a<sub>n</sub>)</i> it is a static warning if
-   * <i>q</i> is the constructor of an abstract class but <i>q</i> is not a
-   * factory constructor.
-   */
+  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
   static const StaticWarningCode CONST_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode('CONST_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be created with a 'const' expression.",
-          correction: "Try creating an instance of a subtype.");
+      INSTANTIATE_ABSTRACT_CLASS;
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with
@@ -6923,7 +6947,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "All final variables must be initialized, but '{0}' is not.",
-          correction: "Try adding an initializer for the field.");
+          correction: "Try adding an initializer for the field.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6936,7 +6961,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "All final variables must be initialized, but '{0}' and '{1}' are "
               "not.",
-          correction: "Try adding initializers for the fields.");
+          correction: "Try adding initializers for the fields.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6950,7 +6976,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "All final variables must be initialized, but '{0}', '{1}', and {2} "
               "others are not.",
-          correction: "Try adding initializers for the fields.");
+          correction: "Try adding initializers for the fields.",
+          hasPublishedDocs: true);
 
   /**
    * 14.1 Imports: It is a static warning to import two different libraries with
@@ -6971,6 +6998,14 @@ class StaticWarningCode extends AnalyzerErrorCode {
   @Deprecated('Use CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY')
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+
+  /**
+   * No parameters.
+   */
+  static const StaticWarningCode INSTANTIATE_ABSTRACT_CLASS =
+      const StaticWarningCode('INSTANTIATE_ABSTRACT_CLASS',
+          "Abstract classes can't be instantiated.",
+          correction: "Try creating an instance of a concrete subtype.");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -7046,7 +7081,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // ```
   static const StaticWarningCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
       const StaticWarningCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the list type '{1}'.");
+          "The element type '{0}' can't be assigned to the list type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt;
@@ -7134,14 +7170,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
       correction: "Try making all the return statements consistent "
           "(either include a value or not).");
 
-  /**
-   * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
-   * abstract class and <i>q</i> is not a factory constructor.
-   */
+  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode(
-          'NEW_WITH_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
-          correction: "Try creating an instance of a subtype.");
+      INSTANTIATE_ABSTRACT_CLASS;
 
   /**
    * 15.8 Parameterized Types: Any use of a malbounded type gives rise to a
@@ -7226,7 +7257,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
               "{4} more.",
           correction: "Try implementing the missing methods, or make the class "
-              "abstract.");
+              "abstract.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7242,7 +7274,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
           "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
           correction: "Try implementing the missing methods, or make the class "
-              "abstract.");
+              "abstract.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7314,7 +7347,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
           "Missing concrete implementation of '{0}'.",
           correction: "Try implementing the missing method, or make the class "
-              "abstract.");
+              "abstract.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7329,7 +7363,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
           "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
           correction: "Try implementing the missing methods, or make the class "
-              "abstract.");
+              "abstract.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7343,7 +7378,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
           "Missing concrete implementations of '{0}' and '{1}'.",
           correction: "Try implementing the missing methods, or make the class "
-              "abstract.");
+              "abstract.",
+          hasPublishedDocs: true);
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>,
@@ -7765,7 +7801,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       {String correction,
       this.errorSeverity = ErrorSeverity.ERROR,
       bool hasPublishedDocs,
-      bool isUnresolvedIdentifier: false})
+      bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,

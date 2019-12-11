@@ -6,7 +6,10 @@ import "package:expect/expect.dart";
 
 class A {
   A() {
-    print(field + 42); //# 01: compile-time error
+    print(field + 42);
+    //    ^^^^^
+    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [cfe] The getter 'field' isn't defined for the class 'A'.
   }
 }
 
@@ -18,5 +21,5 @@ class B extends A {
 }
 
 main() {
-  Expect.throwsNoSuchMethodError(() => new B()); //# 01: continued
+  Expect.throwsNoSuchMethodError(() => new B());
 }

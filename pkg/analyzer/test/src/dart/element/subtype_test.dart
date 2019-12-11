@@ -2138,7 +2138,7 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
-  test_functionType_requiredNamedParameter() {
+  test_functionType_requiredNamedParameter_01() {
     var F0 = functionTypeNone(
       returnType: voidNone,
       parameters: [
@@ -2165,6 +2165,40 @@ class SubtypeTest extends _SubtypingTestBase {
       F1,
       strT0: 'void Function({required a: int})',
       strT1: 'void Function({a: int})',
+    );
+  }
+
+  test_functionType_requiredNamedParameter_02() {
+    isNotSubtype(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+      ),
+      strT0: 'void Function({required a: int})',
+      strT1: 'void Function()',
+    );
+
+    isNotSubtype(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+          namedParameter(name: 'b', type: intNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'b', type: intNone),
+        ],
+      ),
+      strT0: 'void Function({required a: int, b: int})',
+      strT1: 'void Function({b: int})',
     );
   }
 
@@ -6091,8 +6125,8 @@ class _SubtypingTestBase with ElementsTypesMixin {
     var analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
     );
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
+    typeProvider = analysisContext.typeProviderNonNullableByDefault;
+    typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 }
 

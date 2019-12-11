@@ -21,7 +21,7 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.method(
-          Symbol memberName, Iterable<Object?> positionalArguments,
+          Symbol memberName, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
@@ -35,7 +35,7 @@ abstract class Invocation {
    * If the named arguments are omitted, they default to no named arguments.
    */
   factory Invocation.genericMethod(Symbol memberName,
-          Iterable<Type> typeArguments, Iterable<Object?> positionalArguments,
+          Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
           [Map<Symbol, Object?>? namedArguments]) =>
       _Invocation.method(
           memberName, typeArguments, positionalArguments, namedArguments);

@@ -204,7 +204,8 @@ KernelLoader::KernelLoader(Program* program,
               program_->kernel_data_size(),
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
@@ -418,6 +419,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   kernel_program_info_ = KernelProgramInfo::New(
       offsets, data, names, metadata_payloads, metadata_mappings,
       constants_table, scripts, libraries_cache, classes_cache,
+      program_->typed_data() == nullptr ? Object::null_object()
+                                        : *program_->typed_data(),
       program_->binary_version());
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
@@ -450,7 +453,8 @@ KernelLoader::KernelLoader(const Script& script,
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_, &translation_helper_, script, kernel_data, 0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_),
+      constant_reader_(&helper_, &active_class_),
+      inferred_type_metadata_helper_(&helper_, &constant_reader_),
       bytecode_metadata_helper_(&helper_, &active_class_),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
@@ -948,6 +952,7 @@ void KernelLoader::ReadInferredType(const Field& field,
 
 void KernelLoader::CheckForInitializer(const Field& field) {
   if (helper_.PeekTag() == kSomething) {
+    field.set_has_initializer(true);
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);
@@ -956,6 +961,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
+  field.set_has_initializer(false);
   field.set_has_nontrivial_initializer(false);
 }
 
@@ -1181,12 +1187,11 @@ void KernelLoader::FinishTopLevelClassLoading(
     const bool is_late = field_helper.IsLate();
     const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
-        Z,
-        Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
-                           field_helper.position_, field_helper.end_position_));
+        Z, Field::NewTopLevel(name, is_final, field_helper.IsConst(), is_late,
+                              script_class, field_helper.position_,
+                              field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     field.set_has_pragma(has_pragma_annotation);
-    field.set_is_late(is_late);
     field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -1535,16 +1540,15 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       const bool is_late = field_helper.IsLate();
       const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
-          Z,
-          Field::New(name, field_helper.IsStatic(), is_final,
-                     field_helper.IsConst(), is_reflectable, script_class, type,
-                     field_helper.position_, field_helper.end_position_));
+          Z, Field::New(name, field_helper.IsStatic(), is_final,
+                        field_helper.IsConst(), is_reflectable, is_late,
+                        script_class, type, field_helper.position_,
+                        field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field.set_has_pragma(has_pragma_annotation);
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
-      field.set_is_late(is_late);
       field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
@@ -1569,13 +1573,14 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // Add static field 'const _deleted_enum_sentinel'.
       // This field does not need to be of type E.
       Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
-      deleted_enum_sentinel = Field::New(
-          Symbols::_DeletedEnumSentinel(),
-          /* is_static = */ true,
-          /* is_final = */ true,
-          /* is_const = */ true,
-          /* is_reflectable = */ false, klass, Object::dynamic_type(),
-          TokenPosition::kNoSource, TokenPosition::kNoSource);
+      deleted_enum_sentinel =
+          Field::New(Symbols::_DeletedEnumSentinel(),
+                     /* is_static = */ true,
+                     /* is_final = */ true,
+                     /* is_const = */ true,
+                     /* is_reflectable = */ false,
+                     /* is_late = */ false, klass, Object::dynamic_type(),
+                     TokenPosition::kNoSource, TokenPosition::kNoSource);
       fields_.Add(&deleted_enum_sentinel);
     }
 
@@ -1937,11 +1942,13 @@ void KernelLoader::LoadProcedure(const Library& library,
       break;
     case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks);
+      function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                !FLAG_lazy_async_stacks);
       break;
     default:
       // no special modifier
@@ -2063,8 +2070,9 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
                                           FieldHelper* field_helper) {
-  Tag tag = helper_.PeekTag();
-  if (tag == kSomething) {
+  const Tag tag = helper_.PeekTag();
+  const bool has_initializer = (tag == kSomething);
+  if (has_initializer) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
@@ -2087,9 +2095,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 
   if (field_helper->IsStatic()) {
-    bool has_initializer = (tag == kSomething);
-
-    if (!has_initializer) {
+    if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
       field.SetStaticValue(Instance::null_instance(), true);
@@ -2099,6 +2105,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     // We do need a getter that evaluates the initializer if necessary.
     field.SetStaticValue(Object::sentinel(), true);
   }
+  ASSERT(field.NeedsGetter());
 
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =
@@ -2112,8 +2119,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields
           // that are const (not just final) and they have is_const for
-          // non-static
-          // fields that are final.
+          // non-static fields that are final.
           field_helper->IsStatic() ? field_helper->IsConst()
                                    : field_helper->IsFinal(),
           false,  // is_abstract
@@ -2130,13 +2136,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
-  if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
+  if (field.NeedsSetter()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
     const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, RawFunction::kImplicitSetter,
-                         false,  // is_static
+                         field_helper->IsStatic(),
                          false,  // is_const
                          false,  // is_abstract
                          false,  // is_external

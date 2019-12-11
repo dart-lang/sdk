@@ -53,7 +53,7 @@ class DevCompilerRunner implements CompilerRunner {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;
 
-    File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
+    File sdkJsFile = findInOutDir("gen/utils/dartdevc/kernel/es6/dart_sdk.js");
     var jsSdkPath = sdkJsFile.uri;
 
     File ddcSdkSummary = findInOutDir("ddc_sdk.dill");

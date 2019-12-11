@@ -3,20 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const x =
-    throw //# 01: compile-time error
-    "x";
+    throw "x";
+//  ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Throw is not a constant expression.
 
 const y = const {
   0:
-      throw //# 02: compile-time error
-      "y"
+      throw "y";
+//    ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Throw is not a constant expression.
+//    ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE
+//             ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Expected '}' before this.
 };
 
 main() {
   print(x);
   print(y);
   const z =
-      throw //# 03: compile-time error
-      1 + 1 + 1;
+      throw 1 + 1 + 1;
+//    ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Throw is not a constant expression.
   print(z);
 }

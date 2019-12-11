@@ -6,16 +6,34 @@ class C {
   factory C() => null;
 }
 
-const //# 01: syntax error
+const
+// [error line 9, column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'const' here.
 t() => null;
 
-const //# 02: syntax error
+const
+// [error line 15, column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
+// [cfe] Can't have modifier 'const' here.
 get v => null;
 
 main() {
-  const //# 03: compile-time error
+  const
       dynamic x = t();
-  const y = const C(); //# 04: compile-time error
-  const //# 05: compile-time error
+      //          ^^^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      // [cfe] Method invocation is not a constant expression.
+  const y = const C();
+  //        ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  //        ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+  //              ^
+  // [cfe] Cannot invoke a non-'const' factory where a const expression is expected.
+  const
       dynamic z = v;
+      //          ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      // [cfe] Constant evaluation error:
 }

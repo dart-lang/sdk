@@ -6,16 +6,30 @@
  class Class {
    Class(var v) : field_ = v
    // Test against duplicate final field initialization in initializing list.
-    , field_ = 2 // //# 01: compile-time error
+    , field_ = 2
+    //^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+    //       ^
+    // [cfe] 'field_' is a final instance variable that has already been initialized.
    ;
    Class.field(this.field_)
    // Test against duplicate final field initialization between initializing
    // formals and initializer list.
-    : field_ = 2 // //# 02: compile-time error
+    : field_ = 2
+    //^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+    //       ^
+    // [cfe] 'field_' is a final instance variable that has already been initialized.
    ;
    // Test against duplicate final field initialization in initializing formals.
    Class.two_fields(this.field_
-    , this.field_ //# 03: compile-time error
+    , this.field_
+    //     ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [cfe] 'field_' is a final instance variable that has already been initialized.
+    //     ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_MULTIPLE_TIMES
+    // [cfe] Duplicated parameter name 'field_'.
        );
    final field_;
  }
@@ -24,6 +38,6 @@
    new Class(42);
    new Class.field(42);
    new Class.two_fields(42
-     , 42 //  //# 03: continued
+     , 42
        );
  }

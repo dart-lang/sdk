@@ -46,14 +46,14 @@ typedef Printer(String msg);
 /// Describes a String in valid camel case format.
 @deprecated // Never intended for public use.
 class CamelCaseString {
-  static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
-  static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
+  static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
+  static final _camelCaseTester = RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
 
   final String value;
 
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
-      throw new ArgumentError('$value is not CamelCase');
+      throw ArgumentError('$value is not CamelCase');
     }
   }
 
@@ -80,13 +80,13 @@ class DartLinter implements AnalysisErrorListener {
   int numSourcesAnalyzed;
 
   /// Creates a new linter.
-  DartLinter(this.options, {this.reporter: const PrintingReporter()});
+  DartLinter(this.options, {this.reporter = const PrintingReporter()});
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<AnalysisErrorInfo> errors = [];
-    final lintDriver = new LintDriver(options);
+    final lintDriver = LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
@@ -102,7 +102,7 @@ class DartLinter implements AnalysisErrorListener {
 
     Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
-    var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
+    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (Linter lint in options.enabledLints) {
       if (lint is LintRule) {
@@ -114,12 +114,12 @@ class DartLinter implements AnalysisErrorListener {
           // processing gets pushed down, this hack can go away.)
           if (rule.reporter == null && sourceUrl != null) {
             var source = createSource(sourceUrl);
-            rule.reporter = new ErrorReporter(this, source);
+            rule.reporter = ErrorReporter(this, source);
           }
           try {
             spec.accept(visitor);
           } on Exception catch (e) {
-            reporter.exception(new LinterException(e.toString()));
+            reporter.exception(LinterException(e.toString()));
           }
           if (rule._locationInfo != null && rule._locationInfo.isNotEmpty) {
             results.addAll(rule._locationInfo);
@@ -147,8 +147,8 @@ class FileGlobFilter extends LintFilter {
   Iterable<Glob> excludes;
 
   FileGlobFilter([Iterable<String> includeGlobs, Iterable<String> excludeGlobs])
-      : includes = includeGlobs.map((glob) => new Glob(glob)),
-        excludes = excludeGlobs.map((glob) => new Glob(glob));
+      : includes = includeGlobs.map((glob) => Glob(glob)),
+        excludes = excludeGlobs.map((glob) => Glob(glob));
 
   @override
   bool filter(AnalysisError lint) {
@@ -180,14 +180,14 @@ class Group implements Comparable<Group> {
   final String description;
   final Hyperlink link;
 
-  factory Group(String name, {String description: '', Hyperlink link}) {
+  factory Group(String name, {String description = '', Hyperlink link}) {
     var n = name.toLowerCase();
     return builtin.firstWhere((g) => g.name == n,
-        orElse: () => new Group._(name,
-            custom: true, description: description, link: link));
+        orElse: () =>
+            Group._(name, custom: true, description: description, link: link));
   }
 
-  const Group._(this.name, {this.custom: false, this.description, this.link});
+  const Group._(this.name, {this.custom = false, this.description, this.link});
 
   @override
   int compareTo(Group other) => name.compareTo(other.name);
@@ -198,7 +198,7 @@ class Hyperlink {
   final String href;
   final bool bold;
 
-  const Hyperlink(this.label, this.href, {this.bold: false});
+  const Hyperlink(this.label, this.href, {this.bold = false});
 
   String get html => '<a href="$href">${_emph(label)}</a>';
 
@@ -316,7 +316,7 @@ class LinterContextImpl implements LinterContext {
     //
     Token oldKeyword = expression.keyword;
     try {
-      expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
+      expression.keyword = KeywordToken(Keyword.CONST, expression.offset);
       return !_hasConstantVerifierError(expression);
     } finally {
       expression.keyword = oldKeyword;
@@ -415,7 +415,7 @@ class LinterOptions extends DriverOptions {
   void configure(LintConfig config) {
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
-    filter = new FileGlobFilter(config.fileIncludes, config.fileExcludes);
+    filter = FileGlobFilter(config.fileIncludes, config.fileExcludes);
   }
 }
 
@@ -453,9 +453,9 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       this.group,
       this.description,
       this.details,
-      this.maturity: Maturity.stable});
+      this.maturity = Maturity.stable});
 
-  LintCode get lintCode => new _LintCode(name, description);
+  LintCode get lintCode => _LintCode(name, description);
 
   @override
   int compareTo(LintRule other) {
@@ -479,18 +479,18 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   AstVisitor getVisitor() => null;
 
   void reportLint(AstNode node,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
-      bool ignoreSyntheticNodes: true}) {
+      bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
       reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
     }
   }
 
   void reportLintForToken(Token token,
-      {List<Object> arguments: const [],
+      {List<Object> arguments = const [],
       ErrorCode errorCode,
-      bool ignoreSyntheticTokens: true}) {
+      bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
       reporter.reportErrorForToken(errorCode ?? lintCode, token, arguments);
     }
@@ -500,11 +500,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     Source source = createSource(node.span.sourceUrl);
 
     // Cache error and location info for creating AnalysisErrorInfos
-    AnalysisError error = new AnalysisError(
+    AnalysisError error = AnalysisError(
         source, node.span.start.offset, node.span.length, lintCode);
-    LineInfo lineInfo = new LineInfo.fromContent(source.contents.data);
+    LineInfo lineInfo = LineInfo.fromContent(source.contents.data);
 
-    _locationInfo.add(new AnalysisErrorInfoImpl([error], lineInfo));
+    _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));
 
     // Then do the reporting
     reporter?.reportError(error);
@@ -529,7 +529,7 @@ class Maturity implements Comparable<Maturity> {
       case 'deprecated':
         return deprecated;
       default:
-        return new Maturity._(name, ordinal: ordinal);
+        return Maturity._(name, ordinal: ordinal);
     }
   }
 
@@ -593,14 +593,14 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   int numSourcesAnalyzed;
 
-  SourceLinter(this.options, {this.reporter: const PrintingReporter()});
+  SourceLinter(this.options, {this.reporter = const PrintingReporter()});
 
   @override
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<AnalysisErrorInfo> errors = [];
-    final lintDriver = new LintDriver(options);
+    final lintDriver = LintDriver(options);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
@@ -617,7 +617,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
     Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
-    var spec = new Pubspec.parse(contents, sourceUrl: sourceUrl);
+    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (Linter lint in options.enabledLints) {
       if (lint is LintRule) {
@@ -629,12 +629,12 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           // processing gets pushed down, this hack can go away.)
           if (rule.reporter == null && sourceUrl != null) {
             var source = createSource(sourceUrl);
-            rule.reporter = new ErrorReporter(this, source);
+            rule.reporter = ErrorReporter(this, source);
           }
           try {
             spec.accept(visitor);
           } on Exception catch (e) {
-            reporter.exception(new LinterException(e.toString()));
+            reporter.exception(LinterException(e.toString()));
           }
           if (rule._locationInfo != null && rule._locationInfo.isNotEmpty) {
             results.addAll(rule._locationInfo);
@@ -659,8 +659,8 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
 
-  factory _LintCode(String name, String message) => registry.putIfAbsent(
-      name + message, () => new _LintCode._(name, message));
+  factory _LintCode(String name, String message) =>
+      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
 
   _LintCode._(String name, String message) : super(name, message);
 }

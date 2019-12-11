@@ -7,7 +7,12 @@
 class C<T> {
   void m() {
     const List lst = const [
-      T //# 01: compile-time error
+      T
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Type variables can't be used as constants.
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT
     ];
   }
 }

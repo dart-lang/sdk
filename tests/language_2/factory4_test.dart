@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Link<T> {
-  factory Link.create() = LinkFactory.create; //# 00: compile-time error
+  factory Link.create() = LinkFactory.create;
+  //                      ^^^^^^^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] The constructor function type 'LinkFactory<dynamic> Function()' isn't a subtype of 'Link<T> Function()'.
 }
 
 class A<T> {}
@@ -15,5 +18,5 @@ class LinkFactory<T> extends A<T> {
 }
 
 main() {
-  new Link<int>.create(); //# 00: continued
+  new Link<int>.create();
 }

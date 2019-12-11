@@ -16,9 +16,12 @@ class IsNotClass2NegativeTest {
     var a = new A();
     var aa = new A();
 
-    if (a is aa) { //# 01: compile-time error
-      return 0; //# 01: continued
-    } //# 01: continued
+    if (a is aa) {
+    //       ^^
+    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+    // [cfe] 'aa' isn't a type.
+      return 0;
+    }
     return 0;
   }
 }

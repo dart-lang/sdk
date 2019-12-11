@@ -20,6 +20,7 @@ import "dart:_internal" show VMLibraryHooks, patch;
 _fatal(msg) native "DartAsync_fatal";
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
+  @pragma("vm:entry-point")
   final _future = new _Future<T>();
   bool isSync;
 
@@ -133,6 +134,7 @@ void _asyncStarMoveNextHelper(var stream) {
 // async* generator functions.
 @pragma("vm:entry-point")
 class _AsyncStarStreamController<T> {
+  @pragma("vm:entry-point")
   StreamController<T> controller;
   Function asyncStarBody;
   bool isAdding = false;

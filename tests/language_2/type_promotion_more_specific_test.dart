@@ -42,20 +42,26 @@ void testInterface() {
   A a = new B();
   if (a is B) {
     // Promotion B << A.
-    x = a.b; //# 01: ok
+    x = a.b;
   }
   if (a is C) {
     // No promotion C !<< A.
-    x = a.c; //# 02: compile-time error
+    x = a.c;
+    //    ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'c' isn't defined for the class 'A'.
   }
   B b = new B();
   if (b is A) {
     // No promotion B !<< A.
-    x = b.b; //# 03: ok
+    x = b.b;
   }
   if (x is A) {
     // Promotion A << dynamic.
-    y = x.b; //# 04: compile-time error
+    y = x.b;
+    //    ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }
 
@@ -66,25 +72,36 @@ testGeneric() {
   D d1 = new E<B>(null);
   if (d1 is E) {
     // Promotion: E << D.
-    x = d1.e; //# 05: ok
+    x = d1.e;
   }
   if (d1 is E<A>) {
     // Promotion: E<A> << D.
-    int a = d1.d; //# 06: compile-time error
-    String b = d1.d; //# 07: compile-time error
-    x = d1.e; //# 08: ok
+    int a = d1.d;
+    //      ^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //         ^
+    // [cfe] A value of type 'A' can't be assigned to a variable of type 'int'.
+    String b = d1.d;
+    //         ^^^^
+    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    //            ^
+    // [cfe] A value of type 'A' can't be assigned to a variable of type 'String'.
+    x = d1.e;
   }
 
   D<A> d2 = new E<B>(null);
   if (d2 is E) {
     // No promotion: E !<< D<A>
-    x = d2.e; //# 09: compile-time error
+    x = d2.e;
+    //     ^
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] The getter 'e' isn't defined for the class 'D<A>'.
   }
 
   D<A> d3 = new E<B>(new B());
   if (d3 is E<B>) {
     // Promotion: E<B> << D<A>
-    x = d3.d.b; //# 12: ok
-    x = d3.e.b; //# 13: ok
+    x = d3.d.b;
+    x = d3.e.b;
   }
 }

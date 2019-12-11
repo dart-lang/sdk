@@ -15,7 +15,10 @@ abstract class Abstract implements Interface {
 
 // This class does not implement "x" either, but it is not marked
 // abstract.
-class SubAbstract1 extends Abstract {} //# 01: compile-time error
+class SubAbstract1 extends Abstract {}
+//    ^^^^^^^^^^^^
+// [analyzer] STATIC_WARNING.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'SubAbstract1' is missing implementations for these members:
 
 // This class does not implement "x", but is itself abstract, so that's OK.
 abstract class SubAbstract2 extends Abstract {
@@ -24,7 +27,10 @@ abstract class SubAbstract2 extends Abstract {
 
 // This class does not implement "x" either, but it is not marked
 // abstract.
-class SubSubAbstract2 extends SubAbstract2 {} //# 04: compile-time error
+class SubSubAbstract2 extends SubAbstract2 {}
+//    ^^^^^^^^^^^^^^^
+// [analyzer] STATIC_WARNING.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] The non-abstract class 'SubSubAbstract2' is missing implementations for these members:
 
 class Concrete extends Abstract {
   get x => 7;
@@ -36,7 +42,10 @@ class SubConcrete extends Concrete {
 }
 
 void main() {
-  new Abstract(); //# 02: compile-time error
+  new Abstract();
+  //  ^^^^^^^^
+  // [analyzer] STATIC_WARNING.INSTANTIATE_ABSTRACT_CLASS
+  // [cfe] The class 'Abstract' is abstract and can't be instantiated.
   Expect.equals('7', new Concrete().toString());
   Expect.equals('42', new SubConcrete(42).toString());
   Expect.equals('7', new SubConcrete(new Concrete()).toString());

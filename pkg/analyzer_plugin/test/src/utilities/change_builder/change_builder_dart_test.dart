@@ -1223,7 +1223,7 @@ import 'a.dart' as p;
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder).writeType(typeProvider.dynamicType);
       });
     });
@@ -1439,7 +1439,7 @@ class B {}
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        var typeProvider = unit.declaredElement.context.typeProvider;
+        var typeProvider = unit.declaredElement.library.typeProvider;
         (builder as DartEditBuilder)
             .writeType(typeProvider.dynamicType, required: true);
       });
@@ -2286,10 +2286,10 @@ class B extends A {
       expected: '''
   @override
   // TODO: implement zero
-  int get zero => null;
+  int get zero => throw UnimplementedError();
 ''',
       displayText: 'zero => …',
-      selection: new SourceRange(111, 4),
+      selection: new SourceRange(111, 26),
     );
   }
 
@@ -2328,11 +2328,11 @@ class B extends A {
   @override
   A add(A a) {
     // TODO: implement add
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'add(A a) { … }',
-      selection: new SourceRange(111, 12),
+      selection: new SourceRange(111, 27),
     );
   }
 
@@ -2418,11 +2418,11 @@ class B extends A {
   @override
   forEach(int Function(double p1, String p2) f) {
     // TODO: implement forEach
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(176, 12),
+      selection: new SourceRange(176, 27),
     );
   }
 
@@ -2463,11 +2463,11 @@ class B implements A {
   @override
   List<T> get<T>(T key) {
     // TODO: implement get
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(136, 12),
+      selection: new SourceRange(136, 27),
     );
   }
 
@@ -2508,11 +2508,11 @@ class B<K2, V2> implements A<K2, V2> {
   @override
   List<T> get<T extends V2>(K2 key) {
     // TODO: implement get
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(184, 12),
+      selection: new SourceRange(184, 27),
     );
   }
 
@@ -2555,11 +2555,11 @@ class B extends A {
   @override
   int foo(T Function<T>() fn) {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
  }
 ''',
       displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(145, 12),
+      selection: new SourceRange(145, 27),
     );
   }
 
@@ -2600,11 +2600,11 @@ class B extends A {
   @override
   List<Null> foo() {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
  }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
+      selection: new SourceRange(123, 27),
     );
   }
 
@@ -2666,11 +2666,11 @@ class B extends A {
   @override
   List<void> foo() {
     // TODO: implement foo
-    return null;
+    throw UnimplementedError();
   }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 12),
+      selection: new SourceRange(123, 27),
     );
   }
 

@@ -500,6 +500,37 @@ void f() {
     assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
   }
 
+  test_namedParameterWithDefault_fromOverridden_explicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class A {
+  void m({int p = 0}) {}
+}
+class B extends A {
+  void m({num p = 0}) {}
+}
+void f(A a) {
+  a.m(p: null);
+}
+''', migratedContent: '''
+class A {
+  void m({int? p = 0}) {}
+}
+class B extends A {
+  void m({num? p = 0}) {}
+}
+void f(A a) {
+  a.m(p: null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is "an explicit null is passed..."
+    assertRegion(region: regions[1], offset: 71, details: [
+      "The corresponding parameter in the overridden method, A.m, is nullable"
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 20, length: 3);
+  }
+
   test_nonNullableType_assert() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {
@@ -549,7 +580,33 @@ void f(String s) {
     ]);
   }
 
-  test_nullCheck_onFunctionArgument() async {
+  test_nullCheck_onMemberAccess() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int value;
+  C([this.value]);
+  void f() {
+    value.sign;
+  }
+}
+''', migratedContent: '''
+class C {
+  int? value;
+  C([this.value]);
+  void f() {
+    value!.sign;
+  }
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `int?`.
+    assertRegion(region: regions[1], offset: 65, details: [
+      "This value must be null-checked before accessing its properties."
+    ]);
+  }
+
+  test_nullCheck_onMethodCall() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int value;
@@ -570,10 +627,9 @@ class C {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(2));
     // regions[0] is `int?`.
-    assertRegion(
-        region: regions[1],
-        offset: 65,
-        details: ["A nullable value can't be used here"]);
+    assertRegion(region: regions[1], offset: 65, details: [
+      "This value must be null-checked before calling its methods."
+    ]);
   }
 
   test_parameter_fromInvocation_explicit() async {
@@ -620,12 +676,15 @@ void g(p) {
         details: ["A nullable value is explicitly passed as an argument"]);
   }
 
-  test_parameter_fromOverriden_explicit() async {
+  test_parameter_fromMultipleOverridden_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(int p) {}
 }
 class B extends A {
+  void m(num p) {}
+}
+class C extends B {
   void m(Object p) {}
 }
 void f(A a) {
@@ -636,6 +695,50 @@ class A {
   void m(int? p) {}
 }
 class B extends A {
+  void m(num? p) {}
+}
+class C extends B {
+  void m(Object? p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(3));
+    // regions[0] is "an explicit null is passed..."
+    assertRegion(region: regions[1], offset: 64, details: [
+      "The corresponding parameter in the overridden method, A.m, is nullable"
+    ]);
+    assertRegion(region: regions[2], offset: 109, details: [
+      "The corresponding parameter in the overridden method, B.m, is nullable"
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 19, length: 3);
+    assertDetail(detail: regions[2].details[0], offset: 60, length: 3);
+  }
+
+  test_parameter_fromMultipleOverridden_implicit() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(p) {}
+}
+class C extends B {
+  void m(Object p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''', migratedContent: '''
+class A {
+  void m(int? p) {}
+}
+class B extends A {
+  void m(p) {}
+}
+class C extends B {
   void m(Object? p) {}
 }
 void f(A a) {
@@ -644,17 +747,14 @@ void f(A a) {
 ''');
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
-    assertRegion(
-        region: regions[0],
-        offset: 22,
-        details: ["An explicit 'null' is passed as an argument"]);
-    assertRegion(region: regions[1], offset: 67, details: [
+    // regions[0] is "an explicit null is passed..."
+    assertRegion(region: regions[1], offset: 104, details: [
       "The corresponding parameter in the overridden method is nullable"
     ]);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39378')
-  test_parameter_fromOverriden_implicit() async {
+  test_parameter_fromOverridden_implicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(p) {}
@@ -678,6 +778,37 @@ class B extends A {
         region: regions[0],
         offset: 62,
         details: ["A nullable value is assigned"]);
+  }
+
+  @FailingTest(
+      reason: "Currently crashes with: Bad state: A decorated type for void "
+          "set m(int _m) should have been stored by the NodeBuilder via "
+          "recordDecoratedElementType")
+  test_parameter_fromOverriddenField_explicit() async {
+    await buildInfoForSingleTestFile('''
+class A {
+  int m;
+}
+class B extends A {
+  void set m(Object p) {}
+}
+void f(A a) {
+  a.m = null;
+}
+''', migratedContent: '''
+class A {
+  int? m;
+}
+class B extends A {
+  void set m(Object? p) {}
+}
+void f(A a) {
+  a.m = null;
+}
+''');
+    // TODO(srawlins): Write expectations similar to
+    //  test_parameter_fromMultipleOverridden_explicit above, once the test stops
+    //  crashing.
   }
 
   test_parameter_named_omittedInCall() async {

@@ -934,8 +934,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLibrary(Library node) {
     _currentLibrary = node;
 
-    // ignore: DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-    insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
 

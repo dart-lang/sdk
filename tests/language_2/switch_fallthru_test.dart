@@ -12,7 +12,10 @@ String test(int n) {
       result = "zero";
       break;
     case 1:
-      result = "one"; //# 01: compile-time error
+//  ^^^^
+// [analyzer] STATIC_WARNING.CASE_BLOCK_NOT_TERMINATED
+// [cfe] Switch case may fall through to the next case.
+      result = "one";
   // fall-through, error if case is non-empty
     case 9:
       result = "nine";

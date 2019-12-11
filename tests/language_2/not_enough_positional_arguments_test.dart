@@ -13,13 +13,21 @@ class A {
 
 class B {
   B()
-    : super.test(b: 1) // //# 01: compile-time error
+    : super.test(b: 1)
+    //^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
+    // [cfe] Superclass has no constructor named 'Object.test'.
   ;
 }
 
 class C extends A {
   C()
-    : super.test(b: 1) // //# 02: compile-time error
+    : super.test(b: 1)
+    //          ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    // [cfe] Too few positional arguments: 1 required, 0 given.
+    //           ^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
   ;
 }
 
@@ -30,16 +38,35 @@ class D {
 
 class E extends D {
   E()
-    : super.test(b: 1) // //# 05: compile-time error
+    : super.test(b: 1)
+    //          ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+    // [cfe] Too few positional arguments: 1 required, 0 given.
   ;
 }
 
 main() {
-  new A.test(b: 1); // //# 00: compile-time error
+  new A.test(b: 1);
+  //        ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
   new B();
   new C();
-  new D.test(b: 1); // //# 03: compile-time error
+  new D.test(b: 1);
+  //        ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
   new E();
-  foo(b: 1); // //# 06: compile-time error
-  bar(b: 1); // //# 07: compile-time error
+  foo(b: 1);
+  // ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
+  bar(b: 1);
+  // ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
 }

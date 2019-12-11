@@ -103,7 +103,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   setUp() {
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
     newFile('/home/test/.packages', content: '''
@@ -241,8 +241,8 @@ enum E {v}
   }
 
   static Future pumpEventQueue([int times = 5000]) {
-    if (times == 0) return new Future.value();
-    return new Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+    if (times == 0) return Future.value();
+    return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
   }
 }
 
@@ -3168,7 +3168,7 @@ class _ExpectedDeclaration {
   final String name;
   final List<_ExpectedDeclaration> children;
 
-  _ExpectedDeclaration(this.kind, this.name, {this.children: const []});
+  _ExpectedDeclaration(this.kind, this.name, {this.children = const []});
 
   _ExpectedDeclaration.class_(String name, List<_ExpectedDeclaration> children)
       : this(DeclarationKind.CLASS, name, children: children);

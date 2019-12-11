@@ -2790,7 +2790,8 @@ class DeferredAccessGenerator extends Generator {
       message = templateDeferredTypeAnnotation
           .withArguments(
               _helper.buildDartType(new UnresolvedType(type, charOffset, _uri)),
-              prefixGenerator._plainNameForRead)
+              prefixGenerator._plainNameForRead,
+              _helper.libraryBuilder.isNonNullableByDefault)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
@@ -3526,7 +3527,7 @@ class DelayedAssignment extends ContextAwareGenerator {
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
     }
-    return _helper.buildFieldInitializer(false, generator._plainNameForRead,
+    return _helper.buildFieldInitializer(generator._plainNameForRead,
         offsetForToken(generator.token), fileOffset, value);
   }
 

@@ -9,10 +9,20 @@ library unsupported_operators;
 class C {
   m() {
     print(
-          super === //# 01: syntax error
+          super ===
+          //    ^
+          // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
+          // [cfe] The '===' operator is not supported.
+          //    ^
+          // [cfe] The string '===' isn't a user-definable operator.
         null);
     print(
-          super !== //# 02: syntax error
+          super !==
+          //    ^
+          // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
+          // [cfe] The '!==' operator is not supported.
+          //    ^
+          // [cfe] The string '!==' isn't a user-definable operator.
         null);
   }
 }
@@ -21,9 +31,19 @@ void main() {
   new C().m();
   new C().m();
   print(
-        "foo" === //# 03: syntax error
+        "foo" ===
+        //    ^
+        // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
+        // [cfe] The '===' operator is not supported.
+        //    ^
+        // [cfe] The string '===' isn't a user-definable operator.
       null);
   print(
-        "foo" !== //# 04: syntax error
+        "foo" !==
+        //    ^
+        // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
+        // [cfe] The '!==' operator is not supported.
+        //    ^
+        // [cfe] The string '!==' isn't a user-definable operator.
       null);
 }

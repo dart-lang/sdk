@@ -24,32 +24,59 @@ main() {
   nullC()?.v;
 
   // e1?.id is equivalent to ((x) => x == null ? null : x.id)(e1).
-  Expect.equals(null, nullC()?.v); //# 01: ok
-  Expect.equals(1, new C(1)?.v); //# 02: ok
+  Expect.equals(null, nullC()?.v);
+  Expect.equals(1, new C(1)?.v);
 
   // C?.id is equivalent to C.id.
-  { C.staticInt = 1; Expect.equals(1, C?.staticInt); } //# 12: ok
-  { h.C.staticInt = 1; Expect.equals(1, h.C?.staticInt); } //# 13: ok
+  { C.staticInt = 1; Expect.equals(1, C?.staticInt); }
+  { h.C.staticInt = 1; Expect.equals(1, h.C?.staticInt); }
 
   // The static type of e1?.d is the static type of e1.id.
-  { int i = new C(1)?.v; Expect.equals(1, i); } //# 03: ok
-  { String s = new C(null)?.v; Expect.equals(null, s); } //# 04: compile-time error
-  { C.staticInt = 1; int i = C?.staticInt; Expect.equals(1, i); } //# 14: ok
-  { h.C.staticInt = 1; int i = h.C?.staticInt; Expect.equals(1, i); } //# 15: ok
-  { C.staticInt = null; String s = C?.staticInt; Expect.equals(null, s); } //# 16: compile-time error
-  { h.C.staticInt = null; String s = h.C?.staticInt; Expect.equals(null, s); } //# 17: compile-time error
+  { int i = new C(1)?.v; Expect.equals(1, i); }
+  { String s = new C(null)?.v; Expect.equals(null, s); }
+  //           ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //               ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  { C.staticInt = 1; int i = C?.staticInt; Expect.equals(1, i); }
+  { h.C.staticInt = 1; int i = h.C?.staticInt; Expect.equals(1, i); }
+  { C.staticInt = null; String s = C?.staticInt; Expect.equals(null, s); }
+  //                               ^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                  ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
+  { h.C.staticInt = null; String s = h.C?.staticInt; Expect.equals(null, s); }
+  //                                 ^^^^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                      ^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 
   // Let T be the static type of e1 and let y be a fresh variable of type T.
   // Exactly the same static warnings that would be caused by y.id are also
   // generated in the case of e1?.id.
-  Expect.equals(null, nullC()?.bad); //# 05: compile-time error
-  { B b = new C(1); Expect.equals(1, b?.v); } //# 06: compile-time error
+  Expect.equals(null, nullC()?.bad);
+  //                           ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'bad' isn't defined for the class 'C'.
+  { B b = new C(1); Expect.equals(1, b?.v); }
+  //                                    ^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] The getter 'v' isn't defined for the class 'B'.
 
   // '?.' cannot be used to access toplevel properties in libraries imported via
   // prefix.
-  var x = h?.topLevelVar; //# 09: compile-time error
+  var x = h?.topLevelVar;
+  //      ^
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used with null-aware operators.
 
   // Nor can it be used to access the hashCode getter on the class Type.
-  Expect.throwsNoSuchMethodError(() => C?.hashCode); //# 10: compile-time error
-  Expect.throwsNoSuchMethodError(() => h.C?.hashCode); //# 11: compile-time error
+  Expect.throwsNoSuchMethodError(() => C?.hashCode);
+  //                                      ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] Getter not found: 'hashCode'.
+  Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
+  //                                        ^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] Getter not found: 'hashCode'.
 }

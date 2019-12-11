@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new SwitchStatementTest().buildAll();
+  SwitchStatementTest().buildAll();
 }
 
 class SwitchStatementTest extends PartialCodeTest {
@@ -17,7 +17,7 @@ class SwitchStatementTest extends PartialCodeTest {
     buildTests(
         'switch_statement',
         [
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'switch',
               [
@@ -27,7 +27,7 @@ class SwitchStatementTest extends PartialCodeTest {
               ],
               "switch (_s_) {}",
               failing: ['block']),
-          new TestDescriptor(
+          TestDescriptor(
               'leftParen',
               'switch (',
               [
@@ -44,16 +44,16 @@ class SwitchStatementTest extends PartialCodeTest {
                 'localFunctionVoid',
                 'return'
               ]),
-          new TestDescriptor(
+          TestDescriptor(
               'expression',
               'switch (a',
               [ParserErrorCode.EXPECTED_BODY, ScannerErrorCode.EXPECTED_TOKEN],
               "switch (a) {}",
               failing: ['block']),
-          new TestDescriptor('rightParen', 'switch (a)',
+          TestDescriptor('rightParen', 'switch (a)',
               [ParserErrorCode.EXPECTED_BODY], "switch (a) {}",
               failing: ['block']),
-          new TestDescriptor('leftBrace', 'switch (a) {',
+          TestDescriptor('leftBrace', 'switch (a) {',
               [ScannerErrorCode.EXPECTED_TOKEN], "switch (a) {}",
               failing: allExceptEof),
         ],

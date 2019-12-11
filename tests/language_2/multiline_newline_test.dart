@@ -66,23 +66,23 @@ main() {
   Expect.isTrue(c2r);
   Expect.isTrue(c3r);
 
-  const c4 = c1 ? 1 : 2; //# 01: ok
-  Expect.equals(1, c4); //# 01: continued
+  const c4 = c1 ? 1 : 2;
+  Expect.equals(1, c4);
 
-  const c5 = c2 ? 2 : 3; //# 02: ok
-  Expect.equals(2, c5); //# 02: continued
+  const c5 = c2 ? 2 : 3;
+  Expect.equals(2, c5);
 
-  const c6 = c3 ? 3 : 4; //# 03: ok
-  Expect.equals(3, c6); //# 03: continued
+  const c6 = c3 ? 3 : 4;
+  Expect.equals(3, c6);
 
-  const c4r = c1r ? 1 : 2; //# 01r: ok
-  Expect.equals(1, c4r); //# 01r: continued
+  const c4r = c1r ? 1 : 2;
+  Expect.equals(1, c4r);
 
-  const c5r = c2r ? 2 : 3; //# 02r: ok
-  Expect.equals(2, c5r); //# 02r: continued
+  const c5r = c2r ? 2 : 3;
+  Expect.equals(2, c5r);
 
-  const c6r = c3r ? 3 : 4; //# 03r: ok
-  Expect.equals(3, c6r); //# 03r: continued
+  const c6r = c3r ? 3 : 4;
+  Expect.equals(3, c6r);
 
   const c7 =
   cr.constantMultilineString != crlf.constantMultilineString ? true : null;
@@ -115,11 +115,35 @@ main() {
   // constants is similar to the runtime evaluation tested above. For tools
   // like the analyzer, this ensures that evaluation is tested (there's no
   // runtime evaluation).
-  const c10 = c7 ? 1 : 2; //# 04: compile-time error
-  const c11 = c8 ? 2 : 3; //# 05: compile-time error
-  const c12 = c9 ? 3 : 4; //# 06: compile-time error
+  const c10 = c7 ? 1 : 2;
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //             ^
+  // [cfe] Constant evaluation error:
+  const c11 = c8 ? 2 : 3;
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //             ^
+  // [cfe] Constant evaluation error:
+  const c12 = c9 ? 3 : 4;
+  //          ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //             ^
+  // [cfe] Constant evaluation error:
 
-  const c10r = c7r ? 1 : 2; //# 04r: compile-time error
-  const c11r = c8r ? 2 : 3; //# 05r: compile-time error
-  const c12r = c9r ? 3 : 4; //# 06r: compile-time error
+  const c10r = c7r ? 1 : 2;
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //               ^
+  // [cfe] Constant evaluation error:
+  const c11r = c8r ? 2 : 3;
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //               ^
+  // [cfe] Constant evaluation error:
+  const c12r = c9r ? 3 : 4;
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_BOOL
+  //               ^
+  // [cfe] Constant evaluation error:
 }

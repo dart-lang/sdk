@@ -87,6 +87,7 @@ class _BufferingStreamSubscription<T>
   static const int _STATE_PAUSE_COUNT = 128;
 
   /* Event handlers provided in constructor. */
+  @pragma("vm:entry-point")
   _DataHandler<T> _onData;
   Function _onError;
   _DoneHandler _onDone;

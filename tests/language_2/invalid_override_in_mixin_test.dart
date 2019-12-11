@@ -5,10 +5,20 @@
 import 'package:expect/expect.dart';
 
 class A {
-  noSuchMethod() {} //                                   //# 01: compile-time error
+  noSuchMethod() {}
+//^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+// [cfe] The method 'A.noSuchMethod' has fewer positional arguments than those of overridden method 'Object.noSuchMethod'.
 }
 
 class C extends Object with A {
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.INCONSISTENT_INHERITANCE
+// [cfe] Applying the mixin 'A' to 'Object' introduces an erroneous override of 'noSuchMethod'.
+//    ^
+// [cfe] Class 'Object with A' inherits multiple members named 'noSuchMethod' with incompatible signatures.
+//                          ^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   test() {
     print("Hello from test");
   }

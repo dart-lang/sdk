@@ -5,10 +5,11 @@
 
 import "package:expect/expect.dart";
 
-typedef F(
-    List
-        <F> //# 00: compile-time error
-        x);
+typedef F(List<F> x);
+// [error line 8, column 1, length 21]
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+//      ^
+// [cfe] The typedef 'F' has a reference to itself.
 
 typedef D C();
 

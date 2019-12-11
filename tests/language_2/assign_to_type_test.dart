@@ -7,7 +7,10 @@
 
 class C<T> {
   f() {
-    T = null; //# 01: compile-time error
+    T = null;
+//  ^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [cfe] Setter not found: 'T'.
   }
 }
 
@@ -19,7 +22,16 @@ typedef void F();
 
 main() {
   new C<D>().f();
-  D = null; //# 02: compile-time error
-  E = null; //# 03: compile-time error
-  F = null; //# 04: compile-time error
+  D = null;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [cfe] Setter not found: 'D'.
+  E = null;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [cfe] Setter not found: 'E'.
+  F = null;
+//^
+// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [cfe] Setter not found: 'F'.
 }

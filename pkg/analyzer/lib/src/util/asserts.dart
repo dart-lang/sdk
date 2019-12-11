@@ -10,9 +10,9 @@
 void notNull(Object value, [String description]) {
   if (value == null) {
     if (description == null) {
-      throw new ArgumentError('Must not be null');
+      throw ArgumentError('Must not be null');
     } else {
-      throw new ArgumentError('Must not be null: $description');
+      throw ArgumentError('Must not be null: $description');
     }
   }
 }

@@ -29,8 +29,16 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
 
-    TOP_LEVEL_CONST(); //# 01: compile-time error
-    (TOP_LEVEL_CONST)(); //# 02: compile-time error
+    TOP_LEVEL_CONST();
+//  ^^^^^^^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+//                 ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
+    (TOP_LEVEL_CONST)();
+//  ^^^^^^^^^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+//                   ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 
   static void testField() {

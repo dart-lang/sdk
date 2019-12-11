@@ -38,7 +38,7 @@ class InheritanceManager3 {
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<ClassElement> _processingClasses = new Set<ClassElement>();
+  final Set<ClassElement> _processingClasses = Set<ClassElement>();
 
   InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
@@ -176,7 +176,7 @@ class InheritanceManager3 {
     // super-interfaces that is a valid override of all the other
     // super-interface signatures with the same name. That "most specific"
     // signature becomes the signature of the class's interface.
-    Map<Name, ExecutableElement> map = new Map.of(declared);
+    Map<Name, ExecutableElement> map = Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
       typeSystem,
       map,
@@ -202,7 +202,7 @@ class InheritanceManager3 {
       }
     }
 
-    var interface = new Interface._(
+    var interface = Interface._(
       map,
       declared,
       implemented,
@@ -230,9 +230,9 @@ class InheritanceManager3 {
   ExecutableElement getMember(
     InterfaceType type,
     Name name, {
-    bool concrete: false,
-    int forMixinIndex: -1,
-    bool forSuper: false,
+    bool concrete = false,
+    int forMixinIndex = -1,
+    bool forSuper = false,
   }) {
     var interface = getInterface(type);
     if (forSuper) {
@@ -287,7 +287,7 @@ class InheritanceManager3 {
 
     void addMember(ExecutableElement member) {
       if (!member.isAbstract && !member.isStatic) {
-        var name = new Name(libraryUri, member.name);
+        var name = Name(libraryUri, member.name);
         implemented[name] = member;
       }
     }
@@ -338,7 +338,7 @@ class InheritanceManager3 {
         method ??= candidate;
       }
     }
-    return new Conflict(name, candidates, getter, method);
+    return Conflict(name, candidates, getter, method);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -397,7 +397,7 @@ class InheritanceManager3 {
         map[name] = validOverride;
       } else {
         conflicts ??= <Conflict>[];
-        conflicts.add(new Conflict(name, candidates));
+        conflicts.add(Conflict(name, candidates));
       }
     }
 
@@ -412,7 +412,7 @@ class InheritanceManager3 {
     for (var i = 0; i < methods.length; i++) {
       var method = methods[i];
       if (!method.isStatic) {
-        var name = new Name(libraryUri, method.name);
+        var name = Name(libraryUri, method.name);
         declared[name] = method;
       }
     }
@@ -421,7 +421,7 @@ class InheritanceManager3 {
     for (var i = 0; i < accessors.length; i++) {
       var accessor = accessors[i];
       if (!accessor.isStatic) {
-        var name = new Name(libraryUri, accessor.name);
+        var name = Name(libraryUri, accessor.name);
         declared[name] = accessor;
       }
     }
@@ -522,9 +522,9 @@ class Name {
   factory Name(Uri libraryUri, String name) {
     if (name.startsWith('_')) {
       var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
-      return new Name._internal(libraryUri, name, false, hashCode);
+      return Name._internal(libraryUri, name, false, hashCode);
     } else {
-      return new Name._internal(null, name, true, name.hashCode);
+      return Name._internal(null, name, true, name.hashCode);
     }
   }
 

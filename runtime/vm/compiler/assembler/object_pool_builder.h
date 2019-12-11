@@ -114,7 +114,17 @@ class ObjIndexPair {
 
 class ObjectPoolBuilder : public ValueObject {
  public:
-  ObjectPoolBuilder() : zone_(nullptr) {}
+  // When generating AOT code in the bare instructions mode we might use a two
+  // stage process of forming the pool - first accumulate objects in the
+  // intermediary pool and then commit them into the global pool at the
+  // end of a successful compilation. Here [parent] is the pool into which
+  // we are going to commit objects.
+  // See PrecompileParsedFunctionHelper::Compile for more information.
+  explicit ObjectPoolBuilder(ObjectPoolBuilder* parent = nullptr)
+      : parent_(parent),
+        base_index_(parent != nullptr ? parent->CurrentLength() : 0),
+        zone_(nullptr) {}
+
   ~ObjectPoolBuilder() {
     if (zone_ != nullptr) {
       Reset();
@@ -161,8 +171,22 @@ class ObjectPoolBuilder : public ValueObject {
 
   intptr_t AddObject(ObjectPoolBuilderEntry entry);
 
+  // Try appending all entries from this pool into the parent pool.
+  // This might fail if parent pool was modified invalidating indices which
+  // we produced. In this case this function will return false.
+  bool TryCommitToParent();
+
  private:
   intptr_t FindObject(ObjectPoolBuilderEntry entry);
+
+  // Parent pool into which all entries from this pool will be added at
+  // the end of the successful compilation.
+  ObjectPoolBuilder* const parent_;
+
+  // Base index at which entries will be inserted into the parent pool.
+  // Should be equal to parent_->CurrentLength() - but is cached here
+  // to detect cases when parent pool grows due to nested code generations.
+  const intptr_t base_index_;
 
   // Objects and jump targets.
   GrowableArray<ObjectPoolBuilderEntry> object_pool_;

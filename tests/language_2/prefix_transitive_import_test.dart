@@ -8,8 +8,14 @@ import "library12.dart" as lib12;
 
 main() {
   // Class should not be visible.
-  new lib12.Library11(1); //# 01: compile-time error
+  new lib12.Library11(1);
+  //        ^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [cfe] Method not found: 'Library11'.
 
   // Variable should not be visible.
-  lib12.top_level11; //# 02: compile-time error
+  lib12.top_level11;
+  //    ^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_PREFIXED_NAME
+  // [cfe] Getter not found: 'top_level11'.
 }

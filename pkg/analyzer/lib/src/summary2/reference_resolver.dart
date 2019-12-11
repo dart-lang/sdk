@@ -71,14 +71,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
-    scope = new ClassScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     _hasConstConstructor = false;
@@ -107,8 +107,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     ClassElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
-    scope = new ClassScope(scope, element);
+    scope = TypeParameterScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
@@ -185,12 +185,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name?.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.extendedType.accept(this);
 
-    scope = new ExtensionScope(scope, element);
+    scope = ExtensionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);
@@ -228,7 +228,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.identifier.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
 
-    scope = new EnclosedScope(scope);
+    scope = EnclosedScope(scope);
     for (var typeParameter in element.typeParameters) {
       scope.define(typeParameter);
     }
@@ -266,7 +266,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     ExecutableElementImpl element = reference.element;
     node.name.staticElement = element;
     _createTypeParameterElements(node.functionExpression.typeParameters);
-    scope = new FunctionScope(scope, element);
+    scope = FunctionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
@@ -326,7 +326,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.identifier.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
 
-    scope = new EnclosedScope(scope);
+    scope = EnclosedScope(scope);
     for (var typeParameter in element.typeParameters) {
       scope.define(typeParameter);
     }
@@ -422,7 +422,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
     node.name.staticElement = element;
     _createTypeParameterElements(node.typeParameters);
-    scope = new FunctionScope(scope, element);
+    scope = FunctionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
@@ -446,13 +446,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.name.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
-    scope = new TypeParameterScope(scope, element);
+    scope = TypeParameterScope(scope, element);
 
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = new ClassScope(scope, element);
+    scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);

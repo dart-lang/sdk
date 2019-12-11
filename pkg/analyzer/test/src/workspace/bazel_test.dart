@@ -31,7 +31,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     newFolder('/workspace/bazel-genfiles');
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
-    resolver = new BazelFileUriResolver(workspace);
+    resolver = BazelFileUriResolver(workspace);
     newFile('/workspace/test.dart');
     newFile('/workspace/bazel-bin/gen1.dart');
     newFile('/workspace/bazel-genfiles/gen2.dart');
@@ -72,13 +72,13 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
-    Uri uri = new Uri(scheme: 'dart', path: 'core');
+    Uri uri = Uri(scheme: 'dart', path: 'core');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
-    Uri uri = new Uri(scheme: 'https', path: '127.0.0.1/test.dart');
+    Uri uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
@@ -90,8 +90,8 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(
-            new NonExistingSource(source.fullName, null, null)),
+        resolver
+            .restoreAbsolute(NonExistingSource(source.fullName, null, null)),
         uri);
   }
 
@@ -451,7 +451,8 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         'package:third_party.something/foo.dart');
   }
 
-  void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
+  void _addResources(List<String> paths,
+      {String workspacePath = '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
@@ -461,11 +462,11 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     }
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath(workspacePath));
-    resolver = new BazelPackageUriResolver(workspace);
+    resolver = BazelPackageUriResolver(workspace);
   }
 
   void _assertResolve(String uriStr, String posixPath,
-      {bool exists: true, bool restore: true}) {
+      {bool exists = true, bool restore = true}) {
     Uri uri = Uri.parse(uriStr);
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
@@ -481,7 +482,7 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
 
   void _assertRestore(String posixPath, String expectedUri) {
     String path = convertPath(posixPath);
-    _MockSource source = new _MockSource(path);
+    _MockSource source = _MockSource(path);
     Uri uri = resolver.restoreAbsolute(source);
     expect(uri?.toString(), expectedUri);
   }
@@ -906,6 +907,6 @@ class _MockSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) {
-    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

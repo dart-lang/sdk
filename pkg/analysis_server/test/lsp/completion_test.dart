@@ -202,6 +202,50 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  test_namedArg_plainText() async {
+    final content = '''
+    class A { const A({int one}); }
+    @A(^)
+    main() { }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'one: '), isTrue);
+    final item = res.singleWhere((c) => c.label == 'one: ');
+    expect(item.insertTextFormat,
+        anyOf(equals(InsertTextFormat.PlainText), isNull));
+    expect(item.insertText, anyOf(equals('test'), isNull));
+    final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
+    expect(updated, contains('one: '));
+  }
+
+  test_namedArg_snippetStringSelection() async {
+    final content = '''
+    class A { const A({int one}); }
+    @A(^)
+    main() { }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'one: '), isTrue);
+    final item = res.singleWhere((c) => c.label == 'one: ');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholder.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'one: ${1:}'));
+    expect(item.textEdit.newText, equals(r'one: ${1:}'));
+    expect(
+      item.textEdit.range,
+      equals(Range(positionFromMarker(content), positionFromMarker(content))),
+    );
+  }
+
   test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();

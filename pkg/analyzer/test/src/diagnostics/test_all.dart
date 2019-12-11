@@ -23,6 +23,8 @@ import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'await_in_late_local_variable_initializer_test.dart'
+    as await_in_late_local_variable_initializer;
 import 'builtin_identifier_as_extension_name_test.dart'
     as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
@@ -47,7 +49,6 @@ import 'const_set_element_type_implements_equals_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
-import 'const_with_abstract_class_test.dart' as const_with_abstract_class;
 import 'dead_code_test.dart' as dead_code;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
@@ -129,6 +130,7 @@ import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
@@ -138,6 +140,7 @@ import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
@@ -175,6 +178,8 @@ import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
 import 'is_not_int_test.dart' as is_not_int;
+import 'late_final_field_with_const_constructor_test.dart'
+    as late_final_field_with_const_constructor;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
@@ -205,7 +210,6 @@ import 'must_be_a_native_function_type_test.dart'
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
-import 'new_with_abstract_class_test.dart' as new_with_abstract_class;
 import 'new_with_invalid_type_parameters_test.dart'
     as new_with_invalid_type_parameters;
 import 'new_with_non_type_test.dart' as new_with_non_type;
@@ -384,6 +388,7 @@ main() {
     assignment_to_method.main();
     assignment_to_type.main();
     async_keyword_used_as_identifier.main();
+    await_in_late_local_variable_initializer.main();
     builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
@@ -399,7 +404,6 @@ main() {
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
-    const_with_abstract_class.main();
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
@@ -453,6 +457,7 @@ main() {
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
+    instantiate_abstract_class.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_exception_value.main();
@@ -461,6 +466,7 @@ main() {
     invalid_factory_method_impl.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_non_virtual_annotation.main();
     invalid_optional_parameter_type.main();
@@ -485,6 +491,7 @@ main() {
     is_int.main();
     is_not_double.main();
     is_not_int.main();
+    late_final_field_with_const_constructor.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
@@ -507,7 +514,6 @@ main() {
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
-    new_with_abstract_class.main();
     new_with_invalid_type_parameters.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();

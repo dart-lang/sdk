@@ -13,8 +13,14 @@ errorToString(error) {
   switch (error) {
     case ERROR_A:
       return "ERROR_A";
-    case ERROR_B = 1: //# 01: compile-time error
-    case ERROR_B: //# none: ok
+    case ERROR_B = 1:
+    //   ^^^^^^^
+    // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_CONST
+    //   ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_CASE_EXPRESSION
+    //           ^
+    // [cfe] Not a constant expression.
+    case ERROR_B:
       return "ERROR_B";
     default:
       return "Unknown error";

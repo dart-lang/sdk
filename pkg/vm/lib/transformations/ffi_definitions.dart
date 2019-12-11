@@ -175,8 +175,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             !env.isSubtypeOf(dartType, shouldBeDartType,
                 SubtypeCheckMode.ignoringNullabilities)) {
           diagnosticReporter.report(
-              templateFfiTypeMismatch.withArguments(
-                  dartType, shouldBeDartType, nativeType),
+              templateFfiTypeMismatch.withArguments(dartType, shouldBeDartType,
+                  nativeType, node.enclosingLibrary.isNonNullableByDefault),
               f.fileOffset,
               1,
               f.location.file);

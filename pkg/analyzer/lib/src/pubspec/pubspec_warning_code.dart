@@ -92,7 +92,7 @@ class PubspecWarningCode extends ErrorCode {
       const PubspecWarningCode(
           'UNNECESSARY_DEV_DEPENDENCY',
           "The dev dependency on {0} is unnecessary because there is also a "
-          "normal dependency on that package.",
+              "normal dependency on that package.",
           correction: "Try removing the dev dependency.");
 
   /**

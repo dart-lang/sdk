@@ -73,14 +73,6 @@ Future<CompilerResult> generateKernelInternal(
     DillTarget dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
-    Set<Uri> externalLibs(Component component) {
-      return component.libraries
-          // ignore: DEPRECATED_MEMBER_USE
-          .where((lib) => lib.isExternal)
-          .map((lib) => lib.importUri)
-          .toSet();
-    }
-
     List<Component> loadedComponents = new List<Component>();
 
     Component sdkSummary = await options.loadSdkSummary(null);
@@ -88,9 +80,7 @@ Future<CompilerResult> generateKernelInternal(
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
-      Set<Uri> excluded = externalLibs(sdkSummary);
-      dillTarget.loader.appendLibraries(sdkSummary,
-          filter: (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(sdkSummary);
     }
 
     // TODO(sigmund): provide better error reporting if input summaries or
@@ -98,25 +88,14 @@ Future<CompilerResult> generateKernelInternal(
     // sort them).
     for (Component inputSummary in await options.loadInputSummaries(nameRoot)) {
       loadedComponents.add(inputSummary);
-      Set<Uri> excluded = externalLibs(inputSummary);
-      dillTarget.loader.appendLibraries(inputSummary,
-          filter: (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(inputSummary);
     }
-
-    // All summaries are considered external and shouldn't include source-info.
-    dillTarget.loader.libraries.forEach((lib) {
-      // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
-      // ignore: DEPRECATED_MEMBER_USE
-      lib.isExternal = true;
-    });
 
     // Linked dependencies are meant to be part of the component so they are not
     // marked external.
     for (Component dependency in await options.loadLinkDependencies(nameRoot)) {
       loadedComponents.add(dependency);
-      Set<Uri> excluded = externalLibs(dependency);
-      dillTarget.loader.appendLibraries(dependency,
-          filter: (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(dependency);
     }
 
     await dillTarget.buildOutlines();

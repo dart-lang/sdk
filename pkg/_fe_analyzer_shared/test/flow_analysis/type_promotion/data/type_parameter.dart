@@ -9,6 +9,13 @@ class C<T extends num?> {
     }
   }
 
+  void promoteNullable(T? t) {
+    T? s;
+    if (t is int) {
+      s = /*T & int*/ t;
+    }
+  }
+
   void doesNotPromote(T t) {
     if (t is String) {
       t;
@@ -36,6 +43,14 @@ class E<T> {
   void nonNull(T t) {
     if (t != null) {
       /*T & Object*/ t;
+    }
+  }
+}
+
+class F<S, T extends S> {
+  void nonNull(T t) {
+    if (t != null) {
+      /*T & S*/ t;
     }
   }
 }

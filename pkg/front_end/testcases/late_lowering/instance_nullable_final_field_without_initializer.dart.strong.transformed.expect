@@ -1,27 +1,28 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class extends core::Object {
   field core::int? _#field = null;
-  field dynamic _#field#isSet = false;
+  field core::bool _#field#isSet = false;
   constructor constructor1() → self::Class
     : super core::Object::•()
     ;
-  constructor constructor2(core::int field) → self::Class
+  constructor constructor2(core::int? field) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
     ;
   constructor constructor3(core::int value) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = value.{core::num::+}(1), super core::Object::•()
     ;
-  constructor constructor4([core::int field = #C1]) → self::Class
+  constructor constructor4([core::int? field = #C1]) → self::Class
     : self::Class::_#field#isSet = true, self::Class::_#field = field, super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::Class::_#field#isSet} ?{core::int?} this.{self::Class::_#field} : throw "Field 'field' has not been initialized.";
+    return this.{self::Class::_#field#isSet} ?{core::int?} this.{self::Class::_#field} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
   set field(core::int? #t1) → void
     if(this.{self::Class::_#field#isSet})
-      throw "Field 'field' has already been initialized.";
+      throw new _in::LateInitializationErrorImpl::•("Field 'field' has already been initialized.");
     else {
       this.{self::Class::_#field#isSet} = true;
       this.{self::Class::_#field} = #t1;

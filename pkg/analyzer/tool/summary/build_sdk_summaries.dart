@@ -51,9 +51,9 @@ const BINARY_NAME = "build_sdk_summaries";
 
 void _buildSummary(String sdkPath, String outPath) {
   print('Generating strong mode summary.');
-  Stopwatch sw = new Stopwatch()..start();
-  List<int> bytes = new SummaryBuilder.forSdk(sdkPath).build();
-  new File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
+  Stopwatch sw = Stopwatch()..start();
+  List<int> bytes = SummaryBuilder.forSdk(sdkPath).build();
+  File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
 }
 

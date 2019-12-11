@@ -24,28 +24,46 @@ main() {
   C c = new C();
 
   final
-      Function //# 00: compile-time error
+      Function
       a2 = a;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'A' can't be assigned to a variable of type 'Function'.
 
   final
-      F //# 01: compile-time error
+      F
       a3 = a;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'A' can't be assigned to a variable of type 'int Function(String)'.
 
   final
-      Function //# 02: compile-time error
+      Function
       b2 = b;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'B' can't be assigned to a variable of type 'Function'.
 
   final
-      F //# 03: compile-time error
+      F
       b3 = b;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'B' can't be assigned to a variable of type 'int Function(String)'.
 
   final
-      Function //# 04: compile-time error
+      Function
       c2 = c;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'C' can't be assigned to a variable of type 'Function'.
 
   final
-      F //# 05: compile-time error
+      F
       c3 = c;
+      //   ^
+      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'C' can't be assigned to a variable of type 'int Function(String)'.
 
   Expect.throwsTypeError(() {
     Function a4 = a as dynamic;

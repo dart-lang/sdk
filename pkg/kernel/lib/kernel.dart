@@ -72,15 +72,9 @@ void writeLibraryToText(Library library, {String path}) {
 }
 
 void writeComponentToText(Component component,
-    {String path,
-    bool showExternal: false,
-    bool showOffsets: false,
-    bool showMetadata: false}) {
+    {String path, bool showOffsets: false, bool showMetadata: false}) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer,
-          showExternal: showExternal,
-          showOffsets: showOffsets,
-          showMetadata: showMetadata)
+  new Printer(buffer, showOffsets: showOffsets, showMetadata: showMetadata)
       .writeComponentFile(component);
   if (path == null) {
     print(buffer);

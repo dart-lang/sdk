@@ -6,8 +6,6 @@
 //
 // VMOptions=--deterministic --optimization-counter-threshold=50 --enable-inlining-annotations
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

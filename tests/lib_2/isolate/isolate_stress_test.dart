@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--enable-isolate-groups
+// VMOptions=--no-enable-isolate-groups
+
 // This test creates a lot of isolates.  This is meant to exhaust
 // resources if the isolates aren't closed correctly (which happened
 // in dart2js).

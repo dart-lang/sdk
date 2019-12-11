@@ -24,17 +24,8 @@ main(List<String> args) async {
           const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]),
       skipList: [
         // TODO(johnniwinther): Run all type promotion tests.
-        'assignment_promoted.dart',
         'bug39178.dart',
-        'constructor_initializer.dart',
         'for.dart',
-        'not_promoted.dart',
-        'null_aware_assignment.dart',
-        'switch.dart',
-        'try_finally.dart',
-        'type_parameter.dart',
-        'while.dart',
-        'write_capture.dart',
       ]);
 }
 

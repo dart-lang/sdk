@@ -8,19 +8,21 @@
 import "package:expect/expect.dart";
 
 int foo
-       <T>  //# 01: continued
+       <T>
           (int i, int j) => i + j;
 
-List<int Function
-                 <T>  //# 01: compile-time error
-                    (S, int)> bar<S extends int>() {
-  return <int Function
-                      <T>  //# 01: continued
-                         (S, int)>[foo, foo];
+List<int Function<T>(S, int)> bar<S extends int>() {
+//   ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT
+//                                              ^
+// [cfe] A generic function type can't be used as a type argument.
+  return <int Function<T>(S, int)>[foo, foo];
 }
 
 void main() {
   var list = bar<int>();
+  //  ^
+  // [cfe] Generic function type 'int Function<T>(int, int)' inferred as a type argument.
   print(list[0].runtimeType);
   Expect.equals(123, list[1](100, 23));
 }

@@ -6,7 +6,10 @@
 class A {
   var x;
   A(x)
-      : this(0) //# 01: compile-time error
+      : this(0)
+      //^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
+      // [cfe] Redirecting constructors can't be cyclic.
       ;
 }
 

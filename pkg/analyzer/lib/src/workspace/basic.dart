@@ -30,7 +30,7 @@ class BasicWorkspace extends SimpleWorkspace {
   WorkspacePackage findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= new BasicWorkspacePackage(root, this);
+      _theOnlyPackage ??= BasicWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -50,7 +50,7 @@ class BasicWorkspace extends SimpleWorkspace {
     if (resource is File) {
       path = resource.parent.path;
     }
-    return new BasicWorkspace._(provider, path, builder);
+    return BasicWorkspace._(provider, path, builder);
   }
 }
 

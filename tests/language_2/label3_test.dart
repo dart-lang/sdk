@@ -4,8 +4,14 @@
 
 main() {
   L: while (false) {
-    if (true) break L; //# 01: ok
+    if (true) break L;
   }
   // Illegal: L is out of scope.
-  continue L; //# 02: compile-time error
+  continue L;
+//^^^^^^^^
+// [analyzer] SYNTACTIC_ERROR.CONTINUE_OUTSIDE_OF_LOOP
+// [cfe] A continue statement can't be used outside of a loop or switch statement.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.LABEL_UNDEFINED
+// [cfe] Can't find label 'L'.
 }

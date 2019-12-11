@@ -17,17 +17,50 @@ void topLevelFunction(int i) {}
 
 test() {
   void localFunction(int i) {}
-  List<int> a = <Object>[]; //# 01: compile-time error
-  Map<int, String> b = <Object, String>{}; //# 02: compile-time error
-  Map<int, String> c = <int, Object>{}; //# 03: compile-time error
-  int Function(Object) d = (int i) => i; //# 04: compile-time error
-  D e = new C.fact(); //# 05: ok
-  D f = new C.fact2(); //# 06: ok
-  D g = new C.nonFact(); //# 07: compile-time error
-  D h = new C.nonFact2(); //# 08: compile-time error
-  void Function(Object) i = C.staticFunction; //# 09: compile-time error
-  void Function(Object) j = topLevelFunction; //# 10: compile-time error
-  void Function(Object) k = localFunction; //# 11: compile-time error
+  List<int> a = <Object>[];
+  //            ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_LITERAL_LIST
+  //                    ^
+  // [cfe] The list literal type 'List<Object>' isn't of expected type 'List<int>'.
+  Map<int, String> b = <Object, String>{};
+  //                   ^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_LITERAL_MAP
+  //                                   ^
+  // [cfe] The map literal type 'Map<Object, String>' isn't of expected type 'Map<int, String>'.
+  Map<int, String> c = <int, Object>{};
+  //                   ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_LITERAL_MAP
+  //                                ^
+  // [cfe] The map literal type 'Map<int, Object>' isn't of expected type 'Map<int, String>'.
+  int Function(Object) d = (int i) => i;
+  //                       ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION_EXPR
+  // [cfe] The function expression type 'int Function(int)' isn't of expected type 'int Function(Object)'.
+  D e = new C.fact();
+  D f = new C.fact2();
+  D g = new C.nonFact();
+  //    ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
+  //        ^
+  // [cfe] The constructor returns type 'C' that isn't of expected type 'D'.
+  D h = new C.nonFact2();
+  //    ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
+  //        ^
+  // [cfe] The constructor returns type 'C' that isn't of expected type 'D'.
+  void Function(Object) i = C.staticFunction;
+  //                        ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_METHOD
+  //                          ^
+  // [cfe] The static method has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
+  void Function(Object) j = topLevelFunction;
+  //                        ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [cfe] The top level function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
+  void Function(Object) k = localFunction;
+  //                        ^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [cfe] The local function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
 }
 
 main() {}

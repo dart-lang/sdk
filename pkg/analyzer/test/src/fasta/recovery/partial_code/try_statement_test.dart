@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'partial_code_support.dart';
 
 main() {
-  new TryStatementTest().buildAll();
+  TryStatementTest().buildAll();
 }
 
 class TryStatementTest extends PartialCodeTest {
@@ -18,7 +18,7 @@ class TryStatementTest extends PartialCodeTest {
           //
           // No clauses.
           //
-          new TestDescriptor(
+          TestDescriptor(
               'keyword',
               'try',
               [
@@ -27,13 +27,13 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} finally {}",
               allFailing: true),
-          new TestDescriptor('noCatchOrFinally', 'try {}',
+          TestDescriptor('noCatchOrFinally', 'try {}',
               [ParserErrorCode.MISSING_CATCH_OR_FINALLY], "try {} finally {}",
               allFailing: true),
           //
           // Single on clause.
           //
-          new TestDescriptor(
+          TestDescriptor(
               'on',
               'try {} on',
               [
@@ -47,19 +47,19 @@ class TryStatementTest extends PartialCodeTest {
                 'localFunctionNonVoid',
                 'localFunctionVoid'
               ]),
-          new TestDescriptor('on_identifier', 'try {} on A',
+          TestDescriptor('on_identifier', 'try {} on A',
               [ParserErrorCode.EXPECTED_BODY], "try {} on A {}",
               failing: ['block']),
           //
           // Single catch clause.
           //
-          new TestDescriptor(
+          TestDescriptor(
               'catch',
               'try {} catch',
               [ParserErrorCode.CATCH_SYNTAX, ParserErrorCode.EXPECTED_BODY],
               "try {} catch (e) {}",
               failing: ['block']),
-          new TestDescriptor(
+          TestDescriptor(
               'catch_leftParen',
               'try {} catch (',
               [
@@ -69,7 +69,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} catch (e) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'catch_identifier',
               'try {} catch (e',
               [
@@ -79,7 +79,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} catch (e) {}",
               failing: ['eof', 'block']),
-          new TestDescriptor(
+          TestDescriptor(
               'catch_identifierComma',
               'try {} catch (e, ',
               [
@@ -89,7 +89,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} catch (e, _s_) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'catch_identifierCommaIdentifier',
               'try {} catch (e, s',
               [
@@ -101,19 +101,19 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} catch (e, s) {}",
               failing: ['eof', 'block']),
-          new TestDescriptor('catch_rightParen', 'try {} catch (e, s)',
+          TestDescriptor('catch_rightParen', 'try {} catch (e, s)',
               [ParserErrorCode.EXPECTED_BODY], "try {} catch (e, s) {}",
               failing: ['block']),
           //
           // Single catch clause after an on clause.
           //
-          new TestDescriptor(
+          TestDescriptor(
               'on_catch',
               'try {} on A catch',
               [ParserErrorCode.CATCH_SYNTAX, ParserErrorCode.EXPECTED_BODY],
               "try {} on A catch (e) {}",
               failing: ['block']),
-          new TestDescriptor(
+          TestDescriptor(
               'on_catch_leftParen',
               'try {} on A catch (',
               [
@@ -123,7 +123,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} on A catch (e) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'on_catch_identifier',
               'try {} on A catch (e',
               [
@@ -133,7 +133,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} on A catch (e) {}",
               failing: ['eof', 'block']),
-          new TestDescriptor(
+          TestDescriptor(
               'on_catch_identifierComma',
               'try {} on A catch (e, ',
               [
@@ -143,7 +143,7 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} on A catch (e, _s_) {}",
               failing: ['block', 'labeled', 'localFunctionNonVoid']),
-          new TestDescriptor(
+          TestDescriptor(
               'on_catch_identifierCommaIdentifier',
               'try {} on A catch (e, s',
               [
@@ -155,23 +155,20 @@ class TryStatementTest extends PartialCodeTest {
               ],
               "try {} on A catch (e, s) {}",
               failing: ['eof', 'block']),
-          new TestDescriptor('on_catch_rightParen', 'try {} on A catch (e, s)',
+          TestDescriptor('on_catch_rightParen', 'try {} on A catch (e, s)',
               [ParserErrorCode.EXPECTED_BODY], "try {} on A catch (e, s) {}",
               failing: ['block']),
           //
           // Only a finally clause.
           //
-          new TestDescriptor('finally_noCatch_noBlock', 'try {} finally',
+          TestDescriptor('finally_noCatch_noBlock', 'try {} finally',
               [ParserErrorCode.EXPECTED_BODY], "try {} finally {}",
               failing: ['block']),
           //
           // A catch and finally clause.
           //
-          new TestDescriptor(
-              'finally_catch_noBlock',
-              'try {} catch (e) {} finally',
-              [ParserErrorCode.EXPECTED_BODY],
-              "try {} catch (e) {} finally {}",
+          TestDescriptor('finally_catch_noBlock', 'try {} catch (e) {} finally',
+              [ParserErrorCode.EXPECTED_BODY], "try {} catch (e) {} finally {}",
               failing: ['block']),
         ],
         PartialCodeTest.statementSuffixes,

@@ -555,10 +555,6 @@ void main(List<String> args) async {
         }
       }
     }
-    // Deflake results of the tests if required.
-    if (options["deflake"]) {
-      await deflake(outDirectory, configurationsToRun, options.rest);
-    }
     // Write out the merged results for the builders.
     if (needsMerge || needsConfigurationOverride) {
       await new File("${outDirectory.path}/previous.json").writeAsString(
@@ -568,6 +564,10 @@ void main(List<String> args) async {
     if (needsMerge || needsConfigurationOverride || options["report-flakes"]) {
       await new File("${outDirectory.path}/flaky.json").writeAsString(
           mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
+    // Deflake results of the tests if required.
+    if (options["deflake"]) {
+      await deflake(outDirectory, configurationsToRun, options.rest);
     }
     // Write out the final comparison.
     print("".padLeft(80, "="));

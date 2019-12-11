@@ -1094,8 +1094,28 @@ abstract class BaseProcessor {
     VariableDeclarationList declarationList =
         node.thisOrAncestorOfType<VariableDeclarationList>();
     if (declarationList == null) {
-      _coverageMarker();
-      return null;
+      DeclaredIdentifier declaration = node.thisOrAncestorOfType();
+      if (declaration == null) {
+        _coverageMarker();
+        return null;
+      }
+      TypeAnnotation typeNode = declaration.type;
+      if (typeNode == null) {
+        _coverageMarker();
+        return null;
+      }
+      Token keyword = declaration.keyword;
+      var variableName = declaration.identifier;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        SourceRange typeRange = range.startStart(typeNode, variableName);
+        if (keyword != null && keyword.lexeme != 'var') {
+          builder.addSimpleReplacement(typeRange, '');
+        } else {
+          builder.addSimpleReplacement(typeRange, 'var ');
+        }
+      });
+      return changeBuilder;
     }
     // we need a type
     TypeAnnotation typeNode = declarationList.type;

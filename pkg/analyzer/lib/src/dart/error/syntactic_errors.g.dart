@@ -403,7 +403,7 @@ const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
 const ParserErrorCode _INVALID_USE_OF_COVARIANT_IN_EXTENSION =
     const ParserErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
         r"Can't have modifier '#lexeme' in an extension.",
-        correction: "Try removing '#lexeme'.");
+        correction: "Try removing '#lexeme'.", hasPublishedDocs: true);
 
 const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode(
     'LIBRARY_DIRECTIVE_NOT_FIRST',

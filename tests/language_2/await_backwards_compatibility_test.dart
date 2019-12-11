@@ -14,13 +14,19 @@ get await => 4;
 test0() async {
   var x = await 7;
   Expect.equals(7, x);
-  var await = 1; // //# await1: syntax error
+  var await = 1;
+  //  ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  // [cfe] 'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.
 }
 
 test1() async {
   var x = await 9;
   Expect.equals(9, x);
-  var y = await; // //# await2: syntax error
+  var y = await;
+  //           ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got ';'.
 }
 
 // For functions that are not declared with the async modifier we allow await to
@@ -29,13 +35,19 @@ test1() async {
 test2() {
   var y = await;
   Expect.equals(4, y);
-  var x = await 1; // //# await3: compile-time error
+  var x = await 1;
+  //      ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ';' after this.
 }
 
 test3() {
   var await = 3;
   Expect.equals(3, await);
-  var x = await 1; // //# await4: compile-time error
+  var x = await 1;
+  //      ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ';' after this.
 }
 
 main() {

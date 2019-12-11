@@ -7,6 +7,12 @@ main() {
   assert(true,);
   assert(true,"message");
   assert(true,"message",);
-  assert(true,"message",extra);  //# 01: syntax error
-  assert(true,"message",,);  //# 02: syntax error
+  assert(true,"message",extra);
+  //                    ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
+  // [cfe] Unexpected token 'extra'.
+  assert(true,"message",,);
+  //                    ^
+  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
+  // [cfe] Unexpected token ','.
 }

@@ -6,6 +6,8 @@
 
 class A {
   factory A.foo() = B;
+  //      ^
+  // [cfe] Cyclic definition of factory 'A.foo'.
 }
 
 class B implements A {
@@ -14,9 +16,19 @@ class B implements A {
 
 class C implements B {
   factory C.bar() = C.foo;
-  factory C.foo() = C
-    .bar //# 01: compile-time error
-  ;
+  //                ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  factory C.foo() = C.bar();
+  //                ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  //                  ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ';' after this.
+  //                     ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '('.
+  //                     ^^^
+  // [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   C();
 }
 

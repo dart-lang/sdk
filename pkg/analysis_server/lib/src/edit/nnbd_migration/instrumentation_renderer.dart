@@ -53,18 +53,19 @@ mustache.Template _template = mustache.Template(r'''
     </script>
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
-a:link {
+.code a:link {
   color: inherit;
   text-decoration-line: none;
 }
 
-a:visited {
+.code a:visited {
   color: inherit;
   text-decoration-line: none;
 }
 
-a:hover {
+.code a:hover {
   text-decoration-line: underline;
+  font-weight: bold;
 }
 
 body {
@@ -186,6 +187,16 @@ h2 {
 
 .region:hover .tooltip {
   visibility: visible;
+}
+
+.region .tooltip::after {
+  /* Make a larger hover target once the tooltip appears. */
+  content: '';
+  position: absolute;
+  top: -1em;
+  height: 2em;
+  left: -1ch;
+  width: 3ch;
 }
 
 .selectedFile {
@@ -501,7 +512,7 @@ class MigrationInfo {
     }
     // Files that aren't within the [includedRoot] are written to the top-level
     // of the output directory, next to the Javascript file.
-    return 'highlight.pack.js';
+    return pathContext.join('..', 'highlight.pack.js');
   }
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
@@ -513,7 +524,7 @@ class MigrationInfo {
     }
     // Files that aren't within the [includedRoot] are written to the top-level
     // of the output directory, next to the CSS file.
-    return 'androidstudio.css';
+    return pathContext.join('..', 'androidstudio.css');
   }
 
   /// Generate mustache context for unit links, for navigation in the

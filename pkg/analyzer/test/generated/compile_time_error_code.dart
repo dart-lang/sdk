@@ -878,7 +878,7 @@ class T {
 }
 f() { return const T(0, 1, c: 2, d: 3); }
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 46, 25),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 46, 5),
     ]);
   }
 
@@ -1497,7 +1497,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
   test_fromEnvironment_bool_badDefault_whenDefined() async {
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
-    driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
+    driver.declaredVariables = DeclaredVariables.fromMap({'x': 'true'});
     await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
@@ -4575,7 +4575,7 @@ import 'target.dart';
     driver.removeFile(filePath);
 
     await resolveTestFile();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    GatheringErrorListener errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
@@ -4596,7 +4596,7 @@ import 'target.dart';
     // TODO(brianwilkerson) The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
+    GatheringErrorListener errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors([
       error(HintCode.UNUSED_IMPORT, 0, 0),

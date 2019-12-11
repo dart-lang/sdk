@@ -26,7 +26,7 @@ class PubWorkspace extends SimpleWorkspace {
   WorkspacePackage findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= new PubWorkspacePackage(root, this);
+      _theOnlyPackage ??= PubWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -50,7 +50,7 @@ class PubWorkspace extends SimpleWorkspace {
       if (folder.getChildAssumingFile(_pubspecName).exists) {
         // Found the pubspec.yaml file; this is our root.
         String root = folder.path;
-        return new PubWorkspace._(provider, root, builder);
+        return PubWorkspace._(provider, root, builder);
       }
 
       // Go up a folder.

@@ -119,7 +119,7 @@ final stringToType = {
   int8ListEncoding: 'DartType.INT8LIST',
   int16ListEncoding: 'DartType.INT16LIST',
   int32ListEncoding: 'DartType.INT32LIST',
-  int32x4Encoding: 'DartType.INT32X4',
+  //  int32x4Encoding: 'DartType.INT32X4',
   int32x4ListEncoding: 'DartType.INT32X4LIST',
   int64ListEncoding: 'DartType.INT64LIST',
   float32ListEncoding: 'DartType.FLOAT32LIST',
@@ -147,7 +147,7 @@ final typeToLibraryMethods = {
   'DartType.INT8LIST': int8ListLibs,
   'DartType.INT16LIST': int16ListLibs,
   'DartType.INT32LIST': int32ListLibs,
-  'DartType.INT32X4': int32x4Libs,
+  //  'DartType.INT32X4': int32x4Libs,
   'DartType.INT32X4LIST': int32x4ListLibs,
   'DartType.INT64LIST': int64ListLibs,
   'DartType.FLOAT32LIST': float32ListLibs,
@@ -202,7 +202,7 @@ main() async {
   dumpTable(int8ListLibs, int8ListTable);
   dumpTable(int16ListLibs, int16ListTable);
   dumpTable(int32ListLibs, int32ListTable);
-  dumpTable(int32x4Libs, int32x4Table);
+  //  dumpTable(int32x4Libs, int32x4Table);
   dumpTable(int32x4ListLibs, int32x4ListTable);
   dumpTable(int64ListLibs, int64ListTable);
   dumpTable(float32ListLibs, float32ListTable);
@@ -370,8 +370,10 @@ String typeString(DartType type) {
       return int16ListEncoding;
     case 'Int32List':
       return int32ListEncoding;
-    case 'Int32x4':
-      return int32x4Encoding;
+    // TODO(fizaaluthra): Re-enable Int32x4 after we fix
+    // https://github.com/dart-lang/sdk/issues/39520
+    // case 'Int32x4':
+    //   return int32x4Encoding;
     case 'Int32x4List':
       return int32x4ListEncoding;
     case 'Int64List':
@@ -483,7 +485,11 @@ void addToTable(String ret, String name, String proto) {
   if (name == 'exit' ||
       name == 'pid' ||
       name == 'hashCode' ||
-      name == 'exitCode') {
+      name == 'exitCode' ||
+      // TODO(fizaaluthra): Enable reciprocal and reciprocalSqrt after we resolve
+      // https://github.com/dart-lang/sdk/issues/39551
+      name == 'reciprocal' ||
+      name == 'reciprocalSqrt') {
     return;
   }
   // Restrict parameters for a few hardcoded cases,

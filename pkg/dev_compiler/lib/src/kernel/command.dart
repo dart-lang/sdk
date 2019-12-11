@@ -369,7 +369,7 @@ Future<CompilerResult> _compile(List<String> args,
       return CompilerResult(64);
     }
     StringBuffer sb = StringBuffer();
-    kernel.Printer(sb, showExternal: false).writeComponentFile(component);
+    kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
 

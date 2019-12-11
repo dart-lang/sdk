@@ -9,9 +9,9 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-final isFile = new TypeMatcher<File>();
-final isFileSystemException = new TypeMatcher<FileSystemException>();
-final isFolder = new TypeMatcher<Folder>();
+final isFile = TypeMatcher<File>();
+final isFileSystemException = TypeMatcher<FileSystemException>();
+final isFolder = TypeMatcher<Folder>();
 
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created
@@ -93,7 +93,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(source, isNotNull);
     expect(source.fullName, defaultFilePath);
     expect(source.uriKind, UriKind.FILE_URI);
-    expect(source.uri, new Uri.file(defaultFilePath));
+    expect(source.uri, Uri.file(defaultFilePath));
     expect(source.exists(), isTrue);
     expect(source.contents.data, defaultFileContent);
   }
@@ -292,7 +292,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_toUri() {
     File file = getFile(exists: true);
 
-    expect(file.toUri(), new Uri.file(file.path));
+    expect(file.toUri(), Uri.file(file.path));
   }
 
   test_writeAsBytesSync_existing() {
@@ -614,7 +614,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_toUri() {
     Folder folder = getFolder(exists: true);
 
-    expect(folder.toUri(), new Uri.directory(defaultFolderPath));
+    expect(folder.toUri(), Uri.directory(defaultFolderPath));
   }
 
   /**

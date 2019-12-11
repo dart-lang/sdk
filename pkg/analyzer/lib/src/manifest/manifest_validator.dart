@@ -28,8 +28,8 @@ class ManifestValidator {
    * Validate the [contents] of the Android Manifest file.
    */
   List<AnalysisError> validate(String contents, bool checkManifest) {
-    RecordingErrorListener recorder = new RecordingErrorListener();
-    ErrorReporter reporter = new ErrorReporter(recorder, source);
+    RecordingErrorListener recorder = RecordingErrorListener();
+    ErrorReporter reporter = ErrorReporter(recorder, source);
 
     if (checkManifest) {
       var document =

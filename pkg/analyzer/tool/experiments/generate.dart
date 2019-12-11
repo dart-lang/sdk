@@ -18,15 +18,15 @@ main() async {
 }
 
 List<GeneratedContent> get allTargets {
-  Map<dynamic, dynamic> experimentsYaml = loadYaml(new File(join(
+  Map<dynamic, dynamic> experimentsYaml = loadYaml(File(join(
           normalize(join(pkg_root.packageRoot, '../tools')),
           'experimental_features.yaml'))
       .readAsStringSync());
 
   return <GeneratedContent>[
-    new GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
+    GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
         (String pkgPath) async {
-      var generator = new _ExperimentsGenerator(experimentsYaml);
+      var generator = _ExperimentsGenerator(experimentsYaml);
       generator.generateFormatCode();
       return generator.out.toString();
     }),
@@ -50,7 +50,7 @@ class _ExperimentsGenerator {
 
   List<String> keysSorted;
 
-  final out = new StringBuffer('''
+  final out = StringBuffer('''
 //
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //

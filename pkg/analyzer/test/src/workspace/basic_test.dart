@@ -24,8 +24,8 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
   BasicWorkspace workspace;
 
   setUp() {
-    final contextBuilder = new MockContextBuilder();
-    final packages = new MockPackages();
+    final contextBuilder = MockContextBuilder();
+    final packages = MockPackages();
     final packageMap = <String, List<Folder>>{'project': []};
     contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
     contextBuilder.packagesToMapMap[packages] = packageMap;
@@ -93,7 +93,7 @@ class BasicWorkspaceTest with ResourceProviderMixin {
 
   void test_find_directory() {
     BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider, convertPath('/workspace'), new MockContextBuilder());
+        resourceProvider, convertPath('/workspace'), MockContextBuilder());
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
   }
@@ -101,15 +101,13 @@ class BasicWorkspaceTest with ResourceProviderMixin {
   void test_find_fail_notAbsolute() {
     expect(
         () => BasicWorkspace.find(resourceProvider, convertPath('not_absolute'),
-            new MockContextBuilder()),
+            MockContextBuilder()),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
   void test_find_file() {
-    BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider,
-        convertPath('/workspace/project/lib/lib1.dart'),
-        new MockContextBuilder());
+    BasicWorkspace workspace = BasicWorkspace.find(resourceProvider,
+        convertPath('/workspace/project/lib/lib1.dart'), MockContextBuilder());
     expect(workspace.root, convertPath('/workspace/project/lib'));
     expect(workspace.isBazel, isFalse);
   }

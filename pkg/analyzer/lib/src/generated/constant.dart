@@ -128,10 +128,10 @@ class ConstantEvaluator {
         _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
-    DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+    RecordingErrorListener errorListener = RecordingErrorListener();
+    ErrorReporter errorReporter = ErrorReporter(errorListener, _source);
+    DartObjectImpl result = expression.accept(ConstantVisitor(
+        ConstantEvaluationEngine(_typeProvider, DeclaredVariables(),
             typeSystem: _typeSystem),
         errorReporter));
     List<AnalysisError> errors = errorListener.errors;

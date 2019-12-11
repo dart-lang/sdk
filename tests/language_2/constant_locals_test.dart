@@ -7,13 +7,33 @@
 import "package:expect/expect.dart";
 
 void main() {
-  const c1; //# 01: compile-time error
+  const c1;
+  //    ^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
+  //      ^
+  // [cfe] The const variable ';' must be initialized.
   const c2 = 0;
-  const c3 = field; //# 02: compile-time error
-  const c4 = finalField; //# 03: compile-time error
+  const c3 = field;
+  //         ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Constant evaluation error:
+  //         ^
+  // [cfe] Not a constant expression.
+  const c4 = finalField;
+  //         ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Constant evaluation error:
+  //         ^
+  // [cfe] Not a constant expression.
   const c5 = constField;
-  const c6 = method(); //# 04: compile-time error
-  const c7 = new Class(); //# 05: compile-time error
+  const c6 = method();
+  //         ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] Method invocation is not a constant expression.
+  const c7 = new Class();
+  //         ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [cfe] New expression is not a constant expression.
   const c8 = const Class();
 }
 

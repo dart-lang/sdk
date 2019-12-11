@@ -598,6 +598,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Uri newFileUri;
     resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
     newFileUri = resolve(fileUri, uri, charOffset);
+    // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
+    // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
     partOffsets.add(charOffset);
@@ -950,7 +952,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // parts, so that metadata annotations can be associated with it.
       addProblem(
           messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri);
-      return false;
     }
 
     part.validatePart(this, usedParts);
@@ -2616,7 +2617,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (argument is FunctionType && argument.typeParameters.length > 0) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
-              .withArguments(argument);
+              .withArguments(argument, isNonNullableByDefault);
         } else {
           message = messageGenericFunctionTypeUsedAsActualTypeArgument;
         }
@@ -2630,14 +2631,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     typeParameter.bound,
                     typeParameter.name,
                     targetReceiver,
-                    targetName);
+                    targetName,
+                    isNonNullableByDefault);
           } else {
             message = templateIncorrectTypeArgumentQualified.withArguments(
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
                 targetReceiver,
-                targetName);
+                targetName,
+                isNonNullableByDefault);
           }
         } else {
           String enclosingName = issue.enclosingType == null
@@ -2649,10 +2652,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
-                enclosingName);
+                enclosingName,
+                isNonNullableByDefault);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(argument,
-                typeParameter.bound, typeParameter.name, enclosingName);
+            message = templateIncorrectTypeArgument.withArguments(
+                argument,
+                typeParameter.bound,
+                typeParameter.name,
+                enclosingName,
+                isNonNullableByDefault);
           }
         }
       }
@@ -2730,7 +2738,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 argument,
                 typeParameter.bound,
                 typeParameter.name,
-                getGenericTypeName(issue.enclosingType));
+                getGenericTypeName(issue.enclosingType),
+                isNonNullableByDefault);
           }
 
           reportTypeArgumentIssue(message, fileUri, offset, typeParameter);

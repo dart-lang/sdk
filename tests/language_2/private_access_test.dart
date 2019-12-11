@@ -8,10 +8,30 @@ import 'private_access_lib.dart';
 import 'private_access_lib.dart' as private;
 
 main() {
-  _function(); //# 01: compile-time error
-  private._function(); //# 02: compile-time error
-  new _Class(); //# 03: compile-time error
-  private._Class(); //# 04: compile-time error
-  new Class._constructor(); //# 05: compile-time error
-  new private.Class._constructor(); //# 06: compile-time error
+  _function();
+//^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [cfe] Method not found: '_function'.
+  private._function();
+//^
+// [cfe] Method not found: '_function'.
+//        ^^^^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+  new _Class();
+  //  ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [cfe] Method not found: '_Class'.
+  private._Class();
+//^
+// [cfe] Method not found: '_Class'.
+//        ^^^^^^
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+  new Class._constructor();
+  //        ^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Method not found: 'Class._constructor'.
+  new private.Class._constructor();
+  //                ^^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [cfe] Method not found: 'Class._constructor'.
 }

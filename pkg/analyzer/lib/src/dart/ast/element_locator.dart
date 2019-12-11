@@ -13,7 +13,7 @@ class ElementLocator {
   static Element locate(AstNode node) {
     if (node == null) return null;
 
-    var mapper = new _ElementMapper();
+    var mapper = _ElementMapper();
     return node.accept(mapper);
   }
 }

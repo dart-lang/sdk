@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Map takes 2 type arguments.
-Map
-    <String> //# 00: compile-time error
-foo;
-Map
-    <String> //# 02: compile-time error
-baz;
+Map<String> foo;
+// [error line 6, column 1, length 11]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 2 type arguments.
+Map<String> baz;
+// [error line 10, column 1, length 11]
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 2 type arguments.
 
 main() {
-  foo = null; //# 00: continued
-  var bar = new Map
-      <String> //# 01: compile-time error
-    ();
-  baz = new Map(); //# 02: continued
+  foo = null;
+  var bar = new Map<String>();
+  //            ^^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+  // [cfe] Expected 2 type arguments.
+  baz = new Map();
 }

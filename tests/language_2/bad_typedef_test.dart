@@ -7,8 +7,11 @@ import "package:expect/expect.dart";
 
 typedef int H(
     Function
-    Function //# 00: syntax error
+    Function
         x);
+//      ^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+// [cfe] Expected ')' before this.
 
 main() {
   bool b = true;

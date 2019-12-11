@@ -446,6 +446,9 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  void PushRegisterPair(Register r0, Register r1) { PushPair(r0, r1); }
+  void PopRegisterPair(Register r0, Register r1) { PopPair(r0, r1); }
+
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
@@ -1502,14 +1505,22 @@ class Assembler : public AssemblerBase {
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
   void LoadIsolate(Register dst);
+
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObject(Register dst, const Object& obj);
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadUniqueObject(Register dst, const Object& obj);
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, int64_t imm);
+
   void LoadDImmediate(VRegister reg, double immd);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
+  //
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+
   void LoadDoubleWordFromPoolOffset(Register lower,
                                     Register upper,
                                     uint32_t offset);
@@ -1685,6 +1696,7 @@ class Assembler : public AssemblerBase {
 
   void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
+  // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 
   void AddSubHelper(OperandSize os,

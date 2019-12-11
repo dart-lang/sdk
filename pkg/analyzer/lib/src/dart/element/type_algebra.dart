@@ -19,15 +19,15 @@ import 'package:analyzer/src/summary2/named_type_builder.dart';
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(
     List<TypeParameterElement> typeParameters) {
-  var freshParameters = new List<TypeParameterElementImpl>.generate(
+  var freshParameters = List<TypeParameterElementImpl>.generate(
     typeParameters.length,
-    (i) => new TypeParameterElementImpl(typeParameters[i].name, -1),
+    (i) => TypeParameterElementImpl(typeParameters[i].name, -1),
     growable: true,
   );
 
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterTypeImpl(
+    map[typeParameters[i]] = TypeParameterTypeImpl(
       freshParameters[i],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -50,7 +50,7 @@ FreshTypeParameters getFreshTypeParameters(
     }
   }
 
-  return new FreshTypeParameters(freshParameters, substitution);
+  return FreshTypeParameters(freshParameters, substitution);
 }
 
 /// Given a generic function [type] of a class member (so that it does not
@@ -116,7 +116,7 @@ class FreshTypeParameters {
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
   FunctionType applyToFunctionType(FunctionType type) {
-    return new FunctionTypeImpl(
+    return FunctionTypeImpl(
       typeFormals: freshTypeParameters,
       parameters: type.parameters.map((parameter) {
         return ParameterElementImpl.synthetic(
@@ -148,8 +148,8 @@ abstract class Substitution {
 
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound);
 
-  DartType substituteType(DartType type, {bool contravariant: false}) {
-    return new _TopSubstitutor(this, contravariant).visit(type);
+  DartType substituteType(DartType type, {bool contravariant = false}) {
+    return _TopSubstitutor(this, contravariant).visit(type);
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from
@@ -163,7 +163,7 @@ abstract class Substitution {
   static Substitution combine(Substitution first, Substitution second) {
     if (first == _NullSubstitution.instance) return second;
     if (second == _NullSubstitution.instance) return first;
-    return new _CombinedSubstitution(first, second);
+    return _CombinedSubstitution(first, second);
   }
 
   /// Substitutes the type parameters on the class of [type] with the
@@ -180,7 +180,7 @@ abstract class Substitution {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return new _MapSubstitution(map);
+    return _MapSubstitution(map);
   }
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
@@ -194,7 +194,7 @@ abstract class Substitution {
       return _NullSubstitution.instance;
     }
     return fromMap(
-      new Map<TypeParameterElement, DartType>.fromIterables(
+      Map<TypeParameterElement, DartType>.fromIterables(
         parameters,
         types,
       ),
@@ -218,7 +218,7 @@ abstract class Substitution {
     if (upper.isEmpty && lower.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return new _UpperLowerBoundsSubstitution(upper, lower);
+    return _UpperLowerBoundsSubstitution(upper, lower);
   }
 }
 
@@ -303,11 +303,11 @@ class _NullSubstitution extends MapSubstitution {
   Map<TypeParameterElement, DartType> get map => const {};
 
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
-    return new TypeParameterTypeImpl(parameter);
+    return TypeParameterTypeImpl(parameter);
   }
 
   @override
-  DartType substituteType(DartType type, {bool contravariant: false}) => type;
+  DartType substituteType(DartType type, {bool contravariant = false}) => type;
 
   @override
   String toString() => "Substitution.empty";
@@ -381,7 +381,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType lookup(TypeParameterElement parameter, bool upperBound);
 
   _FreshTypeParametersSubstitutor newInnerEnvironment() {
-    return new _FreshTypeParametersSubstitutor(this);
+    return _FreshTypeParametersSubstitutor(this);
   }
 
   DartType visit(DartType type) {
@@ -494,7 +494,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return new InterfaceTypeImpl.explicit(type.element, typeArguments,
+    return InterfaceTypeImpl.explicit(type.element, typeArguments,
         nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
   }
 
@@ -510,7 +510,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return new NamedTypeBuilder(
+    return NamedTypeBuilder(
       type.isNNBD,
       type.element,
       arguments,

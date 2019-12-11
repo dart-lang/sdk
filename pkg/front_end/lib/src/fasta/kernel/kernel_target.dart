@@ -25,7 +25,6 @@ import 'package:kernel/ast.dart'
         Library,
         Name,
         NamedExpression,
-        Nullability,
         NullLiteral,
         Procedure,
         RedirectingInitializer,
@@ -284,7 +283,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
-      loader.buildOutlineExpressions();
+      loader.buildOutlineExpressions(loader.coreTypes);
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;
@@ -568,8 +567,8 @@ class KernelTarget extends TargetImplementation {
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, enclosingClass.enclosingLibrary));
     }
-    return new InterfaceType(
-        enclosingClass, Nullability.legacy, typeParameterTypes);
+    return new InterfaceType(enclosingClass,
+        enclosingClass.enclosingLibrary.nonNullable, typeParameterTypes);
   }
 
   void setupTopAndBottomTypes() {

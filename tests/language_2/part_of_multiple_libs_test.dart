@@ -4,10 +4,12 @@
 
 library ambiguous_lib;
 
-import 'part_of_multiple_libs_lib.dart'; //# 01: compile-time error
+import 'part_of_multiple_libs_lib.dart';
 
 part "part_of_multiple_libs_part.dart";
 
+//^
+// [cfe] Method not found: 'foo'.
 main() {
   foo();
 }

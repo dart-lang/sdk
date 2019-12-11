@@ -155,13 +155,13 @@ class TypePromotionManager {
 
   /// Enter a new promotions scope.
   void _enterScope() {
-    _currentScope = new _TypePromoteScope(_currentScope);
+    _currentScope = _TypePromoteScope(_currentScope);
   }
 
   /// Exit the current promotion scope.
   void _exitScope() {
     if (_currentScope == null) {
-      throw new StateError("No scope to exit");
+      throw StateError("No scope to exit");
     }
     _currentScope = _currentScope._outerScope;
   }
@@ -207,7 +207,7 @@ class TypePromotionManager {
   ///         given ASTNode
   bool _isVariableAccessedInClosure(Element variable, AstNode target) {
     _ResolverVisitor_isVariableAccessedInClosure visitor =
-        new _ResolverVisitor_isVariableAccessedInClosure(variable);
+        _ResolverVisitor_isVariableAccessedInClosure(variable);
     target.accept(visitor);
     return visitor.result;
   }
@@ -222,7 +222,7 @@ class TypePromotionManager {
   ///         given ASTNode
   bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
     _ResolverVisitor_isVariablePotentiallyMutatedIn visitor =
-        new _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
+        _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
     target.accept(visitor);
     return visitor.result;
   }
@@ -283,7 +283,7 @@ class TypePromotionManager {
   /// @param type the promoted type of the given element
   void _setType(Element element, DartType type) {
     if (_currentScope == null) {
-      throw new StateError("Cannot promote without a scope");
+      throw StateError("Cannot promote without a scope");
     }
     _currentScope.setType(element, type);
   }

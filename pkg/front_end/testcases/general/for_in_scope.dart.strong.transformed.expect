@@ -1,9 +1,16 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method main(core::List<core::String*>* arguments) → dynamic {
-  for (core::String* arguments in arguments) {
-    core::print(arguments);
+  {
+    core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(arguments).{core::Iterable::iterator};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      core::String* arguments = :sync-for-iterator.{core::Iterator::current};
+      {
+        core::print(arguments);
+      }
+    }
   }
 }

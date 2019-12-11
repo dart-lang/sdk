@@ -11,10 +11,13 @@
 class C<T> {
   // This line is supposed to cause the warning; the other commented
   // line just doesn't make sense without this line.
-  T t = int; //# 01: compile-time error
+  T t = int;
+  //    ^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'Type' can't be assigned to a variable of type 'T'.
 }
 
 main() {
   C<Type> c = new C<Type>();
-  print(c.t); //# 01: compile-time error
+  print(c.t);
 }

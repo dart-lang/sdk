@@ -9,8 +9,12 @@
 class A {
   set foo(x) {}
   void set bar(x) {}
-  dynamic set baz(x) {} //# 01: static type warning
-  bool set bob(x) {} //# 02: static type warning
+  dynamic set baz(x) {}
+//^^^^^^^
+// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  bool set bob(x) {}
+//^^^^
+// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
 }
 
 main() {

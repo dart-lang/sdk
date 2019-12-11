@@ -103,6 +103,16 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAnnotationOnFunctionTypeTypeVariable =
+    messageAnnotationOnFunctionTypeTypeVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAnnotationOnFunctionTypeTypeVariable =
+    const MessageCode("AnnotationOnFunctionTypeTypeVariable",
+        message:
+            r"""A type variable on a function type can't have annotations.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAnonymousBreakTargetOutsideFunction =
     messageAnonymousBreakTargetOutsideFunction;
 

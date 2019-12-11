@@ -32,7 +32,7 @@ bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 /// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
 @deprecated
 class EmbedderSdk extends AbstractDartSdk {
-  final Map<String, String> _urlMappings = new HashMap<String, String>();
+  final Map<String, String> _urlMappings = HashMap<String, String>();
 
   EmbedderSdk([Map<Folder, YamlMap> embedderYamls]) {
     embedderYamls?.forEach(_processEmbedderYaml);
@@ -88,8 +88,8 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     String filePath = srcPath.replaceAll('/', io.Platform.pathSeparator);
     try {
-      JavaFile file = new JavaFile(filePath);
-      return new FileBasedSource(file, Uri.parse(dartUri));
+      JavaFile file = JavaFile(filePath);
+      return FileBasedSource(file, Uri.parse(dartUri));
     } on FormatException {
       return null;
     }
@@ -103,7 +103,7 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     String libPath = libDir.canonicalizePath(file);
     _urlMappings[name] = libPath;
-    SdkLibraryImpl library = new SdkLibraryImpl(name);
+    SdkLibraryImpl library = SdkLibraryImpl(name);
     library.path = libPath;
     libraryMap.setLibrary(name, library);
   }
@@ -157,11 +157,11 @@ class EmbedderUriResolver implements DartUriResolver {
   /// Construct a [EmbedderUriResolver] from a package map
   /// (see [PackageMapProvider]).
   EmbedderUriResolver(Map<Folder, YamlMap> embedderMap)
-      : this._forSdk(new EmbedderSdk(embedderMap));
+      : this._forSdk(EmbedderSdk(embedderMap));
 
   /// (Provisional API.)
   EmbedderUriResolver._forSdk(this._embedderSdk) {
-    _dartUriResolver = new DartUriResolver(_embedderSdk);
+    _dartUriResolver = DartUriResolver(_embedderSdk);
   }
 
   @override

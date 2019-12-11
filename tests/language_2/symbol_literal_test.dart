@@ -25,7 +25,7 @@ testSwitch(Symbol s) {
 
 main() {
   bool doChecks = false;
-  doChecks = true; //# 02: ok
+  doChecks = true;
   if (doChecks) {
     check(const Symbol("a"), #a);
     check(const Symbol("a"), #a);
@@ -44,5 +44,9 @@ main() {
   Expect.equals(1, m[#B]);
 
   // Tries to call the symbol literal #a.toString
-  Expect.throwsNoSuchMethodError(() => #a.toString()); //# 01: compile-time error
+  Expect.throwsNoSuchMethodError(() => #a.toString());
+  //                                   ^^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  //                                              ^
+  // [cfe] The method 'call' isn't defined for the class 'Symbol'.
 }

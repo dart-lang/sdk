@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class FileByteStoreValidatorTest {
-  final validator = new FileByteStoreValidator();
+  final validator = FileByteStoreValidator();
 
   test_get_bad_notEnoughBytes() {
     List<int> bytes = <int>[1, 2, 3];

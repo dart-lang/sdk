@@ -36,7 +36,7 @@ class AssignmentToMethodWithExtensionMethodsTest
     extends AssignmentToMethodTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = new FeatureSet.forTesting(
+    ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_instance_extendedHasMethod_extensionHasSetter() async {

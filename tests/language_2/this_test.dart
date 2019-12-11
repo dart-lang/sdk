@@ -7,14 +7,38 @@ class Foo {
   f() {}
 
   testMe() {
-    x.this; //# 01: syntax error
-    x.this(); //# 02: syntax error
-    x.this.x; //# 03: syntax error
-    x.this().x; //# 04: syntax error
-    f().this; //# 05: syntax error
-    f().this(); //# 06: syntax error
-    f().this.f(); //# 07: syntax error
-    f().this().f(); //# 08: syntax error
+    x.this;
+    //^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    x.this();
+    //^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    x.this.x;
+    //^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    x.this().x;
+    //^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    f().this;
+    //  ^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    f().this();
+    //  ^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    f().this.f();
+    //  ^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
+    f().this().f();
+    //  ^^^^
+    // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+    // [cfe] Expected identifier, but got 'this'.
   }
 }
 

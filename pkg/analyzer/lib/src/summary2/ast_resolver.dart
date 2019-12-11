@@ -48,20 +48,20 @@ class AstResolver {
     );
     node = getNode();
 
-    var variableResolverVisitor = new VariableResolverVisitor(
+    var variableResolverVisitor = VariableResolverVisitor(
       _unitElement.library,
       _unitElement.source,
-      _linker.typeProvider,
+      _unitElement.library.typeProvider,
       errorListener,
       nameScope: _nameScope,
     );
     node.accept(variableResolverVisitor);
 
-    var resolverVisitor = new ResolverVisitor(
+    var resolverVisitor = ResolverVisitor(
       _linker.inheritance,
       _unitElement.library,
       _unitElement.source,
-      _linker.typeProvider,
+      _unitElement.library.typeProvider,
       errorListener,
       featureSet: featureSet,
       nameScope: _nameScope,

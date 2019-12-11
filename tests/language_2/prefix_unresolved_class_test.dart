@@ -6,11 +6,21 @@
 import "library12.dart" as lib12;
 
 class Subclass
-    extends lib12.Library13 //# 01: compile-time error
+    extends lib12.Library13
+    //      ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENDS_NON_CLASS
+    // [cfe] Type 'lib12.Library13' not found.
+    //      ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 {}
 
 class Implementer
-    implements lib12.Library13 //# 02: compile-time error
+    implements lib12.Library13
+    //         ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_NON_CLASS
+    // [cfe] Type 'lib12.Library13' not found.
+    //         ^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 {}
 
 main() {

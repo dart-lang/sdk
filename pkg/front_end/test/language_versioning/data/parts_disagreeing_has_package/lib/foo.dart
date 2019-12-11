@@ -12,5 +12,5 @@ part /*error: LanguageVersionMismatchInPart*/ 'part.dart';
 /*library: languageVersion=2.5*/
 
 foo() {
-  /*error: MethodNotFound*/ bar();
+  bar();
 }

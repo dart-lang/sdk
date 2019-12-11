@@ -168,7 +168,11 @@ class TryCatchTest {
     } on String catch (e) {
       // Compile-time constants in unreachable catch blocks are still
       // compiled.
-      const y = x[0]; // //# 01: compile-time error
+      const y = x[0];
+      //        ^^^^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      //         ^
+      // [cfe] Constant evaluation error:
       Expect.fail("unreachable");
     }
   }

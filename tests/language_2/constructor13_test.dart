@@ -10,7 +10,13 @@ class Klass {
 }
 
 main() {
-  new Klass(); //# 01: compile-time error
+  new Klass();
+  //       ^^
+  // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  // [cfe] Too few positional arguments: 1 required, 0 given.
   new Klass(1);
-  new Klass(1, 2); //# 02: compile-time error
+  new Klass(1, 2);
+  //       ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 }

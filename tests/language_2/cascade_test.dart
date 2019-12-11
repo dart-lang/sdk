@@ -82,7 +82,22 @@ main() {
     ..["swap"]()()()
     ..check(7, 4);
   a.check(7, 4);
-  a..(42); // //# 01: syntax error
-  a..37; // //# 02: syntax error
-  a.."foo"; // //# 03: syntax error
+  a..(42);
+  // ^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got ''.
+  // ^
+  // [cfe] Expected an identifier, but got '('.
+  a..37;
+  // ^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '37'.
+  // [error line 91, column 8, length 0]
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  a.."foo";
+  // ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [cfe] Expected an identifier, but got '"foo"'.
+  // [error line 97, column 11, length 0]
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
 }

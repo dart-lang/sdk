@@ -58,7 +58,10 @@ class StringInterpolationTest {
     Expect.equals("}", "escaped     \${3+2}"[17]);
 
     if (alwaysFalse) {
-      "${i.toHorse()}"; //# 01: compile-time error
+      "${i.toHorse()}";
+      //   ^^^^^^^
+      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+      // [cfe] The method 'toHorse' isn't defined for the class 'int'.
     }
 
     Expect.equals("${m}", "$m");

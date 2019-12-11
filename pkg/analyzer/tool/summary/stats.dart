@@ -23,10 +23,10 @@ main(List<String> args) {
 
   // Read the input.
   PackageBundle bundle =
-      new PackageBundle.fromBuffer(new File(inputFilePath).readAsBytesSync());
+      PackageBundle.fromBuffer(File(inputFilePath).readAsBytesSync());
 
   // Compute and output stats.
-  Stats stats = new Stats();
+  Stats stats = Stats();
   stats.record(bundle);
   stats.dump();
 }

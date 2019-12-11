@@ -12,7 +12,7 @@ RESULT: _T {}?
 t2* = _Call direct get [#lib::someStatic] ()
 t3 = _Call direct [#lib::A::] (_T (#lib::A))
 a1 = _Join [dart.core::Object*] (%a1, _T (#lib::A), _T (#lib::B))
-t5 = _Call direct [#lib::bar] (a1, _T (dart.core::_Smi))
+t5 = _Call direct [#lib::bar] (a1, _T (dart.core::_Smi, 42))
 t6 = _Call direct [#lib::B::] (_T (#lib::B))
 t7* = _Call [dart.core::Object::==] (a1, %a2)
 t8 = _Join [dart.core::Object*] (a1, %a2)
@@ -23,8 +23,8 @@ RESULT: t9
 %a2 = _Parameter #1 [_T (dart.core::int)+?]
 t2 = _Narrow (%a1 to _T (dart.core::int)+)
 t3* = _Call [dart.core::num::+] (t2, %a2)
-t4* = _Call [dart.core::num::*] (t3, _T (dart.core::_Smi))
-t5* = _Call [dart.core::int::unary-] (_T (dart.core::_Smi))
+t4* = _Call [dart.core::num::*] (t3, _T (dart.core::_Smi, 3))
+t5* = _Call [dart.core::int::unary-] (_T (dart.core::_Smi, 1))
 %result = _Join [dart.core::int*] (t4, t5)
 RESULT: %result
 ------------ #lib::loop1 ------------
@@ -35,10 +35,10 @@ x = _Join [dart.core::Object*] (%a1, t2, %a2)
 RESULT: x
 ------------ #lib::loop2 ------------
 %x = _Parameter #0 [_T (dart.core::int)+?]
-t1* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi))
-i = _Join [dart.core::int*] (_T (dart.core::_Smi), t1)
-t3* = _Call [dart.core::num::<] (i, _T (dart.core::_Smi))
-t4* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi))
+t1* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 1))
+i = _Join [dart.core::int*] (_T (dart.core::_Smi, 0), t1)
+t3* = _Call [dart.core::num::<] (i, _T (dart.core::_Smi, 5))
+t4* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 10))
 x = _Join [dart.core::int*] (%x, t4)
 RESULT: x
 ------------ #lib::main ------------

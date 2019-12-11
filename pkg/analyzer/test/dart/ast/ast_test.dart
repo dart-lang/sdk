@@ -41,8 +41,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationTest extends ParserTestCase {
   void test_getConstructor() {
-    List<ConstructorInitializer> initializers =
-        new List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = List<ConstructorInitializer>();
     ConstructorDeclaration defaultConstructor =
         AstTestFactory.constructorDeclaration(
             AstTestFactory.identifier3("Test"),
@@ -498,7 +497,7 @@ class NodeListTest {
 
   void test_addAll() {
     AstNode parent = AstTestFactory.argumentList();
-    List<AstNode> firstNodes = new List<AstNode>();
+    List<AstNode> firstNodes = List<AstNode>();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
@@ -510,7 +509,7 @@ class NodeListTest {
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
-    List<AstNode> secondNodes = new List<AstNode>();
+    List<AstNode> secondNodes = List<AstNode>();
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
     AstNode fourthNode = AstTestFactory.booleanLiteral(false);
     secondNodes.add(thirdNode);
@@ -588,7 +587,7 @@ class NodeListTest {
   }
 
   void test_indexOf() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = List<AstNode>();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -608,7 +607,7 @@ class NodeListTest {
   }
 
   void test_remove() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = List<AstNode>();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -648,7 +647,7 @@ class NodeListTest {
   }
 
   void test_set() {
-    List<AstNode> nodes = new List<AstNode>();
+    List<AstNode> nodes = List<AstNode>();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -711,15 +710,14 @@ E f() => g;
   CompilationUnit get unit {
     if (_unit == null) {
       GatheringErrorListener listener =
-          new GatheringErrorListener(checkRanges: true);
+          GatheringErrorListener(checkRanges: true);
       var source =
-          new StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
-      var scanner = new Scanner.fasta(source, listener)
+          StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
+      var scanner = Scanner.fasta(source, listener)
         ..configureFeatures(featureSet);
       Token tokens = scanner.tokenize();
-      _unit =
-          new Parser(source, listener, featureSet: featureSet, useFasta: true)
-              .parseCompilationUnit(tokens);
+      _unit = Parser(source, listener, featureSet: featureSet, useFasta: true)
+          .parseCompilationUnit(tokens);
     }
     return _unit;
   }
@@ -761,10 +759,9 @@ E f() => g;
     BlockFunctionBody body = method.body;
     Statement statement = body.block.statements[0];
 
-    GatheringErrorListener listener =
-        new GatheringErrorListener(checkRanges: true);
-    var source = new StringSource('missing', 'PreviousTokenTest_missing.dart');
-    var scanner = new Scanner.fasta(source, listener)
+    GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
+    var source = StringSource('missing', 'PreviousTokenTest_missing.dart');
+    var scanner = Scanner.fasta(source, listener)
       ..configureFeatures(featureSet);
     Token missing = scanner.tokenize();
 
@@ -1328,7 +1325,7 @@ class StringInterpolationTest extends ParserTestCase {
     // 'a${bb}ccc'
     {
       var ae = AstTestFactory.interpolationString("'a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 1);
@@ -1337,7 +1334,7 @@ class StringInterpolationTest extends ParserTestCase {
     // '''a${bb}ccc'''
     {
       var ae = AstTestFactory.interpolationString("'''a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
@@ -1346,7 +1343,7 @@ class StringInterpolationTest extends ParserTestCase {
     // """a${bb}ccc"""
     {
       var ae = AstTestFactory.interpolationString('"""a', "a");
-      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 3);
@@ -1355,7 +1352,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r'a${bb}ccc'
     {
       var ae = AstTestFactory.interpolationString("r'a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 2);
@@ -1364,7 +1361,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r'''a${bb}ccc'''
     {
       var ae = AstTestFactory.interpolationString("r'''a", "a");
-      var cToken = new StringToken(TokenType.STRING, "ccc'''", 10);
+      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
@@ -1373,7 +1370,7 @@ class StringInterpolationTest extends ParserTestCase {
     // r"""a${bb}ccc"""
     {
       var ae = AstTestFactory.interpolationString('r"""a', "a");
-      var cToken = new StringToken(TokenType.STRING, 'ccc"""', 10);
+      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
       var cElement = astFactory.interpolationString(cToken, 'ccc');
       StringInterpolation node = AstTestFactory.string([ae, ae, cElement]);
       expect(node.contentsOffset, 4);
@@ -1459,7 +1456,7 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(List<Token>(0));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1468,7 +1465,7 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
+    Comment comment = astFactory.documentationComment(List<Token>(0));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }

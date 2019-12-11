@@ -25,12 +25,12 @@ class StringSource extends Source {
 
   StringSource(this._contents, String fullName, {Uri uri})
       : this.fullName = fullName,
-        uri = uri ?? (fullName == null ? null : new Uri.file(fullName)),
-        modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+        uri = uri ?? (fullName == null ? null : Uri.file(fullName)),
+        modificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   @override
   TimestampedData<String> get contents =>
-      new TimestampedData(modificationStamp, _contents);
+      TimestampedData(modificationStamp, _contents);
 
   @override
   String get encoding => uri.toString();

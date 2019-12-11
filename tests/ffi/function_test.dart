@@ -42,11 +42,10 @@ void main() {
     testVoidReturn();
     testNoArgs();
     testException();
-    testLookupFunctionPointerNativeType();
   }
 }
 
-DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 typedef NativeBinaryOp = Int32 Function(Int32, Int32);
 typedef UnaryOp = int Function(int);
@@ -404,24 +403,12 @@ void testNoArgs() {
   Expect.approxEquals(1337.0, result);
 }
 
-typedef NativeTypeNFT = Pointer<NativeType> Function(
-    Pointer<Pointer<NativeType>>, Int8);
-typedef NativeTypeFT = Pointer<NativeType> Function(
-    Pointer<Pointer<NativeType>>, int);
-
-void testLookupFunctionPointerNativeType() {
-  // The function signature does not match up, but that does not matter since
-  // this test does not use the trampoline.
-  ffiTestFunctions.lookupFunction<NativeTypeNFT, NativeTypeFT>("LargePointer");
-}
-
 // Throw an exception from within the trampoline and collect a stacktrace
 // include its frame.
 void testException() {
   try {
     sumPlus42(null, null);
   } catch (e, s) {
-    print("$e, $s");
     return;
   }
   throw "Didn't throw!";

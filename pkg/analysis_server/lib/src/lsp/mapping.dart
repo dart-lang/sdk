@@ -47,6 +47,34 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
           _asMarkup(preferredFormats, content));
 }
 
+/// Builds an LSP snippet string that uses a $1 tabstop to set the selected text
+/// after insertion.
+String buildSnippetStringWithSelection(
+  String text,
+  int selectionOffset,
+  int selectionLength,
+) {
+  String escape(String input) => input.replaceAllMapped(
+        RegExp(r'[$}\\]'), // Replace any of $ } \
+        (c) => '\\${c[0]}', // Prefix with a backslash
+      );
+  // Snippets syntax is documented in the LSP spec:
+  // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+  //
+  // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
+  // Since we only need to support a single tab stop, our string is constructed of three parts:
+  // - Anything before the selection
+  // - The selection (which may or may not include text, depending on selectionLength)
+  // - Anything after the selection
+  final prefix = escape(text.substring(0, selectionOffset));
+  final selectionText = escape(
+      text.substring(selectionOffset, selectionOffset + selectionLength));
+  final selection = '\${1:$selectionText}';
+  final suffix = escape(text.substring(selectionOffset + selectionLength));
+
+  return '$prefix$selection$suffix';
+}
+
 /// Note: This code will fetch the version of each document being modified so
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
@@ -576,37 +604,46 @@ lsp.CompletionItem toCompletionItem(
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
-  String label;
-  String insertText;
-  String filterText;
-  if (suggestion.displayText != null) {
-    label = suggestion.displayText;
-    insertText = suggestion.completion;
-  } else {
+  String label = suggestion.displayText ?? suggestion.completion;
+  String insertText = suggestion.completion;
+  String filterText = suggestion.completion;
+
+  // Trim any trailing comma from the (displayed) label.
+  if (label.endsWith(',')) {
+    label = label.substring(0, label.length - 1);
+  }
+
+  if (suggestion.displayText == null) {
     switch (suggestion.element?.kind) {
       case server.ElementKind.CONSTRUCTOR:
       case server.ElementKind.FUNCTION:
       case server.ElementKind.METHOD:
-        label = suggestion.completion;
-        // Label is the insert text plus the parens to indicate it's callable.
-        insertText = label;
-        filterText = label;
         label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
         break;
-      default:
-        label = suggestion.completion;
     }
   }
 
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
   final formats = completionCapabilities?.completionItem?.documentationFormat;
+  final supportsSnippets =
+      completionCapabilities?.completionItem?.snippetSupport == true;
 
   final completionKind = suggestion.element != null
       ? elementKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.element.kind)
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
+
+  lsp.InsertTextFormat insertTextFormat = lsp.InsertTextFormat.PlainText;
+  if (supportsSnippets && suggestion.selectionOffset != 0) {
+    insertTextFormat = lsp.InsertTextFormat.Snippet;
+    insertText = buildSnippetStringWithSelection(
+      suggestion.completion,
+      suggestion.selectionOffset,
+      suggestion.selectionLength,
+    );
+  }
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -626,12 +663,12 @@ lsp.CompletionItem toCompletionItem(
     (1000000 - suggestion.relevance).toString(),
     filterText != label ? filterText : null, // filterText uses label if not set
     insertText != label ? insertText : null, // insertText uses label if not set
-    null, // insertTextFormat (we always use plain text so can ommit this)
+    insertTextFormat != lsp.InsertTextFormat.PlainText
+        ? insertTextFormat
+        : null, // Defaults to PlainText if not supplied
     new lsp.TextEdit(
-      // TODO(dantup): If `clientSupportsSnippets == true` then we should map
-      // `selection` in to a snippet (see how Dart Code does this).
       toRange(lineInfo, replacementOffset, replacementLength),
-      suggestion.completion,
+      insertText,
     ),
     null, // additionalTextEdits, used for adding imports, etc.
     null, // commitCharacters

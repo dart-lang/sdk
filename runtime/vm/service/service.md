@@ -11,6 +11,10 @@ It is possible to make HTTP (non-WebSocket) requests,
 but this does not allow access to VM _events_ and is not documented
 here.
 
+[Service Protocol Extension](service_extension.md) provides similar ways to
+communicate with the VM except these may be only accessible through some
+libraries.
+
 The Service Protocol uses [JSON-RPC 2.0][].
 
 [JSON-RPC 2.0]: http://www.jsonrpc.org/specification

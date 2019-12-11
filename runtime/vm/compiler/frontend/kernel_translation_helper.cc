@@ -6,6 +6,7 @@
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/frontend/constant_reader.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // for ParsedFunction
@@ -675,13 +676,13 @@ RawFunction* TranslationHelper::LookupMethodByMember(
 
   Function& function =
       Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
-  CheckStaticLookup(function);
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
               klass.ToCString());
   }
 #endif
+  CheckStaticLookup(function);
   ASSERT(!function.IsNull());
   return function.raw();
 }
@@ -1684,8 +1685,10 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 }
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
-    KernelReaderHelper* helper)
-    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+    KernelReaderHelper* helper,
+    ConstantReader* constant_reader)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true),
+      constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset) {
@@ -1701,7 +1704,15 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
   const uint8_t flags = helper_->ReadByte();
 
+  const Object* constant_value = &Object::null_object();
+  if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
+    const intptr_t constant_offset = helper_->ReadUInt();
+    constant_value = &Object::ZoneHandle(
+        H.zone(), constant_reader_->ReadConstant(constant_offset));
+  }
+
   if (H.IsRoot(kernel_name)) {
+    ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
     return InferredTypeMetadata(kDynamicCid, flags);
   }
 
@@ -1716,7 +1727,7 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     cid = kDynamicCid;
   }
 
-  return InferredTypeMetadata(cid, flags);
+  return InferredTypeMetadata(cid, flags, *constant_value);
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {

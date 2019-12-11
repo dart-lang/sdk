@@ -41,7 +41,7 @@ main() {
   // ignore: unused_local_variable
   var a3 =
       /*cfe|dart2js.Map<int,num>*/
-      /*cfe:nnbd.Map<int!,num>!*/
+      /*cfe:nnbd.Map<int!,num!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -60,7 +60,7 @@ main() {
   // ignore: unused_local_variable
   var a4 =
       /*cfe|dart2js.Map<num,double>*/
-      /*cfe:nnbd.Map<num,double!>!*/
+      /*cfe:nnbd.Map<num!,double!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -79,7 +79,7 @@ main() {
   // ignore: unused_local_variable
   var a5 =
       /*cfe|dart2js.Map<num,num>*/
-      /*cfe:nnbd.Map<num,num>!*/
+      /*cfe:nnbd.Map<num!,num!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -98,7 +98,7 @@ main() {
   // ignore: unused_local_variable
   var a6 =
       /*cfe|dart2js.Map<int,Object>*/
-      /*cfe:nnbd.Map<int!,Object>!*/
+      /*cfe:nnbd.Map<int!,Object!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -117,7 +117,7 @@ main() {
   // ignore: unused_local_variable
   var a7 =
       /*cfe|dart2js.Map<Object,double>*/
-      /*cfe:nnbd.Map<Object,double!>!*/
+      /*cfe:nnbd.Map<Object!,double!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/
@@ -136,7 +136,7 @@ main() {
   // ignore: unused_local_variable
   var a8 =
       /*cfe|dart2js.Map<Object,Object>*/
-      /*cfe:nnbd.Map<Object,Object>!*/
+      /*cfe:nnbd.Map<Object!,Object!>!*/
       {
     /*cfe|dart2js.int*/
     /*cfe:nnbd.int!*/

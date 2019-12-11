@@ -276,7 +276,7 @@ import 'package:../other.dart';
     newFile(path, content: content);
     result = await resolveFile(path);
 
-    var errorListener = new GatheringErrorListener();
+    var errorListener = GatheringErrorListener();
     errorListener.addAll(result.errors);
     errorListener.assertErrors(expectedErrors);
   }

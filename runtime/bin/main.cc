@@ -199,14 +199,13 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
     if (Dart_IsError(result)) return result;
   }
 
-  // Setup package root if specified.
-  result = DartUtils::SetupPackageRoot(nullptr, packages_file);
+  // Setup packages config if specified.
+  result = DartUtils::SetupPackageConfig(packages_file);
   if (Dart_IsError(result)) return result;
   if (!Dart_IsNull(result) && resolved_packages_config != nullptr) {
     result = Dart_StringToCString(result, resolved_packages_config);
     if (Dart_IsError(result)) return result;
     ASSERT(*resolved_packages_config != nullptr);
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_isolate_group_start) {
       isolate_group_data->set_resolved_packages_config(

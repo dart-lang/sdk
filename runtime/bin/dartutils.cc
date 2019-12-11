@@ -524,21 +524,10 @@ Dart_Handle DartUtils::SetupServiceLoadPort() {
   return Builtin::SetLoadPort(load_port);
 }
 
-Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
-                                        const char* packages_config) {
+Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {
   Dart_Handle result = Dart_Null();
 
-  // Set up package root if specified.
-  if (package_root != NULL) {
-    ASSERT(packages_config == NULL);
-    result = NewString(package_root);
-    RETURN_IF_ERROR(result);
-    const int kNumArgs = 1;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
-                         NewString("_setPackageRoot"), kNumArgs, dart_args);
-  } else if (packages_config != NULL) {
+  if (packages_config != NULL) {
     result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
@@ -635,6 +624,7 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
       Dart_SetField(platform_type, script_name, dart_script);
   RETURN_IF_ERROR(set_script_name);
 
+#if !defined(PRODUCT)
   Dart_Handle network_profiling_type =
       GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling");
   RETURN_IF_ERROR(network_profiling_type);
@@ -642,7 +632,7 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
       Dart_Invoke(network_profiling_type,
                   NewString("_registerServiceExtension"), 0, nullptr);
   RETURN_IF_ERROR(result);
-
+#endif  // !defined(PRODUCT)
   return Dart_Null();
 }
 

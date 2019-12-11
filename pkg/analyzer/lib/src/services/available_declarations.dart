@@ -141,7 +141,7 @@ class DeclarationsContext {
 
   /// The combined information about all of the dartdoc directives in this
   /// context.
-  final DartdocDirectiveInfo _dartdocDirectiveInfo = new DartdocDirectiveInfo();
+  final DartdocDirectiveInfo _dartdocDirectiveInfo = DartdocDirectiveInfo();
 
   /// Map of path prefixes to lists of paths of files from dependencies
   /// (both libraries and parts, we don't know at the time when we fill this
@@ -606,7 +606,7 @@ class DeclarationsTracker {
       }
 
       if (file.exportedDeclarations == null) {
-        new _LibraryWalker().walkLibrary(file);
+        _LibraryWalker().walkLibrary(file);
         assert(file.exportedDeclarations != null);
       }
 
@@ -654,7 +654,7 @@ class DeclarationsTracker {
 
   /// Compute exported declarations for the given [libraries].
   void _computeExportedDeclarations(Set<_File> libraries) {
-    var walker = new _LibraryWalker();
+    var walker = _LibraryWalker();
     for (var library in libraries) {
       if (library.isLibrary && library.exportedDeclarations == null) {
         walker.walkLibrary(library);
@@ -1645,7 +1645,7 @@ class _File {
   }
 
   void _extractDartdocInfoFromUnit(CompilationUnit unit) {
-    DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+    DartdocDirectiveInfo info = DartdocDirectiveInfo();
     for (Directive directive in unit.directives) {
       Comment comment = directive.documentationComment;
       if (comment != null) {
@@ -1860,13 +1860,13 @@ class _File {
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var source = StringSource(content, '');
 
-    var reader = new CharSequenceReader(content);
-    var scanner = new Scanner(null, reader, errorListener)
+    var reader = CharSequenceReader(content);
+    var scanner = Scanner(null, reader, errorListener)
       ..configureFeatures(featureSet);
     var token = scanner.tokenize();
 
-    var parser = new Parser(source, errorListener,
-        featureSet: featureSet, useFasta: true);
+    var parser =
+        Parser(source, errorListener, featureSet: featureSet, useFasta: true);
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 
@@ -1963,7 +1963,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 
   _LibraryNode getNode(_File file) {
-    return nodesOfFiles.putIfAbsent(file, () => new _LibraryNode(this, file));
+    return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
   void walkLibrary(_File file) {
