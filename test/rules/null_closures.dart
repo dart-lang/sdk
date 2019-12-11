@@ -25,6 +25,12 @@ void list_firstWhere() {
   <int>[2, 4, 6].where((e) => e.isEven); // OK
 }
 
+void iterable_singleWhere() {
+  // singleWhere has a _named_ closure argument.
+  <int>{2, 4, 6}.singleWhere((e) => e.isEven, orElse: null); // LINT
+  <int>[2, 4, 6].singleWhere((e) => e.isEven, orElse: () => null); // OK
+}
+
 void map_putIfAbsent() {
   // putIfAbsent has a _required_ closure argument.
   var map = <int, int>{};

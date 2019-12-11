@@ -60,7 +60,8 @@ in the following locations:
     parameter `orElse`
   * `Iterable.map` at the 0th positional parameter
   * `Iterable.reduce` at the 0th positional parameter
-  * `Iterable.singleWhere` at the 0th positional parameter
+  * `Iterable.singleWhere` at the 0th positional parameter, and the named
+    parameter `orElse`
   * `Iterable.skipWhile` at the 0th positional parameter
   * `Iterable.takeWhile` at the 0th positional parameter
   * `Iterable.where` at the 0th positional parameter
@@ -152,7 +153,7 @@ final Map<String, Set<NonNullableFunction>>
   },
   'singleWhere': {
     NonNullableFunction('dart.core', 'Iterable', 'singleWhere',
-        positional: [0]),
+        positional: [0], named: ['orElse']),
   },
   'skipWhile': {
     NonNullableFunction('dart.core', 'Iterable', 'skipWhile', positional: [0]),
