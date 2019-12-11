@@ -220,7 +220,8 @@ class Symbols;
  protected: /* NOLINT */                                                       \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
-  OBJECT_SERVICE_SUPPORT(object)
+  OBJECT_SERVICE_SUPPORT(object)                                               \
+  friend class Object;
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -254,6 +255,7 @@ class Symbols;
   }                                                                            \
   static intptr_t NextFieldOffset() { return -kWordSize; }                     \
   SNAPSHOT_READER_SUPPORT(rettype)                                             \
+  friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;
 
@@ -503,6 +505,7 @@ class Object {
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
   static void Init(Isolate* isolate);
+  static void InitVtables();
   static void FinishInit(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
   static void FinalizeReadOnlyObject(RawObject* object);
@@ -523,6 +526,14 @@ class Object {
     return RoundedAllocationSize(sizeof(RawObject));
   }
 
+  template <class FakeObject>
+  static void VerifyBuiltinVtable(intptr_t cid) {
+    FakeObject fake;
+    if (cid >= kNumPredefinedCids) {
+      cid = kInstanceCid;
+    }
+    ASSERT(builtin_vtables_[cid] == fake.vtable());
+  }
   static void VerifyBuiltinVtables();
 
   static const ClassId kClassId = kObjectCid;
@@ -712,8 +723,7 @@ class Object {
     return reinterpret_cast<cpp_vtable*>(vtable_addr);
   }
 
-  static cpp_vtable handle_vtable_;
-  static RelaxedAtomic<cpp_vtable> builtin_vtables_[kNumPredefinedCids];
+  static cpp_vtable builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -892,11 +902,6 @@ class Class : public Object {
            (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
             ((value + 1) == raw_ptr()->instance_size_in_words_)));
     StoreNonPointer(&raw_ptr()->next_field_offset_in_words_, value);
-  }
-
-  cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
-  void set_handle_vtable(cpp_vtable value) const {
-    StoreNonPointer(&raw_ptr()->handle_vtable_, value);
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -7653,8 +7658,6 @@ class Smi : public Integer {
     return -kWordSize;
   }
 
-  static cpp_vtable handle_vtable_;
-
   Smi() : Integer() {}
   BASE_OBJECT_IMPLEMENTATION(Smi, Integer);
   OBJECT_SERVICE_SUPPORT(Smi);
@@ -9374,6 +9377,7 @@ class TypedDataView : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedDataView, TypedDataBase);
   friend class Class;
+  friend class Object;
   friend class TypedDataViewDeserializationCluster;
 };
 
@@ -10157,11 +10161,7 @@ DART_FORCE_INLINE
 void Object::SetRaw(RawObject* value) {
   NoSafepointScope no_safepoint_scope;
   raw_ = value;
-  if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {
-    set_vtable(Smi::handle_vtable_);
-    return;
-  }
-  intptr_t cid = value->GetClassId();
+  intptr_t cid = value->GetClassIdMayBeSmi();
   // Free-list elements cannot be wrapped in a handle.
   ASSERT(cid != kFreeListElement);
   ASSERT(cid != kForwardingCorpse);
@@ -10170,7 +10170,7 @@ void Object::SetRaw(RawObject* value) {
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
-  if (FLAG_verify_handles) {
+  if (FLAG_verify_handles && raw_->IsHeapObject()) {
     Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();

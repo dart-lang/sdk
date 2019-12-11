@@ -759,7 +759,6 @@ class RawClass : public RawObject {
     return NULL;
   }
 
-  cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.

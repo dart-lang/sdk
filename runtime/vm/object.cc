@@ -105,9 +105,7 @@ RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
 // A VM heap allocated preinitialized empty subtype entry array.
 RawArray* SubtypeTestCache::cached_array_;
 
-cpp_vtable Object::handle_vtable_ = 0;
-RelaxedAtomic<cpp_vtable> Object::builtin_vtables_[kNumPredefinedCids] = {};
-cpp_vtable Smi::handle_vtable_ = 0;
+cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
 
 // These are initialized to a value that will force a illegal memory access if
 // they are being used.
@@ -571,17 +569,105 @@ void Object::InitNull(Isolate* isolate) {
   }
 }
 
+void Object::InitVtables() {
+  {
+    Object fake_handle;
+    builtin_vtables_[kObjectCid] = fake_handle.vtable();
+  }
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    clazz fake_handle;                                                         \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    Array fake_handle;                                                         \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_ARRAYS(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    String fake_handle;                                                        \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_STRINGS(INIT_VTABLE)
+#undef INIT_VTABLE
+
+  {
+    Instance fake_handle;
+    builtin_vtables_[kFfiNativeTypeCid] = fake_handle.vtable();
+  }
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    Instance fake_handle;                                                      \
+    builtin_vtables_[kFfi##clazz##Cid] = fake_handle.vtable();                 \
+  }
+  CLASS_LIST_FFI_TYPE_MARKER(INIT_VTABLE)
+#undef INIT_VTABLE
+
+  {
+    Instance fake_handle;
+    builtin_vtables_[kFfiNativeFunctionCid] = fake_handle.vtable();
+  }
+
+  {
+    Pointer fake_handle;
+    builtin_vtables_[kFfiPointerCid] = fake_handle.vtable();
+  }
+
+  {
+    DynamicLibrary fake_handle;
+    builtin_vtables_[kFfiDynamicLibraryCid] = fake_handle.vtable();
+  }
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    Instance fake_handle;                                                      \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_WASM(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    TypedData fake_internal_handle;                                            \
+    builtin_vtables_[kTypedData##clazz##Cid] = fake_internal_handle.vtable();  \
+    TypedDataView fake_view_handle;                                            \
+    builtin_vtables_[kTypedData##clazz##ViewCid] = fake_view_handle.vtable();  \
+    ExternalTypedData fake_external_handle;                                    \
+    builtin_vtables_[kExternalTypedData##clazz##Cid] =                         \
+        fake_external_handle.vtable();                                         \
+  }
+  CLASS_LIST_TYPED_DATA(INIT_VTABLE)
+#undef INIT_VTABLE
+
+  {
+    TypedDataView fake_handle;
+    builtin_vtables_[kByteDataViewCid] = fake_handle.vtable();
+  }
+
+  {
+    Instance fake_handle;
+    builtin_vtables_[kByteBufferCid] = fake_handle.vtable();
+    builtin_vtables_[kNullCid] = fake_handle.vtable();
+    builtin_vtables_[kDynamicCid] = fake_handle.vtable();
+    builtin_vtables_[kVoidCid] = fake_handle.vtable();
+    builtin_vtables_[kNeverCid] = fake_handle.vtable();
+  }
+}
+
 void Object::Init(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
-  // Initialize the static vtable values.
-  {
-    Object fake_object;
-    Smi fake_smi;
-    Object::handle_vtable_ = fake_object.vtable();
-    Smi::handle_vtable_ = fake_smi.vtable();
-  }
+  InitVtables();
 
   Heap* heap = isolate->heap();
 
@@ -620,7 +706,7 @@ void Object::Init(Isolate* isolate) {
     // Directly set raw_ to break a circular dependency: SetRaw will attempt
     // to lookup class class in the class table where it is not registered yet.
     cls.raw_ = class_class_;
-    cls.set_handle_vtable(fake.vtable());
+    ASSERT(builtin_vtables_[kClassCid] == fake.vtable());
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::NextFieldOffset());
     cls.set_id(Class::kClassId);
@@ -1426,17 +1512,15 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
 void Object::VerifyBuiltinVtables() {
 #if defined(DEBUG)
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Class& cls = Class::Handle(thread->zone(), Class::null());
-  for (intptr_t cid = (kIllegalCid + 1); cid < kNumPredefinedCids; cid++) {
-    if (isolate->class_table()->HasValidClassAt(cid)) {
-      cls ^= isolate->class_table()->At(cid);
-      ASSERT(builtin_vtables_[cid] == cls.raw_ptr()->handle_vtable_);
-    }
-  }
+  ASSERT(builtin_vtables_[kIllegalCid] == 0);
   ASSERT(builtin_vtables_[kFreeListElement] == 0);
   ASSERT(builtin_vtables_[kForwardingCorpse] == 0);
+  ClassTable* table = Isolate::Current()->class_table();
+  for (intptr_t cid = kObjectCid; cid < kNumPredefinedCids; cid++) {
+    if (table->HasValidClassAt(cid)) {
+      ASSERT(builtin_vtables_[cid] != 0);
+    }
+  }
 #endif
 }
 
@@ -2277,16 +2361,12 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
 void Object::CheckHandle() const {
 #if defined(DEBUG)
   if (raw_ != Object::null()) {
-    if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
-      ASSERT(vtable() == Smi::handle_vtable_);
-      return;
-    }
-    intptr_t cid = raw_->GetClassId();
+    intptr_t cid = raw_->GetClassIdMayBeSmi();
     if (cid >= kNumPredefinedCids) {
       cid = kInstanceCid;
     }
     ASSERT(vtable() == builtin_vtables_[cid]);
-    if (FLAG_verify_handles) {
+    if (FLAG_verify_handles && raw_->IsHeapObject()) {
       Isolate* isolate = Isolate::Current();
       Heap* isolate_heap = isolate->heap();
       Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
@@ -2475,8 +2555,7 @@ RawClass* Class::New(Isolate* isolate, bool register_class) {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  FakeObject fake;
-  result.set_handle_vtable(fake.vtable());
+  Object::VerifyBuiltinVtable<FakeObject>(FakeObject::kClassId);
   result.set_token_pos(TokenPosition::kNoSource);
   result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize());
@@ -3862,9 +3941,9 @@ RawClass* Class::NewCommon(intptr_t index) {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  FakeInstance fake;
-  ASSERT(fake.IsInstance());
-  result.set_handle_vtable(fake.vtable());
+  // Here kIllegalCid means not-yet-assigned.
+  Object::VerifyBuiltinVtable<FakeInstance>(index == kIllegalCid ? kInstanceCid
+                                                                 : index);
   result.set_token_pos(TokenPosition::kNoSource);
   result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeInstance::InstanceSize());

@@ -260,12 +260,9 @@ class ClassDeserializationCluster : public DeserializationCluster {
       ReadFromTo(cls);
 
       intptr_t class_id = d->ReadCid();
-
       ASSERT(class_id >= kNumPredefinedCids);
-      Instance fake;
-      cls->ptr()->handle_vtable_ = fake.vtable();
-
       cls->ptr()->id_ = class_id;
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
         cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
