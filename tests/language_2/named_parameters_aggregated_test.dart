@@ -8,8 +8,6 @@ class TypeTester<T> {}
 // Expect compile-time error as no default values are allowed
 // in closure type definitions.
 typedef void Callback([String msg = ""]);
-// [error line 10, column 1, length 41]
-// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
 //                                ^
 // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
 // [cfe] Can't have a default value in a function type.

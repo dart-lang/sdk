@@ -879,7 +879,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForDefaultValueInFunctionTypeAlias(node);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitFunctionTypeAlias(node);
   }
@@ -2581,25 +2580,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
           [className]);
-    }
-  }
-
-  /**
-   * Verify that there are no default parameters in the given function type
-   * [alias].
-   *
-   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS].
-   */
-  void _checkForDefaultValueInFunctionTypeAlias(FunctionTypeAlias alias) {
-    FormalParameterList formalParameterList = alias.parameters;
-    NodeList<FormalParameter> parameters = formalParameterList.parameters;
-    for (FormalParameter parameter in parameters) {
-      if (parameter is DefaultFormalParameter) {
-        if (parameter.defaultValue != null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, alias);
-        }
-      }
     }
   }
 

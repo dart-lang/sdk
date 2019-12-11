@@ -1037,7 +1037,6 @@ typedef F = int Function([Map<String, String> m = const {}]);
     await assertErrorsInCode('''
 typedef F([x = 0]);
 ''', [
-      error(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, 0, 19),
       error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
     ]);
   }
@@ -1046,7 +1045,6 @@ typedef F([x = 0]);
     await assertErrorsInCode('''
 typedef F([x = 0]);
 ''', [
-      error(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, 0, 19),
       error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
     ]);
   }

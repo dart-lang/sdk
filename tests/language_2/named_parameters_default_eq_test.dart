@@ -8,8 +8,6 @@ import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
 typedef F1({x = 3, y});
-// [error line 10, column 1, length 23]
-// [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
 //            ^
 // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
 // [cfe] Can't have a default value in a function type.

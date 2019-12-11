@@ -1183,15 +1183,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the argument or using 'List.filled'.");
 
   /**
-   * 15.3.1 Typedef: It is a compile-time error if any default values are
-   * specified in the signature of a function type alias.
-   */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS =
-      CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS',
-          "Default parameter values aren't allowed in typedefs.",
-          correction: "Try removing the default value.");
-
-  /**
    * 6.2.1 Required Formals: By means of a function signature that names the
    * parameter and describes its type as a function type. It is a compile-time
    * error if any default values are specified in the signature of such a
