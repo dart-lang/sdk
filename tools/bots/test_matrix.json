@@ -2174,6 +2174,13 @@
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
             "language"]
+        },
+        {
+          "name": "analyze nnbd strong co19 tests",
+          "arguments": [
+            "-nanalyzer-asserts-strong-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ]
         }
       ]
     },
