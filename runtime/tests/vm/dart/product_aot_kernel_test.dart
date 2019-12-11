@@ -8,9 +8,12 @@
 import "dart:async";
 import "dart:io";
 
-import 'package:path/path.dart' as path;
-import 'package:kernel/kernel.dart';
 import 'package:expect/expect.dart';
+import 'package:kernel/binary/ast_from_binary.dart'
+    show BinaryBuilderWithMetadata;
+import 'package:kernel/kernel.dart';
+import 'package:path/path.dart' as path;
+import 'package:vm/metadata/bytecode.dart' show BytecodeMetadataRepository;
 
 import 'use_bare_instructions_flag_test.dart' show run, withTempDir;
 
@@ -36,8 +39,9 @@ Future main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await File(helloFile).writeAsString('main() => print("Hello");');
-    final genKernel = Platform.isWindows ?
-      "pkg\\vm\\tool\\gen_kernel.bat" : 'pkg/vm/tool/gen_kernel';
+    final genKernel = Platform.isWindows
+        ? "pkg\\vm\\tool\\gen_kernel.bat"
+        : 'pkg/vm/tool/gen_kernel';
     await run(genKernel, <String>[
       '--aot',
       '--platform=$platformDill',
@@ -48,21 +52,47 @@ Future main(List<String> args) async {
 
     // Ensure the AOT dill file will have effectively empty service related
     // libraries.
-    final Component component = loadComponentFromBinary(helloDillFile);
 
-    final libVmService = component.libraries
-        .singleWhere((lib) => lib.importUri.toString() == 'dart:_vmservice');
-    Expect.isTrue(libVmService.procedures.isEmpty);
-    Expect.isTrue(libVmService.classes.isEmpty);
-    Expect.isTrue(libVmService.fields.isEmpty);
+    final component = Component();
+    final bytecodeMetadataRepository = BytecodeMetadataRepository();
+    component.addMetadataRepository(bytecodeMetadataRepository);
+    final List<int> bytes = File(helloDillFile).readAsBytesSync();
+    new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
-    final libVmServiceIo = component.libraries
-        .singleWhere((lib) => lib.importUri.toString() == 'dart:vmservice_io');
-    Expect.isTrue(libVmServiceIo.procedures.isEmpty);
-    Expect.isTrue(libVmServiceIo.classes.isEmpty);
+    final bytecodeComponent =
+        bytecodeMetadataRepository.mapping[component]?.component;
+    if (bytecodeComponent != null) {
+      final libVmService = bytecodeComponent.libraries.singleWhere(
+          (lib) => lib.importUri.toString() == "'dart:_vmservice'");
+      final libVmServiceToplevelClass = libVmService.classes.single;
+      Expect.isTrue(libVmServiceToplevelClass.name.toString() == "''");
+      Expect.isTrue(libVmServiceToplevelClass.members.functions.isEmpty);
+      Expect.isTrue(libVmServiceToplevelClass.members.fields.isEmpty);
 
-    // Those fields are currently accessed by by the embedder, even in product
-    // mode.
-    Expect.isTrue(libVmServiceIo.fields.length <= 11);
+      final libVmServiceIo = bytecodeComponent.libraries.singleWhere(
+          (lib) => lib.importUri.toString() == "'dart:vmservice_io'");
+      final libVmServiceIoToplevelClass = libVmServiceIo.classes.single;
+      Expect.isTrue(libVmServiceIoToplevelClass.name.toString() == "''");
+      Expect.isTrue(libVmServiceIoToplevelClass.members.functions.isEmpty);
+
+      // Those fields are currently accessed by by the embedder, even in product
+      // mode.
+      Expect.isTrue(libVmServiceIoToplevelClass.members.fields.length <= 11);
+    } else {
+      final libVmService = component.libraries
+          .singleWhere((lib) => lib.importUri.toString() == 'dart:_vmservice');
+      Expect.isTrue(libVmService.procedures.isEmpty);
+      Expect.isTrue(libVmService.classes.isEmpty);
+      Expect.isTrue(libVmService.fields.isEmpty);
+
+      final libVmServiceIo = component.libraries.singleWhere(
+          (lib) => lib.importUri.toString() == 'dart:vmservice_io');
+      Expect.isTrue(libVmServiceIo.procedures.isEmpty);
+      Expect.isTrue(libVmServiceIo.classes.isEmpty);
+
+      // Those fields are currently accessed by by the embedder, even in product
+      // mode.
+      Expect.isTrue(libVmServiceIo.fields.length <= 11);
+    }
   });
 }
