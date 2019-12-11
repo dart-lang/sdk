@@ -611,7 +611,11 @@ class DebugStack implements Stack {
   bool get isNotEmpty => realStack.isNotEmpty;
 
   @override
-  Object get last => this[0];
+  Object get last {
+    Object result = this[0];
+    if (result is NullValue) return null;
+    return result;
+  }
 
   @override
   int get length => realStack.length;
