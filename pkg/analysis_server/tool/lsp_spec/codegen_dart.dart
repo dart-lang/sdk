@@ -346,7 +346,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeIndentedln('@override get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
+        'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -355,7 +355,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
 void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('@override')
-    ..writeIndentedln('bool operator ==(other) {')
+    ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
     ..writeIndentedln('if (other is ${interface.name}) {')
     ..indent()

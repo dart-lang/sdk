@@ -74,7 +74,7 @@ class AnalyzerStatusParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is AnalyzerStatusParams) {
       return isAnalyzing == other.isAnalyzing && true;
     }
@@ -164,7 +164,7 @@ class ClosingLabel implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ClosingLabel) {
       return range == other.range && label == other.label && true;
     }
@@ -353,7 +353,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionItemResolutionInfo) {
       return file == other.file &&
           offset == other.offset &&
@@ -431,7 +431,7 @@ class DartDiagnosticServer implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DartDiagnosticServer) {
       return port == other.port && true;
     }
@@ -544,7 +544,7 @@ class Element implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Element) {
       return range == other.range &&
           name == other.name &&
@@ -686,7 +686,7 @@ class Outline implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Outline) {
       return element == other.element &&
           range == other.range &&
@@ -789,7 +789,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PublishClosingLabelsParams) {
       return uri == other.uri &&
           listEqual(labels, other.labels,
@@ -885,7 +885,7 @@ class PublishOutlineParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PublishOutlineParams) {
       return uri == other.uri && outline == other.outline && true;
     }

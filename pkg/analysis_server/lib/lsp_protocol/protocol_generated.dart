@@ -92,7 +92,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditParams) {
       return label == other.label && edit == other.edit && true;
     }
@@ -180,7 +180,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditResponse) {
       return applied == other.applied &&
           failureReason == other.failureReason &&
@@ -255,7 +255,7 @@ class CancelParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CancelParams) {
       return id == other.id && true;
     }
@@ -354,7 +354,7 @@ class ClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ClientCapabilities) {
       return workspace == other.workspace &&
           textDocument == other.textDocument &&
@@ -511,7 +511,7 @@ class CodeAction implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeAction) {
       return title == other.title &&
           kind == other.kind &&
@@ -622,7 +622,7 @@ class CodeActionContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionContext) {
       return listEqual(diagnostics, other.diagnostics,
               (Diagnostic a, Diagnostic b) => a == b) &&
@@ -712,7 +712,7 @@ class CodeActionKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CodeActionKind && o._value == _value;
+  bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
 }
 
 /// Code Action options.
@@ -768,7 +768,7 @@ class CodeActionOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -895,7 +895,7 @@ class CodeActionParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -994,7 +994,7 @@ class CodeActionRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionRegistrationOptions) {
       return documentSelector == other.documentSelector &&
           listEqual(codeActionKinds, other.codeActionKinds,
@@ -1108,7 +1108,7 @@ class CodeLens implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLens) {
       return range == other.range &&
           command == other.command &&
@@ -1173,7 +1173,7 @@ class CodeLensOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -1244,7 +1244,7 @@ class CodeLensParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensParams) {
       return textDocument == other.textDocument && true;
     }
@@ -1330,7 +1330,7 @@ class CodeLensRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -1477,7 +1477,7 @@ class Color implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Color) {
       return red == other.red &&
           green == other.green &&
@@ -1577,7 +1577,7 @@ class ColorInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorInformation) {
       return range == other.range && color == other.color && true;
     }
@@ -1692,7 +1692,7 @@ class ColorPresentation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentation) {
       return label == other.label &&
           textEdit == other.textEdit &&
@@ -1819,7 +1819,7 @@ class ColorPresentationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentationParams) {
       return textDocument == other.textDocument &&
           color == other.color &&
@@ -1866,7 +1866,7 @@ class ColorProviderOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorProviderOptions) {
       return true;
     }
@@ -1978,7 +1978,7 @@ class Command implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Command) {
       return title == other.title &&
           command == other.command &&
@@ -2075,7 +2075,7 @@ class CompletionContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionContext) {
       return triggerKind == other.triggerKind &&
           triggerCharacter == other.triggerCharacter &&
@@ -2468,7 +2468,7 @@ class CompletionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionItem) {
       return label == other.label &&
           kind == other.kind &&
@@ -2562,7 +2562,7 @@ class CompletionItemKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionItemKind && o._value == _value;
+  bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
 }
 
 /// Represents a collection of completion items ([CompletionItem]) to be
@@ -2649,7 +2649,7 @@ class CompletionList implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionList) {
       return isIncomplete == other.isIncomplete &&
           listEqual(items, other.items,
@@ -2735,7 +2735,7 @@ class CompletionOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionOptions) {
       return resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
@@ -2858,7 +2858,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -3009,7 +3009,7 @@ class CompletionRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -3073,7 +3073,8 @@ class CompletionTriggerKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionTriggerKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is CompletionTriggerKind && o._value == _value;
 }
 
 class ConfigurationItem implements ToJsonable {
@@ -3132,7 +3133,7 @@ class ConfigurationItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationItem) {
       return scopeUri == other.scopeUri && section == other.section && true;
     }
@@ -3205,7 +3206,7 @@ class ConfigurationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationParams) {
       return listEqual(items, other.items,
               (ConfigurationItem a, ConfigurationItem b) => a == b) &&
@@ -3320,7 +3321,7 @@ class CreateFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3400,7 +3401,7 @@ class CreateFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -3516,7 +3517,7 @@ class DeleteFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3597,7 +3598,7 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFileOptions) {
       return recursive == other.recursive &&
           ignoreIfNotExists == other.ignoreIfNotExists &&
@@ -3774,7 +3775,7 @@ class Diagnostic implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Diagnostic) {
       return range == other.range &&
           severity == other.severity &&
@@ -3890,7 +3891,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DiagnosticRelatedInformation) {
       return location == other.location && message == other.message && true;
     }
@@ -3939,7 +3940,7 @@ class DiagnosticSeverity {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DiagnosticSeverity && o._value == _value;
+  bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
@@ -3985,7 +3986,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeConfigurationParams) {
       return settings == other.settings && true;
     }
@@ -4095,7 +4096,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeTextDocumentParams) {
       return textDocument == other.textDocument &&
           listEqual(
@@ -4178,7 +4179,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesParams) {
       return listEqual(
               changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
@@ -4258,7 +4259,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesRegistrationOptions) {
       return listEqual(watchers, other.watchers,
               (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
@@ -4331,7 +4332,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWorkspaceFoldersParams) {
       return event == other.event && true;
     }
@@ -4402,7 +4403,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidCloseTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4473,7 +4474,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidOpenTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4561,7 +4562,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidSaveTextDocumentParams) {
       return textDocument == other.textDocument && text == other.text && true;
     }
@@ -4664,7 +4665,7 @@ class DocumentFilter implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFilter) {
       return language == other.language &&
           scheme == other.scheme &&
@@ -4768,7 +4769,7 @@ class DocumentFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFormattingParams) {
       return textDocument == other.textDocument &&
           options == other.options &&
@@ -4861,7 +4862,7 @@ class DocumentHighlight implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentHighlight) {
       return range == other.range && kind == other.kind && true;
     }
@@ -4908,7 +4909,8 @@ class DocumentHighlightKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is DocumentHighlightKind && o._value == _value;
 }
 
 /// A document link is a range in a text document that links to an internal or
@@ -4996,7 +4998,7 @@ class DocumentLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLink) {
       return range == other.range &&
           target == other.target &&
@@ -5061,7 +5063,7 @@ class DocumentLinkOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -5132,7 +5134,7 @@ class DocumentLinkParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkParams) {
       return textDocument == other.textDocument && true;
     }
@@ -5219,7 +5221,7 @@ class DocumentLinkRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -5317,7 +5319,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5475,7 +5477,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -5604,7 +5606,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingRegistrationOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5735,7 +5737,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentRangeFormattingParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -5953,7 +5955,7 @@ class DocumentSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbol) {
       return name == other.name &&
           detail == other.detail &&
@@ -6038,7 +6040,7 @@ class DocumentSymbolParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbolParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6089,7 +6091,7 @@ class ErrorCodes {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ErrorCodes && o._value == _value;
+  bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
 }
 
 /// Execute command options.
@@ -6146,7 +6148,7 @@ class ExecuteCommandOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6236,7 +6238,7 @@ class ExecuteCommandParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandParams) {
       return command == other.command &&
           listEqual(
@@ -6313,7 +6315,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandRegistrationOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6377,7 +6379,7 @@ class FailureHandlingKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FailureHandlingKind && o._value == _value;
+  bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
 }
 
 /// The file event type.
@@ -6408,7 +6410,7 @@ class FileChangeType {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FileChangeType && o._value == _value;
+  bool operator ==(Object o) => o is FileChangeType && o._value == _value;
 }
 
 /// An event describing a file change.
@@ -6487,7 +6489,7 @@ class FileEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileEvent) {
       return uri == other.uri && type == other.type && true;
     }
@@ -6587,7 +6589,7 @@ class FileSystemWatcher implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileSystemWatcher) {
       return globPattern == other.globPattern && kind == other.kind && true;
     }
@@ -6741,7 +6743,7 @@ class FoldingRange implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRange) {
       return startLine == other.startLine &&
           startCharacter == other.startCharacter &&
@@ -6796,7 +6798,7 @@ class FoldingRangeKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FoldingRangeKind && o._value == _value;
+  bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
 }
 
 class FoldingRangeParams implements ToJsonable {
@@ -6852,7 +6854,7 @@ class FoldingRangeParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6895,7 +6897,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeProviderOptions) {
       return true;
     }
@@ -6990,7 +6992,7 @@ class FormattingOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FormattingOptions) {
       return tabSize == other.tabSize &&
           insertSpaces == other.insertSpaces &&
@@ -7088,7 +7090,7 @@ class Hover implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Hover) {
       return contents == other.contents && range == other.range && true;
     }
@@ -7285,7 +7287,7 @@ class InitializeParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeParams) {
       return processId == other.processId &&
           rootPath == other.rootPath &&
@@ -7370,7 +7372,7 @@ class InitializeResult implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeResult) {
       return capabilities == other.capabilities && true;
     }
@@ -7411,7 +7413,7 @@ class InitializedParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializedParams) {
       return true;
     }
@@ -7464,7 +7466,7 @@ class InsertTextFormat {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is InsertTextFormat && o._value == _value;
+  bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
 }
 
 class Location implements ToJsonable {
@@ -7539,7 +7541,7 @@ class Location implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Location) {
       return uri == other.uri && range == other.range && true;
     }
@@ -7694,7 +7696,7 @@ class LocationLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LocationLink) {
       return originSelectionRange == other.originSelectionRange &&
           targetUri == other.targetUri &&
@@ -7796,7 +7798,7 @@ class LogMessageParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LogMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -7913,7 +7915,7 @@ class MarkupContent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MarkupContent) {
       return kind == other.kind && value == other.value && true;
     }
@@ -7966,7 +7968,7 @@ class MarkupKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MarkupKind && o._value == _value;
+  bool operator ==(Object o) => o is MarkupKind && o._value == _value;
 }
 
 class Message implements ToJsonable {
@@ -8028,7 +8030,7 @@ class Message implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Message) {
       return jsonrpc == other.jsonrpc && true;
     }
@@ -8096,7 +8098,7 @@ class MessageActionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MessageActionItem) {
       return title == other.title && true;
     }
@@ -8144,7 +8146,7 @@ class MessageType {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MessageType && o._value == _value;
+  bool operator ==(Object o) => o is MessageType && o._value == _value;
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
@@ -8334,7 +8336,7 @@ class Method {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is Method && o._value == _value;
+  bool operator ==(Object o) => o is Method && o._value == _value;
 }
 
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
@@ -8429,7 +8431,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is NotificationMessage) {
       return method == other.method &&
           params == other.params &&
@@ -8542,7 +8544,7 @@ class ParameterInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ParameterInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -8644,7 +8646,7 @@ class Position implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Position) {
       return line == other.line && character == other.character && true;
     }
@@ -8744,7 +8746,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PublishDiagnosticsParams) {
       return uri == other.uri &&
           listEqual(diagnostics, other.diagnostics,
@@ -8842,7 +8844,7 @@ class Range implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Range) {
       return start == other.start && end == other.end && true;
     }
@@ -8934,7 +8936,7 @@ class RangeAndPlaceholder implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RangeAndPlaceholder) {
       return range == other.range && placeholder == other.placeholder && true;
     }
@@ -9004,7 +9006,7 @@ class ReferenceContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceContext) {
       return includeDeclaration == other.includeDeclaration && true;
     }
@@ -9129,7 +9131,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -9245,7 +9247,7 @@ class Registration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Registration) {
       return id == other.id &&
           method == other.method &&
@@ -9323,7 +9325,7 @@ class RegistrationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RegistrationParams) {
       return listEqual(registrations, other.registrations,
               (Registration a, Registration b) => a == b) &&
@@ -9463,7 +9465,7 @@ class RenameFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFile) {
       return kind == other.kind &&
           oldUri == other.oldUri &&
@@ -9545,7 +9547,7 @@ class RenameFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -9608,7 +9610,7 @@ class RenameOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameOptions) {
       return prepareProvider == other.prepareProvider && true;
     }
@@ -9733,7 +9735,7 @@ class RenameParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -9823,7 +9825,7 @@ class RenameRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameRegistrationOptions) {
       return prepareProvider == other.prepareProvider &&
           documentSelector == other.documentSelector &&
@@ -9964,7 +9966,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RequestMessage) {
       return id == other.id &&
           method == other.method &&
@@ -10022,7 +10024,8 @@ class ResourceOperationKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is ResourceOperationKind && o._value == _value;
 }
 
 class ResponseError<D> implements ToJsonable {
@@ -10119,7 +10122,7 @@ class ResponseError<D> implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseError) {
       return code == other.code &&
           message == other.message &&
@@ -10252,7 +10255,7 @@ class ResponseMessage implements Message, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseMessage) {
       return id == other.id &&
           result == other.result &&
@@ -10318,7 +10321,7 @@ class SaveOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SaveOptions) {
       return includeText == other.includeText && true;
     }
@@ -10888,7 +10891,7 @@ class ServerCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilities) {
       return textDocumentSync == other.textDocumentSync &&
           hoverProvider == other.hoverProvider &&
@@ -11005,7 +11008,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspace) {
       return workspaceFolders == other.workspaceFolders && true;
     }
@@ -11089,7 +11092,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspaceFolders) {
       return supported == other.supported &&
           changeNotifications == other.changeNotifications &&
@@ -11187,7 +11190,7 @@ class ShowMessageParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -11305,7 +11308,7 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageRequestParams) {
       return type == other.type &&
           message == other.message &&
@@ -11432,7 +11435,7 @@ class SignatureHelp implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelp) {
       return listEqual(signatures, other.signatures,
               (SignatureInformation a, SignatureInformation b) => a == b) &&
@@ -11502,7 +11505,7 @@ class SignatureHelpOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11596,7 +11599,7 @@ class SignatureHelpRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11722,7 +11725,7 @@ class SignatureInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -11788,7 +11791,7 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is StaticRegistrationOptions) {
       return id == other.id && true;
     }
@@ -11956,7 +11959,7 @@ class SymbolInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SymbolInformation) {
       return name == other.name &&
           kind == other.kind &&
@@ -12029,7 +12032,7 @@ class SymbolKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is SymbolKind && o._value == _value;
+  bool operator ==(Object o) => o is SymbolKind && o._value == _value;
 }
 
 /// Describe options to be used when registering for text document change
@@ -12118,7 +12121,7 @@ class TextDocumentChangeRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions) {
       return syncKind == other.syncKind &&
           documentSelector == other.documentSelector &&
@@ -12670,7 +12673,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilities) {
       return synchronization == other.synchronization &&
           completion == other.completion &&
@@ -12801,7 +12804,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeAction) {
       return dynamicRegistration == other.dynamicRegistration &&
           codeActionLiteralSupport == other.codeActionLiteralSupport &&
@@ -12883,7 +12886,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionKind) {
       return listEqual(valueSet, other.valueSet,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -12964,7 +12967,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
       return codeActionKind == other.codeActionKind && true;
     }
@@ -13026,7 +13029,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeLens) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13091,7 +13094,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesColorProvider) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13214,7 +13217,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletion) {
       return dynamicRegistration == other.dynamicRegistration &&
           completionItem == other.completionItem &&
@@ -13371,7 +13374,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItem) {
       return snippetSupport == other.snippetSupport &&
           commitCharactersSupport == other.commitCharactersSupport &&
@@ -13454,7 +13457,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItemKind) {
       return listEqual(valueSet, other.valueSet,
               (CompletionItemKind a, CompletionItemKind b) => a == b) &&
@@ -13541,7 +13544,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDeclaration) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13624,7 +13627,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13690,7 +13693,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentHighlight) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13752,7 +13755,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentLink) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13856,7 +13859,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -13968,7 +13971,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFoldingRange) {
       return dynamicRegistration == other.dynamicRegistration &&
           rangeLimit == other.rangeLimit &&
@@ -14035,7 +14038,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14122,7 +14125,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesHover) {
       return dynamicRegistration == other.dynamicRegistration &&
           listEqual(contentFormat, other.contentFormat,
@@ -14211,7 +14214,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesImplementation) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -14277,7 +14280,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesOnTypeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14343,7 +14346,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesParameterInformation) {
       return labelOffsetSupport == other.labelOffsetSupport && true;
     }
@@ -14406,7 +14409,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesPublishDiagnostics) {
       return relatedInformation == other.relatedInformation && true;
     }
@@ -14469,7 +14472,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRangeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14531,7 +14534,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesReferences) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14612,7 +14615,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRename) {
       return dynamicRegistration == other.dynamicRegistration &&
           prepareSupport == other.prepareSupport &&
@@ -14702,7 +14705,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureHelp) {
       return dynamicRegistration == other.dynamicRegistration &&
           signatureInformation == other.signatureInformation &&
@@ -14797,7 +14800,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureInformation) {
       return listEqual(documentationFormat, other.documentationFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
@@ -14873,7 +14876,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -14990,7 +14993,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSynchronization) {
       return dynamicRegistration == other.dynamicRegistration &&
           willSave == other.willSave &&
@@ -15082,7 +15085,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesTypeDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -15189,7 +15192,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentContentChangeEvent) {
       return range == other.range &&
           rangeLength == other.rangeLength &&
@@ -15297,7 +15300,7 @@ class TextDocumentEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentEdit) {
       return textDocument == other.textDocument &&
           listEqual(edits, other.edits, (TextEdit a, TextEdit b) => a == b) &&
@@ -15371,7 +15374,7 @@ class TextDocumentIdentifier implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentIdentifier) {
       return uri == other.uri && true;
     }
@@ -15517,7 +15520,7 @@ class TextDocumentItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentItem) {
       return uri == other.uri &&
           languageId == other.languageId &&
@@ -15628,7 +15631,7 @@ class TextDocumentPositionParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentPositionParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -15729,7 +15732,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions) {
       return documentSelector == other.documentSelector && true;
     }
@@ -15776,7 +15779,8 @@ class TextDocumentSaveReason {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSaveReason && o._value == _value;
+  bool operator ==(Object o) =>
+      o is TextDocumentSaveReason && o._value == _value;
 }
 
 class TextDocumentSaveRegistrationOptions
@@ -15849,7 +15853,7 @@ class TextDocumentSaveRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions) {
       return includeText == other.includeText &&
           documentSelector == other.documentSelector &&
@@ -15900,7 +15904,7 @@ class TextDocumentSyncKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSyncKind && o._value == _value;
+  bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
 class TextDocumentSyncOptions implements ToJsonable {
@@ -16022,7 +16026,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSyncOptions) {
       return openClose == other.openClose &&
           change == other.change &&
@@ -16126,7 +16130,7 @@ class TextEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextEdit) {
       return range == other.range && newText == other.newText && true;
     }
@@ -16222,7 +16226,7 @@ class Unregistration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Unregistration) {
       return id == other.id && method == other.method && true;
     }
@@ -16296,7 +16300,7 @@ class UnregistrationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is UnregistrationParams) {
       return listEqual(unregisterations, other.unregisterations,
               (Unregistration a, Unregistration b) => a == b) &&
@@ -16393,7 +16397,7 @@ class VersionedTextDocumentIdentifier
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is VersionedTextDocumentIdentifier) {
       return version == other.version && uri == other.uri && true;
     }
@@ -16439,7 +16443,7 @@ class WatchKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is WatchKind && o._value == _value;
+  bool operator ==(Object o) => o is WatchKind && o._value == _value;
 }
 
 /// The parameters send in a will save text document notification.
@@ -16521,7 +16525,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WillSaveTextDocumentParams) {
       return textDocument == other.textDocument &&
           reason == other.reason &&
@@ -16750,7 +16754,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilities) {
       return applyEdit == other.applyEdit &&
           workspaceEdit == other.workspaceEdit &&
@@ -16828,7 +16832,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeConfiguration) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16893,7 +16897,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16955,7 +16959,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesExecuteCommand) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -17038,7 +17042,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -17113,7 +17117,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -17223,7 +17227,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesWorkspaceEdit) {
       return documentChanges == other.documentChanges &&
           listEqual(resourceOperations, other.resourceOperations,
@@ -17357,7 +17361,7 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceEdit) {
       return mapEqual(changes, other.changes,
               (List<TextEdit> a, List<TextEdit> b) => a == b) &&
@@ -17455,7 +17459,7 @@ class WorkspaceFolder implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFolder) {
       return uri == other.uri && name == other.name && true;
     }
@@ -17562,7 +17566,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFoldersChangeEvent) {
       return listEqual(added, other.added,
               (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
@@ -17636,7 +17640,7 @@ class WorkspaceSymbolParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceSymbolParams) {
       return query == other.query && true;
     }
