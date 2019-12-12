@@ -2418,6 +2418,20 @@ bool f(Object x) => x is _P<Object>;
     // a more specific test with assertions.
   }
 
+  test_getter_overrides_implicit_getter() async {
+    await analyze('''
+class A {
+  final String/*1*/ s = "x";
+}
+class C implements A {
+  String/*2*/ get s => false ? "y" : null;
+}
+''');
+    var string1 = decoratedTypeAnnotation('String/*1*/');
+    var string2 = decoratedTypeAnnotation('String/*2*/');
+    assertEdge(string2.node, string1.node, hard: true);
+  }
+
   test_if_condition() async {
     await analyze('''
 void f(bool b) {
@@ -5122,6 +5136,22 @@ Set<String> f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('String>{').node,
         hard: false);
+  }
+
+  test_setter_overrides_implicit_setter() async {
+    await analyze('''
+class A {
+  String/*1*/ s = "x";
+}
+class C implements A {
+  String get s => "x";
+  void set s(String/*2*/ value) {}
+}
+f() => A().s = null;
+''');
+    var string1 = decoratedTypeAnnotation('String/*1*/');
+    var string2 = decoratedTypeAnnotation('String/*2*/');
+    assertEdge(string1.node, string2.node, hard: true);
   }
 
   test_simpleIdentifier_function() async {

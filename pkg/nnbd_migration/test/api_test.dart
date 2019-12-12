@@ -1760,6 +1760,68 @@ void g(C<int?> c) {                   // (3)
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_getter_implicit_returnType_overrides_implicit_getter() async {
+    var content = '''
+class A {
+  final String s = "x";
+}
+class C implements A {
+  get s => false ? "y" : null;
+}
+''';
+    var expected = '''
+class A {
+  final String? s = "x";
+}
+class C implements A {
+  get s => false ? "y" : null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_getter_overrides_implicit_getter() async {
+    var content = '''
+class A {
+  final String s = "x";
+}
+class C implements A {
+  String get s => false ? "y" : null;
+}
+''';
+    var expected = '''
+class A {
+  final String? s = "x";
+}
+class C implements A {
+  String? get s => false ? "y" : null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_getter_overrides_implicit_getter_with_generics() async {
+    var content = '''
+class A<T> {
+  final T value;
+  A(this.value);
+}
+class C implements A<String/*!*/> {
+  String get value => false ? "y" : null;
+}
+''';
+    var expected = '''
+class A<T> {
+  final T? value;
+  A(this.value);
+}
+class C implements A<String/*!*/> {
+  String? get value => false ? "y" : null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_getter_topLevel() async {
     var content = '''
 int get g => 0;
@@ -2514,7 +2576,7 @@ main() {
   test_null_aware_setter_invocation_null_target() async {
     var content = '''
 class C {
-  void set x(int value);
+  void set x(int value) {}
 }
 int f(C c) => c?.x = 1;
 main() {
@@ -2523,7 +2585,7 @@ main() {
 ''';
     var expected = '''
 class C {
-  void set x(int value);
+  void set x(int value) {}
 }
 int? f(C? c) => c?.x = 1;
 main() {
@@ -2536,7 +2598,7 @@ main() {
   test_null_aware_setter_invocation_null_value() async {
     var content = '''
 class C {
-  void set x(int value);
+  void set x(int value) {}
 }
 int f(C c) => c?.x = 1;
 main() {
@@ -2545,7 +2607,7 @@ main() {
 ''';
     var expected = '''
 class C {
-  void set x(int value);
+  void set x(int value) {}
 }
 int? f(C? c) => c?.x = 1;
 main() {
@@ -2991,6 +3053,30 @@ int? recover() {
   assert(false);
   return null;
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_setter_overrides_implicit_setter() async {
+    var content = '''
+class A {
+  String s = "x";
+}
+class C implements A {
+  String get s => "x";
+  void set s(String value) {}
+}
+f() => A().s = null;
+''';
+    var expected = '''
+class A {
+  String? s = "x";
+}
+class C implements A {
+  String get s => "x";
+  void set s(String? value) {}
+}
+f() => A().s = null;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

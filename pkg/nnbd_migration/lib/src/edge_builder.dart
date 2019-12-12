@@ -1811,65 +1811,90 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           overriddenElement = overriddenElement.declaration;
           var overriddenClass =
               overriddenElement.enclosingElement as ClassElement;
-          var decoratedOverriddenFunctionType =
-              _variables.decoratedElementType(overriddenElement);
           var decoratedSupertype = _decoratedClassHierarchy
               .getDecoratedSupertype(classElement, overriddenClass);
           var substitution = decoratedSupertype.asSubstitution;
-          var overriddenFunctionType =
-              decoratedOverriddenFunctionType.substitute(substitution);
-          if (returnType == null) {
-            _unionDecoratedTypes(
-                _currentFunctionType.returnType,
-                overriddenFunctionType.returnType,
-                ReturnTypeInheritanceOrigin(source, node));
+          if (overriddenElement is PropertyAccessorElement &&
+              overriddenElement.isSynthetic) {
+            assert(node is MethodDeclaration);
+            var method = node as MethodDeclaration;
+            var decoratedOverriddenField =
+                _variables.decoratedElementType(overriddenElement.variable);
+            var overriddenFieldType =
+                decoratedOverriddenField.substitute(substitution);
+            if (method.isGetter) {
+              _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+                  source: _currentFunctionType.returnType,
+                  destination: overriddenFieldType,
+                  hard: true);
+            } else {
+              assert(method.isSetter);
+              DecoratedType currentParameterType =
+                  _currentFunctionType.positionalParameters.single;
+              DecoratedType overriddenParameterType = overriddenFieldType;
+              _checkAssignment(ParameterInheritanceOrigin(source, node),
+                  source: overriddenParameterType,
+                  destination: currentParameterType,
+                  hard: true);
+            }
           } else {
-            _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
-                source: _currentFunctionType.returnType,
-                destination: overriddenFunctionType.returnType,
-                hard: true);
-          }
-          if (parameters != null) {
-            int positionalParameterCount = 0;
-            for (var parameter in parameters.parameters) {
-              NormalFormalParameter normalParameter;
-              if (parameter is NormalFormalParameter) {
-                normalParameter = parameter;
-              } else {
-                normalParameter =
-                    (parameter as DefaultFormalParameter).parameter;
-              }
-              DecoratedType currentParameterType;
-              DecoratedType overriddenParameterType;
-              if (parameter.isNamed) {
-                var name = normalParameter.identifier.name;
-                currentParameterType =
-                    _currentFunctionType.namedParameters[name];
-                overriddenParameterType =
-                    overriddenFunctionType.namedParameters[name];
-              } else {
-                if (positionalParameterCount <
-                    _currentFunctionType.positionalParameters.length) {
-                  currentParameterType = _currentFunctionType
-                      .positionalParameters[positionalParameterCount];
-                }
-                if (positionalParameterCount <
-                    overriddenFunctionType.positionalParameters.length) {
-                  overriddenParameterType = overriddenFunctionType
-                      .positionalParameters[positionalParameterCount];
-                }
-                positionalParameterCount++;
-              }
-              if (overriddenParameterType != null) {
-                var origin = ParameterInheritanceOrigin(source, node);
-                if (_isUntypedParameter(normalParameter)) {
-                  _unionDecoratedTypes(
-                      overriddenParameterType, currentParameterType, origin);
+            var decoratedOverriddenFunctionType =
+                _variables.decoratedElementType(overriddenElement);
+            var overriddenFunctionType =
+                decoratedOverriddenFunctionType.substitute(substitution);
+            if (returnType == null) {
+              _unionDecoratedTypes(
+                  _currentFunctionType.returnType,
+                  overriddenFunctionType.returnType,
+                  ReturnTypeInheritanceOrigin(source, node));
+            } else {
+              _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+                  source: _currentFunctionType.returnType,
+                  destination: overriddenFunctionType.returnType,
+                  hard: true);
+            }
+            if (parameters != null) {
+              int positionalParameterCount = 0;
+              for (var parameter in parameters.parameters) {
+                NormalFormalParameter normalParameter;
+                if (parameter is NormalFormalParameter) {
+                  normalParameter = parameter;
                 } else {
-                  _checkAssignment(origin,
-                      source: overriddenParameterType,
-                      destination: currentParameterType,
-                      hard: true);
+                  normalParameter =
+                      (parameter as DefaultFormalParameter).parameter;
+                }
+                DecoratedType currentParameterType;
+                DecoratedType overriddenParameterType;
+                if (parameter.isNamed) {
+                  var name = normalParameter.identifier.name;
+                  currentParameterType =
+                      _currentFunctionType.namedParameters[name];
+                  overriddenParameterType =
+                      overriddenFunctionType.namedParameters[name];
+                } else {
+                  if (positionalParameterCount <
+                      _currentFunctionType.positionalParameters.length) {
+                    currentParameterType = _currentFunctionType
+                        .positionalParameters[positionalParameterCount];
+                  }
+                  if (positionalParameterCount <
+                      overriddenFunctionType.positionalParameters.length) {
+                    overriddenParameterType = overriddenFunctionType
+                        .positionalParameters[positionalParameterCount];
+                  }
+                  positionalParameterCount++;
+                }
+                if (overriddenParameterType != null) {
+                  var origin = ParameterInheritanceOrigin(source, node);
+                  if (_isUntypedParameter(normalParameter)) {
+                    _unionDecoratedTypes(
+                        overriddenParameterType, currentParameterType, origin);
+                  } else {
+                    _checkAssignment(origin,
+                        source: overriddenParameterType,
+                        destination: currentParameterType,
+                        hard: true);
+                  }
                 }
               }
             }

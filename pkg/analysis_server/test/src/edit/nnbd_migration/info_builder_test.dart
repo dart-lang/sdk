@@ -1011,21 +1011,15 @@ class B extends A {
         details: ["A nullable value is assigned"]);
   }
 
-  @FailingTest(
-      reason: "Currently crashes with: Bad state: A decorated type for void "
-          "set m(int _m) should have been stored by the NodeBuilder via "
-          "recordDecoratedElementType")
   test_parameter_fromOverriddenField_explicit() async {
-    await buildInfoForSingleTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int m;
 }
 class B extends A {
   void set m(Object p) {}
 }
-void f(A a) {
-  a.m = null;
-}
+void f(A a) => a.m = null;
 ''', migratedContent: '''
 class A {
   int? m;
@@ -1033,13 +1027,21 @@ class A {
 class B extends A {
   void set m(Object? p) {}
 }
-void f(A a) {
-  a.m = null;
-}
+void f(A a) => a.m = null;
 ''');
-    // TODO(srawlins): Write expectations similar to
-    //  test_parameter_fromMultipleOverridden_explicit above, once the test stops
-    //  crashing.
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 15, details: [
+      // TODO(srawlins): I suspect this should be removed...
+      "A nullable value is assigned",
+      "An explicit 'null' is assigned in the function 'f'",
+    ]);
+    assertRegion(region: regions[1], offset: 61, details: [
+      // TODO(srawlins): Improve this message to include "B.m".
+      "The corresponding parameter in the overridden method is nullable"
+    ]);
+    assertDetail(detail: regions[0].details[1], offset: 90, length: 4);
+    assertDetail(detail: regions[1].details[0], offset: 12, length: 3);
   }
 
   test_parameter_named_omittedInCall() async {
