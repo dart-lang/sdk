@@ -299,8 +299,17 @@ class TestRunnerDJS implements TestRunner {
 
 /// Class to run fuzz testing.
 class DartFuzzTest {
-  DartFuzzTest(this.env, this.repeat, this.time, this.trueDivergence,
-      this.showStats, this.top, this.mode1, this.mode2, this.rerun);
+  DartFuzzTest(
+      this.env,
+      this.repeat,
+      this.time,
+      this.numOutputLines,
+      this.trueDivergence,
+      this.showStats,
+      this.top,
+      this.mode1,
+      this.mode2,
+      this.rerun);
 
   int run() {
     setup();
@@ -502,15 +511,24 @@ class DartFuzzTest {
     }
   }
 
+  void printDivergenceOutput(String string, int numLines) {
+    final lines = string.split('\n');
+    print(lines.sublist(0, min(lines.length, numLines)).join('\n'));
+  }
+
   void reportDivergence(TestResult result1, TestResult result2) {
     numDivergences++;
     String report = generateReport(result1, result2);
     print('\n${isolate}: !DIVERGENCE! $version:$seed (${report})');
     if (result1.exitCode == result2.exitCode) {
-      // Only report the actual output divergence details when requested,
-      // since this output may be lengthy and should be reproducable anyway.
-      if (showStats) {
-        print('\nout1:\n${result1.output}\nout2:\n${result2.output}\n');
+      if (numOutputLines > 0) {
+        // Only report the actual output divergence details up to
+        // numOutputLines, since this output may be lengthy and should be
+        // reproducable anyway.
+        print('\nout1:\n');
+        printDivergenceOutput(result1.output, numOutputLines);
+        print('\nout2:\n');
+        printDivergenceOutput(result2.output, numOutputLines);
       }
     } else {
       // For any other divergence, always report what went wrong.
@@ -541,6 +559,7 @@ class DartFuzzTest {
   final Map<String, String> env;
   final int repeat;
   final int time;
+  final int numOutputLines;
   final bool trueDivergence;
   final bool showStats;
   final String top;
@@ -583,6 +602,7 @@ class DartFuzzTestSession {
       this.isolates,
       this.repeat,
       this.time,
+      this.numOutputLines,
       this.trueDivergence,
       this.showStats,
       String tp,
@@ -635,6 +655,7 @@ class DartFuzzTestSession {
           Platform.environment,
           session.repeat,
           session.time,
+          session.numOutputLines,
           session.trueDivergence,
           session.showStats,
           session.top,
@@ -680,6 +701,7 @@ class DartFuzzTestSession {
   final int isolates;
   final int repeat;
   final int time;
+  final int numOutputLines;
   final bool trueDivergence;
   final bool showStats;
   final bool rerun;
@@ -750,6 +772,10 @@ main(List<String> arguments) {
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
     ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
+    ..addOption('num-output-lines',
+        help:
+            'number of output lines to be printed in the case of a divergence',
+        defaultsTo: '200')
     ..addFlag('true-divergence',
         negatable: true, help: 'only report true divergences', defaultsTo: true)
     ..addFlag('show-stats',
@@ -782,6 +808,7 @@ main(List<String> arguments) {
             int.parse(results['isolates']),
             int.parse(results['repeat']),
             int.parse(results['time']),
+            int.parse(results['num-output-lines']),
             results['true-divergence'],
             results['show-stats'],
             results['dart-top'],
