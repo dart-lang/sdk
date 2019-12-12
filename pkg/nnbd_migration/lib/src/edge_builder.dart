@@ -1652,8 +1652,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         assert(isLUB, "shouldn't be possible to get T from GLB(null, S)");
         return DecoratedType(type, node);
       }
-      _unimplemented(astNode,
-          'LUB/GLB with type parameter types: ${left.type} ${right.type}');
+
+      if (leftType.element == type.element &&
+          rightType.element == type.element) {
+        return DecoratedType(type, node);
+      }
+
+      _unimplemented(astNode, 'LUB/GLB with unequal type parameter types');
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
   }

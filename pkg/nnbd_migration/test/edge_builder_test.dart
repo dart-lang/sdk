@@ -1729,6 +1729,19 @@ void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
         xType.positionalParameters[0].node, yType.positionalParameters[0].node);
   }
 
+  test_conditionalExpression_parameterType() async {
+    await analyze('''
+T g<T>(bool b, T x, T y) {
+  return (b ? x : y);
+}
+''');
+
+    var nullable_x = decoratedTypeAnnotation('T x').node;
+    var nullable_y = decoratedTypeAnnotation('T y').node;
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertLUB(nullable_conditional, nullable_x, nullable_y);
+  }
+
   test_conditionalExpression_right_non_null() async {
     await analyze('''
 int f(bool b, int i) {
