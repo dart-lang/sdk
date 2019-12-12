@@ -2537,10 +2537,23 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
         if (code_object.IsBytecode()) {
           bytecode ^= code_object.raw();
+          if (FLAG_trace_debugger_stacktrace) {
+            OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame %" Pd
+                         " in async causal stack trace:\n\t%s\n",
+                         i,
+                         Function::Handle(bytecode.function())
+                             .ToFullyQualifiedCString());
+          }
           uword pc = bytecode.PayloadStart() + offset.Value();
           stack_trace->AddAsyncCausalFrame(pc, bytecode);
         } else {
           code ^= code_object.raw();
+          if (FLAG_trace_debugger_stacktrace) {
+            OS::PrintErr(
+                "CollectAwaiterReturnStackTrace: visiting frame %" Pd
+                " in async causal stack trace:\n\t%s\n",
+                i, Function::Handle(code.function()).ToFullyQualifiedCString());
+          }
           uword pc = code.PayloadStart() + offset.Value();
           if (code.is_optimized()) {
             for (InlinedFunctionsIterator it(code, pc); !it.Done();
