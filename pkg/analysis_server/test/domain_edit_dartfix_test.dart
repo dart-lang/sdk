@@ -48,9 +48,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<EditDartfixResult> performFix(
-      {List<String> includedFixes, String outputDir, bool pedantic}) async {
-    var response = await performFixRaw(
-        includedFixes: includedFixes, outputDir: outputDir, pedantic: pedantic);
+      {List<String> includedFixes, bool pedantic}) async {
+    var response =
+        await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
     expect(response.error, isNull);
     return EditDartfixResult.fromResponse(response);
   }
@@ -58,13 +58,11 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   Future<Response> performFixRaw(
       {List<String> includedFixes,
       List<String> excludedFixes,
-      String outputDir,
       bool pedantic}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
-    params.outputDir = outputDir;
     params.includePedanticFixes = pedantic;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
@@ -283,23 +281,6 @@ analyzer:
 linter:
   - boo
 ''');
-  }
-
-  test_dartfix_nonNullable_outputDir() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
-    addTestFile('''
-int f(int i) => 0;
-int g(int i) => f(i);
-void test() {
-  g(null);
-}
-''');
-    createProject();
-    var outputDir = getFolder('/outputDir');
-    await performFix(
-        includedFixes: ['non-nullable'], outputDir: outputDir.path);
-    expect(outputDir.exists, true);
-    expect(outputDir.getChildren(), isNotEmpty);
   }
 
   test_dartfix_partFile() async {

@@ -24,13 +24,12 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   // libraries.
   List<String> renderLibrary(LibraryInfo libraryInfo) {
     String packageRoot = convertPath('/package');
-    String outputDir = convertPath('/output');
     MigrationInfo migrationInfo = MigrationInfo(
         libraryInfo.units, {}, resourceProvider.pathContext, packageRoot);
     List<String> contents = [];
     for (UnitInfo unitInfo in libraryInfo.units) {
-      contents.add(InstrumentationRenderer(unitInfo, migrationInfo,
-              PathMapper(resourceProvider, outputDir, packageRoot))
+      contents.add(InstrumentationRenderer(
+              unitInfo, migrationInfo, PathMapper(resourceProvider))
           .render());
     }
     return contents;

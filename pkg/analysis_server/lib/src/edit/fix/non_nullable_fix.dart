@@ -6,9 +6,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/index_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
@@ -43,14 +40,7 @@ class NonNullableFix extends FixCodeTask {
   /// The included paths may contain absolute and relative paths, non-canonical
   /// paths, and directory and file paths. The "root" is the deepest directory
   /// which all included paths share.
-  ///
-  /// If instrumentation files are written to [outputDir], they will be written
-  /// as if in a directory structure rooted at [includedRoot].
   final String includedRoot;
-
-  /// The absolute path of the directory to which preview pages are to be
-  /// written, or `null` if no preview pages should be written to disk.
-  final String outputDir;
 
   /// The port on which preview pages should be served, or `null` if no preview
   /// server should be started.
@@ -65,12 +55,10 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener, this.outputDir, this.port,
-      {List<String> included = const []})
+  NonNullableFix(this.listener, this.port, {List<String> included = const []})
       : this.includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
-    instrumentationListener =
-        outputDir == null && port == null ? null : InstrumentationListener();
+    instrumentationListener = port == null ? null : InstrumentationListener();
     migration = new NullabilityMigration(
         new NullabilityMigrationAdapter(listener),
         permissive: _usePermissiveMode,
@@ -89,14 +77,6 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     migration.finish();
-    if (outputDir != null) {
-      OverlayResourceProvider provider = listener.server.resourceProvider;
-      Folder outputFolder = provider.getFolder(outputDir);
-      if (!outputFolder.exists) {
-        outputFolder.create();
-      }
-      await _generateOutput(provider, outputFolder);
-    }
     if (port != null) {
       OverlayResourceProvider provider = listener.server.resourceProvider;
       InfoBuilder infoBuilder = InfoBuilder(
@@ -105,7 +85,7 @@ class NonNullableFix extends FixCodeTask {
       var pathContext = provider.pathContext;
       MigrationInfo migrationInfo = MigrationInfo(
           unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-      PathMapper pathMapper = PathMapper(provider, outputDir, includedRoot);
+      PathMapper pathMapper = PathMapper(provider);
 
       print(Uri(
           scheme: 'http', host: 'localhost', port: port, path: includedRoot));
@@ -246,73 +226,10 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  /// Generate output into the given [folder].
-  void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    // Remove any previously generated output.
-    folder.getChildren().forEach((resource) => resource.delete());
-    // Gather the data needed in order to produce the output.
-    InfoBuilder infoBuilder = InfoBuilder(
-        provider, includedRoot, instrumentationListener.data, listener);
-    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-    var pathContext = provider.pathContext;
-    MigrationInfo migrationInfo = MigrationInfo(
-        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-    PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
-
-    /// Produce output for the compilation unit represented by the [unitInfo].
-    void render(UnitInfo unitInfo) {
-      File output = provider.getFile(pathMapper.map(unitInfo.path));
-      output.parent.create();
-      String rendered =
-          InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
-      output.writeAsStringSync(rendered);
-    }
-
-    //
-    // Generate the index file.
-    //
-    String indexPath = pathContext.join(folder.path, 'index.html');
-    File output = provider.getFile(indexPath);
-    output.parent.create();
-    String rendered = IndexRenderer(migrationInfo, writeToDisk: true).render();
-    output.writeAsStringSync(rendered);
-    //
-    // Generate the files in the package being migrated.
-    //
-    for (UnitInfo unitInfo in unitInfos) {
-      render(unitInfo);
-    }
-    //
-    // Generate other dart files.
-    //
-    for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
-      if (!unitInfos.contains(unitInfo)) {
-        if (unitInfo.content == null) {
-          try {
-            unitInfo.content =
-                provider.getFile(unitInfo.path).readAsStringSync();
-          } catch (_) {
-            // If we can't read the content of the file, then skip it.
-            continue;
-          }
-        }
-        render(unitInfo);
-      }
-    }
-    // Generate resource files.
-    File highlightJsOutput =
-        provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
-    highlightJsOutput.writeAsStringSync(decodeHighlightJs());
-    File highlightCssOutput =
-        provider.getFile(pathContext.join(folder.path, 'androidstudio.css'));
-    highlightCssOutput.writeAsStringSync(decodeHighlightCss());
-  }
-
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(new NonNullableFix(
-        listener, params.outputDir, params.port,
-        included: params.included));
+    registrar.registerCodeTask(
+        new NonNullableFix(listener, params.port, included: params.included));
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its

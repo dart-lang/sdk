@@ -8,6 +8,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/dart_page_style.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
@@ -361,26 +362,12 @@ class MigrationInfo {
 
   /// The path to the highlight.js script, relative to [unitInfo].
   String highlightJsPath(UnitInfo unitInfo) {
-    if (pathContext.isWithin(includedRoot, unitInfo.path)) {
-      return pathContext.relative(
-          pathContext.join(includedRoot, '..', 'highlight.pack.js'),
-          from: pathContext.dirname(unitInfo.path));
-    }
-    // Files that aren't within the [includedRoot] are written to the top-level
-    // of the output directory, next to the Javascript file.
-    return pathContext.join('..', 'highlight.pack.js');
+    return PreviewSite.highlightJSPagePath;
   }
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
   String highlightStylePath(UnitInfo unitInfo) {
-    if (pathContext.isWithin(includedRoot, unitInfo.path)) {
-      return pathContext.relative(
-          pathContext.join(includedRoot, '..', 'androidstudio.css'),
-          from: pathContext.dirname(unitInfo.path));
-    }
-    // Files that aren't within the [includedRoot] are written to the top-level
-    // of the output directory, next to the CSS file.
-    return pathContext.join('..', 'androidstudio.css');
+    return PreviewSite.highlightCssPagePath;
   }
 
   /// Generate mustache context for unit links, for navigation in the
@@ -409,7 +396,7 @@ class MigrationInfo {
 
   /// The path to [target], relative to [from].
   String _pathTo({@required UnitInfo target, @required UnitInfo source}) {
-    String targetPath = pathContext.setExtension(target.path, '.html');
+    String targetPath = target.path;
     String sourceDir = pathContext.dirname(source.path);
     return pathContext.relative(targetPath, from: sourceDir);
   }
