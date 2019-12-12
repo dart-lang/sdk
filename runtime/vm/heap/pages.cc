@@ -96,12 +96,10 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
-  RawObject* volatile debugging_prev = 0;  // TODO(36906): Remove.
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     visitor->VisitObject(raw_obj);
     obj_addr += raw_obj->HeapSize();
-    debugging_prev = raw_obj;
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -112,11 +110,9 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
-  RawObject* volatile debugging_prev = 0;  // TODO(36906): Remove.
   while (obj_addr < end_addr) {
     RawObject* raw_obj = RawObject::FromAddr(obj_addr);
     obj_addr += raw_obj->VisitPointers(visitor);
-    debugging_prev = raw_obj;
   }
   ASSERT(obj_addr == end_addr);
 }

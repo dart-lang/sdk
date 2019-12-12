@@ -785,15 +785,15 @@ static void PushArrayOfArguments(Assembler* assembler) {
   // R3: address of first argument in array.
 
   Label loop, loop_exit;
+  __ Bind(&loop);
   __ CompareRegisters(R2, ZR);
   __ b(&loop_exit, LE);
-  __ Bind(&loop);
   __ ldr(R7, Address(R1));
   __ AddImmediate(R1, -target::kWordSize);
   __ AddImmediate(R3, target::kWordSize);
-  __ AddImmediateSetFlags(R2, R2, -target::ToRawSmi(1));
+  __ AddImmediate(R2, R2, -target::ToRawSmi(1));
   __ StoreIntoObject(R0, Address(R3, -target::kWordSize), R7);
-  __ b(&loop, GE);
+  __ b(&loop);
   __ Bind(&loop_exit);
 }
 
