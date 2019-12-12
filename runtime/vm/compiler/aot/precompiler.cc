@@ -295,6 +295,15 @@ void Precompiler::DoCompileAll() {
                 global_object_pool_builder());
         I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
 
+        stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
+            global_object_pool_builder());
+        I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificAllocateMintWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_allocate_mint_without_fpu_regs_stub(stub_code);
+
         stub_code =
             StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
                 global_object_pool_builder());

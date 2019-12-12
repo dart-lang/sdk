@@ -847,6 +847,7 @@ class FlowGraphCompiler : public ValueObject {
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
  private:
+  friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
