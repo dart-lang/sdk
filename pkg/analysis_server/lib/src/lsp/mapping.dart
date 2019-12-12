@@ -740,6 +740,13 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
   }
 }
 
+lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
+    lsp.Element(
+      toRange(lineInfo, element.location.offset, element.location.length),
+      element.name,
+      element.kind.name,
+    );
+
 lsp.FoldingRange toFoldingRange(
     server.LineInfo lineInfo, server.FoldingRegion region) {
   final range = toRange(lineInfo, region.offset, region.length);
@@ -799,6 +806,16 @@ ErrorOr<int> toOffset(
   return new ErrorOr<int>.success(
       lineInfo.getOffsetOfLine(pos.line) + pos.character);
 }
+
+lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) =>
+    lsp.Outline(
+      toElement(lineInfo, outline.element),
+      toRange(lineInfo, outline.offset, outline.length),
+      toRange(lineInfo, outline.codeOffset, outline.codeLength),
+      outline.children != null
+          ? outline.children.map((c) => toOutline(lineInfo, c)).toList()
+          : null,
+    );
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.

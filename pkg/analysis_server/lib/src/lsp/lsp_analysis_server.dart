@@ -14,6 +14,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
@@ -379,6 +380,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendNotification(message);
   }
 
+  void publishOutline(String path, Outline outline) {
+    final params = new PublishOutlineParams(Uri.file(path).toString(), outline);
+    final message = new NotificationMessage(
+      CustomMethods.PublishOutline,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   removePriorityFile(String path) {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
@@ -496,6 +507,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         !contextManager.isContainedInDotFolder(file);
   }
 
+  /// Returns `true` if outlines should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendOutlineFor(String file) {
+    // Outlines should only be sent for open (priority) files in the workspace.
+    return initializationOptions.outline &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
   void showErrorMessageToUser(String message) {
     showMessageToUser(MessageType.Error, message);
   }
@@ -560,6 +580,7 @@ class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
+  final bool outline;
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
@@ -567,7 +588,8 @@ class LspInitializationOptions {
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
             options['suggestFromUnimportedLibraries'] != false,
-        closingLabels = options != null && options['closingLabels'] == true;
+        closingLabels = options != null && options['closingLabels'] == true,
+        outline = options != null && options['outline'] == true;
 }
 
 class LspPerformance {
@@ -620,6 +642,14 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
                   .toList();
 
           analysisServer.publishClosingLabels(result.path, labels);
+        }
+        if (analysisServer.shouldSendOutlineFor(path)) {
+          final outline = new DartUnitOutlineComputer(
+            result,
+            withBasicFlutter: true,
+          ).compute();
+          final lspOutline = toOutline(result.lineInfo, outline);
+          analysisServer.publishOutline(result.path, lspOutline);
         }
       }
     });

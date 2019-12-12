@@ -25,6 +25,7 @@ import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
 import 'mapping_test.dart' as mapping;
+import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
@@ -57,6 +58,7 @@ main() {
     initialization.main();
     lsp_packet_transformer.main();
     mapping.main();
+    outline.main();
     priority_files.main();
     references.main();
     rename.main();

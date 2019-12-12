@@ -21,6 +21,7 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 - `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
 - `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 - `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
+- `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.files.
 
 ## Method Status
 
@@ -120,3 +121,17 @@ Direction: Server -> Client
 Params: `{ uri: string, labels: { label: string, range: Range }[] }`
 
 Notifies the client when closing label information is available (or updated) for a file.
+
+### dart/textDocument/publishOutline Notification
+
+Direction: Server -> Client
+Params: `{ uri: string, outline: Outline }`
+Outline: `{ element: { name: string, range: Range, kind: string }, range: Range, codeRange: Range, children: Outline[] }`
+
+Notifies the client when outline information is available (or updated) for a file.
+
+Nodes contains multiple ranges:
+
+- `element.range` - the range of the name in the declaration of the element
+- `range` - the entire range of the declaration including dartdocs
+- `codeRange` - the range of code part of the declaration (excluding dartdocs and annotations) - typically used when navigating to the declaration

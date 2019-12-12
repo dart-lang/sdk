@@ -31,6 +31,240 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
+abstract class AbstractLspAnalysisServerTest
+    with
+        ResourceProviderMixin,
+        ClientCapabilitiesHelperMixin,
+        LspAnalysisServerTestMixin {
+  MockLspServerChannel channel;
+  LspAnalysisServer server;
+
+  Stream<Message> get serverToClient => channel.serverToClient;
+
+  /// Sends a request to the server and unwraps the result. Throws if the
+  /// response was not successful or returned an error.
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+    final resp = await sendRequestToServer(request);
+    if (resp.error != null) {
+      throw resp.error;
+    } else {
+      return resp.result as T;
+    }
+  }
+
+  Future sendNotificationToServer(NotificationMessage notification) async {
+    channel.sendNotificationToServer(notification);
+    await pumpEventQueue();
+  }
+
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
+    return channel.sendRequestToServer(request);
+  }
+
+  void sendResponseToServer(ResponseMessage response) {
+    channel.sendResponseToServer(response);
+  }
+
+  void setUp() {
+    channel = new MockLspServerChannel(debugPrintCommunication);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
+    server = new LspAnalysisServer(
+        channel,
+        resourceProvider,
+        new AnalysisServerOptions(),
+        new DartSdkManager(convertPath('/sdk'), false),
+        InstrumentationService.NULL_SERVICE);
+
+    projectFolderPath = convertPath('/home/test');
+    projectFolderUri = Uri.file(projectFolderPath);
+    newFolder(projectFolderPath);
+    newFolder(join(projectFolderPath, 'lib'));
+    // Create a folder and file to aid testing that includes imports/completion.
+    newFolder(join(projectFolderPath, 'lib', 'folder'));
+    newFile(join(projectFolderPath, 'lib', 'file.dart'));
+    mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
+    mainFileUri = Uri.file(mainFilePath);
+    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
+    pubspecFileUri = Uri.file(pubspecFilePath);
+    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    analysisOptionsUri = Uri.file(analysisOptionsPath);
+  }
+
+  Future tearDown() async {
+    channel.close();
+    await server.shutdown();
+  }
+}
+
+mixin ClientCapabilitiesHelperMixin {
+  final emptyTextDocumentClientCapabilities =
+      new TextDocumentClientCapabilities(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null);
+
+  final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
+      null, null, null, null, null, null, null, null);
+
+  TextDocumentClientCapabilities extendTextDocumentCapabilities(
+    TextDocumentClientCapabilities source,
+    Map<String, dynamic> textDocumentCapabilities,
+  ) {
+    // TODO(dantup): Figure out why we need to do this to get a map...
+    // source.toJson() doesn't recursively called toJson() so we end up with
+    // objects (instead of maps) in child properties, which means multiple
+    // calls to this function do not work correctly. For now, calling jsonEncode
+    // then jsonDecode will force recursive serialisation.
+    final json = jsonDecode(jsonEncode(source));
+    if (textDocumentCapabilities != null) {
+      textDocumentCapabilities.keys.forEach((key) {
+        json[key] = textDocumentCapabilities[key];
+      });
+    }
+    return TextDocumentClientCapabilities.fromJson(json);
+  }
+
+  WorkspaceClientCapabilities extendWorkspaceCapabilities(
+    WorkspaceClientCapabilities source,
+    Map<String, dynamic> workspaceCapabilities,
+  ) {
+    // TODO(dantup): As above - it seems like this round trip should be
+    // unnecessary.
+    final json = jsonDecode(jsonEncode(source));
+    if (workspaceCapabilities != null) {
+      workspaceCapabilities.keys.forEach((key) {
+        json[key] = workspaceCapabilities[key];
+      });
+    }
+    return WorkspaceClientCapabilities.fromJson(json);
+  }
+
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'applyEdit': true});
+  }
+
+  TextDocumentClientCapabilities withCodeActionKinds(
+    TextDocumentClientCapabilities source,
+    List<CodeActionKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'codeAction': {
+        'codeActionLiteralSupport': {
+          'codeActionKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemDeprecatedSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'deprecatedSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemKinds(
+    TextDocumentClientCapabilities source,
+    List<CompletionItemKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItemKind': {
+          'valueSet': kinds.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'snippetSupport': true}
+      }
+    });
+  }
+
+  WorkspaceClientCapabilities withDocumentChangesSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'workspaceEdit': {'documentChanges': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withHoverContentFormat(
+    TextDocumentClientCapabilities source,
+    List<MarkupKind> formats,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
+    });
+  }
+
+  TextDocumentClientCapabilities withHoverDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'hover': {'dynamicRegistration': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withSignatureHelpContentFormat(
+    TextDocumentClientCapabilities source,
+    List<MarkupKind> formats,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'synchronization': {'dynamicRegistration': true}
+    });
+  }
+}
+
 mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
@@ -45,8 +279,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   final String simplePubspecContent = 'name: my_project';
   final startOfDocPos = new Position(0, 0);
   final startOfDocRange = new Range(new Position(0, 0), new Position(0, 0));
-
-  Stream<Message> get serverToClient;
 
   /**
    * A stream of [NotificationMessage]s from the server that may be errors.
@@ -64,15 +296,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         .cast<NotificationMessage>();
   }
 
-  /// Checks whether a notification is likely an error from the server (for
-  /// example a window/showMessage). This is useful for tests that want to
-  /// ensure no errors come from the server in response to notifications (which
-  /// don't have their own responses).
-  bool _isErrorNotification(NotificationMessage notification) {
-    return notification.method == Method.window_logMessage ||
-        notification.method == Method.window_showMessage;
-  }
-
   /**
    * A stream of [RequestMessage]s from the server.
    */
@@ -81,6 +304,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         .where((m) => m is RequestMessage)
         .cast<RequestMessage>();
   }
+
+  Stream<Message> get serverToClient;
 
   void applyChanges(
     Map<String, String> fileContents,
@@ -276,13 +501,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       // For resource changes, we only need to validate changes since
       // creates/renames/deletes do not supply versions.
       (changes) => changes.forEach((change) {
-            change.map(
-              (edit) => expectDocumentVersion(edit, expectedVersions),
-              (create) => {},
-              (rename) {},
-              (delete) {},
-            );
-          }),
+        change.map(
+          (edit) => expectDocumentVersion(edit, expectedVersions),
+          (create) => {},
+          (rename) {},
+          (delete) {},
+        );
+      }),
     );
   }
 
@@ -387,14 +612,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
-  Future<CompletionItem> resolveCompletion(CompletionItem item) {
-    final request = makeRequest(
-      Method.completionItem_resolve,
-      item,
-    );
-    return expectSuccessfulResponseTo<CompletionItem>(request);
-  }
-
   Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
@@ -432,14 +649,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       new DocumentSymbolParams(
         new TextDocumentIdentifier(fileUri),
       ),
-    );
-    return expectSuccessfulResponseTo(request);
-  }
-
-  Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
-    final request = makeRequest(
-      Method.workspace_symbol,
-      new WorkspaceSymbolParams(query),
     );
     return expectSuccessfulResponseTo(request);
   }
@@ -515,6 +724,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       ),
     );
     return expectSuccessfulResponseTo<Location>(request);
+  }
+
+  Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
+    final request = makeRequest(
+      Method.workspace_symbol,
+      new WorkspaceSymbolParams(query),
+    );
+    return expectSuccessfulResponseTo(request);
   }
 
   /// Executes [f] then waits for a request of type [method] from the server which
@@ -748,16 +965,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  Future<CompletionItem> resolveCompletion(CompletionItem item) {
+    final request = makeRequest(
+      Method.completionItem_resolve,
+      item,
+    );
+    return expectSuccessfulResponseTo<CompletionItem>(request);
+  }
+
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
   void respondTo<T>(RequestMessage request, T responseParams) {
     sendResponseToServer(
         new ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
-  }
-
-  Future<Null> sendShutdown() {
-    final request = makeRequest(Method.shutdown, null);
-    return expectSuccessfulResponseTo(request);
   }
 
   void sendExit() {
@@ -771,32 +991,32 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void sendResponseToServer(ResponseMessage response);
 
+  Future<Null> sendShutdown() {
+    final request = makeRequest(Method.shutdown, null);
+    return expectSuccessfulResponseTo(request);
+  }
+
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
   }
 
-  Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {
-    PublishDiagnosticsParams diagnosticParams;
+  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
+      waitForAnalysisStatus(false);
+
+  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
+      waitForAnalysisStatus(true);
+
+  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
+    AnalyzerStatusParams params;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams =
-            _convertParams(message, PublishDiagnosticsParams.fromJson);
-        return diagnosticParams.uri == uri.toString();
+          message.method == CustomMethods.AnalyzerStatus) {
+        params = _convertParams(message, AnalyzerStatusParams.fromJson);
+        return params.isAnalyzing == analyzing;
       }
       return false;
     });
-    return diagnosticParams.diagnostics;
-  }
-
-  /// A helper to simplify processing of results for both in-process tests (where
-  /// we'll get the real type back), and out-of-process integration tests (where
-  /// params is `Map<String, dynamic>` and needs to be fromJson'd).
-  T _convertParams<T>(
-    IncomingMessage message,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
-    return message.params is T ? message.params : fromJson(message.params);
+    return params;
   }
 
   Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
@@ -814,23 +1034,32 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return closingLabelsParams.labels;
   }
 
-  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
-      waitForAnalysisStatus(true);
-
-  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
-      waitForAnalysisStatus(false);
-
-  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
-    AnalyzerStatusParams params;
+  Future<List<Diagnostic>> waitForDiagnostics(Uri uri) async {
+    PublishDiagnosticsParams diagnosticParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.AnalyzerStatus) {
-        params = _convertParams(message, AnalyzerStatusParams.fromJson);
-        return params.isAnalyzing == analyzing;
+          message.method == Method.textDocument_publishDiagnostics) {
+        diagnosticParams =
+            _convertParams(message, PublishDiagnosticsParams.fromJson);
+        return diagnosticParams.uri == uri.toString();
       }
       return false;
     });
-    return params;
+    return diagnosticParams.diagnostics;
+  }
+
+  Future<Outline> waitForOutline(Uri uri) async {
+    PublishOutlineParams outlineParams;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.PublishOutline) {
+        outlineParams = _convertParams(message, PublishOutlineParams.fromJson);
+
+        return outlineParams.uri == uri.toString();
+      }
+      return false;
+    });
+    return outlineParams.outline;
   }
 
   /// Removes markers like `[[` and `]]` and `^` that are used for marking
@@ -841,238 +1070,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Removes range markers from strings to give accurate position offsets.
   String withoutRangeMarkers(String contents) =>
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
-}
 
-abstract class AbstractLspAnalysisServerTest
-    with
-        ResourceProviderMixin,
-        ClientCapabilitiesHelperMixin,
-        LspAnalysisServerTestMixin {
-  MockLspServerChannel channel;
-  LspAnalysisServer server;
-
-  Stream<Message> get serverToClient => channel.serverToClient;
-
-  /// Sends a request to the server and unwraps the result. Throws if the
-  /// response was not successful or returned an error.
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
-    final resp = await sendRequestToServer(request);
-    if (resp.error != null) {
-      throw resp.error;
-    } else {
-      return resp.result as T;
-    }
-  }
-
-  Future sendNotificationToServer(NotificationMessage notification) async {
-    channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
-  }
-
-  Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
-    return channel.sendRequestToServer(request);
-  }
-
-  void sendResponseToServer(ResponseMessage response) {
-    channel.sendResponseToServer(response);
-  }
-
-  void setUp() {
-    channel = new MockLspServerChannel(debugPrintCommunication);
-    // Create an SDK in the mock file system.
-    new MockSdk(resourceProvider: resourceProvider);
-    server = new LspAnalysisServer(
-        channel,
-        resourceProvider,
-        new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/sdk'), false),
-        InstrumentationService.NULL_SERVICE);
-
-    projectFolderPath = convertPath('/home/test');
-    projectFolderUri = Uri.file(projectFolderPath);
-    newFolder(projectFolderPath);
-    newFolder(join(projectFolderPath, 'lib'));
-    // Create a folder and file to aid testing that includes imports/completion.
-    newFolder(join(projectFolderPath, 'lib', 'folder'));
-    newFile(join(projectFolderPath, 'lib', 'file.dart'));
-    mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    mainFileUri = Uri.file(mainFilePath);
-    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
-    pubspecFileUri = Uri.file(pubspecFilePath);
-    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
-    analysisOptionsUri = Uri.file(analysisOptionsPath);
-  }
-
-  Future tearDown() async {
-    channel.close();
-    await server.shutdown();
-  }
-}
-
-mixin ClientCapabilitiesHelperMixin {
-  final emptyTextDocumentClientCapabilities =
-      new TextDocumentClientCapabilities(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null);
-
-  final emptyWorkspaceClientCapabilities = new WorkspaceClientCapabilities(
-      null, null, null, null, null, null, null, null);
-
-  TextDocumentClientCapabilities extendTextDocumentCapabilities(
-    TextDocumentClientCapabilities source,
-    Map<String, dynamic> textDocumentCapabilities,
+  /// A helper to simplify processing of results for both in-process tests (where
+  /// we'll get the real type back), and out-of-process integration tests (where
+  /// params is `Map<String, dynamic>` and needs to be fromJson'd).
+  T _convertParams<T>(
+    IncomingMessage message,
+    T Function(Map<String, dynamic>) fromJson,
   ) {
-    // TODO(dantup): Figure out why we need to do this to get a map...
-    // source.toJson() doesn't recursively called toJson() so we end up with
-    // objects (instead of maps) in child properties, which means multiple
-    // calls to this function do not work correctly. For now, calling jsonEncode
-    // then jsonDecode will force recursive serialisation.
-    final json = jsonDecode(jsonEncode(source));
-    if (textDocumentCapabilities != null) {
-      textDocumentCapabilities.keys.forEach((key) {
-        json[key] = textDocumentCapabilities[key];
-      });
-    }
-    return TextDocumentClientCapabilities.fromJson(json);
+    return message.params is T ? message.params : fromJson(message.params);
   }
 
-  WorkspaceClientCapabilities extendWorkspaceCapabilities(
-    WorkspaceClientCapabilities source,
-    Map<String, dynamic> workspaceCapabilities,
-  ) {
-    // TODO(dantup): As above - it seems like this round trip should be
-    // unnecessary.
-    final json = jsonDecode(jsonEncode(source));
-    if (workspaceCapabilities != null) {
-      workspaceCapabilities.keys.forEach((key) {
-        json[key] = workspaceCapabilities[key];
-      });
-    }
-    return WorkspaceClientCapabilities.fromJson(json);
-  }
-
-  TextDocumentClientCapabilities withCodeActionKinds(
-    TextDocumentClientCapabilities source,
-    List<CodeActionKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'codeAction': {
-        'codeActionLiteralSupport': {
-          'codeActionKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemDeprecatedSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'completion': {
-        'completionItem': {'deprecatedSupport': true}
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'completion': {
-        'completionItem': {'snippetSupport': true}
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemKinds(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'completion': {
-        'completionItemKind': {
-          'valueSet': kinds.map((k) => k.toJson()).toList()
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'dynamicRegistration': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withSignatureHelpContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'signatureHelp': {
-        'signatureInformation': {
-          'documentationFormat': formats.map((k) => k.toJson()).toList()
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
-      'workspaceEdit': {'documentChanges': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withApplyEditSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'applyEdit': true});
+  /// Checks whether a notification is likely an error from the server (for
+  /// example a window/showMessage). This is useful for tests that want to
+  /// ensure no errors come from the server in response to notifications (which
+  /// don't have their own responses).
+  bool _isErrorNotification(NotificationMessage notification) {
+    return notification.method == Method.window_logMessage ||
+        notification.method == Method.window_showMessage;
   }
 }

@@ -449,6 +449,269 @@ class DartDiagnosticServer implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+class Element implements ToJsonable {
+  static const jsonHandler =
+      const LspJsonHandler(Element.canParse, Element.fromJson);
+
+  Element(this.range, this.name, this.kind) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (name == null) {
+      throw 'name is required but was not provided';
+    }
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
+  }
+  static Element fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final name = json['name'];
+    final kind = json['kind'];
+    return new Element(range, name, kind);
+  }
+
+  final String kind;
+  final String name;
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['range'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('name');
+      try {
+        if (!obj.containsKey('name')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['name'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['name'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('kind');
+      try {
+        if (!obj.containsKey('kind')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['kind'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type Element");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is Element) {
+      return range == other.range &&
+          name == other.name &&
+          kind == other.kind &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class Outline implements ToJsonable {
+  static const jsonHandler =
+      const LspJsonHandler(Outline.canParse, Outline.fromJson);
+
+  Outline(this.element, this.range, this.codeRange, this.children) {
+    if (element == null) {
+      throw 'element is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (codeRange == null) {
+      throw 'codeRange is required but was not provided';
+    }
+  }
+  static Outline fromJson(Map<String, dynamic> json) {
+    final element =
+        json['element'] != null ? Element.fromJson(json['element']) : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final codeRange =
+        json['codeRange'] != null ? Range.fromJson(json['codeRange']) : null;
+    final children = json['children']
+        ?.map((item) => item != null ? Outline.fromJson(item) : null)
+        ?.cast<Outline>()
+        ?.toList();
+    return new Outline(element, range, codeRange, children);
+  }
+
+  final List<Outline> children;
+  final Range codeRange;
+  final Element element;
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['element'] =
+        element ?? (throw 'element is required but was not set');
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['codeRange'] =
+        codeRange ?? (throw 'codeRange is required but was not set');
+    if (children != null) {
+      __result['children'] = children;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('element');
+      try {
+        if (!obj.containsKey('element')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['element'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Element.canParse(obj['element'], reporter))) {
+          reporter.reportError("must be of type Element");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['range'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('codeRange');
+      try {
+        if (!obj.containsKey('codeRange')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['codeRange'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['codeRange'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('children');
+      try {
+        if (obj['children'] != null &&
+            !((obj['children'] is List &&
+                (obj['children']
+                    .every((item) => Outline.canParse(item, reporter)))))) {
+          reporter.reportError("must be of type List<Outline>");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type Outline");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is Outline) {
+      return element == other.element &&
+          range == other.range &&
+          codeRange == other.codeRange &&
+          listEqual(
+              children, other.children, (Outline a, Outline b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class PublishClosingLabelsParams implements ToJsonable {
   static const jsonHandler = const LspJsonHandler(
       PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
@@ -541,6 +804,99 @@ class PublishClosingLabelsParams implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, labels.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PublishOutlineParams implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
+
+  PublishOutlineParams(this.uri, this.outline) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (outline == null) {
+      throw 'outline is required but was not provided';
+    }
+  }
+  static PublishOutlineParams fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final outline =
+        json['outline'] != null ? Outline.fromJson(json['outline']) : null;
+    return new PublishOutlineParams(uri, outline);
+  }
+
+  final Outline outline;
+  final String uri;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['outline'] =
+        outline ?? (throw 'outline is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('uri');
+      try {
+        if (!obj.containsKey('uri')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['uri'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('outline');
+      try {
+        if (!obj.containsKey('outline')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['outline'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Outline.canParse(obj['outline'], reporter))) {
+          reporter.reportError("must be of type Outline");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type PublishOutlineParams");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is PublishOutlineParams) {
+      return uri == other.uri && outline == other.outline && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
