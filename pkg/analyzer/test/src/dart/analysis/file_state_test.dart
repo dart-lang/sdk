@@ -55,7 +55,7 @@ class FileSystemStateTest with ResourceProviderMixin {
         'bbb': [getFolder('/bbb/lib')],
       }),
       ResourceUriResolver(resourceProvider)
-    ], null, resourceProvider);
+    ]);
     AnalysisOptions analysisOptions = AnalysisOptionsImpl();
     fileSystemState = FileSystemState(
         logger,

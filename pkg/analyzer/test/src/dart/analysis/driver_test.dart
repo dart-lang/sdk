@@ -77,9 +77,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
         contentOverlay,
         null,
         SourceFactory(
-            [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
-            null,
-            resourceProvider),
+          [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
+        ),
         AnalysisOptionsImpl());
     driver.results.forEach(allResults.add);
     return driver;

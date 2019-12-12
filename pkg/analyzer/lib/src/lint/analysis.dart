@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -31,10 +32,8 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
@@ -156,6 +155,11 @@ class LintDriver {
       resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
     }
 
+    var packageUriResolver = _getPackageUriResolver();
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
+
     // File URI resolver must come last so that files inside "/lib" are
     // are analyzed via "package:" URI's.
     resolvers.add(ResourceUriResolver(resourceProvider));
@@ -174,7 +178,7 @@ class LintDriver {
     await null;
     AnalysisEngine.instance.instrumentationService = StdInstrumentation();
 
-    SourceFactory sourceFactory = SourceFactory(resolvers, _getPackageConfig());
+    SourceFactory sourceFactory = SourceFactory(resolvers);
 
     PerformanceLog log = PerformanceLog(null);
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
@@ -232,18 +236,31 @@ class LintDriver {
     }
   }
 
-  Packages _getPackageConfig() {
-    if (options.packageConfigPath != null) {
-      String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = Uri.file(packageConfigPath);
+  PackageMapUriResolver _getPackageUriResolver() {
+    var packageConfigPath = options.packageConfigPath;
+    if (packageConfigPath != null) {
+      var resourceProvider = PhysicalResourceProvider.INSTANCE;
+      var pathContext = resourceProvider.pathContext;
+      packageConfigPath = pathContext.absolute(packageConfigPath);
+      packageConfigPath = pathContext.normalize(packageConfigPath);
+
       try {
-        io.File configFile = io.File.fromUri(fileUri).absolute;
-        List<int> bytes = configFile.readAsBytesSync();
-        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        return MapPackages(map);
+        var packages = parseDotPackagesFile(
+          resourceProvider,
+          resourceProvider.getFile(packageConfigPath),
+          Version(2, 6, 0),
+        );
+
+        var packageMap = <String, List<Folder>>{};
+        for (var package in packages.packages) {
+          packageMap[package.name] = [package.libFolder];
+        }
+
+        return PackageMapUriResolver(resourceProvider, packageMap);
       } catch (e) {
         printAndFail(
-            'Unable to read package config data from $packageConfigPath: $e');
+          'Unable to read package config data from $packageConfigPath: $e',
+        );
       }
     }
     return null;

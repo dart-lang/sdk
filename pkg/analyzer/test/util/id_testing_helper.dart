@@ -133,7 +133,7 @@ Future<bool> runTestForConfig<T>(
         DartUriResolver(sdk),
         PackageMapUriResolver(resourceProvider, packageMap),
         ResourceUriResolver(resourceProvider)
-      ], null, resourceProvider),
+      ]),
       analysisOptions,
       retainDataForTesting: true);
   scheduler.start();

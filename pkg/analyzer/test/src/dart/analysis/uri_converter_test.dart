@@ -34,7 +34,7 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
         'bar': [barFolder],
       }),
       ResourceUriResolver(resourceProvider),
-    ], null, resourceProvider);
+    ]);
 
     ContextRoot contextRoot = ContextRoot(barFolder.path, [],
         pathContext: resourceProvider.pathContext);

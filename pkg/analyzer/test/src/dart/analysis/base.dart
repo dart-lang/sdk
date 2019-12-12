@@ -99,7 +99,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           generatedUriResolver,
           PackageMapUriResolver(resourceProvider, packageMap),
           ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
+        ]),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,

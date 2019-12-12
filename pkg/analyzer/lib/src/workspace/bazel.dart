@@ -215,7 +215,7 @@ class BazelWorkspace extends Workspace {
     if (summaryData != null) {
       resolvers.add(InSummaryUriResolver(provider, summaryData));
     }
-    return SourceFactory(resolvers, null, provider);
+    return SourceFactory(resolvers);
   }
 
   /**

@@ -146,7 +146,7 @@ SourceFactory createSourceFactory(AnalyzerOptions options,
 
   var fileResolvers = options.fileResolvers ?? createFileResolvers(options);
   resolvers.addAll(fileResolvers);
-  return SourceFactory(resolvers, null, resourceProvider);
+  return SourceFactory(resolvers);
 }
 
 List<UriResolver> createFileResolvers(AnalyzerOptions options) {

@@ -255,7 +255,7 @@ class PackageBuildWorkspace extends Workspace {
     }
     resolvers.add(packageUriResolver);
     resolvers.add(PackageBuildFileUriResolver(this));
-    return SourceFactory(resolvers, packages, provider);
+    return SourceFactory(resolvers);
   }
 
   /**

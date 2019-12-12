@@ -52,11 +52,7 @@ class SummaryBasedDartSdk implements DartSdk {
   AnalysisContext get context {
     if (_analysisContext == null) {
       var analysisOptions = AnalysisOptionsImpl();
-      var factory = SourceFactory(
-        [DartUriResolver(this)],
-        null,
-        resourceProvider,
-      );
+      var factory = SourceFactory([DartUriResolver(this)]);
       _analysisContext = SdkAnalysisContext(analysisOptions, factory);
     }
     return _analysisContext;

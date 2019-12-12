@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/source/line_info.dart' show LineInfo;
@@ -452,11 +451,9 @@ abstract class Source implements AnalysisTarget {
 abstract class SourceFactory {
   /**
    * Initialize a newly created source factory with the given absolute URI
-   * [resolvers] and optional [packages] resolution helper.
+   * [resolvers].
    */
-  factory SourceFactory(List<UriResolver> resolvers,
-      [Packages packages,
-      ResourceProvider resourceProvider]) = SourceFactoryImpl;
+  factory SourceFactory(List<UriResolver> resolvers) = SourceFactoryImpl;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if

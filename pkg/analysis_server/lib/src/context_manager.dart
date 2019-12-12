@@ -1139,8 +1139,7 @@ class ContextManagerImpl implements ContextManager {
       new ResourceUriResolver(resourceProvider),
       new PackageMapUriResolver(resourceProvider, packageMap),
     ];
-    SourceFactory sourceFactory =
-        new SourceFactory(resolvers, packages, resourceProvider);
+    SourceFactory sourceFactory = new SourceFactory(resolvers);
     return new AnalysisOptionsProvider(sourceFactory);
   }
 

@@ -494,7 +494,7 @@ class B extends A {}
         byteStore,
         contentOverlay,
         null,
-        new SourceFactory(resolvers, null, resourceProvider),
+        new SourceFactory(resolvers),
         new AnalysisOptionsImpl(),
         enableIndex: true);
   }

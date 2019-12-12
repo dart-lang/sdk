@@ -454,13 +454,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     UriResolver packageUriResolver;
 
-    if (options.packageRootPath != null) {
-      ContextBuilderOptions builderOptions = new ContextBuilderOptions();
-      builderOptions.defaultPackagesDirectoryPath = options.packageRootPath;
-      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
-          options: builderOptions);
-      packageUriResolver = new PackageMapUriResolver(resourceProvider,
-          builder.convertPackagesToMap(builder.createPackageMap('')));
+    if (packageInfo.packageMap != null) {
+      packageUriResolver = new PackageMapUriResolver(
+        resourceProvider,
+        packageInfo.packageMap,
+      );
     }
 
     // Now, build our resolver list.
@@ -499,7 +497,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // Finally files.
     resolvers.add(new ResourceUriResolver(resourceProvider));
 
-    return new SourceFactory(resolvers, packageInfo.packages);
+    return new SourceFactory(resolvers);
   }
 
   /// Collect all analyzable files at [filePath], recursively if it's a

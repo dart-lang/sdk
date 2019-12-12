@@ -69,7 +69,7 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
           DartUriResolver(sdk),
           PackageMapUriResolver(resourceProvider, packageMap),
           ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
+        ]),
         analysisOptions);
 
     scheduler.start();

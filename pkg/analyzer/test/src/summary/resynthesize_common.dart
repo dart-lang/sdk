@@ -49,8 +49,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
         DartUriResolver(sdk),
         ResourceUriResolver(resourceProvider),
       ],
-      null,
-      resourceProvider,
     );
 
     testFile = convertPath('/test.dart');

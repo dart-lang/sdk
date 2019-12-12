@@ -58,6 +58,6 @@ abstract class SimpleWorkspace extends Workspace {
     }
     resolvers.add(packageUriResolver);
     resolvers.add(ResourceUriResolver(provider));
-    return SourceFactory(resolvers, packages, provider);
+    return SourceFactory(resolvers);
   }
 }
