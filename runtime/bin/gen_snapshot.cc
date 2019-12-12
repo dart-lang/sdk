@@ -648,6 +648,13 @@ static void CreateAndWritePrecompiledSnapshot() {
                                          /*debug_callback_data=*/nullptr);
     }
     CHECK_RESULT(result);
+    if (obfuscate && !strip) {
+      Syslog::PrintErr(
+          "Warning: The generated ELF library contains unobfuscated DWARF "
+          "debugging information.\n"
+          "         To avoid this, use --strip to remove it and "
+          "--save-debugging-info=<...> to save it to a separate file.\n");
+    }
   } else if (snapshot_kind == kAppAOTBlobs) {
     Syslog::PrintErr(
         "WARNING: app-aot-blobs snapshots have been deprecated and support for "

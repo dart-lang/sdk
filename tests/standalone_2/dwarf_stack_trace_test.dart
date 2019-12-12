@@ -7,10 +7,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 import 'package:vm/dwarf/convert.dart';
 import 'package:vm/dwarf/dwarf.dart';
-import 'package:path/path.dart' as path;
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -32,14 +32,8 @@ Future<void> main() async {
     rawStack = st.toString();
   }
 
-  // Check that our expected information is consistent.
-  checkConsistency(expectedExternalCallInfo, expectedAllCallsInfo);
-
-  print("");
-  print("Raw stack trace:");
-  print(rawStack);
-
-  if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
+  if (path.basenameWithoutExtension(Platform.executable) !=
+      "dart_precompiled_runtime") {
     return; // Not running from an AOT compiled snapshot.
   }
 
@@ -48,6 +42,18 @@ Future<void> main() async {
   }
 
   final dwarf = Dwarf.fromFile("dwarf.so");
+
+  await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
+}
+
+Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
+    List<List<CallInfo>> expectedCallsInfo) async {
+  final expectedAllCallsInfo = expectedCallsInfo;
+  final expectedExternalCallInfo = removeInternalCalls(expectedCallsInfo);
+
+  print("");
+  print("Raw stack trace:");
+  print(rawStack);
 
   var rawLines =
       await Stream.value(rawStack).transform(const LineSplitter()).toList();
@@ -131,7 +137,7 @@ Future<void> main() async {
   expect(allCallsTrace, stringContainsInOrder(expectedStrings));
 }
 
-final expectedExternalCallInfo = <List<CallInfo>>[
+final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
@@ -140,13 +146,13 @@ final expectedExternalCallInfo = <List<CallInfo>>[
         filename: "dwarf_stack_trace_test.dart",
         line: 18,
         inlined: true),
-    // The second frame corresponds to call to foo in main.
     CallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
         line: 24,
         inlined: false)
   ],
+  // The second frame corresponds to call to foo in main.
   [
     CallInfo(
         function: "main",
@@ -154,22 +160,20 @@ final expectedExternalCallInfo = <List<CallInfo>>[
         line: 30,
         inlined: false)
   ],
-  // No call information for the main tearoff.
-  [],
+  // Internal frames have non-positive line numbers in the call information.
+  [
+    CallInfo(
+        function: "main",
+        filename: "dwarf_stack_trace_test.dart",
+        line: 0,
+        inlined: false),
+  ]
 ];
 
-// Replace the call information for the main tearoff frame.
-final expectedAllCallsInfo = expectedExternalCallInfo.sublist(0, 2) +
-    <List<CallInfo>>[
-      // Internal frames have non-positive line numbers in the call information.
-      [
-        CallInfo(
-            function: "main",
-            filename: "dwarf_stack_trace_test.dart",
-            line: 0,
-            inlined: false),
-      ]
-    ];
+List<List<CallInfo>> removeInternalCalls(List<List<CallInfo>> original) =>
+    original
+        .map((frame) => frame.where((call) => call.line > 0).toList())
+        .toList();
 
 void checkConsistency(
     List<List<CallInfo>> externalFrames, List<List<CallInfo>> allFrames) {
