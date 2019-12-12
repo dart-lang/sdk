@@ -2074,7 +2074,10 @@ class TypeInferrerImpl implements TypeInferrer {
     ClosureContext closureContext = new ClosureContext(
         this, function.asyncMarker, returnContext, needToSetReturnType);
     this.closureContext = closureContext;
-    inferStatement(function.body);
+    StatementInferenceResult bodyResult = inferStatement(function.body);
+    if (bodyResult.hasChanged) {
+      function.body = bodyResult.statement..parent = function;
+    }
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
     // least upper bound of the types of the `yield` expressions in `B’`, or
@@ -2719,7 +2722,12 @@ class TypeInferrerImpl implements TypeInferrer {
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);
-    return statement.accept(new InferenceVisitor(this));
+    InferenceVisitor visitor = new InferenceVisitor(this);
+    if (statement is InternalStatement) {
+      return statement.acceptInference(visitor);
+    } else {
+      return statement.accept(visitor);
+    }
   }
 
   /// Performs the type inference steps necessary to instantiate a tear-off

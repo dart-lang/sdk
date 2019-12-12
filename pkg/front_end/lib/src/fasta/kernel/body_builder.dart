@@ -4497,15 +4497,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
 
     transformCollections = true;
-    VariableDeclaration variable = buildForInVariable(forToken, lvalue);
-    Expression problem = checkForInVariable(lvalue, variable, forToken);
-    Statement prologue = buildForInBody(lvalue, variable, forToken, inToken);
+    ForInElements elements =
+        _computeForInElements(forToken, inToken, lvalue, null);
+    VariableDeclaration variable = elements.variable;
+    Expression problem = elements.expressionProblem;
     if (entry is MapEntry) {
       ForInMapEntry result = forest.createForInMapEntry(
           offsetForToken(forToken),
           variable,
           iterable,
-          prologue,
+          elements.syntheticAssignment,
+          elements.expressionEffects,
           entry,
           problem,
           isAsync: awaitToken != null);
@@ -4513,8 +4515,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ?.storeInfo(result, assignedVariablesNodeInfo);
       push(result);
     } else {
-      ForInElement result = forest.createForInElement(offsetForToken(forToken),
-          variable, iterable, prologue, toValue(entry), problem,
+      ForInElement result = forest.createForInElement(
+          offsetForToken(forToken),
+          variable,
+          iterable,
+          elements.syntheticAssignment,
+          elements.expressionEffects,
+          toValue(entry),
+          problem,
           isAsync: awaitToken != null);
       typeInferrer?.assignedVariables
           ?.storeInfo(result, assignedVariablesNodeInfo);
@@ -4522,77 +4530,67 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  VariableDeclaration buildForInVariable(Token token, Object lvalue) {
+  ForInElements _computeForInElements(
+      Token forToken, Token inToken, Object lvalue, Statement body) {
+    ForInElements elements = new ForInElements();
     if (lvalue is VariableDeclaration) {
+      elements.explicitVariableDeclaration = lvalue;
       typeInferrer?.assignedVariables?.write(lvalue);
-      return lvalue;
-    }
-    return forest.createVariableDeclaration(
-        offsetForToken(token), null, functionNestingLevel,
-        isFinal: true);
-  }
-
-  Expression checkForInVariable(
-      Object lvalue, VariableDeclaration variable, Token forToken) {
-    if (lvalue is VariableDeclaration) {
-      if (variable.isConst) {
-        return buildProblem(fasta.messageForInLoopWithConstVariable,
-            variable.fileOffset, variable.name.length);
+      if (lvalue.isConst) {
+        elements.expressionProblem = buildProblem(
+            fasta.messageForInLoopWithConstVariable,
+            lvalue.fileOffset,
+            lvalue.name.length);
       }
-    } else if (lvalue is! Generator) {
-      Message message = forest.isVariablesDeclaration(lvalue)
-          ? fasta.messageForInLoopExactlyOneVariable
-          : fasta.messageForInLoopNotAssignable;
-      Token token = forToken.next.next;
-      return buildProblem(
-          message, offsetForToken(token), lengthForToken(token));
-    }
-    return null;
-  }
-
-  Statement buildForInBody(Object lvalue, VariableDeclaration variable,
-      Token forToken, Token inKeyword) {
-    if (lvalue is VariableDeclaration) return null;
-    if (lvalue is Generator) {
-      /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
-      ///
-      ///     for (lvalue in expression) body
-      ///
-      /// This is normalized to:
-      ///
-      ///     for (final #t in expression) {
-      ///       lvalue = #t;
-      ///       body;
-      ///     }
-      TypePromotionFact fact =
-          typePromoter?.getFactForAccess(variable, functionNestingLevel);
-      TypePromotionScope scope = typePromoter?.currentScope;
-      Expression syntheticAssignment = lvalue.buildAssignment(
-          new VariableGetImpl(variable, fact, scope)
-            ..fileOffset = inKeyword.offset,
-          voidContext: true);
-      return forest.createExpressionStatement(noLocation, syntheticAssignment);
-    }
-    Message message = forest.isVariablesDeclaration(lvalue)
-        ? fasta.messageForInLoopExactlyOneVariable
-        : fasta.messageForInLoopNotAssignable;
-    Token token = forToken.next.next;
-    Statement body;
-    if (forest.isVariablesDeclaration(lvalue)) {
-      body = forest.createBlock(
-          noLocation,
-          // New list because the declarations are not a growable list.
-          new List<Statement>.from(
-              forest.variablesDeclarationExtractDeclarations(lvalue)));
     } else {
-      body = forest.createExpressionStatement(noLocation, lvalue);
+      VariableDeclaration variable = elements.syntheticVariableDeclaration =
+          forest.createVariableDeclaration(
+              offsetForToken(forToken), null, functionNestingLevel,
+              isFinal: true);
+      if (lvalue is Generator) {
+        /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
+        ///
+        ///     for (lvalue in expression) body
+        ///
+        /// This is normalized to:
+        ///
+        ///     for (final #t in expression) {
+        ///       lvalue = #t;
+        ///       body;
+        ///     }
+        TypePromotionFact fact =
+            typePromoter?.getFactForAccess(variable, functionNestingLevel);
+        TypePromotionScope scope = typePromoter?.currentScope;
+        elements.syntheticAssignment = lvalue.buildAssignment(
+            new VariableGetImpl(variable, fact, scope)
+              ..fileOffset = inToken.offset,
+            voidContext: true);
+      } else {
+        Message message = forest.isVariablesDeclaration(lvalue)
+            ? fasta.messageForInLoopExactlyOneVariable
+            : fasta.messageForInLoopNotAssignable;
+        Token token = forToken.next.next;
+        elements.expressionProblem =
+            buildProblem(message, offsetForToken(token), lengthForToken(token));
+        Statement effects;
+        if (forest.isVariablesDeclaration(lvalue)) {
+          effects = forest.createBlock(
+              noLocation,
+              // New list because the declarations are not a growable list.
+              new List<Statement>.from(
+                  forest.variablesDeclarationExtractDeclarations(lvalue)));
+        } else {
+          effects = forest.createExpressionStatement(noLocation, lvalue);
+        }
+        elements.expressionEffects = combineStatements(
+            forest.createExpressionStatement(
+                noLocation,
+                buildProblem(
+                    message, offsetForToken(token), lengthForToken(token))),
+            effects);
+      }
     }
-    return combineStatements(
-        forest.createExpressionStatement(
-            noLocation,
-            buildProblem(
-                message, offsetForToken(token), lengthForToken(token))),
-        body);
+    return elements;
   }
 
   @override
@@ -4618,27 +4616,28 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       body = forest.createLabeledStatement(body);
       continueStatements = continueTarget.resolveContinues(forest, body);
     }
-    VariableDeclaration variable = buildForInVariable(forToken, lvalue);
-    Expression problem = checkForInVariable(lvalue, variable, forToken);
-    Statement prologue = buildForInBody(lvalue, variable, forToken, inKeyword);
-    if (prologue != null) {
-      if (prologue is Block) {
-        if (body is Block) {
-          for (Statement statement in body.statements) {
-            prologue.addStatement(statement);
-          }
-        } else {
-          prologue.addStatement(body);
-        }
-        body = prologue;
-      } else {
-        body = combineStatements(prologue, body);
-      }
+    ForInElements elements =
+        _computeForInElements(forToken, inKeyword, lvalue, body);
+    VariableDeclaration variable = elements.variable;
+    Expression problem = elements.expressionProblem;
+    Statement forInStatement;
+    if (elements.explicitVariableDeclaration != null) {
+      forInStatement = new ForInStatementImpl(variable, expression, body,
+          isAsync: awaitToken != null)
+        ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
+        ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
+    } else {
+      forInStatement = new ForInStatementWithSynthesizedVariable(
+          variable,
+          expression,
+          elements.syntheticAssignment,
+          elements.expressionEffects,
+          body,
+          isAsync: awaitToken != null,
+          hasProblem: problem != null)
+        ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
+        ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     }
-    Statement forInStatement = new ForInStatement(variable, expression, body,
-        isAsync: awaitToken != null)
-      ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-      ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     typeInferrer?.assignedVariables
         ?.storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
@@ -5971,8 +5970,13 @@ class FormalParameters {
 /// If [body] is a [Block], it's returned with [statement] prepended to it.
 Block combineStatements(Statement statement, Statement body) {
   if (body is Block) {
-    body.statements.insert(0, statement);
-    statement.parent = body;
+    if (statement is Block) {
+      body.statements.insertAll(0, statement.statements);
+      setParents(statement.statements, body);
+    } else {
+      body.statements.insert(0, statement);
+      statement.parent = body;
+    }
     return body;
   } else {
     return new Block(<Statement>[statement, body])
@@ -6029,4 +6033,15 @@ class Label {
   Label(this.name, this.charOffset);
 
   String toString() => "label($name)";
+}
+
+class ForInElements {
+  VariableDeclaration explicitVariableDeclaration;
+  VariableDeclaration syntheticVariableDeclaration;
+  Expression syntheticAssignment;
+  Expression expressionProblem;
+  Statement expressionEffects;
+
+  VariableDeclaration get variable =>
+      explicitVariableDeclaration ?? syntheticVariableDeclaration;
 }

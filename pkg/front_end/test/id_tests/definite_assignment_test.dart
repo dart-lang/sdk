@@ -23,11 +23,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(johnniwinther): Change for loop encoding to support this:
-        'for_each.dart',
-      ]);
+          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class DefiniteAssignmentDataComputer extends DataComputer<String> {

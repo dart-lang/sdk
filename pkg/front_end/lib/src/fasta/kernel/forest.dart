@@ -254,12 +254,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       Expression body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInElement(variable, iterable, prologue, body, problem,
+    return new ForInElement(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }
@@ -268,12 +270,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       MapEntry body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+    return new ForInMapEntry(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }

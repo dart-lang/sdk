@@ -731,7 +731,10 @@ class InferenceVisitor
   }
 
   ForInResult handleForInDeclaringVariable(
-      VariableDeclaration variable, Expression iterable, Statement body,
+      TreeNode node,
+      VariableDeclaration variable,
+      Expression iterable,
+      Statement expressionEffects,
       {bool isAsync: false}) {
     DartType elementType;
     bool typeNeeded = false;
@@ -756,15 +759,9 @@ class InferenceVisitor
       variable.type = inferredType;
     }
 
-    if (body != null) {
-      inferrer.flowAnalysis
-          .forEach_bodyBegin(body?.parent, variable, variable.type);
-      StatementInferenceResult bodyResult = inferrer.inferStatement(body);
-      if (bodyResult.hasChanged) {
-        body = bodyResult.statement;
-      }
-      inferrer.flowAnalysis.forEach_end();
-    }
+    // This is matched by the call to [forEach_end] in
+    // [inferElement], [inferMapEntry] or [inferForInStatement].
+    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, variable.type);
 
     VariableDeclaration tempVariable =
         new VariableDeclaration(null, type: inferredType, isFinal: true);
@@ -775,20 +772,27 @@ class InferenceVisitor
         variable.type, inferredType, variableGet,
         fileOffset: parent.fileOffset,
         template: templateForInLoopElementTypeNotAssignable);
+    Statement expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
-      if (body == null) {
-        assert(
-            parent is ForInElement || parent is ForInMapEntry,
-            "Unexpected missing for-in body for "
-            "$parent (${parent.runtimeType}).");
-        body = variable;
-      } else {
-        body = combineStatements(variable, body);
-      }
+      expressionEffect = variable;
       variable = tempVariable;
     }
-    return new ForInResult(variable, iterableResult.expression, body);
+    if (expressionEffects != null) {
+      StatementInferenceResult bodyResult =
+          inferrer.inferStatement(expressionEffects);
+      if (bodyResult.hasChanged) {
+        expressionEffects = bodyResult.statement;
+      }
+      if (expressionEffect != null) {
+        expressionEffects =
+            combineStatements(expressionEffect, expressionEffects);
+      }
+    } else {
+      expressionEffects = expressionEffect;
+    }
+    return new ForInResult(
+        variable, iterableResult.expression, null, expressionEffects);
   }
 
   ExpressionInferenceResult inferForInIterable(
@@ -829,20 +833,22 @@ class InferenceVisitor
   }
 
   ForInResult handleForInWithoutVariable(
-      VariableDeclaration variable, Expression iterable, Statement body,
-      {bool isAsync: false}) {
+      TreeNode node,
+      VariableDeclaration variable,
+      Expression iterable,
+      Expression syntheticAssignment,
+      Statement expressionEffects,
+      {bool isAsync: false,
+      bool hasProblem}) {
+    assert(hasProblem != null);
     DartType elementType;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     DartType syntheticWriteType;
     Expression rhs;
     // If `true`, the synthetic statement should not be visited.
     bool skipStatement = false;
-    ExpressionStatement syntheticStatement =
-        body is Block ? body.statements.first : body;
-    Expression statementExpression = syntheticStatement.expression;
     // TODO(johnniwinther): Refactor handling of synthetic assignment to avoid
     // case handling here.
-    Expression syntheticAssignment = statementExpression;
     VariableSet syntheticVariableSet;
     PropertySet syntheticPropertySet;
     SuperPropertySet syntheticSuperPropertySet;
@@ -911,7 +917,7 @@ class InferenceVisitor
       syntheticStaticSet = syntheticAssignment;
       syntheticWriteType = elementType = syntheticStaticSet.target.setterType;
       rhs = syntheticStaticSet.value;
-    } else if (syntheticAssignment is InvalidExpression) {
+    } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       elementType = const UnknownType();
     } else {
       unhandled(
@@ -928,44 +934,24 @@ class InferenceVisitor
     if (typeChecksNeeded) {
       variable.type = inferredType;
     }
-
-    inferrer.flowAnalysis
-        .forEach_bodyBegin(body.parent, variable, variable.type);
-    if (body is Block) {
-      Block block = body;
-      List<Statement> result;
-      for (int index = 0; index < block.statements.length; index++) {
-        Statement statement = block.statements[index];
-        if (!skipStatement || statement != syntheticStatement) {
-          StatementInferenceResult statementResult =
-              inferrer.inferStatement(statement);
-          if (statementResult.hasChanged) {
-            if (result == null) {
-              result = <Statement>[];
-              result.addAll(block.statements.sublist(0, index));
-            }
-            if (statementResult.statementCount == 1) {
-              result.add(statementResult.statement);
-            } else {
-              result.addAll(statementResult.statements);
-            }
-          }
-        } else if (result != null) {
-          result.add(statement);
-        }
-      }
-      if (result != null) {
-        body = new Block(result)..fileOffset = body.fileOffset;
-      }
-    } else {
-      if (!skipStatement) {
-        StatementInferenceResult bodyResult = inferrer.inferStatement(body);
-        if (bodyResult.hasChanged) {
-          body = bodyResult.statement;
-        }
-      }
+    // This is matched by the call to [forEach_end] in
+    // [inferElement], [inferMapEntry] or [inferForInStatement].
+    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, variable.type);
+    if (syntheticVariableSet != null) {
+      inferrer.flowAnalysis.write(syntheticVariableSet.variable, variable.type);
     }
-    inferrer.flowAnalysis.forEach_end();
+    if (syntheticAssignment != null && !skipStatement) {
+      ExpressionInferenceResult result = inferrer.inferExpression(
+          syntheticAssignment, const UnknownType(), !inferrer.isTopLevel,
+          isVoidAllowed: true);
+      syntheticAssignment = result.expression;
+    }
+    if (expressionEffects != null) {
+      StatementInferenceResult result =
+          inferrer.inferStatement(expressionEffects);
+      expressionEffects =
+          result.hasChanged ? result.statement : expressionEffects;
+    }
 
     if (syntheticWriteType != null) {
       rhs = inferrer.ensureAssignable(
@@ -985,25 +971,66 @@ class InferenceVisitor
         syntheticStaticSet.value = rhs..parent = syntheticStaticSet;
       }
     }
-    return new ForInResult(variable, iterableResult.expression, body);
+    return new ForInResult(variable, iterableResult.expression,
+        syntheticAssignment, expressionEffects);
   }
 
   @override
-  StatementInferenceResult visitForInStatement(ForInStatement node) {
-    ForInResult result;
-    if (node.variable.name == null) {
-      result = handleForInWithoutVariable(
-          node.variable, node.iterable, node.body,
-          isAsync: node.isAsync);
-    } else {
-      result = handleForInDeclaringVariable(
-          node.variable, node.iterable, node.body,
-          isAsync: node.isAsync);
+  StatementInferenceResult visitForInStatement(
+      covariant ForInStatementImpl node) {
+    assert(node.variable.name != null);
+    ForInResult result = handleForInDeclaringVariable(
+        node, node.variable, node.iterable, null,
+        isAsync: node.isAsync);
+
+    StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
+
+    // This is matched by the call to [forEach_bodyBegin] in
+    // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
+    inferrer.flowAnalysis.forEach_end();
+
+    Statement body = bodyResult.hasChanged ? bodyResult.statement : node.body;
+    if (result.expressionSideEffects != null) {
+      body = combineStatements(result.expressionSideEffects, body);
+    }
+    if (result.syntheticAssignment != null) {
+      body = combineStatements(
+          createExpressionStatement(result.syntheticAssignment), body);
     }
     node.variable = result.variable..parent = node;
     node.iterable = result.iterable..parent = node;
-    node.body = result.body..parent = node;
+    node.body = body..parent = node;
     return const StatementInferenceResult();
+  }
+
+  StatementInferenceResult visitForInStatementWithSynthesizedVariable(
+      ForInStatementWithSynthesizedVariable node) {
+    assert(node.variable.name == null);
+    ForInResult result = handleForInWithoutVariable(node, node.variable,
+        node.iterable, node.syntheticAssignment, node.expressionEffects,
+        isAsync: node.isAsync, hasProblem: node.hasProblem);
+
+    StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
+
+    // This is matched by the call to [forEach_bodyBegin] in
+    // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
+    inferrer.flowAnalysis.forEach_end();
+
+    Statement body = bodyResult.hasChanged ? bodyResult.statement : node.body;
+    if (result.expressionSideEffects != null) {
+      body = combineStatements(result.expressionSideEffects, body);
+    }
+    if (result.syntheticAssignment != null) {
+      body = combineStatements(
+          createExpressionStatement(result.syntheticAssignment), body);
+    }
+    Statement replacement = new ForInStatement(
+        result.variable, result.iterable, body,
+        isAsync: node.isAsync)
+      ..fileOffset = node.fileOffset
+      ..bodyOffset = node.bodyOffset;
+    inferrer.library.loader.dataForTesting?.registerAlias(node, replacement);
+    return new StatementInferenceResult.single(replacement);
   }
 
   @override
@@ -1460,18 +1487,27 @@ class InferenceVisitor
       ForInResult result;
       if (element.variable.name == null) {
         result = handleForInWithoutVariable(
-            element.variable, element.iterable, element.prologue,
-            isAsync: element.isAsync);
+            element,
+            element.variable,
+            element.iterable,
+            element.syntheticAssignment,
+            element.expressionEffects,
+            isAsync: element.isAsync,
+            hasProblem: element.problem != null);
       } else {
-        result = handleForInDeclaringVariable(
-            element.variable, element.iterable, element.prologue,
+        result = handleForInDeclaringVariable(element, element.variable,
+            element.iterable, element.expressionEffects,
             isAsync: element.isAsync);
       }
       element.variable = result.variable..parent = element;
       element.iterable = result.iterable..parent = element;
       // TODO(johnniwinther): Use ?.. here instead.
-      element.prologue = result.body;
-      result.body?.parent = element;
+      element.syntheticAssignment = result.syntheticAssignment;
+      result.syntheticAssignment?.parent = element;
+      // TODO(johnniwinther): Use ?.. here instead.
+      element.expressionEffects = result.expressionSideEffects;
+      result.expressionSideEffects?.parent = element;
+
       if (element.problem != null) {
         ExpressionInferenceResult problemResult = inferrer.inferExpression(
             element.problem,
@@ -1480,8 +1516,6 @@ class InferenceVisitor
             isVoidAllowed: true);
         element.problem = problemResult.expression..parent = element;
       }
-      inferrer.flowAnalysis
-          .forEach_bodyBegin(element, element.variable, element.variable.type);
       ExpressionInferenceResult bodyResult = inferElement(
           element.body,
           inferredTypeArgument,
@@ -1490,6 +1524,8 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       element.body = bodyResult.expression..parent = element;
+      // This is matched by the call to [forEach_bodyBegin] in
+      // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
       inferrer.flowAnalysis.forEach_end();
       return new ExpressionInferenceResult(bodyResult.inferredType, element);
     } else {
@@ -1943,19 +1979,22 @@ class InferenceVisitor
     } else if (entry is ForInMapEntry) {
       ForInResult result;
       if (entry.variable.name == null) {
-        result = handleForInWithoutVariable(
-            entry.variable, entry.iterable, entry.prologue,
-            isAsync: entry.isAsync);
+        result = handleForInWithoutVariable(entry, entry.variable,
+            entry.iterable, entry.syntheticAssignment, entry.expressionEffects,
+            isAsync: entry.isAsync, hasProblem: entry.problem != null);
       } else {
         result = handleForInDeclaringVariable(
-            entry.variable, entry.iterable, entry.prologue,
+            entry, entry.variable, entry.iterable, entry.expressionEffects,
             isAsync: entry.isAsync);
       }
       entry.variable = result.variable..parent = entry;
       entry.iterable = result.iterable..parent = entry;
       // TODO(johnniwinther): Use ?.. here instead.
-      entry.prologue = result.body;
-      result.body?.parent = entry;
+      entry.syntheticAssignment = result.syntheticAssignment;
+      result.syntheticAssignment?.parent = entry;
+      // TODO(johnniwinther): Use ?.. here instead.
+      entry.expressionEffects = result.expressionSideEffects;
+      result.expressionSideEffects?.parent = entry;
       if (entry.problem != null) {
         ExpressionInferenceResult problemResult = inferrer.inferExpression(
             entry.problem,
@@ -1964,8 +2003,6 @@ class InferenceVisitor
             isVoidAllowed: true);
         entry.problem = problemResult.expression..parent = entry;
       }
-      inferrer.flowAnalysis
-          .forEach_bodyBegin(entry, entry.variable, entry.variable.type);
       // Actual types are added by the recursive call.
       MapEntry body = inferMapEntry(
           entry.body,
@@ -1980,6 +2017,8 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       entry.body = body..parent = entry;
+      // This is matched by the call to [forEach_bodyBegin] in
+      // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
       inferrer.flowAnalysis.forEach_end();
       return entry;
     } else {
@@ -4905,11 +4944,12 @@ class InferenceVisitor
   @override
   StatementInferenceResult visitTryCatch(TryCatch node) {
     inferrer.flowAnalysis.tryCatchStatement_bodyBegin();
+    Statement bodyWithAssignedInfo = node.body;
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
-    inferrer.flowAnalysis.tryCatchStatement_bodyEnd(node.body);
+    inferrer.flowAnalysis.tryCatchStatement_bodyEnd(bodyWithAssignedInfo);
     for (Catch catch_ in node.catches) {
       inferrer.flowAnalysis
           .tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
@@ -4925,14 +4965,15 @@ class InferenceVisitor
   @override
   StatementInferenceResult visitTryFinally(TryFinally node) {
     inferrer.flowAnalysis.tryFinallyStatement_bodyBegin();
+    // TODO(johnniwinther): Use one internal statement for try-catch-finally.
+    TreeNode body = node.body;
+    Statement bodyWithAssignedInfo = body is TryCatch ? body.body : body;
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
-    // TODO(johnniwinther): Use one internal statement for try-catch-finally.
-    TreeNode body = node.body;
     inferrer.flowAnalysis
-        .tryFinallyStatement_finallyBegin(body is TryCatch ? body.body : body);
+        .tryFinallyStatement_finallyBegin(bodyWithAssignedInfo);
     StatementInferenceResult finalizerResult =
         inferrer.inferStatement(node.finalizer);
     if (finalizerResult.hasChanged) {
@@ -5342,9 +5383,12 @@ class InferenceVisitor
 class ForInResult {
   final VariableDeclaration variable;
   final Expression iterable;
-  final Statement body;
+  final Expression syntheticAssignment;
+  final Statement expressionSideEffects;
 
-  ForInResult(this.variable, this.iterable, this.body);
+  ForInResult(this.variable, this.iterable, this.syntheticAssignment,
+      this.expressionSideEffects);
 
-  String toString() => 'ForInResult($variable,$iterable,$body)';
+  String toString() => 'ForInResult($variable,$iterable,'
+      '$syntheticAssignment,$expressionSideEffects)';
 }

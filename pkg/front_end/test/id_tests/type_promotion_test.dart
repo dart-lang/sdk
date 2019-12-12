@@ -25,7 +25,6 @@ main(List<String> args) async {
       skipList: [
         // TODO(johnniwinther): Run all type promotion tests.
         'bug39178.dart',
-        'for.dart',
       ]);
 }
 
