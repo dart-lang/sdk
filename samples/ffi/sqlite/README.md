@@ -4,7 +4,7 @@ This is an illustrative sample for how to use `dart:ffi`.
 
 ## Prerequirement
 
-For windows, linux, macos , you should make sure, sqlite dev lib installed on your system.
+For Windows, Linux, and MacOS, you should make sure, sqlite dev lib installed on your system.
 
 Windows user can download dll from https://www.sqlite.org/download.html
 
