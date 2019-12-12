@@ -141,8 +141,12 @@ testDatagramSocketMulticastIf() {
     }
 
     asyncSuccess(socket);
-    asyncEnd();
   }
+
+  test(InternetAddress.loopbackIPv4);
+  test(InternetAddress.anyIPv4);
+  test(InternetAddress.loopbackIPv6);
+  test(InternetAddress.anyIPv6);
 }
 
 testBroadcast() {

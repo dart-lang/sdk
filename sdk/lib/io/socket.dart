@@ -452,7 +452,7 @@ class RawSocketOption {
     }
     final Uint8List list = Uint8List(4);
     final buffer = ByteData.view(list.buffer, list.offsetInBytes);
-    buffer.setInt32(0, value);
+    buffer.setInt32(0, value, Endian.host);
     return RawSocketOption(level, option, list);
   }
 
