@@ -1631,6 +1631,22 @@ List<int> f(bool b, List<int> l) {
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
+  test_conditionalExpression_nullTyped_nullParameter() async {
+    await analyze('''
+void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
+  (b ? x : y);
+}
+''');
+    var xType =
+        decoratedGenericFunctionTypeAnnotation('void Function(Null p) x');
+    var yType =
+        decoratedGenericFunctionTypeAnnotation('void Function(List<int> p) y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertGLB(resultType.positionalParameters[0].node,
+        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+  }
+
   test_conditionalExpression_right_non_null() async {
     await analyze('''
 int f(bool b, int i) {
