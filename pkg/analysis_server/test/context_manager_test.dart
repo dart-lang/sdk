@@ -1673,8 +1673,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 
   TestContextManagerCallbacks callbacks;
 
-  UriResolver packageResolver = null;
-
   String projPath = null;
 
   AnalysisError missing_return =
@@ -1727,8 +1725,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     registerLintRules();
   }
 
-  UriResolver providePackageResolver(Folder folder) => packageResolver;
-
   void setUp() {
     processRequiredPlugins();
     projPath = convertPath('/my/proj');
@@ -1739,7 +1735,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
-        providePackageResolver,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
         new AnalysisOptionsImpl());

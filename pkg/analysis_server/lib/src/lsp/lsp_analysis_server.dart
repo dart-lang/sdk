@@ -46,7 +46,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
@@ -106,18 +105,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
 
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider fileResolverProvider;
-
-  /**
-   * The package resolver provider used to override the way package URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider packageResolverProvider;
-
   PerformanceLog _analysisPerformanceLogger;
 
   ServerStateMessageHandler messageHandler;
@@ -149,7 +136,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider packageResolverProvider = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider
@@ -183,13 +169,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
+    contextManager = new ContextManagerImpl(resourceProvider, sdkManager,
+        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
     final contextManagerCallbacks =
         new LspServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -728,8 +709,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     ContextBuilder builder = new ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
-    builder.fileResolverProvider = analysisServer.fileResolverProvider;
-    builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;

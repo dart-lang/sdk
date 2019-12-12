@@ -13,11 +13,10 @@ import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 
 abstract class AbstractSocketServer {
-  AnalysisServerOptions get analysisServerOptions;
   AbstractAnalysisServer get analysisServer;
+  AnalysisServerOptions get analysisServerOptions;
   DiagnosticServer get diagnosticServer;
 }
 
@@ -38,8 +37,6 @@ class SocketServer implements AbstractSocketServer {
   final InstrumentationService instrumentationService;
   final RequestStatisticsHelper requestStatistics;
   final DiagnosticServer diagnosticServer;
-  final ResolverProvider fileResolverProvider;
-  final ResolverProvider packageResolverProvider;
   final DetachableFileSystemManager detachableFileSystemManager;
 
   /**
@@ -54,8 +51,6 @@ class SocketServer implements AbstractSocketServer {
       this.instrumentationService,
       this.requestStatistics,
       this.diagnosticServer,
-      this.fileResolverProvider,
-      this.packageResolverProvider,
       this.detachableFileSystemManager);
 
   /**
@@ -94,8 +89,6 @@ class SocketServer implements AbstractSocketServer {
       instrumentationService,
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
-      fileResolverProvider: fileResolverProvider,
-      packageResolverProvider: packageResolverProvider,
       detachableFileSystemManager: detachableFileSystemManager,
     );
     detachableFileSystemManager?.setAnalysisServer(analysisServer);

@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -100,18 +99,6 @@ class ContextBuilder {
    * The options used by the context builder.
    */
   final ContextBuilderOptions builderOptions;
-
-  /**
-   * The resolver provider used to create a package: URI resolver, or `null` if
-   * the normal (Package Specification DEP) lookup mechanism is to be used.
-   */
-  ResolverProvider packageResolverProvider;
-
-  /**
-   * The resolver provider used to create a file: URI resolver, or `null` if
-   * the normal file URI resolver is to be used.
-   */
-  ResolverProvider fileResolverProvider;
 
   /**
    * The scheduler used by any analysis drivers created through this interface.

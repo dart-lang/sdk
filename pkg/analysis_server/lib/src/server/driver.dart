@@ -33,7 +33,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
@@ -339,18 +338,6 @@ class Driver implements ServerStarter {
    */
   InstrumentationService instrumentationService;
 
-  /**
-   * The file resolver provider used to override the way file URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider fileResolverProvider;
-
-  /**
-   * The package resolver provider used to override the way package URI's are
-   * resolved in some contexts.
-   */
-  ResolverProvider packageResolverProvider;
-
   /***
    * An optional manager to handle file systems which may not always be
    * available.
@@ -565,8 +552,6 @@ class Driver implements ServerStarter {
         instrumentationService,
         requestStatistics,
         diagnosticServer,
-        fileResolverProvider,
-        packageResolverProvider,
         detachableFileSystemManager);
     httpServer = new HttpAnalysisServer(socketServer);
 

@@ -66,7 +66,6 @@ import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -147,14 +146,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// also referenced by the ContextManager.
   final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
-  /// The file resolver provider used to override the way file URI's are
-  /// resolved in some contexts.
-  ResolverProvider fileResolverProvider;
-
-  /// The package resolver provider used to override the way package URI's are
-  /// resolved in some contexts.
-  ResolverProvider packageResolverProvider;
-
   PerformanceLog _analysisPerformanceLogger;
 
   /// The controller for [onAnalysisSetChanged].
@@ -178,8 +169,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.instrumentationService, {
     this.requestStatistics,
     DiagnosticServer diagnosticServer,
-    ResolverProvider fileResolverProvider = null,
-    ResolverProvider packageResolverProvider = null,
     this.detachableFileSystemManager = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
@@ -229,15 +218,8 @@ class AnalysisServer extends AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
-    this.fileResolverProvider = fileResolverProvider;
-    this.packageResolverProvider = packageResolverProvider;
+    contextManager = new ContextManagerImpl(resourceProvider, sdkManager,
+        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -948,8 +930,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     ContextBuilder builder = new ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
-    builder.fileResolverProvider = analysisServer.fileResolverProvider;
-    builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;

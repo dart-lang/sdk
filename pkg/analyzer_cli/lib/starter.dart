@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer_cli/src/driver.dart';
 
 /**
@@ -20,13 +19,6 @@ abstract class CommandLineStarter {
    * Initialize a newly created starter to start up a command-line analysis.
    */
   factory CommandLineStarter() = Driver;
-
-  /**
-   * Set the package resolver provider used to override the way package URI's
-   * are resolved in some contexts. The provider should return `null` if the
-   * default package resolution scheme should be used instead.
-   */
-  void set packageResolverProvider(ResolverProvider provider);
 
   /**
    * Use the given command-line [arguments] to start this analyzer.

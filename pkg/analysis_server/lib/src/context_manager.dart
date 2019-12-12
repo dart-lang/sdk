@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -502,13 +501,6 @@ class ContextManagerImpl implements ContextManager {
   Map<String, String> normalizedPackageRoots = <String, String>{};
 
   /**
-   * A function that will return a [UriResolver] that can be used to resolve
-   * `package:` URI's within a given folder, or `null` if we should fall back
-   * to the standard URI resolver.
-   */
-  final ResolverProvider packageResolverProvider;
-
-  /**
    * A list of the globs used to determine which files should be analyzed.
    */
   final List<Glob> analyzedFilesGlobs;
@@ -546,7 +538,6 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
-      this.packageResolverProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
@@ -1108,13 +1099,6 @@ class ContextManagerImpl implements ContextManager {
         return new PackagesFileDisposition(packages);
       }
 
-      if (packageResolverProvider != null) {
-        UriResolver resolver = packageResolverProvider(folder);
-        if (resolver != null) {
-          return new CustomPackageResolverDisposition(resolver);
-        }
-      }
-
       return new NoPackageFolderDisposition();
     }
   }
@@ -1406,15 +1390,6 @@ class ContextManagerImpl implements ContextManager {
     callbacks.afterWatchEvent(event);
   }
 
-  /// On windows, the directory watcher may overflow, and we must recover.
-  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
-    // We've handled the error, so we only have to log it.
-    AnalysisEngine.instance.instrumentationService
-        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
-    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
-    refresh(null);
-  }
-
   void _handleWatchEventImpl(WatchEvent event) {
     // Figure out which context this event applies to.
     // TODO(brianwilkerson) If a file is explicitly included in one context
@@ -1540,6 +1515,15 @@ class ContextManagerImpl implements ContextManager {
     _checkForAnalysisOptionsUpdate(path, info);
     _checkForPubspecUpdate(path, info);
     _checkForManifestUpdate(path, info);
+  }
+
+  /// On windows, the directory watcher may overflow, and we must recover.
+  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+    // We've handled the error, so we only have to log it.
+    AnalysisEngine.instance.instrumentationService
+        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
+    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
+    refresh(null);
   }
 
   /**
@@ -1703,38 +1687,6 @@ class ContextManagerImpl implements ContextManager {
     Uri uri = driver.sourceFactory.restoreUri(source);
     return file.createSource(uri);
   }
-}
-
-/**
- * Concrete [FolderDisposition] object indicating that the context for a given
- * folder should resolve package URIs using a custom URI resolver.
- */
-class CustomPackageResolverDisposition extends FolderDisposition {
-  /**
-   * The [UriResolver] that should be used to resolve package URIs.
-   */
-  UriResolver resolver;
-
-  CustomPackageResolverDisposition(this.resolver);
-
-  @override
-  String get packageRoot => null;
-
-  @override
-  Packages get packages => null;
-
-  @override
-  Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      <UriResolver>[resolver];
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
-      new EmbedderYamlLocator(null);
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
-      new SdkExtensionFinder(null);
 }
 
 /**

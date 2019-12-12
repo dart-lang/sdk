@@ -102,15 +102,8 @@ class SocketServerTest {
 
   static SocketServer _createSocketServer(MockServerChannel channel) {
     final errorNotifier = new ErrorNotifier();
-    final server = new SocketServer(
-        new AnalysisServerOptions(),
-        new DartSdkManager('', false),
-        errorNotifier,
-        null,
-        null,
-        null,
-        null,
-        null);
+    final server = new SocketServer(new AnalysisServerOptions(),
+        new DartSdkManager('', false), errorNotifier, null, null, null);
 
     server.createAnalysisServer(channel);
     errorNotifier.server = server.analysisServer;
