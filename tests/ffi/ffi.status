@@ -9,9 +9,7 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 # They're incompatible with ASAN because not all memory is freed when aborting and
 # with AppJit because the abort the VM before it can generate a snapshot.
 [ $compiler == app_jitk || $builder_tag == asan ]
-vmspecific_function_callbacks_test/01: Skip
-vmspecific_function_callbacks_test/02: Skip
-vmspecific_function_callbacks_test/03: Skip
+vmspecific_function_callbacks_exit_test: SkipByDesign
 
 [ $arch == arm && $system != android ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309

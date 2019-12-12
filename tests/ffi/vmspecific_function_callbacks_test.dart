@@ -17,16 +17,10 @@
 // VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
-import 'dart:io';
 import 'dart:ffi';
-import 'dart:isolate';
-import 'dylib_utils.dart';
-
-import "package:expect/expect.dart";
 
 import 'ffi_test_helpers.dart';
-import 'function_callbacks_test.dart' show Test, testLibrary,
-       NativeCallbackTest, NativeCallbackTestFn, ReturnVoid, returnVoid;
+import 'function_callbacks_test.dart' show Test, testLibrary, ReturnVoid;
 
 void testGC() {
   triggerGc();
@@ -37,39 +31,15 @@ typedef WaitForHelper = void Function(Pointer<Void>);
 
 void waitForHelper(Pointer<Void> helper) {
   print("helper: $helper");
-  testLibrary
-      .lookupFunction<WaitForHelperNative, WaitForHelper>("WaitForHelper")(helper);
+  testLibrary.lookupFunction<WaitForHelperNative, WaitForHelper>(
+      "WaitForHelper")(helper);
 }
 
 final List<Test> testcases = [
   Test("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
-  Test("UnprotectCode", Pointer.fromFunction<WaitForHelperNative>(waitForHelper)),
+  Test("UnprotectCode",
+      Pointer.fromFunction<WaitForHelperNative>(waitForHelper)),
 ];
-
-testCallbackWrongThread() =>
-    Test("CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid))
-        .run();
-
-testCallbackOutsideIsolate() =>
-    Test("CallbackOutsideIsolate", Pointer.fromFunction<ReturnVoid>(returnVoid))
-        .run();
-
-isolateHelper(int callbackPointer) {
-  final Pointer<Void> ptr = Pointer.fromAddress(callbackPointer);
-  final NativeCallbackTestFn tester =
-      testLibrary.lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
-          "TestCallbackWrongIsolate");
-  Expect.equals(0, tester(ptr));
-}
-
-testCallbackWrongIsolate() async {
-  final int callbackPointer =
-      Pointer.fromFunction<ReturnVoid>(returnVoid).address;
-  final ReceivePort exitPort = ReceivePort();
-  await Isolate.spawn(isolateHelper, callbackPointer,
-      errorsAreFatal: true, onExit: exitPort.sendPort);
-  await exitPort.first;
-}
 
 const double zeroPointZero = 0.0;
 
@@ -78,26 +48,11 @@ double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0.0);
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, zeroPointZero);
 
-  Pointer.fromFunction<Double Function()>(returnVoid, null);  //# 59: compile-time error
-  Pointer.fromFunction<Void Function()>(returnVoid, 0);  //# 60: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn);  //# 63: compile-time error
-
-  return 0.0;  // not used
+  return 0.0;
 }
 
-void main() async {
-  testcases.forEach((t) => t.run()); //# 00: ok
-  testExceptionalReturn(); //# 00: ok
+void main() {
+  testExceptionalReturn();
 
-  // These tests terminate the process after successful completion, so we have
-  // to run them separately.
-  //
-  // Since they use signal handlers they only run on Linux.
-  if (Platform.isLinux && !const bool.fromEnvironment("dart.vm.product")) {
-    testCallbackWrongThread(); //# 01: ok
-    testCallbackOutsideIsolate(); //# 02: ok
-    await testCallbackWrongIsolate(); //# 03: ok
-  }
+  testcases.forEach((t) => t.run());
 }
