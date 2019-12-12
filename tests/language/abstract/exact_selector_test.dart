@@ -6,10 +6,9 @@
 // methods to handle `noSuchMethod`.
 
 import "package:expect/expect.dart";
-import "compiler_annotations.dart";
+import "../compiler_annotations.dart";
 
-abstract //# 01: compile-time error
-    class Foo {
+abstract class Foo {
   noSuchMethod(im) => 42;
 }
 
@@ -17,6 +16,9 @@ abstract //# 01: compile-time error
 returnFoo() {
   (() => 42)();
   return new Foo();
+  //         ^^^
+  // [analyzer] STATIC_WARNING.INSTANTIATE_ABSTRACT_CLASS
+  // [cfe] The class 'Foo' is abstract and can't be instantiated.
 }
 
 class Bar {
