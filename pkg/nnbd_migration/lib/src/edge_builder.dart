@@ -1578,6 +1578,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (type is FunctionType) {
       var leftType = left.type;
       var rightType = right.type;
+      if (leftType.isDartCoreNull) {
+        assert(
+            isLUB, "shouldn't be possible to get a function from GLB(null, S)");
+        return DecoratedType(type, node,
+            returnType: right.returnType,
+            typeFormalBounds: right.typeFormalBounds,
+            positionalParameters: right.positionalParameters,
+            namedParameters: right.namedParameters);
+      } else if (rightType.isDartCoreNull) {
+        assert(
+            isLUB, "shouldn't be possible to get a function from GLB(S, null)");
+        return DecoratedType(type, node,
+            returnType: left.returnType,
+            typeFormalBounds: left.typeFormalBounds,
+            positionalParameters: left.positionalParameters,
+            namedParameters: left.namedParameters);
+      }
       if (leftType is FunctionType && rightType is FunctionType) {
         var returnType = _decorateUpperOrLowerBound(
             astNode, type.returnType, left.returnType, right.returnType, isLUB);
