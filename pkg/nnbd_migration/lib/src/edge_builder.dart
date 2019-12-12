@@ -1554,17 +1554,30 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           assert(isLUB, "shouldn't be possible to get C<T> from GLB(S, null)");
           return DecoratedType(type, node, typeArguments: left.typeArguments);
         } else if (leftType is InterfaceType && rightType is InterfaceType) {
-          if (leftType.element != type.element ||
-              rightType.element != type.element) {
-            _unimplemented(astNode, 'LUB/GLB with substitution');
+          List<DecoratedType> leftTypeArguments;
+          List<DecoratedType> rightTypeArguments;
+          if (isLUB) {
+            leftTypeArguments = _decoratedClassHierarchy
+                .asInstanceOf(left, type.element)
+                .typeArguments;
+            rightTypeArguments = _decoratedClassHierarchy
+                .asInstanceOf(right, type.element)
+                .typeArguments;
+          } else {
+            if (leftType.element != type.element ||
+                rightType.element != type.element) {
+              _unimplemented(astNode, 'GLB with substitution');
+            }
+            leftTypeArguments = left.typeArguments;
+            rightTypeArguments = right.typeArguments;
           }
           List<DecoratedType> newTypeArguments = [];
           for (int i = 0; i < type.typeArguments.length; i++) {
             newTypeArguments.add(_decorateUpperOrLowerBound(
                 astNode,
                 type.typeArguments[i],
-                left.typeArguments[i],
-                right.typeArguments[i],
+                leftTypeArguments[i],
+                rightTypeArguments[i],
                 isLUB));
           }
           return DecoratedType(type, node, typeArguments: newTypeArguments);
@@ -1639,7 +1652,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         assert(isLUB, "shouldn't be possible to get T from GLB(null, S)");
         return DecoratedType(type, node);
       }
-      _unimplemented(astNode, 'LUB/GLB with type parameter types');
+      _unimplemented(astNode,
+          'LUB/GLB with type parameter types: ${left.type} ${right.type}');
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
   }

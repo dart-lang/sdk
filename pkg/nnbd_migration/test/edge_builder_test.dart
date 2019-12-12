@@ -1592,6 +1592,63 @@ void f(bool b, Map<int, String> x, Map<int, String> y) {
         yType.typeArguments[1].node);
   }
 
+  test_conditionalExpression_generic_lub() async {
+    await analyze('''
+class A<T> {}
+class B<T> extends A<T/*b*/> {}
+class C<T> extends A<T/*c*/> {}
+A<num> f(bool b, B<num> x, C<num> y) {
+  return (b ? x : y);
+}
+''');
+    var bType = decoratedTypeAnnotation('B<num> x');
+    var cType = decoratedTypeAnnotation('C<num> y');
+    var bInA = decoratedTypeAnnotation('T/*b*/');
+    var cInA = decoratedTypeAnnotation('T/*c*/');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, bType.node, cType.node);
+    assertLUB(
+        resultType.typeArguments[0].node,
+        substitutionNode(bType.typeArguments[0].node, bInA.node),
+        substitutionNode(cType.typeArguments[0].node, cInA.node));
+  }
+
+  test_conditionalExpression_generic_lub_leftSubtype() async {
+    await analyze('''
+class A<T> {}
+class B<T> extends A<T/*b*/> {}
+A<num> f(bool b, B<num> x, A<num> y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('A<num> y');
+    var bType = decoratedTypeAnnotation('B<num> x');
+    var bInA = decoratedTypeAnnotation('T/*b*/');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, bType.node, aType.node);
+    assertLUB(
+        resultType.typeArguments[0].node,
+        substitutionNode(bType.typeArguments[0].node, bInA.node),
+        aType.typeArguments[0].node);
+  }
+
+  test_conditionalExpression_generic_lub_rightSubtype() async {
+    await analyze('''
+class A<T> {}
+class B<T> extends A<T/*b*/> {}
+A<num> f(bool b, A<num> x, B<num> y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('A<num> x');
+    var bType = decoratedTypeAnnotation('B<num> y');
+    var bInA = decoratedTypeAnnotation('T/*b*/');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, aType.node, bType.node);
+    assertLUB(resultType.typeArguments[0].node, aType.typeArguments[0].node,
+        substitutionNode(bType.typeArguments[0].node, bInA.node));
+  }
+
   test_conditionalExpression_left_non_null() async {
     await analyze('''
 int f(bool b, int i) {
