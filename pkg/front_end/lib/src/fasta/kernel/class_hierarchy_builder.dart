@@ -2087,8 +2087,23 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
+  InterfaceType get objectNonNullableRawType {
+    return hierarchy.coreTypes.objectNonNullableRawType;
+  }
+
+  @override
+  InterfaceType objectRawType(Nullability nullability) {
+    return hierarchy.coreTypes.objectRawType(nullability);
+  }
+
+  @override
   InterfaceType get functionLegacyRawType {
     return hierarchy.coreTypes.functionLegacyRawType;
+  }
+
+  @override
+  InterfaceType functionRawType(Nullability nullability) {
+    return hierarchy.coreTypes.functionRawType(nullability);
   }
 
   @override
@@ -2132,6 +2147,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   bool isSubtypeOf(
       DartType subtype, DartType supertype, SubtypeCheckMode mode) {
     return hierarchy.types.isSubtypeOfKernel(subtype, supertype, mode);
+  }
+
+  @override
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    return isSubtypeOf(s, t, mode) && isSubtypeOf(t, s, mode);
   }
 
   @override

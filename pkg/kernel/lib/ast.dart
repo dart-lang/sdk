@@ -6103,6 +6103,8 @@ class TypeParameterType extends DartType {
   /// left-hand side of the intersection type.  In case [promotedBound] is null,
   /// it is an equivalent of setting the overall nullability.
   TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+    assert(promotedBound == null,
+        "Can't change the nullability attribute of an intersection type.");
     return typeParameterTypeNullability == this.typeParameterTypeNullability
         ? this
         : new TypeParameterType(

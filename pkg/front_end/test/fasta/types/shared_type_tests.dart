@@ -109,14 +109,18 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype('List<int>', 'List<int*>');
     isSubtype('List<int>', 'List<int?>');
-    isSubtype('List<X & int>', 'List<X>', typeParameters: 'X extends Object?');
+    // TODO(dmitryas):  Uncomment the following when type arguments are allowed
+    // to be intersection types.
+//    isSubtype('List<X & int>', 'List<X>', typeParameters: 'X extends Object?');
     isSubtype('List<int*>', 'List<int>');
     isSubtype('List<int*>', 'List<int*>');
     isSubtype('List<int*>', 'List<int?>');
     isObliviousSubtype('List<int?>', 'List<int>');
     isSubtype('List<int?>', 'List<int*>');
     isSubtype('List<int?>', 'List<int?>');
-    isSubtype('List<X & int?>', 'List<X>', typeParameters: 'X extends Object?');
+    // TODO(dmitryas):  Uncomment the following when type arguments are allowed
+    // to be intersection types.
+//    isSubtype('List<X & int?>', 'List<X>', typeParameters: 'X extends Object?');
 
     isNotSubtype('List<int*>*', 'List<double*>*');
     isNotSubtype('List<int*>*', 'Iterable<double*>*');
@@ -893,35 +897,35 @@ abstract class SubtypeTest<T, E> {
 
     isNotSubtype('FutureOr<T & String*>*', 'T & String*', typeParameters: 'T');
 
-    isSubtype('Id<T* & String*>*', 'T* & String*',
-        typeParameters: 'T extends Object*');
-    isSubtype('Id<T & String>', 'T & String',
-        typeParameters: 'T extends Object');
-    isSubtype('Id<T & String>', 'T & String',
-        typeParameters: 'T extends Object?');
-    isSubtype('Id<T & String?>', 'T & String?',
-        typeParameters: 'T extends Object?');
-    isSubtype('Id<T & String>', 'T & String?',
-        typeParameters: 'T extends Object?');
-    isObliviousSubtype('Id<T & String?>', 'T & String',
-        typeParameters: 'T extends Object?');
-    // TODO(dmitryas): Uncomment the following.
+    // TODO(dmitryas): Uncomment the following when type arguments are allowed
+    // to be intersection types.
+//    isSubtype('Id<T* & String*>*', 'T* & String*',
+//        typeParameters: 'T extends Object*');
+//    isSubtype('Id<T & String>', 'T & String',
+//        typeParameters: 'T extends Object');
+//    isSubtype('Id<T & String>', 'T & String',
+//        typeParameters: 'T extends Object?');
+//    isSubtype('Id<T & String?>', 'T & String?',
+//        typeParameters: 'T extends Object?');
+//    isSubtype('Id<T & String>', 'T & String?',
+//        typeParameters: 'T extends Object?');
+//    isObliviousSubtype('Id<T & String?>', 'T & String',
+//        typeParameters: 'T extends Object?');
 //    isObliviousSubtype('Id<T & String>?', 'T & String',
 //        typeParameters: 'T extends Object');
 //    isObliviousSubtype('Id<T & String>?', 'T & String?',
 //        typeParameters: 'T extends Object');
-
-    isSubtype('Id<T* & String*>*', 'T*', typeParameters: 'T extends Object*');
-    isSubtype('Id<T & String>', 'T', typeParameters: 'T extends Object');
-    isSubtype('Id<T & String>', 'T?', typeParameters: 'T extends Object');
-    isSubtype('Id<T & String>', 'T', typeParameters: 'T extends Object?');
-    isSubtype('Id<T & String?>', 'T', typeParameters: 'T extends Object?');
-    // TODO(dmitryas): Uncomment the following.
-    //isSubtype('Id<T & String>?', 'T?', typeParameters: 'T extends Object?');
-
-    isSubtype('Id<T* & String*>*', 'String*',
-        typeParameters: 'T extends Object*');
-    isNotSubtype('Id<T & String*>*', 'S & String*', typeParameters: 'T, S');
+//
+//    isSubtype('Id<T* & String*>*', 'T*', typeParameters: 'T extends Object*');
+//    isSubtype('Id<T & String>', 'T', typeParameters: 'T extends Object');
+//    isSubtype('Id<T & String>', 'T?', typeParameters: 'T extends Object');
+//    isSubtype('Id<T & String>', 'T', typeParameters: 'T extends Object?');
+//    isSubtype('Id<T & String?>', 'T', typeParameters: 'T extends Object?');
+//    isSubtype('Id<T & String>?', 'T?', typeParameters: 'T extends Object?');
+//
+//    isSubtype('Id<T* & String*>*', 'String*',
+//        typeParameters: 'T extends Object*');
+//    isNotSubtype('Id<T & String*>*', 'S & String*', typeParameters: 'T, S');
 
     isNotSubtype('void', 'T* & void', typeParameters: 'T extends Object*');
     isNotSubtype('void', 'T & void', typeParameters: 'T extends void');

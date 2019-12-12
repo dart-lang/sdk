@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         NamedType,
+        Nullability,
         Procedure,
         TypeParameter,
         Variance;
@@ -21,7 +22,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
@@ -35,6 +36,8 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
+
+import '../problems.dart';
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(
@@ -108,6 +111,30 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   Class get futureOrClass => coreTypes.futureOrClass;
 
   Class get objectClass => coreTypes.objectClass;
+
+  InterfaceType get objectNonNullableRawType {
+    return coreTypes.objectNonNullableRawType;
+  }
+
+  InterfaceType functionRawType(Nullability nullability) {
+    return coreTypes.functionRawType(nullability);
+  }
+
+  InterfaceType objectRawType(Nullability nullability) {
+    return coreTypes.objectRawType(nullability);
+  }
+
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
+    switch (mode) {
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+    }
+    return unhandled(
+        "$mode", "TypeSchemaEnvironment.areMutualSubtypes", -1, null);
+  }
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2, Library clientLibrary) {

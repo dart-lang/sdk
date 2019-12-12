@@ -40,6 +40,7 @@ accordance
 according
 accordingly
 account
+accounted
 accumulate
 accurate
 achieve
@@ -521,6 +522,7 @@ composition
 compound
 comprising
 computation
+computations
 compute
 computed
 computer
@@ -535,8 +537,8 @@ concretely
 concurrent
 condition
 conditional
-conditionals
 conditionally
+conditionals
 conditions
 configurable
 configuration
@@ -962,6 +964,8 @@ entries
 entry
 enum
 enumerated
+enumeration
+enumerations
 enums
 environment
 equal
@@ -1607,6 +1611,7 @@ lexeme
 lexical
 lexically
 lexicographical
+lexicographically
 libraries
 library
 library's
@@ -2098,6 +2103,7 @@ postpone
 postponed
 potential
 potentially
+practical
 practice
 practices
 preamble
@@ -2115,6 +2121,7 @@ precondition
 preconditions
 predefined
 predicate
+predicates
 preemptively
 prefer
 preferable
@@ -2471,6 +2478,7 @@ sanity
 satisfied
 satisfies
 satisfy
+satisfying
 save
 saved
 says

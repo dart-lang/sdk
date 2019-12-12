@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import "package:kernel/ast.dart"
     show
         BottomType,
@@ -158,7 +159,13 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       // identical.
       return new BottomType();
     } else if (name == "Never") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
       return new NeverType(interpretParsedNullability(node.parsedNullability));
+    } else if (name == "unknown") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new UnknownType();
     }
     TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
