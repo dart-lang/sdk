@@ -1632,6 +1632,18 @@ bool Function<T>(int) g(bool b, bool Function<T>(int) f) {
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
+  test_conditionalExpression_left_null_right_parameterType() async {
+    await analyze('''
+T g<T>(bool b, T t) {
+  return (b ? null : t);
+}
+''');
+
+    var nullable_t = decoratedTypeAnnotation('T t').node;
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_t);
+  }
+
   test_conditionalExpression_left_null_right_typeArgs() async {
     await analyze('''
 List<int> f(bool b, List<int> l) {
@@ -1710,6 +1722,18 @@ List<int> f(bool b, List<int> l) {
     var nullable_i = decoratedTypeAnnotation('List<int> l').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
+  }
+
+  test_conditionalExpression_right_null_left_typeParameter() async {
+    await analyze('''
+T f<T>(bool b, T t) {
+  return (b ? t : null);
+}
+''');
+
+    var nullable_t = decoratedTypeAnnotation('T t').node;
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
   }
 
   test_constructor_default_parameter_value_bool() async {

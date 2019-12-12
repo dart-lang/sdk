@@ -1633,6 +1633,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             '${rightType.runtimeType}');
       }
     } else if (type is TypeParameterType) {
+      var leftType = left.type;
+      var rightType = right.type;
+      if (leftType.isDartCoreNull || rightType.isDartCoreNull) {
+        assert(isLUB, "shouldn't be possible to get T from GLB(null, S)");
+        return DecoratedType(type, node);
+      }
       _unimplemented(astNode, 'LUB/GLB with type parameter types');
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
