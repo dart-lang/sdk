@@ -140,16 +140,8 @@ class LintDriver {
     List<UriResolver> resolvers = [DartUriResolver(sdk)];
 
     if (options.packageRootPath != null) {
-      // TODO(brianwilkerson) After 0.30.0 is published, clean up the following.
-      try {
-        // Try to use the post 0.30.0 API.
-        (builder as dynamic).builderOptions.defaultPackagesDirectoryPath =
-            options.packageRootPath;
-      } catch (_) {
-        // If that fails, fall back to the pre 0.30.0 API.
-        (builder as dynamic).defaultPackagesDirectoryPath =
-            options.packageRootPath;
-      }
+      builder.builderOptions.defaultPackagesDirectoryPath =
+          options.packageRootPath;
       Map<String, List<Folder>> packageMap =
           builder.convertPackagesToMap(builder.createPackageMap(null));
       resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
@@ -174,8 +166,6 @@ class LintDriver {
   }
 
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     AnalysisEngine.instance.instrumentationService = StdInstrumentation();
 
     SourceFactory sourceFactory = SourceFactory(resolvers);
